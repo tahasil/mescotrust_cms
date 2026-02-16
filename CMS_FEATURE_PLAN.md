@@ -104,8 +104,9 @@ All of the following are required. Your seven explicit requirements are included
 
 **Design and UX**
 
-- **Theme editor** — Admin UI to edit global design: **typography** (font family, sizes for body/headings, line height, letter spacing, font weights), **font styling** (headings vs body, links, buttons), **colors** (primary, secondary, background, text), **layout** (max width, spacing scale), and optional **header/footer** styles. Changes stored in theme config and applied on the public site via CSS variables or theme provider. Single active theme with live or preview refresh.
+- **Theme editor** — Admin UI to edit global design: **typography** with **font sources**: (1) **import font families** (e.g. Google Fonts or similar — pick from catalog, load via link or npm), (2) **custom upload fonts** (upload .woff2/.woff/.ttf; store in media/fonts; register as font-family). Plus sizes for body/headings, line height, letter spacing, font weights; **font styling** (headings vs body, links, buttons); **colors** (primary, secondary, background, text); **layout** (max width, spacing scale); optional **header/footer** styles. Stored in theme config; applied on public site via CSS variables or theme provider. Single active theme with live or preview refresh.
 - **Responsive website** — Layout and all components work on mobile, tablet, and desktop; breakpoints and touch-friendly navigation; theme or global layout width/fonts configurable.
+- **RTL support** — Right-to-left layout for languages such as Arabic or Hebrew. Global or per-locale direction (LTR/RTL); set `dir="rtl"` on document or container; layout, menu, and components RTL-aware (e.g. logical CSS, flex/grid direction). Optional toggle in theme editor or derived from active locale.
 
 **Engagement**
 
@@ -120,7 +121,7 @@ All of the following are required. Your seven explicit requirements are included
 
 - **Role-based access** — At least two roles (e.g. Admin vs Editor); Editors can create/edit content and use draft/preview; Admins can manage users, settings, and publish.
 - **Search** — Site search (public) and/or admin search for content (pages, posts) by title/slug/content.
-- **Multi-language (i18n)** — Locale-aware content (pages, menus, blogs) or at least a clear content model and URL strategy (e.g. `/en/about`, `/ar/about`) and locale switcher; stored translations or fallbacks.
+- **Multi-language (i18n)** — Locale-aware content (pages, menus, blogs) or at least a clear content model and URL strategy (e.g. `/en/about`, `/ar/about`) and locale switcher; stored translations or fallbacks. **RTL support** per locale where needed (direction, RTL-aware layout and components).
 - **Analytics and backups** — Ability to plug in analytics (e.g. script or server-side events); documented backup/restore for DB and media (or integration with managed backup).
 
 ---
@@ -219,7 +220,7 @@ Build order is designed so each phase delivers a usable slice and the next phase
 
 - **Menu model** — Name (e.g. header, footer), items (label, url, order, openInNewTab).
 - **Menu admin and public API** — CRUD in admin; GET in public API; render in layout (header/footer).
-- **Theme editor** — Admin UI for global design: **typography** (font family, base/heading sizes, line height, letter spacing, weights), **font styling** (body, headings, links, buttons), **colors** (primary, secondary, background, text), **layout** (max width, spacing). Persist in theme/site config; public API; apply on public site via CSS variables or theme provider. Optional: light/dark mode, header/footer style overrides.
+- **Theme editor** — Admin UI for global design: **typography** with **font sources**: (1) **Google Fonts (or similar)** — select from catalog, load via link or package; (2) **custom upload fonts** — upload .woff2/.woff/.ttf, store in media/fonts, register as font-family. Plus base/heading sizes, line height, letter spacing, weights; **font styling** (body, headings, links, buttons); **colors**; **layout**. Persist in theme/site config; public API; apply via CSS variables or theme provider. Optional: light/dark mode, header/footer overrides, **global direction (LTR/RTL)** for RTL support.
 - **Responsive** — Breakpoints, responsive nav (e.g. hamburger), responsive components and images.
 
 ### Phase 4 — Contact forms and email (must-have)
@@ -241,7 +242,7 @@ Build order is designed so each phase delivers a usable slice and the next phase
 - **Draft preview** — Preview URLs for pages/posts (e.g. token or role-gated) so editors can view before publish.
 - **Role-based access** — Roles (e.g. Admin, Editor); permission checks in admin and APIs (e.g. only Admin manages users and theme).
 - **Search** — Public site search (e.g. by title/slug/excerpt); and/or admin search for pages and posts.
-- **Multi-language** — Content model and APIs support locale; locale in URL or cookie; admin UI to manage translations; locale switcher on front-end; optional backup/export of content.
+- **Multi-language** — Content model and APIs support locale; locale in URL or cookie; admin UI to manage translations; locale switcher on front-end; **RTL support** (dir per locale, RTL-aware layout and components); optional backup/export of content.
 
 ### Phase 7 — Analytics and backups (must-have)
 
@@ -253,6 +254,6 @@ Build order is designed so each phase delivers a usable slice and the next phase
 ## 8. Summary
 
 - **Critical:** Auth, content model, public read APIs, and public rendering with metadata. Without these, the product is not a functioning CMS.
-- **Must-have:** Everything else in Section 4: component library, page builder, menus, blogs, **theme editor (typography, font styling, colors, layout)**, full SEO (basic + advanced), responsive design, contact forms + email, WYSIWYG, draft/preview, media optimization, roles, search, i18n, analytics and backups. There is no separate "good-to-have" tier; the plan is for a **robust** new CMS.
+- **Must-have:** Everything else in Section 4: component library, page builder, menus, blogs, **theme editor (Google Fonts/catalog import, custom upload fonts, typography, font styling, colors, layout)**, full SEO (basic + advanced), responsive design, **RTL support**, contact forms + email, WYSIWYG, draft/preview, media optimization, roles, search, i18n, analytics and backups. There is no separate "good-to-have" tier; the plan is for a **robust** new CMS.
 - **Your seven** — Component library, custom page builder, menu management, blogs, SEO, responsive website, and contact forms with email are all included as must-haves and are spread across Phases 1–5.
 - **Phasing** — Phase 1 establishes the core; Phases 2–3 add builder and navigation; Phase 4 completes contact and email; Phases 5–7 add full SEO, media, rich text, preview, roles, search, i18n, and operations. The plan is implementation-agnostic and does not assume any existing codebase.
