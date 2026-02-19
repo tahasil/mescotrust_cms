@@ -251,9 +251,58 @@ Build order is designed so each phase delivers a usable slice and the next phase
 
 ---
 
-## 8. Summary
+## 8. Senior review: gaps and suggested additions
+
+**Review perspective:** What a senior developer would add or tighten after comparing the plan to WordPress and production CMS expectations.
+
+### 8.1 WordPress-inspired features to consider adding
+
+| WordPress feature | Suggestion for this CMS |
+| ----------------- | ----------------------- |
+| **Revisions / versioning** | **Content revisions** — Store revision history for pages and posts (e.g. last N versions or by date); compare diff and restore previous version. Improves safety and editorial workflow. Add under Governance or Phase 6. |
+| **Scheduled publishing** | **Scheduled publish** — Allow “Publish at” date/time for pages and posts; a cron or job checks and flips status from draft to published at that time. Add to Draft vs published workflow. |
+| **Comments** | **Comments on blog posts** (optional) — Moderation queue, approve/trash; store in DB; optional Disqus-like or native. Plan already lists “comments” in the standard CMS table; add as optional must-have under Engagement if you want blog discussion. |
+| **Permalink structure** | **Configurable permalink base** (optional) — e.g. blog posts under `/blog/:slug` vs `/news/:slug`; single setting. You already have slugs; this is just a base path. |
+| **Redirects** | **URL redirects (301)** — When a page slug is changed or a page is removed, support optional 301 redirects (from old URL to new). Admin: list of redirect rules (from → to). Add under Structure or Phase 5. |
+| **Block/component types** | **Default component set (WordPress-like)** — Define an initial set of blocks so the page builder is usable out of the box. See 8.2 below. |
+| **Import/export** | **Content export and import** — Export pages, posts, menus (e.g. JSON); import for backup, staging, or migration. Complements backups. Add to Phase 7 or Operations. |
+| **Sticky posts** | **Pinned/sticky posts** — Optional “sticky” flag so a post stays at the top of the blog listing. Simple field + query. |
+| **2FA / security** | **Optional two-factor auth (2FA)** for admin — TOTP (e.g. Google Authenticator) for sensitive sites. Add under Auth or Phase 6. |
+
+### 8.2 Suggested default components (WordPress Gutenberg–inspired)
+
+WordPress Gutenberg ships with many block types. Your component library can start with a small set so the page builder is immediately useful:
+
+**Text:** Paragraph (richtext), Heading (level + style), List (bulleted/numbered), Quote, Code snippet.  
+**Media:** Image (single), Gallery (multiple images), Video (embed or upload), File (download link), Cover (image/video with text overlay).  
+**Layout:** Buttons (one or more CTAs), Spacer/Divider, Columns (e.g. 2/3 columns).  
+**Content:** Call-to-action (heading + text + button), Embed (YouTube, Vimeo, etc. via URL).  
+**Navigation:** Already covered by Menu management; optional “Breadcrumbs” component.
+
+Add a short “Default components” subsection under Phase 2 or in the Component library must-have so implementers know what to build first.
+
+### 8.3 Plan strengths (no change needed)
+
+- Clear critical vs must-have; phasing is logical.
+- Tech stack (Next.js, antd, MongoDB, NextAuth) is appropriate.
+- Next.js built-in features are well called out (metadata, sitemap, image, middleware).
+- Theme editor (fonts, RTL), image validation, and SEO are well specified.
+- Architecture diagram and API split (public vs protected, contact POST) are correct.
+
+### 8.4 Risks / things to watch
+
+- **Component renderer** — Ensure the public site’s component map stays in sync with the admin component library (e.g. baseComponent name) and fails safely for unknown or removed components.
+- **Public vs admin API paths** — Decide and document: either separate routes (e.g. `/api/public/pages`) or same route with optional auth and different response (e.g. only published for unauthenticated GET). Avoid mixing semantics.
+- **Media storage** — Plan says “file storage”; for production, consider S3 or similar so uploads survive restarts and scale; document in Phase 7.
+- **Rate limiting** — Add rate limiting on public contact POST and, if you add it, public search to avoid abuse.
+
+---
+
+## 9. Summary
 
 - **Critical:** Auth, content model, public read APIs, and public rendering with metadata. Without these, the product is not a functioning CMS.
 - **Must-have:** Everything else in Section 4: component library, page builder, menus, blogs, **theme editor (Google Fonts/catalog import, custom upload fonts, typography, font styling, colors, layout)**, full SEO (basic + advanced), responsive design, **RTL support**, contact forms + email, WYSIWYG, draft/preview, media optimization, roles, search, i18n, analytics and backups. There is no separate "good-to-have" tier; the plan is for a **robust** new CMS.
 - **Your seven** — Component library, custom page builder, menu management, blogs, SEO, responsive website, and contact forms with email are all included as must-haves and are spread across Phases 1–5.
 - **Phasing** — Phase 1 establishes the core; Phases 2–3 add builder and navigation; Phase 4 completes contact and email; Phases 5–7 add full SEO, media, rich text, preview, roles, search, i18n, and operations. The plan is implementation-agnostic and does not assume any existing codebase.
+
+**Related docs:** Implementation tasks and phase checklist: **IMPLEMENTATION_PLAN.md**. Current gap vs codebase: **PROJECT_PLAN_GAPS.md**. Goals and backlog: **PROJECT_PLAN.md**.

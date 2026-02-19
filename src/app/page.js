@@ -1,8 +1,8 @@
-export default function HomePage() {
+export default function Home() {
   return (
     <main>
-      <h1>Mesco Trust CMS</h1>
-      <p>Welcome to the CMS.</p>
+      <h1>Welcome</h1>
+      <p>Fresh project — ready to build.</p>
     </main>
   );
 }

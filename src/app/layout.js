@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Mesco Trust CMS',
-  description: 'Mesco Trust CMS',
+  title: 'Mescotrust CMS',
+  description: 'Fresh project',
 };
 
 export default function RootLayout({ children }) {
