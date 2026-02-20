@@ -1,22 +1,18 @@
-# Permissions (Phase 6)
+# Permission matrix
 
-## Roles
+| Permission       | Description                    |
+|------------------|--------------------------------|
+| `pages:read`     | View pages                     |
+| `pages:write`    | Create, edit, delete pages     |
+| `media:read`     | View media library             |
+| `media:write`    | Upload, delete media           |
+| `users:read`     | View users                     |
+| `users:manage`   | Create, edit, delete users and roles |
+| `theme:manage`   | Change theme settings          |
+| `menu:manage`    | Edit menus                     |
+| `header_footer:manage` | Update header/footer config |
+| `components:manage`   | Manage component registry  |
 
-- **Admin** — Full access: pages, blogs, components, menus, theme, contacts, **users**.
-- **Editor** — Content only: pages, blogs, components, contacts. No access to **users**, **theme**, or **menus** (or read-only per product decision).
+**Super admin** role has all permissions. Other roles get a subset assigned in admin → Roles.
 
-## Enforcement
-
-- **API:** `/api/admin/users` and `/api/admin/users/[id]` (GET/POST/PUT/DELETE) require **Admin**; return 403 for Editor.
-- **API:** `/api/admin/theme` (GET/PUT) require **Admin**; return 403 for Editor.
-- **Admin UI:** `/admin/users` and `/admin/theme` show "Admin only" or redirect when session.role is not Admin. Other admin routes are available to both Admin and Editor.
-
-## Rules
-
-- Cannot delete or demote the **last Admin** (enforced in user API).
-- Email uniqueness enforced on create/update.
-- Password minimum 6 characters on create; optional on update (leave blank to keep current).
-
-## Session
-
-Role is stored in the NextAuth JWT (`session.user.role`). Middleware can restrict routes by role; currently admin routes are protected by session presence only, and users/theme APIs enforce Admin in the route handler.
+**Last-admin guard:** You cannot delete or demote the last user with `super_admin` role.

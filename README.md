@@ -1,18 +1,19 @@
 # Mesco Trust CMS
 
-Next.js 14 CMS with MongoDB, NextAuth, and Ant Design admin. Aligned with [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) and [CMS_FEATURE_PLAN.md](CMS_FEATURE_PLAN.md).
+Next.js CMS platform with Ant Design admin. Built from [PROJECT-PLAN.md](PROJECT-PLAN.md) and [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md).
 
 ## Stack
 
 - **Framework:** Next.js 14 (App Router)
-- **Database:** MongoDB (Mongoose)
+- **Language:** TypeScript
+- **Database:** MongoDB with Mongoose
 - **Auth:** NextAuth (Credentials)
 - **Admin UI:** Ant Design 5.x
-- **Other:** bcryptjs, slugify
+- **Styling:** Tailwind CSS
 
 ## Setup
 
-1. **Clone and install**
+1. **Install**
 
    ```bash
    npm install
@@ -22,18 +23,22 @@ Next.js 14 CMS with MongoDB, NextAuth, and Ant Design admin. Aligned with [IMPLE
 
    Copy `.env.example` to `.env.local` and set:
 
-   - `MONGODB_URI` — MongoDB connection string
-   - `NEXTAUTH_SECRET` — long random string (e.g. `openssl rand -base64 32`)
-   - `NEXTAUTH_URL` — app URL (e.g. `http://localhost:3000`)
-   - `ADMIN_EMAIL` and `ADMIN_PASSWORD` — for the initial admin user (used by seed)
+   - `MONGODB_URI` — MongoDB connection string (required)
+   - `NEXTAUTH_SECRET` — Long random string (e.g. `openssl rand -base64 32`)
+   - `NEXTAUTH_URL` — App URL (e.g. `http://localhost:3000`)
+   - `ADMIN_EMAIL` and `ADMIN_PASSWORD` — For the initial admin user (seed)
 
-3. **Seed initial admin**
+   The app validates these at startup and fails fast if missing.
+
+3. **Database**
+
+   Ensure MongoDB is running and `MONGODB_URI` is set, then run the seed:
 
    ```bash
-   npm run seed
+   npm run db:seed
    ```
 
-   Creates one Admin user from `ADMIN_EMAIL` / `ADMIN_PASSWORD`. Run once after DB is available.
+   Seed creates a `super_admin` role and one admin user from `ADMIN_EMAIL` / `ADMIN_PASSWORD`, plus default builder components.
 
 4. **Run**
 
@@ -47,47 +52,37 @@ Next.js 14 CMS with MongoDB, NextAuth, and Ant Design admin. Aligned with [IMPLE
 
 ## Reserved paths
 
-These slugs cannot be used for CMS pages: `admin`, `blog`, `contact`, `search`, `api`, `preview`, `sitemap.xml`, `robots.txt`. Enforced in admin when saving page slug.
+These slugs cannot be used for CMS pages: `admin`, `blog`, `contact`, `search`, `api`, `preview`, `_next`, `login`, `auth`, `sitemap.xml`, `robots.txt`.
 
 ## API overview
 
 - **Health:** `GET /api/health` — 200 if DB connected, 503 otherwise.
 - **Public (no auth):**  
-  `GET /api/public/pages/[slug]`, `GET /api/public/blogs`, `GET /api/public/blogs/[slug]`, `GET /api/public/blog-categories`, `GET /api/theme`
+  `GET /api/public/pages`, `GET /api/public/pages/[slug]`
 - **Admin (session required):**  
   `GET/POST /api/admin/pages`, `GET/PUT/DELETE /api/admin/pages/[id]`,  
-  `GET/POST /api/admin/blogs`, `GET/PUT/DELETE /api/admin/blogs/[id]`,  
-  `GET/POST /api/admin/blog-categories`, `GET/PUT/DELETE /api/admin/blog-categories/[id]`
+  `GET/POST /api/admin/users`, `GET/PUT/DELETE /api/admin/users/[id]`,  
+  `GET/POST /api/admin/roles`, `GET/PUT/DELETE /api/admin/roles/[id]`
 
-New block types (components) require implementing the React component and registering it in the component map (code deploy). See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) Phase 2.
+See [PROJECT-PLAN.md](PROJECT-PLAN.md) Section 30 for the full API reference.
 
-## How to edit, add, or remove components
+## Permissions
 
-### Blocks on a page (page builder)
+See [docs/PERMISSIONS.md](docs/PERMISSIONS.md).
 
-When **editing a page** (Admin → Pages → click a page):
+## Scheduling (optional)
 
-- **Add a block:** In the "Page builder" section, choose a component (e.g. Paragraph, Heading, Image) from the **Add block** dropdown and click **Add block**.
-- **Edit a block:** Click the **Edit** (pencil) button on the block → change the fields in the drawer (e.g. text, level, image URL) → click **Save** in the drawer.
-- **Remove a block:** Click the **Delete** (trash) button on the block.
-- **Reorder blocks:** Use the **Up** / **Down** arrows on each block.
-- **Duplicate a block:** Click the **Copy** button to add a copy of the block below.
-- Click **Save** at the top of the page to save the whole page (including the layout).
+Pages support `publishedAt` and `unpublishedAt`. To flip status at those times, run a cron job that calls an internal API (e.g. `POST /api/cron/schedule`) or a script that updates the database (Mongoose). Example: Vercel Cron, GitHub Actions, or system cron. Document your chosen method in ops.
 
-### Component definitions (Components library)
+## Backup and export
 
-In **Admin → Components** you can manage block *types* (Paragraph, Heading, Image, or custom):
-
-- **Add:** Click **Add component**, fill name, display name, base component (must match a type that exists in code: e.g. `Paragraph`, `Heading`, `Image`), and category. Save.
-- **Edit:** Click **Edit** on a row to change display name, category, or active status.
-- **Remove:** Click **Delete**. You can only delete a component that is not used on any page; otherwise deactivate it instead.
-
-New block *types* (e.g. a new "Button" component) require adding the React component under `components/cms/blocks/` and registering it in `components/cms/ComponentRenderer.js` (code change), then you can add a component definition in the admin that uses that `baseComponent` name.
+- **Database:** Use your MongoDB provider’s backup (e.g. Atlas backups, self-hosted dump).
+- **Content export:** Use Mongoose or custom scripts to export pages, posts, and media metadata to JSON/files. No built-in export UI; add one if required.
 
 ## Scripts
 
-- `npm run dev` — development server
-- `npm run build` — production build
-- `npm run start` — start production server
-- `npm run seed` — create initial admin user (set ADMIN_EMAIL, ADMIN_PASSWORD)
+- `npm run dev` — Development server
+- `npm run build` — Production build
+- `npm run start` — Start production server
+- `npm run db:seed` — Create initial admin user and default components (requires MongoDB and .env)
 - `npm run lint` — ESLint
