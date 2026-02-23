@@ -102,7 +102,7 @@ export default function AdminComponentEditPage() {
         </Space>
       </div>
 
-      <PageBuilder layout={layout} onChange={setLayout} paletteSource="core" />
+      <PageBuilder layout={layout} onChange={setLayout} />
     </div>
   );
 }

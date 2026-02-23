@@ -12,11 +12,11 @@ import {
   UnorderedListOutlined, HolderOutlined, EyeOutlined, StarOutlined,
   TeamOutlined, ClockCircleOutlined, AlertOutlined, TableOutlined,
   ShareAltOutlined, LineOutlined, DesktopOutlined, TabletOutlined,
-  MobileOutlined, CloseOutlined, CheckOutlined,
+  MobileOutlined, CloseOutlined, CheckOutlined, ArrowUpOutlined, ArrowDownOutlined,
 } from "@ant-design/icons";
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor,
-  useSensor, useSensors,
+  useSensor, useSensors, useDraggable, useDroppable,
 } from "@dnd-kit/core";
 import {
   arrayMove, SortableContext, sortableKeyboardCoordinates,
@@ -67,6 +67,8 @@ const CORE_PAGE_BUILDER_COMPONENTS = [
   { _id: "core-Spacer", name: "Spacer", displayName: "Spacer", category: "layout", baseComponent: "Spacer", description: "Vertical space or divider", propsSchema: [{ key: "height", type: "number", label: "Height (px)" }, { key: "showDivider", type: "boolean", label: "Show divider line" }], defaultProps: { height: 40, showDivider: false }, active: true },
   { _id: "core-Columns", name: "Columns", displayName: "Columns", category: "layout", baseComponent: "Columns", description: "Multi-column layout", propsSchema: [{ key: "columns", type: "number", label: "Columns (1-4)" }, { key: "gap", type: "number", label: "Gap (px)" }, { key: "content", type: "json", label: "Content JSON" }], defaultProps: { columns: 2, gap: 24, content: [{ text: "Column 1" }, { text: "Column 2" }] }, active: true },
   { _id: "core-Divider", name: "Divider", displayName: "Divider", category: "layout", baseComponent: "Divider", description: "Horizontal rule with optional text", propsSchema: [{ key: "style", type: "select", label: "Style", options: ["solid", "dashed", "dotted"] }, { key: "color", type: "text", label: "Color" }, { key: "thickness", type: "number", label: "Thickness (px)" }, { key: "width", type: "text", label: "Width" }, { key: "spacing", type: "number", label: "Spacing (px)" }, { key: "text", type: "text", label: "Center text" }], defaultProps: { style: "solid", color: "#e8e8e8", thickness: 1, width: "100%", spacing: 24, text: "" }, active: true },
+  { _id: "core-Header", name: "Header", displayName: "Header / Navbar", category: "layout", baseComponent: "Header", description: "Site header with logo, nav links and action buttons", propsSchema: [{ key: "logoImage", type: "image", label: "Logo image URL" }, { key: "logoTitle", type: "text", label: "Logo title" }, { key: "logoTagline", type: "text", label: "Logo tagline" }, { key: "logoUrl", type: "url", label: "Logo link URL" }, { key: "navItems", type: "json", label: "Nav items (JSON: [{label, url, hasDropdown}])" }, { key: "actionButtons", type: "json", label: "Action buttons (JSON: [{label, url, variant: primary|secondary, icon: person|heart}])" }, { key: "headerBackground", type: "color", label: "Header background" }, { key: "navColor", type: "color", label: "Nav text color" }, { key: "primaryButtonBg", type: "color", label: "Primary button background" }, { key: "primaryButtonText", type: "color", label: "Primary button text" }, { key: "secondaryButtonBg", type: "color", label: "Secondary button background" }, { key: "secondaryButtonText", type: "color", label: "Secondary button text" }, { key: "paddingY", type: "number", label: "Vertical padding (px)" }, { key: "paddingX", type: "number", label: "Horizontal padding (px)" }], defaultProps: { logoTitle: "MESCO", logoTagline: "A TRUST SINCE 1960", navItems: [{ label: "About", url: "#", hasDropdown: true }, { label: "Our Works", url: "#", hasDropdown: true }, { label: "Media", url: "#", hasDropdown: true }, { label: "More", url: "#", hasDropdown: true }], actionButtons: [{ label: "Volunteer", url: "#", variant: "secondary", icon: "person" }, { label: "Donate Now", url: "#", variant: "primary", icon: "heart" }], navColor: "#333", primaryButtonBg: "#a52a2a", primaryButtonText: "#fff", secondaryButtonBg: "#f4c4c4", secondaryButtonText: "#8b0000", paddingY: 16, paddingX: 0 }, active: true },
+  { _id: "core-Section", name: "Section", displayName: "Section (container)", category: "layout", baseComponent: "Section", description: "Container block – add text, images, icons inside", propsSchema: [{ key: "backgroundColor", type: "color", label: "Background color" }, { key: "padding", type: "text", label: "Padding (e.g. 2rem 1rem)" }], defaultProps: { layout: [], backgroundColor: "", padding: "" }, active: true },
 
   // ── Content ──
   { _id: "core-CallToAction", name: "CallToAction", displayName: "Call to Action", category: "content", baseComponent: "CallToAction", description: "CTA with heading & button", propsSchema: [{ key: "heading", type: "text", label: "Heading" }, { key: "text", type: "text", label: "Text" }, { key: "buttonLabel", type: "text", label: "Button label" }, { key: "buttonUrl", type: "url", label: "Button URL" }, { key: "buttonVariant", type: "select", label: "Button style", options: ["solid", "outline"] }, { key: "align", type: "select", label: "Alignment", options: ["left", "center", "right"] }, { key: "color", type: "color", label: "Heading color" }, { key: "backgroundColor", type: "color", label: "Background color" }], defaultProps: { heading: "Ready to get started?", text: "Join thousands of users today.", buttonLabel: "Learn more", buttonUrl: "#", buttonVariant: "solid", align: "center" }, active: true },
@@ -106,7 +108,7 @@ const BLOCK_ICON_MAP = {
   Tabs: <AppstoreOutlined />, Modal: <InteractionOutlined />, Stats: <StarOutlined />,
   Pricing: <TableOutlined />, Table: <TableOutlined />, Timeline: <ClockCircleOutlined />,
   Breadcrumbs: <ShareAltOutlined />, Alert: <AlertOutlined />, SocialLinks: <ShareAltOutlined />,
-  Slider: <PictureOutlined />,
+  Slider: <PictureOutlined />, Header: <LayoutOutlined />, Section: <LayoutOutlined />,
 };
 
 // ─── Schema Field Renderer ──────────────────────────────────
@@ -153,8 +155,58 @@ function ThemeColorInput({ value, onChange, themeColorOptions }) {
   );
 }
 
+function ArrayEditor({ field, themeColorOptions }) {
+  const { key, label, itemSchema = [], itemLabel = "Item" } = field;
+  const defaultItem = itemSchema.reduce((acc, f) => ({ ...acc, [f.key]: f.default ?? (f.type === "boolean" ? false : "") }), {});
+
+  return (
+    <Form.Item label={label}>
+      <Form.List name={key}>
+        {(fields, { add, remove }) => (
+          <>
+            {fields.map(({ key: listKey, name }) => (
+              <div
+                key={listKey}
+                style={{
+                  marginBottom: 12,
+                  padding: 12,
+                  background: "#fafafa",
+                  borderRadius: 8,
+                  border: "1px solid #e8e8e8",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "#666" }}>{itemLabel} #{name + 1}</span>
+                  <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={() => remove(name)} />
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                  {itemSchema.map((subField) => (
+                    <Form.Item key={subField.key} name={[name, subField.key]} label={subField.label} style={{ marginBottom: 8 }} valuePropName={subField.type === "boolean" ? "checked" : undefined}>
+                      {subField.type === "number" ? <InputNumber style={{ width: "100%" }} /> : null}
+                      {subField.type === "boolean" ? <Switch /> : null}
+                      {subField.type === "select" ? <Select options={(subField.options || []).map((o) => ({ value: o, label: o }))} allowClear style={{ width: "100%" }} /> : null}
+                      {subField.type === "color" ? <ThemeColorInput themeColorOptions={themeColorOptions} /> : null}
+                      {(subField.type === "url" || subField.type === "image" || subField.type === "text") && subField.type !== "richtext" ? <Input placeholder={subField.type === "url" || subField.type === "image" ? "https://..." : ""} /> : null}
+                    </Form.Item>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <Button type="dashed" onClick={() => add(defaultItem)} block icon={<PlusOutlined />} style={{ marginTop: 4 }}>
+              Add {itemLabel}
+            </Button>
+          </>
+        )}
+      </Form.List>
+    </Form.Item>
+  );
+}
+
 function renderSchemaField(field, themeColorOptions) {
   const { key, type, label } = field;
+  if (type === "json" && field.itemSchema?.length > 0) {
+    return <ArrayEditor key={key} field={field} themeColorOptions={themeColorOptions} />;
+  }
   switch (type) {
     case "number":
       return <Form.Item key={key} name={key} label={label}><InputNumber style={{ width: "100%" }} /></Form.Item>;
@@ -194,9 +246,79 @@ const SECTION_SETTINGS_SCHEMA = [
   { key: "_sectionPadding", type: "text", label: "Section padding (e.g. 2rem 0)" },
 ];
 
+/** Add itemSchema for list-like JSON fields so the drawer shows Add/Remove item UI instead of raw JSON. */
+const SCHEMA_ENRICHMENT = {
+  Header: {
+    navItems: {
+      itemLabel: "Nav item",
+      itemSchema: [
+        { key: "label", type: "text", label: "Label" },
+        { key: "url", type: "url", label: "URL" },
+        { key: "hasDropdown", type: "boolean", label: "Has dropdown", default: false },
+      ],
+    },
+    actionButtons: {
+      itemLabel: "Button",
+      itemSchema: [
+        { key: "label", type: "text", label: "Label" },
+        { key: "url", type: "url", label: "URL" },
+        { key: "variant", type: "select", label: "Variant", options: ["primary", "secondary"] },
+        { key: "icon", type: "text", label: "Icon (person | heart)" },
+      ],
+    },
+  },
+  Buttons: {
+    buttons: {
+      itemLabel: "Button",
+      itemSchema: [
+        { key: "label", type: "text", label: "Label" },
+        { key: "url", type: "url", label: "URL" },
+        { key: "variant", type: "select", label: "Style", options: ["solid", "outline"] },
+      ],
+    },
+  },
+  CardGrid: {
+    cards: {
+      itemLabel: "Card",
+      itemSchema: [
+        { key: "title", type: "text", label: "Title" },
+        { key: "description", type: "text", label: "Description" },
+      ],
+    },
+  },
+  Slider: {
+    slides: {
+      itemLabel: "Slide",
+      itemSchema: [
+        { key: "image", type: "image", label: "Image URL" },
+        { key: "heading", type: "text", label: "Heading" },
+        { key: "text", type: "text", label: "Text" },
+      ],
+    },
+  },
+};
+
+/** Which props belong to which clickable element (for "click element → edit in drawer"). */
+const BLOCK_ELEMENT_FIELDS = {
+  Hero: {
+    heading: { label: "Heading", fields: ["heading"] },
+    subheading: { label: "Subheading", fields: ["subheading"] },
+    primaryButton: { label: "Primary button", fields: ["buttonLabel", "buttonUrl", "buttonVariant"] },
+    secondaryButton: { label: "Secondary button", fields: ["secondaryButtonLabel", "secondaryButtonUrl"] },
+    background: { label: "Background image", fields: ["backgroundImage", "backgroundAlt"] },
+  },
+  CallToAction: {
+    heading: { label: "Heading", fields: ["heading"] },
+    text: { label: "Text", fields: ["text"] },
+    button: { label: "Button", fields: ["buttonLabel", "buttonUrl", "buttonVariant"] },
+  },
+  Paragraph: { content: { label: "Text", fields: ["text", "color", "align"] } },
+  Heading: { content: { label: "Heading", fields: ["level", "text", "style", "color", "align"] } },
+};
+
 // ─── Sortable Visual Block ──────────────────────────────────
 
-function SortableVisualBlock({ block, index, isSelected, onSelect, onEdit, onDuplicate, onRemove }) {
+function SortableVisualBlock({ block, index, isSelected, onSelect, onEdit, onDuplicate, onRemove, onElementClick }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.instanceId });
 
   const comp = CORE_PAGE_BUILDER_COMPONENTS.find((c) => c.baseComponent === block.baseComponent);
@@ -281,29 +403,41 @@ function SortableVisualBlock({ block, index, isSelected, onSelect, onEdit, onDup
           </div>
         )}
 
-        {/* Live rendered block */}
-        <div style={{ pointerEvents: "none", minHeight: 20 }}>
-          <ComponentRenderer layout={[{ ...block, order: 0 }]} />
+        {/* Live rendered block – allow pointer events when selected so user can click individual elements */}
+        <div style={{ pointerEvents: isSelected ? "auto" : "none", minHeight: 20 }}>
+          <ComponentRenderer
+            layout={[{ ...block, order: 0 }]}
+            onElementClick={isSelected && onElementClick ? (instanceId, elementKey) => onElementClick(instanceId, elementKey) : undefined}
+          />
         </div>
       </div>
     </div>
   );
 }
 
-// ─── Add Block Button between blocks ────────────────────────
+// ─── Add Block Button (with drop zone for drag-from-palette) ────────────────────────
 
-function AddBlockButton({ onClick }) {
+function AddBlockButton({ onClick, dropIndex, isOver }) {
+  const { setNodeRef, isOver: isOverDroppable } = useDroppable({ id: `insert-${dropIndex}` });
+  const over = isOver !== undefined ? isOver : isOverDroppable;
+
   return (
     <div
+      ref={setNodeRef}
       style={{
         display: "flex",
         justifyContent: "center",
-        padding: "4px 0",
+        padding: "8px 0",
         position: "relative",
+        minHeight: 32,
+        borderRadius: 6,
+        background: over ? "rgba(24, 144, 255, 0.08)" : "transparent",
+        border: over ? "2px dashed #1890ff" : "2px dashed transparent",
+        transition: "background 0.15s, border 0.15s",
       }}
     >
-      <div style={{ position: "absolute", top: "50%", left: 0, right: 0, height: 1, background: "#e8e8e8", transform: "translateY(-50%)" }} />
-      <Tooltip title="Add block here">
+      <div style={{ position: "absolute", top: "50%", left: 0, right: 0, height: 1, background: "#e8e8e8", transform: "translateY(-50%)", pointerEvents: "none" }} />
+      <Tooltip title="Add block here or drag from palette">
         <Button
           type="default"
           size="small"
@@ -315,33 +449,40 @@ function AddBlockButton({ onClick }) {
             width: 24,
             height: 24,
             minWidth: 24,
-            background: "#fff",
-            border: "1px solid #d9d9d9",
-            opacity: 0.5,
+            background: over ? "#e6f4ff" : "#fff",
+            border: over ? "1px solid #1890ff" : "1px solid #d9d9d9",
+            opacity: over ? 1 : 0.5,
             transition: "opacity 0.15s, border-color 0.15s",
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.borderColor = "#1890ff"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.opacity = "0.5"; e.currentTarget.style.borderColor = "#d9d9d9"; }}
+          onMouseEnter={(e) => { if (!over) { e.currentTarget.style.opacity = "1"; e.currentTarget.style.borderColor = "#1890ff"; } }}
+          onMouseLeave={(e) => { if (!over) { e.currentTarget.style.opacity = "0.5"; e.currentTarget.style.borderColor = "#d9d9d9"; } }}
         />
       </Tooltip>
     </div>
   );
 }
 
-// ─── Component Palette Item ─────────────────────────────────
+// ─── Component Palette Item (draggable onto canvas) ─────────────────────────────────
 
-function ComponentPaletteItem({ comp, onAdd }) {
+function ComponentPaletteItem({ comp, onAdd, index }) {
   const icon = BLOCK_ICON_MAP[comp.baseComponent] || <AppstoreOutlined />;
   const catKey = comp.category || "content";
   const catMeta = CATEGORY_META[catKey] || CATEGORY_META.content;
+  const id = `palette-${comp._id}-${index ?? 0}`;
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id, data: { type: "palette", comp } });
 
   return (
     <div
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
       onClick={() => onAdd(comp)}
       style={{
         display: "flex", alignItems: "center", gap: 10,
-        padding: "10px 12px", cursor: "pointer", borderRadius: 8,
-        transition: "background 0.15s", border: "1px solid transparent",
+        padding: "10px 12px", cursor: isDragging ? "grabbing" : "grab", borderRadius: 8,
+        transition: "background 0.15s, box-shadow 0.15s", border: "1px solid transparent",
+        opacity: isDragging ? 0.8 : 1,
+        boxShadow: isDragging ? "0 4px 12px rgba(0,0,0,0.15)" : "none",
       }}
       onMouseEnter={(e) => { e.currentTarget.style.background = "#f5f5f5"; e.currentTarget.style.border = "1px solid #e8e8e8"; }}
       onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.border = "1px solid transparent"; }}
@@ -362,6 +503,89 @@ function ComponentPaletteItem({ comp, onAdd }) {
   );
 }
 
+// ─── Empty canvas drop zone (for drag-from-palette) ─────────
+
+function EmptyCanvasDropZone({ onAdd }) {
+  const { setNodeRef, isOver } = useDroppable({ id: "insert-0" });
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        padding: "60px 24px",
+        textAlign: "center",
+        borderRadius: 8,
+        border: isOver ? "2px dashed #1890ff" : "2px dashed #e8e8e8",
+        background: isOver ? "rgba(24, 144, 255, 0.04)" : "transparent",
+        transition: "border 0.15s, background 0.15s",
+      }}
+    >
+      <Empty
+        image={Empty.PRESENTED_IMAGE_SIMPLE}
+        description={<span style={{ color: "#999" }}>Drag blocks here or click <strong>Add Block</strong> to start</span>}
+      >
+        <Button type="primary" icon={<PlusOutlined />} onClick={onAdd}>Add your first block</Button>
+      </Empty>
+    </div>
+  );
+}
+
+// ─── Layers panel (layer list for selection & actions) ────────
+
+function LayersPanel({ sorted, selectedIndex, onSelect, onEdit, onDuplicate, onRemove, onMoveUp, onMoveDown, onClose }) {
+  return (
+    <div style={{ width: 260, flexShrink: 0, borderRight: "1px solid #e8e8e8", background: "#fafafa", display: "flex", flexDirection: "column", minHeight: 0 }}>
+      <div style={{ padding: "12px 12px 8px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #e8e8e8" }}>
+        <span style={{ fontWeight: 600, fontSize: 13, color: "#333" }}>Layers</span>
+        {onClose && <Button type="text" size="small" icon={<CloseOutlined />} onClick={onClose} />}
+      </div>
+      <div style={{ flex: 1, overflow: "auto", padding: "8px 0" }}>
+        {sorted.length === 0 ? (
+          <div style={{ padding: 24, textAlign: "center", color: "#999", fontSize: 12 }}>No blocks yet. Add a block to see layers.</div>
+        ) : (
+          sorted.map((block, index) => {
+            const comp = CORE_PAGE_BUILDER_COMPONENTS.find((c) => c.baseComponent === block.baseComponent);
+            const catKey = comp?.category || "content";
+            const catMeta = CATEGORY_META[catKey] || CATEGORY_META.content;
+            const isSelected = selectedIndex === index;
+            return (
+              <div
+                key={block.instanceId}
+                onClick={() => onSelect(index)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "8px 12px",
+                  margin: "2px 8px",
+                  borderRadius: 6,
+                  cursor: "pointer",
+                  background: isSelected ? catMeta.color + "18" : "transparent",
+                  borderLeft: isSelected ? `3px solid ${catMeta.color}` : "3px solid transparent",
+                }}
+              >
+                <span style={{ color: "#999", fontSize: 12 }}>{index + 1}.</span>
+                <div style={{ width: 24, height: 24, borderRadius: 4, background: catMeta.color + "25", color: catMeta.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>
+                  {BLOCK_ICON_MAP[block.baseComponent] || <AppstoreOutlined />}
+                </div>
+                <span style={{ flex: 1, fontSize: 12, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {comp?.displayName || block.baseComponent}
+                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: 2 }} onClick={(e) => e.stopPropagation()}>
+                  <Tooltip title="Move up"><Button type="text" size="small" icon={<ArrowUpOutlined />} disabled={index === 0} onClick={() => onMoveUp(index)} /></Tooltip>
+                  <Tooltip title="Move down"><Button type="text" size="small" icon={<ArrowDownOutlined />} disabled={index === sorted.length - 1} onClick={() => onMoveDown(index)} /></Tooltip>
+                  <Tooltip title="Edit"><Button type="text" size="small" icon={<EditOutlined />} onClick={() => onEdit(index)} /></Tooltip>
+                  <Tooltip title="Duplicate"><Button type="text" size="small" icon={<CopyOutlined />} onClick={() => onDuplicate(index)} /></Tooltip>
+                  <Tooltip title="Delete"><Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={() => onRemove(index)} /></Tooltip>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Responsive Preview Widths ──────────────────────────────
 
 const PREVIEW_WIDTHS = {
@@ -374,9 +598,9 @@ const PREVIEW_WIDTHS = {
 // Main PageBuilder Component
 // ═══════════════════════════════════════════════════════════
 
-export default function PageBuilder({ layout = [], onChange, paletteSource }) {
-  /** When paletteSource === "core", palette shows all base blocks (text, image, button, etc.). Otherwise palette shows custom components from API. */
-  const [components, setComponents] = useState(() => (paletteSource === "core" ? CORE_PAGE_BUILDER_COMPONENTS : []));
+export default function PageBuilder({ layout = [], onChange }) {
+  /** Palette loads all reusable components from DB (system + custom) via API. */
+  const [components, setComponents] = useState([]);
   const [theme, setTheme] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [editingIndex, setEditingIndex] = useState(null);
@@ -385,6 +609,10 @@ export default function PageBuilder({ layout = [], onChange, paletteSource }) {
   const [insertAtIndex, setInsertAtIndex] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [previewMode, setPreviewMode] = useState("desktop");
+  const [layersPanelOpen, setLayersPanelOpen] = useState(true);
+  const [addToSectionBlockIndex, setAddToSectionBlockIndex] = useState(null);
+  const [editingInnerBlock, setEditingInnerBlock] = useState(null);
+  const [editingElement, setEditingElement] = useState(null);
   const [form] = Form.useForm();
   const canvasRef = useRef(null);
 
@@ -417,10 +645,6 @@ export default function PageBuilder({ layout = [], onChange, paletteSource }) {
   );
 
   useEffect(() => {
-    if (paletteSource === "core") {
-      setComponents(CORE_PAGE_BUILDER_COMPONENTS);
-      return;
-    }
     fetch("/api/admin/components")
       .then((res) => (res.ok ? res.json() : []))
       .then((list) => {
@@ -439,7 +663,7 @@ export default function PageBuilder({ layout = [], onChange, paletteSource }) {
         setComponents(mapped);
       })
       .catch(() => setComponents([]));
-  }, [paletteSource]);
+  }, []);
 
   useEffect(() => {
     fetch("/api/theme")
@@ -478,6 +702,23 @@ export default function PageBuilder({ layout = [], onChange, paletteSource }) {
       props: { ...(comp.defaultProps || {}) },
       order: 0,
     };
+
+    if (addToSectionBlockIndex !== null) {
+      const sectionBlock = sorted[addToSectionBlockIndex];
+      if (sectionBlock?.baseComponent === "Section") {
+        const innerLayout = Array.isArray(sectionBlock.props?.layout) ? [...sectionBlock.props.layout] : [];
+        innerLayout.push({ ...newBlock, order: innerLayout.length });
+        const updated = blocks.map((b) =>
+          b.instanceId === sectionBlock.instanceId ? { ...b, props: { ...b.props, layout: innerLayout } } : b
+        );
+        triggerChange(updated);
+      }
+      setAddToSectionBlockIndex(null);
+      setAddDrawerOpen(false);
+      setSearchQuery("");
+      return;
+    }
+
     let newLayout;
     if (insertAtIndex !== null && insertAtIndex >= 0) {
       const arr = [...sorted];
@@ -508,11 +749,15 @@ export default function PageBuilder({ layout = [], onChange, paletteSource }) {
 
   const handleDuplicate = (index) => {
     const block = sorted[index];
+    let props = { ...(block.props || {}) };
+    if (block.baseComponent === "Section" && Array.isArray(props.layout)) {
+      props = { ...props, layout: props.layout.map((b) => ({ ...b, instanceId: generateId(), order: 0 })) };
+    }
     const clone = {
       instanceId: generateId(),
       componentId: block.componentId,
       baseComponent: block.baseComponent,
-      props: { ...(block.props || {}) },
+      props,
       order: 0,
     };
     const arr = [...sorted];
@@ -523,35 +768,141 @@ export default function PageBuilder({ layout = [], onChange, paletteSource }) {
 
   const openEdit = (index) => {
     setEditingIndex(index);
+    setEditingInnerBlock(null);
+    setEditingElement(null);
     const block = sorted[index];
     form.resetFields();
     form.setFieldsValue(block.props || {});
     setDrawerOpen(true);
   };
 
+  const openEditElement = (blockIndex, elementKey) => {
+    const block = sorted[blockIndex];
+    const elementMeta = BLOCK_ELEMENT_FIELDS[block?.baseComponent]?.[elementKey];
+    if (!block || !elementMeta) return;
+    setEditingIndex(blockIndex);
+    setEditingInnerBlock(null);
+    setEditingElement({ blockIndex, elementKey });
+    form.resetFields();
+    form.setFieldsValue(block.props || {});
+    setDrawerOpen(true);
+  };
+
+  const openEditInner = (sectionIndex, innerIndex) => {
+    setEditingInnerBlock({ sectionIndex, innerIndex });
+    const sectionBlock = sorted[sectionIndex];
+    const innerLayout = Array.isArray(sectionBlock?.props?.layout) ? sectionBlock.props.layout : [];
+    const inner = innerLayout[innerIndex];
+    form.resetFields();
+    form.setFieldsValue(inner?.props || {});
+  };
+
   const handleEditSave = () => {
     form.validateFields().then((values) => {
-      const block = sorted[editingIndex];
-      const newLayout = blocks.map((b) =>
-        b.instanceId === block.instanceId ? { ...b, props: values } : b
-      );
-      triggerChange(newLayout);
+      if (editingInnerBlock !== null) {
+        const { sectionIndex, innerIndex } = editingInnerBlock;
+        const sectionBlock = sorted[sectionIndex];
+        const innerLayout = Array.isArray(sectionBlock?.props?.layout) ? [...sectionBlock.props.layout] : [];
+        if (innerLayout[innerIndex]) {
+          innerLayout[innerIndex] = { ...innerLayout[innerIndex], props: values };
+          const updated = blocks.map((b) =>
+            b.instanceId === sectionBlock.instanceId ? { ...b, props: { ...b.props, layout: innerLayout } } : b
+          );
+          triggerChange(updated);
+        }
+        setEditingInnerBlock(null);
+      } else if (editingElement !== null) {
+        const { blockIndex, elementKey } = editingElement;
+        const block = sorted[blockIndex];
+        const elementMeta = BLOCK_ELEMENT_FIELDS[block?.baseComponent]?.[elementKey];
+        const keys = elementMeta?.fields ?? [];
+        const patch = {};
+        keys.forEach((k) => { if (values[k] !== undefined) patch[k] = values[k]; });
+        const newProps = { ...(block.props || {}), ...patch };
+        const newLayout = blocks.map((b) =>
+          b.instanceId === block.instanceId ? { ...b, props: newProps } : b
+        );
+        triggerChange(newLayout);
+        setEditingElement(null);
+      } else {
+        const block = sorted[editingIndex];
+        const newProps = block.baseComponent === "Section" ? { ...block.props, ...values, layout: block.props?.layout ?? [] } : values;
+        const newLayout = blocks.map((b) =>
+          b.instanceId === block.instanceId ? { ...b, props: newProps } : b
+        );
+        triggerChange(newLayout);
+      }
       setDrawerOpen(false);
       setEditingIndex(null);
     });
   };
 
+  const handleRemoveInner = (sectionIndex, innerIndex) => {
+    const sectionBlock = sorted[sectionIndex];
+    const innerLayout = Array.isArray(sectionBlock?.props?.layout) ? [...sectionBlock.props.layout] : [];
+    innerLayout.splice(innerIndex, 1);
+    const updated = blocks.map((b) =>
+      b.instanceId === sectionBlock.instanceId ? { ...b, props: { ...b.props, layout: innerLayout } } : b
+    );
+    triggerChange(updated);
+    setEditingInnerBlock(null);
+  };
+
+  const enrichSchema = (baseComponent, schema) => {
+    if (!Array.isArray(schema)) return schema;
+    const enrichment = SCHEMA_ENRICHMENT[baseComponent];
+    if (!enrichment) return schema;
+    return schema.map((f) => ({ ...f, ...(enrichment[f.key] || {}) }));
+  };
+
   const getPropsFields = (baseComponent) => {
     const comp = components.find((c) => c.baseComponent === baseComponent);
-    if (comp?.propsSchema?.length > 0) return comp.propsSchema.map((f) => renderSchemaField(f, themeColorOptions));
     const core = CORE_PAGE_BUILDER_COMPONENTS.find((c) => c.baseComponent === baseComponent);
-    if (core?.propsSchema?.length > 0) return core.propsSchema.map((f) => renderSchemaField(f, themeColorOptions));
-    return <Form.Item name="text" label="Content"><Input.TextArea rows={2} /></Form.Item>;
+    const raw = comp?.propsSchema ?? core?.propsSchema ?? [];
+    if (raw.length === 0) return <Form.Item name="text" label="Content"><Input.TextArea rows={2} /></Form.Item>;
+    const schema = enrichSchema(baseComponent, raw);
+    return schema.map((f) => renderSchemaField(f, themeColorOptions));
+  };
+
+  const getPropsFieldsForElement = (baseComponent, elementKey) => {
+    const keys = BLOCK_ELEMENT_FIELDS[baseComponent]?.[elementKey]?.fields;
+    if (!keys?.length) return null;
+    const comp = components.find((c) => c.baseComponent === baseComponent);
+    const core = CORE_PAGE_BUILDER_COMPONENTS.find((c) => c.baseComponent === baseComponent);
+    const raw = comp?.propsSchema ?? core?.propsSchema ?? [];
+    const schema = enrichSchema(baseComponent, raw);
+    const byKey = Object.fromEntries(schema.map((f) => [f.key, f]));
+    const fields = keys.map((k) => byKey[k]).filter(Boolean);
+    if (fields.length === 0) return null;
+    return fields.map((f) => renderSchemaField(f, themeColorOptions));
   };
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
-    if (!over || active.id === over.id) return;
+    if (!over) return;
+
+    // Drag from palette onto canvas drop zone
+    const paletteData = active.data?.current;
+    if (paletteData?.type === "palette" && typeof over.id === "string" && String(over.id).startsWith("insert-")) {
+      const comp = paletteData.comp;
+      const dropIndex = parseInt(String(over.id).replace("insert-", ""), 10) || 0;
+      const newBlock = {
+        instanceId: generateId(),
+        componentId: comp._id?.startsWith?.("core-") ? null : comp._id,
+        baseComponent: comp.baseComponent,
+        props: { ...(comp.defaultProps || {}) },
+        order: 0,
+      };
+      const arr = [...sorted];
+      arr.splice(dropIndex, 0, newBlock);
+      triggerChange(arr.map((b, i) => ({ ...b, order: i })));
+      setSelectedIndex(dropIndex);
+      setAddDrawerOpen(false);
+      return;
+    }
+
+    // Reorder existing blocks
+    if (active.id === over.id) return;
     const oldIndex = sorted.findIndex((b) => b.instanceId === active.id);
     const newIndex = sorted.findIndex((b) => b.instanceId === over.id);
     if (oldIndex !== -1 && newIndex !== -1) {
@@ -566,104 +917,137 @@ export default function PageBuilder({ layout = [], onChange, paletteSource }) {
     setAddDrawerOpen(true);
   };
 
+  const handleMoveUp = (index) => {
+    if (index <= 0) return;
+    const reordered = arrayMove(sorted, index, index - 1);
+    triggerChange(reordered.map((b, i) => ({ ...b, order: i })));
+    setSelectedIndex(index - 1);
+  };
+
+  const handleMoveDown = (index) => {
+    if (index >= sorted.length - 1) return;
+    const reordered = arrayMove(sorted, index, index + 1);
+    triggerChange(reordered.map((b, i) => ({ ...b, order: i })));
+    setSelectedIndex(index + 1);
+  };
+
   const editingBlock = editingIndex !== null ? sorted[editingIndex] : null;
   const pw = PREVIEW_WIDTHS[previewMode];
 
   return (
-    <div style={{ marginTop: 16 }}>
-      {/* ── Toolbar ── */}
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "8px 16px", background: "#fafafa", borderRadius: "8px 8px 0 0",
-        border: "1px solid #e8e8e8", borderBottom: "none",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <EyeOutlined style={{ fontSize: 16, color: "#1890ff" }} />
-          <span style={{ fontWeight: 600, fontSize: 14, color: "#333" }}>Visual Editor</span>
-          {sorted.length > 0 && <Badge count={sorted.length} style={{ backgroundColor: "#1890ff" }} />}
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <Segmented
-            size="small"
-            value={previewMode}
-            onChange={setPreviewMode}
-            options={[
-              { value: "desktop", icon: <DesktopOutlined /> },
-              { value: "tablet", icon: <TabletOutlined /> },
-              { value: "mobile", icon: <MobileOutlined /> },
-            ]}
-          />
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => { setInsertAtIndex(null); setAddDrawerOpen(true); }} size="middle">
-            Add Block
-          </Button>
-        </div>
-      </div>
-
-      {/* ── Visual Canvas ── */}
-      <div
-        ref={canvasRef}
-        onClick={(e) => { if (e.target === e.currentTarget || e.target === canvasRef.current?.firstChild) setSelectedIndex(null); }}
-        style={{
-          border: "1px solid #e8e8e8",
-          borderRadius: "0 0 8px 8px",
-          background: previewMode === "desktop" ? "#fff" : "#f0f0f0",
-          padding: previewMode === "desktop" ? 0 : "16px",
-          minHeight: 300,
-          transition: "background 0.2s",
-        }}
-      >
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <>
+      <div style={{ marginTop: 16, display: "flex", flexDirection: "column", minHeight: 400 }}>
+        {/* ── Toolbar ── */}
         <div style={{
-          maxWidth: typeof pw === "number" ? pw : "none",
-          margin: "0 auto",
-          background: "#fff",
-          minHeight: 300,
-          boxShadow: previewMode !== "desktop" ? "0 2px 12px rgba(0,0,0,0.08)" : "none",
-          borderRadius: previewMode !== "desktop" ? 8 : 0,
-          overflow: "hidden",
-          transition: "max-width 0.3s",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "8px 16px", background: "#fafafa", borderRadius: "8px 8px 0 0",
+          border: "1px solid #e8e8e8", borderBottom: "none",
         }}>
-          {sorted.length === 0 ? (
-            <div style={{ padding: "60px 24px", textAlign: "center" }}>
-              <Empty
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description={<span style={{ color: "#999" }}>Click <strong>Add Block</strong> to start building your page visually</span>}
-              >
-                <Button type="primary" icon={<PlusOutlined />} onClick={() => { setInsertAtIndex(null); setAddDrawerOpen(true); }}>
-                  Add your first block
-                </Button>
-              </Empty>
-            </div>
-          ) : (
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-              <SortableContext items={sorted.map((b) => b.instanceId)} strategy={verticalListSortingStrategy}>
-                <div style={{ padding: "8px 0" }}>
-                  {sorted.map((block, index) => (
-                    <div key={block.instanceId}>
-                      <AddBlockButton onClick={() => openAddAt(index)} />
-                      <SortableVisualBlock
-                        block={block}
-                        index={index}
-                        isSelected={selectedIndex === index}
-                        onSelect={setSelectedIndex}
-                        onEdit={openEdit}
-                        onDuplicate={handleDuplicate}
-                        onRemove={handleRemove}
-                      />
-                    </div>
-                  ))}
-                  <AddBlockButton onClick={() => openAddAt(sorted.length)} />
-                </div>
-              </SortableContext>
-            </DndContext>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <EyeOutlined style={{ fontSize: 16, color: "#1890ff" }} />
+            <span style={{ fontWeight: 600, fontSize: 14, color: "#333" }}>Visual Editor</span>
+            {sorted.length > 0 && <Badge count={sorted.length} style={{ backgroundColor: "#1890ff" }} />}
+            <Button
+              type={layersPanelOpen ? "primary" : "default"}
+              size="small"
+              icon={<UnorderedListOutlined />}
+              onClick={() => setLayersPanelOpen((v) => !v)}
+            >
+              Layers
+            </Button>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <Segmented
+              size="small"
+              value={previewMode}
+              onChange={setPreviewMode}
+              options={[
+                { value: "desktop", icon: <DesktopOutlined /> },
+                { value: "tablet", icon: <TabletOutlined /> },
+                { value: "mobile", icon: <MobileOutlined /> },
+              ]}
+            />
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => { setInsertAtIndex(null); setAddDrawerOpen(true); }} size="middle">
+              Add Block
+            </Button>
+          </div>
+        </div>
+
+        {/* ── Layers panel + Canvas ── */}
+        <div style={{ display: "flex", flex: 1, minHeight: 300, border: "1px solid #e8e8e8", borderTop: "none", borderRadius: "0 0 8px 8px", overflow: "hidden" }}>
+          {layersPanelOpen && (
+            <LayersPanel
+              sorted={sorted}
+              selectedIndex={selectedIndex}
+              onSelect={setSelectedIndex}
+              onEdit={openEdit}
+              onDuplicate={handleDuplicate}
+              onRemove={handleRemove}
+              onMoveUp={handleMoveUp}
+              onMoveDown={handleMoveDown}
+              onClose={() => setLayersPanelOpen(false)}
+            />
           )}
+          <div
+            ref={canvasRef}
+            onClick={(e) => { if (e.target === e.currentTarget || e.target === canvasRef.current?.firstChild) setSelectedIndex(null); }}
+            style={{
+              flex: 1,
+              background: previewMode === "desktop" ? "#fff" : "#f0f0f0",
+              padding: previewMode === "desktop" ? 0 : "16px",
+              minWidth: 0,
+              transition: "background 0.2s",
+              overflow: "auto",
+            }}
+          >
+            <div style={{
+              maxWidth: typeof pw === "number" ? pw : "none",
+              margin: "0 auto",
+              background: "#fff",
+              minHeight: 300,
+              boxShadow: previewMode !== "desktop" ? "0 2px 12px rgba(0,0,0,0.08)" : "none",
+              borderRadius: previewMode !== "desktop" ? 8 : 0,
+              overflow: "hidden",
+              transition: "max-width 0.3s",
+            }}>
+              {sorted.length === 0 ? (
+                <EmptyCanvasDropZone onAdd={() => { setInsertAtIndex(null); setAddDrawerOpen(true); }} />
+              ) : (
+                <SortableContext items={sorted.map((b) => b.instanceId)} strategy={verticalListSortingStrategy}>
+                  <div style={{ padding: "8px 0" }}>
+                    {sorted.map((block, index) => (
+                      <div key={block.instanceId}>
+                        <AddBlockButton onClick={() => openAddAt(index)} dropIndex={index} />
+                        <SortableVisualBlock
+                          block={block}
+                          index={index}
+                          isSelected={selectedIndex === index}
+                          onSelect={setSelectedIndex}
+                          onEdit={openEdit}
+                          onDuplicate={handleDuplicate}
+                          onRemove={handleRemove}
+                          onElementClick={(instanceId, elementKey) => {
+                            const idx = sorted.findIndex((b) => b.instanceId === instanceId);
+                            if (idx !== -1) openEditElement(idx, elementKey);
+                          }}
+                        />
+                      </div>
+                    ))}
+                    <AddBlockButton onClick={() => openAddAt(sorted.length)} dropIndex={sorted.length} />
+                  </div>
+                </SortableContext>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* ── Component Palette Drawer ── */}
       <Drawer
-        title={<div style={{ display: "flex", alignItems: "center", gap: 8 }}><AppstoreOutlined style={{ color: "#1890ff" }} /><span>Add Block</span></div>}
+        title={<div style={{ display: "flex", alignItems: "center", gap: 8 }}><AppstoreOutlined style={{ color: "#1890ff" }} /><span>{addToSectionBlockIndex !== null ? "Add element to section" : "Add Block"}</span></div>}
         open={addDrawerOpen}
-        onClose={() => { setAddDrawerOpen(false); setSearchQuery(""); setInsertAtIndex(null); }}
+        onClose={() => { setAddDrawerOpen(false); setSearchQuery(""); setInsertAtIndex(null); setAddToSectionBlockIndex(null); }}
         width={400}
         styles={{ body: { padding: "0 16px 16px" } }}
       >
@@ -698,7 +1082,7 @@ export default function PageBuilder({ layout = [], onChange, paletteSource }) {
                 ),
                 children: (
                   <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                    {comps.map((comp) => <ComponentPaletteItem key={comp._id} comp={comp} onAdd={handleAdd} />)}
+                    {comps.map((comp, idx) => <ComponentPaletteItem key={comp._id} comp={comp} onAdd={handleAdd} index={idx} />)}
                   </div>
                 ),
               };
@@ -710,7 +1094,18 @@ export default function PageBuilder({ layout = [], onChange, paletteSource }) {
       {/* ── Edit Block Drawer ── */}
       <Drawer
         title={
-          editingBlock ? (
+          editingElement !== null && editingBlock ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              {BLOCK_ICON_MAP[editingBlock.baseComponent] || <EditOutlined />}
+              <span>Edit {BLOCK_ELEMENT_FIELDS[editingBlock.baseComponent]?.[editingElement.elementKey]?.label ?? editingElement.elementKey}</span>
+            </div>
+          ) : editingInnerBlock !== null && editingBlock ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              {BLOCK_ICON_MAP[sorted[editingInnerBlock.sectionIndex]?.props?.layout?.[editingInnerBlock.innerIndex]?.baseComponent] || <EditOutlined />}
+              <span>Edit element</span>
+              <Button type="text" size="small" onClick={() => setEditingInnerBlock(null)}>← Back to section</Button>
+            </div>
+          ) : editingBlock ? (
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {BLOCK_ICON_MAP[editingBlock.baseComponent] || <EditOutlined />}
               <span>Edit {CORE_PAGE_BUILDER_COMPONENTS.find((c) => c.baseComponent === editingBlock?.baseComponent)?.displayName || editingBlock?.baseComponent}</span>
@@ -718,19 +1113,60 @@ export default function PageBuilder({ layout = [], onChange, paletteSource }) {
           ) : "Edit block"
         }
         open={drawerOpen}
-        onClose={() => { setDrawerOpen(false); setEditingIndex(null); }}
+        onClose={() => { setDrawerOpen(false); setEditingIndex(null); setEditingInnerBlock(null); setEditingElement(null); }}
         width={480}
         extra={
           <div style={{ display: "flex", gap: 8 }}>
-            <Button onClick={() => { setDrawerOpen(false); setEditingIndex(null); }} icon={<CloseOutlined />}>Cancel</Button>
+            {editingElement !== null && <Button onClick={() => setEditingElement(null)}>← Whole block</Button>}
+            {editingInnerBlock !== null && <Button onClick={() => setEditingInnerBlock(null)}>← Back</Button>}
+            <Button onClick={() => { setDrawerOpen(false); setEditingIndex(null); setEditingInnerBlock(null); setEditingElement(null); }} icon={<CloseOutlined />}>Cancel</Button>
             <Button type="primary" onClick={handleEditSave} icon={<CheckOutlined />}>Apply</Button>
           </div>
         }
       >
         <Form form={form} layout="vertical">
-          {editingBlock && getPropsFields(editingBlock.baseComponent)}
+          {editingElement !== null && editingBlock && getPropsFieldsForElement(editingBlock.baseComponent, editingElement.elementKey)}
 
-          {editingBlock && (
+          {editingInnerBlock !== null && editingBlock && editingElement === null && (() => {
+            const sectionBlock = sorted[editingInnerBlock.sectionIndex];
+            const innerBlock = sectionBlock?.props?.layout?.[editingInnerBlock.innerIndex];
+            return innerBlock ? getPropsFields(innerBlock.baseComponent) : null;
+          })()}
+
+          {editingInnerBlock === null && editingElement === null && editingBlock && editingBlock.baseComponent === "Section" && (
+            <>
+              <Divider orientation="left" style={{ fontSize: 13 }}>Section settings</Divider>
+              {renderSchemaField({ key: "backgroundColor", type: "color", label: "Background color" }, themeColorOptions)}
+              {renderSchemaField({ key: "padding", type: "text", label: "Padding (e.g. 2rem 1rem)" }, themeColorOptions)}
+              <Divider orientation="left" style={{ fontSize: 13 }}>Content – add elements inside this section</Divider>
+              <div style={{ marginBottom: 12 }}>
+                {(Array.isArray(editingBlock?.props?.layout) ? editingBlock.props.layout : []).map((inner, idx) => {
+                  const comp = CORE_PAGE_BUILDER_COMPONENTS.find((c) => c.baseComponent === inner.baseComponent);
+                  const displayName = comp?.displayName || inner.baseComponent;
+                  return (
+                    <div
+                      key={inner.instanceId || idx}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 8, padding: "8px 12px",
+                        background: "#fafafa", borderRadius: 6, marginBottom: 6,
+                      }}
+                    >
+                      <span style={{ flex: 1, fontSize: 13 }}>{displayName}</span>
+                      <Button type="text" size="small" icon={<EditOutlined />} onClick={() => openEditInner(editingIndex, idx)}>Edit</Button>
+                      <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={() => handleRemoveInner(editingIndex, idx)}>Delete</Button>
+                    </div>
+                  );
+                })}
+                <Button type="dashed" block icon={<PlusOutlined />} onClick={() => { setAddToSectionBlockIndex(editingIndex); setDrawerOpen(false); setAddDrawerOpen(true); }} style={{ marginTop: 8 }}>
+                  Add element (text, image, icon…)
+                </Button>
+              </div>
+            </>
+          )}
+
+          {editingInnerBlock === null && editingElement === null && editingBlock && editingBlock.baseComponent !== "Section" && getPropsFields(editingBlock.baseComponent)}
+
+          {editingInnerBlock === null && editingElement === null && editingBlock && editingBlock.baseComponent !== "Section" && (
             <>
               <Divider orientation="left" style={{ fontSize: 13 }}>Section Settings</Divider>
               {SECTION_SETTINGS_SCHEMA.map((f) => renderSchemaField(f, themeColorOptions))}
@@ -738,6 +1174,7 @@ export default function PageBuilder({ layout = [], onChange, paletteSource }) {
           )}
         </Form>
       </Drawer>
-    </div>
+      </>
+    </DndContext>
   );
 }

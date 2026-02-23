@@ -27,6 +27,8 @@ async function seed() {
   const ThemeConfig = require(path.join(__dirname, "..", "models", "ThemeConfig"));
   const Menu = require(path.join(__dirname, "..", "models", "Menu"));
   const Page = require(path.join(__dirname, "..", "models", "Page"));
+  const Component = require(path.join(__dirname, "..", "models", "Component"));
+  const { SYSTEM_COMPONENTS } = require(path.join(__dirname, "..", "lib", "systemComponents"));
 
   // --- Admin user ---
   const existingUser = await User.findOne({ email: ADMIN_EMAIL });
@@ -44,7 +46,25 @@ async function seed() {
     console.log("Admin user already exists:", ADMIN_EMAIL);
   }
 
-  // --- Components: none seeded; add/edit/delete from Admin > Components ---
+  // --- System (reusable) UI components: stored in DB for page builder & component design ---
+  let componentsCreated = 0;
+  for (const comp of SYSTEM_COMPONENTS) {
+    const existing = await Component.findOne({ baseComponent: comp.baseComponent, type: "system" });
+    if (!existing) {
+      await Component.create({
+        ...comp,
+        layout: [],
+        container: "container",
+        active: true,
+      });
+      componentsCreated++;
+    }
+  }
+  if (componentsCreated > 0) {
+    console.log("Created", componentsCreated, "system components (Paragraph, Heading, Header, etc.)");
+  } else {
+    console.log("System components already exist");
+  }
 
   // --- Default theme ---
   const existingTheme = await ThemeConfig.findOne();

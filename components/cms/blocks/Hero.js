@@ -1,6 +1,27 @@
 import NextImage from "next/image";
 import Link from "next/link";
 
+const editableWrap = (onElementClick, elementKey, children, style = {}) => {
+  if (!onElementClick || typeof onElementClick !== "function") return children;
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={(e) => { e.stopPropagation(); e.preventDefault(); onElementClick(elementKey); }}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onElementClick(elementKey); } }}
+      style={{
+        cursor: "pointer",
+        outline: "2px dashed rgba(24, 144, 255, 0.5)",
+        outlineOffset: 2,
+        borderRadius: 4,
+        ...style,
+      }}
+    >
+      {children}
+    </div>
+  );
+};
+
 export default function HeroBlock({
   backgroundImage,
   backgroundAlt = "",
@@ -14,6 +35,7 @@ export default function HeroBlock({
   align = "center",
   minHeight = 500,
   overlayColor = "rgba(0,0,0,0.5)",
+  onElementClick,
 }) {
   const isExternal = (url) => url?.startsWith("http");
 
@@ -41,13 +63,33 @@ export default function HeroBlock({
     border: "2px solid rgba(255,255,255,0.6)",
   };
 
-  const renderLink = (url, style, label) => {
-    if (!url || !label) return null;
-    const Tag = isExternal(url) ? "a" : Link;
-    const props = isExternal(url)
-      ? { href: url, target: "_blank", rel: "noopener noreferrer" }
-      : { href: url };
-    return <Tag {...props} style={style}>{label}</Tag>;
+  const renderLink = (url, style, label, elementKey) => {
+    if (!label) return null;
+    const content = url ? (
+      (() => {
+        const Tag = isExternal(url) ? "a" : Link;
+        const props = isExternal(url)
+          ? { href: url, target: "_blank", rel: "noopener noreferrer" }
+          : { href: url };
+        return <Tag {...props} style={style}>{label}</Tag>;
+      })()
+    ) : (
+      <span style={style}>{label}</span>
+    );
+    if (onElementClick && elementKey) {
+      return (
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={(e) => { e.stopPropagation(); e.preventDefault(); onElementClick(elementKey); }}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onElementClick(elementKey); } }}
+          style={{ display: "inline-block", cursor: "pointer", outline: "2px dashed rgba(24, 144, 255, 0.5)", outlineOffset: 2, borderRadius: 4 }}
+        >
+          {content}
+        </div>
+      );
+    }
+    return content;
   };
 
   return (
@@ -62,17 +104,24 @@ export default function HeroBlock({
         marginBottom: "1em",
       }}
     >
-      {backgroundImage && (
-        <NextImage
-          src={backgroundImage}
-          alt={backgroundAlt}
-          fill
-          sizes="100vw"
-          style={{ objectFit: "cover" }}
-          priority
-        />
+      {editableWrap(
+        onElementClick,
+        "background",
+        <>
+          {backgroundImage && (
+            <NextImage
+              src={backgroundImage}
+              alt={backgroundAlt}
+              fill
+              sizes="100vw"
+              style={{ objectFit: "cover" }}
+              priority
+            />
+          )}
+          <div style={{ position: "absolute", inset: 0, background: overlayColor }} />
+        </>,
+        { position: "absolute", inset: 0 }
       )}
-      <div style={{ position: "absolute", inset: 0, background: overlayColor }} />
       <div
         style={{
           position: "relative",
@@ -84,19 +133,41 @@ export default function HeroBlock({
           width: "100%",
         }}
       >
-        {heading && (
-          <h1 style={{ fontSize: "2.75rem", fontWeight: 700, marginBottom: "0.5em", lineHeight: 1.2 }}>
-            {heading}
-          </h1>
-        )}
-        {subheading && (
-          <p style={{ fontSize: "1.2rem", opacity: 0.9, marginBottom: "1.5em", lineHeight: 1.6 }}>
-            {subheading}
-          </p>
-        )}
+        {heading != null && heading !== "" ? (
+          editableWrap(onElementClick, "heading", (
+            <h1 style={{ fontSize: "2.75rem", fontWeight: 700, marginBottom: "0.5em", lineHeight: 1.2 }}>
+              {heading}
+            </h1>
+          ))
+        ) : onElementClick ? (
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={(e) => { e.stopPropagation(); onElementClick("heading"); }}
+            style={{ cursor: "pointer", outline: "2px dashed rgba(24, 144, 255, 0.5)", outlineOffset: 2, borderRadius: 4, minHeight: 48 }}
+          >
+            <h1 style={{ fontSize: "2.75rem", fontWeight: 700, marginBottom: "0.5em", lineHeight: 1.2, opacity: 0.7 }}>Heading</h1>
+          </div>
+        ) : null}
+        {subheading != null && subheading !== "" ? (
+          editableWrap(onElementClick, "subheading", (
+            <p style={{ fontSize: "1.2rem", opacity: 0.9, marginBottom: "1.5em", lineHeight: 1.6 }}>
+              {subheading}
+            </p>
+          ))
+        ) : onElementClick ? (
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={(e) => { e.stopPropagation(); onElementClick("subheading"); }}
+            style={{ cursor: "pointer", outline: "2px dashed rgba(24, 144, 255, 0.5)", outlineOffset: 2, borderRadius: 4, minHeight: 32, marginBottom: "1.5em" }}
+          >
+            <p style={{ fontSize: "1.2rem", opacity: 0.7, lineHeight: 1.6 }}>Subheading</p>
+          </div>
+        ) : null}
         <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: align === "center" ? "center" : "flex-start" }}>
-          {renderLink(buttonUrl, primaryBtn, buttonLabel)}
-          {renderLink(secondaryButtonUrl, secondaryBtn, secondaryButtonLabel)}
+          {renderLink(buttonUrl, primaryBtn, buttonLabel, "primaryButton")}
+          {renderLink(secondaryButtonUrl, secondaryBtn, secondaryButtonLabel, "secondaryButton")}
         </div>
       </div>
     </section>

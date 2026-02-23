@@ -50,6 +50,8 @@ const KNOWN_BASE_COMPONENTS = [
   { value: "Divider", label: "Divider" },
   { value: "Table", label: "Table" },
   { value: "FeatureGrid", label: "Feature Grid" },
+  { value: "Header", label: "Header / Navbar" },
+  { value: "Section", label: "Section (container)" },
 ];
 
 const CATEGORY_OPTIONS = [
@@ -84,7 +86,7 @@ const BLOCK_ICON_MAP = {
   Tabs: <AppstoreOutlined />, Modal: <InteractionOutlined />, Stats: <StarOutlined />,
   Pricing: <TableOutlined />, Table: <TableOutlined />, Timeline: <ClockCircleOutlined />,
   Breadcrumbs: <ShareAltOutlined />, Alert: <AlertOutlined />, SocialLinks: <ShareAltOutlined />,
-  Slider: <PictureOutlined />,
+  Slider: <PictureOutlined />, Header: <LayoutOutlined />, Section: <LayoutOutlined />,
 };
 
 export default function AdminComponentsPage() {
@@ -241,9 +243,24 @@ export default function AdminComponentsPage() {
             Block types used in the visual page builder. Each component renders live on the canvas.
           </p>
         </div>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd} size="large">
-          Add Component
-        </Button>
+        <Space>
+          <Button
+            onClick={async () => {
+              try {
+                const res = await fetch("/api/admin/components/seed", { method: "POST" });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) { message.error(data.error || "Seed failed"); return; }
+                message.success(data.created?.length ? `Seeded ${data.created.length} system components` : "System components already in database");
+                fetchList();
+              } catch (e) { message.error("Seed failed"); }
+            }}
+          >
+            Seed system components
+          </Button>
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd} size="large">
+            Add Component
+          </Button>
+        </Space>
       </div>
 
       {/* Filters toolbar */}

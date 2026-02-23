@@ -32,6 +32,8 @@ import SocialLinksBlock from "@/components/cms/blocks/SocialLinks";
 import DividerBlock from "@/components/cms/blocks/Divider";
 import TableBlock from "@/components/cms/blocks/Table";
 import FeatureGridBlock from "@/components/cms/blocks/FeatureGrid";
+import HeaderBlock from "@/components/cms/blocks/Header";
+import SectionBlock from "@/components/cms/blocks/Section";
 
 const COMPONENT_MAP = {
   Paragraph: ParagraphBlock,
@@ -68,6 +70,8 @@ const COMPONENT_MAP = {
   Divider: DividerBlock,
   Table: TableBlock,
   FeatureGrid: FeatureGridBlock,
+  Header: HeaderBlock,
+  Section: SectionBlock,
 };
 
 const SECTION_PROPS = ["_containerType", "_sectionBg", "_sectionPadding"];
@@ -93,7 +97,7 @@ function UnavailableBlock({ baseComponent }) {
   );
 }
 
-export default function ComponentRenderer({ layout, wrapperContainer }) {
+export default function ComponentRenderer({ layout, wrapperContainer, onElementClick }) {
   if (!Array.isArray(layout) || layout.length === 0) return null;
 
   const sorted = [...layout].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
@@ -128,11 +132,15 @@ export default function ComponentRenderer({ layout, wrapperContainer }) {
 
         const hasSectionStyle = sectionBg || sectionPadding;
 
+        const elementClickProp = onElementClick
+          ? { onElementClick: (elementKey) => onElementClick(block.instanceId, elementKey) }
+          : {};
+
         if (hasSectionStyle) {
           return (
             <div key={key} className="cms-section" style={sectionStyle}>
               <div className={containerClass}>
-                <Component {...clean} />
+                <Component {...clean} {...elementClickProp} />
               </div>
             </div>
           );
@@ -140,7 +148,7 @@ export default function ComponentRenderer({ layout, wrapperContainer }) {
 
         return (
           <div key={key} className={containerClass}>
-            <Component {...clean} />
+            <Component {...clean} {...elementClickProp} />
           </div>
         );
       })}
