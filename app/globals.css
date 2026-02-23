@@ -1,3 +1,20 @@
+:root {
+  --primary-color: #1890ff;
+  --secondary-color: #722ed1;
+  --bg-color: #ffffff;
+  --text-color: #333333;
+  --link-color: #1890ff;
+  --font-family: system-ui, sans-serif;
+  --heading-font: system-ui, sans-serif;
+  --font-size: 16px;
+  --heading-font-size: inherit;
+  --line-height: 1.6;
+  --letter-spacing: 0px;
+  --font-weight: 400;
+  --heading-font-weight: 700;
+  --layout-width: 1200px;
+}
+
 * {
   box-sizing: border-box;
   padding: 0;
@@ -8,4 +25,216 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  font-weight: var(--font-weight);
+  line-height: var(--line-height);
+  letter-spacing: var(--letter-spacing);
+  color: var(--text-color);
+  background-color: var(--bg-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--heading-font);
+  font-weight: var(--heading-font-weight);
+  font-size: var(--heading-font-size);
+}
+
+a {
+  color: var(--link-color);
+}
+
+/* RTL-aware spacing: use logical properties */
+.cms-layout {
+  max-width: var(--layout-width);
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+/* --- Public Header --- */
+.public-header {
+  border-block-end: 1px solid #eee;
+  background: var(--bg-color);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.public-header-inner {
+  max-width: var(--layout-width);
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+  padding-block: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.public-logo {
+  font-weight: 700;
+  font-size: 1.25rem;
+  text-decoration: none;
+  color: var(--text-color);
+}
+
+.public-nav {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.public-nav a {
+  text-decoration: none;
+  color: var(--text-color);
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.public-nav a:hover {
+  color: var(--primary-color);
+}
+
+/* Hamburger button - hidden on desktop */
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  position: relative;
+  width: 32px;
+  height: 32px;
+}
+
+.hamburger-icon,
+.hamburger-icon::before,
+.hamburger-icon::after {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--text-color);
+  transition: transform 0.3s, opacity 0.3s;
+  position: absolute;
+  inset-inline-start: 5px;
+}
+
+.hamburger-icon {
+  top: 15px;
+}
+
+.hamburger-icon::before {
+  content: "";
+  top: -7px;
+}
+
+.hamburger-icon::after {
+  content: "";
+  top: 7px;
+}
+
+.hamburger-icon.open {
+  background: transparent;
+}
+
+.hamburger-icon.open::before {
+  top: 0;
+  transform: rotate(45deg);
+}
+
+.hamburger-icon.open::after {
+  top: 0;
+  transform: rotate(-45deg);
+}
+
+/* --- Public Footer --- */
+.public-footer {
+  border-block-start: 1px solid #eee;
+  background: #fafafa;
+  margin-block-start: auto;
+}
+
+.public-footer-inner {
+  max-width: var(--layout-width);
+  margin-inline: auto;
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+.footer-nav {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-block-end: 1rem;
+}
+
+.footer-nav a {
+  text-decoration: none;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.footer-nav a:hover {
+  color: var(--primary-color);
+}
+
+.footer-copy {
+  color: #999;
+  font-size: 0.875rem;
+}
+
+/* --- Responsive: tablet --- */
+@media (max-width: 1024px) {
+  .cms-columns {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* --- Responsive: mobile --- */
+@media (max-width: 768px) {
+  .hamburger-btn {
+    display: block;
+  }
+
+  .public-nav {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    inset-inline-start: 0;
+    inset-inline-end: 0;
+    background: var(--bg-color);
+    border-block-end: 1px solid #eee;
+    padding: 1rem 1.5rem;
+    gap: 0.75rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .public-nav.mobile-open {
+    display: flex;
+  }
+
+  .public-header {
+    position: relative;
+  }
+
+  .cms-columns {
+    grid-template-columns: 1fr !important;
+  }
+
+  .public-header-inner {
+    padding-inline: 1rem;
+  }
+
+  .public-footer-inner {
+    padding: 1.5rem 1rem;
+  }
+}
+
+/* --- Content pages --- */
+.page-content {
+  max-width: var(--layout-width);
+  margin-inline: auto;
+  padding-inline: 1rem;
+  padding-block: 2rem;
 }

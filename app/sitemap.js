@@ -1,13 +1,10 @@
 import { connectDB } from "@/lib/db";
+import { getSiteUrl } from "@/lib/env";
 import Page from "@/models/Page";
 import Blog from "@/models/Blog";
 
-function getBaseUrl() {
-  return process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
-}
-
 export default async function sitemap() {
-  const baseUrl = getBaseUrl();
+  const baseUrl = getSiteUrl();
   const entries = [];
 
   try {
@@ -27,7 +24,7 @@ export default async function sitemap() {
           url: `${baseUrl}/${p.slug}`,
           lastModified: p.updatedAt ? new Date(p.updatedAt) : new Date(),
           changeFrequency: "weekly",
-          priority: p.slug === "home" ? 1 : 0.8,
+          priority: 0.8,
         });
       }
     }

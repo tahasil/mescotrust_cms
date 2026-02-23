@@ -1,57 +1,81 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { connectDB } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
 import Page from "@/models/Page";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
 
 const RESERVED = ["admin", "blog", "contact", "search", "api", "preview"];
 
-function getBaseUrl() {
-  return process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
-}
-
 export async function generateMetadata({ params }) {
   const slug = params.slug;
-  if (RESERVED.includes(slug)) return { title: "Mesco Trust CMS" };
+  if (RESERVED.includes(slug)) return {};
   try {
     await connectDB();
     const page = await Page.findOne({ slug, status: "published" }).lean();
-    if (!page) return { title: "Mesco Trust CMS" };
-    const baseUrl = getBaseUrl();
+    if (!page) return {};
     const title = page.meta?.metaTitle || page.title;
     const description = page.meta?.metaDescription || undefined;
-    const url = `${baseUrl}/${slug}`;
     return {
       title,
       description,
-      alternates: { canonical: url },
-      openGraph: { title, description, url },
+      alternates: { canonical: `/${slug}` },
+      openGraph: { title, description, url: `/${slug}`, type: "website" },
     };
   } catch {
-    return { title: "Mesco Trust CMS" };
+    return {};
   }
 }
 
-export default async function DynamicPage({ params }) {
+function ContentSkeleton() {
+  return (
+    <div>
+      <div style={{ height: 20, width: "100%", background: "#f0f0f0", marginBottom: 12, borderRadius: 4 }} />
+      <div style={{ height: 20, width: "90%", background: "#f0f0f0", marginBottom: 12, borderRadius: 4 }} />
+      <div style={{ height: 20, width: "75%", background: "#f0f0f0", borderRadius: 4 }} />
+    </div>
+  );
+}
+
+async function PageContent({ slug }) {
+  let page;
+  try {
+    await connectDB();
+    page = await Page.findOne({ slug, status: "published" }).populate("layout.componentId").lean();
+  } catch {
+    return (
+      <div style={{ textAlign: "center", padding: "2rem 0" }}>
+        <h2>Service temporarily unavailable</h2>
+        <p style={{ color: "#666" }}>Please try again in a moment.</p>
+      </div>
+    );
+  }
+
+  if (!page) notFound();
+
+  const layout = (page.layout || []).map((block) => ({
+    ...block,
+    baseComponent: block.baseComponent || (block.componentId?.baseComponent ?? "Paragraph"),
+  }));
+
+  return (
+    <>
+      <h1>{page.title}</h1>
+      <ComponentRenderer layout={layout} />
+    </>
+  );
+}
+
+export default function DynamicPage({ params }) {
   const slug = params.slug;
   if (RESERVED.includes(slug)) notFound();
 
-  try {
-    await connectDB();
-    const page = await Page.findOne({ slug, status: "published" }).populate("layout.componentId").lean();
-    if (!page) notFound();
-
-    const layout = (page.layout || []).map((block) => ({
-      ...block,
-      baseComponent: block.baseComponent || (block.componentId?.baseComponent ?? "Paragraph"),
-    }));
-
-    return (
-      <main style={{ maxWidth: 800, margin: "0 auto", padding: "2rem 1rem" }}>
-        <h1>{page.title}</h1>
-        <ComponentRenderer layout={layout} />
-      </main>
-    );
-  } catch {
-    notFound();
-  }
+  return (
+    <main style={{ maxWidth: "var(--layout-width, 800px)", margin: "0 auto", padding: "2rem 1rem" }}>
+      <Suspense fallback={<ContentSkeleton />}>
+        <PageContent slug={slug} />
+      </Suspense>
+    </main>
+  );
 }

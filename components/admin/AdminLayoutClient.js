@@ -27,14 +27,15 @@ const menuItems = [
   { key: "/admin/pages", icon: <FileTextOutlined />, label: <Link href="/admin/pages">Pages</Link> },
   { key: "/admin/components", icon: <AppstoreOutlined />, label: <Link href="/admin/components">Components</Link> },
   { key: "/admin/blogs", icon: <BookOutlined />, label: <Link href="/admin/blogs">Blogs</Link> },
-  { key: "/admin/blogs/categories", icon: <BookOutlined />, label: <Link href="/admin/blogs/categories">Categories</Link> },
+  { key: "/admin/blog-categories", icon: <BookOutlined />, label: <Link href="/admin/blog-categories">Categories</Link> },
+  { key: "/admin/media", icon: <AppstoreOutlined />, label: <Link href="/admin/media">Media</Link> },
   { key: "/admin/menus", icon: <MenuOutlined />, label: <Link href="/admin/menus">Menus</Link> },
   { key: "/admin/theme", icon: <BgColorsOutlined />, label: <Link href="/admin/theme">Theme</Link> },
   { key: "/admin/contacts", icon: <MailOutlined />, label: <Link href="/admin/contacts">Contacts</Link> },
   { key: "/admin/users", icon: <TeamOutlined />, label: <Link href="/admin/users">Users</Link> },
 ];
 
-export default function AdminLayoutClient({ children }) {
+export default function AdminLayoutClient({ children, userName, userRole }) {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
 
@@ -74,7 +75,7 @@ export default function AdminLayoutClient({ children }) {
           <Dropdown menu={userMenu} placement="bottomRight">
             <Space style={{ cursor: "pointer" }}>
               <UserOutlined />
-              <span>Admin</span>
+              <span>{userName || "Admin"}{userRole ? ` (${userRole})` : ""}</span>
             </Space>
           </Dropdown>
         </Header>

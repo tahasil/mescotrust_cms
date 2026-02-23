@@ -1,11 +1,15 @@
-function getBaseUrl() {
-  return process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
-}
+import { getSiteUrl } from "@/lib/env";
 
 export default function robots() {
-  const baseUrl = getBaseUrl();
+  const baseUrl = getSiteUrl();
   return {
-    rules: [{ userAgent: "*", allow: "/", disallow: ["/admin", "/api/admin"] }],
+    rules: [
+      {
+        userAgent: "*",
+        allow: "/",
+        disallow: ["/admin", "/api/", "/preview"],
+      },
+    ],
     sitemap: `${baseUrl}/sitemap.xml`,
   };
 }

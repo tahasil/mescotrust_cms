@@ -2,29 +2,12 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Page from "@/models/Page";
 import Blog from "@/models/Blog";
+import { createRateLimiter, getClientIp } from "@/lib/rateLimit";
 
-const RATE_LIMIT_MAP = new Map();
-const RATE_LIMIT_WINDOW_MS = 60 * 1000;
-const RATE_LIMIT_MAX = 30;
-
-function getClientId(req) {
-  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
-}
-
-function checkRateLimit(clientId) {
-  const now = Date.now();
-  const bucket = RATE_LIMIT_MAP.get(clientId) || { count: 0, resetAt: now + RATE_LIMIT_WINDOW_MS };
-  if (now > bucket.resetAt) {
-    bucket.count = 0;
-    bucket.resetAt = now + RATE_LIMIT_WINDOW_MS;
-  }
-  bucket.count++;
-  RATE_LIMIT_MAP.set(clientId, bucket);
-  return bucket.count <= RATE_LIMIT_MAX;
-}
+const checkRateLimit = createRateLimiter({ windowMs: 60_000, max: 30 });
 
 export async function GET(req) {
-  const clientId = getClientId(req);
+  const clientId = getClientIp(req);
   if (!checkRateLimit(clientId)) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }

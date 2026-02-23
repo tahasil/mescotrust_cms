@@ -6,12 +6,17 @@ export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
     const name = searchParams.get("name");
+    const locale = searchParams.get("locale");
     await connectDB();
     if (name) {
-      const menu = await Menu.findOne({ name }).lean();
+      const filter = { name };
+      if (locale) filter.locale = locale;
+      const menu = await Menu.findOne(filter).lean();
       return NextResponse.json(menu || { name, items: [] });
     }
-    const menus = await Menu.find().lean();
+    const filter = {};
+    if (locale) filter.locale = locale;
+    const menus = await Menu.find(filter).lean();
     return NextResponse.json(menus);
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });

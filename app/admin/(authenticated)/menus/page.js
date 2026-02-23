@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Card, Table, Button, Form, Input, Switch, InputNumber, Space, message, Modal } from "antd";
-import { PlusOutlined, EditOutlined } from "@ant-design/icons";
+import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 
 const DEFAULT_MENU_NAMES = ["header", "footer"];
 
@@ -70,6 +70,25 @@ export default function AdminMenusPage() {
     }
   };
 
+  const handleDelete = (record) => {
+    Modal.confirm({
+      title: "Delete menu?",
+      content: `Delete menu "${record.name}"? This cannot be undone.`,
+      okText: "Delete",
+      okType: "danger",
+      onOk: async () => {
+        const res = await fetch(`/api/admin/menus/${encodeURIComponent(record.name)}`, { method: "DELETE" });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          message.error(data.error || "Delete failed");
+          return;
+        }
+        message.success("Menu deleted");
+        fetchMenus();
+      },
+    });
+  };
+
   return (
     <>
       <h1 style={{ marginBottom: 16 }}>Menus</h1>
@@ -95,9 +114,14 @@ export default function AdminMenusPage() {
             title: "Actions",
             key: "actions",
             render: (_, record) => (
-              <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
-                Edit
-              </Button>
+              <Space>
+                <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
+                  Edit
+                </Button>
+                <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)}>
+                  Delete
+                </Button>
+              </Space>
             ),
           },
         ]}

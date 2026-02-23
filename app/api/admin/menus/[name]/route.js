@@ -39,3 +39,18 @@ export async function PUT(req, { params }) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+
+export async function DELETE(req, { params }) {
+  const session = await requireAuth(req);
+  if (session instanceof NextResponse) return session;
+
+  try {
+    const name = params.name;
+    await connectDB();
+    const menu = await Menu.findOneAndDelete({ name });
+    if (!menu) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json({ deleted: true });
+  } catch (err) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}

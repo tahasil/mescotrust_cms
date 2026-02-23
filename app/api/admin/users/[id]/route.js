@@ -4,9 +4,10 @@ import bcrypt from "bcryptjs";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
+import { isAdmin } from "@/lib/permissions";
 
-function requireAdmin(session) {
-  if (session?.role !== "Admin") {
+function guardAdmin(session) {
+  if (!isAdmin(session)) {
     return NextResponse.json({ error: "Forbidden: Admin only" }, { status: 403 });
   }
   return null;
@@ -15,7 +16,7 @@ function requireAdmin(session) {
 export async function GET(req, { params }) {
   const session = await requireAuth(req);
   if (session instanceof NextResponse) return session;
-  const forbidden = requireAdmin(session);
+  const forbidden = guardAdmin(session);
   if (forbidden) return forbidden;
 
   try {
@@ -35,7 +36,7 @@ export async function GET(req, { params }) {
 export async function PUT(req, { params }) {
   const session = await requireAuth(req);
   if (session instanceof NextResponse) return session;
-  const forbidden = requireAdmin(session);
+  const forbidden = guardAdmin(session);
   if (forbidden) return forbidden;
 
   try {
@@ -55,7 +56,16 @@ export async function PUT(req, { params }) {
     }
 
     if (name !== undefined) user.name = name;
-    if (email !== undefined) user.email = email;
+    if (email !== undefined) {
+      const trimmed = email.trim().toLowerCase();
+      if (trimmed !== user.email) {
+        const dup = await User.findOne({ email: trimmed, _id: { $ne: id } });
+        if (dup) {
+          return NextResponse.json({ error: "Email already in use" }, { status: 400 });
+        }
+      }
+      user.email = trimmed;
+    }
     if (role !== undefined) user.role = role;
     if (status !== undefined) user.status = status;
     if (password && password.length >= 6) user.password = await bcrypt.hash(password, 10);
@@ -70,7 +80,7 @@ export async function PUT(req, { params }) {
 export async function DELETE(req, { params }) {
   const session = await requireAuth(req);
   if (session instanceof NextResponse) return session;
-  const forbidden = requireAdmin(session);
+  const forbidden = guardAdmin(session);
   if (forbidden) return forbidden;
 
   try {

@@ -1,20 +1,62 @@
-# Backups (Phase 7)
+# Backup and Restore
 
-## MongoDB
+## MongoDB Backup
 
-- **Atlas:** Use Atlas backup (automated snapshots).  
-- **Self-hosted:** Run `mongodump` on a schedule (cron):
-  ```bash
-  mongodump --uri="$MONGODB_URI" --out=./backup-$(date +%Y%m%d)
-  ```
-- Restore with `mongorestore`.
+### Using mongodump (self-hosted)
 
-## Uploaded media
+```bash
+# Backup
+mongodump --uri="mongodb://..." --out=/backups/$(date +%Y%m%d)
 
-- If media is under `public/uploads` (or similar), back up that directory (e.g. tarball or sync to S3).
-- For production, consider storing uploads in S3 or similar and using the provider’s backup/versioning.
+# Restore
+mongorestore --uri="mongodb://..." /backups/20260220
+```
 
-## Env and config
+### MongoDB Atlas (managed)
 
-- Keep `.env.example` in the repo; never commit `.env` or `.env.local`.  
-- Document required env in README; store secrets in a vault or CI env.
+If using MongoDB Atlas:
+- **Continuous backup**: Enabled by default on M10+ clusters.
+- **Snapshots**: Available in Atlas UI under Backup → Snapshots.
+- **Point-in-time restore**: Available on dedicated clusters.
+
+For free/shared clusters (M0/M2/M5), use `mongodump` manually or schedule via cron.
+
+## Media Backup
+
+Uploaded media is stored in `public/uploads/`. Back up this directory alongside your database.
+
+```bash
+# Tar the uploads folder
+tar -czf uploads-backup-$(date +%Y%m%d).tar.gz public/uploads/
+```
+
+### Production: S3 or External Storage
+
+For production, consider migrating media uploads to S3, Cloudflare R2, or similar:
+
+1. Update `app/api/admin/media/route.js` to upload to S3 instead of local filesystem.
+2. Serve media via CDN or signed URLs.
+3. S3 provides built-in versioning and cross-region replication.
+
+Update the `Media` model's `url` field to store the full S3 URL.
+
+## Automated Backups
+
+### Cron Job (Linux/macOS)
+
+```bash
+# Add to crontab: daily at 2 AM
+0 2 * * * /path/to/backup-script.sh
+```
+
+### Vercel Cron (if deployed on Vercel)
+
+Use Vercel Cron Jobs to trigger a backup API route that exports the database.
+
+## Content Export/Import (Optional)
+
+For JSON-based content backup/migration, create admin APIs:
+- `GET /api/admin/export` — exports pages, blogs, menus, components as JSON.
+- `POST /api/admin/import` — imports JSON backup.
+
+This is useful for staging → production content migration.

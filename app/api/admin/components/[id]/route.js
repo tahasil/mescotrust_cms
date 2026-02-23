@@ -5,6 +5,21 @@ import { connectDB } from "@/lib/db";
 import Component from "@/models/Component";
 import Page from "@/models/Page";
 
+function validateDefaultProps(schema, defaults) {
+  if (!Array.isArray(schema) || !defaults || typeof defaults !== "object") return [];
+  const errors = [];
+  for (const field of schema) {
+    const val = defaults[field.key];
+    if (field.required && (val === undefined || val === "")) {
+      errors.push(`defaultProps: "${field.key}" is required by schema`);
+    }
+    if (field.maxLength && typeof val === "string" && val.length > field.maxLength) {
+      errors.push(`defaultProps: "${field.key}" exceeds maxLength ${field.maxLength}`);
+    }
+  }
+  return errors;
+}
+
 export async function GET(req, { params }) {
   const session = await requireAuth(req);
   if (session instanceof NextResponse) return session;
@@ -48,6 +63,13 @@ export async function PUT(req, { params }) {
     if (defaultProps !== undefined) component.defaultProps = defaultProps;
     if (typeof active === "boolean") component.active = active;
 
+    const finalSchema = component.propsSchema || [];
+    const finalDefaults = component.defaultProps || {};
+    const valErrors = validateDefaultProps(finalSchema, finalDefaults);
+    if (valErrors.length > 0) {
+      return NextResponse.json({ error: valErrors.join("; ") }, { status: 400 });
+    }
+
     await component.save();
     return NextResponse.json(component);
   } catch (err) {
@@ -65,6 +87,14 @@ export async function DELETE(req, { params }) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
     await connectDB();
+    const existing = await Component.findById(id).lean();
+    if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (existing.type === "system") {
+      return NextResponse.json(
+        { error: "System components cannot be deleted. Deactivate instead." },
+        { status: 400 }
+      );
+    }
     const count = await Page.countDocuments({ "layout.componentId": id });
     if (count > 0) {
       return NextResponse.json(
@@ -72,8 +102,7 @@ export async function DELETE(req, { params }) {
         { status: 400 }
       );
     }
-    const component = await Component.findByIdAndDelete(id);
-    if (!component) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    await Component.findByIdAndDelete(id);
     return NextResponse.json({ deleted: true });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });

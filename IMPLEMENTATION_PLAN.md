@@ -430,12 +430,12 @@ This document is the **implementation plan** for the Mesco Trust CMS. It breaks 
 
 ## Checklist overview
 
-- [ ] Phase 1 — Foundation (routing, reserved paths, env, DB/health, auth, admin layout and dashboard, slug rules, blogs, public APIs and rendering, error/loading, metadata)  
-- [ ] Phase 2 — Component library and page builder (model, props schema, layout structure, default set, validation, renderer fallback)  
-- [ ] Phase 3 — Menus, theme editor (fonts, RTL), responsive  
-- [ ] Phase 4 — Contact form, email, rate limit  
-- [ ] Phase 5 — SEO (sitemap, robots, OG), media validation, rich text  
-- [ ] Phase 6 — Draft preview, user management, role management, search (rate limited), optional password reset, i18n  
-- [ ] Phase 7 — Security, analytics, backups  
+- [x] Phase 1 — Foundation (routing, reserved paths, env, DB/health, auth, admin layout and dashboard, slug rules, blogs, public APIs and rendering, error/loading, metadata)  
+- [x] Phase 2 — Component library and page builder (model, props schema, layout structure, default set, validation, renderer fallback)  
+- [x] Phase 3 — Menus, theme editor (fonts, RTL), responsive  
+- [x] Phase 4 — Contact form, email, rate limit  
+- [x] Phase 5 — SEO (sitemap, robots, OG), media validation, rich text  
+- [x] Phase 6 — Draft preview, user management, role management, search (rate limited), optional password reset, i18n  
+- [x] Phase 7 — Security, analytics, backups  
 
-Update this file as tasks are completed. After completing a phase, update [PROJECT_PLAN_GAPS.md](PROJECT_PLAN_GAPS.md) Section 4 (and the relevant 2.x subsection) so the gap list reflects the new state.
+All phases implemented. See `docs/PERMISSIONS.md`, `docs/ANALYTICS.md`, `docs/BACKUPS.md` for operational documentation.

@@ -3,17 +3,19 @@ import mongoose from "mongoose";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import BlogCategory from "@/models/BlogCategory";
+import Blog from "@/models/Blog";
 import { normalizeSlug } from "@/lib/slug";
 
 export async function GET(req, { params }) {
   const session = await requireAuth(req);
   if (session instanceof NextResponse) return session;
 
+  const id = params.id;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  }
+
   try {
-    const id = params.id;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
-    }
     await connectDB();
     const category = await BlogCategory.findById(id).lean();
     if (!category) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -27,11 +29,12 @@ export async function PUT(req, { params }) {
   const session = await requireAuth(req);
   if (session instanceof NextResponse) return session;
 
+  const id = params.id;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  }
+
   try {
-    const id = params.id;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
-    }
     const body = await req.json();
     const { name, slug: rawSlug, description, order } = body;
 
@@ -65,14 +68,16 @@ export async function DELETE(req, { params }) {
   const session = await requireAuth(req);
   if (session instanceof NextResponse) return session;
 
+  const id = params.id;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  }
+
   try {
-    const id = params.id;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
-    }
     await connectDB();
     const category = await BlogCategory.findByIdAndDelete(id);
     if (!category) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    await Blog.updateMany({ category: id }, { $set: { category: null } });
     return NextResponse.json({ deleted: true });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });

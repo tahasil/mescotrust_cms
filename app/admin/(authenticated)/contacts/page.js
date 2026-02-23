@@ -11,8 +11,8 @@ export default function AdminContactsPage() {
   const fetchList = () => {
     setLoading(true);
     fetch("/api/admin/contacts")
-      .then((res) => (res.ok ? res.json() : []))
-      .then(setList)
+      .then((res) => (res.ok ? res.json() : { items: [] }))
+      .then((data) => setList(Array.isArray(data) ? data : data.items || []))
       .catch(() => message.error("Failed to load"))
       .finally(() => setLoading(false));
   };

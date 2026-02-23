@@ -1,22 +1,55 @@
-# Permissions (Phase 6)
+# Permission Matrix
 
 ## Roles
 
-- **Admin** — Full access: pages, blogs, components, menus, theme, contacts, **users**.
-- **Editor** — Content only: pages, blogs, components, contacts. No access to **users**, **theme**, or **menus** (or read-only per product decision).
+| Role     | Description |
+|----------|-------------|
+| **Admin**  | Full access to all admin routes and APIs. Can manage users, theme, settings, and all content. |
+| **Editor** | Can create and edit pages, blog posts, components, media, contacts, and menus. Cannot access user management, theme settings, or system settings. |
+
+## Route Permissions
+
+| Route / Action                  | Admin | Editor |
+|---------------------------------|:-----:|:------:|
+| `/admin` (dashboard)            | ✅    | ✅     |
+| `/admin/pages` (CRUD)           | ✅    | ✅     |
+| `/admin/blogs` (CRUD)           | ✅    | ✅     |
+| `/admin/blog-categories` (CRUD) | ✅    | ✅     |
+| `/admin/components` (CRUD)      | ✅    | ✅     |
+| `/admin/media` (upload/delete)  | ✅    | ✅     |
+| `/admin/menus` (CRUD)           | ✅    | ✅     |
+| `/admin/contacts` (read/delete) | ✅    | ✅     |
+| `/admin/users` (CRUD)           | ✅    | ❌     |
+| `/admin/theme` (edit)           | ✅    | ❌     |
+| Draft preview (`/preview/[id]`) | ✅    | ✅     |
+
+## API Permissions
+
+| API Route                       | Admin | Editor | Public |
+|---------------------------------|:-----:|:------:|:------:|
+| `GET /api/health`               | ✅    | ✅     | ✅     |
+| `GET /api/theme`                | ✅    | ✅     | ✅     |
+| `PUT /api/theme`                | ✅    | ❌     | ❌     |
+| `POST /api/contact`             | ✅    | ✅     | ✅     |
+| `GET /api/public/*`             | ✅    | ✅     | ✅     |
+| `GET/POST /api/admin/pages`     | ✅    | ✅     | ❌     |
+| `GET/POST /api/admin/blogs`     | ✅    | ✅     | ❌     |
+| `GET/POST /api/admin/components`| ✅    | ✅     | ❌     |
+| `GET/POST /api/admin/media`     | ✅    | ✅     | ❌     |
+| `GET/POST /api/admin/menus`     | ✅    | ✅     | ❌     |
+| `GET /api/admin/contacts`       | ✅    | ✅     | ❌     |
+| `GET/POST /api/admin/users`     | ✅    | ❌     | ❌     |
 
 ## Enforcement
 
-- **API:** `/api/admin/users` and `/api/admin/users/[id]` (GET/POST/PUT/DELETE) require **Admin**; return 403 for Editor.
-- **API:** `/api/admin/theme` (GET/PUT) require **Admin**; return 403 for Editor.
-- **Admin UI:** `/admin/users` and `/admin/theme` show "Admin only" or redirect when session.role is not Admin. Other admin routes are available to both Admin and Editor.
+- **Middleware** (`middleware.js`): Blocks unauthenticated access to `/admin/*` and `/api/admin/*`. Blocks Editor role from `/admin/users`, `/admin/theme`, `/api/admin/users`.
+- **API-level** (`lib/apiAuth.js`): Each admin API calls `requireAuth()`. Admin-only APIs (users, theme PUT) additionally check `session.role === "Admin"` via `isAdmin()`.
+- **Permission helper** (`lib/permissions.js`): Exports `isAdmin(session)` and `isEditor(session)` for role checks in route handlers and components.
 
-## Rules
+## Editor Content Scope
 
-- Cannot delete or demote the **last Admin** (enforced in user API).
-- Email uniqueness enforced on create/update.
-- Password minimum 6 characters on create; optional on update (leave blank to keep current).
+Currently, Editors can edit **all** pages and blog posts (not limited to own content). To restrict to own content, add `createdBy` field to Page/Blog models and filter queries by `session.id` for Editors.
 
-## Session
+## Password Reset
 
-Role is stored in the NextAuth JWT (`session.user.role`). Middleware can restrict routes by role; currently admin routes are protected by session presence only, and users/theme APIs enforce Admin in the route handler.
+Password reset for admin users is **not implemented**. Admins are managed via the seed script (`npm run seed`) or by another Admin through `/admin/users`. For production, consider implementing a forgot-password flow (Phase 6 optional).

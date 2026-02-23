@@ -1,11 +1,37 @@
 import ParagraphBlock from "@/components/cms/blocks/Paragraph";
 import HeadingBlock from "@/components/cms/blocks/Heading";
 import ImageBlock from "@/components/cms/blocks/Image";
+import ButtonsBlock from "@/components/cms/blocks/Buttons";
+import SpacerBlock from "@/components/cms/blocks/Spacer";
+import ColumnsBlock from "@/components/cms/blocks/Columns";
+import ListBlock from "@/components/cms/blocks/List";
+import QuoteBlock from "@/components/cms/blocks/Quote";
+import CodeSnippetBlock from "@/components/cms/blocks/CodeSnippet";
+import GalleryBlock from "@/components/cms/blocks/Gallery";
+import VideoBlock from "@/components/cms/blocks/Video";
+import FileDownloadBlock from "@/components/cms/blocks/FileDownload";
+import CoverBlock from "@/components/cms/blocks/Cover";
+import CallToActionBlock from "@/components/cms/blocks/CallToAction";
+import EmbedBlock from "@/components/cms/blocks/Embed";
+import BreadcrumbsBlock from "@/components/cms/blocks/Breadcrumbs";
 
 const COMPONENT_MAP = {
   Paragraph: ParagraphBlock,
   Heading: HeadingBlock,
   Image: ImageBlock,
+  Buttons: ButtonsBlock,
+  Spacer: SpacerBlock,
+  Columns: ColumnsBlock,
+  List: ListBlock,
+  Quote: QuoteBlock,
+  CodeSnippet: CodeSnippetBlock,
+  Gallery: GalleryBlock,
+  Video: VideoBlock,
+  FileDownload: FileDownloadBlock,
+  Cover: CoverBlock,
+  CallToAction: CallToActionBlock,
+  Embed: EmbedBlock,
+  Breadcrumbs: BreadcrumbsBlock,
 };
 
 function UnavailableBlock({ baseComponent }) {

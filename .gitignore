@@ -7,6 +7,9 @@ node_modules
 # Environment
 .env*.local
 
+# Uploads
+public/uploads/
+
 # Debug / IDE
 .DS_Store
 *.log

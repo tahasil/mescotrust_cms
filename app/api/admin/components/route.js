@@ -16,6 +16,21 @@ export async function GET(req) {
   }
 }
 
+function validateDefaultProps(schema, defaults) {
+  if (!Array.isArray(schema) || !defaults || typeof defaults !== "object") return [];
+  const errors = [];
+  for (const field of schema) {
+    const val = defaults[field.key];
+    if (field.required && (val === undefined || val === "")) {
+      errors.push(`defaultProps: "${field.key}" is required by schema`);
+    }
+    if (field.maxLength && typeof val === "string" && val.length > field.maxLength) {
+      errors.push(`defaultProps: "${field.key}" exceeds maxLength ${field.maxLength}`);
+    }
+  }
+  return errors;
+}
+
 export async function POST(req) {
   const session = await requireAuth(req);
   if (session instanceof NextResponse) return session;
@@ -24,6 +39,13 @@ export async function POST(req) {
     const body = await req.json();
     const { name, displayName, type, category, baseComponent, propsSchema, defaultProps, active } = body;
 
+    const schema = propsSchema || [];
+    const defaults = defaultProps || {};
+    const validationErrors = validateDefaultProps(schema, defaults);
+    if (validationErrors.length > 0) {
+      return NextResponse.json({ error: validationErrors.join("; ") }, { status: 400 });
+    }
+
     await connectDB();
     const component = await Component.create({
       name: name || "Unnamed",
@@ -31,8 +53,8 @@ export async function POST(req) {
       type: type || "custom",
       category: category || "",
       baseComponent: baseComponent || name || "Paragraph",
-      propsSchema: propsSchema || [],
-      defaultProps: defaultProps || {},
+      propsSchema: schema,
+      defaultProps: defaults,
       active: active !== false,
     });
     return NextResponse.json(component);

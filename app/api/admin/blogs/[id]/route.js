@@ -33,7 +33,7 @@ export async function PUT(req, { params }) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
     const body = await req.json();
-    const { title, slug: rawSlug, content, excerpt, featuredImage, author, status, publishedAt, category, tags, meta } = body;
+    const { title, slug: rawSlug, content, excerpt, featuredImage, author, status, publishedAt, category, tags, meta, locale } = body;
 
     await connectDB();
     const blog = await Blog.findById(id);
@@ -63,6 +63,8 @@ export async function PUT(req, { params }) {
     if (category !== undefined) blog.category = category;
     if (Array.isArray(tags)) blog.tags = tags;
     if (meta !== undefined) blog.meta = meta;
+    if (locale !== undefined) blog.locale = locale;
+    blog.updatedBy = session.email || "";
 
     await blog.save();
     return NextResponse.json(blog);

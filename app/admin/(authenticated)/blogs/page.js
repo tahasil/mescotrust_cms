@@ -4,18 +4,26 @@ import { useState, useEffect } from "react";
 import { Table, Button, Space, message, Modal, Form, Input, Select, Tag } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import Link from "next/link";
+import RichTextEditor from "@/components/admin/RichTextEditor";
 
 export default function AdminBlogsPage() {
   const [list, setList] = useState([]);
+  const [filtered, setFiltered] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [filterStatus, setFilterStatus] = useState(null);
+  const [filterCategory, setFilterCategory] = useState(null);
+  const [searchText, setSearchText] = useState("");
   const [form] = Form.useForm();
 
   const fetchBlogs = async () => {
     const res = await fetch("/api/admin/blogs");
-    if (res.ok) setList(await res.json());
+    if (res.ok) {
+      const data = await res.json();
+      setList(Array.isArray(data) ? data : data.items || []);
+    }
   };
   const fetchCategories = async () => {
     const res = await fetch("/api/admin/blog-categories");
@@ -26,6 +34,17 @@ export default function AdminBlogsPage() {
     setLoading(true);
     Promise.all([fetchBlogs(), fetchCategories()]).finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    let result = list;
+    if (filterStatus) result = result.filter((p) => p.status === filterStatus);
+    if (filterCategory) result = result.filter((p) => (p.category?._id || p.category) === filterCategory);
+    if (searchText.trim()) {
+      const q = searchText.trim().toLowerCase();
+      result = result.filter((p) => p.title?.toLowerCase().includes(q) || p.slug?.toLowerCase().includes(q));
+    }
+    setFiltered(result);
+  }, [list, filterStatus, filterCategory, searchText]);
 
   const handleCreate = () => {
     setEditingId(null);
@@ -42,6 +61,7 @@ export default function AdminBlogsPage() {
       excerpt: record.excerpt,
       status: record.status,
       category: record.category?._id || undefined,
+      tags: Array.isArray(record.tags) ? record.tags : [],
       metaTitle: record.meta?.metaTitle,
       metaDescription: record.meta?.metaDescription,
     });
@@ -77,6 +97,7 @@ export default function AdminBlogsPage() {
         excerpt: values.excerpt,
         status: values.status,
         category: values.category || null,
+        tags: Array.isArray(values.tags) ? values.tags : [],
         meta: { metaTitle: values.metaTitle, metaDescription: values.metaDescription },
       };
       const url = editingId ? `/api/admin/blogs/${editingId}` : "/api/admin/blogs";
@@ -129,10 +150,35 @@ export default function AdminBlogsPage() {
   return (
     <>
       <h1 style={{ marginBottom: 16 }}>Blog posts</h1>
-      <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate} style={{ marginBottom: 16 }}>
-        Add post
-      </Button>
-      <Table rowKey="_id" columns={columns} dataSource={list} loading={loading} pagination={{ pageSize: 20 }} />
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16, alignItems: "center" }}>
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
+          Add post
+        </Button>
+        <Input.Search
+          placeholder="Search title or slug"
+          allowClear
+          style={{ width: 220 }}
+          onSearch={setSearchText}
+          onChange={(e) => { if (!e.target.value) setSearchText(""); }}
+        />
+        <Select
+          placeholder="Status"
+          allowClear
+          style={{ width: 140 }}
+          value={filterStatus}
+          onChange={setFilterStatus}
+          options={[{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }]}
+        />
+        <Select
+          placeholder="Category"
+          allowClear
+          style={{ width: 180 }}
+          value={filterCategory}
+          onChange={setFilterCategory}
+          options={categories.map((c) => ({ value: c._id, label: c.name }))}
+        />
+      </div>
+      <Table rowKey="_id" columns={columns} dataSource={filtered} loading={loading} pagination={{ pageSize: 20 }} />
 
       <Modal
         title={editingId ? "Edit post" : "New post"}
@@ -153,7 +199,7 @@ export default function AdminBlogsPage() {
             <Input.TextArea rows={2} />
           </Form.Item>
           <Form.Item name="content" label="Content">
-            <Input.TextArea rows={6} />
+            <RichTextEditor />
           </Form.Item>
           <Form.Item name="category" label="Category">
             <Select
@@ -161,6 +207,9 @@ export default function AdminBlogsPage() {
               placeholder="Select category"
               options={categories.map((c) => ({ value: c._id, label: c.name }))}
             />
+          </Form.Item>
+          <Form.Item name="tags" label="Tags" extra="Press Enter after each tag">
+            <Select mode="tags" placeholder="Add tags" tokenSeparators={[","]} />
           </Form.Item>
           <Form.Item name="status" label="Status" initialValue="draft">
             <Select options={[{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }]} />

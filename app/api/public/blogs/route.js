@@ -12,8 +12,11 @@ export async function GET(req) {
 
     await connectDB();
 
+    const locale = searchParams.get("locale") || null;
+
     const filter = { status: "published" };
     if (category) filter["category"] = category;
+    if (locale) filter.locale = locale;
     if (search) {
       filter.$or = [
         { title: new RegExp(search, "i") },

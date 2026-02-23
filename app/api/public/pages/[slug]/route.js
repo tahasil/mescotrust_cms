@@ -7,8 +7,13 @@ export async function GET(req, { params }) {
     const slug = params.slug;
     if (!slug) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+    const { searchParams } = new URL(req.url);
+    const locale = searchParams.get("locale");
+    const filter = { slug, status: "published" };
+    if (locale) filter.locale = locale;
+
     await connectDB();
-    const page = await Page.findOne({ slug, status: "published" })
+    const page = await Page.findOne(filter)
       .populate("layout.componentId")
       .lean();
 

@@ -1,19 +1,26 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Table, Tag, Button, Space, message, Modal, Form, Input, Select, Drawer, Card, Row, Col } from "antd";
-import { PlusOutlined, EditOutlined, DeleteOutlined, AppstoreOutlined } from "@ant-design/icons";
+import { Table, Tag, Button, Space, message, Modal, Form, Input, Select, Drawer } from "antd";
+import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 
 const KNOWN_BASE_COMPONENTS = [
   { value: "Paragraph", label: "Paragraph" },
   { value: "Heading", label: "Heading" },
+  { value: "List", label: "List" },
+  { value: "Quote", label: "Quote" },
+  { value: "CodeSnippet", label: "Code Snippet" },
   { value: "Image", label: "Image" },
-];
-
-const CORE_PAGE_BUILDER_COMPONENTS_LIST = [
-  { baseComponent: "Paragraph", displayName: "Paragraph", description: "Body text block. Editable: text." },
-  { baseComponent: "Heading", displayName: "Heading", description: "Heading (H1–H6). Editable: level, text." },
-  { baseComponent: "Image", displayName: "Image", description: "Image with URL. Editable: src, alt text." },
+  { value: "Gallery", label: "Gallery" },
+  { value: "Video", label: "Video" },
+  { value: "FileDownload", label: "File Download" },
+  { value: "Cover", label: "Cover" },
+  { value: "Buttons", label: "Buttons" },
+  { value: "Spacer", label: "Spacer / Divider" },
+  { value: "Columns", label: "Columns" },
+  { value: "CallToAction", label: "Call to Action" },
+  { value: "Embed", label: "Embed" },
+  { value: "Breadcrumbs", label: "Breadcrumbs" },
 ];
 
 export default function AdminComponentsPage() {
@@ -46,6 +53,15 @@ export default function AdminComponentsPage() {
   const handleAddSubmit = async () => {
     try {
       const values = await form.validateFields();
+      let propsSchema = [];
+      let defaultProps = {};
+      if (values.propsSchemaJson) {
+        try { propsSchema = JSON.parse(values.propsSchemaJson); } catch { message.error("Props schema is not valid JSON"); return; }
+        if (!Array.isArray(propsSchema)) { message.error("Props schema must be a JSON array"); return; }
+      }
+      if (values.defaultPropsJson) {
+        try { defaultProps = JSON.parse(values.defaultPropsJson); } catch { message.error("Default props is not valid JSON"); return; }
+      }
       const res = await fetch("/api/admin/components", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -55,6 +71,8 @@ export default function AdminComponentsPage() {
           baseComponent: values.baseComponent,
           category: values.category || "",
           type: "custom",
+          propsSchema,
+          defaultProps,
         }),
       });
       if (!res.ok) {
@@ -77,6 +95,8 @@ export default function AdminComponentsPage() {
       displayName: record.displayName || record.name,
       category: record.category || "",
       active: record.active !== false,
+      propsSchemaJson: record.propsSchema?.length ? JSON.stringify(record.propsSchema, null, 2) : "[]",
+      defaultPropsJson: record.defaultProps && Object.keys(record.defaultProps).length ? JSON.stringify(record.defaultProps, null, 2) : "{}",
     });
     setEditDrawerOpen(true);
   };
@@ -85,14 +105,26 @@ export default function AdminComponentsPage() {
     if (!editingId) return;
     try {
       const values = await editForm.validateFields();
+      let propsSchema;
+      let defaultProps;
+      if (values.propsSchemaJson !== undefined) {
+        try { propsSchema = JSON.parse(values.propsSchemaJson); } catch { message.error("Props schema is not valid JSON"); return; }
+        if (!Array.isArray(propsSchema)) { message.error("Props schema must be a JSON array"); return; }
+      }
+      if (values.defaultPropsJson !== undefined) {
+        try { defaultProps = JSON.parse(values.defaultPropsJson); } catch { message.error("Default props is not valid JSON"); return; }
+      }
+      const payload = {
+        displayName: values.displayName,
+        category: values.category,
+        active: values.active,
+      };
+      if (propsSchema !== undefined) payload.propsSchema = propsSchema;
+      if (defaultProps !== undefined) payload.defaultProps = defaultProps;
       const res = await fetch(`/api/admin/components/${editingId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          displayName: values.displayName,
-          category: values.category,
-          active: values.active,
-        }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -109,25 +141,20 @@ export default function AdminComponentsPage() {
     }
   };
 
-  const handleSeedDefaults = async () => {
+  const handleDelete = async (record) => {
+    let usageMsg = "";
     try {
-      const res = await fetch("/api/admin/components/seed", { method: "POST" });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        message.error(data.error || "Seed failed");
-        return;
+      const res = await fetch(`/api/admin/components/${record._id}/usage`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.count > 0) {
+          usageMsg = ` This component is used by ${data.count} page(s).`;
+        }
       }
-      message.success(data.created?.length ? `Created: ${data.created.join(", ")}` : "Default components already exist.");
-      fetchList();
-    } catch (e) {
-      message.error("Seed failed");
-    }
-  };
-
-  const handleDelete = (record) => {
+    } catch {}
     Modal.confirm({
       title: "Delete component?",
-      content: `Delete "${record.displayName || record.name}"? This only works if no page uses this component.`,
+      content: `Delete "${record.displayName || record.name}"?${usageMsg}${usageMsg ? " Remove it from those pages first, or deactivate instead." : ""}`,
       okText: "Delete",
       okType: "danger",
       onOk: async () => {
@@ -183,26 +210,6 @@ export default function AdminComponentsPage() {
         Block types used in the page builder. Add or edit definitions here. <strong>baseComponent</strong> must match a type registered in code. New types require a code change (see README).
       </p>
 
-      <Card title="Core Page Builder Components" style={{ marginBottom: 24 }}>
-        <p style={{ color: "#666", marginBottom: 16 }}>
-          These block types are always available in the page builder. Seed them into the database to manage display name and category in the table below.
-        </p>
-        <Row gutter={[16, 16]}>
-          {CORE_PAGE_BUILDER_COMPONENTS_LIST.map((item) => (
-            <Col xs={24} sm={12} md={8} key={item.baseComponent}>
-              <Card size="small" type="inner">
-                <div style={{ fontWeight: 600, marginBottom: 4 }}>{item.displayName}</div>
-                <div style={{ fontSize: 12, color: "#666" }}>{item.description}</div>
-                <Tag style={{ marginTop: 8 }}>{item.baseComponent}</Tag>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-        <Button type="primary" icon={<AppstoreOutlined />} onClick={handleSeedDefaults} style={{ marginTop: 16 }}>
-          Seed default components
-        </Button>
-      </Card>
-
       <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd} style={{ marginBottom: 16 }}>
         Add component
       </Button>
@@ -234,6 +241,12 @@ export default function AdminComponentsPage() {
           <Form.Item name="category" label="Category">
             <Input placeholder="e.g. Content" />
           </Form.Item>
+          <Form.Item name="propsSchemaJson" label="Props schema (JSON)" help='Array of fields, e.g. [{"key":"text","type":"text","label":"Text","required":false}]. Types: text, richtext, image, url, number, select, boolean, json.'>
+            <Input.TextArea rows={4} placeholder='[{"key":"text","type":"text","label":"Text"}]' />
+          </Form.Item>
+          <Form.Item name="defaultPropsJson" label="Default props (JSON)" help="Must conform to the props schema above.">
+            <Input.TextArea rows={3} placeholder='{"text":""}' />
+          </Form.Item>
         </Form>
       </Modal>
 
@@ -241,8 +254,11 @@ export default function AdminComponentsPage() {
         title="Edit component"
         open={editDrawerOpen}
         onClose={() => { setEditDrawerOpen(false); setEditingId(null); }}
-        onOk={handleEditSubmit}
-        okText="Save"
+        extra={
+          <Button type="primary" onClick={handleEditSubmit}>
+            Save
+          </Button>
+        }
       >
         <Form form={editForm} layout="vertical">
           <Form.Item name="displayName" label="Display name" rules={[{ required: true }]}>
@@ -253,6 +269,12 @@ export default function AdminComponentsPage() {
           </Form.Item>
           <Form.Item name="active" label="Active">
             <Select options={[{ value: true, label: "Active" }, { value: false, label: "Inactive" }]} />
+          </Form.Item>
+          <Form.Item name="propsSchemaJson" label="Props schema (JSON)" help='Array of fields, e.g. [{"key":"text","type":"text","label":"Text","required":false}]. Types: text, richtext, image, url, number, select, boolean, json.'>
+            <Input.TextArea rows={5} />
+          </Form.Item>
+          <Form.Item name="defaultPropsJson" label="Default props (JSON)" help="Must conform to the props schema above.">
+            <Input.TextArea rows={3} />
           </Form.Item>
         </Form>
       </Drawer>

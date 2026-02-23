@@ -1,57 +1,110 @@
 "use client";
 
-import { useState } from "react";
-import { Form, Input, Button, message } from "antd";
+import { useEffect, useRef } from "react";
+import { useFormState, useFormStatus } from "react-dom";
+import { message } from "antd";
+import { submitContact } from "@/app/actions/contact";
 
-const { TextArea } = Input;
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      style={{
+        padding: "8px 24px",
+        backgroundColor: "var(--primary-color, #1890ff)",
+        color: "#fff",
+        border: "none",
+        borderRadius: 6,
+        fontSize: 14,
+        cursor: pending ? "not-allowed" : "pointer",
+        opacity: pending ? 0.65 : 1,
+      }}
+    >
+      {pending ? "Sending…" : "Send"}
+    </button>
+  );
+}
 
 export default function ContactForm({ page, source }) {
-  const [loading, setLoading] = useState(false);
+  const [state, formAction] = useFormState(submitContact, null);
+  const formRef = useRef(null);
 
-  const onFinish = async (values) => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: values.name,
-          email: values.email,
-          message: values.message,
-          page: page || "",
-          source: source || "",
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        message.error(data.error || "Failed to send");
-        return;
-      }
+  useEffect(() => {
+    if (!state) return;
+    if (state.success) {
       message.success("Message sent. We will get back to you soon.");
-      document.querySelector("form")?.resetFields();
-    } catch (e) {
-      message.error("Failed to send");
-    } finally {
-      setLoading(false);
+      formRef.current?.reset();
+    } else if (state.error) {
+      message.error(state.error);
     }
+  }, [state]);
+
+  const fieldStyle = {
+    width: "100%",
+    padding: "8px 12px",
+    border: "1px solid #d9d9d9",
+    borderRadius: 6,
+    fontSize: 14,
+    lineHeight: 1.5,
+    outline: "none",
+  };
+
+  const labelStyle = {
+    display: "block",
+    marginBottom: 6,
+    fontWeight: 500,
+    fontSize: 14,
   };
 
   return (
-    <Form name="contact" onFinish={onFinish} layout="vertical" style={{ maxWidth: 480 }}>
-      <Form.Item name="name" label="Name" rules={[{ required: true, message: "Please enter your name" }]}>
-        <Input />
-      </Form.Item>
-      <Form.Item name="email" label="Email" rules={[{ required: true, type: "email", message: "Please enter a valid email" }]}>
-        <Input type="email" />
-      </Form.Item>
-      <Form.Item name="message" label="Message" rules={[{ required: true, message: "Please enter your message" }]}>
-        <TextArea rows={4} />
-      </Form.Item>
-      <Form.Item>
-        <Button type="primary" htmlType="submit" loading={loading}>
-          Send
-        </Button>
-      </Form.Item>
-    </Form>
+    <form ref={formRef} action={formAction} style={{ maxWidth: 480 }}>
+      <input type="hidden" name="page" value={page || ""} />
+      <input type="hidden" name="source" value={source || ""} />
+
+      <div style={{ marginBottom: 20 }}>
+        <label htmlFor="contact-name" style={labelStyle}>
+          Name <span style={{ color: "#ff4d4f" }}>*</span>
+        </label>
+        <input
+          id="contact-name"
+          name="name"
+          required
+          style={fieldStyle}
+          placeholder="Your name"
+        />
+      </div>
+
+      <div style={{ marginBottom: 20 }}>
+        <label htmlFor="contact-email" style={labelStyle}>
+          Email <span style={{ color: "#ff4d4f" }}>*</span>
+        </label>
+        <input
+          id="contact-email"
+          name="email"
+          type="email"
+          required
+          style={fieldStyle}
+          placeholder="you@example.com"
+        />
+      </div>
+
+      <div style={{ marginBottom: 20 }}>
+        <label htmlFor="contact-message" style={labelStyle}>
+          Message <span style={{ color: "#ff4d4f" }}>*</span>
+        </label>
+        <textarea
+          id="contact-message"
+          name="message"
+          required
+          rows={4}
+          style={{ ...fieldStyle, resize: "vertical" }}
+          placeholder="How can we help?"
+        />
+      </div>
+
+      <SubmitButton />
+    </form>
   );
 }

@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Page from "@/models/Page";
 import { normalizeSlug } from "@/lib/slug";
+import { validateLayoutProps } from "@/lib/validateLayout";
 
 export async function GET(req, { params }) {
   const session = await requireAuth(req);
@@ -33,7 +34,7 @@ export async function PUT(req, { params }) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
     const body = await req.json();
-    const { title, slug: rawSlug, status, layout, meta } = body;
+    const { title, slug: rawSlug, status, layout, meta, locale } = body;
 
     await connectDB();
     const page = await Page.findById(id);
@@ -52,8 +53,16 @@ export async function PUT(req, { params }) {
     }
     if (title !== undefined) page.title = title;
     if (status !== undefined) page.status = status;
-    if (Array.isArray(layout)) page.layout = layout;
+    if (Array.isArray(layout)) {
+      const validationErrors = await validateLayoutProps(layout);
+      if (validationErrors.length > 0) {
+        return NextResponse.json({ error: `Layout validation: ${validationErrors.join("; ")}` }, { status: 400 });
+      }
+      page.layout = layout;
+    }
     if (meta !== undefined) page.meta = meta;
+    if (locale !== undefined) page.locale = locale;
+    page.updatedBy = session.email || "";
 
     await page.save();
     return NextResponse.json(page);

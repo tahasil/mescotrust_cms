@@ -9,5 +9,8 @@ export default async function AuthenticatedAdminLayout({ children }) {
     redirect("/admin/login");
   }
 
-  return <AdminLayoutClient>{children}</AdminLayoutClient>;
+  const userName = session.user?.name || session.user?.email || "Admin";
+  const userRole = session.user?.role || "";
+
+  return <AdminLayoutClient userName={userName} userRole={userRole}>{children}</AdminLayoutClient>;
 }

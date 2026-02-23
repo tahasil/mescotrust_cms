@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Button, Form, Input, Select, Card, message, Spin } from "antd";
+import { Button, Form, Input, Select, Card, Space, message, Spin } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import Link from "next/link";
+import RichTextEditor from "@/components/admin/RichTextEditor";
 
 export default function AdminBlogEditPage() {
   const params = useParams();
@@ -36,8 +37,11 @@ export default function AdminBlogEditPage() {
           slug: postData.slug,
           content: postData.content,
           excerpt: postData.excerpt,
+          featuredImage: postData.featuredImage,
           status: postData.status,
+          locale: postData.locale || "en",
           category: postData.category?._id || undefined,
+          tags: Array.isArray(postData.tags) ? postData.tags : [],
           metaTitle: postData.meta?.metaTitle,
           metaDescription: postData.meta?.metaDescription,
         });
@@ -57,7 +61,9 @@ export default function AdminBlogEditPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...values,
+          featuredImage: values.featuredImage || "",
           category: values.category || null,
+          tags: Array.isArray(values.tags) ? values.tags : [],
           meta: { metaTitle: values.metaTitle, metaDescription: values.metaDescription },
         }),
       });
@@ -93,8 +99,11 @@ export default function AdminBlogEditPage() {
           <Form.Item name="excerpt" label="Excerpt">
             <Input.TextArea rows={2} />
           </Form.Item>
+          <Form.Item name="featuredImage" label="Featured image URL" extra="Paste an image URL or path from the media library (e.g. /uploads/photo.jpg)">
+            <Input placeholder="/uploads/image.jpg or https://..." />
+          </Form.Item>
           <Form.Item name="content" label="Content">
-            <Input.TextArea rows={12} />
+            <RichTextEditor />
           </Form.Item>
           <Form.Item name="category" label="Category">
             <Select
@@ -103,8 +112,14 @@ export default function AdminBlogEditPage() {
               options={categories.map((c) => ({ value: c._id, label: c.name }))}
             />
           </Form.Item>
+          <Form.Item name="tags" label="Tags" extra="Press Enter after each tag">
+            <Select mode="tags" placeholder="Add tags" tokenSeparators={[","]} />
+          </Form.Item>
           <Form.Item name="status" label="Status" initialValue="draft">
             <Select options={[{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }]} />
+          </Form.Item>
+          <Form.Item name="locale" label="Locale" extra="Language code (e.g. en, ar, he)">
+            <Input placeholder="en" />
           </Form.Item>
           <Form.Item name="metaTitle" label="Meta title">
             <Input />
@@ -113,9 +128,14 @@ export default function AdminBlogEditPage() {
             <Input.TextArea rows={2} />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit" loading={saving}>
-              Save
-            </Button>
+            <Space>
+              <Button type="primary" htmlType="submit" loading={saving}>
+                Save
+              </Button>
+              <Button href={`/preview/${id}?type=blog`} target="_blank">
+                Preview draft
+              </Button>
+            </Space>
           </Form.Item>
         </Form>
       </Card>

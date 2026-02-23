@@ -6,11 +6,15 @@ import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 
 export default function AdminUsersPage() {
   const [list, setList] = useState([]);
+  const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [filterRole, setFilterRole] = useState(null);
+  const [filterStatus, setFilterStatus] = useState(null);
+  const [searchText, setSearchText] = useState("");
   const [form] = Form.useForm();
   const [editForm] = Form.useForm();
 
@@ -33,6 +37,19 @@ export default function AdminUsersPage() {
   useEffect(() => {
     fetchList();
   }, []);
+
+  useEffect(() => {
+    let result = list;
+    if (filterRole) result = result.filter((u) => u.role === filterRole);
+    if (filterStatus) result = result.filter((u) => u.status === filterStatus);
+    if (searchText.trim()) {
+      const q = searchText.trim().toLowerCase();
+      result = result.filter(
+        (u) => u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q)
+      );
+    }
+    setFiltered(result);
+  }, [list, filterRole, filterStatus, searchText]);
 
   const handleAdd = () => {
     form.resetFields();
@@ -138,13 +155,38 @@ export default function AdminUsersPage() {
       <p style={{ color: "#666", marginBottom: 16 }}>
         Admin and Editor accounts. Only Admins can manage users. Create initial admin via <code>npm run seed</code>.
       </p>
-      <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd} style={{ marginBottom: 16 }}>
-        Add user
-      </Button>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16, alignItems: "center" }}>
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+          Add user
+        </Button>
+        <Input.Search
+          placeholder="Search name or email"
+          allowClear
+          style={{ width: 220 }}
+          onSearch={setSearchText}
+          onChange={(e) => { if (!e.target.value) setSearchText(""); }}
+        />
+        <Select
+          placeholder="Role"
+          allowClear
+          style={{ width: 130 }}
+          value={filterRole}
+          onChange={setFilterRole}
+          options={[{ value: "Admin", label: "Admin" }, { value: "Editor", label: "Editor" }]}
+        />
+        <Select
+          placeholder="Status"
+          allowClear
+          style={{ width: 130 }}
+          value={filterStatus}
+          onChange={setFilterStatus}
+          options={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]}
+        />
+      </div>
       <Table
         rowKey="_id"
         loading={loading}
-        dataSource={list}
+        dataSource={filtered}
         columns={[
           { title: "Name", dataIndex: "name", key: "name" },
           { title: "Email", dataIndex: "email", key: "email" },

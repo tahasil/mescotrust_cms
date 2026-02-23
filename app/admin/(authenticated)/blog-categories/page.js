@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Table, Button, Space, message, Modal, Form, Input, InputNumber } from "antd";
+import { Table, Button, Space, message, Modal, Form, Input, InputNumber, Tag } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 
 export default function AdminBlogCategoriesPage() {
@@ -11,17 +11,13 @@ export default function AdminBlogCategoriesPage() {
   const [editingId, setEditingId] = useState(null);
   const [form] = Form.useForm();
 
-  const fetchCategories = async () => {
+  const fetchCategories = () => {
     setLoading(true);
-    try {
-      const res = await fetch("/api/admin/blog-categories");
-      if (!res.ok) throw new Error("Failed to fetch");
-      setList(await res.json());
-    } catch (e) {
-      message.error(e.message || "Failed to load categories");
-    } finally {
-      setLoading(false);
-    }
+    fetch("/api/admin/blog-categories")
+      .then((res) => (res.ok ? res.json() : []))
+      .then(setList)
+      .catch(() => message.error("Failed to load categories"))
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -48,7 +44,7 @@ export default function AdminBlogCategoriesPage() {
   const handleDelete = (record) => {
     Modal.confirm({
       title: "Delete category?",
-      content: `Delete "${record.name}"?`,
+      content: `Delete "${record.name}"? Posts using this category will become uncategorized.`,
       okText: "Delete",
       okType: "danger",
       onOk: async () => {
@@ -98,12 +94,8 @@ export default function AdminBlogCategoriesPage() {
       key: "actions",
       render: (_, record) => (
         <Space>
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
-            Edit
-          </Button>
-          <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)}>
-            Delete
-          </Button>
+          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)}>Edit</Button>
+          <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)}>Delete</Button>
         </Space>
       ),
     },
@@ -111,11 +103,11 @@ export default function AdminBlogCategoriesPage() {
 
   return (
     <>
-      <h1 style={{ marginBottom: 16 }}>Blog categories</h1>
+      <h1 style={{ marginBottom: 16 }}>Blog Categories</h1>
       <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate} style={{ marginBottom: 16 }}>
         Add category
       </Button>
-      <Table rowKey="_id" columns={columns} dataSource={list} loading={loading} pagination={{ pageSize: 20 }} />
+      <Table rowKey="_id" columns={columns} dataSource={list} loading={loading} pagination={false} />
 
       <Modal
         title={editingId ? "Edit category" : "New category"}
@@ -129,7 +121,7 @@ export default function AdminBlogCategoriesPage() {
             <Input />
           </Form.Item>
           <Form.Item name="slug" label="Slug" rules={[{ required: true }]}>
-            <Input placeholder="url-slug" />
+            <Input />
           </Form.Item>
           <Form.Item name="description" label="Description">
             <Input.TextArea rows={2} />

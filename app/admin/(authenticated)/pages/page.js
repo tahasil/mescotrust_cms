@@ -18,7 +18,7 @@ export default function AdminPagesPage() {
       const res = await fetch("/api/admin/pages");
       if (!res.ok) throw new Error("Failed to fetch");
       const data = await res.json();
-      setList(data);
+      setList(Array.isArray(data) ? data : data.items || []);
     } catch (e) {
       message.error(e.message || "Failed to load pages");
     } finally {
@@ -138,6 +138,9 @@ export default function AdminPagesPage() {
           </Form.Item>
           <Form.Item name="status" label="Status" initialValue="draft">
             <Select options={[{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }]} />
+          </Form.Item>
+          <Form.Item name="locale" label="Locale" initialValue="en" extra="Language code (e.g. en, ar, he)">
+            <Input placeholder="en" />
           </Form.Item>
         </Form>
       </Modal>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Button, Form, Input, Select, Card, message, Spin } from "antd";
+import { Button, Form, Input, Select, Card, Space, message, Spin } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
@@ -34,6 +34,7 @@ export default function AdminPageEditPage() {
           title: data.title,
           slug: data.slug,
           status: data.status,
+          locale: data.locale || "en",
           metaTitle: data.meta?.metaTitle,
           metaDescription: data.meta?.metaDescription,
         });
@@ -55,6 +56,7 @@ export default function AdminPageEditPage() {
           title: values.title,
           slug: values.slug,
           status: values.status,
+          locale: values.locale || "en",
           layout,
           meta: { metaTitle: values.metaTitle, metaDescription: values.metaDescription },
         }),
@@ -93,6 +95,9 @@ export default function AdminPageEditPage() {
           <Form.Item name="status" label="Status" initialValue="draft">
             <Select options={[{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }]} />
           </Form.Item>
+          <Form.Item name="locale" label="Locale" extra="Language code (e.g. en, ar, he)">
+            <Input placeholder="en" />
+          </Form.Item>
           <Form.Item name="metaTitle" label="Meta title">
             <Input />
           </Form.Item>
@@ -100,9 +105,14 @@ export default function AdminPageEditPage() {
             <Input.TextArea rows={2} />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit" loading={saving}>
-              Save
-            </Button>
+            <Space>
+              <Button type="primary" htmlType="submit" loading={saving}>
+                Save
+              </Button>
+              <Button href={`/preview/${id}?type=page`} target="_blank">
+                Preview draft
+              </Button>
+            </Space>
           </Form.Item>
         </Form>
       </Card>

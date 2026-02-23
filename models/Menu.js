@@ -14,6 +14,7 @@ const menuSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, unique: true, trim: true },
     items: { type: [menuItemSchema], default: [] },
+    locale: { type: String, default: "en" },
   },
   { timestamps: true }
 );
