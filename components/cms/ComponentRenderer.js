@@ -93,12 +93,14 @@ function UnavailableBlock({ baseComponent }) {
   );
 }
 
-export default function ComponentRenderer({ layout }) {
+export default function ComponentRenderer({ layout, wrapperContainer }) {
   if (!Array.isArray(layout) || layout.length === 0) return null;
 
   const sorted = [...layout].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  const wrapperClass =
+    wrapperContainer === "container-fluid" ? "cms-container-fluid" : wrapperContainer === "container" ? "cms-container" : null;
 
-  return (
+  const content = (
     <div className="cms-layout">
       {sorted.map((block) => {
         const baseComponent =
@@ -144,4 +146,9 @@ export default function ComponentRenderer({ layout }) {
       })}
     </div>
   );
+
+  if (wrapperClass) {
+    return <div className={wrapperClass}>{content}</div>;
+  }
+  return content;
 }

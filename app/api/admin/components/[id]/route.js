@@ -48,7 +48,7 @@ export async function PUT(req, { params }) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
     const body = await req.json();
-    const { name, displayName, type, category, baseComponent, propsSchema, defaultProps, active } = body;
+    const { name, displayName, type, category, baseComponent, propsSchema, defaultProps, layout, container, active } = body;
 
     await connectDB();
     const component = await Component.findById(id);
@@ -61,6 +61,8 @@ export async function PUT(req, { params }) {
     if (baseComponent !== undefined) component.baseComponent = baseComponent;
     if (propsSchema !== undefined) component.propsSchema = propsSchema;
     if (defaultProps !== undefined) component.defaultProps = defaultProps;
+    if (Array.isArray(layout)) component.layout = layout;
+    if (container === "container" || container === "container-fluid") component.container = container;
     if (typeof active === "boolean") component.active = active;
 
     const finalSchema = component.propsSchema || [];

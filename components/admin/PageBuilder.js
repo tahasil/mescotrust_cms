@@ -374,8 +374,9 @@ const PREVIEW_WIDTHS = {
 // Main PageBuilder Component
 // ═══════════════════════════════════════════════════════════
 
-export default function PageBuilder({ layout = [], onChange }) {
-  const [components, setComponents] = useState(CORE_PAGE_BUILDER_COMPONENTS);
+export default function PageBuilder({ layout = [], onChange, paletteSource }) {
+  /** When paletteSource === "core", palette shows all base blocks (text, image, button, etc.). Otherwise palette shows custom components from API. */
+  const [components, setComponents] = useState(() => (paletteSource === "core" ? CORE_PAGE_BUILDER_COMPONENTS : []));
   const [theme, setTheme] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [editingIndex, setEditingIndex] = useState(null);
@@ -416,22 +417,29 @@ export default function PageBuilder({ layout = [], onChange }) {
   );
 
   useEffect(() => {
+    if (paletteSource === "core") {
+      setComponents(CORE_PAGE_BUILDER_COMPONENTS);
+      return;
+    }
     fetch("/api/admin/components")
       .then((res) => (res.ok ? res.json() : []))
       .then((list) => {
         const active = (list || []).filter((c) => c.active);
-        if (active.length > 0) {
-          const merged = [...CORE_PAGE_BUILDER_COMPONENTS];
-          active.forEach((apiComp) => {
-            if (!merged.find((c) => c.baseComponent === apiComp.baseComponent)) {
-              merged.push({ ...apiComp, category: apiComp.category || "content", description: apiComp.description || "" });
-            }
-          });
-          setComponents(merged);
-        }
+        const mapped = active.map((c) => ({
+          _id: c._id,
+          name: c.name,
+          displayName: c.displayName || c.name,
+          baseComponent: c.baseComponent,
+          category: (c.category || "content").toLowerCase(),
+          description: c.description || "",
+          propsSchema: c.propsSchema || [],
+          defaultProps: c.defaultProps || {},
+          active: c.active !== false,
+        }));
+        setComponents(mapped);
       })
-      .catch(() => {});
-  }, []);
+      .catch(() => setComponents([]));
+  }, [paletteSource]);
 
   useEffect(() => {
     fetch("/api/theme")

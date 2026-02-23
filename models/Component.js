@@ -9,6 +9,10 @@ const componentSchema = new mongoose.Schema(
     baseComponent: { type: String, required: true },
     propsSchema: { type: mongoose.Schema.Types.Mixed, default: [] },
     defaultProps: { type: mongoose.Schema.Types.Mixed, default: {} },
+    /** Layout designed in visual editor: array of blocks (same shape as page layout). */
+    layout: { type: mongoose.Schema.Types.Mixed, default: [] },
+    /** Wrapper class for component content: "container" or "container-fluid". */
+    container: { type: String, enum: ["container", "container-fluid"], default: "container" },
     active: { type: Boolean, default: true },
   },
   { timestamps: true }

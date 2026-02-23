@@ -1,19 +1,19 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
 import {
   Tag, Button, Space, message, Modal, Form, Input, Select, Drawer, Empty,
-  Segmented, Badge, Tooltip, Card as AntCard,
+  Segmented, Switch,
 } from "antd";
 import {
-  PlusOutlined, EditOutlined, DeleteOutlined, AppstoreOutlined,
-  SearchOutlined, EyeOutlined, UnorderedListOutlined,
+  PlusOutlined, EditOutlined, DeleteOutlined, AppstoreOutlined, SettingOutlined,
+  SearchOutlined, UnorderedListOutlined,
   FontSizeOutlined, PictureOutlined, LayoutOutlined,
   InteractionOutlined, TableOutlined, ShareAltOutlined,
   StarOutlined, TeamOutlined, ClockCircleOutlined,
   AlertOutlined, LineOutlined,
 } from "@ant-design/icons";
-import ComponentRenderer from "@/components/cms/ComponentRenderer";
 
 const KNOWN_BASE_COMPONENTS = [
   { value: "Paragraph", label: "Paragraph" },
@@ -87,100 +87,6 @@ const BLOCK_ICON_MAP = {
   Slider: <PictureOutlined />,
 };
 
-function ComponentPreviewCard({ record, onEdit, onDelete }) {
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const catKey = record.category || "content";
-  const catMeta = CATEGORY_META[catKey] || CATEGORY_META.content;
-  const icon = BLOCK_ICON_MAP[record.baseComponent] || <AppstoreOutlined />;
-
-  const demoLayout = [{
-    instanceId: "preview_" + record._id,
-    baseComponent: record.baseComponent,
-    props: record.defaultProps || {},
-    order: 0,
-  }];
-
-  return (
-    <AntCard
-      hoverable
-      style={{ borderRadius: 10, overflow: "hidden", height: "100%", display: "flex", flexDirection: "column" }}
-      styles={{ body: { padding: 0, flex: 1, display: "flex", flexDirection: "column" } }}
-    >
-      {/* Preview area */}
-      <div
-        style={{
-          padding: "16px",
-          background: "#fafafa",
-          borderBottom: "1px solid #f0f0f0",
-          minHeight: 100,
-          maxHeight: 200,
-          overflow: "hidden",
-          position: "relative",
-          cursor: "pointer",
-        }}
-        onClick={() => setPreviewOpen(true)}
-      >
-        <div style={{ pointerEvents: "none", transform: "scale(0.85)", transformOrigin: "top left", width: "117%" }}>
-          <ComponentRenderer layout={demoLayout} />
-        </div>
-        <div style={{
-          position: "absolute", bottom: 0, left: 0, right: 0, height: 40,
-          background: "linear-gradient(transparent, #fafafa)",
-        }} />
-        <div style={{
-          position: "absolute", top: 8, right: 8,
-          background: "rgba(255,255,255,0.9)", borderRadius: 6, padding: "2px 6px",
-        }}>
-          <Tooltip title="Full preview">
-            <EyeOutlined style={{ fontSize: 14, color: "#888" }} />
-          </Tooltip>
-        </div>
-      </div>
-
-      {/* Info */}
-      <div style={{ padding: "12px 16px", flex: 1, display: "flex", flexDirection: "column" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-          <div style={{
-            width: 28, height: 28, borderRadius: 6,
-            background: catMeta.color + "15", color: catMeta.color,
-            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13,
-          }}>
-            {icon}
-          </div>
-          <div style={{ fontWeight: 600, fontSize: 14, color: "#333", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {record.displayName || record.name}
-          </div>
-        </div>
-        <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 8 }}>
-          <Tag color={catMeta.color} style={{ borderRadius: 10, fontSize: 11, margin: 0 }}>{catMeta.label}</Tag>
-          <Tag color={record.type === "system" ? "blue" : "default"} style={{ borderRadius: 10, fontSize: 11, margin: 0 }}>{record.type}</Tag>
-          {!record.active && <Tag color="red" style={{ borderRadius: 10, fontSize: 11, margin: 0 }}>Inactive</Tag>}
-        </div>
-        <div style={{ fontSize: 12, color: "#999", marginBottom: 8 }}>
-          Base: <code style={{ background: "#f5f5f5", padding: "1px 4px", borderRadius: 3 }}>{record.baseComponent}</code>
-        </div>
-        <div style={{ marginTop: "auto", display: "flex", gap: 4 }}>
-          <Button type="text" size="small" icon={<EditOutlined />} onClick={() => onEdit(record)}>Edit</Button>
-          <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={() => onDelete(record)}>Delete</Button>
-        </div>
-      </div>
-
-      {/* Full preview modal */}
-      <Modal
-        title={<div style={{ display: "flex", alignItems: "center", gap: 8 }}>{icon}<span>{record.displayName || record.name} Preview</span></div>}
-        open={previewOpen}
-        onCancel={() => setPreviewOpen(false)}
-        footer={null}
-        width={700}
-      >
-        <div style={{ border: "1px solid #f0f0f0", borderRadius: 8, padding: 16, background: "#fff" }}>
-          <ComponentRenderer layout={demoLayout} />
-        </div>
-      </Modal>
-    </AntCard>
-  );
-}
-
 export default function AdminComponentsPage() {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -189,7 +95,6 @@ export default function AdminComponentsPage() {
   const [editingId, setEditingId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
-  const [viewMode, setViewMode] = useState("grid");
   const [form] = Form.useForm();
   const [editForm] = Form.useForm();
 
@@ -282,6 +187,25 @@ export default function AdminComponentsPage() {
     } catch (e) { if (e.errorFields) return; message.error(e.message || "Error"); }
   };
 
+  const handleActiveChange = async (record, active) => {
+    try {
+      const res = await fetch(`/api/admin/components/${record._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        message.error(data.error || "Update failed");
+        return;
+      }
+      setList((prev) => prev.map((c) => (c._id === record._id ? { ...c, active } : c)));
+      message.success(active ? "Component activated" : "Component deactivated");
+    } catch {
+      message.error("Update failed");
+    }
+  };
+
   const handleDelete = async (record) => {
     let usageMsg = "";
     try {
@@ -346,34 +270,13 @@ export default function AdminComponentsPage() {
             })),
           ]}
         />
-        <div style={{ marginLeft: "auto" }}>
-          <Segmented
-            size="small"
-            value={viewMode}
-            onChange={setViewMode}
-            options={[
-              { value: "grid", icon: <AppstoreOutlined /> },
-              { value: "list", icon: <UnorderedListOutlined /> },
-            ]}
-          />
-        </div>
       </div>
 
-      {/* Component grid / list */}
+      {/* Component list */}
       {loading ? (
         <div style={{ textAlign: "center", padding: 60, color: "#999" }}>Loading...</div>
       ) : filteredList.length === 0 ? (
         <Empty description="No components found" style={{ padding: 60 }} />
-      ) : viewMode === "grid" ? (
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-          gap: 16,
-        }}>
-          {filteredList.map((record) => (
-            <ComponentPreviewCard key={record._id} record={record} onEdit={handleEdit} onDelete={handleDelete} />
-          ))}
-        </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {filteredList.map((record) => {
@@ -399,8 +302,12 @@ export default function AdminComponentsPage() {
                 </div>
                 <Space>
                   <Tag color={record.type === "system" ? "blue" : "default"} style={{ borderRadius: 10, margin: 0 }}>{record.type}</Tag>
-                  {record.active ? <Tag color="green" style={{ borderRadius: 10, margin: 0 }}>Active</Tag> : <Tag color="red" style={{ borderRadius: 10, margin: 0 }}>Inactive</Tag>}
-                  <Button type="text" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+                  <span style={{ fontSize: 12, color: "#666" }}>Active</span>
+                  <Switch checked={record.active !== false} onChange={(checked) => handleActiveChange(record, checked)} size="small" />
+                  <Link href={`/admin/components/${record._id}/edit`}>
+                    <Button type="primary" size="small" icon={<EditOutlined />}>Edit</Button>
+                  </Link>
+                  <Button type="text" size="small" icon={<SettingOutlined />} onClick={() => handleEdit(record)} />
                   <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)} />
                 </Space>
               </div>
@@ -447,9 +354,6 @@ export default function AdminComponentsPage() {
           </Form.Item>
           <Form.Item name="category" label="Category">
             <Select options={CATEGORY_OPTIONS} placeholder="Component category" allowClear />
-          </Form.Item>
-          <Form.Item name="active" label="Active">
-            <Select options={[{ value: true, label: "Active" }, { value: false, label: "Inactive" }]} />
           </Form.Item>
           <Form.Item name="propsSchemaJson" label="Props schema (JSON)">
             <Input.TextArea rows={6} style={{ fontFamily: "monospace", fontSize: 12 }} />
