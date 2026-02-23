@@ -61,7 +61,9 @@ async function PageContent({ slug }) {
 
   return (
     <>
-      <h1>{page.title}</h1>
+      <div className="cms-container">
+        <h1>{page.title}</h1>
+      </div>
       <ComponentRenderer layout={layout} />
     </>
   );
@@ -72,7 +74,7 @@ export default function DynamicPage({ params }) {
   if (RESERVED.includes(slug)) notFound();
 
   return (
-    <main style={{ maxWidth: "var(--layout-width, 800px)", margin: "0 auto", padding: "2rem 1rem" }}>
+    <main style={{ paddingBlock: "2rem" }}>
       <Suspense fallback={<ContentSkeleton />}>
         <PageContent slug={slug} />
       </Suspense>

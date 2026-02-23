@@ -1,15 +1,24 @@
 const mongoose = require("mongoose");
 
 const googleFontSchema = new mongoose.Schema(
-  {
-    family: { type: String, required: true },
-    weights: [{ type: String }],
-  },
+  { family: { type: String, required: true }, weights: [{ type: String }] },
+  { _id: false }
+);
+
+const themeColorSchema = new mongoose.Schema(
+  { name: { type: String, required: true }, value: { type: String, required: true } },
   { _id: false }
 );
 
 const themeConfigSchema = new mongoose.Schema(
   {
+    /* Site identity */
+    siteTitle: { type: String, default: "Mesco Trust" },
+    logoType: { type: String, enum: ["text", "image"], default: "text" },
+    logoImageUrl: { type: String, default: "" },
+    /* Theme colors: add title + value (hex, rgb, rgba, or gradient). No defaults. */
+    colors: { type: [themeColorSchema], default: [] },
+    /* Typography */
     fontFamily: { type: String, default: "system-ui, sans-serif" },
     fontSize: { type: Number, default: 16 },
     headingFontFamily: { type: String, default: "" },
@@ -18,16 +27,12 @@ const themeConfigSchema = new mongoose.Schema(
     letterSpacing: { type: Number, default: 0 },
     fontWeight: { type: Number, default: 400 },
     headingFontWeight: { type: Number, default: 700 },
-    primaryColor: { type: String, default: "#1890ff" },
-    secondaryColor: { type: String, default: "#722ed1" },
-    backgroundColor: { type: String, default: "#ffffff" },
-    textColor: { type: String, default: "#333333" },
-    linkColor: { type: String, default: "" },
+    googleFonts: { type: [googleFontSchema], default: [] },
+    customFontUrl: { type: String, default: "" },
+    /* Layout & locale */
     layoutWidth: { type: Number, default: 1200 },
     defaultLocale: { type: String, default: "en" },
     direction: { type: String, enum: ["ltr", "rtl"], default: "ltr" },
-    googleFonts: { type: [googleFontSchema], default: [] },
-    customFontUrl: { type: String, default: "" },
   },
   { timestamps: true }
 );

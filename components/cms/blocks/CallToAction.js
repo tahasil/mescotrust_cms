@@ -7,6 +7,8 @@ export default function CallToActionBlock({
   buttonUrl = "#",
   buttonVariant = "solid",
   align = "center",
+  color,
+  backgroundColor,
 }) {
   const isExternal = buttonUrl?.startsWith("http");
 
@@ -36,12 +38,12 @@ export default function CallToActionBlock({
         textAlign: align,
         padding: "2em",
         marginBottom: "1em",
-        background: "#f8f9fa",
+        background: backgroundColor || "var(--section-bg-color, #f8f9fa)",
         borderRadius: 8,
       }}
     >
-      {heading && <h2 style={{ marginBottom: "0.5em" }}>{heading}</h2>}
-      {text && <p style={{ marginBottom: "1em", color: "#555", maxWidth: 600, marginInline: align === "center" ? "auto" : undefined }}>{text}</p>}
+      {heading && <h2 style={{ marginBottom: "0.5em", color: color || undefined }}>{heading}</h2>}
+      {text && <p style={{ marginBottom: "1em", color: color ? undefined : "#555", maxWidth: 600, marginInline: align === "center" ? "auto" : undefined }}>{text}</p>}
       {buttonLabel && (
         isExternal ? (
           <a href={buttonUrl} style={btnStyle} target="_blank" rel="noopener noreferrer">{buttonLabel}</a>

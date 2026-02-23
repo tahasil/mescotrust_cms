@@ -19,6 +19,10 @@ export const metadata = {
 };
 
 const THEME_DEFAULTS = {
+  siteTitle: "Mesco Trust",
+  logoType: "text",
+  logoImageUrl: "",
+  colors: [],
   fontFamily: "system-ui, sans-serif",
   fontSize: 16,
   headingFontFamily: "",
@@ -27,17 +31,34 @@ const THEME_DEFAULTS = {
   letterSpacing: 0,
   fontWeight: 400,
   headingFontWeight: 700,
-  primaryColor: "#1890ff",
-  secondaryColor: "#722ed1",
-  backgroundColor: "#ffffff",
-  textColor: "#333333",
-  linkColor: "",
   layoutWidth: 1200,
   defaultLocale: "en",
   direction: "ltr",
   googleFonts: [],
   customFontUrl: "",
 };
+
+const NAME_TO_CSS_VAR = {
+  primary: "--primary-color",
+  secondary: "--secondary-color",
+  background: "--bg-color",
+  text: "--text-color",
+  heading: "--heading-color",
+  link: "--link-color",
+  "section-background": "--section-bg-color",
+};
+
+function buildCssVarsFromColors(colors) {
+  const vars = {};
+  if (!Array.isArray(colors)) return vars;
+  colors.forEach((c) => {
+    if (!c?.name || c.value == null) return;
+    const slug = c.name.toLowerCase().trim().replace(/\s+/g, "-");
+    const cssKey = NAME_TO_CSS_VAR[slug] || `--theme-${slug.replace(/[^a-z0-9-]/gi, "")}`;
+    vars[cssKey] = c.value;
+  });
+  return vars;
+}
 
 async function getLayoutData(pathname) {
   if (pathname?.startsWith("/admin")) return null;
@@ -80,12 +101,9 @@ export default async function RootLayout({ children }) {
   const dir = theme.direction || "ltr";
   const googleFontsUrl = buildGoogleFontsUrl(theme.googleFonts);
 
+  const colorVars = buildCssVarsFromColors(theme.colors);
   const cssVars = {
-    "--primary-color": theme.primaryColor || "#1890ff",
-    "--secondary-color": theme.secondaryColor || "#722ed1",
-    "--bg-color": theme.backgroundColor || "#ffffff",
-    "--text-color": theme.textColor || "#333333",
-    "--link-color": theme.linkColor || theme.primaryColor || "#1890ff",
+    ...colorVars,
     "--font-family": theme.fontFamily || "system-ui, sans-serif",
     "--heading-font": theme.headingFontFamily || theme.fontFamily || "system-ui, sans-serif",
     "--font-size": `${theme.fontSize || 16}px`,
@@ -97,11 +115,12 @@ export default async function RootLayout({ children }) {
     "--layout-width": `${theme.layoutWidth || 1200}px`,
   };
 
+  const siteName = theme.siteTitle || "Mesco Trust CMS";
   const orgJsonLd = !isAdmin
     ? {
         "@context": "https://schema.org",
         "@type": "Organization",
-        name: "Mesco Trust CMS",
+        name: siteName,
         url: getSiteUrl(),
       }
     : null;
@@ -128,6 +147,9 @@ export default async function RootLayout({ children }) {
           <PublicShell
             headerItems={data?.headerItems || []}
             footerItems={data?.footerItems || []}
+            siteTitle={theme.siteTitle || "Mesco Trust"}
+            logoType={theme.logoType || "text"}
+            logoImageUrl={theme.logoImageUrl || ""}
           >
             {children}
           </PublicShell>

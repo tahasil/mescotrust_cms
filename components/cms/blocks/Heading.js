@@ -1,4 +1,4 @@
-export default function HeadingBlock({ level = 2, text, style = "default" }) {
+export default function HeadingBlock({ level = 2, text, style: headingStyle = "default", color, align }) {
   if (!text) return null;
   const Tag = level >= 1 && level <= 6 ? `h${level}` : "h2";
 
@@ -10,9 +10,13 @@ export default function HeadingBlock({ level = 2, text, style = "default" }) {
     light: { fontWeight: 300 },
   };
 
-  return (
-    <Tag style={{ marginBottom: "0.5em", ...styleMap[style] || {} }}>
-      {text}
-    </Tag>
-  );
+  const inlineStyle = {
+    marginBottom: "0.5em",
+    ...(styleMap[headingStyle] || {}),
+  };
+
+  if (color) inlineStyle.color = color;
+  if (align) inlineStyle.textAlign = align;
+
+  return <Tag style={inlineStyle}>{text}</Tag>;
 }

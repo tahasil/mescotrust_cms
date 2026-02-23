@@ -3,7 +3,9 @@
   --secondary-color: #722ed1;
   --bg-color: #ffffff;
   --text-color: #333333;
+  --heading-color: inherit;
   --link-color: #1890ff;
+  --section-bg-color: transparent;
   --font-family: system-ui, sans-serif;
   --heading-font: system-ui, sans-serif;
   --font-size: 16px;
@@ -38,6 +40,7 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--heading-font);
   font-weight: var(--heading-font-weight);
   font-size: var(--heading-font-size);
+  color: var(--heading-color);
 }
 
 a {
@@ -46,14 +49,30 @@ a {
 
 /* RTL-aware spacing: use logical properties */
 .cms-layout {
+  width: 100%;
+}
+
+/* Container: constrained to layout width */
+.cms-container {
   max-width: var(--layout-width);
   margin-inline: auto;
   padding-inline: 1rem;
 }
 
+/* Container-fluid: full width with minimal padding */
+.cms-container-fluid {
+  width: 100%;
+  padding-inline: 0;
+}
+
+/* Section wrapper for background color */
+.cms-section {
+  width: 100%;
+}
+
 /* --- Public Header --- */
 .public-header {
-  border-block-end: 1px solid #eee;
+  border-block-end: 1px solid rgba(0, 0, 0, 0.08);
   background: var(--bg-color);
   position: sticky;
   top: 0;
@@ -75,6 +94,15 @@ a {
   font-size: 1.25rem;
   text-decoration: none;
   color: var(--text-color);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.public-logo img {
+  max-height: 40px;
+  width: auto;
+  object-fit: contain;
 }
 
 .public-nav {
@@ -148,7 +176,7 @@ a {
 
 /* --- Public Footer --- */
 .public-footer {
-  border-block-start: 1px solid #eee;
+  border-block-start: 1px solid rgba(0, 0, 0, 0.08);
   background: #fafafa;
   margin-block-start: auto;
 }

@@ -1,14 +1,19 @@
 import SafeHtml from "@/components/cms/SafeHtml";
 
-export default function ParagraphBlock({ text }) {
+export default function ParagraphBlock({ text, color, align }) {
   if (!text) return null;
+
+  const style = { marginBottom: "1em" };
+  if (color) style.color = color;
+  if (align) style.textAlign = align;
+
   const isHtml = /<[a-z][\s\S]*>/i.test(text);
   if (isHtml) {
     return (
-      <div style={{ marginBottom: "1em" }}>
+      <div style={style}>
         <SafeHtml html={text} />
       </div>
     );
   }
-  return <p style={{ marginBottom: "1em" }}>{text}</p>;
+  return <p style={style}>{text}</p>;
 }

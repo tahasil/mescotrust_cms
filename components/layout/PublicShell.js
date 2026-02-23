@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 
-function PublicHeader({ menuItems }) {
+function PublicHeader({ menuItems, siteTitle, logoType, logoImageUrl }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const title = siteTitle || "Mesco Trust";
   const links = menuItems?.length
     ? menuItems
     : [
@@ -17,7 +18,13 @@ function PublicHeader({ menuItems }) {
   return (
     <header className="public-header">
       <div className="public-header-inner">
-        <Link href="/" className="public-logo">Mesco Trust</Link>
+        <Link href="/" className="public-logo" aria-label={title}>
+          {logoType === "image" && logoImageUrl ? (
+            <img src={logoImageUrl} alt={title} />
+          ) : (
+            title
+          )}
+        </Link>
         <button
           className="hamburger-btn"
           onClick={() => setMobileOpen(!mobileOpen)}
@@ -44,7 +51,8 @@ function PublicHeader({ menuItems }) {
   );
 }
 
-function PublicFooter({ menuItems }) {
+function PublicFooter({ menuItems, siteTitle }) {
+  const title = siteTitle || "Mesco Trust";
   return (
     <footer className="public-footer">
       <div className="public-footer-inner">
@@ -59,18 +67,18 @@ function PublicFooter({ menuItems }) {
             )}
           </nav>
         )}
-        <p className="footer-copy">&copy; {new Date().getFullYear()} Mesco Trust. All rights reserved.</p>
+        <p className="footer-copy">&copy; {new Date().getFullYear()} {title}. All rights reserved.</p>
       </div>
     </footer>
   );
 }
 
-export default function PublicShell({ headerItems, footerItems, children }) {
+export default function PublicShell({ headerItems, footerItems, siteTitle, logoType, logoImageUrl, children }) {
   return (
     <div className="public-site" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <PublicHeader menuItems={headerItems} />
+      <PublicHeader menuItems={headerItems} siteTitle={siteTitle} logoType={logoType} logoImageUrl={logoImageUrl} />
       <div style={{ flex: 1 }}>{children}</div>
-      <PublicFooter menuItems={footerItems} />
+      <PublicFooter menuItems={footerItems} siteTitle={siteTitle} />
     </div>
   );
 }

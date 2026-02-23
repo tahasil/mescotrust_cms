@@ -7,6 +7,10 @@ import { isAdmin } from "@/lib/permissions";
 export const dynamic = "force-dynamic";
 
 const DEFAULTS = {
+  siteTitle: "Mesco Trust",
+  logoType: "text",
+  logoImageUrl: "",
+  colors: [],
   fontFamily: "system-ui, sans-serif",
   fontSize: 16,
   headingFontFamily: "",
@@ -15,11 +19,6 @@ const DEFAULTS = {
   letterSpacing: 0,
   fontWeight: 400,
   headingFontWeight: 700,
-  primaryColor: "#1890ff",
-  secondaryColor: "#722ed1",
-  backgroundColor: "#ffffff",
-  textColor: "#333333",
-  linkColor: "",
   layoutWidth: 1200,
   defaultLocale: "en",
   direction: "ltr",
@@ -27,12 +26,29 @@ const DEFAULTS = {
   customFontUrl: "",
 };
 
+function normalizeTheme(theme) {
+  if (!theme) return { ...DEFAULTS };
+  const out = { ...DEFAULTS, ...theme };
+  if (!Array.isArray(out.colors) && (out.primaryColor || out.customColors?.length)) {
+    const fromLegacy = [];
+    if (out.primaryColor) fromLegacy.push({ name: "Primary", value: out.primaryColor });
+    if (out.secondaryColor) fromLegacy.push({ name: "Secondary", value: out.secondaryColor });
+    if (out.backgroundColor) fromLegacy.push({ name: "Background", value: out.backgroundColor });
+    if (out.textColor) fromLegacy.push({ name: "Text", value: out.textColor });
+    if (out.headingColor) fromLegacy.push({ name: "Heading", value: out.headingColor });
+    if (out.linkColor) fromLegacy.push({ name: "Link", value: out.linkColor });
+    if (out.sectionBgColor) fromLegacy.push({ name: "Section background", value: out.sectionBgColor });
+    (out.customColors || []).forEach((c) => { if (c?.name && c?.value) fromLegacy.push({ name: c.name, value: c.value }); });
+    out.colors = fromLegacy;
+  }
+  return out;
+}
+
 export async function GET() {
   try {
     await connectDB();
     let theme = await ThemeConfig.findOne().lean();
-    if (!theme) theme = { ...DEFAULTS };
-    return NextResponse.json(theme);
+    return NextResponse.json(normalizeTheme(theme));
   } catch {
     return NextResponse.json(DEFAULTS, { status: 200 });
   }
@@ -51,9 +67,8 @@ export async function PUT(req) {
       theme = await ThemeConfig.create({ ...DEFAULTS, ...body });
     } else {
       const fields = [
-        "fontFamily", "fontSize", "headingFontFamily",
-        "headingFontSize", "lineHeight", "letterSpacing", "fontWeight", "headingFontWeight",
-        "primaryColor", "secondaryColor", "backgroundColor", "textColor", "linkColor",
+        "siteTitle", "logoType", "logoImageUrl", "colors",
+        "fontFamily", "fontSize", "headingFontFamily", "headingFontSize", "lineHeight", "letterSpacing", "fontWeight", "headingFontWeight",
         "layoutWidth", "defaultLocale", "direction", "googleFonts", "customFontUrl",
       ];
       for (const f of fields) {

@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Button, Form, Input, Select, Card, Space, message, Spin } from "antd";
-import { ArrowLeftOutlined } from "@ant-design/icons";
+import { Button, Form, Input, Select, Card, Space, message, Spin, Drawer, Collapse } from "antd";
+import { ArrowLeftOutlined, SettingOutlined, SaveOutlined } from "@ant-design/icons";
 import Link from "next/link";
-import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import PageBuilder from "@/components/admin/PageBuilder";
 
 export default function AdminPageEditPage() {
@@ -16,6 +15,7 @@ export default function AdminPageEditPage() {
   const [layout, setLayout] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -46,9 +46,10 @@ export default function AdminPageEditPage() {
     })();
   }, [id, form, router]);
 
-  const onFinish = async (values) => {
-    setSaving(true);
+  const handleSave = async () => {
     try {
+      const values = await form.validateFields();
+      setSaving(true);
       const res = await fetch(`/api/admin/pages/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -70,22 +71,62 @@ export default function AdminPageEditPage() {
       setPage(updated);
       setLayout(Array.isArray(updated.layout) ? updated.layout : []);
       message.success("Saved");
+    } catch (e) {
+      if (e.errorFields) {
+        setSettingsOpen(true);
+        return;
+      }
+      message.error(e.message || "Save failed");
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <Spin size="large" />;
+  if (loading) return <Spin size="large" style={{ display: "block", margin: "100px auto" }} />;
 
   return (
-    <>
-      <Link href="/admin/pages">
-        <Button icon={<ArrowLeftOutlined />} style={{ marginBottom: 16 }}>
-          Back to pages
-        </Button>
-      </Link>
-      <Card title="Edit page">
-        <Form form={form} layout="vertical" onFinish={onFinish}>
+    <div>
+      {/* Top bar */}
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        marginBottom: 16, flexWrap: "wrap", gap: 8,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <Link href="/admin/pages">
+            <Button icon={<ArrowLeftOutlined />} type="text">Pages</Button>
+          </Link>
+          <div>
+            <h2 style={{ margin: 0, fontSize: 18, lineHeight: 1.3 }}>{page?.title || "Edit Page"}</h2>
+            <span style={{ fontSize: 12, color: "#999" }}>/{page?.slug}</span>
+          </div>
+        </div>
+        <Space>
+          <Button icon={<SettingOutlined />} onClick={() => setSettingsOpen(true)}>
+            Page Settings
+          </Button>
+          <Button href={`/preview/${id}?type=page`} target="_blank">
+            Preview
+          </Button>
+          <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={handleSave}>
+            Save
+          </Button>
+        </Space>
+      </div>
+
+      {/* Visual builder - this IS the editor now */}
+      <PageBuilder layout={layout} onChange={setLayout} />
+
+      {/* Page settings drawer */}
+      <Drawer
+        title="Page Settings"
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        width={420}
+        extra={
+          <Button type="primary" onClick={() => setSettingsOpen(false)}>Done</Button>
+        }
+      >
+        <Form form={form} layout="vertical">
           <Form.Item name="title" label="Title" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
@@ -95,35 +136,25 @@ export default function AdminPageEditPage() {
           <Form.Item name="status" label="Status" initialValue="draft">
             <Select options={[{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }]} />
           </Form.Item>
-          <Form.Item name="locale" label="Locale" extra="Language code (e.g. en, ar, he)">
-            <Input placeholder="en" />
-          </Form.Item>
-          <Form.Item name="metaTitle" label="Meta title">
-            <Input />
-          </Form.Item>
-          <Form.Item name="metaDescription" label="Meta description">
-            <Input.TextArea rows={2} />
-          </Form.Item>
-          <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit" loading={saving}>
-                Save
-              </Button>
-              <Button href={`/preview/${id}?type=page`} target="_blank">
-                Preview draft
-              </Button>
-            </Space>
-          </Form.Item>
+          <Collapse ghost items={[{
+            key: "seo",
+            label: "SEO & Advanced",
+            children: (
+              <>
+                <Form.Item name="locale" label="Locale">
+                  <Input placeholder="en" />
+                </Form.Item>
+                <Form.Item name="metaTitle" label="Meta title">
+                  <Input />
+                </Form.Item>
+                <Form.Item name="metaDescription" label="Meta description">
+                  <Input.TextArea rows={2} />
+                </Form.Item>
+              </>
+            ),
+          }]} />
         </Form>
-      </Card>
-
-      <PageBuilder layout={layout} onChange={setLayout} />
-
-      {layout?.length > 0 && (
-        <Card title="Preview" style={{ marginTop: 16 }}>
-          <ComponentRenderer layout={layout} />
-        </Card>
-      )}
-    </>
+      </Drawer>
+    </div>
   );
 }

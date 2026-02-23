@@ -1,4 +1,4 @@
-export default function QuoteBlock({ text, citation }) {
+export default function QuoteBlock({ text, citation, color }) {
   if (!text) return null;
   return (
     <blockquote
@@ -7,7 +7,7 @@ export default function QuoteBlock({ text, citation }) {
         paddingInlineStart: "1.25em",
         borderInlineStart: "4px solid var(--primary-color, #1890ff)",
         fontStyle: "italic",
-        color: "#555",
+        color: color || "var(--text-color, #555)",
       }}
     >
       <p style={{ margin: 0 }}>{text}</p>
