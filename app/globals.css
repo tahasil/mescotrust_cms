@@ -72,11 +72,28 @@ a {
 
 /* --- Public Header --- */
 .public-header {
-  border-block-end: 1px solid rgba(0, 0, 0, 0.08);
-  background: var(--bg-color);
-  position: sticky;
+  border-block-end: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
+  background: var(--header-bg-color, var(--bg-color, #fff));
+  position: relative;
   top: 0;
   z-index: 100;
+}
+
+.public-header.public-header-sticky {
+  position: sticky;
+}
+
+.public-header.public-header-transparent {
+  background: transparent;
+  border-block-end-color: transparent;
+}
+
+.public-header.public-header-center .public-header-inner {
+  justify-content: center;
+}
+
+.public-header.public-header-center .public-nav {
+  margin-inline: auto;
 }
 
 .public-header-inner {
@@ -176,9 +193,17 @@ a {
 
 /* --- Public Footer --- */
 .public-footer {
-  border-block-start: 1px solid rgba(0, 0, 0, 0.08);
-  background: #fafafa;
+  border-block-start: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
+  background: var(--footer-bg-color, #fafafa);
   margin-block-start: auto;
+}
+
+.public-footer.public-footer-centered .public-footer-inner {
+  text-align: center;
+}
+
+.public-footer.public-footer-minimal .footer-nav {
+  margin-block-end: 0.5rem;
 }
 
 .public-footer-inner {

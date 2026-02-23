@@ -15,17 +15,26 @@ import {
   Collapse,
   Segmented,
   Typography,
+  Switch,
 } from "antd";
-import { PlusOutlined, UploadOutlined, DeleteOutlined, BulbOutlined, BgColorsOutlined, FontSizeOutlined, PictureOutlined, GlobalOutlined } from "@ant-design/icons";
+import {
+  PlusOutlined,
+  UploadOutlined,
+  DeleteOutlined,
+  BgColorsOutlined,
+  PictureOutlined,
+  GlobalOutlined,
+  MobileOutlined,
+  CodeOutlined,
+  BulbOutlined,
+} from "@ant-design/icons";
 
 const POPULAR_GOOGLE_FONTS = [
   "Inter", "Roboto", "Open Sans", "Lato", "Montserrat", "Poppins",
   "Raleway", "Nunito", "Playfair Display", "Merriweather", "Source Sans Pro",
-  "PT Sans", "Noto Sans", "Noto Sans Arabic", "Cairo", "Tajawal",
-  "Ubuntu", "Oswald", "Rubik", "Work Sans", "Fira Sans",
+  "PT Sans", "Noto Sans", "Cairo", "Tajawal", "Ubuntu", "Oswald", "Rubik", "Work Sans", "Fira Sans",
 ];
 
-/** Accepts hex, rgb(), rgba(), or gradient. Optional hex picker when value is hex. */
 function ColorCodeInput({ value, onChange, placeholder }) {
   const raw = String(value || "").trim();
   const isHex = /^#[0-9A-Fa-f]{3,8}$/.test(raw);
@@ -39,26 +48,110 @@ function ColorCodeInput({ value, onChange, placeholder }) {
           type="color"
           value={pickerHex}
           onChange={(e) => onChange(e.target.value)}
-          style={{
-            width: 40,
-            height: 32,
-            padding: 2,
-            border: "1px solid #d9d9d9",
-            borderRadius: 6,
-            cursor: "pointer",
-            flexShrink: 0,
-          }}
+          style={{ width: 40, height: 32, padding: 2, border: "1px solid #d9d9d9", borderRadius: 6, cursor: "pointer", flexShrink: 0 }}
         />
       )}
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder || "e.g. #1890ff, rgb(24,144,255), linear-gradient(...)"}
+        placeholder={placeholder || "e.g. #1890ff, rgb(), linear-gradient(...)"}
         style={{ flex: 1, minWidth: 0 }}
       />
     </Space.Compact>
   );
 }
+
+function FormColor({ name, label, placeholder }) {
+  return (
+    <Form.Item name={name} label={label}>
+      <ColorCodeInput placeholder={placeholder} />
+    </Form.Item>
+  );
+}
+
+const initialFormValues = {
+  siteTitle: "Mesco Trust",
+  tagline: "",
+  logoType: "text",
+  logoLightUrl: "",
+  logoDarkUrl: "",
+  logoImageUrl: "",
+  faviconUrl: "",
+  footerCopyrightText: "",
+  primaryColor: "",
+  secondaryColor: "",
+  bodyBackground: "",
+  sectionBackground: "",
+  cardBackground: "",
+  headerBackground: "",
+  footerBackground: "",
+  headingColor: "",
+  paragraphColor: "",
+  linkColor: "",
+  hoverColor: "",
+  mutedTextColor: "",
+  borderColor: "",
+  dividerColor: "",
+  inputBorderColor: "",
+  colors: [],
+  headingFont: "",
+  bodyFont: "system-ui, sans-serif",
+  buttonFont: "",
+  baseFontSize: 16,
+  h1Size: 0,
+  h2Size: 0,
+  h3Size: 0,
+  h4Size: 0,
+  h5Size: 0,
+  h6Size: 0,
+  lineHeight: 1.6,
+  letterSpacing: 0,
+  fontWeightNormal: 400,
+  fontWeightMedium: 500,
+  fontWeightBold: 700,
+  googleFonts: [],
+  customFontUrl: "",
+  buttonRadius: 6,
+  cardRadius: 8,
+  inputRadius: 6,
+  cardShadow: true,
+  buttonShadow: false,
+  headerLayout: "default",
+  headerSticky: true,
+  headerTransparent: false,
+  megaMenu: false,
+  dropdownStyle: "default",
+  mobileMenuStyle: "drawer",
+  footerColumnsCount: 4,
+  footerLayoutStyle: "default",
+  footerSocialIcons: true,
+  buttonBackground: "",
+  buttonTextColor: "",
+  buttonHoverBackground: "",
+  buttonHoverTextColor: "",
+  buttonPadding: "8px 20px",
+  cardStyle: "elevated",
+  alertStyle: "default",
+  badgeStyle: "default",
+  tableStyle: "default",
+  formStyle: "default",
+  inputStyle: "default",
+  mobileFontSize: 0,
+  mobileSectionSpacing: "",
+  hideSectionOnMobile: false,
+  blogLayout: "grid",
+  blogSidebarPosition: "right",
+  blogFeaturedImageRatio: "16/9",
+  blogMetaStyle: "minimal",
+  customCss: "",
+  customJs: "",
+  headScripts: "",
+  footerScripts: "",
+  googleAnalyticsId: "",
+  layoutWidth: 1200,
+  defaultLocale: "en",
+  direction: "ltr",
+};
 
 export default function AdminThemePage() {
   const [loading, setLoading] = useState(true);
@@ -68,7 +161,6 @@ export default function AdminThemePage() {
   const [newFont, setNewFont] = useState(null);
   const [uploadedFonts, setUploadedFonts] = useState([]);
   const [fontUploading, setFontUploading] = useState(false);
-
   const logoType = Form.useWatch("logoType", form) || "text";
 
   const fetchUploadedFonts = () => {
@@ -83,24 +175,7 @@ export default function AdminThemePage() {
     fetch("/api/theme")
       .then((res) => (res.ok ? res.json() : {}))
       .then((data) => {
-        form.setFieldsValue({
-          siteTitle: data.siteTitle || "Mesco Trust",
-          logoType: data.logoType || "text",
-          logoImageUrl: data.logoImageUrl || "",
-          colors: Array.isArray(data.colors) ? data.colors : [],
-          fontFamily: data.fontFamily || "system-ui, sans-serif",
-          fontSize: data.fontSize || 16,
-          headingFontFamily: data.headingFontFamily || "",
-          headingFontSize: data.headingFontSize || 0,
-          lineHeight: data.lineHeight ?? 1.6,
-          letterSpacing: data.letterSpacing ?? 0,
-          fontWeight: data.fontWeight || 400,
-          headingFontWeight: data.headingFontWeight || 700,
-          layoutWidth: data.layoutWidth || 1200,
-          defaultLocale: data.defaultLocale || "en",
-          direction: data.direction || "ltr",
-          customFontUrl: data.customFontUrl || "",
-        });
+        form.setFieldsValue({ ...initialFormValues, ...data, colors: Array.isArray(data.colors) ? data.colors : [] });
         setGoogleFonts(data.googleFonts || []);
       })
       .catch(() => message.error("Failed to load theme"))
@@ -117,9 +192,7 @@ export default function AdminThemePage() {
     setNewFont(null);
   };
 
-  const handleRemoveFont = (family) => {
-    setGoogleFonts(googleFonts.filter((f) => f.family !== family));
-  };
+  const handleRemoveFont = (family) => setGoogleFonts(googleFonts.filter((f) => f.family !== family));
 
   const handleFontUpload = async (info) => {
     const file = info.file;
@@ -145,12 +218,11 @@ export default function AdminThemePage() {
 
   const handleDeleteFont = async (filename) => {
     const res = await fetch(`/api/admin/fonts?filename=${encodeURIComponent(filename)}`, { method: "DELETE" });
-    if (!res.ok) {
-      message.error("Failed to delete font");
-      return;
+    if (!res.ok) message.error("Failed to delete font");
+    else {
+      message.success("Font deleted");
+      fetchUploadedFonts();
     }
-    message.success("Font deleted");
-    fetchUploadedFonts();
   };
 
   const onFinish = async (values) => {
@@ -174,85 +246,47 @@ export default function AdminThemePage() {
 
   const collapseItems = [
     {
-      key: "identity",
-      label: (
-        <span>
-          <GlobalOutlined style={{ marginRight: 8 }} />
-          Site identity
-        </span>
-      ),
+      key: "brand",
+      label: <span><GlobalOutlined style={{ marginRight: 8 }} />Brand Identity</span>,
       children: (
         <div style={{ paddingBlock: 8 }}>
-          <Form.Item
-            name="siteTitle"
-            label="Site title"
-            extra="Used in the header, footer, and browser tab."
-          >
-            <Input placeholder="Mesco Trust" />
-          </Form.Item>
-        </div>
-      ),
-    },
-    {
-      key: "logo",
-      label: (
-        <span>
-          <PictureOutlined style={{ marginRight: 8 }} />
-          Logo
-        </span>
-      ),
-      children: (
-        <div style={{ paddingBlock: 8 }}>
+          <Form.Item name="siteTitle" label="Site Title"><Input placeholder="Mesco Trust" /></Form.Item>
+          <Form.Item name="tagline" label="Tagline"><Input placeholder="Short tagline" /></Form.Item>
           <Form.Item name="logoType" label="Logo type">
-            <Segmented
-              options={[
-                { value: "text", label: "Text (site title)" },
-                { value: "image", label: "Image" },
-              ]}
-            />
+            <Segmented options={[{ value: "text", label: "Text" }, { value: "image", label: "Image" }]} />
           </Form.Item>
           {logoType === "image" && (
-            <Form.Item
-              name="logoImageUrl"
-              label="Logo image URL"
-              extra="Enter a full URL to your logo image (e.g. from your media library or CDN)."
-            >
-              <Input placeholder="https://example.com/logo.png" />
-            </Form.Item>
+            <>
+              <Form.Item name="logoLightUrl" label="Logo (Light version)"><Input placeholder="https://..." /></Form.Item>
+              <Form.Item name="logoDarkUrl" label="Logo (Dark version)"><Input placeholder="https://..." /></Form.Item>
+              <Form.Item name="logoImageUrl" label="Logo URL (fallback)"><Input placeholder="https://..." /></Form.Item>
+            </>
           )}
+          <Form.Item name="faviconUrl" label="Favicon"><Input placeholder="https://..." /></Form.Item>
+          <Form.Item name="footerCopyrightText" label="Footer Copyright Text"><Input.TextArea rows={2} placeholder="© 2025 Site Name. All rights reserved." /></Form.Item>
         </div>
       ),
     },
     {
-      key: "colors",
-      label: (
-        <span>
-          <BgColorsOutlined style={{ marginRight: 8 }} />
-          Theme colors
-        </span>
-      ),
+      key: "colors-primary",
+      label: <span><BgColorsOutlined style={{ marginRight: 8 }} />Colors</span>,
       children: (
         <div style={{ paddingBlock: 8 }}>
-          <Typography.Paragraph type="secondary" style={{ marginBottom: 16 }}>
-            Add colors by title and color code. Use <strong>hex</strong> (#fff, #ffffff), <strong>rgb</strong> (rgb(0,0,0)), <strong>rgba</strong> (rgba(0,0,0,0.5)), or <strong>gradient</strong> (linear-gradient(...), radial-gradient(...)). These appear in the color selector when editing page or component elements.
-          </Typography.Paragraph>
+          <FormColor name="primaryColor" label="Primary Color" placeholder="#1890ff" />
+          <FormColor name="secondaryColor" label="Secondary Color" placeholder="#722ed1" />
+          <Typography.Title level={5} style={{ marginTop: 20, marginBottom: 8 }}>Custom Colors</Typography.Title>
+          <Typography.Paragraph type="secondary" style={{ marginBottom: 12 }}>Add extra colors (hex, rgb, gradient). Shown in block color picker.</Typography.Paragraph>
           <Form.List name="colors">
             {(fields, { add, remove }) => (
               <>
-                {fields.map(({ key, name, ...rest }) => (
+                {fields.map(({ key, name }) => (
                   <div key={key} style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
-                    <Form.Item name={[name, "name"]} {...rest} rules={[{ required: true, message: "Title" }]} style={{ marginBottom: 0, flex: "1 1 140px" }}>
-                      <Input placeholder="Title (e.g. Primary, Background)" />
-                    </Form.Item>
-                    <Form.Item name={[name, "value"]} {...rest} rules={[{ required: true, message: "Color code" }]} style={{ marginBottom: 0, flex: "1 1 220px" }}>
-                      <ColorCodeInput placeholder="#hex, rgb(), rgba(), or gradient" />
-                    </Form.Item>
-                    <Button type="text" danger icon={<DeleteOutlined />} onClick={() => remove(name)} aria-label="Remove color" />
+                    <Form.Item name={[name, "name"]} rules={[{ required: true }]} style={{ marginBottom: 0, flex: "1 1 140px" }}><Input placeholder="Title" /></Form.Item>
+                    <Form.Item name={[name, "value"]} rules={[{ required: true }]} style={{ marginBottom: 0, flex: "1 1 200px" }}><ColorCodeInput /></Form.Item>
+                    <Button type="text" danger icon={<DeleteOutlined />} onClick={() => remove(name)} />
                   </div>
                 ))}
-                <Button type="dashed" onClick={() => add({ name: "", value: "" })} icon={<PlusOutlined />} style={{ marginTop: 4 }}>
-                  Add color
-                </Button>
+                <Button type="dashed" onClick={() => add({ name: "", value: "" })} icon={<PlusOutlined />} style={{ marginTop: 4 }}>Add color</Button>
               </>
             )}
           </Form.List>
@@ -260,161 +294,37 @@ export default function AdminThemePage() {
       ),
     },
     {
-      key: "typography",
-      label: (
-        <span>
-          <FontSizeOutlined style={{ marginRight: 8 }} />
-          Typography
-        </span>
-      ),
+      key: "responsive",
+      label: <span><MobileOutlined style={{ marginRight: 8 }} />Responsive</span>,
       children: (
         <div style={{ paddingBlock: 8 }}>
-          <Form.Item name="fontFamily" label="Body font">
-            <Input placeholder="system-ui, sans-serif" />
-          </Form.Item>
-          <Form.Item name="headingFontFamily" label="Heading font (optional)">
-            <Input placeholder="Same as body if empty" />
-          </Form.Item>
-          <Form.Item name="fontSize" label="Base font size (px)">
-            <InputNumber min={10} max={24} style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item name="headingFontSize" label="Heading base size (px, 0 = default)">
-            <InputNumber min={0} max={72} style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item name="lineHeight" label="Line height">
-            <InputNumber min={1} max={3} step={0.1} style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item name="letterSpacing" label="Letter spacing (px)">
-            <InputNumber min={-2} max={10} step={0.5} style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item name="fontWeight" label="Body weight">
-            <Select
-              style={{ width: "100%" }}
-              options={[
-                { value: 300, label: "300 — Light" },
-                { value: 400, label: "400 — Regular" },
-                { value: 500, label: "500 — Medium" },
-                { value: 600, label: "600 — Semi-bold" },
-                { value: 700, label: "700 — Bold" },
-              ]}
-            />
-          </Form.Item>
-          <Form.Item name="headingFontWeight" label="Heading weight">
-            <Select
-              style={{ width: "100%" }}
-              options={[
-                { value: 400, label: "400" },
-                { value: 500, label: "500" },
-                { value: 600, label: "600" },
-                { value: 700, label: "700 — Bold" },
-                { value: 800, label: "800" },
-                { value: 900, label: "900" },
-              ]}
-            />
-          </Form.Item>
-
-          <Typography.Title level={5} style={{ marginTop: 16, marginBottom: 8 }}>Google Fonts</Typography.Title>
-          <div style={{ marginBottom: 12 }}>
-            {googleFonts.length === 0 && <p style={{ color: "#999", marginBottom: 8 }}>No Google Fonts added.</p>}
-            <Space wrap style={{ marginBottom: 8 }}>
-              {googleFonts.map((f) => (
-                <Tag key={f.family} closable onClose={() => handleRemoveFont(f.family)}>
-                  {f.family}
-                </Tag>
-              ))}
-            </Space>
-            <Space>
-              <Select
-                showSearch
-                style={{ width: 220 }}
-                placeholder="Select font"
-                value={newFont}
-                onChange={setNewFont}
-                options={POPULAR_GOOGLE_FONTS.map((f) => ({ value: f, label: f }))}
-                filterOption={(input, option) =>
-                  (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
-                }
-              />
-              <Button icon={<PlusOutlined />} onClick={handleAddGoogleFont} disabled={!newFont}>
-                Add
-              </Button>
-            </Space>
-          </div>
-
-          <Typography.Title level={5} style={{ marginTop: 16, marginBottom: 8 }}>Custom font</Typography.Title>
-          <Upload
-            beforeUpload={() => false}
-            onChange={handleFontUpload}
-            showUploadList={false}
-            accept=".woff2,.woff,.ttf"
-          >
-            <Button icon={<UploadOutlined />} loading={fontUploading} style={{ marginBottom: 12 }}>
-              Upload .woff2 / .woff / .ttf
-            </Button>
-          </Upload>
-          {uploadedFonts.length > 0 && (
-            <div style={{ marginBottom: 12 }}>
-              {uploadedFonts.map((f) => (
-                <Tag key={f.filename} closable onClose={() => handleDeleteFont(f.filename)}>
-                  {f.filename}
-                </Tag>
-              ))}
-            </div>
-          )}
-          <Form.Item name="customFontUrl" label="Active custom font" extra="Choose uploaded or paste URL.">
-            <Select
-              allowClear
-              placeholder="Select or paste URL"
-              showSearch
-              options={uploadedFonts.map((f) => ({ value: f.url, label: f.filename }))}
-              dropdownRender={(menu) => (
-                <>
-                  {menu}
-                  <div style={{ padding: "4px 8px", borderTop: "1px solid #eee" }}>
-                    <Input
-                      size="small"
-                      placeholder="Paste font URL"
-                      onPressEnter={(e) => {
-                        const val = e.target.value?.trim();
-                        if (val) form.setFieldValue("customFontUrl", val);
-                      }}
-                    />
-                  </div>
-                </>
-              )}
-            />
-          </Form.Item>
+          <Form.Item name="mobileFontSize" label="Mobile Font Size (px, 0 = no override)"><InputNumber min={0} max={24} style={{ width: "100%" }} /></Form.Item>
+          <Form.Item name="mobileSectionSpacing" label="Mobile Section Spacing"><Input placeholder="e.g. 1rem 0" /></Form.Item>
+          <Form.Item name="hideSectionOnMobile" label="Hide Section on Mobile Option" valuePropName="checked"><Switch /></Form.Item>
+        </div>
+      ),
+    },
+    {
+      key: "advanced",
+      label: <span><CodeOutlined style={{ marginRight: 8 }} />Advanced</span>,
+      children: (
+        <div style={{ paddingBlock: 8 }}>
+          <Form.Item name="customCss" label="Custom CSS"><Input.TextArea rows={6} placeholder=".my-class { color: red; }" style={{ fontFamily: "monospace", fontSize: 12 }} /></Form.Item>
+          <Form.Item name="customJs" label="Custom JS"><Input.TextArea rows={4} placeholder="JavaScript" style={{ fontFamily: "monospace", fontSize: 12 }} /></Form.Item>
+          <Form.Item name="headScripts" label="Head Scripts"><Input.TextArea rows={3} placeholder="<script>...</script>" style={{ fontFamily: "monospace", fontSize: 12 }} /></Form.Item>
+          <Form.Item name="footerScripts" label="Footer Scripts"><Input.TextArea rows={3} placeholder="<script>...</script>" style={{ fontFamily: "monospace", fontSize: 12 }} /></Form.Item>
+          <Form.Item name="googleAnalyticsId" label="Google Analytics ID"><Input placeholder="G-XXXXXXXXXX" /></Form.Item>
         </div>
       ),
     },
     {
       key: "layout",
-      label: (
-        <span>
-          <BulbOutlined style={{ marginRight: 8 }} />
-          Layout & locale
-        </span>
-      ),
+      label: <span><BulbOutlined style={{ marginRight: 8 }} />Layout & Locale</span>,
       children: (
         <div style={{ paddingBlock: 8 }}>
-          <Form.Item
-            name="layoutWidth"
-            label="Container max-width (px)"
-            extra="Max width for main content area."
-          >
-            <InputNumber min={600} max={1920} style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item name="defaultLocale" label="Default locale" extra="e.g. en, ar, he">
-            <Input placeholder="en" />
-          </Form.Item>
-          <Form.Item name="direction" label="Text direction">
-            <Select
-              options={[
-                { value: "ltr", label: "Left to right (LTR)" },
-                { value: "rtl", label: "Right to left (RTL)" },
-              ]}
-            />
-          </Form.Item>
+          <Form.Item name="layoutWidth" label="Container max-width (px)"><InputNumber min={600} max={1920} style={{ width: "100%" }} /></Form.Item>
+          <Form.Item name="defaultLocale" label="Default locale"><Input placeholder="en" /></Form.Item>
+          <Form.Item name="direction" label="Direction"><Select options={[{ value: "ltr", label: "LTR" }, { value: "rtl", label: "RTL" }]} /></Form.Item>
         </div>
       ),
     },
@@ -422,17 +332,13 @@ export default function AdminThemePage() {
 
   return (
     <>
-      <Typography.Title level={3} style={{ marginBottom: 16 }}>Theme</Typography.Title>
-      <Typography.Paragraph type="secondary" style={{ marginBottom: 24 }}>
-        Control your site’s look: site title, logo, theme colors (including custom colors for blocks), fonts, and layout.
-      </Typography.Paragraph>
+      <Typography.Title level={3} style={{ marginBottom: 8 }}>Theme Settings</Typography.Title>
+      <Typography.Paragraph type="secondary" style={{ marginBottom: 24 }}>Control brand identity, global colors, and advanced options.</Typography.Paragraph>
       <Card loading={loading}>
-        <Form form={form} layout="vertical" onFinish={onFinish} style={{ maxWidth: 640 }}>
-          <Collapse items={collapseItems} defaultActiveKey={["identity", "logo", "colors"]} />
+        <Form form={form} layout="vertical" onFinish={onFinish} initialValues={initialFormValues} style={{ maxWidth: 720 }}>
+          <Collapse items={collapseItems} defaultActiveKey={["brand", "colors-primary", "layout"]} />
           <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
-            <Button type="primary" htmlType="submit" size="large" loading={saving}>
-              Save theme
-            </Button>
+            <Button type="primary" htmlType="submit" size="large" loading={saving}>Save theme</Button>
           </Form.Item>
         </Form>
       </Card>

@@ -388,10 +388,26 @@ export default function PageBuilder({ layout = [], onChange }) {
   const canvasRef = useRef(null);
 
   const themeColorOptions = useMemo(() => {
-    if (!theme?.colors?.length) return [];
-    return theme.colors
-      .filter((c) => c?.name && c?.value != null && c.value !== "")
-      .map((c) => ({ label: c.name, value: c.value }));
+    const out = [];
+    const structured = [
+      ["Primary", theme?.primaryColor],
+      ["Secondary", theme?.secondaryColor],
+      ["Body Background", theme?.bodyBackground],
+      ["Section Background", theme?.sectionBackground],
+      ["Card Background", theme?.cardBackground],
+      ["Header Background", theme?.headerBackground],
+      ["Footer Background", theme?.footerBackground],
+      ["Heading", theme?.headingColor],
+      ["Paragraph", theme?.paragraphColor],
+      ["Link", theme?.linkColor],
+      ["Hover", theme?.hoverColor],
+      ["Muted Text", theme?.mutedTextColor],
+      ["Border", theme?.borderColor],
+      ["Button", theme?.buttonBackground],
+    ];
+    structured.forEach(([label, value]) => { if (value) out.push({ label, value }); });
+    (theme?.colors || []).filter((c) => c?.name && c?.value).forEach((c) => out.push({ label: c.name, value: c.value }));
+    return out;
   }, [theme]);
 
   const sensors = useSensors(
