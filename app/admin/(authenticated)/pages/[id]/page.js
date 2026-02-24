@@ -114,7 +114,7 @@ export default function AdminPageEditPage() {
       </div>
 
       {/* Visual builder - this IS the editor now */}
-      <PageBuilder layout={layout} onChange={setLayout} />
+      <PageBuilder layout={layout} onChange={setLayout} showLayers={false} />
 
       {/* Page settings drawer */}
       <Drawer

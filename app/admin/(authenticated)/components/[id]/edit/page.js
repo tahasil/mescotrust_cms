@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Button, message, Spin, Select, Space } from "antd";
-import { ArrowLeftOutlined, SaveOutlined } from "@ant-design/icons";
+import { Button, message, Spin, Select, Space, Divider } from "antd";
+import { ArrowLeftOutlined, SaveOutlined, EyeOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import PageBuilder from "@/components/admin/PageBuilder";
+import ComponentRenderer from "@/components/cms/ComponentRenderer";
 
 const CONTAINER_OPTIONS = [
   { value: "container", label: "Container (max-width)" },
@@ -102,7 +103,23 @@ export default function AdminComponentEditPage() {
         </Space>
       </div>
 
-      <PageBuilder layout={layout} onChange={setLayout} />
+      <PageBuilder layout={layout} onChange={setLayout} showLayers={false} includeAntdBlocks />
+
+      <Divider style={{ margin: "24px 0 12px" }} />
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, color: "#666", fontSize: 13 }}>
+          <EyeOutlined />
+          <span style={{ fontWeight: 500 }}>Component UI preview</span>
+          <span style={{ color: "#999" }}>— how it will look when used on a page</span>
+        </div>
+        <div style={{ border: "1px solid #e8e8e8", borderRadius: 8, overflow: "hidden", background: "#fafafa", padding: 16 }}>
+          {layout.length === 0 ? (
+            <div style={{ textAlign: "center", padding: 48, color: "#999" }}>Add blocks above to see the component preview here.</div>
+          ) : (
+            <ComponentRenderer layout={layout} wrapperContainer={container} />
+          )}
+        </div>
+      </div>
     </div>
   );
 }

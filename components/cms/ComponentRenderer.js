@@ -34,6 +34,13 @@ import TableBlock from "@/components/cms/blocks/Table";
 import FeatureGridBlock from "@/components/cms/blocks/FeatureGrid";
 import HeaderBlock from "@/components/cms/blocks/Header";
 import SectionBlock from "@/components/cms/blocks/Section";
+import AntButtonBlock from "@/components/cms/blocks/antd/AntButton";
+import AntCardBlock from "@/components/cms/blocks/antd/AntCard";
+import AntInputBlock from "@/components/cms/blocks/antd/AntInput";
+import AntDividerBlock from "@/components/cms/blocks/antd/AntDivider";
+import AntAlertBlock from "@/components/cms/blocks/antd/AntAlert";
+import AntTypographyBlock from "@/components/cms/blocks/antd/AntTypography";
+import AntSpaceBlock from "@/components/cms/blocks/antd/AntSpace";
 
 const COMPONENT_MAP = {
   Paragraph: ParagraphBlock,
@@ -72,6 +79,13 @@ const COMPONENT_MAP = {
   FeatureGrid: FeatureGridBlock,
   Header: HeaderBlock,
   Section: SectionBlock,
+  AntButton: AntButtonBlock,
+  AntCard: AntCardBlock,
+  AntInput: AntInputBlock,
+  AntDivider: AntDividerBlock,
+  AntAlert: AntAlertBlock,
+  AntTypography: AntTypographyBlock,
+  AntSpace: AntSpaceBlock,
 };
 
 const SECTION_PROPS = ["_containerType", "_sectionBg", "_sectionPadding"];

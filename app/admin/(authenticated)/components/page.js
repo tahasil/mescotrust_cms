@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import {
   Tag, Button, Space, message, Modal, Form, Input, Select, Drawer, Empty,
-  Segmented, Switch,
+  Segmented, Switch, Tooltip,
 } from "antd";
 import {
   PlusOutlined, EditOutlined, DeleteOutlined, AppstoreOutlined, SettingOutlined,
@@ -14,45 +14,6 @@ import {
   StarOutlined, TeamOutlined, ClockCircleOutlined,
   AlertOutlined, LineOutlined,
 } from "@ant-design/icons";
-
-const KNOWN_BASE_COMPONENTS = [
-  { value: "Paragraph", label: "Paragraph" },
-  { value: "Heading", label: "Heading" },
-  { value: "List", label: "List" },
-  { value: "Quote", label: "Quote" },
-  { value: "CodeSnippet", label: "Code Snippet" },
-  { value: "Image", label: "Image" },
-  { value: "Gallery", label: "Gallery" },
-  { value: "Video", label: "Video" },
-  { value: "FileDownload", label: "File Download" },
-  { value: "Cover", label: "Cover" },
-  { value: "Buttons", label: "Buttons" },
-  { value: "Spacer", label: "Spacer / Divider" },
-  { value: "Columns", label: "Columns" },
-  { value: "CallToAction", label: "Call to Action" },
-  { value: "Embed", label: "Embed" },
-  { value: "Breadcrumbs", label: "Breadcrumbs" },
-  { value: "Card", label: "Card" },
-  { value: "CardGrid", label: "Card Grid" },
-  { value: "Accordion", label: "Accordion / FAQ" },
-  { value: "Tabs", label: "Tabs" },
-  { value: "Hero", label: "Hero Section" },
-  { value: "Stats", label: "Statistics" },
-  { value: "Testimonial", label: "Testimonials" },
-  { value: "Pricing", label: "Pricing Table" },
-  { value: "Team", label: "Team Members" },
-  { value: "Timeline", label: "Timeline" },
-  { value: "Alert", label: "Alert / Notice" },
-  { value: "IconBox", label: "Icon Box" },
-  { value: "Slider", label: "Slider / Carousel" },
-  { value: "Modal", label: "Modal / Popup" },
-  { value: "SocialLinks", label: "Social Links" },
-  { value: "Divider", label: "Divider" },
-  { value: "Table", label: "Table" },
-  { value: "FeatureGrid", label: "Feature Grid" },
-  { value: "Header", label: "Header / Navbar" },
-  { value: "Section", label: "Section (container)" },
-];
 
 const CATEGORY_OPTIONS = [
   { value: "text", label: "Text" },
@@ -126,6 +87,14 @@ export default function AdminComponentsPage() {
     }
     return items;
   }, [list, filterCategory, searchQuery]);
+
+  /** Base component options for Add modal = components from the list (same as Component list page), unique by baseComponent */
+  const baseComponentOptions = useMemo(() => {
+    const seen = new Set();
+    return list
+      .filter((c) => c.baseComponent && !seen.has(c.baseComponent) && (seen.add(c.baseComponent), true))
+      .map((c) => ({ value: c.baseComponent, label: c.displayName || c.name || c.baseComponent }));
+  }, [list]);
 
   const handleAdd = () => { form.resetFields(); setAddModalOpen(true); };
 
@@ -325,7 +294,16 @@ export default function AdminComponentsPage() {
                     <Button type="primary" size="small" icon={<EditOutlined />}>Edit</Button>
                   </Link>
                   <Button type="text" size="small" icon={<SettingOutlined />} onClick={() => handleEdit(record)} />
-                  <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)} />
+                  {record.type !== "system" && (
+                    <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)} />
+                  )}
+                  {record.type === "system" && (
+                    <Tooltip title="Base / system components cannot be deleted. You can deactivate them with the switch.">
+                      <span style={{ display: "inline-block" }}>
+                        <Button type="text" size="small" disabled icon={<DeleteOutlined />} style={{ color: "#ccc", cursor: "not-allowed" }} />
+                      </span>
+                    </Tooltip>
+                  )}
                 </Space>
               </div>
             );
@@ -342,8 +320,19 @@ export default function AdminComponentsPage() {
           <Form.Item name="displayName" label="Display name">
             <Input placeholder="Shown in page builder" />
           </Form.Item>
-          <Form.Item name="baseComponent" label="Base component" rules={[{ required: true }]}>
-            <Select options={KNOWN_BASE_COMPONENTS} placeholder="Must exist in code" showSearch />
+          <Form.Item
+            name="baseComponent"
+            label="Base component"
+            rules={[{ required: true, message: "Select a base component" }]}
+            help={list.length === 0 ? "No components in the list yet. Use “Seed system components” below to add base components first." : undefined}
+          >
+            <Select
+              options={baseComponentOptions}
+              placeholder={list.length === 0 ? "Seed system components first" : "Choose from components in the list"}
+              showSearch
+              optionFilterProp="label"
+              disabled={baseComponentOptions.length === 0}
+            />
           </Form.Item>
           <Form.Item name="category" label="Category">
             <Select options={CATEGORY_OPTIONS} placeholder="Component category" allowClear />

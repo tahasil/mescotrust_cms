@@ -42,6 +42,7 @@ const CATEGORY_META = {
   interactive: { label: "Interactive", icon: <InteractionOutlined />, color: "#eb2f96" },
   data: { label: "Data Display", icon: <TableOutlined />, color: "#13c2c2" },
   navigation: { label: "Navigation", icon: <ShareAltOutlined />, color: "#597ef7" },
+  antd: { label: "Ant Design", icon: <AppstoreOutlined />, color: "#0170fe" },
 };
 
 const CORE_PAGE_BUILDER_COMPONENTS = [
@@ -109,7 +110,20 @@ const BLOCK_ICON_MAP = {
   Pricing: <TableOutlined />, Table: <TableOutlined />, Timeline: <ClockCircleOutlined />,
   Breadcrumbs: <ShareAltOutlined />, Alert: <AlertOutlined />, SocialLinks: <ShareAltOutlined />,
   Slider: <PictureOutlined />, Header: <LayoutOutlined />, Section: <LayoutOutlined />,
+  AntButton: <InteractionOutlined />, AntCard: <AppstoreOutlined />, AntInput: <EditOutlined />,
+  AntDivider: <LineOutlined />, AntAlert: <AlertOutlined />, AntTypography: <FontSizeOutlined />, AntSpace: <LayoutOutlined />,
 };
+
+/** Ant Design UI blocks – shown in Add Block when editing a component (includeAntdBlocks=true). */
+const ANT_DESIGN_BLOCKS = [
+  { _id: "antd-AntButton", name: "AntButton", displayName: "Button", category: "antd", baseComponent: "AntButton", description: "Ant Design Button", propsSchema: [{ key: "text", type: "text", label: "Text" }, { key: "type", type: "select", label: "Type", options: ["primary", "default", "dashed", "link", "text"] }, { key: "size", type: "select", label: "Size", options: ["large", "middle", "small"] }, { key: "danger", type: "boolean", label: "Danger" }, { key: "disabled", type: "boolean", label: "Disabled" }], defaultProps: { text: "Button", type: "primary", size: "middle", danger: false, disabled: false }, active: true },
+  { _id: "antd-AntCard", name: "AntCard", displayName: "Card", category: "antd", baseComponent: "AntCard", description: "Ant Design Card", propsSchema: [{ key: "title", type: "text", label: "Title" }, { key: "content", type: "text", label: "Content" }, { key: "extra", type: "text", label: "Extra" }], defaultProps: { title: "", content: "Card content", extra: "" }, active: true },
+  { _id: "antd-AntInput", name: "AntInput", displayName: "Input", category: "antd", baseComponent: "AntInput", description: "Ant Design Input", propsSchema: [{ key: "placeholder", type: "text", label: "Placeholder" }, { key: "value", type: "text", label: "Default value" }, { key: "size", type: "select", label: "Size", options: ["large", "middle", "small"] }, { key: "disabled", type: "boolean", label: "Disabled" }], defaultProps: { placeholder: "Placeholder", value: "", size: "middle", disabled: false }, active: true },
+  { _id: "antd-AntDivider", name: "AntDivider", displayName: "Divider", category: "antd", baseComponent: "AntDivider", description: "Ant Design Divider", propsSchema: [{ key: "text", type: "text", label: "Center text" }, { key: "orientation", type: "select", label: "Orientation", options: ["left", "center", "right"] }, { key: "type", type: "select", label: "Type", options: ["horizontal", "vertical"] }, { key: "plain", type: "boolean", label: "Plain" }], defaultProps: { text: "", orientation: "center", type: "horizontal", plain: true }, active: true },
+  { _id: "antd-AntAlert", name: "AntAlert", displayName: "Alert", category: "antd", baseComponent: "AntAlert", description: "Ant Design Alert", propsSchema: [{ key: "message", type: "text", label: "Message" }, { key: "description", type: "text", label: "Description" }, { key: "type", type: "select", label: "Type", options: ["success", "info", "warning", "error"] }, { key: "showIcon", type: "boolean", label: "Show icon" }], defaultProps: { message: "Alert message", description: "", type: "info", showIcon: true }, active: true },
+  { _id: "antd-AntTypography", name: "AntTypography", displayName: "Typography", category: "antd", baseComponent: "AntTypography", description: "Ant Design Title / Paragraph", propsSchema: [{ key: "variant", type: "select", label: "Variant", options: ["title", "paragraph", "text"] }, { key: "level", type: "number", label: "Title level (1-5)" }, { key: "title", type: "text", label: "Title text" }, { key: "paragraph", type: "text", label: "Paragraph text" }, { key: "text", type: "text", label: "Text" }], defaultProps: { variant: "title", level: 3, title: "Title", paragraph: "", text: "" }, active: true },
+  { _id: "antd-AntSpace", name: "AntSpace", displayName: "Space", category: "antd", baseComponent: "AntSpace", description: "Ant Design Space", propsSchema: [{ key: "direction", type: "select", label: "Direction", options: ["horizontal", "vertical"] }, { key: "size", type: "select", label: "Size", options: ["small", "middle", "large"] }], defaultProps: { direction: "horizontal", size: "middle" }, active: true },
+];
 
 // ─── Schema Field Renderer ──────────────────────────────────
 
@@ -598,7 +612,7 @@ const PREVIEW_WIDTHS = {
 // Main PageBuilder Component
 // ═══════════════════════════════════════════════════════════
 
-export default function PageBuilder({ layout = [], onChange }) {
+export default function PageBuilder({ layout = [], onChange, showLayers = true, includeAntdBlocks = false }) {
   /** Palette loads all reusable components from DB (system + custom) via API. */
   const [components, setComponents] = useState([]);
   const [theme, setTheme] = useState(null);
@@ -610,6 +624,7 @@ export default function PageBuilder({ layout = [], onChange }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [previewMode, setPreviewMode] = useState("desktop");
   const [layersPanelOpen, setLayersPanelOpen] = useState(true);
+  const showLayersPanel = showLayers && layersPanelOpen;
   const [addToSectionBlockIndex, setAddToSectionBlockIndex] = useState(null);
   const [editingInnerBlock, setEditingInnerBlock] = useState(null);
   const [editingElement, setEditingElement] = useState(null);
@@ -648,8 +663,7 @@ export default function PageBuilder({ layout = [], onChange }) {
     fetch("/api/admin/components")
       .then((res) => (res.ok ? res.json() : []))
       .then((list) => {
-        const active = (list || []).filter((c) => c.active);
-        const mapped = active.map((c) => ({
+        const mapped = (list || []).map((c) => ({
           _id: c._id,
           name: c.name,
           displayName: c.displayName || c.name,
@@ -660,10 +674,11 @@ export default function PageBuilder({ layout = [], onChange }) {
           defaultProps: c.defaultProps || {},
           active: c.active !== false,
         }));
-        setComponents(mapped);
+        const withAntd = includeAntdBlocks ? [...mapped, ...ANT_DESIGN_BLOCKS] : mapped;
+        setComponents(withAntd);
       })
       .catch(() => setComponents([]));
-  }, []);
+  }, [includeAntdBlocks]);
 
   useEffect(() => {
     fetch("/api/theme")
@@ -948,14 +963,16 @@ export default function PageBuilder({ layout = [], onChange }) {
             <EyeOutlined style={{ fontSize: 16, color: "#1890ff" }} />
             <span style={{ fontWeight: 600, fontSize: 14, color: "#333" }}>Visual Editor</span>
             {sorted.length > 0 && <Badge count={sorted.length} style={{ backgroundColor: "#1890ff" }} />}
-            <Button
-              type={layersPanelOpen ? "primary" : "default"}
-              size="small"
-              icon={<UnorderedListOutlined />}
-              onClick={() => setLayersPanelOpen((v) => !v)}
-            >
-              Layers
-            </Button>
+            {showLayers && (
+              <Button
+                type={showLayersPanel ? "primary" : "default"}
+                size="small"
+                icon={<UnorderedListOutlined />}
+                onClick={() => setLayersPanelOpen((v) => !v)}
+              >
+                Layers
+              </Button>
+            )}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <Segmented
@@ -976,7 +993,7 @@ export default function PageBuilder({ layout = [], onChange }) {
 
         {/* ── Layers panel + Canvas ── */}
         <div style={{ display: "flex", flex: 1, minHeight: 300, border: "1px solid #e8e8e8", borderTop: "none", borderRadius: "0 0 8px 8px", overflow: "hidden" }}>
-          {layersPanelOpen && (
+          {showLayersPanel && (
             <LayersPanel
               sorted={sorted}
               selectedIndex={selectedIndex}
