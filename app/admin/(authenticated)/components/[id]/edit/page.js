@@ -72,6 +72,14 @@ export default function AdminComponentEditPage() {
   if (loading) return <Spin size="large" style={{ display: "block", margin: "100px auto" }} />;
   if (!component) return null;
 
+  const isSystem = component.type === "system";
+
+  /** For system/view: if no layout, show one block with defaultProps so the default component UI is visible */
+  const previewLayout =
+    isSystem && layout.length === 0 && component.baseComponent
+      ? [{ instanceId: "default-view", baseComponent: component.baseComponent, props: component.defaultProps || {}, order: 0 }]
+      : layout;
+
   return (
     <div>
       <div style={{
@@ -79,31 +87,32 @@ export default function AdminComponentEditPage() {
         marginBottom: 16, flexWrap: "wrap", gap: 8,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <Link href="/admin/components">
-            <Button icon={<ArrowLeftOutlined />} type="text">Components</Button>
+          <Link href="/admin/components" style={{ display: "inline-block" }}>
+            <Button type="default" icon={<ArrowLeftOutlined />}>Back</Button>
           </Link>
-          <div>
-            <h2 style={{ margin: 0, fontSize: 18, lineHeight: 1.3 }}>
-              Design: {component.displayName || component.name}
-            </h2>
-            <span style={{ fontSize: 12, color: "#999" }}>{component.baseComponent}</span>
-          </div>
+          <h2 style={{ margin: 0, fontSize: 18, lineHeight: 1.3 }}>
+            {component.displayName || component.name}
+          </h2>
         </div>
-        <Space wrap>
-          <span style={{ fontSize: 13, color: "#666" }}>Container:</span>
-          <Select
-            value={container}
-            onChange={setContainer}
-            options={CONTAINER_OPTIONS}
-            style={{ minWidth: 200 }}
-          />
-          <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={handleSave}>
-            Save layout
-          </Button>
-        </Space>
+        {!isSystem && (
+          <Space wrap>
+            <span style={{ fontSize: 13, color: "#666" }}>Container:</span>
+            <Select
+              value={container}
+              onChange={setContainer}
+              options={CONTAINER_OPTIONS}
+              style={{ minWidth: 200 }}
+            />
+            <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={handleSave}>
+              Save layout
+            </Button>
+          </Space>
+        )}
       </div>
 
-      <PageBuilder layout={layout} onChange={setLayout} showLayers={false} includeAntdBlocks />
+      {!isSystem && (
+        <PageBuilder layout={layout} onChange={setLayout} showLayers={false} includeAntdBlocks />
+      )}
 
       <Divider style={{ margin: "24px 0 12px" }} />
       <div style={{ marginBottom: 24 }}>
@@ -113,10 +122,12 @@ export default function AdminComponentEditPage() {
           <span style={{ color: "#999" }}>— how it will look when used on a page</span>
         </div>
         <div style={{ border: "1px solid #e8e8e8", borderRadius: 8, overflow: "hidden", background: "#fafafa", padding: 16 }}>
-          {layout.length === 0 ? (
-            <div style={{ textAlign: "center", padding: 48, color: "#999" }}>Add blocks above to see the component preview here.</div>
+          {previewLayout.length === 0 ? (
+            <div style={{ textAlign: "center", padding: 48, color: "#999" }}>
+              Add blocks above to see the component preview here.
+            </div>
           ) : (
-            <ComponentRenderer layout={layout} wrapperContainer={container} />
+            <ComponentRenderer layout={previewLayout} wrapperContainer={container} />
           )}
         </div>
       </div>

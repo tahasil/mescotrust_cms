@@ -7,7 +7,7 @@ import {
   Segmented, Switch, Tooltip,
 } from "antd";
 import {
-  PlusOutlined, EditOutlined, DeleteOutlined, AppstoreOutlined, SettingOutlined,
+  PlusOutlined, EditOutlined, DeleteOutlined, AppstoreOutlined, SettingOutlined, EyeOutlined,
   SearchOutlined, UnorderedListOutlined,
   FontSizeOutlined, PictureOutlined, LayoutOutlined,
   InteractionOutlined, TableOutlined, ShareAltOutlined,
@@ -290,10 +290,18 @@ export default function AdminComponentsPage() {
                   <Tag color={record.type === "system" ? "blue" : "default"} style={{ borderRadius: 10, margin: 0 }}>{record.type}</Tag>
                   <span style={{ fontSize: 12, color: "#666" }}>Active</span>
                   <Switch checked={record.active !== false} onChange={(checked) => handleActiveChange(record, checked)} size="small" />
-                  <Link href={`/admin/components/${record._id}/edit`}>
-                    <Button type="primary" size="small" icon={<EditOutlined />}>Edit</Button>
-                  </Link>
-                  <Button type="text" size="small" icon={<SettingOutlined />} onClick={() => handleEdit(record)} />
+                  {record.type === "system" ? (
+                    <Link href={`/admin/components/${record._id}/edit`}>
+                      <Button type="default" size="small" icon={<EyeOutlined />}>View</Button>
+                    </Link>
+                  ) : (
+                    <>
+                      <Link href={`/admin/components/${record._id}/edit`}>
+                        <Button type="primary" size="small" icon={<EditOutlined />}>Edit</Button>
+                      </Link>
+                      <Button type="text" size="small" icon={<SettingOutlined />} onClick={() => handleEdit(record)} />
+                    </>
+                  )}
                   {record.type !== "system" && (
                     <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)} />
                   )}
