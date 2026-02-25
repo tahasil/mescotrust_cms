@@ -17,6 +17,7 @@ import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
+  CopyOutlined,
   HolderOutlined,
   DownOutlined,
   ArrowLeftOutlined,
@@ -415,22 +416,46 @@ export default function AdminMenusPage() {
     const tree = flatToTree(flatItems.map((it, i) => ({ ...it, order: i })));
     setSaving(true);
     try {
-      const url = editingName
-        ? `/api/admin/menus/${encodeURIComponent(editingName)}`
-        : "/api/admin/menus";
-      const method = editingName ? "PUT" : "POST";
-      const body = editingName ? { items: tree } : { name, items: tree };
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        message.error(data.error || "Save failed");
-        return;
+      const isRename = editingName && name !== editingName;
+      if (isRename) {
+        const createRes = await fetch("/api/admin/menus", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, items: tree }),
+        });
+        if (!createRes.ok) {
+          const data = await createRes.json().catch(() => ({}));
+          message.error(data.error || "Save failed");
+          setSaving(false);
+          return;
+        }
+        const delRes = await fetch(
+          `/api/admin/menus/${encodeURIComponent(editingName)}`,
+          { method: "DELETE" },
+        );
+        if (!delRes.ok) {
+          message.error("Renamed but could not remove old menu");
+        }
+        message.success(`Menu saved as "${name}"`);
+      } else {
+        const url = editingName
+          ? `/api/admin/menus/${encodeURIComponent(editingName)}`
+          : "/api/admin/menus";
+        const method = editingName ? "PUT" : "POST";
+        const body = editingName ? { items: tree } : { name, items: tree };
+        const res = await fetch(url, {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          message.error(data.error || "Save failed");
+          setSaving(false);
+          return;
+        }
+        message.success("Menu saved");
       }
-      message.success("Menu saved");
       setStructureView(false);
       setEditingName(null);
       fetchMenus();
@@ -471,6 +496,39 @@ export default function AdminMenusPage() {
         fetchMenus();
       },
     });
+  };
+
+  const handleCopy = async (record) => {
+    try {
+      const res = await fetch(`/api/admin/menus/${encodeURIComponent(record.name)}`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        message.error(data.error || "Failed to load menu");
+        return;
+      }
+      const menu = await res.json();
+      const items = Array.isArray(menu.items) ? JSON.parse(JSON.stringify(menu.items)) : [];
+      let copyName = `${record.name} (copy)`;
+      let n = 1;
+      while (menus.some((m) => m.name === copyName)) {
+        n += 1;
+        copyName = `${record.name} (copy ${n})`;
+      }
+      const createRes = await fetch("/api/admin/menus", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: copyName, items }),
+      });
+      if (!createRes.ok) {
+        const data = await createRes.json().catch(() => ({}));
+        message.error(data.error || "Copy failed");
+        return;
+      }
+      message.success(`Menu copied as "${copyName}"`);
+      fetchMenus();
+    } catch (e) {
+      message.error(e.message || "Copy failed");
+    }
   };
 
   const sensors = useSensors(
@@ -525,7 +583,6 @@ export default function AdminMenusPage() {
             value={menuName}
             onChange={(e) => setMenuName(e.target.value)}
             placeholder="e.g. Primary menu"
-            disabled={!!editingName}
             style={{ maxWidth: 320 }}
           />
         </Form.Item>
@@ -677,6 +734,14 @@ export default function AdminMenusPage() {
                   onClick={() => handleEdit(record)}
                 >
                   Edit
+                </Button>
+                <Button
+                  type="link"
+                  size="small"
+                  icon={<CopyOutlined />}
+                  onClick={() => handleCopy(record)}
+                >
+                  Copy
                 </Button>
                 <Button
                   type="link"
