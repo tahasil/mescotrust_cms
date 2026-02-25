@@ -147,8 +147,15 @@ async function getLayoutData(pathname) {
     if (theme.fontFamily && !theme.bodyFont) theme.bodyFont = theme.fontFamily;
     if (theme.headingFontFamily && !theme.headingFont) theme.headingFont = theme.headingFontFamily;
     if (theme.fontSize != null && theme.baseFontSize == null) theme.baseFontSize = theme.fontSize;
-    const headerLayout = headerComponent?.layout && Array.isArray(headerComponent.layout) && headerComponent.layout.length > 0
-      ? JSON.parse(JSON.stringify(headerComponent.layout))
+    const rawHeaderLayout = headerComponent?.layout && Array.isArray(headerComponent.layout) && headerComponent.layout.length > 0
+      ? headerComponent.layout
+      : null;
+    const headerLayout = rawHeaderLayout
+      ? rawHeaderLayout.map((block) => ({
+          ...(typeof block === "object" && block !== null ? block : {}),
+          baseComponent: block?.baseComponent || "Paragraph",
+          props: block?.props && typeof block.props === "object" ? { ...block.props } : {},
+        }))
       : null;
     return {
       theme: JSON.parse(JSON.stringify(theme)),

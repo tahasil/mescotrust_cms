@@ -256,9 +256,26 @@ function renderSchemaField(field, themeColorOptions) {
 }
 
 const SECTION_SETTINGS_SCHEMA = [
-  { key: "_containerType", type: "select", label: "Container type", options: ["container", "container-fluid"] },
-  { key: "_sectionBg", type: "color", label: "Section background" },
-  { key: "_sectionPadding", type: "text", label: "Section padding (e.g. 2rem 0)" },
+  { key: "_containerType", type: "select", label: "Select container (when no section styles)", options: [
+    { value: "container", label: "Container (max-width)" },
+    { value: "container-fluid", label: "Container fluid (full width)" },
+  ] },
+  { key: "_sectionBg", type: "color", label: "Background" },
+  { key: "_sectionPadding", type: "text", label: "Padding (e.g. 2rem 1rem)" },
+  { key: "_sectionBorderSize", type: "text", label: "Border size (e.g. 1px 2px 3px 4px)", default: "0px 0px 0px 0px" },
+  { key: "_sectionBorderStyle", type: "select", label: "Border type", options: [
+    { value: "solid", label: "Solid" },
+    { value: "dashed", label: "Dashed" },
+    { value: "dotted", label: "Dotted" },
+    { value: "double", label: "Double" },
+    { value: "groove", label: "Groove" },
+    { value: "ridge", label: "Ridge" },
+    { value: "inset", label: "Inset" },
+    { value: "outset", label: "Outset" },
+    { value: "none", label: "None" },
+  ] },
+  { key: "_sectionBorderColor", type: "color", label: "Border color (from theme)" },
+  { key: "_sectionShadow", type: "text", label: "Shadow (e.g. 0 2px 8px rgba(0,0,0,0.08))" },
 ];
 
 /** Add itemSchema for list-like JSON fields so the drawer shows Add/Remove item UI instead of raw JSON. */
@@ -345,6 +362,7 @@ const DEFAULT_BOOTSTRAP_HEADER_PROPS = {
   navbarMobileMenu: "collapse",
   navbarOffcanvasPlacement: "end",
   menuPosition: "left",
+  _containerType: "container-fluid",
   navItems: [
     { label: "Home", url: "/", hasDropdown: false },
     { label: "About", url: "/about", hasDropdown: false },
@@ -761,6 +779,12 @@ export default function PageBuilder({ layout = [], onChange, showLayers = true, 
   const canvasRef = useRef(null);
   const [adminMenusList, setAdminMenusList] = useState([]);
 
+  const sectionSettingsDefaults = useMemo(() => {
+    const d = {};
+    SECTION_SETTINGS_SCHEMA.forEach((f) => { if (f.default !== undefined) d[f.key] = f.default; });
+    return d;
+  }, []);
+
   const themeColorOptions = useMemo(() => {
     const out = [];
     const structured = [
@@ -951,7 +975,7 @@ export default function PageBuilder({ layout = [], onChange, showLayers = true, 
     setEditingElement(null);
     const block = sorted[index];
     form.resetFields();
-    form.setFieldsValue(block.props || {});
+    form.setFieldsValue({ ...sectionSettingsDefaults, ...(block.props || {}) });
     setDrawerOpen(true);
   };
 
@@ -963,7 +987,7 @@ export default function PageBuilder({ layout = [], onChange, showLayers = true, 
     setEditingInnerBlock(null);
     setEditingElement({ blockIndex, elementKey });
     form.resetFields();
-    form.setFieldsValue(block.props || {});
+    form.setFieldsValue({ ...sectionSettingsDefaults, ...(block.props || {}) });
     setDrawerOpen(true);
   };
 

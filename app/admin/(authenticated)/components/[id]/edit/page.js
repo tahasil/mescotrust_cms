@@ -89,13 +89,17 @@ export default function AdminComponentEditPage() {
         </div>
         {!isSystem && (
           <Space wrap>
-            <span style={{ fontSize: 13, color: "#666" }}>Container:</span>
-            <Select
-              value={container}
-              onChange={setContainer}
-              options={CONTAINER_OPTIONS}
-              style={{ minWidth: 200 }}
-            />
+            {component?.baseComponent !== "Header" && (
+              <>
+                <span style={{ fontSize: 13, color: "#666" }}>Container:</span>
+                <Select
+                  value={container}
+                  onChange={setContainer}
+                  options={CONTAINER_OPTIONS}
+                  style={{ minWidth: 200 }}
+                />
+              </>
+            )}
             <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={handleSave}>
               Save layout
             </Button>

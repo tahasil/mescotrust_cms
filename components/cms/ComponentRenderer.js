@@ -90,7 +90,7 @@ const COMPONENT_MAP = {
   AntSpace: AntSpaceBlock,
 };
 
-const SECTION_PROPS = ["_containerType", "_sectionBg", "_sectionPadding"];
+const SECTION_PROPS = ["_containerType", "_sectionBg", "_sectionPadding", "_sectionBorderSize", "_sectionBorderStyle", "_sectionBorderColor", "_sectionShadow"];
 
 function extractSectionProps(props) {
   const section = {};
@@ -135,27 +135,42 @@ export default function ComponentRenderer({ layout, wrapperContainer, onElementC
         const containerType = section._containerType || "container";
         const sectionBg = section._sectionBg || "";
         const sectionPadding = section._sectionPadding || "";
+        const sectionBorderSize = section._sectionBorderSize || "";
+        const sectionBorderStyle = section._sectionBorderStyle || "solid";
+        const sectionBorderColor = section._sectionBorderColor || "";
+        const sectionShadow = section._sectionShadow || "";
 
         if (!Component) {
           return <UnavailableBlock key={key} baseComponent={baseComponent} />;
         }
 
-        const containerClass = containerType === "container-fluid" ? "cms-container-fluid" : "cms-container";
-
         const sectionStyle = {};
         if (sectionBg) sectionStyle.background = sectionBg;
         if (sectionPadding) sectionStyle.padding = sectionPadding;
+        const borderSizeTrimmed = String(sectionBorderSize || "").trim();
+        const borderParts = borderSizeTrimmed ? borderSizeTrimmed.split(/[\s,]+/).filter(Boolean) : [];
+        const isAllZeroBorder = borderParts.length === 0 || borderParts.every((p) => /^0(px|em|rem)?$/i.test(p.trim()));
+        const hasBorderSize = borderSizeTrimmed && !isAllZeroBorder;
+        if (hasBorderSize || (sectionBorderStyle && sectionBorderStyle !== "none" && sectionBorderColor)) {
+          if (hasBorderSize) sectionStyle.borderWidth = borderSizeTrimmed;
+          sectionStyle.borderStyle = sectionBorderStyle === "none" ? "solid" : (sectionBorderStyle || "solid");
+          sectionStyle.borderColor = sectionBorderColor || "currentColor";
+          if (!hasBorderSize) sectionStyle.borderWidth = "1px";
+        }
+        if (sectionShadow) sectionStyle.boxShadow = sectionShadow;
 
-        const hasSectionStyle = sectionBg || sectionPadding;
+        const hasSectionStyle = sectionBg || sectionPadding || (sectionBorderSize && sectionBorderSize !== "0") || (sectionBorderStyle && sectionBorderStyle !== "none" && sectionBorderColor) || sectionShadow;
 
         const elementClickProp = onElementClick
           ? { onElementClick: (elementKey) => onElementClick(block.instanceId, elementKey) }
           : {};
 
+        const innerContainerClass = containerType === "container-fluid" ? "cms-container-fluid" : "cms-container";
+
         if (hasSectionStyle) {
           return (
-            <div key={key} className="cms-section" style={sectionStyle}>
-              <div className={containerClass}>
+            <div key={key} className="cms-section cms-container-fluid" style={sectionStyle}>
+              <div className={innerContainerClass}>
                 <Component {...clean} {...elementClickProp} />
               </div>
             </div>
@@ -163,7 +178,7 @@ export default function ComponentRenderer({ layout, wrapperContainer, onElementC
         }
 
         return (
-          <div key={key} className={containerClass}>
+          <div key={key} className={innerContainerClass}>
             <Component {...clean} {...elementClickProp} />
           </div>
         );
