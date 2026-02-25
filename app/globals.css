@@ -489,7 +489,7 @@ a {
 }
 .cms-header-nav-item-top.cms-header-nav-custom-dropdown
   .cms-header-nav-custom-trigger {
-  padding: 0.25rem 0.5rem;
+  padding: 0.25rem 1rem;
   background: var(--cms-nav-item-bg, transparent);
   color: var(--cms-nav-text-color, #333) !important;
 }
