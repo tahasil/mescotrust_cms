@@ -72,6 +72,13 @@ a {
   width: 100%;
 }
 
+/* CMS Header: hide offcanvas header (logo + close) on desktop so only main logo shows; show on responsive when drawer is open */
+@media (min-width: 992px) {
+  .cms-header .offcanvas-header {
+    display: none !important;
+  }
+}
+
 /* --- Public Header --- */
 .public-header {
   border-block-end: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));

@@ -253,12 +253,18 @@ export default function HeaderBlock({
             placement={navbarOffcanvasPlacement === "start" ? "start" : "end"}
             className="flex-lg-grow-1"
           >
-            <Offcanvas.Header closeButton>
-              <Offcanvas.Title id="cms-header-offcanvas-label">Menu</Offcanvas.Title>
+            <Offcanvas.Header
+              closeButton
+              style={{ borderBottom: "1px solid rgba(0,0,0,0.1)", alignItems: "center" }}
+              className="d-flex align-items-center justify-content-between w-100"
+            >
+              <Offcanvas.Title id="cms-header-offcanvas-label" className="mb-0 d-flex align-items-center flex-grow-1">
+                {logoSection}
+              </Offcanvas.Title>
             </Offcanvas.Header>
-            <Offcanvas.Body>
+            <Offcanvas.Body className="d-flex flex-column pt-3">
               <div
-                className="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between flex-wrap flex-grow-1 w-100"
+                className="d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center justify-content-between flex-wrap flex-grow-1 w-100"
                 style={{ gap: 16, minWidth: 0 }}
               >
                 {collapseSections[0]}
