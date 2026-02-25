@@ -29,7 +29,13 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
 function generateId() {
@@ -93,12 +99,26 @@ function SortableMenuItem({
   onToggleBulkSelect,
   onUpdate,
   onRemove,
-  onAddSubItem,
+  onPromote,
+  onDemote,
   depth,
+  canDemote,
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
-  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
   const isSub = depth > 0;
+  const indentPx = depth * 24;
 
   return (
     <div ref={setNodeRef} style={style} className="menu-structure-item-wrapper">
@@ -112,10 +132,13 @@ function SortableMenuItem({
           border: "1px solid #f0f0f0",
           borderRadius: 4,
           marginBottom: 4,
-          marginLeft: isSub ? 24 : 0,
+          marginLeft: indentPx,
         }}
       >
-        <span {...listeners} style={{ cursor: "grab", marginRight: 8, color: "#999" }}>
+        <span
+          {...listeners}
+          style={{ cursor: "grab", marginRight: 8, color: "#999" }}
+        >
           <HolderOutlined />
         </span>
         <Checkbox
@@ -127,7 +150,9 @@ function SortableMenuItem({
         <span style={{ flex: 1, fontWeight: 500 }}>
           {item.label || "(No label)"}
           {isSub && (
-            <span style={{ color: "#888", fontWeight: 400, marginLeft: 6 }}>sub item</span>
+            <span style={{ color: "#888", fontWeight: 400, marginLeft: 6 }}>
+              {depth === 1 ? "sub item" : `sub item (level ${depth + 1})`}
+            </span>
           )}
         </span>
         <span style={{ color: "#666", fontSize: 12, marginRight: 8 }}>
@@ -136,14 +161,18 @@ function SortableMenuItem({
         <Button
           type="text"
           size="small"
-          icon={<DownOutlined style={{ transform: expanded ? "rotate(180deg)" : "none" }} />}
+          icon={
+            <DownOutlined
+              style={{ transform: expanded ? "rotate(180deg)" : "none" }}
+            />
+          }
           onClick={() => onToggleExpand()}
         />
       </div>
       {expanded && (
         <div
           style={{
-            marginLeft: isSub ? 24 : 0,
+            marginLeft: indentPx,
             marginBottom: 8,
             padding: 12,
             background: "#fff",
@@ -164,7 +193,13 @@ function SortableMenuItem({
               <Select
                 style={{ width: "100%" }}
                 value={item.type}
-                onChange={(v) => onUpdate({ ...item, type: v, ...(v === "page" ? { url: "" } : { pageSlug: "" }) })}
+                onChange={(v) =>
+                  onUpdate({
+                    ...item,
+                    type: v,
+                    ...(v === "page" ? { url: "" } : { pageSlug: "" }),
+                  })
+                }
                 options={[
                   { value: "custom_link", label: "Custom Link" },
                   { value: "page", label: "Page" },
@@ -179,11 +214,19 @@ function SortableMenuItem({
                   value={item.pageSlug || undefined}
                   onChange={(slug) => {
                     const p = pages.find((x) => x.slug === slug);
-                    onUpdate({ ...item, pageSlug: slug, url: p ? `/${slug}` : `/${slug}`, label: p?.title || item.label });
+                    onUpdate({
+                      ...item,
+                      pageSlug: slug,
+                      url: p ? `/${slug}` : `/${slug}`,
+                      label: p?.title || item.label,
+                    });
                   }}
                   showSearch
                   optionFilterProp="label"
-                  options={pages.map((p) => ({ value: p.slug, label: `${p.title} (/${p.slug})` }))}
+                  options={pages.map((p) => ({
+                    value: p.slug,
+                    label: `${p.title} (/${p.slug})`,
+                  }))}
                 />
               </Form.Item>
             ) : (
@@ -196,16 +239,38 @@ function SortableMenuItem({
               </Form.Item>
             )}
             <Form.Item style={{ marginBottom: 0 }}>
-              <Space>
+              <Space wrap>
                 <Switch
                   checked={item.openInNewTab}
                   onChange={(v) => onUpdate({ ...item, openInNewTab: v })}
                   checkedChildren="New tab"
                 />
-                <Button type="primary" ghost size="small" onClick={() => onAddSubItem(item)}>
-                  Add sub-item
-                </Button>
-                <Button type="text" danger size="small" onClick={() => onRemove(item)}>
+                {depth > 0 && onPromote && (
+                  <Button
+                    type="default"
+                    size="small"
+                    onClick={() => onPromote(item)}
+                    title="Move one level up (same level as parent)"
+                  >
+                    Move up level
+                  </Button>
+                )}
+                {canDemote && onDemote && (
+                  <Button
+                    type="default"
+                    size="small"
+                    onClick={() => onDemote(item)}
+                    title="Make sub-item of the item above"
+                  >
+                    Indent
+                  </Button>
+                )}
+                <Button
+                  type="text"
+                  danger
+                  size="small"
+                  onClick={() => onRemove(item)}
+                >
                   Remove
                 </Button>
               </Space>
@@ -252,7 +317,12 @@ export default function AdminMenusPage() {
   const handleEdit = (record) => {
     setEditingName(record.name);
     setMenuName(record.name);
-    setFlatItems(treeToFlat(record.items || []).map((it) => ({ ...it, id: it.id || generateId() })));
+    setFlatItems(
+      treeToFlat(record.items || []).map((it) => ({
+        ...it,
+        id: it.id || generateId(),
+      })),
+    );
     setExpandedIds(new Set());
     setBulkSelectedIds(new Set());
     setStructureView(true);
@@ -276,7 +346,9 @@ export default function AdminMenusPage() {
   };
 
   const updateItem = (id, next) => {
-    setFlatItems((prev) => prev.map((it) => (it.id === id ? { ...it, ...next } : it)));
+    setFlatItems((prev) =>
+      prev.map((it) => (it.id === id ? { ...it, ...next } : it)),
+    );
   };
 
   const removeItem = (item) => {
@@ -296,26 +368,27 @@ export default function AdminMenusPage() {
     });
   };
 
-  const addSubItem = (parentItem) => {
-    const idx = flatItems.findIndex((i) => i.id === parentItem.id);
-    const newItem = {
-      id: generateId(),
-      label: "New sub-item",
-      url: "#",
-      order: 0,
-      openInNewTab: false,
-      type: "custom_link",
-      pageSlug: "",
-      depth: parentItem.depth + 1,
-    };
-    setFlatItems((prev) => {
-      const next = [...prev];
-      let insertAt = idx + 1;
-      while (insertAt < next.length && next[insertAt].depth > parentItem.depth) insertAt++;
-      next.splice(insertAt, 0, newItem);
-      return next;
-    });
-    setExpandedIds((s) => new Set([...s, newItem.id]));
+  const promoteItem = (item) => {
+    if (item.depth <= 0) return;
+    setFlatItems((prev) =>
+      prev.map((i) => (i.id === item.id ? { ...i, depth: i.depth - 1 } : i)),
+    );
+    message.success(
+      `"${item.label || "Item"}" is now one level up (sibling of parent).`,
+    );
+  };
+
+  const demoteItem = (item) => {
+    const idx = flatItems.findIndex((i) => i.id === item.id);
+    if (idx <= 0) return;
+    const itemAbove = flatItems[idx - 1];
+    const newDepth = itemAbove.depth + 1;
+    setFlatItems((prev) =>
+      prev.map((i) => (i.id === item.id ? { ...i, depth: newDepth } : i)),
+    );
+    message.success(
+      `"${item.label || "Item"}" is now a sub-item of "${itemAbove.label || "above"}".`,
+    );
   };
 
   const addTopLevelItem = () => {
@@ -342,7 +415,9 @@ export default function AdminMenusPage() {
     const tree = flatToTree(flatItems.map((it, i) => ({ ...it, order: i })));
     setSaving(true);
     try {
-      const url = editingName ? `/api/admin/menus/${encodeURIComponent(editingName)}` : "/api/admin/menus";
+      const url = editingName
+        ? `/api/admin/menus/${encodeURIComponent(editingName)}`
+        : "/api/admin/menus";
       const method = editingName ? "PUT" : "POST";
       const body = editingName ? { items: tree } : { name, items: tree };
       const res = await fetch(url, {
@@ -383,7 +458,10 @@ export default function AdminMenusPage() {
       okText: "Delete",
       okType: "danger",
       onOk: async () => {
-        const res = await fetch(`/api/admin/menus/${encodeURIComponent(record.name)}`, { method: "DELETE" });
+        const res = await fetch(
+          `/api/admin/menus/${encodeURIComponent(record.name)}`,
+          { method: "DELETE" },
+        );
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
           message.error(data.error || "Delete failed");
@@ -397,8 +475,20 @@ export default function AdminMenusPage() {
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
   );
+
+  const normalizeDepths = (items) => {
+    return items.map((it, i) => {
+      if (it.depth <= 0) return it;
+      const hasParent = items
+        .slice(0, i)
+        .some((prev) => prev.depth === it.depth - 1);
+      return hasParent ? it : { ...it, depth: 0 };
+    });
+  };
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
@@ -409,15 +499,24 @@ export default function AdminMenusPage() {
       if (from < 0 || to < 0) return prev;
       const item = prev[from];
       const reordered = arrayMove(prev, from, to);
-      // preserve depth of moved item when moving within same level (optional: could change depth by drop target)
-      return reordered.map((it, i) => (it.id === item.id ? { ...it, depth: item.depth } : it));
+      const itemAbove = to > 0 ? reordered[to - 1] : null;
+      const newDepth = itemAbove ? itemAbove.depth : 0;
+      const updated = reordered.map((it) =>
+        it.id === item.id ? { ...it, depth: newDepth } : it,
+      );
+      return normalizeDepths(updated);
     });
   };
 
   if (structureView) {
     return (
       <div style={{ maxWidth: 720 }}>
-        <Button type="text" icon={<ArrowLeftOutlined />} onClick={handleBack} style={{ marginBottom: 16 }}>
+        <Button
+          type="text"
+          icon={<ArrowLeftOutlined />}
+          onClick={handleBack}
+          style={{ marginBottom: 16 }}
+        >
           Back to menus
         </Button>
         <h1 style={{ marginBottom: 8 }}>Menu structure</h1>
@@ -430,14 +529,40 @@ export default function AdminMenusPage() {
             style={{ maxWidth: 320 }}
           />
         </Form.Item>
-        <p style={{ color: "#666", marginBottom: 16 }}>
-          Drag the items into the order you prefer. Click the arrow on the right of the item to reveal additional options.
+        <p style={{ color: "#666", marginBottom: 8 }}>
+          Use <strong>Add Menu</strong> to add items.{" "}
+          <strong>Drag and drop</strong> to reorder; dropping below an item
+          makes it the same level (sibling). Use <strong>Indent</strong> to make
+          an item a sub-menu of the one above; use{" "}
+          <strong>Move up level</strong> to bring it back. For a 3rd-level menu
+          (e.g. under &quot;Institute&quot;), place the item directly below its
+          parent and click <strong>Indent</strong> once. Deeper levels show more
+          indent and &quot;level 3&quot; etc. Click the arrow to edit label,
+          URL, etc.
         </p>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            marginBottom: 12,
+          }}
+        >
           <Checkbox
-            checked={flatItems.length > 0 && bulkSelectedIds.size === flatItems.length}
-            indeterminate={bulkSelectedIds.size > 0 && bulkSelectedIds.size < flatItems.length}
-            onChange={(e) => setBulkSelectedIds(e.target.checked ? new Set(flatItems.map((i) => i.id)) : new Set())}
+            checked={
+              flatItems.length > 0 && bulkSelectedIds.size === flatItems.length
+            }
+            indeterminate={
+              bulkSelectedIds.size > 0 &&
+              bulkSelectedIds.size < flatItems.length
+            }
+            onChange={(e) =>
+              setBulkSelectedIds(
+                e.target.checked
+                  ? new Set(flatItems.map((i) => i.id))
+                  : new Set(),
+              )
+            }
           >
             Bulk Select
           </Checkbox>
@@ -447,8 +572,15 @@ export default function AdminMenusPage() {
             </Button>
           )}
         </div>
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={flatItems.map((i) => i.id)} strategy={verticalListSortingStrategy}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={flatItems.map((i) => i.id)}
+            strategy={verticalListSortingStrategy}
+          >
             {flatItems.map((item) => (
               <SortableMenuItem
                 key={item.id}
@@ -457,22 +589,45 @@ export default function AdminMenusPage() {
                 depth={item.depth}
                 expanded={expandedIds.has(item.id)}
                 bulkSelected={bulkSelectedIds.has(item.id)}
-                onToggleExpand={() => setExpandedIds((s) => (s.has(item.id) ? new Set([...s].filter((x) => x !== item.id)) : new Set([...s, item.id])))}
-                onToggleBulkSelect={(checked) => setBulkSelectedIds((s) => (checked ? new Set([...s, item.id]) : new Set([...s].filter((x) => x !== item.id))))}
+                onToggleExpand={() =>
+                  setExpandedIds((s) =>
+                    s.has(item.id)
+                      ? new Set([...s].filter((x) => x !== item.id))
+                      : new Set([...s, item.id]),
+                  )
+                }
+                onToggleBulkSelect={(checked) =>
+                  setBulkSelectedIds((s) =>
+                    checked
+                      ? new Set([...s, item.id])
+                      : new Set([...s].filter((x) => x !== item.id)),
+                  )
+                }
                 onUpdate={(updated) => updateItem(item.id, updated)}
                 onRemove={() => removeItem(item)}
-                onAddSubItem={addSubItem}
+                onPromote={promoteItem}
+                onDemote={demoteItem}
+                canDemote={flatItems.findIndex((i) => i.id === item.id) > 0}
               />
             ))}
           </SortableContext>
         </DndContext>
         <div style={{ marginTop: 16 }}>
-          <Button type="dashed" onClick={addTopLevelItem} icon={<PlusOutlined />} block>
-            Add menu item
+          <Button
+            type="dashed"
+            onClick={addTopLevelItem}
+            icon={<PlusOutlined />}
+            block
+          >
+            Add Menu
           </Button>
         </div>
         <div style={{ marginTop: 24, display: "flex", gap: 8 }}>
-          <Button type="primary" onClick={handleSaveMenuStructure} loading={saving}>
+          <Button
+            type="primary"
+            onClick={handleSaveMenuStructure}
+            loading={saving}
+          >
             Save menu
           </Button>
           <Button onClick={handleBack}>Cancel</Button>
@@ -485,9 +640,16 @@ export default function AdminMenusPage() {
     <>
       <h1 style={{ marginBottom: 16 }}>Menus</h1>
       <p style={{ color: "#666", marginBottom: 16 }}>
-        Manage navigation menus (e.g. header, footer). Edit a menu to use the visual menu structure. Public API: <code>GET /api/public/menus?name=header</code>
+        Manage navigation menus (e.g. header, footer). Edit a menu to use the
+        visual menu structure. Public API:{" "}
+        <code>GET /api/public/menus?name=header</code>
       </p>
-      <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate} style={{ marginBottom: 16 }}>
+      <Button
+        type="primary"
+        icon={<PlusOutlined />}
+        onClick={handleCreate}
+        style={{ marginBottom: 16 }}
+      >
         Add menu
       </Button>
       <Table
@@ -500,17 +662,29 @@ export default function AdminMenusPage() {
             title: "Items",
             dataIndex: "items",
             key: "items",
-            render: (items) => (Array.isArray(items) ? countItems(items) : 0) + " items",
+            render: (items) =>
+              (Array.isArray(items) ? countItems(items) : 0) + " items",
           },
           {
             title: "Actions",
             key: "actions",
             render: (_, record) => (
               <Space>
-                <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
+                <Button
+                  type="link"
+                  size="small"
+                  icon={<EditOutlined />}
+                  onClick={() => handleEdit(record)}
+                >
                   Edit
                 </Button>
-                <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDeleteConfirm(record)}>
+                <Button
+                  type="link"
+                  size="small"
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={() => handleDeleteConfirm(record)}
+                >
                   Delete
                 </Button>
               </Space>
@@ -518,12 +692,13 @@ export default function AdminMenusPage() {
           },
         ]}
       />
-
     </>
   );
 }
 
 function countItems(items) {
   if (!items?.length) return 0;
-  return items.length + items.reduce((sum, it) => sum + countItems(it.children), 0);
+  return (
+    items.length + items.reduce((sum, it) => sum + countItems(it.children), 0)
+  );
 }

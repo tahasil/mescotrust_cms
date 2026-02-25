@@ -31,13 +31,14 @@ export async function PUT(req, { params }) {
     const body = await req.json();
     const { items } = body;
     await connectDB();
-    let menu = await Menu.findOne({ name });
-    if (!menu) {
-      menu = await Menu.create({ name, items: Array.isArray(items) ? items : [] });
+    const itemsToSave = Array.isArray(items) ? items : [];
+    const existing = await Menu.findOne({ name });
+    if (!existing) {
+      await Menu.create({ name, items: itemsToSave });
     } else {
-      if (Array.isArray(items)) menu.items = items;
-      await menu.save();
+      await Menu.updateOne({ name }, { $set: { items: itemsToSave } });
     }
+    const menu = await Menu.findOne({ name }).lean();
     return NextResponse.json(menu);
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });

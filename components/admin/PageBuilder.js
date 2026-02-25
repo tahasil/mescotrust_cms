@@ -170,6 +170,11 @@ function ThemeColorInput({ value, onChange, themeColorOptions }) {
   );
 }
 
+/** Keeps nav item children array in form state without rendering; avoids Form overwriting array with string from hidden input. */
+function ChildrenPreserver() {
+  return null;
+}
+
 function ArrayEditor({ field, themeColorOptions }) {
   const { key, label, itemSchema = [], itemLabel = "Item" } = field;
   const defaultItem = itemSchema.reduce((acc, f) => ({ ...acc, [f.key]: f.default ?? (f.type === "boolean" ? false : "") }), {});
@@ -195,15 +200,24 @@ function ArrayEditor({ field, themeColorOptions }) {
                   <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={() => remove(name)} />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-                  {itemSchema.map((subField) => (
-                    <Form.Item key={subField.key} name={[name, subField.key]} label={subField.label} style={{ marginBottom: 8 }} valuePropName={subField.type === "boolean" ? "checked" : undefined}>
-                      {subField.type === "number" ? <InputNumber style={{ width: "100%" }} /> : null}
-                      {subField.type === "boolean" ? <Switch /> : null}
-                      {subField.type === "select" ? <Select options={(subField.options || []).map((o) => ({ value: o, label: o }))} allowClear style={{ width: "100%" }} /> : null}
-                      {subField.type === "color" ? <ThemeColorInput themeColorOptions={themeColorOptions} /> : null}
-                      {(subField.type === "url" || subField.type === "image" || subField.type === "text") && subField.type !== "richtext" ? <Input placeholder={subField.type === "url" || subField.type === "image" ? "https://..." : ""} /> : null}
-                    </Form.Item>
-                  ))}
+                  {itemSchema.map((subField) => {
+                    if (subField.type === "children") {
+                      return (
+                        <Form.Item key={subField.key} name={[name, "children"]} noStyle initialValue={[]} preserve>
+                          <ChildrenPreserver />
+                        </Form.Item>
+                      );
+                    }
+                    return (
+                      <Form.Item key={subField.key} name={[name, subField.key]} label={subField.label} style={{ marginBottom: 8 }} valuePropName={subField.type === "boolean" ? "checked" : undefined}>
+                        {subField.type === "number" ? <InputNumber style={{ width: "100%" }} /> : null}
+                        {subField.type === "boolean" ? <Switch /> : null}
+                        {subField.type === "select" ? <Select options={(subField.options || []).map((o) => ({ value: o, label: o }))} allowClear style={{ width: "100%" }} /> : null}
+                        {subField.type === "color" ? <ThemeColorInput themeColorOptions={themeColorOptions} /> : null}
+                        {(subField.type === "url" || subField.type === "image" || subField.type === "text") && subField.type !== "richtext" ? <Input placeholder={subField.type === "url" || subField.type === "image" ? "https://..." : ""} /> : null}
+                      </Form.Item>
+                    );
+                  })}
                 </div>
               </div>
             ))}
@@ -287,6 +301,7 @@ const SCHEMA_ENRICHMENT = {
         { key: "label", type: "text", label: "Label" },
         { key: "url", type: "url", label: "URL" },
         { key: "hasDropdown", type: "boolean", label: "Has dropdown", default: false },
+        { key: "children", type: "children", label: "", default: [] }, // preserve dropdown sub-items (loaded from /admin/menus)
       ],
     },
     actionButtons: {
@@ -373,20 +388,14 @@ const DEFAULT_BOOTSTRAP_HEADER_PROPS = {
   ],
 };
 
-/** Convert menu API item to header nav item (plain objects only; include children for dropdowns). */
+/** Convert menu API item to header nav item (plain objects only); supports nested children (submenu of submenu). */
 function menuItemsToNavItems(menuItems) {
   if (!Array.isArray(menuItems)) return [];
   return menuItems.map((it) => {
     const item = it && typeof it === "object" ? it : {};
     const url = typeof item.url === "string" && item.url ? item.url : (item.type === "page" && item.pageSlug ? `/${String(item.pageSlug)}` : "#");
     const childList = Array.isArray(item.children) ? item.children : [];
-    const children = childList.map((c) => {
-      const sub = c && typeof c === "object" ? c : {};
-      return {
-        label: String(sub.label ?? ""),
-        url: typeof sub.url === "string" && sub.url ? sub.url : (sub.type === "page" && sub.pageSlug ? `/${String(sub.pageSlug)}` : "#"),
-      };
-    });
+    const children = menuItemsToNavItems(childList);
     const result = {
       label: String(item.label ?? ""),
       url,
@@ -770,8 +779,10 @@ export default function PageBuilder({ layout = [], onChange, showLayers = true, 
   const [editingInnerBlock, setEditingInnerBlock] = useState(null);
   const [editingElement, setEditingElement] = useState(null);
   const [form] = Form.useForm();
-  const canvasRef = useRef(null);
   const [adminMenusList, setAdminMenusList] = useState([]);
+  /** Last nav items loaded from selected menu – used at save so all children are persisted (form may not keep them). */
+  const lastLoadedNavItemsRef = useRef(null);
+  const canvasRef = useRef(null);
 
   const sectionSettingsDefaults = useMemo(() => {
     const d = {};
@@ -996,7 +1007,27 @@ export default function PageBuilder({ layout = [], onChange, showLayers = true, 
 
   const handleEditSave = () => {
     form.validateFields().then(() => {
-      const values = form.getFieldsValue(true);
+      let values = form.getFieldsValue(true);
+      if (editingInnerBlock === null && editingElement === null && sorted[editingIndex]?.baseComponent === "Header" && Array.isArray(values?.navItems)) {
+        const loaded = lastLoadedNavItemsRef.current;
+        const formItems = values.navItems;
+        const mergedNavItems = Array.isArray(loaded) && loaded.length === formItems.length
+          ? formItems.map((item, i) => ({
+              label: item?.label ?? loaded[i]?.label ?? "",
+              url: item?.url ?? loaded[i]?.url ?? "#",
+              hasDropdown: item?.hasDropdown ?? loaded[i]?.hasDropdown ?? false,
+              children: Array.isArray(loaded[i]?.children) ? loaded[i].children : (Array.isArray(item?.children) ? item.children : []),
+            }))
+          : formItems.map((item) => {
+              let children = item?.children;
+              if (typeof children === "string") {
+                try { children = JSON.parse(children); } catch { children = []; }
+              }
+              if (!Array.isArray(children)) children = [];
+              return { ...item, children };
+            });
+        values = { ...values, navItems: mergedNavItems };
+      }
       if (editingInnerBlock !== null) {
         const { sectionIndex, innerIndex } = editingInnerBlock;
         const sectionBlock = sorted[sectionIndex];
@@ -1134,15 +1165,7 @@ export default function PageBuilder({ layout = [], onChange, showLayers = true, 
   const editingBlock = editingIndex !== null ? sorted[editingIndex] : null;
   const pw = PREVIEW_WIDTHS[previewMode];
 
-  useEffect(() => {
-    if (!drawerOpen || editingBlock?.baseComponent !== "Header") return;
-    fetch("/api/admin/menus")
-      .then((res) => (res.ok ? res.json() : []))
-      .then((list) => setAdminMenusList(Array.isArray(list) ? list : []))
-      .catch(() => setAdminMenusList([]));
-  }, [drawerOpen, editingIndex, editingBlock?.baseComponent]);
-
-  const loadMenuIntoNavItems = (menuName) => {
+  const loadMenuIntoNavItems = useCallback((menuName) => {
     if (!menuName || typeof menuName !== "string") return;
     const name = String(menuName).trim();
     if (!name) return;
@@ -1156,12 +1179,42 @@ export default function PageBuilder({ layout = [], onChange, showLayers = true, 
         const items = Array.isArray(menu.items) ? menu.items : [];
         const navItems = menuItemsToNavItems(items);
         form.setFieldValue("navItems", navItems);
+        form.setFieldValue("menuName", name);
+        lastLoadedNavItemsRef.current = JSON.parse(JSON.stringify(navItems));
         message.success(`Loaded "${name}" (${navItems.length} item${navItems.length !== 1 ? "s" : ""}). Click Apply to save.`);
       })
       .catch((err) => {
         message.error(err?.message || "Could not load menu");
       });
-  };
+  }, [form]);
+
+  useEffect(() => {
+    if (!drawerOpen || editingBlock?.baseComponent !== "Header") return;
+    let cancelled = false;
+    fetch("/api/admin/menus")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((list) => {
+        const menus = Array.isArray(list) ? list : [];
+        setAdminMenusList(menus);
+        if (cancelled || menus.length === 0) return null;
+        const savedName = editingBlock?.props?.menuName;
+        const preferred = savedName ? menus.find((m) => m.name === savedName) : (menus.find((m) => m.name && /header|main|primary/i.test(String(m.name))) || menus[0]);
+        const menuName = preferred?.name;
+        if (!menuName) return null;
+        return fetch(`/api/admin/menus/${encodeURIComponent(menuName)}`).then((r) => (r.ok ? r.json() : null));
+      })
+      .then((menu) => {
+        if (cancelled) return;
+        if (menu?.items?.length) {
+          const navItems = menuItemsToNavItems(menu.items);
+          form.setFieldValue("navItems", navItems);
+          form.setFieldValue("menuName", editingBlock?.props?.menuName ?? menu.name);
+          lastLoadedNavItemsRef.current = JSON.parse(JSON.stringify(navItems));
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [drawerOpen, editingIndex, editingBlock?.baseComponent, editingBlock?.props?.menuName, form]);
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -1420,29 +1473,26 @@ export default function PageBuilder({ layout = [], onChange, showLayers = true, 
             const schema = enrichSchema("Header", raw);
             const byKey = Object.fromEntries(schema.map((f) => [f.key, f]));
             const headerItems = [
-              ...HEADER_FIELD_GROUPS.map((grp) => {
-                const isMenuGroup = grp.label === "Menu";
-                return {
-                  key: grp.label.replace(/\s+/g, "-").toLowerCase().replace(/&/g, "and"),
-                  label: grp.label,
-                  children: (
-                    <>
-                      {isMenuGroup && (
-                        <Form.Item key="load-menu" label="Load from /admin/menus">
-                          <Select
-                            placeholder="Select a menu to fill nav items…"
-                            allowClear
-                            options={adminMenusList.map((m) => ({ value: m.name, label: m.name }))}
-                            onChange={(menuName) => loadMenuIntoNavItems(menuName)}
-                            style={{ width: "100%" }}
-                          />
-                        </Form.Item>
-                      )}
-                      {grp.keys.map((k) => byKey[k] ? renderSchemaField(byKey[k], themeColorOptions) : null).filter(Boolean)}
-                    </>
-                  ),
-                };
-              }),
+              ...HEADER_FIELD_GROUPS.map((grp) => ({
+                key: grp.label.replace(/\s+/g, "-").toLowerCase().replace(/&/g, "and"),
+                label: grp.label,
+                children: (
+                  <>
+                    {grp.label === "Menu" && (
+                      <Form.Item key="select-menu" label="Select menu" name="menuName">
+                        <Select
+                          placeholder="Choose a menu…"
+                          allowClear
+                          options={adminMenusList.map((m) => ({ value: m.name, label: m.name }))}
+                          onChange={(name) => { if (name) loadMenuIntoNavItems(name); }}
+                          style={{ width: "100%" }}
+                        />
+                      </Form.Item>
+                    )}
+                    {grp.keys.map((k) => byKey[k] ? renderSchemaField(byKey[k], themeColorOptions) : null).filter(Boolean)}
+                  </>
+                ),
+              })),
               {
                 key: "section-settings",
                 label: "Section Settings",

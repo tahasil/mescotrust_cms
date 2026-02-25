@@ -33,6 +33,34 @@ function NavLinkItem({ item, navColor, navFontSize, navFontWeight, navHoverColor
   );
 }
 
+function NavDropdownItemRecursive({ item, j, navColor, navSize, navWeight }) {
+  const hasDropdown = item.hasDropdown || item.dropdown;
+  const children = item.children || [];
+  if (hasDropdown && children.length > 0) {
+    return (
+      <NavDropdown.Item key={j} as="div" className="dropdown-submenu" style={{ padding: 0 }}>
+        <NavDropdown drop="end" title={item.label || "Link"} id={`header-nav-dropdown-sub-${j}`} style={{ color: navColor, fontSize: navSize, fontWeight: navWeight }} menuVariant="light">
+          {children.map((c, k) => (
+            <NavDropdownItemRecursive key={k} item={c} j={k} navColor={navColor} navSize={navSize} navWeight={navWeight} />
+          ))}
+        </NavDropdown>
+      </NavDropdown.Item>
+    );
+  }
+  if (isExternal(item.url)) {
+    return (
+      <NavDropdown.Item key={j} as="a" href={item.url || "#"} target="_blank" rel="noopener noreferrer">
+        {item.label || "Link"}
+      </NavDropdown.Item>
+    );
+  }
+  return (
+    <NavDropdown.Item key={j} as={Link} href={item.url || "#"}>
+      {item.label || "Link"}
+    </NavDropdown.Item>
+  );
+}
+
 export default function HeaderBlock({
   logoImage = "",
   logoTitle = "MESCO",
@@ -154,17 +182,9 @@ export default function HeaderBlock({
               style={{ color: navColor, fontSize: navSize, fontWeight: navWeight }}
               menuVariant="light"
             >
-              {children.map((c, j) =>
-                isExternal(c.url) ? (
-                  <NavDropdown.Item key={j} as="a" href={c.url} target="_blank" rel="noopener noreferrer">
-                    {c.label || "Link"}
-                  </NavDropdown.Item>
-                ) : (
-                  <NavDropdown.Item key={j} as={Link} href={c.url || "#"}>
-                    {c.label || "Link"}
-                  </NavDropdown.Item>
-                )
-              )}
+              {children.map((c, j) => (
+                <NavDropdownItemRecursive key={j} item={c} j={j} navColor={navColor} navSize={navSize} navWeight={navWeight} />
+              ))}
             </NavDropdown>
           );
         }

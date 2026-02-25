@@ -8,8 +8,9 @@ import Menu from "@/models/Menu";
 import Component from "@/models/Component";
 import PublicShell from "@/components/layout/PublicShell";
 
-/** Always fetch fresh theme from DB so theme changes apply without cache. */
+/** Always fetch fresh theme and menu from DB; no cache so menu changes show immediately. */
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export const metadata = {
   metadataBase: new URL(getSiteUrl()),
@@ -132,13 +133,30 @@ function buildThemeCssVars(theme) {
   };
 }
 
+/** Convert menu items (from Menu model) to header nav items; supports nested children (submenu of submenu). */
+function menuItemsToNavItems(menuItems) {
+  if (!Array.isArray(menuItems)) return [];
+  return menuItems.map((it) => {
+    const item = it && typeof it === "object" ? it : {};
+    const url = typeof item.url === "string" && item.url ? item.url : (item.type === "page" && item.pageSlug ? `/${String(item.pageSlug)}` : "#");
+    const childList = Array.isArray(item.children) ? item.children : [];
+    const children = menuItemsToNavItems(childList);
+    const result = {
+      label: String(item.label ?? ""),
+      url,
+      hasDropdown: children.length > 0,
+    };
+    if (children.length > 0) result.children = children;
+    return result;
+  });
+}
+
 async function getLayoutData(pathname) {
   const isAdminRoute = pathname?.startsWith("/admin");
   try {
     await connectDB();
-    const [themeDoc, headerMenu, footerMenu, headerComponent] = await Promise.all([
+    const [themeDoc, footerMenu, headerComponent] = await Promise.all([
       ThemeConfig.findOne().lean(),
-      isAdminRoute ? null : Menu.findOne({ name: "header" }).lean(),
       isAdminRoute ? null : Menu.findOne({ name: "footer" }).lean(),
       isAdminRoute ? null : Component.findOne({ baseComponent: "Header" }).sort({ updatedAt: -1 }).lean(),
     ]);
@@ -150,16 +168,35 @@ async function getLayoutData(pathname) {
     const rawHeaderLayout = headerComponent?.layout && Array.isArray(headerComponent.layout) && headerComponent.layout.length > 0
       ? headerComponent.layout
       : null;
+    const headerBlock = rawHeaderLayout?.find((b) => b?.baseComponent === "Header");
+    const headerMenuName = (headerBlock?.props?.menuName && String(headerBlock.props.menuName).trim()) || null;
+    let headerMenuForBlock = null;
+    if (!isAdminRoute) {
+      const nameToFetch = headerMenuName || "Header Menu";
+      headerMenuForBlock = await Menu.findOne({ name: nameToFetch }).lean();
+      if (!headerMenuForBlock && nameToFetch !== "header") {
+        headerMenuForBlock = await Menu.findOne({ name: "header" }).lean();
+      }
+    }
+    const freshNavItems = headerMenuForBlock?.items?.length ? menuItemsToNavItems(headerMenuForBlock.items) : null;
     const headerLayout = rawHeaderLayout
-      ? rawHeaderLayout.map((block) => ({
-          ...(typeof block === "object" && block !== null ? block : {}),
-          baseComponent: block?.baseComponent || "Paragraph",
-          props: block?.props && typeof block.props === "object" ? { ...block.props } : {},
-        }))
+      ? rawHeaderLayout.map((block) => {
+          const base = block?.baseComponent || "Paragraph";
+          const props = block?.props && typeof block.props === "object" ? { ...block.props } : {};
+          if (base === "Header" && Array.isArray(freshNavItems)) props.navItems = freshNavItems;
+          return {
+            ...(typeof block === "object" && block !== null ? block : {}),
+            baseComponent: base,
+            props,
+          };
+        })
       : null;
+    const headerItems = headerMenuForBlock?.items?.length
+      ? JSON.parse(JSON.stringify(headerMenuForBlock.items))
+      : [];
     return {
       theme: JSON.parse(JSON.stringify(theme)),
-      headerItems: headerMenu?.items ? JSON.parse(JSON.stringify(headerMenu.items)) : [],
+      headerItems,
       footerItems: footerMenu?.items ? JSON.parse(JSON.stringify(footerMenu.items)) : [],
       customHeaderLayout: headerLayout,
     };

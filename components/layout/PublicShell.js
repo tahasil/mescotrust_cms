@@ -6,6 +6,7 @@ import ComponentRenderer from "@/components/cms/ComponentRenderer";
 
 function PublicHeader({ menuItems, siteTitle, logoType, logoImageUrl, logoLightUrl, logoDarkUrl, sticky, transparent, layout }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [openSubmenuKey, setOpenSubmenuKey] = useState(null);
   const logoUrl = logoLightUrl || logoImageUrl;
   const title = siteTitle || "Mesco Trust";
   const links = menuItems?.length
@@ -16,12 +17,114 @@ function PublicHeader({ menuItems, siteTitle, logoType, logoImageUrl, logoLightU
         { label: "Contact", url: "/contact", openInNewTab: false },
       ];
 
+  const closeMenu = () => {
+    setMobileOpen(false);
+    setOpenSubmenuKey(null);
+  };
+
   const headerClass = [
     "public-header",
     sticky !== false ? "public-header-sticky" : "",
     transparent ? "public-header-transparent" : "",
     layout ? `public-header-${layout}` : "",
   ].filter(Boolean).join(" ");
+
+  const renderLink = (item, closeOnClick = true) => {
+    const onClick = closeOnClick ? closeMenu : undefined;
+    if (item.openInNewTab) {
+      return (
+        <a href={item.url || "#"} target="_blank" rel="noopener noreferrer" onClick={onClick}>
+          {item.label || "Link"}
+        </a>
+      );
+    }
+    return (
+      <Link href={item.url || "#"} onClick={onClick}>
+        {item.label || "Link"}
+      </Link>
+    );
+  };
+
+  const renderDropdownContent = (child, j, parentKey) => {
+    const subChildren = Array.isArray(child.children) ? child.children : [];
+    const hasNested = subChildren.length > 0;
+    const subKey = `${parentKey}-${j}`;
+    const subOpen = openSubmenuKey === subKey;
+    if (hasNested) {
+      return (
+        <div key={subKey} role="none" className="public-nav-dropdown-item public-nav-dropdown-nested">
+          <div
+            className={`public-nav-dropdown ${subOpen ? "open" : ""}`}
+            onMouseEnter={() => setOpenSubmenuKey(subKey)}
+            onMouseLeave={() => setOpenSubmenuKey(null)}
+          >
+            <button
+              type="button"
+              className="public-nav-dropdown-trigger public-nav-dropdown-trigger-inner"
+              onClick={(e) => { e.stopPropagation(); setOpenSubmenuKey((p) => (p === subKey ? null : subKey)); }}
+              aria-expanded={subOpen}
+              aria-haspopup="true"
+            >
+              {child.label || "Menu"}
+              <span className="public-nav-dropdown-arrow" aria-hidden />
+            </button>
+            <div className="public-nav-dropdown-menu public-nav-dropdown-submenu" role="menu">
+              {subChildren.map((subChild, k) => renderDropdownContent(subChild, k, subKey))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div key={subKey} role="none" className="public-nav-dropdown-item">
+        {child.openInNewTab ? (
+          <a href={child.url || "#"} target="_blank" rel="noopener noreferrer" onClick={closeMenu} role="menuitem">
+            {child.label || "Link"}
+          </a>
+        ) : (
+          <Link href={child.url || "#"} onClick={closeMenu} role="menuitem">
+            {child.label || "Link"}
+          </Link>
+        )}
+      </div>
+    );
+  };
+
+  const renderNavItem = (item, index, keyPrefix) => {
+    const children = Array.isArray(item.children) ? item.children : [];
+    const hasSubmenu = children.length > 0;
+    const key = keyPrefix !== undefined ? `${keyPrefix}-${index}` : String(index);
+    const isOpen = openSubmenuKey === key;
+
+    if (hasSubmenu) {
+      return (
+        <div
+          key={key}
+          className={`public-nav-dropdown ${isOpen ? "open" : ""}`}
+        >
+          <button
+            type="button"
+            className="public-nav-dropdown-trigger"
+            onClick={() => setOpenSubmenuKey((prev) => (prev === key ? null : key))}
+            aria-expanded={isOpen}
+            aria-haspopup="true"
+          >
+            {item.label || "Menu"}
+            <span className="public-nav-dropdown-arrow" aria-hidden />
+          </button>
+          <div className="public-nav-dropdown-menu" role="menu">
+            {children.map((child, j) => renderDropdownContent(child, j, key))}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div key={key} className="public-nav-link">
+        {renderLink(item)}
+      </div>
+    );
+  };
 
   return (
     <header className={headerClass}>
@@ -41,18 +144,10 @@ function PublicHeader({ menuItems, siteTitle, logoType, logoImageUrl, logoLightU
           <span className={`hamburger-icon ${mobileOpen ? "open" : ""}`} />
         </button>
         <nav className={`public-nav ${mobileOpen ? "mobile-open" : ""}`}>
-          {links.map((item) =>
-            item.openInNewTab ? (
-              <a key={item.url + item.label} href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => setMobileOpen(false)}>
-                {item.label}
-              </a>
-            ) : (
-              <Link key={item.url + item.label} href={item.url} onClick={() => setMobileOpen(false)}>
-                {item.label}
-              </Link>
-            )
-          )}
-          <Link href="/search" onClick={() => setMobileOpen(false)} aria-label="Search">Search</Link>
+          {links.map((item, i) => renderNavItem(item, i))}
+          <div className="public-nav-link">
+            <Link href="/search" onClick={closeMenu} aria-label="Search">Search</Link>
+          </div>
         </nav>
       </div>
     </header>

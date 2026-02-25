@@ -148,6 +148,120 @@ a {
   color: var(--primary-color);
 }
 
+/* Header nav: dropdown (submenus from /admin/menus) */
+.public-nav-dropdown {
+  position: relative;
+}
+
+.public-nav-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.public-nav-dropdown-trigger:hover {
+  color: var(--primary-color);
+}
+
+.public-nav-dropdown-arrow {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-inline-start: 4px solid transparent;
+  border-inline-end: 4px solid transparent;
+  border-top: 5px solid currentColor;
+  transition: transform 0.2s;
+}
+
+.public-nav-dropdown.open .public-nav-dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.public-nav-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  inset-inline-start: 0;
+  min-width: 180px;
+  margin-block-start: 0.25rem;
+  padding: 0.5rem 0;
+  background: var(--header-bg-color, var(--bg-color, #fff));
+  border: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.2s, visibility 0.2s, transform 0.2s;
+  z-index: 200;
+}
+
+.public-nav-dropdown:hover .public-nav-dropdown-menu,
+.public-nav-dropdown.open .public-nav-dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.public-nav-dropdown-item a {
+  display: block;
+  padding: 0.4rem 1rem;
+  color: var(--text-color);
+  text-decoration: none;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.public-nav-dropdown-item a:hover {
+  color: var(--primary-color);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.public-nav-dropdown-nested {
+  position: relative;
+}
+
+/* Keep nested dropdown hover area so mouse can move from trigger to submenu without closing */
+.public-nav-dropdown-nested .public-nav-dropdown {
+  position: static;
+}
+.public-nav-dropdown-nested .public-nav-dropdown::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  inset-inline-start: 100%;
+  width: 220px;
+  height: 400px;
+  /* receive hover so mouse can move from trigger to submenu without closing */
+  pointer-events: auto;
+}
+
+.public-nav-dropdown-submenu {
+  top: 0;
+  inset-inline-start: 100%;
+  margin-block-start: 0;
+  margin-inline-start: 0.25rem;
+  z-index: 201;
+}
+
+.public-nav-dropdown-trigger-inner {
+  width: 100%;
+  justify-content: space-between;
+  padding: 0.4rem 1rem;
+  text-align: start;
+}
+
+.public-nav-link {
+  display: inline-flex;
+}
+
 /* Hamburger button - hidden on desktop */
 .hamburger-btn {
   display: none;
@@ -274,6 +388,40 @@ a {
 
   .public-nav.mobile-open {
     display: flex;
+  }
+
+  /* Mobile: submenus expand inline */
+  .public-nav-dropdown-menu {
+    position: static;
+    margin-block-start: 0;
+    padding-block-start: 0.25rem;
+    padding-inline-start: 1rem;
+    margin-inline-start: 0;
+    box-shadow: none;
+    border: none;
+    border-inline-start: 2px solid var(--border-color, #eee);
+    max-height: 0;
+    overflow: hidden;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: max-height 0.2s;
+  }
+
+  .public-nav-dropdown.open .public-nav-dropdown-menu {
+    max-height: 500px;
+  }
+
+  .public-nav-dropdown {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .public-nav-dropdown-trigger {
+    justify-content: space-between;
+    width: 100%;
+    text-align: start;
   }
 
   .public-header {
