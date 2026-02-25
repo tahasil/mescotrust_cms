@@ -451,13 +451,12 @@ const MENU_SCHEMA = [
   ] },
 ];
 
-/** Header edit drawer: group field keys for Logo, Menu, Navbar, Buttons, Styles. Nav items set only via "Load from menu". */
+/** Header edit drawer: group field keys for Logo, Menu, Navbar, Buttons. Nav items set only via "Load from menu". */
 const HEADER_FIELD_GROUPS = [
   { label: "Logo and link", keys: ["logoImage", "logoImageWidth", "logoImageHeight", "logoImageWidthDesktop", "logoImageHeightDesktop", "logoImageWidthTablet", "logoImageHeightTablet", "logoImageWidthMobile", "logoImageHeightMobile", "logoTitle", "logoTagline", "logoUrl", "logoColor", "logoFontSize", "taglineFontSize", "sectionsOrder"] },
   { label: "Menu", keys: ["menuPosition"] },
   { label: "Navbar (Bootstrap)", keys: ["navbarExpand", "navbarFixed", "navbarSticky", "collapseOnSelect", "navbarVariant", "navbarMobileMenu", "navbarOffcanvasPlacement"] },
   { label: "Custom buttons", keys: ["actionButtons"] },
-  { label: "Styles", keys: ["headerBackground", "headerBorderBottom", "headerShadow", "navColor", "navFontSize", "navFontWeight", "navHoverColor", "primaryButtonBg", "primaryButtonText", "secondaryButtonBg", "secondaryButtonText", "paddingY", "paddingX"] },
 ];
 
 /** Which props belong to which clickable element (for "click element → edit in drawer"). */
