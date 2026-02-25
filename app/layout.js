@@ -1,9 +1,11 @@
 import "./globals.css";
+import Script from "next/script";
 import { headers } from "next/headers";
 import { connectDB } from "@/lib/db";
 import { getSiteUrl } from "@/lib/env";
 import ThemeConfig from "@/models/ThemeConfig";
 import Menu from "@/models/Menu";
+import Component from "@/models/Component";
 import PublicShell from "@/components/layout/PublicShell";
 
 /** Always fetch fresh theme from DB so theme changes apply without cache. */
@@ -134,23 +136,28 @@ async function getLayoutData(pathname) {
   const isAdminRoute = pathname?.startsWith("/admin");
   try {
     await connectDB();
-    const [themeDoc, headerMenu, footerMenu] = await Promise.all([
+    const [themeDoc, headerMenu, footerMenu, headerComponent] = await Promise.all([
       ThemeConfig.findOne().lean(),
       isAdminRoute ? null : Menu.findOne({ name: "header" }).lean(),
       isAdminRoute ? null : Menu.findOne({ name: "footer" }).lean(),
+      isAdminRoute ? null : Component.findOne({ baseComponent: "Header" }).sort({ updatedAt: -1 }).lean(),
     ]);
     const theme = themeDoc ? { ...THEME_DEFAULTS, ...themeDoc } : THEME_DEFAULTS;
     if (theme.logoImageUrl && !theme.logoLightUrl) theme.logoLightUrl = theme.logoImageUrl;
     if (theme.fontFamily && !theme.bodyFont) theme.bodyFont = theme.fontFamily;
     if (theme.headingFontFamily && !theme.headingFont) theme.headingFont = theme.headingFontFamily;
     if (theme.fontSize != null && theme.baseFontSize == null) theme.baseFontSize = theme.fontSize;
+    const headerLayout = headerComponent?.layout && Array.isArray(headerComponent.layout) && headerComponent.layout.length > 0
+      ? JSON.parse(JSON.stringify(headerComponent.layout))
+      : null;
     return {
       theme: JSON.parse(JSON.stringify(theme)),
       headerItems: headerMenu?.items ? JSON.parse(JSON.stringify(headerMenu.items)) : [],
       footerItems: footerMenu?.items ? JSON.parse(JSON.stringify(footerMenu.items)) : [],
+      customHeaderLayout: headerLayout,
     };
   } catch {
-    return { theme: THEME_DEFAULTS, headerItems: [], footerItems: [] };
+    return { theme: THEME_DEFAULTS, headerItems: [], footerItems: [], customHeaderLayout: null };
   }
 }
 
@@ -234,6 +241,7 @@ export default async function RootLayout({ children }) {
           <PublicShell
             headerItems={data?.headerItems || []}
             footerItems={data?.footerItems || []}
+            customHeaderLayout={data?.customHeaderLayout || null}
             siteTitle={theme.siteTitle || "Mesco Trust"}
             tagline={theme.tagline}
             logoType={theme.logoType || "text"}
@@ -251,6 +259,12 @@ export default async function RootLayout({ children }) {
           </PublicShell>
         )}
         {!isAdmin && theme.footerScripts && <script dangerouslySetInnerHTML={{ __html: theme.footerScripts }} />}
+        {!isAdmin && (
+          <Script
+            src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            strategy="afterInteractive"
+          />
+        )}
       </body>
     </html>
   );

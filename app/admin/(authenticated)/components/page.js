@@ -208,6 +208,9 @@ export default function AdminComponentsPage() {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
         <div>
           <h1 style={{ margin: "0 0 4px", fontSize: 22 }}>Components</h1>
+          <p style={{ margin: 0, fontSize: 13, color: "#666" }}>
+            Custom Header or Footer: Add component → choose Base component &quot;Header / Navbar&quot; or &quot;Footer&quot; → then click <strong>Edit</strong> to open the visual editor. There you can add the block, then use the block&apos;s Edit drawer to set logo, menu, links, buttons, social links, address, and layout.
+          </p>
           <p style={{ color: "#888", margin: 0, fontSize: 13 }}>
             Block types used in the visual page builder. Each component renders live on the canvas.
           </p>

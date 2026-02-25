@@ -25,7 +25,16 @@ const { Header, Sider, Content } = Layout;
 const menuItems = [
   { key: "/admin", icon: <DashboardOutlined />, label: <Link href="/admin">Dashboard</Link> },
   { key: "/admin/pages", icon: <FileTextOutlined />, label: <Link href="/admin/pages">Pages</Link> },
-  { key: "/admin/components", icon: <AppstoreOutlined />, label: <Link href="/admin/components">Components</Link> },
+  {
+    key: "components",
+    icon: <AppstoreOutlined />,
+    label: "Components",
+    children: [
+      { key: "/admin/components", label: <Link href="/admin/components">All components</Link> },
+      { key: "/admin/components/header", label: <Link href="/admin/components/header">Header</Link> },
+      { key: "/admin/components/footer", label: <Link href="/admin/components/footer">Footer</Link> },
+    ],
+  },
   { key: "/admin/blogs", icon: <BookOutlined />, label: <Link href="/admin/blogs">Blogs</Link> },
   { key: "/admin/blog-categories", icon: <BookOutlined />, label: <Link href="/admin/blog-categories">Categories</Link> },
   { key: "/admin/media", icon: <AppstoreOutlined />, label: <Link href="/admin/media">Media</Link> },
@@ -60,7 +69,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
           theme="dark"
           mode="inline"
           selectedKeys={[pathname]}
-          defaultOpenKeys={["/admin/blogs"]}
+          defaultOpenKeys={["components", "/admin/blogs"]}
           items={menuItems}
         />
       </Sider>

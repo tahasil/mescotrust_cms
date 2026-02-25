@@ -81,14 +81,14 @@ export default function AdminMediaPage() {
     <>
       <h1 style={{ marginBottom: 16 }}>Media Library</h1>
       <p style={{ color: "#666", marginBottom: 16 }}>
-        Upload and manage images. Allowed formats: .png, .jpg, .jpeg, .webp, .gif. Max size: 5MB.
+        Upload and manage images. Allowed formats: .png, .jpg, .jpeg, .webp, .gif, .svg. Max size: 5MB.
       </p>
 
       <Upload
         beforeUpload={() => false}
         onChange={handleUpload}
         showUploadList={false}
-        accept=".png,.jpg,.jpeg,.webp,.gif"
+        accept=".png,.jpg,.jpeg,.webp,.gif,.svg"
       >
         <Button type="primary" icon={<UploadOutlined />} loading={uploading} style={{ marginBottom: 24 }}>
           Upload image

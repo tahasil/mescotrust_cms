@@ -5,8 +5,8 @@ import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Media from "@/models/Media";
 
-const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"];
-const ALLOWED_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp", ".gif"];
+const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif", "image/svg+xml"];
+const ALLOWED_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_DIMENSION = 8192; // 8192px max width or height
 
@@ -111,7 +111,7 @@ export async function POST(req) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const dims = getImageDimensions(buffer, file.type);
+    const dims = file.type === "image/svg+xml" ? { width: 0, height: 0 } : getImageDimensions(buffer, file.type);
     if (dims.width > MAX_DIMENSION || dims.height > MAX_DIMENSION) {
       return NextResponse.json(
         { error: `Image too large: ${dims.width}x${dims.height}px. Max ${MAX_DIMENSION}x${MAX_DIMENSION}px.` },

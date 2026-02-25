@@ -33,6 +33,7 @@ import DividerBlock from "@/components/cms/blocks/Divider";
 import TableBlock from "@/components/cms/blocks/Table";
 import FeatureGridBlock from "@/components/cms/blocks/FeatureGrid";
 import HeaderBlock from "@/components/cms/blocks/Header";
+import FooterBlock from "@/components/cms/blocks/Footer";
 import SectionBlock from "@/components/cms/blocks/Section";
 import AntButtonBlock from "@/components/cms/blocks/antd/AntButton";
 import AntCardBlock from "@/components/cms/blocks/antd/AntCard";
@@ -78,6 +79,7 @@ const COMPONENT_MAP = {
   Table: TableBlock,
   FeatureGrid: FeatureGridBlock,
   Header: HeaderBlock,
+  Footer: FooterBlock,
   Section: SectionBlock,
   AntButton: AntButtonBlock,
   AntCard: AntCardBlock,

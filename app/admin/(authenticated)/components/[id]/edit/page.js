@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Button, message, Spin, Select, Space, Divider } from "antd";
-import { ArrowLeftOutlined, SaveOutlined, EyeOutlined } from "@ant-design/icons";
+import { Button, message, Spin, Select, Space } from "antd";
+import { ArrowLeftOutlined, SaveOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import PageBuilder from "@/components/admin/PageBuilder";
-import ComponentRenderer from "@/components/cms/ComponentRenderer";
 
 const CONTAINER_OPTIONS = [
   { value: "container", label: "Container (max-width)" },
@@ -74,12 +73,6 @@ export default function AdminComponentEditPage() {
 
   const isSystem = component.type === "system";
 
-  /** For system/view: if no layout, show one block with defaultProps so the default component UI is visible */
-  const previewLayout =
-    isSystem && layout.length === 0 && component.baseComponent
-      ? [{ instanceId: "default-view", baseComponent: component.baseComponent, props: component.defaultProps || {}, order: 0 }]
-      : layout;
-
   return (
     <div>
       <div style={{
@@ -111,26 +104,8 @@ export default function AdminComponentEditPage() {
       </div>
 
       {!isSystem && (
-        <PageBuilder layout={layout} onChange={setLayout} showLayers={false} includeAntdBlocks />
+        <PageBuilder layout={layout} onChange={setLayout} showLayers={false} includeAntdBlocks componentBase={component?.baseComponent} />
       )}
-
-      <Divider style={{ margin: "24px 0 12px" }} />
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, color: "#666", fontSize: 13 }}>
-          <EyeOutlined />
-          <span style={{ fontWeight: 500 }}>Component UI preview</span>
-          <span style={{ color: "#999" }}>— how it will look when used on a page</span>
-        </div>
-        <div style={{ border: "1px solid #e8e8e8", borderRadius: 8, overflow: "hidden", background: "#fafafa", padding: 16 }}>
-          {previewLayout.length === 0 ? (
-            <div style={{ textAlign: "center", padding: 48, color: "#999" }}>
-              Add blocks above to see the component preview here.
-            </div>
-          ) : (
-            <ComponentRenderer layout={previewLayout} wrapperContainer={container} />
-          )}
-        </div>
-      </div>
     </div>
   );
 }

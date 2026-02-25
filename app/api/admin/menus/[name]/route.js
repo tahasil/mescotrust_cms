@@ -8,7 +8,9 @@ export async function GET(req, { params }) {
   if (session instanceof NextResponse) return session;
 
   try {
-    const name = params.name;
+    const resolved = await Promise.resolve(params);
+    const name = resolved?.name;
+    if (!name) return NextResponse.json({ error: "Menu name required" }, { status: 400 });
     await connectDB();
     const menu = await Menu.findOne({ name }).lean();
     if (!menu) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -23,7 +25,9 @@ export async function PUT(req, { params }) {
   if (session instanceof NextResponse) return session;
 
   try {
-    const name = params.name;
+    const resolved = await Promise.resolve(params);
+    const name = resolved?.name;
+    if (!name) return NextResponse.json({ error: "Menu name required" }, { status: 400 });
     const body = await req.json();
     const { items } = body;
     await connectDB();
@@ -45,7 +49,9 @@ export async function DELETE(req, { params }) {
   if (session instanceof NextResponse) return session;
 
   try {
-    const name = params.name;
+    const resolved = await Promise.resolve(params);
+    const name = resolved?.name;
+    if (!name) return NextResponse.json({ error: "Menu name required" }, { status: 400 });
     await connectDB();
     const menu = await Menu.findOneAndDelete({ name });
     if (!menu) return NextResponse.json({ error: "Not found" }, { status: 404 });

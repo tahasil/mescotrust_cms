@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import ComponentRenderer from "@/components/cms/ComponentRenderer";
 
 function PublicHeader({ menuItems, siteTitle, logoType, logoImageUrl, logoLightUrl, logoDarkUrl, sticky, transparent, layout }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -91,6 +92,7 @@ function PublicFooter({ menuItems, siteTitle, copyrightText, columnsCount, socia
 export default function PublicShell({
   headerItems,
   footerItems,
+  customHeaderLayout,
   siteTitle,
   tagline,
   logoType,
@@ -106,19 +108,25 @@ export default function PublicShell({
   footerLayoutStyle,
   children,
 }) {
+  const hasCustomHeader = Array.isArray(customHeaderLayout) && customHeaderLayout.length > 0;
+
   return (
     <div className="public-site" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <PublicHeader
-        menuItems={headerItems}
-        siteTitle={siteTitle}
-        logoType={logoType}
-        logoImageUrl={logoImageUrl}
-        logoLightUrl={logoLightUrl}
-        logoDarkUrl={logoDarkUrl}
-        sticky={headerSticky}
-        transparent={headerTransparent}
-        layout={headerLayout}
-      />
+      {hasCustomHeader ? (
+        <ComponentRenderer layout={customHeaderLayout} />
+      ) : (
+        <PublicHeader
+          menuItems={headerItems}
+          siteTitle={siteTitle}
+          logoType={logoType}
+          logoImageUrl={logoImageUrl}
+          logoLightUrl={logoLightUrl}
+          logoDarkUrl={logoDarkUrl}
+          sticky={headerSticky}
+          transparent={headerTransparent}
+          layout={headerLayout}
+        />
+      )}
       <div style={{ flex: 1 }}>{children}</div>
       <PublicFooter
         menuItems={footerItems}

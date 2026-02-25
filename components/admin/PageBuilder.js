@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import {
   Button, Drawer, Form, Input, InputNumber, Switch, Tooltip,
-  Collapse, Empty, Badge, Tag, Modal as AntModal, Segmented, ColorPicker, Divider,
+  Collapse, Empty, Badge, Tag, Modal as AntModal, Segmented, ColorPicker, Divider, message,
 } from "antd";
 import {
   PlusOutlined, DeleteOutlined, CopyOutlined, EditOutlined,
@@ -68,7 +68,8 @@ const CORE_PAGE_BUILDER_COMPONENTS = [
   { _id: "core-Spacer", name: "Spacer", displayName: "Spacer", category: "layout", baseComponent: "Spacer", description: "Vertical space or divider", propsSchema: [{ key: "height", type: "number", label: "Height (px)" }, { key: "showDivider", type: "boolean", label: "Show divider line" }], defaultProps: { height: 40, showDivider: false }, active: true },
   { _id: "core-Columns", name: "Columns", displayName: "Columns", category: "layout", baseComponent: "Columns", description: "Multi-column layout", propsSchema: [{ key: "columns", type: "number", label: "Columns (1-4)" }, { key: "gap", type: "number", label: "Gap (px)" }, { key: "content", type: "json", label: "Content JSON" }], defaultProps: { columns: 2, gap: 24, content: [{ text: "Column 1" }, { text: "Column 2" }] }, active: true },
   { _id: "core-Divider", name: "Divider", displayName: "Divider", category: "layout", baseComponent: "Divider", description: "Horizontal rule with optional text", propsSchema: [{ key: "style", type: "select", label: "Style", options: ["solid", "dashed", "dotted"] }, { key: "color", type: "text", label: "Color" }, { key: "thickness", type: "number", label: "Thickness (px)" }, { key: "width", type: "text", label: "Width" }, { key: "spacing", type: "number", label: "Spacing (px)" }, { key: "text", type: "text", label: "Center text" }], defaultProps: { style: "solid", color: "#e8e8e8", thickness: 1, width: "100%", spacing: 24, text: "" }, active: true },
-  { _id: "core-Header", name: "Header", displayName: "Header / Navbar", category: "layout", baseComponent: "Header", description: "Site header with logo, nav links and action buttons", propsSchema: [{ key: "logoImage", type: "image", label: "Logo image URL" }, { key: "logoTitle", type: "text", label: "Logo title" }, { key: "logoTagline", type: "text", label: "Logo tagline" }, { key: "logoUrl", type: "url", label: "Logo link URL" }, { key: "navItems", type: "json", label: "Nav items (JSON: [{label, url, hasDropdown}])" }, { key: "actionButtons", type: "json", label: "Action buttons (JSON: [{label, url, variant: primary|secondary, icon: person|heart}])" }, { key: "headerBackground", type: "color", label: "Header background" }, { key: "navColor", type: "color", label: "Nav text color" }, { key: "primaryButtonBg", type: "color", label: "Primary button background" }, { key: "primaryButtonText", type: "color", label: "Primary button text" }, { key: "secondaryButtonBg", type: "color", label: "Secondary button background" }, { key: "secondaryButtonText", type: "color", label: "Secondary button text" }, { key: "paddingY", type: "number", label: "Vertical padding (px)" }, { key: "paddingX", type: "number", label: "Horizontal padding (px)" }], defaultProps: { logoTitle: "MESCO", logoTagline: "A TRUST SINCE 1960", navItems: [{ label: "About", url: "#", hasDropdown: true }, { label: "Our Works", url: "#", hasDropdown: true }, { label: "Media", url: "#", hasDropdown: true }, { label: "More", url: "#", hasDropdown: true }], actionButtons: [{ label: "Volunteer", url: "#", variant: "secondary", icon: "person" }, { label: "Donate Now", url: "#", variant: "primary", icon: "heart" }], navColor: "#333", primaryButtonBg: "#a52a2a", primaryButtonText: "#fff", secondaryButtonBg: "#f4c4c4", secondaryButtonText: "#8b0000", paddingY: 16, paddingX: 0 }, active: true },
+  { _id: "core-Header", name: "Header", displayName: "Header / Navbar", category: "layout", baseComponent: "Header", description: "Site header with logo, nav links and action buttons", propsSchema: [{ key: "sectionsOrder", type: "select", label: "Section order", options: [{ value: "logo,nav,buttons", label: "Logo → Nav → Buttons" }, { value: "logo,buttons,nav", label: "Logo → Buttons → Nav" }, { value: "nav,logo,buttons", label: "Nav → Logo → Buttons" }, { value: "nav,buttons,logo", label: "Nav → Buttons → Logo" }, { value: "buttons,logo,nav", label: "Buttons → Logo → Nav" }, { value: "buttons,nav,logo", label: "Buttons → Nav → Logo" }] }, { key: "logoImage", type: "image", label: "Logo image URL" }, { key: "logoTitle", type: "text", label: "Logo title" }, { key: "logoTagline", type: "text", label: "Logo tagline" }, { key: "logoUrl", type: "url", label: "Logo link URL" }, { key: "logoColor", type: "color", label: "Logo text color" }, { key: "logoFontSize", type: "number", label: "Logo font size (px)" }, { key: "taglineFontSize", type: "number", label: "Tagline font size (px)" }, { key: "logoImageWidth", type: "number", label: "Logo width (px)" }, { key: "logoImageHeight", type: "number", label: "Logo height (px)" }, { key: "navItems", type: "json", label: "Nav items (from menu or add below)" }, { key: "actionButtons", type: "json", label: "Action buttons (JSON: [{label, url, variant: primary|secondary, icon: person|heart}])" }, { key: "headerBackground", type: "color", label: "Header background" }, { key: "headerBorderBottom", type: "text", label: "Header border bottom (e.g. 1px solid #eee)" }, { key: "headerShadow", type: "text", label: "Header shadow (e.g. 0 2px 8px rgba(0,0,0,0.08))" }, { key: "navColor", type: "color", label: "Nav link color" }, { key: "navFontSize", type: "number", label: "Nav font size (px)" }, { key: "navFontWeight", type: "text", label: "Nav font weight (e.g. 500, 600)" }, { key: "navHoverColor", type: "color", label: "Nav hover color" }, { key: "primaryButtonBg", type: "color", label: "Primary button background" }, { key: "primaryButtonText", type: "color", label: "Primary button text" }, { key: "secondaryButtonBg", type: "color", label: "Secondary button background" }, { key: "secondaryButtonText", type: "color", label: "Secondary button text" }, { key: "paddingY", type: "number", label: "Vertical padding (px)" }, { key: "paddingX", type: "number", label: "Horizontal padding (px)" }], defaultProps: { sectionsOrder: "logo,nav,buttons", logoTitle: "MESCO®", logoTagline: "A TRUST SINCE 1982", logoUrl: "/", logoImageWidth: 120, logoImageHeight: 48, navItems: [{ label: "About", url: "#", hasDropdown: true }, { label: "Our Works", url: "#", hasDropdown: true }, { label: "Media", url: "#", hasDropdown: true }, { label: "More", url: "#", hasDropdown: true }], actionButtons: [{ label: "Volunteer", url: "#", variant: "secondary", icon: "person" }, { label: "Donate Now", url: "#", variant: "primary", icon: "heart" }], headerBackground: "#faf8f5", navColor: "#333", primaryButtonBg: "#a52a2a", primaryButtonText: "#fff", secondaryButtonBg: "#f4c4c4", secondaryButtonText: "#8b0000", paddingY: 16, paddingX: 0 }, active: true },
+  { _id: "core-Footer", name: "Footer", displayName: "Footer", category: "layout", baseComponent: "Footer", description: "Site footer with logo, link columns, social links, address", propsSchema: [{ key: "logoImage", type: "image", label: "Logo image URL" }, { key: "logoTitle", type: "text", label: "Logo title" }, { key: "logoTagline", type: "text", label: "Logo tagline" }, { key: "logoUrl", type: "url", label: "Logo link URL" }, { key: "columns", type: "json", label: "Link columns (JSON: [{title, links:[{label,url}]})" }, { key: "socialLinks", type: "json", label: "Social links (JSON: [{platform, url}])" }, { key: "address", type: "text", label: "Address" }, { key: "phone", type: "text", label: "Phone" }, { key: "email", type: "text", label: "Email" }, { key: "copyrightText", type: "text", label: "Copyright text" }, { key: "backgroundColor", type: "color", label: "Background color" }, { key: "textColor", type: "color", label: "Text color" }, { key: "linkColor", type: "color", label: "Link color" }, { key: "paddingY", type: "number", label: "Vertical padding (px)" }, { key: "paddingX", type: "number", label: "Horizontal padding (px)" }], defaultProps: { logoTitle: "MESCO", logoTagline: "A TRUST SINCE 1960", columns: [], socialLinks: [], address: "", phone: "", email: "", copyrightText: "", backgroundColor: "#1a1a1a", textColor: "#ccc", linkColor: "#fff", paddingY: 48, paddingX: 24 }, active: true },
   { _id: "core-Section", name: "Section", displayName: "Section (container)", category: "layout", baseComponent: "Section", description: "Container block – add text, images, icons inside", propsSchema: [{ key: "backgroundColor", type: "color", label: "Background color" }, { key: "padding", type: "text", label: "Padding (e.g. 2rem 1rem)" }], defaultProps: { layout: [], backgroundColor: "", padding: "" }, active: true },
 
   // ── Content ──
@@ -109,7 +110,7 @@ const BLOCK_ICON_MAP = {
   Tabs: <AppstoreOutlined />, Modal: <InteractionOutlined />, Stats: <StarOutlined />,
   Pricing: <TableOutlined />, Table: <TableOutlined />, Timeline: <ClockCircleOutlined />,
   Breadcrumbs: <ShareAltOutlined />, Alert: <AlertOutlined />, SocialLinks: <ShareAltOutlined />,
-  Slider: <PictureOutlined />, Header: <LayoutOutlined />, Section: <LayoutOutlined />,
+  Slider: <PictureOutlined />, Header: <LayoutOutlined />, Footer: <LayoutOutlined />, Section: <LayoutOutlined />,
   AntButton: <InteractionOutlined />, AntCard: <AppstoreOutlined />, AntInput: <EditOutlined />,
   AntDivider: <LineOutlined />, AntAlert: <AlertOutlined />, AntTypography: <FontSizeOutlined />, AntSpace: <LayoutOutlined />,
 };
@@ -227,7 +228,7 @@ function renderSchemaField(field, themeColorOptions) {
     case "boolean":
       return <Form.Item key={key} name={key} label={label} valuePropName="checked"><Switch /></Form.Item>;
     case "select":
-      return <Form.Item key={key} name={key} label={label}><Select options={(field.options || []).map((o) => ({ value: o, label: o }))} allowClear /></Form.Item>;
+      return <Form.Item key={key} name={key} label={label}><Select options={(field.options || []).map((o) => (typeof o === "object" && o && "value" in o ? { value: o.value, label: o.label } : { value: o, label: o }))} allowClear /></Form.Item>;
     case "color":
       return (
         <Form.Item key={key} name={key} label={label}>
@@ -278,6 +279,11 @@ const SCHEMA_ENRICHMENT = {
         { key: "url", type: "url", label: "URL" },
         { key: "variant", type: "select", label: "Variant", options: ["primary", "secondary"] },
         { key: "icon", type: "text", label: "Icon (person | heart)" },
+        { key: "background", type: "color", label: "Background color" },
+        { key: "color", type: "color", label: "Text color" },
+        { key: "borderColor", type: "color", label: "Border color" },
+        { key: "borderRadius", type: "number", label: "Border radius (px)" },
+        { key: "boxShadow", type: "text", label: "Box shadow (CSS)" },
       ],
     },
   },
@@ -311,6 +317,130 @@ const SCHEMA_ENRICHMENT = {
     },
   },
 };
+
+/** Default Bootstrap header props – used when Header component has no blocks (one block added automatically). */
+const DEFAULT_BOOTSTRAP_HEADER_PROPS = {
+  sectionsOrder: "logo,nav,buttons",
+  logoTitle: "Brand",
+  logoTagline: "",
+  logoUrl: "/",
+  headerBackground: "#f8f9fa",
+  headerBorderBottom: "1px solid #dee2e6",
+  headerShadow: "",
+  navColor: "#212529",
+  navFontSize: 16,
+  navFontWeight: "500",
+  navHoverColor: "#0d6efd",
+  primaryButtonBg: "#0d6efd",
+  primaryButtonText: "#fff",
+  secondaryButtonBg: "transparent",
+  secondaryButtonText: "#6c757d",
+  paddingY: 12,
+  paddingX: 16,
+  navbarExpand: "lg",
+  navbarFixed: "",
+  navbarSticky: "",
+  collapseOnSelect: false,
+  navbarVariant: "light",
+  navbarMobileMenu: "collapse",
+  navbarOffcanvasPlacement: "end",
+  menuPosition: "left",
+  navItems: [
+    { label: "Home", url: "/", hasDropdown: false },
+    { label: "About", url: "/about", hasDropdown: false },
+    { label: "Contact", url: "/contact", hasDropdown: false },
+  ],
+  actionButtons: [
+    { label: "Sign in", url: "#", variant: "secondary", icon: "" },
+    { label: "Sign up", url: "#", variant: "primary", icon: "" },
+  ],
+};
+
+/** Convert menu API item to header nav item (plain objects only; include children for dropdowns). */
+function menuItemsToNavItems(menuItems) {
+  if (!Array.isArray(menuItems)) return [];
+  return menuItems.map((it) => {
+    const item = it && typeof it === "object" ? it : {};
+    const url = typeof item.url === "string" && item.url ? item.url : (item.type === "page" && item.pageSlug ? `/${String(item.pageSlug)}` : "#");
+    const childList = Array.isArray(item.children) ? item.children : [];
+    const children = childList.map((c) => {
+      const sub = c && typeof c === "object" ? c : {};
+      return {
+        label: String(sub.label ?? ""),
+        url: typeof sub.url === "string" && sub.url ? sub.url : (sub.type === "page" && sub.pageSlug ? `/${String(sub.pageSlug)}` : "#"),
+      };
+    });
+    const result = {
+      label: String(item.label ?? ""),
+      url,
+      hasDropdown: children.length > 0,
+    };
+    if (children.length > 0) result.children = children;
+    return result;
+  });
+}
+
+/** React Bootstrap Navbar options – shown in Header edit drawer (see https://react-bootstrap.netlify.app/docs/components/navbar). */
+const NAVBAR_SCHEMA = [
+  { key: "navbarExpand", type: "select", label: "Expand (responsive breakpoint)", options: [
+    { value: "lg", label: "lg (collapse below 992px)" },
+    { value: "md", label: "md (collapse below 768px)" },
+    { value: "sm", label: "sm (collapse below 576px)" },
+    { value: "xl", label: "xl (collapse below 1200px)" },
+    { value: "xxl", label: "xxl (collapse below 1400px)" },
+    { value: "false", label: "Never expand (always collapsed)" },
+  ] },
+  { key: "navbarFixed", type: "select", label: "Fixed position", options: [
+    { value: "", label: "None" },
+    { value: "top", label: "Fixed to top" },
+    { value: "bottom", label: "Fixed to bottom" },
+  ] },
+  { key: "navbarSticky", type: "select", label: "Sticky position", options: [
+    { value: "", label: "None" },
+    { value: "top", label: "Sticky top" },
+    { value: "bottom", label: "Sticky bottom" },
+  ] },
+  { key: "collapseOnSelect", type: "boolean", label: "Collapse when link selected", default: false },
+  { key: "navbarVariant", type: "select", label: "Color scheme (data-bs-theme)", options: [
+    { value: "light", label: "Light" },
+    { value: "dark", label: "Dark" },
+  ] },
+  { key: "navbarMobileMenu", type: "select", label: "Mobile menu style", options: [
+    { value: "collapse", label: "Collapse (dropdown below)" },
+    { value: "offcanvas", label: "Offcanvas (overlay drawer)" },
+  ] },
+  { key: "navbarOffcanvasPlacement", type: "select", label: "Offcanvas slide from", options: [
+    { value: "end", label: "Right (end)" },
+    { value: "start", label: "Left (start)" },
+  ] },
+];
+
+/** Responsive logo dimensions – desktop (≥992px), tablet (576–991px), mobile (<576px). */
+const LOGO_RESPONSIVE_SCHEMA = [
+  { key: "logoImageWidthDesktop", type: "number", label: "Logo width – desktop (px)" },
+  { key: "logoImageHeightDesktop", type: "number", label: "Logo height – desktop (px)" },
+  { key: "logoImageWidthTablet", type: "number", label: "Logo width – tablet (px)" },
+  { key: "logoImageHeightTablet", type: "number", label: "Logo height – tablet (px)" },
+  { key: "logoImageWidthMobile", type: "number", label: "Logo width – mobile (px)" },
+  { key: "logoImageHeightMobile", type: "number", label: "Logo height – mobile (px)" },
+];
+
+const MENU_SCHEMA = [
+  { key: "menuPosition", type: "select", label: "Menu position (desktop)", options: [
+    { value: "left", label: "Left" },
+    { value: "center", label: "Center" },
+    { value: "right", label: "Right" },
+  ] },
+];
+
+/** Header edit drawer: group field keys for Logo, Menu, Navbar, Buttons, Styles. Nav items set only via "Load from menu". */
+const HEADER_FIELD_GROUPS = [
+  { label: "Logo and link", keys: ["logoImage", "logoImageWidth", "logoImageHeight", "logoImageWidthDesktop", "logoImageHeightDesktop", "logoImageWidthTablet", "logoImageHeightTablet", "logoImageWidthMobile", "logoImageHeightMobile", "logoTitle", "logoTagline", "logoUrl", "logoColor", "logoFontSize", "taglineFontSize", "sectionsOrder"] },
+  { label: "Menu", keys: ["menuPosition"] },
+  { label: "Navbar (Bootstrap)", keys: ["navbarExpand", "navbarFixed", "navbarSticky", "collapseOnSelect", "navbarVariant", "navbarMobileMenu", "navbarOffcanvasPlacement"] },
+  { label: "Custom buttons", keys: ["actionButtons"] },
+  { label: "Styles", keys: ["headerBackground", "headerBorderBottom", "headerShadow", "navColor", "navFontSize", "navFontWeight", "navHoverColor", "primaryButtonBg", "primaryButtonText", "secondaryButtonBg", "secondaryButtonText", "paddingY", "paddingX"] },
+];
 
 /** Which props belong to which clickable element (for "click element → edit in drawer"). */
 const BLOCK_ELEMENT_FIELDS = {
@@ -361,24 +491,24 @@ function SortableVisualBlock({ block, index, isSelected, onSelect, onEdit, onDup
         onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.border = `2px dashed ${catMeta.color}88`; }}
         onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.border = "2px solid transparent"; }}
       >
-        {/* Block label bar */}
+        {/* Block label bar – inside block so not clipped when at top of canvas */}
         <div
           style={{
             position: "absolute",
-            top: -1,
+            top: 8,
             left: 12,
-            transform: "translateY(-100%)",
             display: isSelected || isDragging ? "flex" : "none",
             alignItems: "center",
             gap: 4,
             background: catMeta.color,
             color: "#fff",
-            padding: "2px 10px",
-            borderRadius: "4px 4px 0 0",
+            padding: "4px 8px",
+            borderRadius: 4,
             fontSize: 11,
             fontWeight: 500,
             zIndex: 10,
             whiteSpace: "nowrap",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.12)",
           }}
         >
           <span {...listeners} style={{ cursor: "grab", display: "flex", alignItems: "center", marginRight: 2 }}>
@@ -387,22 +517,21 @@ function SortableVisualBlock({ block, index, isSelected, onSelect, onEdit, onDup
           {comp?.displayName || block.baseComponent}
         </div>
 
-        {/* Floating toolbar */}
+        {/* Floating toolbar – inside block so always visible (not clipped above) */}
         {isSelected && (
           <div
             style={{
               position: "absolute",
-              top: -1,
+              top: 8,
               right: 12,
-              transform: "translateY(-100%)",
               display: "flex",
               gap: 1,
               background: "#fff",
               border: `1px solid ${catMeta.color}`,
-              borderBottom: "none",
-              borderRadius: "4px 4px 0 0",
-              padding: "1px 2px",
+              borderRadius: 4,
+              padding: "2px 4px",
               zIndex: 10,
+              boxShadow: "0 1px 4px rgba(0,0,0,0.12)",
             }}
           >
             <Tooltip title="Edit properties">
@@ -612,7 +741,7 @@ const PREVIEW_WIDTHS = {
 // Main PageBuilder Component
 // ═══════════════════════════════════════════════════════════
 
-export default function PageBuilder({ layout = [], onChange, showLayers = true, includeAntdBlocks = false }) {
+export default function PageBuilder({ layout = [], onChange, showLayers = true, includeAntdBlocks = false, componentBase = null }) {
   /** Palette loads all reusable components from DB (system + custom) via API. */
   const [components, setComponents] = useState([]);
   const [theme, setTheme] = useState(null);
@@ -630,6 +759,7 @@ export default function PageBuilder({ layout = [], onChange, showLayers = true, 
   const [editingElement, setEditingElement] = useState(null);
   const [form] = Form.useForm();
   const canvasRef = useRef(null);
+  const [adminMenusList, setAdminMenusList] = useState([]);
 
   const themeColorOptions = useMemo(() => {
     const out = [];
@@ -694,6 +824,40 @@ export default function PageBuilder({ layout = [], onChange, showLayers = true, 
     const withOrder = newLayout.map(({ _index, ...b }, i) => ({ ...b, order: i }));
     onChange(withOrder);
   }, [onChange]);
+
+  useEffect(() => {
+    if (componentBase !== "Header" || !Array.isArray(layout) || layout.length !== 0) return;
+    let cancelled = false;
+    const applyDefault = (navItems) => {
+      if (cancelled) return;
+      onChange([{
+        instanceId: generateId(),
+        componentId: null,
+        baseComponent: "Header",
+        props: { ...DEFAULT_BOOTSTRAP_HEADER_PROPS, navItems: navItems || DEFAULT_BOOTSTRAP_HEADER_PROPS.navItems },
+        order: 0,
+      }]);
+    };
+    fetch("/api/admin/menus")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((menus) => {
+        if (cancelled || !Array.isArray(menus) || menus.length === 0) {
+          applyDefault();
+          return { noMenus: true };
+        }
+        const preferred = menus.find((m) => m.name && /header|main|primary/i.test(m.name));
+        const menuToLoad = preferred || menus[0];
+        return fetch(`/api/admin/menus/${encodeURIComponent(menuToLoad.name)}`).then((r) => (r.ok ? r.json() : null));
+      })
+      .then((result) => {
+        if (cancelled || result?.noMenus) return;
+        const menu = result;
+        if (menu?.items?.length) applyDefault(menuItemsToNavItems(menu.items));
+        else applyDefault();
+      })
+      .catch(() => { if (!cancelled) applyDefault(); });
+    return () => { cancelled = true; };
+  }, [componentBase, layout, onChange]);
 
   const categorizedComponents = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
@@ -813,7 +977,8 @@ export default function PageBuilder({ layout = [], onChange, showLayers = true, 
   };
 
   const handleEditSave = () => {
-    form.validateFields().then((values) => {
+    form.validateFields().then(() => {
+      const values = form.getFieldsValue(true);
       if (editingInnerBlock !== null) {
         const { sectionIndex, innerIndex } = editingInnerBlock;
         const sectionBlock = sorted[sectionIndex];
@@ -841,7 +1006,9 @@ export default function PageBuilder({ layout = [], onChange, showLayers = true, 
         setEditingElement(null);
       } else {
         const block = sorted[editingIndex];
-        const newProps = block.baseComponent === "Section" ? { ...block.props, ...values, layout: block.props?.layout ?? [] } : values;
+        const newProps = block.baseComponent === "Section"
+          ? { ...block.props, ...values, layout: block.props?.layout ?? [] }
+          : { ...(block.props || {}), ...values };
         const newLayout = blocks.map((b) =>
           b.instanceId === block.instanceId ? { ...b, props: newProps } : b
         );
@@ -949,6 +1116,35 @@ export default function PageBuilder({ layout = [], onChange, showLayers = true, 
   const editingBlock = editingIndex !== null ? sorted[editingIndex] : null;
   const pw = PREVIEW_WIDTHS[previewMode];
 
+  useEffect(() => {
+    if (!drawerOpen || editingBlock?.baseComponent !== "Header") return;
+    fetch("/api/admin/menus")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((list) => setAdminMenusList(Array.isArray(list) ? list : []))
+      .catch(() => setAdminMenusList([]));
+  }, [drawerOpen, editingIndex, editingBlock?.baseComponent]);
+
+  const loadMenuIntoNavItems = (menuName) => {
+    if (!menuName || typeof menuName !== "string") return;
+    const name = String(menuName).trim();
+    if (!name) return;
+    fetch(`/api/admin/menus/${encodeURIComponent(name)}`)
+      .then((res) => {
+        if (!res.ok) throw new Error(res.status === 404 ? "Menu not found" : `Failed to load menu (${res.status})`);
+        return res.json();
+      })
+      .then((menu) => {
+        if (!menu || typeof menu !== "object") throw new Error("Invalid menu response");
+        const items = Array.isArray(menu.items) ? menu.items : [];
+        const navItems = menuItemsToNavItems(items);
+        form.setFieldValue("navItems", navItems);
+        message.success(`Loaded "${name}" (${navItems.length} item${navItems.length !== 1 ? "s" : ""}). Click Apply to save.`);
+      })
+      .catch((err) => {
+        message.error(err?.message || "Could not load menu");
+      });
+  };
+
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <>
@@ -985,9 +1181,11 @@ export default function PageBuilder({ layout = [], onChange, showLayers = true, 
                 { value: "mobile", icon: <MobileOutlined /> },
               ]}
             />
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => { setInsertAtIndex(null); setAddDrawerOpen(true); }} size="middle">
-              Add Block
-            </Button>
+            {componentBase !== "Header" && (
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => { setInsertAtIndex(null); setAddDrawerOpen(true); }} size="middle">
+                Add Block
+              </Button>
+            )}
           </div>
         </div>
 
@@ -1035,7 +1233,7 @@ export default function PageBuilder({ layout = [], onChange, showLayers = true, 
                   <div style={{ padding: "8px 0" }}>
                     {sorted.map((block, index) => (
                       <div key={block.instanceId}>
-                        <AddBlockButton onClick={() => openAddAt(index)} dropIndex={index} />
+                        {componentBase !== "Header" && <AddBlockButton onClick={() => openAddAt(index)} dropIndex={index} />}
                         <SortableVisualBlock
                           block={block}
                           index={index}
@@ -1051,7 +1249,7 @@ export default function PageBuilder({ layout = [], onChange, showLayers = true, 
                         />
                       </div>
                     ))}
-                    <AddBlockButton onClick={() => openAddAt(sorted.length)} dropIndex={sorted.length} />
+                    {componentBase !== "Header" && <AddBlockButton onClick={() => openAddAt(sorted.length)} dropIndex={sorted.length} />}
                   </div>
                 </SortableContext>
               )}
@@ -1151,44 +1349,105 @@ export default function PageBuilder({ layout = [], onChange, showLayers = true, 
           })()}
 
           {editingInnerBlock === null && editingElement === null && editingBlock && editingBlock.baseComponent === "Section" && (
-            <>
-              <Divider orientation="left" style={{ fontSize: 13 }}>Section settings</Divider>
-              {renderSchemaField({ key: "backgroundColor", type: "color", label: "Background color" }, themeColorOptions)}
-              {renderSchemaField({ key: "padding", type: "text", label: "Padding (e.g. 2rem 1rem)" }, themeColorOptions)}
-              <Divider orientation="left" style={{ fontSize: 13 }}>Content – add elements inside this section</Divider>
-              <div style={{ marginBottom: 12 }}>
-                {(Array.isArray(editingBlock?.props?.layout) ? editingBlock.props.layout : []).map((inner, idx) => {
-                  const comp = CORE_PAGE_BUILDER_COMPONENTS.find((c) => c.baseComponent === inner.baseComponent);
-                  const displayName = comp?.displayName || inner.baseComponent;
-                  return (
-                    <div
-                      key={inner.instanceId || idx}
-                      style={{
-                        display: "flex", alignItems: "center", gap: 8, padding: "8px 12px",
-                        background: "#fafafa", borderRadius: 6, marginBottom: 6,
-                      }}
-                    >
-                      <span style={{ flex: 1, fontSize: 13 }}>{displayName}</span>
-                      <Button type="text" size="small" icon={<EditOutlined />} onClick={() => openEditInner(editingIndex, idx)}>Edit</Button>
-                      <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={() => handleRemoveInner(editingIndex, idx)}>Delete</Button>
+            <Collapse
+              accordion
+              defaultActiveKey={[]}
+              items={[
+                {
+                  key: "section-settings",
+                  label: "Section settings",
+                  children: (
+                    <>
+                      {renderSchemaField({ key: "backgroundColor", type: "color", label: "Background color" }, themeColorOptions)}
+                      {renderSchemaField({ key: "padding", type: "text", label: "Padding (e.g. 2rem 1rem)" }, themeColorOptions)}
+                    </>
+                  ),
+                },
+                {
+                  key: "section-content",
+                  label: "Content – add elements inside this section",
+                  children: (
+                    <div style={{ marginBottom: 12 }}>
+                      {(Array.isArray(editingBlock?.props?.layout) ? editingBlock.props.layout : []).map((inner, idx) => {
+                        const comp = CORE_PAGE_BUILDER_COMPONENTS.find((c) => c.baseComponent === inner.baseComponent);
+                        const displayName = comp?.displayName || inner.baseComponent;
+                        return (
+                          <div
+                            key={inner.instanceId || idx}
+                            style={{
+                              display: "flex", alignItems: "center", gap: 8, padding: "8px 12px",
+                              background: "#fafafa", borderRadius: 6, marginBottom: 6,
+                            }}
+                          >
+                            <span style={{ flex: 1, fontSize: 13 }}>{displayName}</span>
+                            <Button type="text" size="small" icon={<EditOutlined />} onClick={() => openEditInner(editingIndex, idx)}>Edit</Button>
+                            <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={() => handleRemoveInner(editingIndex, idx)}>Delete</Button>
+                          </div>
+                        );
+                      })}
+                      <Button type="dashed" block icon={<PlusOutlined />} onClick={() => { setAddToSectionBlockIndex(editingIndex); setDrawerOpen(false); setAddDrawerOpen(true); }} style={{ marginTop: 8 }}>
+                        Add element (text, image, icon…)
+                      </Button>
                     </div>
-                  );
-                })}
-                <Button type="dashed" block icon={<PlusOutlined />} onClick={() => { setAddToSectionBlockIndex(editingIndex); setDrawerOpen(false); setAddDrawerOpen(true); }} style={{ marginTop: 8 }}>
-                  Add element (text, image, icon…)
-                </Button>
-              </div>
-            </>
+                  ),
+                },
+              ]}
+            />
           )}
 
-          {editingInnerBlock === null && editingElement === null && editingBlock && editingBlock.baseComponent !== "Section" && getPropsFields(editingBlock.baseComponent)}
-
-          {editingInnerBlock === null && editingElement === null && editingBlock && editingBlock.baseComponent !== "Section" && (
+          {editingInnerBlock === null && editingElement === null && editingBlock && editingBlock.baseComponent !== "Section" && (editingBlock.baseComponent === "Header" ? (() => {
+            const comp = components.find((c) => c.baseComponent === "Header");
+            const core = CORE_PAGE_BUILDER_COMPONENTS.find((c) => c.baseComponent === "Header");
+            const raw = [...(Array.isArray(comp?.propsSchema) ? comp.propsSchema : core?.propsSchema ?? []), ...NAVBAR_SCHEMA, ...LOGO_RESPONSIVE_SCHEMA, ...MENU_SCHEMA];
+            const schema = enrichSchema("Header", raw);
+            const byKey = Object.fromEntries(schema.map((f) => [f.key, f]));
+            const headerItems = [
+              ...HEADER_FIELD_GROUPS.map((grp) => {
+                const isMenuGroup = grp.label === "Menu";
+                return {
+                  key: grp.label.replace(/\s+/g, "-").toLowerCase().replace(/&/g, "and"),
+                  label: grp.label,
+                  children: (
+                    <>
+                      {isMenuGroup && (
+                        <Form.Item key="load-menu" label="Load from /admin/menus">
+                          <Select
+                            placeholder="Select a menu to fill nav items…"
+                            allowClear
+                            options={adminMenusList.map((m) => ({ value: m.name, label: m.name }))}
+                            onChange={(menuName) => loadMenuIntoNavItems(menuName)}
+                            style={{ width: "100%" }}
+                          />
+                        </Form.Item>
+                      )}
+                      {grp.keys.map((k) => byKey[k] ? renderSchemaField(byKey[k], themeColorOptions) : null).filter(Boolean)}
+                    </>
+                  ),
+                };
+              }),
+              {
+                key: "section-settings",
+                label: "Section Settings",
+                children: <>{SECTION_SETTINGS_SCHEMA.map((f) => renderSchemaField(f, themeColorOptions))}</>,
+              },
+            ];
+            return <Collapse accordion defaultActiveKey={[]} items={headerItems} />;
+          })() : (
             <>
-              <Divider orientation="left" style={{ fontSize: 13 }}>Section Settings</Divider>
-              {SECTION_SETTINGS_SCHEMA.map((f) => renderSchemaField(f, themeColorOptions))}
+              {getPropsFields(editingBlock.baseComponent)}
+              <Collapse
+                accordion
+                defaultActiveKey={[]}
+                items={[
+                  {
+                    key: "section-settings",
+                    label: "Section Settings",
+                    children: <>{SECTION_SETTINGS_SCHEMA.map((f) => renderSchemaField(f, themeColorOptions))}</>,
+                  },
+                ]}
+              />
             </>
-          )}
+          ))}
         </Form>
       </Drawer>
       </>
