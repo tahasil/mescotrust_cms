@@ -248,24 +248,47 @@ export default function HeaderBlock({
     </div>
   );
 
-  const renderActionButton = (btn, isPrimary, key) => {
-    const defaultBg = isPrimary ? primaryButtonBg : secondaryButtonBg;
-    const defaultColor = isPrimary ? primaryButtonText : secondaryButtonText;
-    const bg = btn.background || defaultBg;
-    const color = btn.color || defaultColor;
+  const renderActionButton = (btn, key) => {
+    const bg = btn.background || primaryButtonBg;
+    const color = btn.color || primaryButtonText;
     const borderRadius = btn.borderRadius != null && btn.borderRadius !== "" ? Number(btn.borderRadius) : 9999;
     const label = btn.label || "Button";
     const url = btn.url || "#";
+    const imageUrl = (btn.image && typeof btn.image === "string") ? btn.image.trim() : "";
+    const imagePosition = (btn.imagePosition || "left") === "right" ? "right" : "left";
+    const iconHeightPx = btn.imageHeight != null && btn.imageHeight !== "" ? Number(btn.imageHeight) : null;
+    const imgStyle = {
+      height: iconHeightPx > 0 ? `${iconHeightPx}px` : "1em",
+      width: "auto",
+      display: "block",
+      objectFit: "contain",
+    };
+    const imgEl = imageUrl ? (
+      <img src={imageUrl} alt="" style={imgStyle} className={imagePosition === "left" ? "me-1" : "ms-1"} />
+    ) : null;
+    const textStyle = {};
+    if (btn.fontSize != null && btn.fontSize !== "" && Number(btn.fontSize) > 0) textStyle.fontSize = `${Number(btn.fontSize)}px`;
+    if (btn.fontWeight) textStyle.fontWeight = String(btn.fontWeight);
+    if (btn.letterSpacing && String(btn.letterSpacing).trim()) textStyle.letterSpacing = String(btn.letterSpacing).trim();
+    if (btn.textTransform && btn.textTransform !== "none") textStyle.textTransform = btn.textTransform;
     const style = {
       background: bg,
       color,
-      borderColor: btn.borderColor || (isPrimary ? bg : "rgba(139, 0, 0, 0.25)"),
+      borderColor: btn.borderColor || bg,
       borderRadius: `${borderRadius}px`,
       ...(btn.boxShadow && { boxShadow: btn.boxShadow }),
+      ...textStyle,
     };
+    const btnContent = (
+      <span className="d-inline-flex align-items-center" style={{ gap: 4 }}>
+        {imagePosition === "left" && imgEl}
+        <span>{label}</span>
+        {imagePosition === "right" && imgEl}
+      </span>
+    );
     const btnEl = (
-      <Button variant={isPrimary ? "primary" : "outline-secondary"} style={style}>
-        {label}
+      <Button variant="outline-secondary" style={style}>
+        {btnContent}
       </Button>
     );
     if (isExternal(url)) {
@@ -284,10 +307,7 @@ export default function HeaderBlock({
 
   const actionsSection = (
     <div className="d-flex align-items-center flex-shrink-0 gap-2 flex-wrap">
-      {actionButtonsList.map((btn, i) => {
-        const isPrimary = (btn.variant || "primary") === "primary";
-        return renderActionButton(btn, isPrimary, `header-btn-${i}`);
-      })}
+      {actionButtonsList.map((btn, i) => renderActionButton(btn, `header-btn-${i}`))}
     </div>
   );
 
