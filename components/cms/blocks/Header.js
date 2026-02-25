@@ -69,7 +69,6 @@ export default function HeaderBlock({
   navbarFixed = "",
   navbarSticky = "",
   collapseOnSelect = false,
-  navbarVariant = "light",
   navbarMobileMenu = "collapse",
   navbarOffcanvasPlacement = "end",
   menuPosition = "left",
@@ -82,11 +81,15 @@ export default function HeaderBlock({
   const navSize = navFontSize ? `${navFontSize}px` : "0.95rem";
   const navWeight = navFontWeight || "500";
 
+  const effectiveBg = (headerBackground || "").trim().toLowerCase();
+  const isDefaultNavBg = !effectiveBg || effectiveBg === "#f8f9fa";
+  const effectiveBorder = (headerBorderBottom || "").trim().replace(/\s+/g, " ");
+  const isDefaultNavBorder = /^1px\s+solid\s+#dee2e[56]$/i.test(effectiveBorder);
   const headerStyle = {
-    background: headerBackground || "#fff",
+    background: isDefaultNavBg ? "transparent" : headerBackground,
     padding: `${Number(paddingY) || 16}px ${Number(paddingX) || 0}`,
     lineHeight: "inherit",
-    ...(headerBorderBottom && { borderBottom: headerBorderBottom }),
+    ...(headerBorderBottom && !isDefaultNavBorder && { borderBottom: headerBorderBottom }),
     ...(headerShadow && { boxShadow: headerShadow }),
   };
 
@@ -230,7 +233,6 @@ export default function HeaderBlock({
     expand: expandValue,
     style: headerStyle,
     className: "cms-header",
-    "data-bs-theme": navbarVariant || "light",
     ...(collapseOnSelect && { collapseOnSelect: true }),
     ...(navbarFixed === "top" && { fixed: "top" }),
     ...(navbarFixed === "bottom" && { fixed: "bottom" }),

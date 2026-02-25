@@ -341,7 +341,7 @@ const DEFAULT_BOOTSTRAP_HEADER_PROPS = {
   logoTitle: "Brand",
   logoTagline: "",
   logoUrl: "/",
-  headerBackground: "#f8f9fa",
+  headerBackground: "",
   headerBorderBottom: "1px solid #dee2e6",
   headerShadow: "",
   navColor: "#212529",
@@ -358,7 +358,6 @@ const DEFAULT_BOOTSTRAP_HEADER_PROPS = {
   navbarFixed: "",
   navbarSticky: "",
   collapseOnSelect: false,
-  navbarVariant: "light",
   navbarMobileMenu: "collapse",
   navbarOffcanvasPlacement: "end",
   menuPosition: "left",
@@ -419,10 +418,6 @@ const NAVBAR_SCHEMA = [
     { value: "bottom", label: "Sticky bottom" },
   ] },
   { key: "collapseOnSelect", type: "boolean", label: "Collapse when link selected", default: false },
-  { key: "navbarVariant", type: "select", label: "Color scheme (data-bs-theme)", options: [
-    { value: "light", label: "Light" },
-    { value: "dark", label: "Dark" },
-  ] },
   { key: "navbarMobileMenu", type: "select", label: "Mobile menu style", options: [
     { value: "collapse", label: "Collapse (dropdown below)" },
     { value: "offcanvas", label: "Offcanvas (overlay drawer)" },
@@ -455,7 +450,7 @@ const MENU_SCHEMA = [
 const HEADER_FIELD_GROUPS = [
   { label: "Logo and link", keys: ["logoImage", "logoImageWidth", "logoImageHeight", "logoImageWidthDesktop", "logoImageHeightDesktop", "logoImageWidthTablet", "logoImageHeightTablet", "logoImageWidthMobile", "logoImageHeightMobile", "logoTitle", "logoTagline", "logoUrl", "logoColor", "logoFontSize", "taglineFontSize", "sectionsOrder"] },
   { label: "Menu", keys: ["menuPosition"] },
-  { label: "Navbar (Bootstrap)", keys: ["navbarExpand", "navbarFixed", "navbarSticky", "collapseOnSelect", "navbarVariant", "navbarMobileMenu", "navbarOffcanvasPlacement"] },
+  { label: "Navbar (Bootstrap)", keys: ["navbarExpand", "navbarFixed", "navbarSticky", "collapseOnSelect", "navbarMobileMenu", "navbarOffcanvasPlacement"] },
   { label: "Custom buttons", keys: ["actionButtons"] },
 ];
 
