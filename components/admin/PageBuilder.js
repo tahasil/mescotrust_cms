@@ -470,7 +470,6 @@ const MENU_SCHEMA = [
 const HEADER_FIELD_GROUPS = [
   { label: "Logo and link", keys: ["logoImage", "logoImageWidth", "logoImageHeight", "logoImageWidthDesktop", "logoImageHeightDesktop", "logoImageWidthTablet", "logoImageHeightTablet", "logoImageWidthMobile", "logoImageHeightMobile", "logoTitle", "logoTagline", "logoUrl", "logoColor", "logoFontSize", "taglineFontSize", "sectionsOrder"] },
   { label: "Menu", keys: ["menuPosition", "navColor", "navFontSize", "navFontWeight", "navHoverColor", "navItemBackground", "navItemHoverBackground"] },
-  { label: "Header bar & theme", keys: ["headerBackground", "headerBorderBottom", "headerShadow"] },
   { label: "Navbar (Bootstrap)", keys: ["navbarExpand", "navbarFixed", "navbarSticky", "collapseOnSelect", "navbarMobileMenu", "navbarOffcanvasPlacement"] },
   { label: "Custom buttons", keys: ["actionButtons"] },
 ];
