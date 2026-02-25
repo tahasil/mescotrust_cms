@@ -12,30 +12,32 @@ function isExternal(url) {
 function NavLinkItem({ item, navColor, navFontSize, navFontWeight, navHoverColor }) {
   const url = item.url || "#";
   const label = item.label || "Link";
+  const textColor = navColor || "#333";
+  const hoverColor = navHoverColor || navColor || "#333";
   const style = {
-    color: navColor,
+    color: textColor,
     fontSize: navFontSize || undefined,
     fontWeight: navFontWeight || undefined,
   };
   const hover = (e, color) => {
-    if (color) e.currentTarget.style.color = color;
+    e.currentTarget.style.color = color || textColor;
   };
   if (isExternal(url)) {
     return (
-      <a href={url} target="_blank" rel="noopener noreferrer" style={style} onMouseEnter={(e) => hover(e, navHoverColor)} onMouseLeave={(e) => (e.currentTarget.style.color = navColor)}>
+      <a href={url} target="_blank" rel="noopener noreferrer" style={style} onMouseEnter={(e) => hover(e, hoverColor)} onMouseLeave={(e) => (e.currentTarget.style.color = textColor)}>
         {label}
       </a>
     );
   }
   return (
-    <Link href={url} style={style} onMouseEnter={(e) => hover(e, navHoverColor)} onMouseLeave={(e) => (e.currentTarget.style.color = navColor)}>
+    <Link href={url} style={style} onMouseEnter={(e) => hover(e, hoverColor)} onMouseLeave={(e) => (e.currentTarget.style.color = textColor)}>
       {label}
     </Link>
   );
 }
 
 /** Custom multi-level dropdown (3–4 levels); does not use React Bootstrap NavDropdown. */
-function CustomNavDropdown({ item, index, navColor, navSize, navWeight, navHoverColor, parentKey, openKey, setOpenKey }) {
+function CustomNavDropdown({ item, index, navColor, navSize, navWeight, navHoverColor, parentKey, openKey, setOpenKey, isTopLevel }) {
   const children = Array.isArray(item.children) ? item.children : [];
   const hasDropdown = (item.hasDropdown || item.dropdown) && children.length > 0;
   const key = parentKey === undefined ? String(index) : `${parentKey}-${index}`;
@@ -45,7 +47,7 @@ function CustomNavDropdown({ item, index, navColor, navSize, navWeight, navHover
   if (!hasDropdown) {
     const url = item.url || "#";
     const label = item.label || "Link";
-    const style = { color: navColor, fontSize: navSize, fontWeight: navWeight };
+    const style = { color: navColor || "#333", fontSize: navSize, fontWeight: navWeight };
     if (item.openInNewTab || isExternal(url)) {
       return (
         <a href={url} target="_blank" rel="noopener noreferrer" className="cms-header-nav-custom-link" style={style}>
@@ -62,14 +64,14 @@ function CustomNavDropdown({ item, index, navColor, navSize, navWeight, navHover
 
   return (
     <div
-      className={`cms-header-nav-custom-dropdown ${isNested ? "cms-header-nav-custom-nested" : ""} ${isOpen ? "open" : ""}`}
+      className={`cms-header-nav-custom-dropdown ${isNested ? "cms-header-nav-custom-nested" : ""} ${isTopLevel ? "cms-header-nav-item-top" : ""} ${isOpen ? "open" : ""}`}
       onMouseEnter={() => setOpenKey(key)}
       onMouseLeave={() => setOpenKey(null)}
     >
       <button
         type="button"
         className="cms-header-nav-custom-trigger"
-        style={{ color: navColor, fontSize: navSize, fontWeight: navWeight }}
+        style={{ color: navColor || "#333", fontSize: navSize, fontWeight: navWeight }}
         onClick={() => setOpenKey((k) => (k === key ? null : key))}
         aria-expanded={isOpen}
         aria-haspopup="true"
@@ -112,6 +114,8 @@ export default function HeaderBlock({
   navFontSize = "",
   navFontWeight = "",
   navHoverColor = "",
+  navItemBackground = "",
+  navItemHoverBackground = "",
   logoColor = "",
   logoFontSize = "",
   taglineFontSize = "",
@@ -206,8 +210,16 @@ export default function HeaderBlock({
   );
 
   const menuJustify = menuPosition === "center" ? "justify-content-lg-center" : menuPosition === "right" ? "justify-content-lg-end" : "justify-content-lg-start";
+  const navWrapStyle = {
+    minWidth: 0,
+    display: "flex",
+    "--cms-nav-text-color": navColor || "#333",
+    "--cms-nav-hover-color": navHoverColor || navColor || "#333",
+    ...(navItemBackground && { "--cms-nav-item-bg": navItemBackground }),
+    ...(navItemHoverBackground && { "--cms-nav-item-hover-bg": navItemHoverBackground }),
+  };
   const navSection = (
-    <div className={`cms-header-nav-custom me-auto flex-grow-1 ${menuJustify} align-items-center flex-wrap gap-2 gap-lg-3`} style={{ minWidth: 0, display: "flex" }}>
+    <div className={`cms-header-nav-custom me-auto flex-grow-1 ${menuJustify} align-items-center flex-wrap gap-2 gap-lg-3`} style={navWrapStyle}>
       {navItemsList.map((item, i) => {
         const hasDropdown = item.hasDropdown || item.dropdown;
         const children = item.children || [];
@@ -221,13 +233,14 @@ export default function HeaderBlock({
               navSize={navSize}
               navWeight={navWeight}
               navHoverColor={navHoverColor}
+              isTopLevel
               openKey={openSubmenuKey}
               setOpenKey={setOpenSubmenuKey}
             />
           );
         }
         return (
-          <div key={i} className="cms-header-nav-custom-link-wrap" style={{ padding: 0 }}>
+          <div key={i} className="cms-header-nav-custom-link-wrap cms-header-nav-item-top" style={{ padding: 0 }}>
             <NavLinkItem item={item} navColor={navColor} navFontSize={navSize} navFontWeight={navWeight} navHoverColor={navHoverColor} />
           </div>
         );
