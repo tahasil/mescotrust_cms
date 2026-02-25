@@ -320,6 +320,8 @@ const SCHEMA_ENRICHMENT = {
         { key: "color", type: "color", label: "Text color" },
         { key: "borderColor", type: "color", label: "Border color" },
         { key: "borderRadius", type: "number", label: "Border radius (px)" },
+        { key: "paddingY", type: "number", label: "Padding top/bottom (px)" },
+        { key: "paddingX", type: "number", label: "Padding left/right (px)" },
         { key: "boxShadow", type: "text", label: "Box shadow (CSS)" },
       ],
     },

@@ -271,6 +271,9 @@ export default function HeaderBlock({
     if (btn.fontWeight) textStyle.fontWeight = String(btn.fontWeight);
     if (btn.letterSpacing && String(btn.letterSpacing).trim()) textStyle.letterSpacing = String(btn.letterSpacing).trim();
     if (btn.textTransform && btn.textTransform !== "none") textStyle.textTransform = btn.textTransform;
+    const paddingStyle = {};
+    if (btn.paddingY != null && btn.paddingY !== "" && Number(btn.paddingY) >= 0) paddingStyle.paddingTop = paddingStyle.paddingBottom = `${Number(btn.paddingY)}px`;
+    if (btn.paddingX != null && btn.paddingX !== "" && Number(btn.paddingX) >= 0) paddingStyle.paddingLeft = paddingStyle.paddingRight = `${Number(btn.paddingX)}px`;
     const style = {
       background: bg,
       color,
@@ -278,6 +281,7 @@ export default function HeaderBlock({
       borderRadius: `${borderRadius}px`,
       ...(btn.boxShadow && { boxShadow: btn.boxShadow }),
       ...textStyle,
+      ...paddingStyle,
     };
     const btnContent = (
       <span className="d-inline-flex align-items-center" style={{ gap: 4 }}>
