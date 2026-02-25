@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import NextImage from "next/image";
-import { Navbar, Container, Nav, NavDropdown, Button, Offcanvas } from "react-bootstrap";
+import { Navbar, Container, Button, Offcanvas } from "react-bootstrap";
 
 function isExternal(url) {
   return /^https?:\/\//.test(url || "") || (url || "").startsWith("//");
@@ -33,31 +34,67 @@ function NavLinkItem({ item, navColor, navFontSize, navFontWeight, navHoverColor
   );
 }
 
-function NavDropdownItemRecursive({ item, j, navColor, navSize, navWeight }) {
-  const hasDropdown = item.hasDropdown || item.dropdown;
-  const children = item.children || [];
-  if (hasDropdown && children.length > 0) {
+/** Custom multi-level dropdown (3–4 levels); does not use React Bootstrap NavDropdown. */
+function CustomNavDropdown({ item, index, navColor, navSize, navWeight, navHoverColor, parentKey, openKey, setOpenKey }) {
+  const children = Array.isArray(item.children) ? item.children : [];
+  const hasDropdown = (item.hasDropdown || item.dropdown) && children.length > 0;
+  const key = parentKey === undefined ? String(index) : `${parentKey}-${index}`;
+  const isNested = parentKey !== undefined;
+  const isOpen = openKey === key;
+
+  if (!hasDropdown) {
+    const url = item.url || "#";
+    const label = item.label || "Link";
+    const style = { color: navColor, fontSize: navSize, fontWeight: navWeight };
+    if (item.openInNewTab || isExternal(url)) {
+      return (
+        <a href={url} target="_blank" rel="noopener noreferrer" className="cms-header-nav-custom-link" style={style}>
+          {label}
+        </a>
+      );
+    }
     return (
-      <NavDropdown.Item key={j} as="div" className="dropdown-submenu" style={{ padding: 0 }}>
-        <NavDropdown drop="end" title={item.label || "Link"} id={`header-nav-dropdown-sub-${j}`} style={{ color: navColor, fontSize: navSize, fontWeight: navWeight }} menuVariant="light">
-          {children.map((c, k) => (
-            <NavDropdownItemRecursive key={k} item={c} j={k} navColor={navColor} navSize={navSize} navWeight={navWeight} />
-          ))}
-        </NavDropdown>
-      </NavDropdown.Item>
+      <Link href={url} className="cms-header-nav-custom-link" style={style}>
+        {label}
+      </Link>
     );
   }
-  if (isExternal(item.url)) {
-    return (
-      <NavDropdown.Item key={j} as="a" href={item.url || "#"} target="_blank" rel="noopener noreferrer">
-        {item.label || "Link"}
-      </NavDropdown.Item>
-    );
-  }
+
   return (
-    <NavDropdown.Item key={j} as={Link} href={item.url || "#"}>
-      {item.label || "Link"}
-    </NavDropdown.Item>
+    <div
+      className={`cms-header-nav-custom-dropdown ${isNested ? "cms-header-nav-custom-nested" : ""} ${isOpen ? "open" : ""}`}
+      onMouseEnter={() => setOpenKey(key)}
+      onMouseLeave={() => setOpenKey(null)}
+    >
+      <button
+        type="button"
+        className="cms-header-nav-custom-trigger"
+        style={{ color: navColor, fontSize: navSize, fontWeight: navWeight }}
+        onClick={() => setOpenKey((k) => (k === key ? null : key))}
+        aria-expanded={isOpen}
+        aria-haspopup="true"
+      >
+        {item.label || "Menu"}
+        <span className="cms-header-nav-custom-arrow" aria-hidden />
+      </button>
+      <div className={`cms-header-nav-custom-menu ${isNested ? "cms-header-nav-custom-submenu" : ""}`} role="menu">
+        {children.map((c, j) => (
+          <div key={j} className="cms-header-nav-custom-item">
+            <CustomNavDropdown
+              item={c}
+              index={j}
+              navColor={navColor}
+              navSize={navSize}
+              navWeight={navWeight}
+              navHoverColor={navHoverColor}
+              parentKey={key}
+              openKey={openKey}
+              setOpenKey={setOpenKey}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -101,6 +138,7 @@ export default function HeaderBlock({
   navbarOffcanvasPlacement = "end",
   menuPosition = "left",
 }) {
+  const [openSubmenuKey, setOpenSubmenuKey] = useState(null);
   const navItemsList = Array.isArray(navItems) ? navItems : [];
   const actionButtonsList = Array.isArray(actionButtons) ? actionButtons : [];
   const logoTextColor = logoColor || navColor;
@@ -169,32 +207,32 @@ export default function HeaderBlock({
 
   const menuJustify = menuPosition === "center" ? "justify-content-lg-center" : menuPosition === "right" ? "justify-content-lg-end" : "justify-content-lg-start";
   const navSection = (
-    <Nav as="div" className={`me-auto flex-grow-1 justify-content-center ${menuJustify} align-items-center flex-wrap gap-2 gap-lg-3`} style={{ minWidth: 0 }}>
+    <div className={`cms-header-nav-custom me-auto flex-grow-1 ${menuJustify} align-items-center flex-wrap gap-2 gap-lg-3`} style={{ minWidth: 0, display: "flex" }}>
       {navItemsList.map((item, i) => {
         const hasDropdown = item.hasDropdown || item.dropdown;
         const children = item.children || [];
         if (hasDropdown && children.length > 0) {
           return (
-            <NavDropdown
+            <CustomNavDropdown
               key={i}
-              title={item.label || "Link"}
-              id={`header-nav-dropdown-${i}`}
-              style={{ color: navColor, fontSize: navSize, fontWeight: navWeight }}
-              menuVariant="light"
-            >
-              {children.map((c, j) => (
-                <NavDropdownItemRecursive key={j} item={c} j={j} navColor={navColor} navSize={navSize} navWeight={navWeight} />
-              ))}
-            </NavDropdown>
+              item={item}
+              index={i}
+              navColor={navColor}
+              navSize={navSize}
+              navWeight={navWeight}
+              navHoverColor={navHoverColor}
+              openKey={openSubmenuKey}
+              setOpenKey={setOpenSubmenuKey}
+            />
           );
         }
         return (
-          <Nav.Link key={i} as="div" style={{ padding: 0 }}>
+          <div key={i} className="cms-header-nav-custom-link-wrap" style={{ padding: 0 }}>
             <NavLinkItem item={item} navColor={navColor} navFontSize={navSize} navFontWeight={navWeight} navHoverColor={navHoverColor} />
-          </Nav.Link>
+          </div>
         );
       })}
-    </Nav>
+    </div>
   );
 
   const renderActionButton = (btn, isPrimary, key) => {

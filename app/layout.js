@@ -145,6 +145,7 @@ function menuItemsToNavItems(menuItems) {
       label: String(item.label ?? ""),
       url,
       hasDropdown: children.length > 0,
+      openInNewTab: !!item.openInNewTab,
     };
     if (children.length > 0) result.children = children;
     return result;
@@ -192,7 +193,7 @@ async function getLayoutData(pathname) {
         })
       : null;
     const headerItems = headerMenuForBlock?.items?.length
-      ? JSON.parse(JSON.stringify(headerMenuForBlock.items))
+      ? menuItemsToNavItems(headerMenuForBlock.items)
       : [];
     return {
       theme: JSON.parse(JSON.stringify(theme)),

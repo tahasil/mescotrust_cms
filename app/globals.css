@@ -201,10 +201,12 @@ a {
   transform: translateY(-4px);
   transition: opacity 0.2s, visibility 0.2s, transform 0.2s;
   z-index: 200;
+  overflow: visible;
 }
 
-.public-nav-dropdown:hover .public-nav-dropdown-menu,
-.public-nav-dropdown.open .public-nav-dropdown-menu {
+/* Only show the direct child menu (not nested submenus) so Institute submenu shows only on hover */
+.public-nav-dropdown:hover > .public-nav-dropdown-menu,
+.public-nav-dropdown.open > .public-nav-dropdown-menu {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
@@ -228,9 +230,9 @@ a {
   position: relative;
 }
 
-/* Keep nested dropdown hover area so mouse can move from trigger to submenu without closing */
+/* Nested dropdown: relative so submenu positions to the right of this row; bridge for hover */
 .public-nav-dropdown-nested .public-nav-dropdown {
-  position: static;
+  position: relative;
 }
 .public-nav-dropdown-nested .public-nav-dropdown::after {
   content: "";
@@ -447,4 +449,133 @@ a {
   margin-inline: auto;
   padding-inline: 1rem;
   padding-block: 2rem;
+}
+
+/* --- CMS Header: custom multi-level nav (3–4 levels) --- */
+.cms-header-nav-custom {
+  position: relative;
+}
+.cms-header-nav-custom-dropdown {
+  position: relative;
+}
+.cms-header-nav-custom-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: none;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  border-radius: 4px;
+}
+.cms-header-nav-custom-trigger:hover {
+  opacity: 0.9;
+}
+.cms-header-nav-custom-arrow {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-inline-start: 4px solid transparent;
+  border-inline-end: 4px solid transparent;
+  border-top: 5px solid currentColor;
+  transition: transform 0.2s;
+}
+.cms-header-nav-custom-dropdown.open .cms-header-nav-custom-arrow {
+  transform: rotate(180deg);
+}
+.cms-header-nav-custom-menu {
+  position: absolute;
+  top: 100%;
+  inset-inline-start: 0;
+  min-width: 200px;
+  margin-block-start: 0.25rem;
+  padding: 0.5rem 0;
+  background: var(--header-bg-color, var(--bg-color, #fff));
+  border: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.2s, visibility 0.2s, transform 0.2s;
+  z-index: 1050;
+  overflow: visible;
+}
+/* Only show the direct child menu so nested submenus (e.g. Institute) show only when hovered */
+.cms-header-nav-custom-dropdown:hover > .cms-header-nav-custom-menu,
+.cms-header-nav-custom-dropdown.open > .cms-header-nav-custom-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.cms-header-nav-custom-item {
+  position: relative;
+}
+.cms-header-nav-custom-link,
+.cms-header-nav-custom-link-wrap a {
+  display: block;
+  padding: 0.4rem 1rem;
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.cms-header-nav-custom-link:hover,
+.cms-header-nav-custom-link-wrap a:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+/* Nested (3rd/4th level): submenu to the right + hover bridge */
+.cms-header-nav-custom-nested .cms-header-nav-custom-dropdown {
+  position: relative;
+}
+.cms-header-nav-custom-nested .cms-header-nav-custom-dropdown::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  inset-inline-start: 100%;
+  width: 220px;
+  height: 400px;
+  pointer-events: auto;
+}
+.cms-header-nav-custom-submenu {
+  top: 0;
+  inset-inline-start: 100%;
+  margin-block-start: 0;
+  margin-inline-start: 0.25rem;
+  z-index: 1051;
+}
+.cms-header-nav-custom-nested .cms-header-nav-custom-trigger {
+  width: 100%;
+  justify-content: space-between;
+  padding: 0.4rem 1rem;
+  text-align: start;
+}
+/* Mobile: stack menus, no hover */
+@media (max-width: 991.98px) {
+  .cms-header-nav-custom-dropdown:hover > .cms-header-nav-custom-menu {
+    opacity: 0;
+    visibility: hidden;
+  }
+  .cms-header-nav-custom-dropdown.open > .cms-header-nav-custom-menu {
+    opacity: 1;
+    visibility: visible;
+  }
+  .cms-header-nav-custom-menu {
+    position: static;
+    transform: none;
+    margin-block-start: 0.5rem;
+    margin-inline-start: 1rem;
+    box-shadow: none;
+    border: none;
+    border-inline-start: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: 0;
+  }
+  .cms-header-nav-custom-submenu {
+    position: static;
+    margin-inline-start: 0;
+  }
+  .cms-header-nav-custom-nested .cms-header-nav-custom-dropdown::after {
+    display: none;
+  }
 }
