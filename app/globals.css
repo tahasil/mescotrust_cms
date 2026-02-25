@@ -38,7 +38,12 @@ body {
   background-color: var(--bg-color);
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--heading-font);
   font-weight: var(--heading-font-weight);
   font-size: var(--heading-font-size);
@@ -199,7 +204,10 @@ a {
   opacity: 0;
   visibility: hidden;
   transform: translateY(-4px);
-  transition: opacity 0.2s, visibility 0.2s, transform 0.2s;
+  transition:
+    opacity 0.2s,
+    visibility 0.2s,
+    transform 0.2s;
   z-index: 200;
   overflow: visible;
 }
@@ -233,6 +241,8 @@ a {
 /* Nested dropdown: relative so submenu positions to the right of this row; bridge for hover */
 .public-nav-dropdown-nested .public-nav-dropdown {
   position: relative;
+  display: block;
+  width: 100%;
 }
 .public-nav-dropdown-nested .public-nav-dropdown::after {
   content: "";
@@ -254,8 +264,10 @@ a {
 }
 
 .public-nav-dropdown-trigger-inner {
+  display: flex;
   width: 100%;
   justify-content: space-between;
+  align-items: center;
   padding: 0.4rem 1rem;
   text-align: start;
 }
@@ -283,7 +295,9 @@ a {
   width: 22px;
   height: 2px;
   background: var(--text-color);
-  transition: transform 0.3s, opacity 0.3s;
+  transition:
+    transform 0.3s,
+    opacity 0.3s;
   position: absolute;
   inset-inline-start: 5px;
 }
@@ -483,7 +497,7 @@ a {
   transition: transform 0.2s;
 }
 .cms-header-nav-custom-dropdown.open .cms-header-nav-custom-arrow {
-  transform: rotate(180deg);
+  transform: rotate(-90deg);
 }
 .cms-header-nav-custom-menu {
   position: absolute;
@@ -499,7 +513,10 @@ a {
   opacity: 0;
   visibility: hidden;
   transform: translateY(-4px);
-  transition: opacity 0.2s, visibility 0.2s, transform 0.2s;
+  transition:
+    opacity 0.2s,
+    visibility 0.2s,
+    transform 0.2s;
   z-index: 1050;
   overflow: visible;
 }
@@ -545,9 +562,15 @@ a {
   margin-inline-start: 0.25rem;
   z-index: 1051;
 }
+.cms-header-nav-custom-nested .cms-header-nav-custom-dropdown {
+  display: block;
+  width: 100%;
+}
 .cms-header-nav-custom-nested .cms-header-nav-custom-trigger {
+  display: flex;
   width: 100%;
   justify-content: space-between;
+  align-items: center;
   padding: 0.4rem 1rem;
   text-align: start;
 }
