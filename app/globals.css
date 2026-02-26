@@ -483,9 +483,19 @@ a {
   cursor: pointer;
   text-decoration: none;
   border-radius: 4px;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
   transition:
     background 0.2s,
     color 0.2s;
+}
+/* Prevent text from turning white/invisible on tap/focus */
+.cms-header-nav-custom-trigger:active,
+.cms-header-nav-custom-trigger:focus,
+.cms-header-nav-custom-trigger:focus-visible {
+  color: inherit !important;
+  outline: none;
+  box-shadow: none;
 }
 .cms-header-nav-item-top.cms-header-nav-custom-dropdown
   .cms-header-nav-custom-trigger {
@@ -627,31 +637,170 @@ a {
   padding: 0.4rem 1rem;
   text-align: start;
 }
-/* Mobile: stack menus, no hover */
-@media (max-width: 991.98px) {
-  .cms-header-nav-custom-dropdown:hover > .cms-header-nav-custom-menu {
-    opacity: 0;
-    visibility: hidden;
+/* Desktop: gap between nav and buttons in shared wrapper */
+@media (min-width: 992px) {
+  .cms-header-mobile-content {
+    gap: 1rem !important;
   }
-  .cms-header-nav-custom-dropdown.open > .cms-header-nav-custom-menu {
+}
+/* ================================================================
+   Mobile accordion menu — works in BOTH Collapse & Offcanvas/Drawer
+   ================================================================ */
+@media (max-width: 991.98px) {
+  /* ── Shared wrapper (collapse & offcanvas): no gap on mobile ── */
+  .cms-header-mobile-content {
+    gap: 0 !important;
+  }
+
+  /* ── Nav wrapper → vertical, full width ── */
+  .cms-header-nav-custom {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    gap: 0 !important;
+  }
+
+  /* ── Top-level items: full-width accordion rows ── */
+  .cms-header-nav-item-top {
+    width: 100%;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  /* Top-level links (no dropdown) */
+  .cms-header-nav-item-top.cms-header-nav-custom-link-wrap {
+    padding: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+  }
+  .cms-header-nav-item-top.cms-header-nav-custom-link-wrap a {
+    display: block;
+    padding: 0.9rem !important;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 0 !important;
+    color: var(--cms-nav-text-color, #333) !important;
+  }
+  .cms-header-nav-item-top.cms-header-nav-custom-link-wrap a:hover,
+  .cms-header-nav-item-top.cms-header-nav-custom-link-wrap a:active {
+    background: var(--cms-nav-item-hover-bg, rgba(0, 0, 0, 0.04)) !important;
+    color: var(--cms-nav-hover-color, var(--cms-nav-text-color, #333)) !important;
+  }
+
+  /* Top-level dropdown trigger: full-width row, arrow on right */
+  .cms-header-nav-item-top.cms-header-nav-custom-dropdown
+    > .cms-header-nav-custom-trigger {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.9rem !important;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--cms-nav-text-color, #333) !important;
+  }
+
+  /* ── Arrow: chevron rotates 180° when open ── */
+  .cms-header-nav-custom-dropdown.open
+    > .cms-header-nav-custom-trigger
+    > .cms-header-nav-custom-arrow {
+    transform: rotate(180deg);
+  }
+
+  /* ── Parent trigger: background highlight when accordion is open ── */
+  .cms-header-nav-item-top.cms-header-nav-custom-dropdown.open
+    > .cms-header-nav-custom-trigger {
+    background: var(--cms-nav-item-hover-bg, rgba(0, 0, 0, 0.04)) !important;
+    color: var(
+      --cms-nav-hover-color,
+      var(--cms-nav-text-color, #333)
+    ) !important;
+  }
+
+  /* ── Dropdown menu: hidden by default, shown on click (.open) ── */
+  /* Must use display:none (not opacity/visibility) because position:static
+     elements still occupy layout space when only visually hidden. */
+  .cms-header-nav-custom-menu {
+    display: none;
+    position: static;
+    transform: none;
+    min-width: 0;
+    margin: 0;
+    padding: 0 0 0.25rem 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
     opacity: 1;
     visibility: visible;
   }
-  .cms-header-nav-custom-menu {
-    position: static;
-    transform: none;
-    margin-block-start: 0.5rem;
-    margin-inline-start: 1rem;
-    box-shadow: none;
-    border: none;
-    border-inline-start: 2px solid rgba(0, 0, 0, 0.1);
-    border-radius: 0;
+  /* Hover must NOT open on mobile */
+  .cms-header-nav-custom-dropdown:hover > .cms-header-nav-custom-menu {
+    display: none;
   }
+  /* Only .open (click) shows the panel */
+  .cms-header-nav-custom-dropdown.open > .cms-header-nav-custom-menu {
+    display: block;
+  }
+
+  /* Child links inside accordion panel */
+  .cms-header-nav-custom-menu .cms-header-nav-custom-link {
+    padding: 0.6rem 1.25rem;
+    font-weight: 400;
+    font-size: 0.95rem;
+    white-space: normal;
+    color: var(--cms-nav-text-color, #333) !important;
+  }
+  .cms-header-nav-custom-menu .cms-header-nav-custom-link:hover {
+    color: var(
+      --cms-nav-hover-color,
+      var(--cms-nav-text-color, #333)
+    ) !important;
+    background: var(--cms-nav-item-hover-bg, rgba(0, 0, 0, 0.04));
+  }
+
+  /* Nested dropdown trigger inside accordion */
+  .cms-header-nav-custom-menu .cms-header-nav-custom-trigger {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--cms-nav-text-color, #333) !important;
+  }
+
+  /* Submenu: indent children */
   .cms-header-nav-custom-submenu {
     position: static;
     margin-inline-start: 0;
+    padding-left: 0.75rem;
   }
+
+  /* Remove desktop hover bridge */
   .cms-header-nav-custom-nested .cms-header-nav-custom-dropdown::after {
     display: none;
+  }
+
+  /* ── Action buttons: stack full-width ── */
+  .cms-header-actions {
+    flex-direction: column !important;
+    width: 100%;
+    gap: 0.75rem !important;
+    padding-top: 1rem;
+  }
+  .cms-header-actions > a,
+  .cms-header-actions > .text-decoration-none {
+    width: 100%;
+  }
+  .cms-header-actions .btn {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
   }
 }
