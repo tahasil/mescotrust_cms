@@ -104,12 +104,12 @@ export default function AdminFooterComponentPage() {
         </Space>
       </div>
       <p style={{ margin: "0 0 16px", fontSize: 13, color: "#666" }}>
-        Manage the site footer from here. Add a Footer block if needed, then use the block&apos;s Edit drawer to set logo, link columns, social links, and address.
+        Design the site footer with <strong>drag and drop</strong>. Click <strong>Add Block</strong> to add Sections, Columns, Paragraph, Image, the <strong>Footer</strong> block (logo, links, social, copyright), Social Links, Divider, or any other block. Drag blocks to reorder; click a block to edit it in the drawer. Whatever you build here is shown as the site footer on every page when you save.
       </p>
       <PageBuilder
         layout={layout}
         onChange={setLayout}
-        showLayers={false}
+        showLayers={true}
         includeAntdBlocks
         componentBase="Footer"
       />

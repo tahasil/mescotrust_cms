@@ -188,6 +188,7 @@ export default function PublicShell({
   headerItems,
   footerItems,
   customHeaderLayout,
+  customFooterLayout,
   siteTitle,
   tagline,
   logoType,
@@ -204,6 +205,7 @@ export default function PublicShell({
   children,
 }) {
   const hasCustomHeader = Array.isArray(customHeaderLayout) && customHeaderLayout.length > 0;
+  const hasCustomFooter = Array.isArray(customFooterLayout) && customFooterLayout.length > 0;
 
   return (
     <div className="public-site" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
@@ -223,14 +225,18 @@ export default function PublicShell({
         />
       )}
       <div style={{ flex: 1 }}>{children}</div>
-      <PublicFooter
-        menuItems={footerItems}
-        siteTitle={siteTitle}
-        copyrightText={footerCopyrightText}
-        columnsCount={footerColumnsCount}
-        socialIcons={footerSocialIcons}
-        layoutStyle={footerLayoutStyle}
-      />
+      {hasCustomFooter ? (
+        <ComponentRenderer layout={customFooterLayout} />
+      ) : (
+        <PublicFooter
+          menuItems={footerItems}
+          siteTitle={siteTitle}
+          copyrightText={footerCopyrightText}
+          columnsCount={footerColumnsCount}
+          socialIcons={footerSocialIcons}
+          layoutStyle={footerLayoutStyle}
+        />
+      )}
     </div>
   );
 }

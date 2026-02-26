@@ -156,13 +156,21 @@ async function getLayoutData(pathname) {
   const isAdminRoute = pathname?.startsWith("/admin");
   try {
     await connectDB();
-    const [themeDoc, footerMenu, headerComponents] = await Promise.all([
+    const [themeDoc, footerMenu, headerComponents, footerComponents] = await Promise.all([
       ThemeConfig.findOne().lean(),
       isAdminRoute ? null : Menu.findOne({ name: "footer" }).lean(),
       isAdminRoute ? null : Component.find({ baseComponent: "Header" }).lean(),
+      isAdminRoute ? null : Component.find({ baseComponent: "Footer" }).lean(),
     ]);
     // Prefer the Header that has saved layout (so saved settings persist after restart)
     const headerComponent = !headerComponents?.length ? null : headerComponents.sort((a, b) => {
+      const aHas = Array.isArray(a.layout) && a.layout.length > 0;
+      const bHas = Array.isArray(b.layout) && b.layout.length > 0;
+      if (aHas && !bHas) return -1;
+      if (!aHas && bHas) return 1;
+      return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
+    })[0];
+    const footerComponent = !footerComponents?.length ? null : footerComponents.sort((a, b) => {
       const aHas = Array.isArray(a.layout) && a.layout.length > 0;
       const bHas = Array.isArray(b.layout) && b.layout.length > 0;
       if (aHas && !bHas) return -1;
@@ -206,14 +214,25 @@ async function getLayoutData(pathname) {
     const headerItems = headerMenuForBlock?.items?.length
       ? menuItemsToNavItems(headerMenuForBlock.items)
       : [];
+    const rawFooterLayout = footerComponent?.layout && Array.isArray(footerComponent.layout) && footerComponent.layout.length > 0
+      ? footerComponent.layout
+      : null;
+    const footerLayout = rawFooterLayout
+      ? rawFooterLayout.map((block) => ({
+          ...(typeof block === "object" && block !== null ? block : {}),
+          baseComponent: block?.baseComponent || "Footer",
+          props: block?.props && typeof block.props === "object" ? { ...block.props } : {},
+        }))
+      : null;
     return {
       theme: JSON.parse(JSON.stringify(theme)),
       headerItems,
       footerItems: footerMenu?.items ? JSON.parse(JSON.stringify(footerMenu.items)) : [],
       customHeaderLayout: headerLayout,
+      customFooterLayout: footerLayout,
     };
   } catch {
-    return { theme: THEME_DEFAULTS, headerItems: [], footerItems: [], customHeaderLayout: null };
+    return { theme: THEME_DEFAULTS, headerItems: [], footerItems: [], customHeaderLayout: null, customFooterLayout: null };
   }
 }
 
@@ -298,6 +317,7 @@ export default async function RootLayout({ children }) {
             headerItems={data?.headerItems || []}
             footerItems={data?.footerItems || []}
             customHeaderLayout={data?.customHeaderLayout || null}
+            customFooterLayout={data?.customFooterLayout || null}
             siteTitle={theme.siteTitle || "Mesco Trust"}
             tagline={theme.tagline}
             logoType={theme.logoType || "text"}
