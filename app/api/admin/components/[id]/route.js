@@ -59,9 +59,18 @@ export async function PUT(req, { params }) {
     if (type !== undefined) component.type = type;
     if (category !== undefined) component.category = category;
     if (baseComponent !== undefined) component.baseComponent = baseComponent;
-    if (propsSchema !== undefined) component.propsSchema = propsSchema;
-    if (defaultProps !== undefined) component.defaultProps = defaultProps;
-    if (Array.isArray(layout)) component.layout = layout;
+    if (propsSchema !== undefined) {
+      component.propsSchema = propsSchema;
+      component.markModified("propsSchema");
+    }
+    if (defaultProps !== undefined) {
+      component.defaultProps = defaultProps;
+      component.markModified("defaultProps");
+    }
+    if (Array.isArray(layout)) {
+      component.layout = layout;
+      component.markModified("layout");
+    }
     if (container === "container" || container === "container-fluid") component.container = container;
     if (typeof active === "boolean") component.active = active;
 

@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs wc -l)",
+      "Bash(xargs grep -l \"baseComponent.*Header\")",
+      "Bash(xargs grep -l \"Header.*baseComponent\\\\|HeaderBlock\\\\|Header from.*blocks\")",
+      "Bash(xargs grep -l \"renderComponent\\\\|baseComponent.*Header\")",
+      "Bash(xargs grep -l \"theme\")"
+    ]
+  }
+}
