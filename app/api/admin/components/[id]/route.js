@@ -68,7 +68,8 @@ export async function PUT(req, { params }) {
       component.markModified("defaultProps");
     }
     if (Array.isArray(layout)) {
-      component.layout = layout;
+      // Deep clone so Mongoose persists the full nested structure (menu position, buttons, section settings, etc.)
+      component.layout = JSON.parse(JSON.stringify(layout));
       component.markModified("layout");
     }
     if (container === "container" || container === "container-fluid") component.container = container;
@@ -82,7 +83,9 @@ export async function PUT(req, { params }) {
     }
 
     await component.save();
-    return NextResponse.json(component);
+    // Return the document as stored in DB so the client sees exactly what persisted
+    const persisted = await Component.findById(id).lean();
+    return NextResponse.json(persisted);
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

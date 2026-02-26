@@ -91,8 +91,10 @@ export default function AdminHeaderComponentPage() {
   const handleSave = (values) => {
     if (!component?._id) return;
     setSaving(true);
-    const layout = [{ baseComponent: "Header", props: values }];
-    const container = values._containerType === "container" ? "container" : "container-fluid";
+    // Merge with current props so all settings (menu position, buttons, section settings) are persisted
+    const props = { ...headerProps, ...values };
+    const layout = [{ baseComponent: "Header", props }];
+    const container = props._containerType === "container" ? "container" : "container-fluid";
     fetch(`/api/admin/components/${component._id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },

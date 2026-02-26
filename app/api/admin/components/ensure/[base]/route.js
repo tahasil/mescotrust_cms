@@ -19,7 +19,15 @@ export async function GET(req, { params }) {
 
   try {
     await connectDB();
-    let component = await Component.findOne({ baseComponent: base }).sort({ updatedAt: -1 }).lean();
+    // Prefer the component that has saved layout (length > 0), then most recently updated
+    const all = await Component.find({ baseComponent: base }).lean();
+    let component = all.length === 0 ? null : all.sort((a, b) => {
+      const aHasLayout = Array.isArray(a.layout) && a.layout.length > 0;
+      const bHasLayout = Array.isArray(b.layout) && b.layout.length > 0;
+      if (aHasLayout && !bHasLayout) return -1;
+      if (!aHasLayout && bHasLayout) return 1;
+      return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
+    })[0];
     if (!component) {
       const template = SYSTEM_COMPONENTS.find((c) => c.baseComponent === base);
       if (!template) {

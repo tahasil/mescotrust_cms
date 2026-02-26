@@ -156,11 +156,19 @@ async function getLayoutData(pathname) {
   const isAdminRoute = pathname?.startsWith("/admin");
   try {
     await connectDB();
-    const [themeDoc, footerMenu, headerComponent] = await Promise.all([
+    const [themeDoc, footerMenu, headerComponents] = await Promise.all([
       ThemeConfig.findOne().lean(),
       isAdminRoute ? null : Menu.findOne({ name: "footer" }).lean(),
-      isAdminRoute ? null : Component.findOne({ baseComponent: "Header" }).sort({ updatedAt: -1 }).lean(),
+      isAdminRoute ? null : Component.find({ baseComponent: "Header" }).lean(),
     ]);
+    // Prefer the Header that has saved layout (so saved settings persist after restart)
+    const headerComponent = !headerComponents?.length ? null : headerComponents.sort((a, b) => {
+      const aHas = Array.isArray(a.layout) && a.layout.length > 0;
+      const bHas = Array.isArray(b.layout) && b.layout.length > 0;
+      if (aHas && !bHas) return -1;
+      if (!aHas && bHas) return 1;
+      return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
+    })[0];
     const theme = themeDoc ? { ...THEME_DEFAULTS, ...themeDoc } : THEME_DEFAULTS;
     if (theme.logoImageUrl && !theme.logoLightUrl) theme.logoLightUrl = theme.logoImageUrl;
     if (theme.fontFamily && !theme.bodyFont) theme.bodyFont = theme.fontFamily;
