@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import Link from "next/link";
 import NextImage from "next/image";
 import { Navbar, Container, Button, Offcanvas } from "react-bootstrap";
@@ -500,9 +500,9 @@ export default function HeaderBlock({
   const collapseSections = orderWithoutLogo
     .map((k) => sectionMap[k])
     .filter(Boolean);
-  if (collapseSections.length < 2) {
-    collapseSections.push(navSection, actionsSection);
-  }
+  // Ensure both nav and action buttons appear in mobile menu (no duplicates)
+  if (!collapseSections.includes(navSection)) collapseSections.unshift(navSection);
+  if (!collapseSections.includes(actionsSection)) collapseSections.push(actionsSection);
 
   const expandValue =
     navbarExpand === "false" || navbarExpand === false
@@ -521,14 +521,16 @@ export default function HeaderBlock({
 
   /* Shared inner content used by both collapse and offcanvas mobile menus.
      flex-column on mobile so nav + buttons stack; flex-lg-row on desktop for inline layout.
-     gap:0 on mobile (accordion rows handle their own spacing via border-bottom). */
+     gap:0 on mobile (accordion rows handle their own spacing via border-bottom).
+     Render all collapse sections so action buttons (Volunteer, Donate Now) always appear. */
   const mobileMenuContent = (
     <div
       className="cms-header-mobile-content d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center justify-content-between flex-grow-1 w-100"
       style={{ minWidth: 0 }}
     >
-      {collapseSections[0]}
-      {collapseSections[1]}
+      {collapseSections.map((section, idx) => (
+        <Fragment key={idx}>{section}</Fragment>
+      ))}
     </div>
   );
 
