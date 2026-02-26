@@ -683,7 +683,10 @@ a {
   .cms-header-nav-item-top.cms-header-nav-custom-link-wrap a:hover,
   .cms-header-nav-item-top.cms-header-nav-custom-link-wrap a:active {
     background: var(--cms-nav-item-hover-bg, rgba(0, 0, 0, 0.04)) !important;
-    color: var(--cms-nav-hover-color, var(--cms-nav-text-color, #333)) !important;
+    color: var(
+      --cms-nav-hover-color,
+      var(--cms-nav-text-color, #333)
+    ) !important;
   }
 
   /* Top-level dropdown trigger: full-width row, arrow on right */
@@ -794,6 +797,7 @@ a {
   .cms-header-actions > a,
   .cms-header-actions > .text-decoration-none {
     width: 100%;
+    width: 90%;
   }
   .cms-header-actions .btn {
     width: 100%;
@@ -802,5 +806,6 @@ a {
     align-items: center;
     padding-top: 0.75rem;
     padding-bottom: 0.75rem;
+    border-radius: 4px !important;
   }
 }

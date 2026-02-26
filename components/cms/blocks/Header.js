@@ -501,8 +501,10 @@ export default function HeaderBlock({
     .map((k) => sectionMap[k])
     .filter(Boolean);
   // Ensure both nav and action buttons appear in mobile menu (no duplicates)
-  if (!collapseSections.includes(navSection)) collapseSections.unshift(navSection);
-  if (!collapseSections.includes(actionsSection)) collapseSections.push(actionsSection);
+  if (!collapseSections.includes(navSection))
+    collapseSections.unshift(navSection);
+  if (!collapseSections.includes(actionsSection))
+    collapseSections.push(actionsSection);
 
   const expandValue =
     navbarExpand === "false" || navbarExpand === false
@@ -573,7 +575,7 @@ export default function HeaderBlock({
                 {logoSection}
               </Offcanvas.Title>
             </Offcanvas.Header>
-            <Offcanvas.Body className="d-flex flex-column p-0">
+            <Offcanvas.Body className="d-flex flex-column pb-4">
               {mobileMenuContent}
             </Offcanvas.Body>
           </Navbar.Offcanvas>
