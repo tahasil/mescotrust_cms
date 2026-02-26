@@ -357,44 +357,6 @@ const SCHEMA_ENRICHMENT = {
   },
 };
 
-/** Default Bootstrap header props – used when Header component has no blocks (one block added automatically). */
-const DEFAULT_BOOTSTRAP_HEADER_PROPS = {
-  sectionsOrder: "logo,nav,buttons",
-  logoTitle: "Brand",
-  logoTagline: "",
-  logoUrl: "/",
-  headerBackground: "",
-  headerBorderBottom: "1px solid #dee2e6",
-  headerShadow: "",
-  navColor: "#212529",
-  navFontSize: 16,
-  navFontWeight: "500",
-  navHoverColor: "#0d6efd",
-  primaryButtonBg: "#0d6efd",
-  primaryButtonText: "#fff",
-  secondaryButtonBg: "transparent",
-  secondaryButtonText: "#6c757d",
-  paddingY: 12,
-  paddingX: 16,
-  navbarExpand: "lg",
-  navbarFixed: "",
-  navbarSticky: "",
-  collapseOnSelect: false,
-  navbarMobileMenu: "collapse",
-  navbarOffcanvasPlacement: "end",
-  menuPosition: "left",
-  _containerType: "container-fluid",
-  navItems: [
-    { label: "Home", url: "/", hasDropdown: false },
-    { label: "About", url: "/about", hasDropdown: false },
-    { label: "Contact", url: "/contact", hasDropdown: false },
-  ],
-  actionButtons: [
-    { label: "Sign in", url: "#", image: "" },
-    { label: "Sign up", url: "#", image: "" },
-  ],
-};
-
 /** Convert menu API item to header nav item (plain objects only); supports nested children (submenu of submenu). */
 function menuItemsToNavItems(menuItems) {
   if (!Array.isArray(menuItems)) return [];
@@ -872,39 +834,7 @@ export default function PageBuilder({ layout = [], onChange, showLayers = true, 
     onChange(withOrder);
   }, [onChange]);
 
-  useEffect(() => {
-    if (componentBase !== "Header" || !Array.isArray(layout) || layout.length !== 0) return;
-    let cancelled = false;
-    const applyDefault = (navItems) => {
-      if (cancelled) return;
-      onChange([{
-        instanceId: generateId(),
-        componentId: null,
-        baseComponent: "Header",
-        props: { ...DEFAULT_BOOTSTRAP_HEADER_PROPS, navItems: navItems || DEFAULT_BOOTSTRAP_HEADER_PROPS.navItems },
-        order: 0,
-      }]);
-    };
-    fetch("/api/admin/menus")
-      .then((res) => (res.ok ? res.json() : []))
-      .then((menus) => {
-        if (cancelled || !Array.isArray(menus) || menus.length === 0) {
-          applyDefault();
-          return { noMenus: true };
-        }
-        const preferred = menus.find((m) => m.name && /header|main|primary/i.test(m.name));
-        const menuToLoad = preferred || menus[0];
-        return fetch(`/api/admin/menus/${encodeURIComponent(menuToLoad.name)}`).then((r) => (r.ok ? r.json() : null));
-      })
-      .then((result) => {
-        if (cancelled || result?.noMenus) return;
-        const menu = result;
-        if (menu?.items?.length) applyDefault(menuItemsToNavItems(menu.items));
-        else applyDefault();
-      })
-      .catch(() => { if (!cancelled) applyDefault(); });
-    return () => { cancelled = true; };
-  }, [componentBase, layout, onChange]);
+  /** Header is edited only from /admin/components/header; no auto-add Header block here. */
 
   const categorizedComponents = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
