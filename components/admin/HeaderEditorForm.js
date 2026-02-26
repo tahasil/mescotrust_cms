@@ -57,8 +57,9 @@ function NavItemsPreserver() {
 
 /** Responsive grid: 1 col (xs), 2 (sm), 3 (md), 4 (lg). */
 const FORM_COL = { xs: 24, sm: 12, md: 8, lg: 6 };
+const EMPTY_MENU_LIST = [];
 
-export default function HeaderEditorForm({ initialValues, onSave, saving, menuList = [] }) {
+export default function HeaderEditorForm({ initialValues, onSave, saving, menuList = EMPTY_MENU_LIST }) {
   const [form] = Form.useForm();
   const [menus, setMenus] = useState(menuList);
   const [theme, setTheme] = useState(null);
