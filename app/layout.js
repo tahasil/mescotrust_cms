@@ -178,6 +178,9 @@ async function getLayoutData(pathname) {
       if (!headerMenuForBlock && nameToFetch !== "header") {
         headerMenuForBlock = await Menu.findOne({ name: "header" }).lean();
       }
+      if (!headerMenuForBlock) {
+        headerMenuForBlock = await Menu.findOne().sort({ updatedAt: -1 }).lean();
+      }
     }
     const freshNavItems = headerMenuForBlock?.items?.length ? menuItemsToNavItems(headerMenuForBlock.items) : null;
     const headerLayout = rawHeaderLayout
