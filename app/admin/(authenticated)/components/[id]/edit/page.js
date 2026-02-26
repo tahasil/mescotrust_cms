@@ -32,6 +32,14 @@ export default function AdminComponentEditPage() {
           return;
         }
         const data = await res.json();
+        if (data.baseComponent === "Header") {
+          router.replace("/admin/components/header");
+          return;
+        }
+        if (data.baseComponent === "Footer") {
+          router.replace("/admin/components/footer");
+          return;
+        }
         setComponent(data);
         setLayout(Array.isArray(data.layout) ? data.layout : []);
         setContainer(data.container === "container-fluid" ? "container-fluid" : "container");

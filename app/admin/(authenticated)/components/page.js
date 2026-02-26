@@ -73,7 +73,7 @@ export default function AdminComponentsPage() {
   useEffect(() => { fetchList(); }, []);
 
   const filteredList = useMemo(() => {
-    let items = list;
+    let items = list.filter((c) => c.baseComponent !== "Header" && c.baseComponent !== "Footer");
     if (filterCategory !== "all") {
       items = items.filter((c) => (c.category || "content") === filterCategory);
     }
@@ -209,10 +209,10 @@ export default function AdminComponentsPage() {
         <div>
           <h1 style={{ margin: "0 0 4px", fontSize: 22 }}>Components</h1>
           <p style={{ margin: 0, fontSize: 13, color: "#666" }}>
-            Custom Header or Footer: Add component → choose Base component &quot;Header / Navbar&quot; or &quot;Footer&quot; → then click <strong>Edit</strong> to open the visual editor. There you can add the block, then use the block&apos;s Edit drawer to set logo, menu, links, buttons, social links, address, and layout.
+            <strong>Header</strong> and <strong>Footer</strong> are managed from the sidebar: Components → Header and Components → Footer. This list shows all other block types used in the page builder.
           </p>
           <p style={{ color: "#888", margin: 0, fontSize: 13 }}>
-            Block types used in the visual page builder. Each component renders live on the canvas.
+            Add custom components or edit system block types. Each component renders live on the canvas.
           </p>
         </div>
         <Space>

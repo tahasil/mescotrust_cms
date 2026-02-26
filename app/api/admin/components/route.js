@@ -9,7 +9,9 @@ export async function GET(req) {
 
   try {
     await connectDB();
-    const components = await Component.find().sort({ category: 1, name: 1 }).lean();
+    const components = await Component.find({ baseComponent: { $nin: ["Header", "Footer"] } })
+      .sort({ category: 1, name: 1 })
+      .lean();
     return NextResponse.json(components);
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
