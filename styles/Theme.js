@@ -6,20 +6,24 @@ export const HEADER_OFFSET_DESKTOP = "88px";
 /** Space needed on mobile (full-width bar) */
 export const HEADER_OFFSET_MOBILE = "56px";
 
+/** Fallback values when a color is not in Theme.colors (no built-in palette in DB/Theme.js) */
+export const FALLBACK_COLORS = {
+  primary: "#CF372F",
+  white: "#FFFFFF",
+  black: "#050505",
+  headerBg: "rgba(5, 5, 5, 0.5)",
+  headerCta: "rgba(207, 55, 47, 0.1)",
+  ctaBorder: "rgba(255, 255, 255, 0.2)",
+  gradient: "linear-gradient(90deg, #CF372F 0%, #691C18 100%)",
+  themeBorder: "rgba(0, 0, 0, 0.1)",
+  imgFillWhite:
+    "brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(3%) hue-rotate(51deg) brightness(115%) contrast(100%)",
+  imgFillTheme:
+    "brightness(0) saturate(100%) invert(25%) sepia(76%) saturate(6383%) hue-rotate(354deg) brightness(93%) contrast(73%)",
+};
+
 const Theme = {
   colors: {
-    primary: "#CF372F",
-    white: "#FFFFFF",
-    black: "#050505",
-    headerBg: "rgba(5, 5, 5, 0.5)",
-    headerCta: "rgba(207, 55, 47, 0.1)",
-    ctaBorder: "rgba(255, 255, 255, 0.2)",
-    gradient: "linear-gradient(90deg, #CF372F 0%, #691C18 100%)",
-    themeBorder: "rgba(0, 0, 0, 0.1)",
-    imgFillWhite:
-      "brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(3%) hue-rotate(51deg) brightness(115%) contrast(100%)",
-    imgFillTheme:
-      "filter: brightness(0) saturate(100%) invert(25%) sepia(76%) saturate(6383%) hue-rotate(354deg) brightness(93%) contrast(73%);",
   },
   fonts: {
     sans: "'Inter', sans-serif",
@@ -27,13 +31,15 @@ const Theme = {
   },
 };
 
+export const getColor = (key) => Theme.colors[key] ?? FALLBACK_COLORS[key];
+
 export const GlobalStyle = createGlobalStyle`
   body {
     margin: 0px;
     padding: 0px;
     font-family: ${Theme.fonts.sans};
-    background: ${Theme.colors.white};
-    color: ${Theme.colors.black};
+    background: ${getColor("white")};
+    color: ${getColor("black")};
   }
 `;
 export const PageContainer = styled.div`
@@ -51,11 +57,11 @@ export const PageContainer = styled.div`
   }
 `;
 export const ThemeButton = styled(Button)`
-  background: ${Theme.colors.gradient};
-  border: 1px solid ${Theme.colors.ctaBorder};
+  background: ${getColor("gradient")};
+  border: 1px solid ${getColor("ctaBorder")};
   box-shadow: 0px 0px 10px rgba(207, 55, 47, 0.25);
   border-radius: 30px;
-  color: ${Theme.colors.white};
+  color: ${getColor("white")};
   padding: 10px 20px;
   font-size: 16px;
   font-weight: 600;
@@ -64,9 +70,9 @@ export const ThemeButton = styled(Button)`
   text-decoration: none;
   transform: translateY(0);
   &:hover {
-    background: ${Theme.colors.white} !important;
-    border-color: ${Theme.colors.primary} !important;
-    color: ${Theme.colors.primary} !important;
+    background: ${getColor("white")} !important;
+    border-color: ${getColor("primary")} !important;
+    color: ${getColor("primary")} !important;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(207, 55, 47, 0.35);
   }
@@ -78,7 +84,7 @@ export const ThemeButton = styled(Button)`
     gap: 10px;
     background: transparent;
     border: none;
-    color: ${(props) => props.color || props.theme.colors.ctaBorder};
+    color: ${(props) => props.color || getColor("ctaBorder")};
     padding: 0px;
     font-size: 16px;
     font-weight: 700;
@@ -91,7 +97,7 @@ export const ThemeButton = styled(Button)`
     &:active {
       background: transparent !important;
       border: none !important;
-      color: ${Theme.colors.primary};
+      color: ${getColor("primary")};
       text-decoration: none;
       box-shadow: none;
     }
@@ -103,7 +109,7 @@ export const ThemeButton = styled(Button)`
     background: rgba(207, 55, 47, 0.1);
     box-shadow: none;
     border: 1px solid transparent;
-    color: ${Theme.colors.primary};
+    color: ${getColor("primary")};
     padding: 10px 20px;
     font-size: 16px;
     font-weight: 600;
@@ -111,20 +117,20 @@ export const ThemeButton = styled(Button)`
     img {
       width: 30px;
       height: 30px;
-      background: ${Theme.colors.white};
+      background: ${getColor("white")};
       border: 1px solid transparent;
       padding: 7px;
       border-radius: 50%;
       object-fit: contain;
     }
     &:hover {
-      background: ${Theme.colors.primary};
-      color: ${Theme.colors.white};
-      border: 1px solid ${Theme.colors.primary};
+      background: ${getColor("primary")};
+      color: ${getColor("white")};
+      border: 1px solid ${getColor("primary")};
       box-shadow: 0px 0px 10px rgba(207, 55, 47, 0.25);
       img {
-        background: ${Theme.colors.white};
-        border: 1px solid ${Theme.colors.primary};
+        background: ${getColor("white")};
+        border: 1px solid ${getColor("primary")};
       }
     }
     &:active {
@@ -276,14 +282,14 @@ export const InnerBanner = styled.section`
     font-weight: 500;
     opacity: 0.6;
     .ant-breadcrumb-link {
-      color: ${Theme.colors.black};
+      color: ${getColor("black")};
     }
     a {
-      color: ${Theme.colors.black};
+      color: ${getColor("black")};
       text-decoration: none;
       &:hover {
         background: transparent;
-        color: ${Theme.colors.primary};
+        color: ${getColor("primary")};
       }
     }
   }
@@ -291,7 +297,7 @@ export const InnerBanner = styled.section`
     margin: 0;
     font-size: 16px;
     line-height: 24px;
-    color: ${Theme.colors.black};
+    color: ${getColor("black")};
     @media (max-width: 768px) {
       font-size: 14px;
       line-height: 20px;
@@ -358,14 +364,14 @@ export const PartnersSection = styled.section`
 `;
 export const ThemeModal = styled(Modal)`
   .ant-modal-close {
-    background: ${Theme.colors.white};
+    background: ${getColor("white")};
     top: -14px;
     right: -14px;
     border-radius: 50%;
     z-index: 1000;
     svg {
       font-size: 18px;
-      color: ${Theme.colors.black};
+      color: ${getColor("black")};
     }
   }
   .ant-modal-content {

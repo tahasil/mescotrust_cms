@@ -103,8 +103,13 @@ export default async function RootLayout({ children }) {
 
   const colorVars = buildCssVarsFromColors(theme.colors);
   const themeVars = buildThemeCssVars(theme);
+  const palette = theme.themePalette || {};
+  const themePaletteVars = Object.fromEntries(
+    Object.entries(palette).filter(([, v]) => v != null && String(v).trim() !== "").map(([k, v]) => [`--theme-${k}`, v])
+  );
   const cssVars = {
     ...themeVars,
+    ...themePaletteVars,
     ...colorVars,
     "--font-family": theme.bodyFont || theme.fontFamily || "system-ui, sans-serif",
     "--heading-font": theme.headingFont || theme.headingFontFamily || theme.bodyFont || "system-ui, sans-serif",

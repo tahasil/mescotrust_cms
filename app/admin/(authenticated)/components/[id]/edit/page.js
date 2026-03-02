@@ -9,6 +9,7 @@ import {
   Switch,
   Button,
   Card,
+  Collapse,
   message,
   Spin,
   Row,
@@ -41,6 +42,11 @@ export default function AdminComponentEditPage() {
   const [saving, setSaving] = useState(false);
   const [record, setRecord] = useState(null);
   const [themeLoading, setThemeLoading] = useState(false);
+  const [themeColorOptions, setThemeColorOptions] = useState([]);
+  const [themePaletteData, setThemePaletteData] = useState({
+    themePalette: {},
+    colors: [],
+  });
   const [form] = Form.useForm();
 
   const isHeader = record?.componentId === "Header";
@@ -74,9 +80,21 @@ export default function AdminComponentEditPage() {
   useEffect(() => {
     if (!isHeader) return;
     setThemeLoading(true);
-    fetch("/api/theme")
+    fetch("/api/theme", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : {}))
       .then((theme) => {
+        const palette = theme.themePalette || {};
+        const customColors = Array.isArray(theme.colors) ? theme.colors : [];
+        setThemePaletteData({ themePalette: palette, colors: customColors });
+        const names = [
+          ...new Set([
+            ...Object.keys(palette),
+            ...customColors.map((c) => c?.name).filter(Boolean),
+          ]),
+        ].sort();
+        setThemeColorOptions(
+          names.map((name) => ({ label: name, value: name })),
+        );
         form.setFieldsValue({
           siteTitle: theme.siteTitle ?? "Mesco Trust",
           logoType: theme.logoType ?? "text",
@@ -85,11 +103,17 @@ export default function AdminComponentEditPage() {
           headerVolunteerLabel: theme.headerVolunteerLabel ?? "Volunteer",
           headerVolunteerHref: theme.headerVolunteerHref ?? "/volunteer",
           headerVolunteerIconUrl: theme.headerVolunteerIconUrl ?? "",
-          headerVolunteerIconUrlMobile: theme.headerVolunteerIconUrlMobile ?? "",
+          headerVolunteerIconUrlMobile:
+            theme.headerVolunteerIconUrlMobile ?? "",
           headerDonateLabel: theme.headerDonateLabel ?? "Donate Now",
           headerDonateHref: theme.headerDonateHref ?? "/donate",
           headerDonateIconUrl: theme.headerDonateIconUrl ?? "",
           headerDonateIconUrlMobile: theme.headerDonateIconUrlMobile ?? "",
+          headerBgColorKey: theme.headerBgColorKey ?? "headerBg",
+          headerCtaBgColorKey: theme.headerCtaBgColorKey ?? "headerCta",
+          headerCtaTextColorKey: theme.headerCtaTextColorKey ?? "primary",
+          headerDonateBgColorKey: theme.headerDonateBgColorKey ?? "gradient",
+          headerDonateTextColorKey: theme.headerDonateTextColorKey ?? "white",
         });
       })
       .catch(() => message.error("Failed to load theme"))
@@ -124,6 +148,12 @@ export default function AdminComponentEditPage() {
             headerDonateIconUrl: values.headerDonateIconUrl?.trim() || "",
             headerDonateIconUrlMobile:
               values.headerDonateIconUrlMobile?.trim() || "",
+            headerBgColorKey: values.headerBgColorKey ?? "headerBg",
+            headerCtaBgColorKey: values.headerCtaBgColorKey ?? "headerCta",
+            headerCtaTextColorKey: values.headerCtaTextColorKey ?? "primary",
+            headerDonateBgColorKey: values.headerDonateBgColorKey ?? "gradient",
+            headerDonateTextColorKey:
+              values.headerDonateTextColorKey ?? "white",
           }),
         });
         if (!themeRes.ok) {
@@ -215,14 +245,269 @@ export default function AdminComponentEditPage() {
             </Button>
           </div>
         </div>
-        <Card className="mb-4">
+
+        {isHeader && (
+          <>
+            {themeLoading ? (
+              <div style={{ padding: 48, textAlign: "center" }}>
+                <Spin />
+              </div>
+            ) : (
+              <>
+                <Divider />
+                <div className="mt-5">
+                  <HeaderPreviewBlock
+                    form={form}
+                    themePaletteData={themePaletteData}
+                  />
+                </div>
+
+                <Collapse
+                  className="mt-4"
+                  defaultActiveKey={[]}
+                  items={[
+                    {
+                      key: "logo",
+                      label: "Logo",
+                      children: (
+                        <Row gutter={24}>
+                          <Col xs={24} md={8}>
+                            <Form.Item name="logoType" label="Logo type">
+                              <Select options={LOGO_TYPE_OPTIONS} />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <Form.Item
+                              name="siteTitle"
+                              label="Site title (when logo type is Text)"
+                            >
+                              <Input placeholder="Mesco Trust" />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <Form.Item
+                              name="logoLightUrl"
+                              label="Desktop logo image URL"
+                            >
+                              <Input placeholder="/images/logo.svg" />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <Form.Item
+                              name="logoMobileUrl"
+                              label="Mobile logo image URL (optional)"
+                            >
+                              <Input placeholder="/images/logo-mobile.svg" />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+                      ),
+                    },
+                    {
+                      key: "volunteer",
+                      label: "Volunteer button",
+                      children: (
+                        <Row gutter={24}>
+                          <Col xs={24} md={8}>
+                            <Form.Item
+                              name="headerVolunteerLabel"
+                              label="Label (text)"
+                            >
+                              <Input placeholder="Volunteer" />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <Form.Item name="headerVolunteerHref" label="Link">
+                              <Input placeholder="/volunteer" />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <Form.Item
+                              name="headerVolunteerIconUrl"
+                              label="Desktop icon image URL"
+                            >
+                              <Input placeholder="/images/volunteer-icon.svg" />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <Form.Item
+                              name="headerVolunteerIconUrlMobile"
+                              label="Mobile icon image URL (optional)"
+                            >
+                              <Input placeholder="/images/volunteer-icon-mobile.svg" />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <Form.Item
+                              name="headerCtaBgColorKey"
+                              label="Button background color"
+                            >
+                              <Select
+                                options={themeColorOptions}
+                                placeholder="Select from Theme"
+                                style={{ width: "100%" }}
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <Form.Item
+                              name="headerCtaTextColorKey"
+                              label="Button text color"
+                            >
+                              <Select
+                                options={themeColorOptions}
+                                placeholder="Select from Theme"
+                                style={{ width: "100%" }}
+                              />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+                      ),
+                    },
+                    {
+                      key: "donate",
+                      label: "Donate button",
+                      children: (
+                        <Row gutter={24}>
+                          <Col xs={24} md={8}>
+                            <Form.Item
+                              name="headerDonateLabel"
+                              label="Label (text)"
+                            >
+                              <Input placeholder="Donate Now" />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <Form.Item name="headerDonateHref" label="Link">
+                              <Input placeholder="/donate" />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <Form.Item
+                              name="headerDonateIconUrl"
+                              label="Desktop icon image URL"
+                            >
+                              <Input placeholder="/images/donate-now-icon.svg" />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <Form.Item
+                              name="headerDonateIconUrlMobile"
+                              label="Mobile icon image URL (optional)"
+                            >
+                              <Input placeholder="/images/donate-now-icon-mobile.svg" />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <Form.Item
+                              name="headerDonateBgColorKey"
+                              label="Button background color"
+                            >
+                              <Select
+                                options={themeColorOptions}
+                                placeholder="Select from Theme"
+                                style={{ width: "100%" }}
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <Form.Item
+                              name="headerDonateTextColorKey"
+                              label="Button text color"
+                            >
+                              <Select
+                                options={themeColorOptions}
+                                placeholder="Select from Theme"
+                                style={{ width: "100%" }}
+                              />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+                      ),
+                    },
+                    {
+                      key: "colors",
+                      label: "Header colors (mobile menu)",
+                      children: (
+                        <>
+                          <Button
+                            type="default"
+                            size="small"
+                            style={{ marginBottom: 12 }}
+                            onClick={() => {
+                              setThemeLoading(true);
+                              fetch("/api/theme", { cache: "no-store" })
+                                .then((res) => (res.ok ? res.json() : {}))
+                                .then((theme) => {
+                                  const palette = theme.themePalette || {};
+                                  const customColors = Array.isArray(
+                                    theme.colors,
+                                  )
+                                    ? theme.colors
+                                    : [];
+                                  setThemePaletteData({
+                                    themePalette: palette,
+                                    colors: customColors,
+                                  });
+                                  const names = [
+                                    ...new Set([
+                                      ...Object.keys(palette),
+                                      ...customColors
+                                        .map((c) => c?.name)
+                                        .filter(Boolean),
+                                    ]),
+                                  ].sort();
+                                  setThemeColorOptions(
+                                    names.map((name) => ({
+                                      label: name,
+                                      value: name,
+                                    })),
+                                  );
+                                  message.success(
+                                    "Colors list updated from Theme",
+                                  );
+                                })
+                                .catch(() =>
+                                  message.error("Failed to refresh colors"),
+                                )
+                                .finally(() => setThemeLoading(false));
+                            }}
+                            loading={themeLoading}
+                          >
+                            Refresh colors from Theme
+                          </Button>
+                          <Row gutter={24}>
+                            <Col xs={24} md={8}>
+                              <Form.Item
+                                name="headerBgColorKey"
+                                label="Mobile menu / bar background"
+                              >
+                                <Select
+                                  options={themeColorOptions}
+                                  placeholder="Select from Theme"
+                                  style={{ width: "100%" }}
+                                />
+                              </Form.Item>
+                            </Col>
+                          </Row>
+                        </>
+                      ),
+                    },
+                  ]}
+                />
+              </>
+            )}
+          </>
+        )}
+
+        <Card className="mt-4">
           <Row gutter={24}>
-            <Col xs={24} sm={12}>
+            <Col xs={24} sm={12} md={8}>
               <Form.Item name="displayName" label="Display name">
                 <Input placeholder="e.g. Header" />
               </Form.Item>
             </Col>
-            <Col xs={24} sm={12}>
+            <Col xs={24} sm={12} md={8}>
               <Form.Item
                 name="position"
                 label="Position (when shown on all pages)"
@@ -232,220 +517,24 @@ export default function AdminComponentEditPage() {
             </Col>
           </Row>
         </Card>
-
-        {isHeader && (
-          <Card title="Header visual editor">
-            <p style={{ marginBottom: 12, color: "#666", fontSize: 13 }}>
-              Edit logo and buttons below; changes update in the live preview.
-              Click a section to jump to it.
-            </p>
-            {themeLoading ? (
-              <div style={{ padding: 48, textAlign: "center" }}>
-                <Spin />
-              </div>
-            ) : (
-              <>
-                <div style={{ marginBottom: 16 }}>
-                  <div
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: "#666",
-                      marginBottom: 8,
-                    }}
-                  >
-                    Live preview
-                  </div>
-                  <HeaderPreviewBlock form={form} />
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: 8,
-                    marginBottom: 24,
-                  }}
-                >
-                  <Button
-                    type="default"
-                    size="small"
-                    onClick={() =>
-                      document
-                        .getElementById("header-edit-logo")
-                        ?.scrollIntoView({ behavior: "smooth" })
-                    }
-                  >
-                    Edit logo
-                  </Button>
-                  <Button
-                    type="default"
-                    size="small"
-                    onClick={() =>
-                      document
-                        .getElementById("header-edit-volunteer")
-                        ?.scrollIntoView({ behavior: "smooth" })
-                    }
-                  >
-                    Edit Volunteer button
-                  </Button>
-                  <Button
-                    type="default"
-                    size="small"
-                    onClick={() =>
-                      document
-                        .getElementById("header-edit-donate")
-                        ?.scrollIntoView({ behavior: "smooth" })
-                    }
-                  >
-                    Edit Donate button
-                  </Button>
-                </div>
-                <Divider />
-                <div id="header-edit-logo" style={{ scrollMarginTop: 16 }}>
-                  <div
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 600,
-                      color: "#333",
-                      marginBottom: 12,
-                    }}
-                  >
-                    Logo
-                  </div>
-                  <p style={{ marginBottom: 12, color: "#666", fontSize: 12 }}>
-                    Set how the logo appears on desktop and mobile (image URL or
-                    text title).
-                  </p>
-                  <Row gutter={24}>
-                    <Col xs={24} md={12}>
-                      <Form.Item name="logoType" label="Logo type">
-                        <Select options={LOGO_TYPE_OPTIONS} />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        name="siteTitle"
-                        label="Site title (when logo type is Text)"
-                      >
-                        <Input placeholder="Mesco Trust" />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        name="logoLightUrl"
-                        label="Desktop logo image URL"
-                      >
-                        <Input placeholder="/images/logo.svg" />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        name="logoMobileUrl"
-                        label="Mobile logo image URL (optional; uses desktop if empty)"
-                      >
-                        <Input placeholder="/images/logo-mobile.svg" />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-                </div>
-                <Divider />
-                <div id="header-edit-volunteer" style={{ scrollMarginTop: 16 }}>
-                  <div
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 600,
-                      color: "#333",
-                      marginBottom: 12,
-                    }}
-                  >
-                    Volunteer button
-                  </div>
-                  <p style={{ marginBottom: 12, color: "#666", fontSize: 12 }}>
-                    Text label, link, and icon image for desktop and mobile.
-                  </p>
-                  <Row gutter={24}>
-                    <Col xs={24} md={12}>
-                      <Form.Item name="headerVolunteerLabel" label="Label (text)">
-                        <Input placeholder="Volunteer" />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Form.Item name="headerVolunteerHref" label="Link">
-                        <Input placeholder="/volunteer" />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        name="headerVolunteerIconUrl"
-                        label="Desktop icon image URL"
-                      >
-                        <Input placeholder="/images/volunteer-icon.svg" />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        name="headerVolunteerIconUrlMobile"
-                        label="Mobile icon image URL (optional)"
-                      >
-                        <Input placeholder="/images/volunteer-icon-mobile.svg" />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-                </div>
-                <Divider />
-                <div id="header-edit-donate" style={{ scrollMarginTop: 16 }}>
-                  <div
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 600,
-                      color: "#333",
-                      marginBottom: 12,
-                    }}
-                  >
-                    Donate button
-                  </div>
-                  <p style={{ marginBottom: 12, color: "#666", fontSize: 12 }}>
-                    Text label, link, and icon image for desktop and mobile.
-                  </p>
-                  <Row gutter={24}>
-                    <Col xs={24} md={12}>
-                      <Form.Item name="headerDonateLabel" label="Label (text)">
-                        <Input placeholder="Donate Now" />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Form.Item name="headerDonateHref" label="Link">
-                        <Input placeholder="/donate" />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        name="headerDonateIconUrl"
-                        label="Desktop icon image URL"
-                      >
-                        <Input placeholder="/images/donate-now-icon.svg" />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        name="headerDonateIconUrlMobile"
-                        label="Mobile icon image URL (optional)"
-                      >
-                        <Input placeholder="/images/donate-now-icon-mobile.svg" />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-                </div>
-              </>
-            )}
-          </Card>
-        )}
       </Form>
     </>
   );
 }
 
-function HeaderPreviewBlock({ form }) {
+function resolveThemeColorFromPalette(paletteData, key) {
+  if (!key) return "";
+  const palette = paletteData?.themePalette || {};
+  if (palette[key] != null && String(palette[key]).trim() !== "")
+    return String(palette[key]).trim();
+  const custom = paletteData?.colors || [];
+  const found = custom.find(
+    (c) => c && String(c.name).trim() === String(key).trim(),
+  );
+  return found && found.value != null ? String(found.value).trim() : "";
+}
+
+function HeaderPreviewBlock({ form, themePaletteData }) {
   const siteTitle = Form.useWatch("siteTitle", form) ?? "Mesco Trust";
   const logoType = Form.useWatch("logoType", form) ?? "text";
   const logoLightUrl = Form.useWatch("logoLightUrl", form) ?? "";
@@ -462,6 +551,16 @@ function HeaderPreviewBlock({ form }) {
   const donateIconUrl = Form.useWatch("headerDonateIconUrl", form) ?? "";
   const donateIconUrlMobile =
     Form.useWatch("headerDonateIconUrlMobile", form) ?? "";
+  const headerBgColorKey =
+    Form.useWatch("headerBgColorKey", form) ?? "headerBg";
+  const headerCtaBgColorKey =
+    Form.useWatch("headerCtaBgColorKey", form) ?? "headerCta";
+  const headerCtaTextColorKey =
+    Form.useWatch("headerCtaTextColorKey", form) ?? "primary";
+  const headerDonateBgColorKey =
+    Form.useWatch("headerDonateBgColorKey", form) ?? "gradient";
+  const headerDonateTextColorKey =
+    Form.useWatch("headerDonateTextColorKey", form) ?? "white";
 
   return (
     <div
@@ -492,6 +591,26 @@ function HeaderPreviewBlock({ form }) {
         donateHref={donateHref}
         donateIconUrl={donateIconUrl || undefined}
         donateIconUrlMobile={donateIconUrlMobile || undefined}
+        headerBgValue={resolveThemeColorFromPalette(
+          themePaletteData,
+          headerBgColorKey,
+        )}
+        headerCtaBgValue={resolveThemeColorFromPalette(
+          themePaletteData,
+          headerCtaBgColorKey,
+        )}
+        headerCtaTextValue={resolveThemeColorFromPalette(
+          themePaletteData,
+          headerCtaTextColorKey,
+        )}
+        headerDonateBgValue={resolveThemeColorFromPalette(
+          themePaletteData,
+          headerDonateBgColorKey,
+        )}
+        headerDonateTextValue={resolveThemeColorFromPalette(
+          themePaletteData,
+          headerDonateTextColorKey,
+        )}
       />
     </div>
   );

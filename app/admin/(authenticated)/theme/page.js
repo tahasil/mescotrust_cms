@@ -19,12 +19,10 @@ import {
 } from "antd";
 import {
   PlusOutlined,
-  UploadOutlined,
   DeleteOutlined,
+  UploadOutlined,
   BgColorsOutlined,
   PictureOutlined,
-  GlobalOutlined,
-  MobileOutlined,
   CodeOutlined,
   BulbOutlined,
 } from "@ant-design/icons";
@@ -35,26 +33,79 @@ const POPULAR_GOOGLE_FONTS = [
   "PT Sans", "Noto Sans", "Cairo", "Tajawal", "Ubuntu", "Oswald", "Rubik", "Work Sans", "Fira Sans",
 ];
 
+/** Parse hex or rgb/rgba or first hex in gradient to a 6-char hex for the color picker */
+function parseToHex(str) {
+  if (!str || typeof str !== "string") return null;
+  const raw = str.trim();
+  const hexMatch = raw.match(/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/);
+  if (hexMatch) {
+    const h = hexMatch[1];
+    return h.length === 3 ? `#${h[0]}${h[0]}${h[1]}${h[1]}${h[2]}${h[2]}` : `#${h}`;
+  }
+  const rgbMatch = raw.match(/rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*[\d.]+\s*)?\)/);
+  if (rgbMatch) {
+    const r = Math.max(0, Math.min(255, parseInt(rgbMatch[1], 10)));
+    const g = Math.max(0, Math.min(255, parseInt(rgbMatch[2], 10)));
+    const b = Math.max(0, Math.min(255, parseInt(rgbMatch[3], 10)));
+    return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+  }
+  const anyHex = raw.match(/#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})\b/);
+  if (anyHex) {
+    const h = anyHex[1];
+    return h.length === 3 ? `#${h[0]}${h[0]}${h[1]}${h[1]}${h[2]}${h[2]}` : `#${h}`;
+  }
+  return null;
+}
+
+/** Get alpha from rgba string or 1 */
+function parseAlpha(str) {
+  if (!str || typeof str !== "string") return 1;
+  const m = str.trim().match(/rgba\s*\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*([\d.]+)\s*\)/);
+  return m ? parseFloat(m[1]) : 1;
+}
+
+/** Convert #rrggbb to rgba(r,g,b,a) */
+function hexToRgba(hex, a = 1) {
+  const match = String(hex).match(/^#?([0-9A-Fa-f]{6})$/);
+  if (!match) return hex;
+  const r = parseInt(match[1].slice(0, 2), 16);
+  const g = parseInt(match[1].slice(2, 4), 16);
+  const b = parseInt(match[1].slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+}
+
 function ColorCodeInput({ value, onChange, placeholder }) {
   const raw = String(value || "").trim();
-  const isHex = /^#[0-9A-Fa-f]{3,8}$/.test(raw);
-  const pickerHex = isHex
-    ? (raw.length === 4 ? raw.replace(/([0-9a-f])([0-9a-f])([0-9a-f])/i, (_, r, g, b) => `#${r}${r}${g}${g}${b}${b}`) : raw).slice(0, 7)
-    : "#999999";
+  const pickerHex = parseToHex(raw) || "#999999";
+  const wasRgba = /rgba\s*\(/.test(raw);
+  const wasGradient = /linear-gradient|gradient\s*\(/.test(raw);
+  const alpha = parseAlpha(raw);
+
+  const handlePickerChange = (e) => {
+    const hex = e.target.value;
+    if (wasRgba) {
+      onChange(hexToRgba(hex, alpha));
+    } else if (wasGradient && raw) {
+      const firstHex = raw.match(/#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})\b/);
+      onChange(firstHex ? raw.replace(firstHex[0], hex) : hex);
+    } else {
+      onChange(hex);
+    }
+  };
+
   return (
     <Space.Compact style={{ width: "100%", display: "flex" }}>
-      {isHex && (
-        <input
-          type="color"
-          value={pickerHex}
-          onChange={(e) => onChange(e.target.value)}
-          style={{ width: 40, height: 32, padding: 2, border: "1px solid #d9d9d9", borderRadius: 6, cursor: "pointer", flexShrink: 0 }}
-        />
-      )}
+      <input
+        type="color"
+        value={pickerHex}
+        onChange={handlePickerChange}
+        style={{ width: 40, height: 32, padding: 2, border: "1px solid #d9d9d9", borderRadius: 6, cursor: "pointer", flexShrink: 0 }}
+        title="Pick color"
+      />
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder || "e.g. #1890ff, rgb(), linear-gradient(...)"}
+        placeholder={placeholder || "e.g. #1890ff, rgba(...), linear-gradient(...)"}
         style={{ flex: 1, minWidth: 0 }}
       />
     </Space.Compact>
@@ -78,21 +129,8 @@ const initialFormValues = {
   logoImageUrl: "",
   faviconUrl: "",
   footerCopyrightText: "",
-  primaryColor: "",
-  secondaryColor: "",
-  bodyBackground: "",
-  sectionBackground: "",
-  cardBackground: "",
-  headerBackground: "",
-  footerBackground: "",
-  headingColor: "",
-  paragraphColor: "",
-  linkColor: "",
-  hoverColor: "",
-  mutedTextColor: "",
-  borderColor: "",
-  dividerColor: "",
-  inputBorderColor: "",
+  themePalette: {},
+  paletteColors: [],
   colors: [],
   headingFont: "",
   bodyFont: "system-ui, sans-serif",
@@ -125,11 +163,6 @@ const initialFormValues = {
   footerColumnsCount: 4,
   footerLayoutStyle: "default",
   footerSocialIcons: true,
-  buttonBackground: "",
-  buttonTextColor: "",
-  buttonHoverBackground: "",
-  buttonHoverTextColor: "",
-  buttonPadding: "8px 20px",
   cardStyle: "elevated",
   alertStyle: "default",
   badgeStyle: "default",
@@ -161,7 +194,6 @@ export default function AdminThemePage() {
   const [newFont, setNewFont] = useState(null);
   const [uploadedFonts, setUploadedFonts] = useState([]);
   const [fontUploading, setFontUploading] = useState(false);
-  const logoType = Form.useWatch("logoType", form) || "text";
 
   const fetchUploadedFonts = () => {
     fetch("/api/admin/fonts")
@@ -175,7 +207,14 @@ export default function AdminThemePage() {
     fetch("/api/theme")
       .then((res) => (res.ok ? res.json() : {}))
       .then((data) => {
-        form.setFieldsValue({ ...initialFormValues, ...data, colors: Array.isArray(data.colors) ? data.colors : [] });
+        const palette = data.themePalette || {};
+        form.setFieldsValue({
+          ...initialFormValues,
+          ...data,
+          themePalette: palette,
+          paletteColors: Object.entries(palette).map(([key, value]) => ({ key, value })),
+          colors: Array.isArray(data.colors) ? data.colors : [],
+        });
         setGoogleFonts(data.googleFonts || []);
       })
       .catch(() => message.error("Failed to load theme"))
@@ -228,17 +267,29 @@ export default function AdminThemePage() {
   const onFinish = async (values) => {
     setSaving(true);
     try {
+      const payload = {
+        ...values,
+        googleFonts,
+        paletteColors: Array.isArray(values.paletteColors) ? values.paletteColors : [],
+        colors: Array.isArray(values.colors) ? values.colors : [],
+      };
       const res = await fetch("/api/theme", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...values, googleFonts }),
+        body: JSON.stringify(payload),
       });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
         message.error(data.error || "Save failed");
         return;
       }
       message.success("Theme saved");
+      const palette = data.themePalette || {};
+      form.setFieldsValue({
+        ...data,
+        paletteColors: Object.entries(palette).map(([key, value]) => ({ key, value })),
+        colors: Array.isArray(data.colors) ? data.colors : form.getFieldValue("colors") ?? [],
+      });
     } finally {
       setSaving(false);
     }
@@ -246,24 +297,13 @@ export default function AdminThemePage() {
 
   const collapseItems = [
     {
-      key: "brand",
-      label: <span><GlobalOutlined style={{ marginRight: 8 }} />Brand Identity</span>,
+      key: "layout",
+      label: <span><BulbOutlined style={{ marginRight: 8 }} />Layout & Locale</span>,
       children: (
         <div style={{ paddingBlock: 8 }}>
-          <Form.Item name="siteTitle" label="Site Title"><Input placeholder="Mesco Trust" /></Form.Item>
-          <Form.Item name="tagline" label="Tagline"><Input placeholder="Short tagline" /></Form.Item>
-          <Form.Item name="logoType" label="Logo type">
-            <Segmented options={[{ value: "text", label: "Text" }, { value: "image", label: "Image" }]} />
-          </Form.Item>
-          {logoType === "image" && (
-            <>
-              <Form.Item name="logoLightUrl" label="Logo (Light version)"><Input placeholder="https://..." /></Form.Item>
-              <Form.Item name="logoDarkUrl" label="Logo (Dark version)"><Input placeholder="https://..." /></Form.Item>
-              <Form.Item name="logoImageUrl" label="Logo URL (fallback)"><Input placeholder="https://..." /></Form.Item>
-            </>
-          )}
-          <Form.Item name="faviconUrl" label="Favicon"><Input placeholder="https://..." /></Form.Item>
-          <Form.Item name="footerCopyrightText" label="Footer Copyright Text"><Input.TextArea rows={2} placeholder="© 2025 Site Name. All rights reserved." /></Form.Item>
+          <Form.Item name="layoutWidth" label="Container max-width (px)"><InputNumber min={600} max={1920} style={{ width: "100%" }} /></Form.Item>
+          <Form.Item name="defaultLocale" label="Default locale"><Input placeholder="en" /></Form.Item>
+          <Form.Item name="direction" label="Direction"><Select options={[{ value: "ltr", label: "LTR" }, { value: "rtl", label: "RTL" }]} /></Form.Item>
         </div>
       ),
     },
@@ -272,35 +312,62 @@ export default function AdminThemePage() {
       label: <span><BgColorsOutlined style={{ marginRight: 8 }} />Colors</span>,
       children: (
         <div style={{ paddingBlock: 8 }}>
-          <FormColor name="primaryColor" label="Primary Color" placeholder="#1890ff" />
-          <FormColor name="secondaryColor" label="Secondary Color" placeholder="#722ed1" />
-          <Typography.Title level={5} style={{ marginTop: 20, marginBottom: 8 }}>Custom Colors</Typography.Title>
-          <Typography.Paragraph type="secondary" style={{ marginBottom: 12 }}>Add extra colors (hex, rgb, gradient). Shown in block color picker.</Typography.Paragraph>
           <Form.List name="colors">
             {(fields, { add, remove }) => (
               <>
+                {fields.length > 0 && (
+                  <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 8, paddingRight: 40 }}>
+                    <Typography.Text strong style={{ flex: "1 1 140px" }}>Name</Typography.Text>
+                    <Typography.Text strong style={{ flex: "1 1 200px" }}>Value</Typography.Text>
+                    <Typography.Text strong style={{ flex: "0 0 90px", textAlign: "right" }}>Action</Typography.Text>
+                  </div>
+                )}
                 {fields.map(({ key, name }) => (
                   <div key={key} style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
-                    <Form.Item name={[name, "name"]} rules={[{ required: true }]} style={{ marginBottom: 0, flex: "1 1 140px" }}><Input placeholder="Title" /></Form.Item>
-                    <Form.Item name={[name, "value"]} rules={[{ required: true }]} style={{ marginBottom: 0, flex: "1 1 200px" }}><ColorCodeInput /></Form.Item>
-                    <Button type="text" danger icon={<DeleteOutlined />} onClick={() => remove(name)} />
+                    <Form.Item name={[name, "name"]} rules={[{ required: true, message: "Name required" }]} style={{ marginBottom: 0, flex: "1 1 140px" }} label={null}>
+                      <Input placeholder="e.g. accent" />
+                    </Form.Item>
+                    <Form.Item name={[name, "value"]} rules={[{ required: true, message: "Value required" }]} style={{ marginBottom: 0, flex: "1 1 200px" }} label={null}>
+                      <ColorCodeInput placeholder="#hex or rgba(...)" />
+                    </Form.Item>
+                    <Button type="default" danger size="small" icon={<DeleteOutlined />} onClick={() => remove(name)} style={{ flex: "0 0 90px", marginTop: 4 }}>
+                      Delete
+                    </Button>
                   </div>
                 ))}
-                <Button type="dashed" onClick={() => add({ name: "", value: "" })} icon={<PlusOutlined />} style={{ marginTop: 4 }}>Add color</Button>
+                <Button type="dashed" onClick={() => add({ name: "", value: "" })} icon={<PlusOutlined />} style={{ marginTop: 4 }}>
+                  Add color
+                </Button>
               </>
             )}
           </Form.List>
-        </div>
-      ),
-    },
-    {
-      key: "responsive",
-      label: <span><MobileOutlined style={{ marginRight: 8 }} />Responsive</span>,
-      children: (
-        <div style={{ paddingBlock: 8 }}>
-          <Form.Item name="mobileFontSize" label="Mobile Font Size (px, 0 = no override)"><InputNumber min={0} max={24} style={{ width: "100%" }} /></Form.Item>
-          <Form.Item name="mobileSectionSpacing" label="Mobile Section Spacing"><Input placeholder="e.g. 1rem 0" /></Form.Item>
-          <Form.Item name="hideSectionOnMobile" label="Hide Section on Mobile Option" valuePropName="checked"><Switch /></Form.Item>
+
+          <Form.List name="paletteColors">
+            {(fields, { add, remove }) => (
+              <>
+                {fields.length > 0 && (
+                  <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 8, marginTop: 16, paddingRight: 40 }}>
+                    <Typography.Text strong style={{ flex: "1 1 140px" }}>Name</Typography.Text>
+                    <Typography.Text strong style={{ flex: "1 1 200px" }}>Value</Typography.Text>
+                    <Typography.Text strong style={{ flex: "0 0 90px", textAlign: "right" }}>Action</Typography.Text>
+                  </div>
+                )}
+                {fields.map(({ key, name }) => (
+                  <div key={key} style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
+                    <Form.Item name={[name, "key"]} rules={[{ required: true, message: "Name" }]} style={{ marginBottom: 0, flex: "1 1 140px" }} label={null}>
+                      <Input placeholder="e.g. primary, headerBg" />
+                    </Form.Item>
+                    <Form.Item name={[name, "value"]} rules={[{ required: true, message: "Value" }]} style={{ marginBottom: 0, flex: "1 1 200px" }} label={null}>
+                      <ColorCodeInput placeholder="#hex or rgba(...)" />
+                    </Form.Item>
+                    <Button type="default" danger size="small" icon={<DeleteOutlined />} onClick={() => remove(name)} style={{ flex: "0 0 90px", marginTop: 4 }}>
+                      Delete
+                    </Button>
+                  </div>
+                ))}
+              </>
+            )}
+          </Form.List>
         </div>
       ),
     },
@@ -317,26 +384,14 @@ export default function AdminThemePage() {
         </div>
       ),
     },
-    {
-      key: "layout",
-      label: <span><BulbOutlined style={{ marginRight: 8 }} />Layout & Locale</span>,
-      children: (
-        <div style={{ paddingBlock: 8 }}>
-          <Form.Item name="layoutWidth" label="Container max-width (px)"><InputNumber min={600} max={1920} style={{ width: "100%" }} /></Form.Item>
-          <Form.Item name="defaultLocale" label="Default locale"><Input placeholder="en" /></Form.Item>
-          <Form.Item name="direction" label="Direction"><Select options={[{ value: "ltr", label: "LTR" }, { value: "rtl", label: "RTL" }]} /></Form.Item>
-        </div>
-      ),
-    },
   ];
 
   return (
     <>
-      <Typography.Title level={3} style={{ marginBottom: 8 }}>Theme Settings</Typography.Title>
-      <Typography.Paragraph type="secondary" style={{ marginBottom: 24 }}>Control brand identity, global colors, and advanced options.</Typography.Paragraph>
+      <Typography.Title level={3} style={{ marginBottom: 24 }}>Theme Settings</Typography.Title>
       <Card loading={loading}>
         <Form form={form} layout="vertical" onFinish={onFinish} initialValues={initialFormValues} style={{ maxWidth: 720 }}>
-          <Collapse items={collapseItems} defaultActiveKey={["brand", "colors-primary", "layout"]} />
+          <Collapse items={collapseItems} defaultActiveKey={["layout", "colors-primary"]} />
           <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
             <Button type="primary" htmlType="submit" size="large" loading={saving}>Save theme</Button>
           </Form.Item>

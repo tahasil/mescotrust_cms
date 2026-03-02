@@ -5,6 +5,11 @@ import Link from "next/link";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import * as SiteComponents from "@/components/site";
 
+const hasHeaderBlock = (layout) =>
+  Array.isArray(layout) && layout.some((b) => (b?.baseComponent || b?.componentId?.baseComponent) === "Header");
+const layoutWithoutHeaderBlocks = (layout) =>
+  Array.isArray(layout) ? layout.filter((b) => (b?.baseComponent || b?.componentId?.baseComponent) !== "Header") : [];
+
 function PublicHeader({ menuItems, siteTitle, logoType, logoImageUrl, logoLightUrl, logoDarkUrl, sticky, transparent, layout }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openSubmenuKey, setOpenSubmenuKey] = useState(null);
@@ -204,6 +209,11 @@ const headerThemeProps = (props) => ({
   donateHref: props.headerDonateHref,
   donateIconUrl: props.headerDonateIconUrl,
   donateIconUrlMobile: props.headerDonateIconUrlMobile,
+  headerBgValue: props.headerBgValue ?? "",
+  headerCtaBgValue: props.headerCtaBgValue ?? "",
+  headerCtaTextValue: props.headerCtaTextValue ?? "",
+  headerDonateBgValue: props.headerDonateBgValue ?? "",
+  headerDonateTextValue: props.headerDonateTextValue ?? "",
 });
 
 const footerThemeProps = (props) => ({
@@ -241,6 +251,11 @@ export default function PublicShell({
   headerDonateHref,
   headerDonateIconUrl,
   headerDonateIconUrlMobile,
+  headerBgValue,
+  headerCtaBgValue,
+  headerCtaTextValue,
+  headerDonateBgValue,
+  headerDonateTextValue,
   footerColumnsCount,
   footerSocialIcons,
   footerLayoutStyle,
@@ -273,6 +288,11 @@ export default function PublicShell({
     headerDonateHref,
     headerDonateIconUrl,
     headerDonateIconUrlMobile,
+    headerBgValue,
+    headerCtaBgValue,
+    headerCtaTextValue,
+    headerDonateBgValue,
+    headerDonateTextValue,
     footerColumnsCount,
     footerSocialIcons,
     footerLayoutStyle,
@@ -286,24 +306,34 @@ export default function PublicShell({
     return <Comp key={id} {...themeProps} />;
   };
 
+  const useSiteHeaderForLayout =
+    hasCustomHeader && hasHeaderBlock(customHeaderLayout);
+  const headerArea =
+    hasGlobalBefore ? (
+      globalBefore.map((id) => renderGlobalComponent(id, "before"))
+    ) : useSiteHeaderForLayout ? (
+      <SiteComponents.Header key="site-header" {...headerThemeProps(themeProps)} />
+    ) : hasCustomHeader ? (
+      <ComponentRenderer layout={customHeaderLayout} />
+    ) : (
+      <PublicHeader
+        menuItems={headerItems}
+        siteTitle={siteTitle}
+        logoType={logoType}
+        logoImageUrl={logoImageUrl}
+        logoLightUrl={logoLightUrl}
+        logoDarkUrl={logoDarkUrl}
+        sticky={headerSticky}
+        transparent={headerTransparent}
+        layout={headerLayout}
+      />
+    );
+
   return (
     <div className="public-site" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      {hasGlobalBefore ? (
-        globalBefore.map((id) => renderGlobalComponent(id, "before"))
-      ) : hasCustomHeader ? (
-        <ComponentRenderer layout={customHeaderLayout} />
-      ) : (
-        <PublicHeader
-          menuItems={headerItems}
-          siteTitle={siteTitle}
-          logoType={logoType}
-          logoImageUrl={logoImageUrl}
-          logoLightUrl={logoLightUrl}
-          logoDarkUrl={logoDarkUrl}
-          sticky={headerSticky}
-          transparent={headerTransparent}
-          layout={headerLayout}
-        />
+      {headerArea}
+      {useSiteHeaderForLayout && layoutWithoutHeaderBlocks(customHeaderLayout).length > 0 && (
+        <ComponentRenderer layout={layoutWithoutHeaderBlocks(customHeaderLayout)} />
       )}
       <div style={{ flex: 1 }}>{children}</div>
       {hasGlobalAfter ? (

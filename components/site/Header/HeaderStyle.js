@@ -1,5 +1,5 @@
 import styled, { keyframes } from "styled-components";
-import Theme, { BREAKPOINT } from "@/styles/Theme";
+import Theme, { BREAKPOINT, getColor } from "@/styles/Theme";
 
 const dropdownFadeIn = keyframes`
   from {
@@ -27,10 +27,13 @@ export const HeaderWrapper = styled.header`
   left: 0;
   right: 0;
   width: 100%;
-  background: ${(props) => (props.$preview ? "rgba(255, 255, 255, 0.98)" : "transparent")};
+  background: ${(props) =>
+    props.$preview ? "rgba(255, 255, 255, 0.98)" : "transparent"};
   padding: 16px 0;
   z-index: ${(props) => (props.$preview ? 0 : 1000)};
-  transition: background 0.25s ease, box-shadow 0.25s ease;
+  transition:
+    background 0.25s ease,
+    box-shadow 0.25s ease;
   @media (max-width: ${BREAKPOINT}) {
     padding: 12px 0;
   }
@@ -82,7 +85,7 @@ export const NavItem = styled.div`
 `;
 
 export const NavLink = styled.a`
-  color: ${Theme.colors.black};
+  color: ${getColor("black")};
   text-decoration: none;
   font-size: 0.95rem;
   font-weight: 500;
@@ -92,7 +95,7 @@ export const NavLink = styled.a`
   transition: color 0.2s ease;
   cursor: pointer;
   &:hover {
-    color: ${Theme.colors.black};
+    color: ${getColor("black")};
   }
 `;
 
@@ -102,7 +105,7 @@ export const Dropdown = styled.div`
   left: 50%;
   transform: translateX(-50%);
   min-width: 260px;
-  background: ${Theme.colors.white};
+  background: ${getColor("white")};
   border-radius: 0 0 8px 8px;
   padding: 0;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
@@ -110,7 +113,9 @@ export const Dropdown = styled.div`
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.2s ease, visibility 0.2s;
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s;
   z-index: 1001;
   ${NavItem}:hover & {
     opacity: 1;
@@ -123,14 +128,16 @@ export const Dropdown = styled.div`
 export const DropdownItem = styled.a`
   display: block;
   padding: 10px 20px;
-  color: ${Theme.colors.black};
+  color: ${getColor("black")};
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
   &:hover {
     background: #f5f5f5;
-    color: ${Theme.colors.black};
+    color: ${getColor("black")};
     &:last-child {
       border-radius: 0 0 8px 8px;
     }
@@ -144,7 +151,7 @@ export const DropdownLabel = styled.span`
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: ${Theme.colors.black};
+  color: ${getColor("black")};
 `;
 
 export const DropdownParentRow = styled.div`
@@ -157,11 +164,13 @@ export const DropdownParentTrigger = styled.span`
   align-items: center;
   justify-content: space-between;
   padding: 10px 20px;
-  color: ${Theme.colors.black};
+  color: ${getColor("black")};
   font-size: 0.9rem;
   font-weight: 500;
   cursor: default;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
   ${DropdownParentRow}:hover & {
     background: #f5f5f5;
   }
@@ -177,7 +186,7 @@ export const DropdownSubmenu = styled.div`
   top: 0;
   left: 100%;
   min-width: 240px;
-  background: ${Theme.colors.white};
+  background: ${getColor("white")};
   border-radius: 0 8px 8px 8px;
   padding: 0;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
@@ -186,7 +195,9 @@ export const DropdownSubmenu = styled.div`
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.2s ease, visibility 0.2s;
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s;
   z-index: 1002;
   ${DropdownParentRow}:hover & {
     opacity: 1;
@@ -223,7 +234,10 @@ export const Btn = styled.a`
   font-size: 0.9rem;
   font-weight: 600;
   text-decoration: none;
-  transition: background 0.2s, box-shadow 0.2s, filter 0.2s;
+  transition:
+    background 0.2s,
+    box-shadow 0.2s,
+    filter 0.2s;
   border: none;
   &:hover {
     filter: brightness(1.05);
@@ -252,8 +266,8 @@ export const IconWrap = styled.span`
 `;
 
 export const BtnVolunteer = styled(Btn)`
-  background: ${Theme.colors.headerCta};
-  color: ${Theme.colors.primary};
+  background: ${(props) => props.$headerCtaBgValue || "rgba(207, 55, 47, 0.1)"};
+  color: ${(props) => props.$headerCtaTextValue || "#CF372F"};
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border-radius: 30px;
   &:hover {
@@ -262,12 +276,12 @@ export const BtnVolunteer = styled(Btn)`
 `;
 
 export const BtnDonate = styled(Btn)`
-  background: ${Theme.colors.gradient};
-  color: ${Theme.colors.white};
+  background: ${(props) => props.$headerDonateBgValue || "linear-gradient(90deg, #CF372F 0%, #691C18 100%)"};
+  color: ${(props) => props.$headerDonateTextValue || "#FFFFFF"};
   box-shadow: 0 4px 14px rgba(139, 34, 32, 0.35);
   border-radius: 30px;
   &:hover {
-    color: ${Theme.colors.white};
+    color: ${(props) => props.$headerDonateTextValue || "#FFFFFF"};
     box-shadow: 0 4px 18px rgba(139, 34, 32, 0.45);
   }
 `;
@@ -282,7 +296,7 @@ export const HamburgerBtn = styled.button`
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: ${Theme.colors.black};
+  color: ${getColor("black")};
   cursor: pointer;
   transition: background 0.2s;
   &:hover {
@@ -301,7 +315,9 @@ export const MobileOverlay = styled.div`
   z-index: ${(props) => (props.$preview ? 1 : 1002)};
   opacity: ${(props) => (props.$open ? 1 : 0)};
   visibility: ${(props) => (props.$open ? "visible" : "hidden")};
-  transition: opacity 0.2s, visibility 0.2s;
+  transition:
+    opacity 0.2s,
+    visibility 0.2s;
   @media (max-width: ${BREAKPOINT}) {
     display: block;
   }
@@ -314,7 +330,7 @@ export const MobileMenu = styled.div`
   right: 0;
   bottom: 0;
   width: min(320px, 85vw);
-  background: ${Theme.colors.headerBg};
+  background: ${(props) => props.$headerBgValue || "rgba(5, 5, 5, 0.98)"};
   box-shadow: -4px 0 24px rgba(0, 0, 0, 0.3);
   z-index: ${(props) => (props.$preview ? 2 : 1003)};
   padding: 80px 24px 24px;
@@ -325,7 +341,7 @@ export const MobileMenu = styled.div`
   @media (max-width: ${BREAKPOINT}) {
     display: block;
     padding: 20px;
-    background: ${Theme.colors.white};
+    background: ${(props) => props.$headerBgValue || "#FFFFFF"};
   }
 `;
 
@@ -334,13 +350,13 @@ export const MobileMenuHeader = styled.div`
   align-items: center;
   justify-content: space-between;
   padding-bottom: 20px;
-  border-bottom: 1px solid ${Theme.colors.themeBorder};
+  border-bottom: 1px solid ${getColor("themeBorder")};
 `;
 
 export const MobileMenuLogo = styled.a`
   display: block;
   text-decoration: none;
-  color: ${Theme.colors.black};
+  color: ${getColor("black")};
   img {
     display: block;
     max-height: 40px;
@@ -359,7 +375,7 @@ export const MobileMenuCloseBtn = styled.button`
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: ${Theme.colors.black};
+  color: ${getColor("black")};
   cursor: pointer;
   transition: background 0.2s;
   &:hover {
@@ -376,18 +392,18 @@ export const MobileNav = styled.nav`
 export const MobileNavLink = styled.a`
   display: block;
   padding: 14px 0;
-  color: ${Theme.colors.black};
+  color: ${getColor("black")};
   text-decoration: none;
   font-size: 1rem;
   font-weight: 500;
-  border-bottom: 1px solid ${Theme.colors.themeBorder};
+  border-bottom: 1px solid ${getColor("themeBorder")};
   &:hover {
     opacity: 0.9;
   }
 `;
 
 export const MobileNavItem = styled.div`
-  border-bottom: 1px solid ${Theme.colors.themeBorder};
+  border-bottom: 1px solid ${getColor("themeBorder")};
 `;
 
 export const MobileAccordionTrigger = styled.button`
@@ -398,7 +414,7 @@ export const MobileAccordionTrigger = styled.button`
   padding: 14px 0;
   background: none;
   border: none;
-  color: ${Theme.colors.black};
+  color: ${getColor("black")};
   font-size: 1rem;
   font-weight: 500;
   text-align: left;
@@ -423,7 +439,7 @@ export const MobileAccordionContent = styled.div`
 export const MobileNavLabel = styled.span`
   display: block;
   padding: 12px 0 6px;
-  color: ${Theme.colors.black};
+  color: ${getColor("black")};
   font-size: 1rem;
   font-weight: 500;
   opacity: 0.9;
@@ -433,11 +449,11 @@ export const MobileNavLabel = styled.span`
 export const MobileSubLink = styled.a`
   display: block;
   padding: 10px 0 10px 16px;
-  color: ${Theme.colors.black};
+  color: ${getColor("black")};
   text-decoration: none;
   font-size: 0.9rem;
   &:hover {
-    color: ${Theme.colors.black};
+    color: ${getColor("black")};
   }
 `;
 
@@ -459,13 +475,13 @@ export const MobileBtn = styled(Btn)`
 `;
 
 export const MobileBtnVolunteer = styled(MobileBtn)`
-  background: ${Theme.colors.headerCta};
-  color: ${Theme.colors.primary};
+  background: ${(props) => props.$headerCtaBgValue || "rgba(207, 55, 47, 0.1)"};
+  color: ${(props) => props.$headerCtaTextValue || "#CF372F"};
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 `;
 
 export const MobileBtnDonate = styled(MobileBtn)`
-  background: ${Theme.colors.gradient};
-  color: ${Theme.colors.white};
+  background: ${(props) => props.$headerDonateBgValue || "linear-gradient(90deg, #CF372F 0%, #691C18 100%)"};
+  color: ${(props) => props.$headerDonateTextValue || "#FFFFFF"};
   box-shadow: 0 4px 14px rgba(139, 34, 32, 0.35);
 `;

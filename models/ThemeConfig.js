@@ -45,6 +45,8 @@ const themeConfigSchema = new mongoose.Schema(
     inputBorderColor: { type: String, default: "" },
     // Extra custom colors (name + value)
     colors: { type: [themeColorSchema], default: [] },
+    // Theme.js palette (used by Header, Footer, styled components). Mixed so names can be renamed.
+    themePalette: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
 
     // ─── 3. Typography ──────────────────────────────────────────
     headingFont: { type: String, default: "" },
@@ -91,6 +93,11 @@ const themeConfigSchema = new mongoose.Schema(
     headerDonateHref: { type: String, default: "/donate" },
     headerDonateIconUrl: { type: String, default: "" },
     headerDonateIconUrlMobile: { type: String, default: "" },
+    headerBgColorKey: { type: String, default: "headerBg" },
+    headerCtaBgColorKey: { type: String, default: "headerCta" },
+    headerCtaTextColorKey: { type: String, default: "primary" },
+    headerDonateBgColorKey: { type: String, default: "gradient" },
+    headerDonateTextColorKey: { type: String, default: "white" },
     megaMenu: { type: Boolean, default: false },
     dropdownStyle: { type: String, enum: ["default", "minimal", "card"], default: "default" },
     mobileMenuStyle: { type: String, enum: ["drawer", "fullscreen", "dropdown"], default: "drawer" },
