@@ -110,6 +110,7 @@ const themeConfigSchema = new mongoose.Schema(
     footerCol1Links: { type: mongoose.Schema.Types.Mixed, default: () => [] },
     footerCol2Links: { type: mongoose.Schema.Types.Mixed, default: () => [] },
     footerBgColorKey: { type: String, default: "" },
+    footerBackgroundImageUrl: { type: String, default: "" },
     footerTextColorKey: { type: String, default: "" },
     footerCopyrightBarColorKey: { type: String, default: "" },
     footerColumnsCount: { type: Number, default: 4 },

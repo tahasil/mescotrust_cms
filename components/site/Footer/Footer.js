@@ -24,6 +24,7 @@ export default function Footer({
   footerCol2Links = [],
   footerCopyrightText = "",
   footerBgValue = "",
+  footerBackgroundImageUrl = "",
   footerTextValue = "",
   footerCopyrightBarValue = "",
   preview = false,
@@ -47,6 +48,7 @@ export default function Footer({
   return (
     <FooterContainer
       $footerBgValue={footerBgValue}
+      $footerBackgroundImageUrl={footerBackgroundImageUrl?.trim() || ""}
       $footerTextValue={footerTextValue}
     >
       <FooterInner>

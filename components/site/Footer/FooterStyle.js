@@ -4,9 +4,12 @@ import { getColor } from "@/styles/Theme";
 export const FooterContainer = styled.footer`
   width: 100%;
   position: relative;
-  background: ${(props) =>
+  background-color: ${(props) =>
     props.$footerBgValue || getColor("black")};
-  background-size: cover;
+  ${(props) =>
+    props.$footerBackgroundImageUrl
+      ? `background-image: url(${props.$footerBackgroundImageUrl}); background-size: cover; background-position: center;`
+      : ""}
   color: ${(props) =>
     props.$footerTextValue || getColor("white")};
   ul {

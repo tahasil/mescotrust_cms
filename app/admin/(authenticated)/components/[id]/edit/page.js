@@ -53,6 +53,7 @@ export default function AdminComponentEditPage() {
   const [themeHeaderSnapshot, setThemeHeaderSnapshot] = useState(null);
   const [themeFooterSnapshot, setThemeFooterSnapshot] = useState(null);
   const [form] = Form.useForm();
+  const footerBgType = Form.useWatch("footerBgType", form);
 
   const isHeader = record?.componentId === "Header";
   const isFooter = record?.componentId === "Footer";
@@ -165,6 +166,7 @@ export default function AdminComponentEditPage() {
           footerCol2Links: Array.isArray(theme.footerCol2Links) ? theme.footerCol2Links : [],
           footerCopyrightText: theme.footerCopyrightText ?? "",
           footerBgColorKey: theme.footerBgColorKey ?? "",
+          footerBackgroundImageUrl: theme.footerBackgroundImageUrl ?? "",
           footerTextColorKey: theme.footerTextColorKey ?? "",
           footerCopyrightBarColorKey: theme.footerCopyrightBarColorKey ?? "",
         });
@@ -184,6 +186,8 @@ export default function AdminComponentEditPage() {
           footerCol2Links: Array.isArray(theme.footerCol2Links) ? theme.footerCol2Links : [],
           footerCopyrightText: theme.footerCopyrightText ?? "",
           footerBgColorKey: theme.footerBgColorKey ?? "",
+          footerBackgroundImageUrl: theme.footerBackgroundImageUrl ?? "",
+          footerBgType: (theme.footerBackgroundImageUrl && String(theme.footerBackgroundImageUrl).trim()) ? "image" : "color",
           footerTextColorKey: theme.footerTextColorKey ?? "",
           footerCopyrightBarColorKey: theme.footerCopyrightBarColorKey ?? "",
         });
@@ -252,7 +256,8 @@ export default function AdminComponentEditPage() {
             footerCol1Links: col1.map((it) => ({ label: it?.label ?? "", url: it?.url ?? "" })),
             footerCol2Links: col2.map((it) => ({ label: it?.label ?? "", url: it?.url ?? "" })),
             footerCopyrightText: (allValues.footerCopyrightText && String(allValues.footerCopyrightText).trim()) ? String(allValues.footerCopyrightText).trim() : "",
-            footerBgColorKey: allValues.footerBgColorKey ?? "",
+            footerBgColorKey: allValues.footerBgType === "image" ? "" : (allValues.footerBgColorKey ?? ""),
+            footerBackgroundImageUrl: allValues.footerBgType === "image" ? ((allValues.footerBackgroundImageUrl && String(allValues.footerBackgroundImageUrl).trim()) ? String(allValues.footerBackgroundImageUrl).trim() : "") : "",
             footerTextColorKey: allValues.footerTextColorKey ?? "",
             footerCopyrightBarColorKey: allValues.footerCopyrightBarColorKey ?? "",
           }),
@@ -273,12 +278,15 @@ export default function AdminComponentEditPage() {
           footerCol2Links: Array.isArray(savedTheme.footerCol2Links) ? savedTheme.footerCol2Links : [],
           footerCopyrightText: savedTheme.footerCopyrightText ?? "",
           footerBgColorKey: savedTheme.footerBgColorKey ?? "",
+          footerBackgroundImageUrl: savedTheme.footerBackgroundImageUrl ?? "",
+          footerBgType: (savedTheme.footerBackgroundImageUrl && String(savedTheme.footerBackgroundImageUrl).trim()) ? "image" : "color",
           footerTextColorKey: savedTheme.footerTextColorKey ?? "",
           footerCopyrightBarColorKey: savedTheme.footerCopyrightBarColorKey ?? "",
         });
         setThemeFooterSnapshot((prev) => (prev ? {
           ...prev,
           footerLogoUrl: savedTheme.footerLogoUrl ?? footerLogoUrl ?? "",
+          footerBackgroundImageUrl: savedTheme.footerBackgroundImageUrl ?? "",
         } : prev));
       }
 
@@ -768,18 +776,36 @@ export default function AdminComponentEditPage() {
                       children: (
                         <Row gutter={24}>
                           <Col xs={24} md={8}>
-                            <Form.Item name="footerBgColorKey" label="Background color (theme key)">
-                              <Select options={themeColorOptions} placeholder="Select from Theme" style={{ width: "100%" }} />
+                            <Form.Item name="footerBgType" label="Footer background">
+                              <Select
+                                options={[
+                                  { value: "color", label: "Color" },
+                                  { value: "image", label: "Image" },
+                                ]}
+                                placeholder="Select"
+                                style={{ width: "100%" }}
+                              />
                             </Form.Item>
                           </Col>
                           <Col xs={24} md={8}>
-                            <Form.Item name="footerTextColorKey" label="Text color (theme key)">
-                              <Select options={themeColorOptions} placeholder="Select from Theme" style={{ width: "100%" }} />
+                            {footerBgType === "image" ? (
+                              <Form.Item name="footerBackgroundImageUrl" label="Background image URL">
+                                <Input placeholder="e.g. /images/footer-bg.svg or full URL" />
+                              </Form.Item>
+                            ) : (
+                              <Form.Item name="footerBgColorKey" label="Background color (from Admin → Theme)">
+                                <Select options={themeColorOptions} placeholder="Select color from Theme" style={{ width: "100%" }} allowClear />
+                              </Form.Item>
+                            )}
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <Form.Item name="footerTextColorKey" label="Text & links color (from Admin → Theme)">
+                              <Select options={themeColorOptions} placeholder="Select color from Theme" style={{ width: "100%" }} allowClear />
                             </Form.Item>
                           </Col>
                           <Col xs={24} md={8}>
-                            <Form.Item name="footerCopyrightBarColorKey" label="Copyright bar color (theme key)">
-                              <Select options={themeColorOptions} placeholder="Select from Theme" style={{ width: "100%" }} />
+                            <Form.Item name="footerCopyrightBarColorKey" label="Copyright bar color (from Admin → Theme)">
+                              <Select options={themeColorOptions} placeholder="Select color from Theme" style={{ width: "100%" }} allowClear />
                             </Form.Item>
                           </Col>
                         </Row>
@@ -949,6 +975,7 @@ function FooterPreviewBlock({ form, themePaletteData, themeFooterSnapshot }) {
   const footerCol2Links = Form.useWatch("footerCol2Links", form) || s?.footerCol2Links || [];
   const footerCopyrightText = Form.useWatch("footerCopyrightText", form) || s?.footerCopyrightText || "";
   const footerBgColorKey = Form.useWatch("footerBgColorKey", form) || s?.footerBgColorKey || "";
+  const footerBackgroundImageUrl = Form.useWatch("footerBackgroundImageUrl", form) || s?.footerBackgroundImageUrl || "";
   const footerTextColorKey = Form.useWatch("footerTextColorKey", form) || s?.footerTextColorKey || "";
   const footerCopyrightBarColorKey = Form.useWatch("footerCopyrightBarColorKey", form) || s?.footerCopyrightBarColorKey || "";
 
@@ -976,6 +1003,7 @@ function FooterPreviewBlock({ form, themePaletteData, themeFooterSnapshot }) {
         footerCol2Links={Array.isArray(footerCol2Links) ? footerCol2Links : []}
         footerCopyrightText={footerCopyrightText}
         footerBgValue={resolveThemeColorFromPalette(themePaletteData, footerBgColorKey)}
+        footerBackgroundImageUrl={footerBackgroundImageUrl}
         footerTextValue={resolveThemeColorFromPalette(themePaletteData, footerTextColorKey)}
         footerCopyrightBarValue={resolveThemeColorFromPalette(themePaletteData, footerCopyrightBarColorKey)}
       />

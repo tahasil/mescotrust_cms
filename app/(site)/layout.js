@@ -74,6 +74,7 @@ export default async function SiteLayout({ children }) {
         footerCol1Links={theme.footerCol1Links || []}
         footerCol2Links={theme.footerCol2Links || []}
         footerBgValue={resolveThemeColor(theme, footerBgKey)}
+        footerBackgroundImageUrl={theme.footerBackgroundImageUrl || ""}
         footerTextValue={resolveThemeColor(theme, footerTextKey)}
         footerCopyrightBarValue={resolveThemeColor(theme, footerCopyrightBarKey)}
       >
