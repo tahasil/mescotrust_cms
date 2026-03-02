@@ -154,7 +154,7 @@ const DEFAULTS = {
   footerCol1Links: [],
   footerCol2Links: [],
   footerBgColorKey: "",
-  footerBackgroundImageUrl: "",
+  footerBackgroundImageUrl: "/uploads/1772449953147_footer-bg.svg",
   footerTextColorKey: "",
   footerCopyrightBarColorKey: "",
   footerColumnsCount: 4,
@@ -228,10 +228,19 @@ function normalizeTheme(theme) {
 export async function GET() {
   try {
     await connectDB();
-    let theme = await ThemeConfig.findOne().lean();
-    return NextResponse.json(normalizeTheme(theme));
+    const theme = await ThemeConfig.findOne().sort({ updatedAt: -1 }).lean();
+    const normalized = normalizeTheme(theme);
+    if (theme && theme.footerBackgroundImageUrl != null) {
+      normalized.footerBackgroundImageUrl = String(theme.footerBackgroundImageUrl).trim();
+    }
+    return NextResponse.json(normalized, {
+      headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+    });
   } catch {
-    return NextResponse.json(DEFAULTS, { status: 200 });
+    return NextResponse.json(DEFAULTS, {
+      status: 200,
+      headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+    });
   }
 }
 
@@ -243,7 +252,7 @@ export async function PUT(req) {
   try {
     const body = await req.json();
     await connectDB();
-    let theme = await ThemeConfig.findOne();
+    let theme = await ThemeConfig.findOne().sort({ updatedAt: -1 });
     if (!theme) {
       theme = await ThemeConfig.create({ ...DEFAULTS, ...body });
     } else {
@@ -254,24 +263,32 @@ export async function PUT(req) {
         theme.footerLogoUrl = typeof body.footerLogoUrl === "string" ? body.footerLogoUrl : String(body.footerLogoUrl || "");
         theme.markModified("footerLogoUrl");
       }
+      if (body.footerBackgroundImageUrl !== undefined) {
+        theme.footerBackgroundImageUrl = typeof body.footerBackgroundImageUrl === "string" ? body.footerBackgroundImageUrl : String(body.footerBackgroundImageUrl || "");
+        theme.markModified("footerBackgroundImageUrl");
+      }
       if (Array.isArray(body.paletteColors)) {
         theme.themePalette = Object.fromEntries(
           body.paletteColors.filter((p) => p && String(p.key).trim()).map((p) => [String(p.key).trim(), p.value])
         );
         theme.markModified("themePalette");
       } else if (body.themePalette && typeof body.themePalette === "object") {
-        const current = theme.themePalette?.toObject?.() || theme.themePalette || {};
+        const current = theme.themePalette?.toObject?.() || theme.themePalette || {}; 
         theme.themePalette = { ...current, ...body.themePalette };
         theme.markModified("themePalette");
       }
       await theme.save();
 
-      // Force-persist footerLogoUrl via direct update (ensures DB write)
+      // Force-persist footerLogoUrl and footerBackgroundImageUrl via direct update (ensures DB write)
+      const footerUpdates = {};
       if (body.footerLogoUrl !== undefined) {
-        await ThemeConfig.updateOne(
-          {},
-          { $set: { footerLogoUrl: typeof body.footerLogoUrl === "string" ? body.footerLogoUrl : String(body.footerLogoUrl || "") } }
-        );
+        footerUpdates.footerLogoUrl = typeof body.footerLogoUrl === "string" ? body.footerLogoUrl : String(body.footerLogoUrl || "");
+      }
+      if (body.footerBackgroundImageUrl !== undefined) {
+        footerUpdates.footerBackgroundImageUrl = typeof body.footerBackgroundImageUrl === "string" ? body.footerBackgroundImageUrl : String(body.footerBackgroundImageUrl || "");
+      }
+      if (Object.keys(footerUpdates).length > 0 && theme._id) {
+        await ThemeConfig.updateOne({ _id: theme._id }, { $set: footerUpdates });
       }
     }
 
@@ -290,7 +307,14 @@ export async function PUT(req) {
     }
 
     revalidatePath("/", "layout");
-    const saved = await ThemeConfig.findOne().lean();
+    const saved = await ThemeConfig.findOne().sort({ updatedAt: -1 }).lean();
+    // Ensure response includes footer fields we just saved (avoids stale read / missing keys)
+    if (saved && body.footerBackgroundImageUrl !== undefined) {
+      saved.footerBackgroundImageUrl = typeof body.footerBackgroundImageUrl === "string" ? body.footerBackgroundImageUrl : String(body.footerBackgroundImageUrl || "");
+    }
+    if (saved && body.footerLogoUrl !== undefined) {
+      saved.footerLogoUrl = typeof body.footerLogoUrl === "string" ? body.footerLogoUrl : String(body.footerLogoUrl || "");
+    }
     return NextResponse.json(normalizeTheme(saved));
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });

@@ -6,10 +6,12 @@ export const FooterContainer = styled.footer`
   position: relative;
   background-color: ${(props) =>
     props.$footerBgValue || getColor("black")};
-  ${(props) =>
-    props.$footerBackgroundImageUrl
-      ? `background-image: url(${props.$footerBackgroundImageUrl}); background-size: cover; background-position: center;`
-      : ""}
+  ${(props) => {
+    const url = props.$footerBackgroundImageUrl;
+    if (!url || typeof url !== "string" || !url.trim()) return "";
+    const safe = url.trim().replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+    return `background-image: url("${safe}"); background-size: cover; background-position: center;`;
+  }}
   color: ${(props) =>
     props.$footerTextValue || getColor("white")};
   ul {

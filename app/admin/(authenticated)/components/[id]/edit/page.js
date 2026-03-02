@@ -16,7 +16,7 @@ import {
   Col,
   Divider,
 } from "antd";
-import { ArrowLeftOutlined, SaveOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, SaveOutlined, DeleteOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 
@@ -187,7 +187,9 @@ export default function AdminComponentEditPage() {
           footerCopyrightText: theme.footerCopyrightText ?? "",
           footerBgColorKey: theme.footerBgColorKey ?? "",
           footerBackgroundImageUrl: theme.footerBackgroundImageUrl ?? "",
-          footerBgType: (theme.footerBackgroundImageUrl && String(theme.footerBackgroundImageUrl).trim()) ? "image" : "color",
+          footerBgType: (theme.footerBackgroundImageUrl && String(theme.footerBackgroundImageUrl).trim())
+            ? "image"
+            : (theme.footerBgColorKey && String(theme.footerBgColorKey).trim() ? "color" : "image"),
           footerTextColorKey: theme.footerTextColorKey ?? "",
           footerCopyrightBarColorKey: theme.footerCopyrightBarColorKey ?? "",
         });
@@ -257,7 +259,9 @@ export default function AdminComponentEditPage() {
             footerCol2Links: col2.map((it) => ({ label: it?.label ?? "", url: it?.url ?? "" })),
             footerCopyrightText: (allValues.footerCopyrightText && String(allValues.footerCopyrightText).trim()) ? String(allValues.footerCopyrightText).trim() : "",
             footerBgColorKey: allValues.footerBgType === "image" ? "" : (allValues.footerBgColorKey ?? ""),
-            footerBackgroundImageUrl: allValues.footerBgType === "image" ? ((allValues.footerBackgroundImageUrl && String(allValues.footerBackgroundImageUrl).trim()) ? String(allValues.footerBackgroundImageUrl).trim() : "") : "",
+            footerBackgroundImageUrl: allValues.footerBgType === "image"
+              ? (allValues.footerBackgroundImageUrl != null ? String(allValues.footerBackgroundImageUrl).trim() : "")
+              : "",
             footerTextColorKey: allValues.footerTextColorKey ?? "",
             footerCopyrightBarColorKey: allValues.footerCopyrightBarColorKey ?? "",
           }),
@@ -269,6 +273,9 @@ export default function AdminComponentEditPage() {
           return;
         }
         const savedTheme = await themeRes.json().catch(() => ({}));
+        const savedBgImage = savedTheme.footerBackgroundImageUrl != null ? String(savedTheme.footerBackgroundImageUrl).trim() : "";
+        const savedBgColorKey = savedTheme.footerBgColorKey != null ? String(savedTheme.footerBgColorKey).trim() : "";
+        const savedBgType = savedBgImage ? "image" : (savedBgColorKey ? "color" : "image");
         form.setFieldsValue({
           footerLogoUrl: savedTheme.footerLogoUrl ?? footerLogoUrl ?? "",
           footerAddress: savedTheme.footerAddress ?? "",
@@ -279,7 +286,7 @@ export default function AdminComponentEditPage() {
           footerCopyrightText: savedTheme.footerCopyrightText ?? "",
           footerBgColorKey: savedTheme.footerBgColorKey ?? "",
           footerBackgroundImageUrl: savedTheme.footerBackgroundImageUrl ?? "",
-          footerBgType: (savedTheme.footerBackgroundImageUrl && String(savedTheme.footerBackgroundImageUrl).trim()) ? "image" : "color",
+          footerBgType: savedBgType,
           footerTextColorKey: savedTheme.footerTextColorKey ?? "",
           footerCopyrightBarColorKey: savedTheme.footerCopyrightBarColorKey ?? "",
         });
@@ -689,7 +696,7 @@ export default function AdminComponentEditPage() {
                       children: (
                         <>
                           <p style={{ marginBottom: 12, color: "#666", fontSize: 12 }}>
-                            Add: click &quot;+ Add link&quot;. Update: edit Link text and URL in each row. Delete: click &quot;Remove&quot; on a row.
+                            Add: click &quot;+ Add link&quot;. Update: edit Link text and URL in each row. Delete: click the delete icon on a row.
                           </p>
                           <Form.List name="footerCol1Links">
                             {(fields, { add, remove }) => (
@@ -707,7 +714,7 @@ export default function AdminComponentEditPage() {
                                       </Form.Item>
                                     </Col>
                                     <Col xs={24} md={6}>
-                                      <Button type="text" danger onClick={() => remove(name)} style={{ marginTop: 4 }}>Remove</Button>
+                                      <Button type="text" danger onClick={() => remove(name)} style={{ marginTop: 4 }} icon={<DeleteOutlined />} aria-label="Remove link" />
                                     </Col>
                                   </Row>
                                 ))}
@@ -726,7 +733,7 @@ export default function AdminComponentEditPage() {
                       children: (
                         <>
                           <p style={{ marginBottom: 12, color: "#666", fontSize: 12 }}>
-                            Add: click &quot;+ Add link&quot;. Update: edit Link text and URL in each row. Delete: click &quot;Remove&quot; on a row.
+                            Add: click &quot;+ Add link&quot;. Update: edit Link text and URL in each row. Delete: click the delete icon on a row.
                           </p>
                           <Form.List name="footerCol2Links">
                             {(fields, { add, remove }) => (
@@ -744,7 +751,7 @@ export default function AdminComponentEditPage() {
                                       </Form.Item>
                                     </Col>
                                     <Col xs={24} md={6}>
-                                      <Button type="text" danger onClick={() => remove(name)} style={{ marginTop: 4 }}>Remove</Button>
+                                      <Button type="text" danger onClick={() => remove(name)} style={{ marginTop: 4 }} icon={<DeleteOutlined />} aria-label="Remove link" />
                                     </Col>
                                   </Row>
                                 ))}
@@ -790,21 +797,21 @@ export default function AdminComponentEditPage() {
                           <Col xs={24} md={8}>
                             {footerBgType === "image" ? (
                               <Form.Item name="footerBackgroundImageUrl" label="Background image URL">
-                                <Input placeholder="e.g. /images/footer-bg.svg or full URL" />
+                                <Input placeholder="/uploads/1772449953147_footer-bg.svg" />
                               </Form.Item>
                             ) : (
-                              <Form.Item name="footerBgColorKey" label="Background color (from Admin → Theme)">
+                              <Form.Item name="footerBgColorKey" label="Background color">
                                 <Select options={themeColorOptions} placeholder="Select color from Theme" style={{ width: "100%" }} allowClear />
                               </Form.Item>
                             )}
                           </Col>
                           <Col xs={24} md={8}>
-                            <Form.Item name="footerTextColorKey" label="Text & links color (from Admin → Theme)">
+                            <Form.Item name="footerTextColorKey" label="Text & links color">
                               <Select options={themeColorOptions} placeholder="Select color from Theme" style={{ width: "100%" }} allowClear />
                             </Form.Item>
                           </Col>
                           <Col xs={24} md={8}>
-                            <Form.Item name="footerCopyrightBarColorKey" label="Copyright bar color (from Admin → Theme)">
+                            <Form.Item name="footerCopyrightBarColorKey" label="Copyright bar color">
                               <Select options={themeColorOptions} placeholder="Select color from Theme" style={{ width: "100%" }} allowClear />
                             </Form.Item>
                           </Col>
@@ -825,14 +832,9 @@ export default function AdminComponentEditPage() {
                 <Input placeholder="e.g. Header" />
               </Form.Item>
             </Col>
-            <Col xs={24} sm={12} md={8}>
-              <Form.Item
-                name="position"
-                label="Position (when shown on all pages)"
-              >
-                <Select options={POSITION_OPTIONS} style={{ width: "100%" }} />
-              </Form.Item>
-            </Col>
+            <Form.Item name="position" hidden>
+              <Input type="hidden" />
+            </Form.Item>
           </Row>
         </Card>
       </Form>
