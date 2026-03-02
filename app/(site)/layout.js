@@ -28,6 +28,10 @@ export default async function SiteLayout({ children }) {
   const headerDonateBgKey = theme.headerDonateBgColorKey || "gradient";
   const headerDonateTextKey = theme.headerDonateTextColorKey || "white";
 
+  const footerBgKey = theme.footerBgColorKey || "";
+  const footerTextKey = theme.footerTextColorKey || "";
+  const footerCopyrightBarKey = theme.footerCopyrightBarColorKey || "";
+
   return (
     <>
       <PublicShell
@@ -63,6 +67,15 @@ export default async function SiteLayout({ children }) {
         footerColumnsCount={theme.footerColumnsCount ?? 4}
         footerSocialIcons={theme.footerSocialIcons !== false}
         footerLayoutStyle={theme.footerLayoutStyle}
+        footerLogoUrl={theme.footerLogoUrl || ""}
+        footerAddress={theme.footerAddress || ""}
+        footerEmail={theme.footerEmail || ""}
+        footerPhone={theme.footerPhone || ""}
+        footerCol1Links={theme.footerCol1Links || []}
+        footerCol2Links={theme.footerCol2Links || []}
+        footerBgValue={resolveThemeColor(theme, footerBgKey)}
+        footerTextValue={resolveThemeColor(theme, footerTextKey)}
+        footerCopyrightBarValue={resolveThemeColor(theme, footerCopyrightBarKey)}
       >
         {children}
       </PublicShell>

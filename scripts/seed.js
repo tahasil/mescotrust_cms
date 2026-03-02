@@ -67,8 +67,8 @@ async function seed() {
   }
 
   // --- Default theme ---
-  const existingTheme = await ThemeConfig.findOne();
-  if (!existingTheme) {
+  let theme = await ThemeConfig.findOne();
+  if (!theme) {
     await ThemeConfig.create({
       fontFamily: "system-ui, sans-serif",
       fontSize: 16,
@@ -82,6 +82,27 @@ async function seed() {
     });
     console.log("Created default theme");
   }
+
+  // --- Footer content from reference design (D:\tahasil-projects\mescotrust\src\components\Footer) ---
+  const footerDefaults = {
+    footerLogoUrl: "/images/footer-logo.svg",
+    footerAddress: "1 & 2, Plot No 423, Landmark Building, Next to Johnson & Johnson, Near Saraswati Mandir School, Senapati Bapat Marg, Mahim(W), Mumbai - 400016.",
+    footerEmail: "mescotrust@mescotrust.org",
+    footerPhone: "(+9122) 24441442 / (+9122) 24448637022-24466218 022-24440006 022-24466241/2022-49731441 022-49670550",
+    footerCol1Links: [
+      { label: "Educational Support Programmes", url: "/" },
+      { label: "Medical Aid", url: "/" },
+      { label: "Clinics & Dispensaries", url: "/" },
+    ],
+    footerCol2Links: [
+      { label: "Relief of Poverty", url: "/" },
+      { label: "RC Mahim Mun. School Adoption", url: "/" },
+      { label: "Old Newspaper Units", url: "/" },
+    ],
+    footerCopyrightText: "Copyright © 2023 All Rights Reserved.",
+  };
+  await ThemeConfig.updateOne({}, { $set: footerDefaults });
+  console.log("Theme footer updated with reference design data (logo, address, email, phone, links, copyright).");
 
   // --- Default header menu ---
   const existingMenu = await Menu.findOne({ name: "header" });

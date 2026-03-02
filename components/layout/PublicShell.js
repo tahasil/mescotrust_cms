@@ -9,6 +9,10 @@ const hasHeaderBlock = (layout) =>
   Array.isArray(layout) && layout.some((b) => (b?.baseComponent || b?.componentId?.baseComponent) === "Header");
 const layoutWithoutHeaderBlocks = (layout) =>
   Array.isArray(layout) ? layout.filter((b) => (b?.baseComponent || b?.componentId?.baseComponent) !== "Header") : [];
+const hasFooterBlock = (layout) =>
+  Array.isArray(layout) && layout.some((b) => (b?.baseComponent || b?.componentId?.baseComponent) === "Footer");
+const layoutWithoutFooterBlocks = (layout) =>
+  Array.isArray(layout) ? layout.filter((b) => (b?.baseComponent || b?.componentId?.baseComponent) !== "Footer") : [];
 
 function PublicHeader({ menuItems, siteTitle, logoType, logoImageUrl, logoLightUrl, logoDarkUrl, sticky, transparent, layout }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -217,9 +221,18 @@ const headerThemeProps = (props) => ({
 });
 
 const footerThemeProps = (props) => ({
-  menuItems: props.footerItems,
   siteTitle: props.siteTitle,
-  copyrightText: props.footerCopyrightText,
+  footerLogoUrl: props.footerLogoUrl,
+  footerAddress: props.footerAddress,
+  footerEmail: props.footerEmail,
+  footerPhone: props.footerPhone,
+  footerCol1Links: props.footerCol1Links || [],
+  footerCol2Links: props.footerCol2Links || [],
+  footerCopyrightText: props.footerCopyrightText,
+  footerBgValue: props.footerBgValue ?? "",
+  footerTextValue: props.footerTextValue ?? "",
+  footerCopyrightBarValue: props.footerCopyrightBarValue ?? "",
+  menuItems: props.footerItems,
   columnsCount: props.footerColumnsCount,
   socialIcons: props.footerSocialIcons,
   layoutStyle: props.footerLayoutStyle,
@@ -259,6 +272,15 @@ export default function PublicShell({
   footerColumnsCount,
   footerSocialIcons,
   footerLayoutStyle,
+  footerLogoUrl,
+  footerAddress,
+  footerEmail,
+  footerPhone,
+  footerCol1Links,
+  footerCol2Links,
+  footerBgValue,
+  footerTextValue,
+  footerCopyrightBarValue,
   children,
 }) {
   const hasGlobalBefore = Array.isArray(globalBefore) && globalBefore.length > 0;
@@ -296,6 +318,15 @@ export default function PublicShell({
     footerColumnsCount,
     footerSocialIcons,
     footerLayoutStyle,
+    footerLogoUrl,
+    footerAddress,
+    footerEmail,
+    footerPhone,
+    footerCol1Links,
+    footerCol2Links,
+    footerBgValue,
+    footerTextValue,
+    footerCopyrightBarValue,
   };
 
   const renderGlobalComponent = (id, position) => {
@@ -308,6 +339,8 @@ export default function PublicShell({
 
   const useSiteHeaderForLayout =
     hasCustomHeader && hasHeaderBlock(customHeaderLayout);
+  const useSiteFooterForLayout =
+    hasCustomFooter && hasFooterBlock(customFooterLayout);
   const headerArea =
     hasGlobalBefore ? (
       globalBefore.map((id) => renderGlobalComponent(id, "before"))
@@ -338,17 +371,12 @@ export default function PublicShell({
       <div style={{ flex: 1 }}>{children}</div>
       {hasGlobalAfter ? (
         globalAfter.map((id) => renderGlobalComponent(id, "after"))
+      ) : useSiteFooterForLayout ? (
+        <SiteComponents.Footer key="site-footer" {...footerThemeProps(themeProps)} />
       ) : hasCustomFooter ? (
         <ComponentRenderer layout={customFooterLayout} />
       ) : (
-        <PublicFooter
-          menuItems={footerItems}
-          siteTitle={siteTitle}
-          copyrightText={footerCopyrightText}
-          columnsCount={footerColumnsCount}
-          socialIcons={footerSocialIcons}
-          layoutStyle={footerLayoutStyle}
-        />
+        <SiteComponents.Footer key="site-footer" {...footerThemeProps(themeProps)} />
       )}
     </div>
   );

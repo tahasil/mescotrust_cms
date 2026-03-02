@@ -147,6 +147,15 @@ const DEFAULTS = {
   megaMenu: false,
   dropdownStyle: "default",
   mobileMenuStyle: "drawer",
+  footerLogoUrl: "",
+  footerAddress: "",
+  footerEmail: "",
+  footerPhone: "",
+  footerCol1Links: [],
+  footerCol2Links: [],
+  footerBgColorKey: "",
+  footerTextColorKey: "",
+  footerCopyrightBarColorKey: "",
   footerColumnsCount: 4,
   footerLayoutStyle: "default",
   footerSocialIcons: true,
@@ -191,6 +200,8 @@ const THEME_FIELDS = [
   "headerDonateLabel", "headerDonateHref", "headerDonateIconUrl", "headerDonateIconUrlMobile",
   "headerBgColorKey", "headerCtaBgColorKey", "headerCtaTextColorKey", "headerDonateBgColorKey", "headerDonateTextColorKey",
   "megaMenu", "dropdownStyle", "mobileMenuStyle",
+  "footerLogoUrl", "footerAddress", "footerEmail", "footerPhone", "footerCol1Links", "footerCol2Links",
+  "footerBgColorKey", "footerTextColorKey", "footerCopyrightBarColorKey",
   "footerColumnsCount", "footerLayoutStyle", "footerSocialIcons",
   "buttonBackground", "buttonTextColor", "buttonHoverBackground", "buttonHoverTextColor", "buttonPadding",
   "cardStyle", "alertStyle", "badgeStyle", "tableStyle", "formStyle", "inputStyle",
@@ -238,6 +249,10 @@ export async function PUT(req) {
       for (const f of THEME_FIELDS) {
         if (body[f] !== undefined) theme[f] = body[f];
       }
+      if (body.footerLogoUrl !== undefined) {
+        theme.footerLogoUrl = typeof body.footerLogoUrl === "string" ? body.footerLogoUrl : String(body.footerLogoUrl || "");
+        theme.markModified("footerLogoUrl");
+      }
       if (Array.isArray(body.paletteColors)) {
         theme.themePalette = Object.fromEntries(
           body.paletteColors.filter((p) => p && String(p.key).trim()).map((p) => [String(p.key).trim(), p.value])
@@ -249,6 +264,14 @@ export async function PUT(req) {
         theme.markModified("themePalette");
       }
       await theme.save();
+
+      // Force-persist footerLogoUrl via direct update (ensures DB write)
+      if (body.footerLogoUrl !== undefined) {
+        await ThemeConfig.updateOne(
+          {},
+          { $set: { footerLogoUrl: typeof body.footerLogoUrl === "string" ? body.footerLogoUrl : String(body.footerLogoUrl || "") } }
+        );
+      }
     }
 
     // Sync Theme.js from saved theme state so delete/rename persists
@@ -266,7 +289,8 @@ export async function PUT(req) {
     }
 
     revalidatePath("/", "layout");
-    return NextResponse.json(normalizeTheme(theme));
+    const saved = await ThemeConfig.findOne().lean();
+    return NextResponse.json(normalizeTheme(saved));
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

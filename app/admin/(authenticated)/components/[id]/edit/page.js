@@ -23,6 +23,9 @@ import dynamic from "next/dynamic";
 const HeaderPreview = dynamic(() => import("@/components/site/Header"), {
   ssr: false,
 });
+const FooterPreview = dynamic(() => import("@/components/site/Footer"), {
+  ssr: false,
+});
 
 const POSITION_OPTIONS = [
   { value: "before", label: "Above content (e.g. header)" },
@@ -48,9 +51,11 @@ export default function AdminComponentEditPage() {
     colors: [],
   });
   const [themeHeaderSnapshot, setThemeHeaderSnapshot] = useState(null);
+  const [themeFooterSnapshot, setThemeFooterSnapshot] = useState(null);
   const [form] = Form.useForm();
 
   const isHeader = record?.componentId === "Header";
+  const isFooter = record?.componentId === "Footer";
 
   useEffect(() => {
     if (!id) return;
@@ -141,6 +146,52 @@ export default function AdminComponentEditPage() {
       .finally(() => setThemeLoading(false));
   }, [isHeader, form]);
 
+  useEffect(() => {
+    if (!isFooter) return;
+    setThemeLoading(true);
+    fetch("/api/theme", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : {}))
+      .then((theme) => {
+        const palette = theme.themePalette || {};
+        const customColors = Array.isArray(theme.colors) ? theme.colors : [];
+        setThemePaletteData({ themePalette: palette, colors: customColors });
+        setThemeFooterSnapshot({
+          siteTitle: theme.siteTitle ?? "Mesco Trust",
+          footerLogoUrl: theme.footerLogoUrl ?? "",
+          footerAddress: theme.footerAddress ?? "",
+          footerEmail: theme.footerEmail ?? "",
+          footerPhone: theme.footerPhone ?? "",
+          footerCol1Links: Array.isArray(theme.footerCol1Links) ? theme.footerCol1Links : [],
+          footerCol2Links: Array.isArray(theme.footerCol2Links) ? theme.footerCol2Links : [],
+          footerCopyrightText: theme.footerCopyrightText ?? "",
+          footerBgColorKey: theme.footerBgColorKey ?? "",
+          footerTextColorKey: theme.footerTextColorKey ?? "",
+          footerCopyrightBarColorKey: theme.footerCopyrightBarColorKey ?? "",
+        });
+        const names = [
+          ...new Set([
+            ...Object.keys(palette),
+            ...customColors.map((c) => c?.name).filter(Boolean),
+          ]),
+        ].sort();
+        setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
+        form.setFieldsValue({
+          footerLogoUrl: theme.footerLogoUrl ?? "",
+          footerAddress: theme.footerAddress ?? "",
+          footerEmail: theme.footerEmail ?? "",
+          footerPhone: theme.footerPhone ?? "",
+          footerCol1Links: Array.isArray(theme.footerCol1Links) ? theme.footerCol1Links : [],
+          footerCol2Links: Array.isArray(theme.footerCol2Links) ? theme.footerCol2Links : [],
+          footerCopyrightText: theme.footerCopyrightText ?? "",
+          footerBgColorKey: theme.footerBgColorKey ?? "",
+          footerTextColorKey: theme.footerTextColorKey ?? "",
+          footerCopyrightBarColorKey: theme.footerCopyrightBarColorKey ?? "",
+        });
+      })
+      .catch(() => message.error("Failed to load theme"))
+      .finally(() => setThemeLoading(false));
+  }, [isFooter, form]);
+
   const handleSubmit = async () => {
     if (!record?.componentId) return;
     try {
@@ -185,6 +236,52 @@ export default function AdminComponentEditPage() {
         }
       }
 
+      if (isFooter) {
+        const allValues = form.getFieldsValue(true);
+        const col1 = Array.isArray(allValues.footerCol1Links) ? allValues.footerCol1Links : [];
+        const col2 = Array.isArray(allValues.footerCol2Links) ? allValues.footerCol2Links : [];
+        const footerLogoUrl = (allValues.footerLogoUrl && String(allValues.footerLogoUrl).trim()) ? String(allValues.footerLogoUrl).trim() : "";
+        const themeRes = await fetch("/api/theme", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            footerLogoUrl,
+            footerAddress: (allValues.footerAddress && String(allValues.footerAddress).trim()) ? String(allValues.footerAddress).trim() : "",
+            footerEmail: (allValues.footerEmail && String(allValues.footerEmail).trim()) ? String(allValues.footerEmail).trim() : "",
+            footerPhone: (allValues.footerPhone && String(allValues.footerPhone).trim()) ? String(allValues.footerPhone).trim() : "",
+            footerCol1Links: col1.map((it) => ({ label: it?.label ?? "", url: it?.url ?? "" })),
+            footerCol2Links: col2.map((it) => ({ label: it?.label ?? "", url: it?.url ?? "" })),
+            footerCopyrightText: (allValues.footerCopyrightText && String(allValues.footerCopyrightText).trim()) ? String(allValues.footerCopyrightText).trim() : "",
+            footerBgColorKey: allValues.footerBgColorKey ?? "",
+            footerTextColorKey: allValues.footerTextColorKey ?? "",
+            footerCopyrightBarColorKey: allValues.footerCopyrightBarColorKey ?? "",
+          }),
+        });
+        if (!themeRes.ok) {
+          const err = await themeRes.json().catch(() => ({}));
+          message.error(err.error || "Failed to save footer content");
+          setSaving(false);
+          return;
+        }
+        const savedTheme = await themeRes.json().catch(() => ({}));
+        form.setFieldsValue({
+          footerLogoUrl: savedTheme.footerLogoUrl ?? footerLogoUrl ?? "",
+          footerAddress: savedTheme.footerAddress ?? "",
+          footerEmail: savedTheme.footerEmail ?? "",
+          footerPhone: savedTheme.footerPhone ?? "",
+          footerCol1Links: Array.isArray(savedTheme.footerCol1Links) ? savedTheme.footerCol1Links : [],
+          footerCol2Links: Array.isArray(savedTheme.footerCol2Links) ? savedTheme.footerCol2Links : [],
+          footerCopyrightText: savedTheme.footerCopyrightText ?? "",
+          footerBgColorKey: savedTheme.footerBgColorKey ?? "",
+          footerTextColorKey: savedTheme.footerTextColorKey ?? "",
+          footerCopyrightBarColorKey: savedTheme.footerCopyrightBarColorKey ?? "",
+        });
+        setThemeFooterSnapshot((prev) => (prev ? {
+          ...prev,
+          footerLogoUrl: savedTheme.footerLogoUrl ?? footerLogoUrl ?? "",
+        } : prev));
+      }
+
       const res = await fetch(
         `/api/admin/site-components/${record.componentId}`,
         {
@@ -205,7 +302,6 @@ export default function AdminComponentEditPage() {
         return;
       }
       message.success("Component updated");
-      router.push("/admin/components");
     } catch (e) {
       if (e.errorFields) return;
       message.error(e.message || "Error");
@@ -522,6 +618,180 @@ export default function AdminComponentEditPage() {
           </>
         )}
 
+        {isFooter && (
+          <>
+            {themeLoading ? (
+              <div style={{ padding: 48, textAlign: "center" }}>
+                <Spin />
+              </div>
+            ) : (
+              <>
+                <Divider />
+                <div className="mt-5">
+                  <FooterPreviewBlock
+                    form={form}
+                    themePaletteData={themePaletteData}
+                    themeFooterSnapshot={themeFooterSnapshot}
+                  />
+                </div>
+                <Collapse
+                  className="mt-4"
+                  defaultActiveKey={[]}
+                  destroyInactivePanelContent={false}
+                  items={[
+                    {
+                      key: "logo",
+                      label: "Logo",
+                      children: (
+                        <Row gutter={24}>
+                          <Col xs={24} md={8}>
+                            <Form.Item name="footerLogoUrl" label="Footer logo image URL">
+                              <Input placeholder="/images/footer-logo.svg" />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+                      ),
+                    },
+                    {
+                      key: "address",
+                      label: "Address & contact",
+                      children: (
+                        <Row gutter={24}>
+                          <Col xs={24} md={8}>
+                            <Form.Item name="footerAddress" label="Address">
+                              <Input.TextArea rows={3} placeholder="Full address" />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <Form.Item name="footerEmail" label="Email">
+                              <Input placeholder="email@example.org" />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <Form.Item name="footerPhone" label="Phone">
+                              <Input placeholder="Phone numbers" />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+                      ),
+                    },
+                    {
+                      key: "col1",
+                      label: "Column 1 links",
+                      children: (
+                        <>
+                          <p style={{ marginBottom: 12, color: "#666", fontSize: 12 }}>
+                            Add: click &quot;+ Add link&quot;. Update: edit Link text and URL in each row. Delete: click &quot;Remove&quot; on a row.
+                          </p>
+                          <Form.List name="footerCol1Links">
+                            {(fields, { add, remove }) => (
+                              <>
+                                {fields.map(({ key, name, ...rest }) => (
+                                  <Row key={key} gutter={8} align="middle" style={{ marginBottom: 8 }}>
+                                    <Col xs={24} md={9}>
+                                      <Form.Item {...rest} name={[name, "label"]} label="Link text" rules={[{ required: true, message: "Required" }]}>
+                                        <Input placeholder="e.g. Educational Support Programmes" />
+                                      </Form.Item>
+                                    </Col>
+                                    <Col xs={24} md={9}>
+                                      <Form.Item {...rest} name={[name, "url"]} label="URL" rules={[{ required: true, message: "Required" }]}>
+                                        <Input placeholder="e.g. /programmes" />
+                                      </Form.Item>
+                                    </Col>
+                                    <Col xs={24} md={6}>
+                                      <Button type="text" danger onClick={() => remove(name)} style={{ marginTop: 4 }}>Remove</Button>
+                                    </Col>
+                                  </Row>
+                                ))}
+                                <Form.Item>
+                                  <Button type="dashed" onClick={() => add()} block>+ Add link</Button>
+                                </Form.Item>
+                              </>
+                            )}
+                          </Form.List>
+                        </>
+                      ),
+                    },
+                    {
+                      key: "col2",
+                      label: "Column 2 links",
+                      children: (
+                        <>
+                          <p style={{ marginBottom: 12, color: "#666", fontSize: 12 }}>
+                            Add: click &quot;+ Add link&quot;. Update: edit Link text and URL in each row. Delete: click &quot;Remove&quot; on a row.
+                          </p>
+                          <Form.List name="footerCol2Links">
+                            {(fields, { add, remove }) => (
+                              <>
+                                {fields.map(({ key, name, ...rest }) => (
+                                  <Row key={key} gutter={8} align="middle" style={{ marginBottom: 8 }}>
+                                    <Col xs={24} md={9}>
+                                      <Form.Item {...rest} name={[name, "label"]} label="Link text" rules={[{ required: true, message: "Required" }]}>
+                                        <Input placeholder="e.g. Relief of Poverty" />
+                                      </Form.Item>
+                                    </Col>
+                                    <Col xs={24} md={9}>
+                                      <Form.Item {...rest} name={[name, "url"]} label="URL" rules={[{ required: true, message: "Required" }]}>
+                                        <Input placeholder="e.g. /relief" />
+                                      </Form.Item>
+                                    </Col>
+                                    <Col xs={24} md={6}>
+                                      <Button type="text" danger onClick={() => remove(name)} style={{ marginTop: 4 }}>Remove</Button>
+                                    </Col>
+                                  </Row>
+                                ))}
+                                <Form.Item>
+                                  <Button type="dashed" onClick={() => add()} block>+ Add link</Button>
+                                </Form.Item>
+                              </>
+                            )}
+                          </Form.List>
+                        </>
+                      ),
+                    },
+                    {
+                      key: "copyright",
+                      label: "Copyright",
+                      children: (
+                        <Row gutter={24}>
+                          <Col xs={24} md={12}>
+                            <Form.Item name="footerCopyrightText" label="Copyright text">
+                              <Input placeholder="Copyright © 2023 All Rights Reserved." />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+                      ),
+                    },
+                    {
+                      key: "colors",
+                      label: "Footer colors",
+                      children: (
+                        <Row gutter={24}>
+                          <Col xs={24} md={8}>
+                            <Form.Item name="footerBgColorKey" label="Background color (theme key)">
+                              <Select options={themeColorOptions} placeholder="Select from Theme" style={{ width: "100%" }} />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <Form.Item name="footerTextColorKey" label="Text color (theme key)">
+                              <Select options={themeColorOptions} placeholder="Select from Theme" style={{ width: "100%" }} />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <Form.Item name="footerCopyrightBarColorKey" label="Copyright bar color (theme key)">
+                              <Select options={themeColorOptions} placeholder="Select from Theme" style={{ width: "100%" }} />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+                      ),
+                    },
+                  ]}
+                />
+              </>
+            )}
+          </>
+        )}
+
         <Card className="mt-4">
           <Row gutter={24}>
             <Col xs={24} sm={12} md={8}>
@@ -663,6 +933,51 @@ function HeaderPreviewBlock({ form, themePaletteData, themeHeaderSnapshot }) {
           themePaletteData,
           headerDonateTextColorKey,
         )}
+      />
+    </div>
+  );
+}
+
+function FooterPreviewBlock({ form, themePaletteData, themeFooterSnapshot }) {
+  const s = themeFooterSnapshot;
+  const siteTitle = s?.siteTitle || "Mesco Trust";
+  const footerLogoUrl = Form.useWatch("footerLogoUrl", form) || s?.footerLogoUrl || "";
+  const footerAddress = Form.useWatch("footerAddress", form) || s?.footerAddress || "";
+  const footerEmail = Form.useWatch("footerEmail", form) || s?.footerEmail || "";
+  const footerPhone = Form.useWatch("footerPhone", form) || s?.footerPhone || "";
+  const footerCol1Links = Form.useWatch("footerCol1Links", form) || s?.footerCol1Links || [];
+  const footerCol2Links = Form.useWatch("footerCol2Links", form) || s?.footerCol2Links || [];
+  const footerCopyrightText = Form.useWatch("footerCopyrightText", form) || s?.footerCopyrightText || "";
+  const footerBgColorKey = Form.useWatch("footerBgColorKey", form) || s?.footerBgColorKey || "";
+  const footerTextColorKey = Form.useWatch("footerTextColorKey", form) || s?.footerTextColorKey || "";
+  const footerCopyrightBarColorKey = Form.useWatch("footerCopyrightBarColorKey", form) || s?.footerCopyrightBarColorKey || "";
+
+  return (
+    <div
+      style={{
+        position: "relative",
+        border: "1px solid #e8e8e8",
+        borderRadius: 8,
+        overflow: "visible",
+        background: "#fafafa",
+        minHeight: 96,
+        width: "100%",
+        boxShadow: "inset 0 1px 2px rgba(0,0,0,0.04)",
+      }}
+    >
+      <FooterPreview
+        preview
+        siteTitle={siteTitle}
+        footerLogoUrl={footerLogoUrl}
+        footerAddress={footerAddress}
+        footerEmail={footerEmail}
+        footerPhone={footerPhone}
+        footerCol1Links={Array.isArray(footerCol1Links) ? footerCol1Links : []}
+        footerCol2Links={Array.isArray(footerCol2Links) ? footerCol2Links : []}
+        footerCopyrightText={footerCopyrightText}
+        footerBgValue={resolveThemeColorFromPalette(themePaletteData, footerBgColorKey)}
+        footerTextValue={resolveThemeColorFromPalette(themePaletteData, footerTextColorKey)}
+        footerCopyrightBarValue={resolveThemeColorFromPalette(themePaletteData, footerCopyrightBarColorKey)}
       />
     </div>
   );

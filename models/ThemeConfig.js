@@ -103,6 +103,15 @@ const themeConfigSchema = new mongoose.Schema(
     mobileMenuStyle: { type: String, enum: ["drawer", "fullscreen", "dropdown"], default: "drawer" },
 
     // ─── 6. Footer ──────────────────────────────────────────────
+    footerLogoUrl: { type: String, default: "" },
+    footerAddress: { type: String, default: "" },
+    footerEmail: { type: String, default: "" },
+    footerPhone: { type: String, default: "" },
+    footerCol1Links: { type: mongoose.Schema.Types.Mixed, default: () => [] },
+    footerCol2Links: { type: mongoose.Schema.Types.Mixed, default: () => [] },
+    footerBgColorKey: { type: String, default: "" },
+    footerTextColorKey: { type: String, default: "" },
+    footerCopyrightBarColorKey: { type: String, default: "" },
     footerColumnsCount: { type: Number, default: 4 },
     footerLayoutStyle: { type: String, enum: ["default", "centered", "minimal"], default: "default" },
     footerSocialIcons: { type: Boolean, default: true },
