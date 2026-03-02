@@ -47,6 +47,7 @@ export default function AdminComponentEditPage() {
     themePalette: {},
     colors: [],
   });
+  const [themeHeaderSnapshot, setThemeHeaderSnapshot] = useState(null);
   const [form] = Form.useForm();
 
   const isHeader = record?.componentId === "Header";
@@ -86,6 +87,26 @@ export default function AdminComponentEditPage() {
         const palette = theme.themePalette || {};
         const customColors = Array.isArray(theme.colors) ? theme.colors : [];
         setThemePaletteData({ themePalette: palette, colors: customColors });
+        setThemeHeaderSnapshot({
+          siteTitle: theme.siteTitle ?? "Mesco Trust",
+          logoType: theme.logoType ?? "text",
+          logoLightUrl: theme.logoLightUrl || theme.logoImageUrl || "",
+          logoMobileUrl: theme.logoMobileUrl ?? "",
+          headerVolunteerLabel: theme.headerVolunteerLabel ?? "Volunteer",
+          headerVolunteerHref: theme.headerVolunteerHref ?? "/volunteer",
+          headerVolunteerIconUrl: theme.headerVolunteerIconUrl ?? "",
+          headerVolunteerIconUrlMobile:
+            theme.headerVolunteerIconUrlMobile ?? "",
+          headerDonateLabel: theme.headerDonateLabel ?? "Donate Now",
+          headerDonateHref: theme.headerDonateHref ?? "/donate",
+          headerDonateIconUrl: theme.headerDonateIconUrl ?? "",
+          headerDonateIconUrlMobile: theme.headerDonateIconUrlMobile ?? "",
+          headerBgColorKey: theme.headerBgColorKey ?? "headerBg",
+          headerCtaBgColorKey: theme.headerCtaBgColorKey ?? "headerCta",
+          headerCtaTextColorKey: theme.headerCtaTextColorKey ?? "primary",
+          headerDonateBgColorKey: theme.headerDonateBgColorKey ?? "gradient",
+          headerDonateTextColorKey: theme.headerDonateTextColorKey ?? "white",
+        });
         const names = [
           ...new Set([
             ...Object.keys(palette),
@@ -259,6 +280,7 @@ export default function AdminComponentEditPage() {
                   <HeaderPreviewBlock
                     form={form}
                     themePaletteData={themePaletteData}
+                    themeHeaderSnapshot={themeHeaderSnapshot}
                   />
                 </div>
 
@@ -534,33 +556,62 @@ function resolveThemeColorFromPalette(paletteData, key) {
   return found && found.value != null ? String(found.value).trim() : "";
 }
 
-function HeaderPreviewBlock({ form, themePaletteData }) {
-  const siteTitle = Form.useWatch("siteTitle", form) ?? "Mesco Trust";
-  const logoType = Form.useWatch("logoType", form) ?? "text";
-  const logoLightUrl = Form.useWatch("logoLightUrl", form) ?? "";
-  const logoMobileUrl = Form.useWatch("logoMobileUrl", form) ?? "";
+function HeaderPreviewBlock({ form, themePaletteData, themeHeaderSnapshot }) {
+  const s = themeHeaderSnapshot;
+  // Use || so empty string from form falls back to snapshot (fixes logo/icons not showing on load)
+  const siteTitle =
+    Form.useWatch("siteTitle", form) || s?.siteTitle || "Mesco Trust";
+  const logoType = Form.useWatch("logoType", form) || s?.logoType || "text";
+  const logoLightUrl =
+    Form.useWatch("logoLightUrl", form) || s?.logoLightUrl || "";
+  const logoMobileUrl =
+    Form.useWatch("logoMobileUrl", form) || s?.logoMobileUrl || "";
   const volunteerLabel =
-    Form.useWatch("headerVolunteerLabel", form) ?? "Volunteer";
+    Form.useWatch("headerVolunteerLabel", form) ||
+    s?.headerVolunteerLabel ||
+    "Volunteer";
   const volunteerHref =
-    Form.useWatch("headerVolunteerHref", form) ?? "/volunteer";
-  const volunteerIconUrl = Form.useWatch("headerVolunteerIconUrl", form) ?? "";
+    Form.useWatch("headerVolunteerHref", form) ||
+    s?.headerVolunteerHref ||
+    "/volunteer";
+  const volunteerIconUrl =
+    Form.useWatch("headerVolunteerIconUrl", form) ||
+    s?.headerVolunteerIconUrl ||
+    "";
   const volunteerIconUrlMobile =
-    Form.useWatch("headerVolunteerIconUrlMobile", form) ?? "";
-  const donateLabel = Form.useWatch("headerDonateLabel", form) ?? "Donate Now";
-  const donateHref = Form.useWatch("headerDonateHref", form) ?? "/donate";
-  const donateIconUrl = Form.useWatch("headerDonateIconUrl", form) ?? "";
+    Form.useWatch("headerVolunteerIconUrlMobile", form) ||
+    s?.headerVolunteerIconUrlMobile ||
+    "";
+  const donateLabel =
+    Form.useWatch("headerDonateLabel", form) ||
+    s?.headerDonateLabel ||
+    "Donate Now";
+  const donateHref =
+    Form.useWatch("headerDonateHref", form) || s?.headerDonateHref || "/donate";
+  const donateIconUrl =
+    Form.useWatch("headerDonateIconUrl", form) || s?.headerDonateIconUrl || "";
   const donateIconUrlMobile =
-    Form.useWatch("headerDonateIconUrlMobile", form) ?? "";
+    Form.useWatch("headerDonateIconUrlMobile", form) ||
+    s?.headerDonateIconUrlMobile ||
+    "";
   const headerBgColorKey =
-    Form.useWatch("headerBgColorKey", form) ?? "headerBg";
+    Form.useWatch("headerBgColorKey", form) || s?.headerBgColorKey || "headerBg";
   const headerCtaBgColorKey =
-    Form.useWatch("headerCtaBgColorKey", form) ?? "headerCta";
+    Form.useWatch("headerCtaBgColorKey", form) ||
+    s?.headerCtaBgColorKey ||
+    "headerCta";
   const headerCtaTextColorKey =
-    Form.useWatch("headerCtaTextColorKey", form) ?? "primary";
+    Form.useWatch("headerCtaTextColorKey", form) ||
+    s?.headerCtaTextColorKey ||
+    "primary";
   const headerDonateBgColorKey =
-    Form.useWatch("headerDonateBgColorKey", form) ?? "gradient";
+    Form.useWatch("headerDonateBgColorKey", form) ||
+    s?.headerDonateBgColorKey ||
+    "gradient";
   const headerDonateTextColorKey =
-    Form.useWatch("headerDonateTextColorKey", form) ?? "white";
+    Form.useWatch("headerDonateTextColorKey", form) ||
+    s?.headerDonateTextColorKey ||
+    "white";
 
   return (
     <div
@@ -568,9 +619,10 @@ function HeaderPreviewBlock({ form, themePaletteData }) {
         position: "relative",
         border: "1px solid #e8e8e8",
         borderRadius: 8,
-        overflow: "hidden",
+        overflow: "visible",
         background: "#fafafa",
-        minHeight: 64,
+        minHeight: 96,
+        width: "100%",
         boxShadow: "inset 0 1px 2px rgba(0,0,0,0.04)",
       }}
     >
