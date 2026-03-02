@@ -301,6 +301,9 @@ export default function AdminThemePage() {
       label: <span><BulbOutlined style={{ marginRight: 8 }} />Layout & Locale</span>,
       children: (
         <div style={{ paddingBlock: 8 }}>
+          <Form.Item name="siteTitle" label="Site title">
+            <Input placeholder="Mesco Trust" />
+          </Form.Item>
           <Form.Item name="layoutWidth" label="Container max-width (px)"><InputNumber min={600} max={1920} style={{ width: "100%" }} /></Form.Item>
           <Form.Item name="defaultLocale" label="Default locale"><Input placeholder="en" /></Form.Item>
           <Form.Item name="direction" label="Direction"><Select options={[{ value: "ltr", label: "LTR" }, { value: "rtl", label: "RTL" }]} /></Form.Item>

@@ -16,7 +16,7 @@ import {
   Col,
   Divider,
 } from "antd";
-import { ArrowLeftOutlined, SaveOutlined, DeleteOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, SaveOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 
@@ -53,7 +53,10 @@ export default function AdminComponentEditPage() {
   const [themeHeaderSnapshot, setThemeHeaderSnapshot] = useState(null);
   const [themeFooterSnapshot, setThemeFooterSnapshot] = useState(null);
   const [form] = Form.useForm();
+  const [editingDisplayName, setEditingDisplayName] = useState(false);
+  const [hoveringName, setHoveringName] = useState(false);
   const footerBgType = Form.useWatch("footerBgType", form);
+  const displayNameValue = Form.useWatch("displayName", form);
 
   const isHeader = record?.componentId === "Header";
   const isFooter = record?.componentId === "Footer";
@@ -123,7 +126,6 @@ export default function AdminComponentEditPage() {
           names.map((name) => ({ label: name, value: name })),
         );
         form.setFieldsValue({
-          siteTitle: theme.siteTitle ?? "Mesco Trust",
           logoType: theme.logoType ?? "text",
           logoLightUrl: theme.logoLightUrl || theme.logoImageUrl || "",
           logoMobileUrl: theme.logoMobileUrl ?? "",
@@ -209,7 +211,6 @@ export default function AdminComponentEditPage() {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            siteTitle: values.siteTitle?.trim() || "Mesco Trust",
             logoType: values.logoType || "text",
             logoLightUrl: values.logoLightUrl?.trim() || "",
             logoMobileUrl: values.logoMobileUrl?.trim() || "",
@@ -356,9 +357,38 @@ export default function AdminComponentEditPage() {
                 aria-label="Back to components"
               />
             </Link>
-            <span style={{ fontSize: 18, fontWeight: 600 }}>
-              Edit {record.displayName || record.componentId}
-            </span>
+            {editingDisplayName ? (
+              <Input
+                autoFocus
+                size="small"
+                value={displayNameValue ?? record?.displayName ?? record?.componentId ?? ""}
+                onChange={(e) => form.setFieldsValue({ displayName: e.target.value })}
+                onBlur={() => setEditingDisplayName(false)}
+                onPressEnter={() => setEditingDisplayName(false)}
+                style={{ width: 220, fontSize: 18, fontWeight: 600 }}
+              />
+            ) : (
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => setEditingDisplayName(true)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setEditingDisplayName(true); }}
+                onMouseEnter={() => setHoveringName(true)}
+                onMouseLeave={() => setHoveringName(false)}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  cursor: "pointer",
+                  fontSize: 18,
+                  fontWeight: 600,
+                }}
+                title="Click to edit name"
+              >
+                <span>Edit {displayNameValue || record?.displayName || record?.componentId || ""}</span>
+                {hoveringName && <EditOutlined style={{ fontSize: 14, opacity: 0.7 }} />}
+              </div>
+            )}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <span style={{ fontSize: 14, color: "#666" }}>
@@ -407,14 +437,6 @@ export default function AdminComponentEditPage() {
                           <Col xs={24} md={8}>
                             <Form.Item name="logoType" label="Logo type">
                               <Select options={LOGO_TYPE_OPTIONS} />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} md={8}>
-                            <Form.Item
-                              name="siteTitle"
-                              label="Site title (when logo type is Text)"
-                            >
-                              <Input placeholder="Mesco Trust" />
                             </Form.Item>
                           </Col>
                           <Col xs={24} md={8}>
@@ -825,18 +847,12 @@ export default function AdminComponentEditPage() {
           </>
         )}
 
-        <Card className="mt-4">
-          <Row gutter={24}>
-            <Col xs={24} sm={12} md={8}>
-              <Form.Item name="displayName" label="Display name">
-                <Input placeholder="e.g. Header" />
-              </Form.Item>
-            </Col>
-            <Form.Item name="position" hidden>
-              <Input type="hidden" />
-            </Form.Item>
-          </Row>
-        </Card>
+        <Form.Item name="displayName" hidden>
+          <Input type="hidden" />
+        </Form.Item>
+        <Form.Item name="position" hidden>
+          <Input type="hidden" />
+        </Form.Item>
       </Form>
     </>
   );
@@ -856,9 +872,8 @@ function resolveThemeColorFromPalette(paletteData, key) {
 
 function HeaderPreviewBlock({ form, themePaletteData, themeHeaderSnapshot }) {
   const s = themeHeaderSnapshot;
-  // Use || so empty string from form falls back to snapshot (fixes logo/icons not showing on load)
-  const siteTitle =
-    Form.useWatch("siteTitle", form) || s?.siteTitle || "Mesco Trust";
+  // Site title comes from theme (Theme Settings), not from Header form
+  const siteTitle = s?.siteTitle || "Mesco Trust";
   const logoType = Form.useWatch("logoType", form) || s?.logoType || "text";
   const logoLightUrl =
     Form.useWatch("logoLightUrl", form) || s?.logoLightUrl || "";

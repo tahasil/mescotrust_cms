@@ -267,6 +267,14 @@ export async function PUT(req) {
         theme.footerBackgroundImageUrl = typeof body.footerBackgroundImageUrl === "string" ? body.footerBackgroundImageUrl : String(body.footerBackgroundImageUrl || "");
         theme.markModified("footerBackgroundImageUrl");
       }
+      if (body.footerCol1Links !== undefined) {
+        theme.footerCol1Links = Array.isArray(body.footerCol1Links) ? body.footerCol1Links : [];
+        theme.markModified("footerCol1Links");
+      }
+      if (body.footerCol2Links !== undefined) {
+        theme.footerCol2Links = Array.isArray(body.footerCol2Links) ? body.footerCol2Links : [];
+        theme.markModified("footerCol2Links");
+      }
       if (Array.isArray(body.paletteColors)) {
         theme.themePalette = Object.fromEntries(
           body.paletteColors.filter((p) => p && String(p.key).trim()).map((p) => [String(p.key).trim(), p.value])
