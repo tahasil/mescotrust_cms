@@ -97,17 +97,17 @@ export default function AdminComponentEditPage() {
         const customColors = Array.isArray(theme.colors) ? theme.colors : [];
         setThemePaletteData({ themePalette: palette, colors: customColors });
         setThemeHeaderSnapshot({
-          siteTitle: theme.siteTitle ?? "Mesco Trust",
+          siteTitle: theme.siteTitle ?? "",
           logoType: theme.logoType ?? "text",
           logoLightUrl: theme.logoLightUrl || theme.logoImageUrl || "",
           logoMobileUrl: theme.logoMobileUrl ?? "",
-          headerVolunteerLabel: theme.headerVolunteerLabel ?? "Volunteer",
-          headerVolunteerHref: theme.headerVolunteerHref ?? "/volunteer",
+          headerVolunteerLabel: theme.headerVolunteerLabel ?? "",
+          headerVolunteerHref: theme.headerVolunteerHref ?? "",
           headerVolunteerIconUrl: theme.headerVolunteerIconUrl ?? "",
           headerVolunteerIconUrlMobile:
             theme.headerVolunteerIconUrlMobile ?? "",
-          headerDonateLabel: theme.headerDonateLabel ?? "Donate Now",
-          headerDonateHref: theme.headerDonateHref ?? "/donate",
+          headerDonateLabel: theme.headerDonateLabel ?? "",
+          headerDonateHref: theme.headerDonateHref ?? "",
           headerDonateIconUrl: theme.headerDonateIconUrl ?? "",
           headerDonateIconUrlMobile: theme.headerDonateIconUrlMobile ?? "",
           headerBgColorKey: theme.headerBgColorKey ?? "headerBg",
@@ -129,13 +129,13 @@ export default function AdminComponentEditPage() {
           logoType: theme.logoType ?? "text",
           logoLightUrl: theme.logoLightUrl || theme.logoImageUrl || "",
           logoMobileUrl: theme.logoMobileUrl ?? "",
-          headerVolunteerLabel: theme.headerVolunteerLabel ?? "Volunteer",
-          headerVolunteerHref: theme.headerVolunteerHref ?? "/volunteer",
+          headerVolunteerLabel: theme.headerVolunteerLabel ?? "",
+          headerVolunteerHref: theme.headerVolunteerHref ?? "",
           headerVolunteerIconUrl: theme.headerVolunteerIconUrl ?? "",
           headerVolunteerIconUrlMobile:
             theme.headerVolunteerIconUrlMobile ?? "",
-          headerDonateLabel: theme.headerDonateLabel ?? "Donate Now",
-          headerDonateHref: theme.headerDonateHref ?? "/donate",
+          headerDonateLabel: theme.headerDonateLabel ?? "",
+          headerDonateHref: theme.headerDonateHref ?? "",
           headerDonateIconUrl: theme.headerDonateIconUrl ?? "",
           headerDonateIconUrlMobile: theme.headerDonateIconUrlMobile ?? "",
           headerBgColorKey: theme.headerBgColorKey ?? "headerBg",
@@ -216,14 +216,14 @@ export default function AdminComponentEditPage() {
             logoMobileUrl: values.logoMobileUrl?.trim() || "",
             logoImageUrl: values.logoLightUrl?.trim() || "",
             headerVolunteerLabel:
-              values.headerVolunteerLabel?.trim() || "Volunteer",
+              values.headerVolunteerLabel?.trim() ?? "",
             headerVolunteerHref:
-              values.headerVolunteerHref?.trim() || "/volunteer",
-            headerVolunteerIconUrl: values.headerVolunteerIconUrl?.trim() || "",
+              values.headerVolunteerHref?.trim() ?? "",
+            headerVolunteerIconUrl: values.headerVolunteerIconUrl?.trim() ?? "",
             headerVolunteerIconUrlMobile:
-              values.headerVolunteerIconUrlMobile?.trim() || "",
-            headerDonateLabel: values.headerDonateLabel?.trim() || "Donate Now",
-            headerDonateHref: values.headerDonateHref?.trim() || "/donate",
+              values.headerVolunteerIconUrlMobile?.trim() ?? "",
+            headerDonateLabel: values.headerDonateLabel?.trim() ?? "",
+            headerDonateHref: values.headerDonateHref?.trim() ?? "",
             headerDonateIconUrl: values.headerDonateIconUrl?.trim() || "",
             headerDonateIconUrlMobile:
               values.headerDonateIconUrlMobile?.trim() || "",
@@ -872,35 +872,27 @@ function resolveThemeColorFromPalette(paletteData, key) {
 
 function HeaderPreviewBlock({ form, themePaletteData, themeHeaderSnapshot }) {
   const s = themeHeaderSnapshot;
-  // Site title comes from theme (Theme Settings), not from Header form
-  const siteTitle = s?.siteTitle || "Mesco Trust";
+  // All values from theme/DB (no static fallbacks). Site title comes from theme snapshot (Theme Settings).
+  const siteTitle = s?.siteTitle ?? "";
   const logoType = Form.useWatch("logoType", form) || s?.logoType || "text";
   const logoLightUrl =
     Form.useWatch("logoLightUrl", form) || s?.logoLightUrl || "";
   const logoMobileUrl =
     Form.useWatch("logoMobileUrl", form) || s?.logoMobileUrl || "";
   const volunteerLabel =
-    Form.useWatch("headerVolunteerLabel", form) ||
-    s?.headerVolunteerLabel ||
-    "Volunteer";
+    Form.useWatch("headerVolunteerLabel", form) || s?.headerVolunteerLabel || "";
   const volunteerHref =
-    Form.useWatch("headerVolunteerHref", form) ||
-    s?.headerVolunteerHref ||
-    "/volunteer";
+    Form.useWatch("headerVolunteerHref", form) || s?.headerVolunteerHref || "";
   const volunteerIconUrl =
-    Form.useWatch("headerVolunteerIconUrl", form) ||
-    s?.headerVolunteerIconUrl ||
-    "";
+    Form.useWatch("headerVolunteerIconUrl", form) || s?.headerVolunteerIconUrl || "";
   const volunteerIconUrlMobile =
     Form.useWatch("headerVolunteerIconUrlMobile", form) ||
     s?.headerVolunteerIconUrlMobile ||
     "";
   const donateLabel =
-    Form.useWatch("headerDonateLabel", form) ||
-    s?.headerDonateLabel ||
-    "Donate Now";
+    Form.useWatch("headerDonateLabel", form) || s?.headerDonateLabel || "";
   const donateHref =
-    Form.useWatch("headerDonateHref", form) || s?.headerDonateHref || "/donate";
+    Form.useWatch("headerDonateHref", form) || s?.headerDonateHref || "";
   const donateIconUrl =
     Form.useWatch("headerDonateIconUrl", form) || s?.headerDonateIconUrl || "";
   const donateIconUrlMobile =

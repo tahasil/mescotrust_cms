@@ -266,8 +266,8 @@ export const IconWrap = styled.span`
 `;
 
 export const BtnVolunteer = styled(Btn)`
-  background: ${(props) => props.$headerCtaBgValue || "rgba(207, 55, 47, 0.1)"};
-  color: ${(props) => props.$headerCtaTextValue || "#CF372F"};
+  background: ${(props) => props.$headerCtaBgValue || "transparent"};
+  color: ${(props) => props.$headerCtaTextValue || "currentColor"};
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border-radius: 30px;
   &:hover {
@@ -276,13 +276,13 @@ export const BtnVolunteer = styled(Btn)`
 `;
 
 export const BtnDonate = styled(Btn)`
-  background: ${(props) => props.$headerDonateBgValue || "linear-gradient(90deg, #CF372F 0%, #691C18 100%)"};
-  color: ${(props) => props.$headerDonateTextValue || "#FFFFFF"};
-  box-shadow: 0 4px 14px rgba(139, 34, 32, 0.35);
+  background: ${(props) => props.$headerDonateBgValue || "transparent"};
+  color: ${(props) => props.$headerDonateTextValue || "currentColor"};
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
   border-radius: 30px;
   &:hover {
-    color: ${(props) => props.$headerDonateTextValue || "#FFFFFF"};
-    box-shadow: 0 4px 18px rgba(139, 34, 32, 0.45);
+    color: ${(props) => props.$headerDonateTextValue || "currentColor"};
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
   }
 `;
 
@@ -330,7 +330,7 @@ export const MobileMenu = styled.div`
   right: 0;
   bottom: 0;
   width: min(320px, 85vw);
-  background: ${(props) => props.$headerBgValue || "rgba(5, 5, 5, 0.98)"};
+  background: ${(props) => props.$headerBgValue || "transparent"};
   box-shadow: -4px 0 24px rgba(0, 0, 0, 0.3);
   z-index: ${(props) => (props.$preview ? 2 : 1003)};
   padding: 80px 24px 24px;
@@ -341,7 +341,7 @@ export const MobileMenu = styled.div`
   @media (max-width: ${BREAKPOINT}) {
     display: block;
     padding: 20px;
-    background: ${(props) => props.$headerBgValue || "#FFFFFF"};
+    background: ${(props) => props.$headerBgValue || "transparent"};
   }
 `;
 
@@ -475,13 +475,13 @@ export const MobileBtn = styled(Btn)`
 `;
 
 export const MobileBtnVolunteer = styled(MobileBtn)`
-  background: ${(props) => props.$headerCtaBgValue || "rgba(207, 55, 47, 0.1)"};
-  color: ${(props) => props.$headerCtaTextValue || "#CF372F"};
+  background: ${(props) => props.$headerCtaBgValue || "transparent"};
+  color: ${(props) => props.$headerCtaTextValue || "currentColor"};
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 `;
 
 export const MobileBtnDonate = styled(MobileBtn)`
-  background: ${(props) => props.$headerDonateBgValue || "linear-gradient(90deg, #CF372F 0%, #691C18 100%)"};
-  color: ${(props) => props.$headerDonateTextValue || "#FFFFFF"};
-  box-shadow: 0 4px 14px rgba(139, 34, 32, 0.35);
+  background: ${(props) => props.$headerDonateBgValue || "transparent"};
+  color: ${(props) => props.$headerDonateTextValue || "currentColor"};
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
 `;

@@ -18,7 +18,7 @@ function PublicHeader({ menuItems, siteTitle, logoType, logoImageUrl, logoLightU
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openSubmenuKey, setOpenSubmenuKey] = useState(null);
   const logoUrl = logoLightUrl || logoImageUrl;
-  const title = siteTitle || "Mesco Trust";
+  const title = siteTitle ?? "";
   const links = menuItems?.length
     ? menuItems
     : [
@@ -165,7 +165,7 @@ function PublicHeader({ menuItems, siteTitle, logoType, logoImageUrl, logoLightU
 }
 
 function PublicFooter({ menuItems, siteTitle, copyrightText, columnsCount, socialIcons, layoutStyle }) {
-  const title = siteTitle || "Mesco Trust";
+  const title = siteTitle ?? "";
   const copy = copyrightText && copyrightText.trim() ? copyrightText.trim() : `© ${new Date().getFullYear()} ${title}. All rights reserved.`;
   const footerClass = [
     "public-footer",

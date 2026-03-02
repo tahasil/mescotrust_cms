@@ -41,7 +41,7 @@ export default async function SiteLayout({ children }) {
         customFooterLayout={data?.customFooterLayout || null}
         globalBefore={data?.globalBefore || []}
         globalAfter={data?.globalAfter || []}
-        siteTitle={theme.siteTitle || "Mesco Trust"}
+        siteTitle={theme.siteTitle ?? ""}
         tagline={theme.tagline}
         logoType={theme.logoType || "text"}
         logoLightUrl={logoUrl}

@@ -141,7 +141,7 @@ const ChevronDown = () => (
 
 export default function Header({
   menuItems = [],
-  siteTitle = "Mesco Trust",
+  siteTitle = "",
   logoType = "text",
   logoImageUrl = "",
   logoLightUrl = "",
@@ -150,13 +150,13 @@ export default function Header({
   sticky = true,
   transparent = false,
   layout = "default",
-  volunteerLabel = "Volunteer",
-  donateLabel = "Donate Now",
-  volunteerHref = "/volunteer",
-  donateHref = "/donate",
-  volunteerIconUrl = "/images/volunteer-icon.svg",
+  volunteerLabel = "",
+  donateLabel = "",
+  volunteerHref = "",
+  donateHref = "",
+  volunteerIconUrl = "",
   volunteerIconUrlMobile,
-  donateIconUrl = "/images/donate-now-icon.svg",
+  donateIconUrl = "",
   donateIconUrlMobile,
   preview = false,
   headerBgValue = "",
@@ -172,7 +172,7 @@ export default function Header({
   const items = cmsMenuToHeaderItems(menuItems);
   const logoUrl = logoLightUrl || logoImageUrl;
   const logoUrlMobile = logoMobileUrl || logoUrl;
-  const title = siteTitle || "Mesco Trust";
+  const title = siteTitle ?? "";
   const volunteerIconMobile = volunteerIconUrlMobile ?? volunteerIconUrl;
   const donateIconMobile = donateIconUrlMobile ?? donateIconUrl;
 
@@ -293,30 +293,34 @@ export default function Header({
           </Nav>
 
           <Actions>
-            <BtnVolunteer
-              href={volunteerHref}
-              $headerCtaBgValue={headerCtaBgValue}
-              $headerCtaTextValue={headerCtaTextValue}
-            >
-              {volunteerLabel}
-              <IconWrap>
-                {volunteerIconUrl ? (
-                  <img src={volunteerIconUrl} alt={volunteerLabel} />
-                ) : null}
-              </IconWrap>
-            </BtnVolunteer>
-            <BtnDonate
-              href={donateHref}
-              $headerDonateBgValue={headerDonateBgValue}
-              $headerDonateTextValue={headerDonateTextValue}
-            >
-              {donateLabel}
-              <IconWrap>
-                {donateIconUrl ? (
-                  <img src={donateIconUrl} alt={donateLabel} />
-                ) : null}
-              </IconWrap>
-            </BtnDonate>
+            {(volunteerLabel || volunteerHref) && (
+              <BtnVolunteer
+                href={volunteerHref || "#"}
+                $headerCtaBgValue={headerCtaBgValue}
+                $headerCtaTextValue={headerCtaTextValue}
+              >
+                {volunteerLabel}
+                <IconWrap>
+                  {volunteerIconUrl ? (
+                    <img src={volunteerIconUrl} alt={volunteerLabel} />
+                  ) : null}
+                </IconWrap>
+              </BtnVolunteer>
+            )}
+            {(donateLabel || donateHref) && (
+              <BtnDonate
+                href={donateHref || "#"}
+                $headerDonateBgValue={headerDonateBgValue}
+                $headerDonateTextValue={headerDonateTextValue}
+              >
+                {donateLabel}
+                <IconWrap>
+                  {donateIconUrl ? (
+                    <img src={donateIconUrl} alt={donateLabel} />
+                  ) : null}
+                </IconWrap>
+              </BtnDonate>
+            )}
           </Actions>
 
           <HamburgerBtn
@@ -425,32 +429,36 @@ export default function Header({
           )}
         </MobileNav>
         <MobileActions>
-          <MobileBtnVolunteer
-            href={volunteerHref}
-            onClick={closeMobile}
-            $headerCtaBgValue={headerCtaBgValue}
-            $headerCtaTextValue={headerCtaTextValue}
-          >
-            <IconWrap>
-              {volunteerIconMobile ? (
-                <img src={volunteerIconMobile} alt={volunteerLabel} />
-              ) : null}
-            </IconWrap>
-            {volunteerLabel}
-          </MobileBtnVolunteer>
-          <MobileBtnDonate
-            href={donateHref}
-            onClick={closeMobile}
-            $headerDonateBgValue={headerDonateBgValue}
-            $headerDonateTextValue={headerDonateTextValue}
-          >
-            <IconWrap>
-              {donateIconMobile ? (
-                <img src={donateIconMobile} alt={donateLabel} />
-              ) : null}
-            </IconWrap>
-            {donateLabel}
-          </MobileBtnDonate>
+          {(volunteerLabel || volunteerHref) && (
+            <MobileBtnVolunteer
+              href={volunteerHref || "#"}
+              onClick={closeMobile}
+              $headerCtaBgValue={headerCtaBgValue}
+              $headerCtaTextValue={headerCtaTextValue}
+            >
+              <IconWrap>
+                {volunteerIconMobile ? (
+                  <img src={volunteerIconMobile} alt={volunteerLabel} />
+                ) : null}
+              </IconWrap>
+              {volunteerLabel}
+            </MobileBtnVolunteer>
+          )}
+          {(donateLabel || donateHref) && (
+            <MobileBtnDonate
+              href={donateHref || "#"}
+              onClick={closeMobile}
+              $headerDonateBgValue={headerDonateBgValue}
+              $headerDonateTextValue={headerDonateTextValue}
+            >
+              <IconWrap>
+                {donateIconMobile ? (
+                  <img src={donateIconMobile} alt={donateLabel} />
+                ) : null}
+              </IconWrap>
+              {donateLabel}
+            </MobileBtnDonate>
+          )}
         </MobileActions>
       </MobileMenu>
     </>
