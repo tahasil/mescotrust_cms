@@ -16,7 +16,12 @@ import {
   Col,
   Divider,
 } from "antd";
-import { ArrowLeftOutlined, SaveOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import {
+  ArrowLeftOutlined,
+  SaveOutlined,
+  DeleteOutlined,
+  EditOutlined,
+} from "@ant-design/icons";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 
@@ -164,8 +169,12 @@ export default function AdminComponentEditPage() {
           footerAddress: theme.footerAddress ?? "",
           footerEmail: theme.footerEmail ?? "",
           footerPhone: theme.footerPhone ?? "",
-          footerCol1Links: Array.isArray(theme.footerCol1Links) ? theme.footerCol1Links : [],
-          footerCol2Links: Array.isArray(theme.footerCol2Links) ? theme.footerCol2Links : [],
+          footerCol1Links: Array.isArray(theme.footerCol1Links)
+            ? theme.footerCol1Links
+            : [],
+          footerCol2Links: Array.isArray(theme.footerCol2Links)
+            ? theme.footerCol2Links
+            : [],
           footerCopyrightText: theme.footerCopyrightText ?? "",
           footerBgColorKey: theme.footerBgColorKey ?? "",
           footerBackgroundImageUrl: theme.footerBackgroundImageUrl ?? "",
@@ -178,20 +187,30 @@ export default function AdminComponentEditPage() {
             ...customColors.map((c) => c?.name).filter(Boolean),
           ]),
         ].sort();
-        setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
+        setThemeColorOptions(
+          names.map((name) => ({ label: name, value: name })),
+        );
         form.setFieldsValue({
           footerLogoUrl: theme.footerLogoUrl ?? "",
           footerAddress: theme.footerAddress ?? "",
           footerEmail: theme.footerEmail ?? "",
           footerPhone: theme.footerPhone ?? "",
-          footerCol1Links: Array.isArray(theme.footerCol1Links) ? theme.footerCol1Links : [],
-          footerCol2Links: Array.isArray(theme.footerCol2Links) ? theme.footerCol2Links : [],
+          footerCol1Links: Array.isArray(theme.footerCol1Links)
+            ? theme.footerCol1Links
+            : [],
+          footerCol2Links: Array.isArray(theme.footerCol2Links)
+            ? theme.footerCol2Links
+            : [],
           footerCopyrightText: theme.footerCopyrightText ?? "",
           footerBgColorKey: theme.footerBgColorKey ?? "",
           footerBackgroundImageUrl: theme.footerBackgroundImageUrl ?? "",
-          footerBgType: (theme.footerBackgroundImageUrl && String(theme.footerBackgroundImageUrl).trim())
-            ? "image"
-            : (theme.footerBgColorKey && String(theme.footerBgColorKey).trim() ? "color" : "image"),
+          footerBgType:
+            theme.footerBackgroundImageUrl &&
+            String(theme.footerBackgroundImageUrl).trim()
+              ? "image"
+              : theme.footerBgColorKey && String(theme.footerBgColorKey).trim()
+                ? "color"
+                : "image",
           footerTextColorKey: theme.footerTextColorKey ?? "",
           footerCopyrightBarColorKey: theme.footerCopyrightBarColorKey ?? "",
         });
@@ -215,10 +234,8 @@ export default function AdminComponentEditPage() {
             logoLightUrl: values.logoLightUrl?.trim() || "",
             logoMobileUrl: values.logoMobileUrl?.trim() || "",
             logoImageUrl: values.logoLightUrl?.trim() || "",
-            headerVolunteerLabel:
-              values.headerVolunteerLabel?.trim() ?? "",
-            headerVolunteerHref:
-              values.headerVolunteerHref?.trim() ?? "",
+            headerVolunteerLabel: values.headerVolunteerLabel?.trim() ?? "",
+            headerVolunteerHref: values.headerVolunteerHref?.trim() ?? "",
             headerVolunteerIconUrl: values.headerVolunteerIconUrl?.trim() ?? "",
             headerVolunteerIconUrlMobile:
               values.headerVolunteerIconUrlMobile?.trim() ?? "",
@@ -245,26 +262,59 @@ export default function AdminComponentEditPage() {
 
       if (isFooter) {
         const allValues = form.getFieldsValue(true);
-        const col1 = Array.isArray(allValues.footerCol1Links) ? allValues.footerCol1Links : [];
-        const col2 = Array.isArray(allValues.footerCol2Links) ? allValues.footerCol2Links : [];
-        const footerLogoUrl = (allValues.footerLogoUrl && String(allValues.footerLogoUrl).trim()) ? String(allValues.footerLogoUrl).trim() : "";
+        const col1 = Array.isArray(allValues.footerCol1Links)
+          ? allValues.footerCol1Links
+          : [];
+        const col2 = Array.isArray(allValues.footerCol2Links)
+          ? allValues.footerCol2Links
+          : [];
+        const footerLogoUrl =
+          allValues.footerLogoUrl && String(allValues.footerLogoUrl).trim()
+            ? String(allValues.footerLogoUrl).trim()
+            : "";
         const themeRes = await fetch("/api/theme", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             footerLogoUrl,
-            footerAddress: (allValues.footerAddress && String(allValues.footerAddress).trim()) ? String(allValues.footerAddress).trim() : "",
-            footerEmail: (allValues.footerEmail && String(allValues.footerEmail).trim()) ? String(allValues.footerEmail).trim() : "",
-            footerPhone: (allValues.footerPhone && String(allValues.footerPhone).trim()) ? String(allValues.footerPhone).trim() : "",
-            footerCol1Links: col1.map((it) => ({ label: it?.label ?? "", url: it?.url ?? "" })),
-            footerCol2Links: col2.map((it) => ({ label: it?.label ?? "", url: it?.url ?? "" })),
-            footerCopyrightText: (allValues.footerCopyrightText && String(allValues.footerCopyrightText).trim()) ? String(allValues.footerCopyrightText).trim() : "",
-            footerBgColorKey: allValues.footerBgType === "image" ? "" : (allValues.footerBgColorKey ?? ""),
-            footerBackgroundImageUrl: allValues.footerBgType === "image"
-              ? (allValues.footerBackgroundImageUrl != null ? String(allValues.footerBackgroundImageUrl).trim() : "")
-              : "",
+            footerAddress:
+              allValues.footerAddress && String(allValues.footerAddress).trim()
+                ? String(allValues.footerAddress).trim()
+                : "",
+            footerEmail:
+              allValues.footerEmail && String(allValues.footerEmail).trim()
+                ? String(allValues.footerEmail).trim()
+                : "",
+            footerPhone:
+              allValues.footerPhone && String(allValues.footerPhone).trim()
+                ? String(allValues.footerPhone).trim()
+                : "",
+            footerCol1Links: col1.map((it) => ({
+              label: it?.label ?? "",
+              url: it?.url ?? "",
+            })),
+            footerCol2Links: col2.map((it) => ({
+              label: it?.label ?? "",
+              url: it?.url ?? "",
+            })),
+            footerCopyrightText:
+              allValues.footerCopyrightText &&
+              String(allValues.footerCopyrightText).trim()
+                ? String(allValues.footerCopyrightText).trim()
+                : "",
+            footerBgColorKey:
+              allValues.footerBgType === "image"
+                ? ""
+                : (allValues.footerBgColorKey ?? ""),
+            footerBackgroundImageUrl:
+              allValues.footerBgType === "image"
+                ? allValues.footerBackgroundImageUrl != null
+                  ? String(allValues.footerBackgroundImageUrl).trim()
+                  : ""
+                : "",
             footerTextColorKey: allValues.footerTextColorKey ?? "",
-            footerCopyrightBarColorKey: allValues.footerCopyrightBarColorKey ?? "",
+            footerCopyrightBarColorKey:
+              allValues.footerCopyrightBarColorKey ?? "",
           }),
         });
         if (!themeRes.ok) {
@@ -274,28 +324,48 @@ export default function AdminComponentEditPage() {
           return;
         }
         const savedTheme = await themeRes.json().catch(() => ({}));
-        const savedBgImage = savedTheme.footerBackgroundImageUrl != null ? String(savedTheme.footerBackgroundImageUrl).trim() : "";
-        const savedBgColorKey = savedTheme.footerBgColorKey != null ? String(savedTheme.footerBgColorKey).trim() : "";
-        const savedBgType = savedBgImage ? "image" : (savedBgColorKey ? "color" : "image");
+        const savedBgImage =
+          savedTheme.footerBackgroundImageUrl != null
+            ? String(savedTheme.footerBackgroundImageUrl).trim()
+            : "";
+        const savedBgColorKey =
+          savedTheme.footerBgColorKey != null
+            ? String(savedTheme.footerBgColorKey).trim()
+            : "";
+        const savedBgType = savedBgImage
+          ? "image"
+          : savedBgColorKey
+            ? "color"
+            : "image";
         form.setFieldsValue({
           footerLogoUrl: savedTheme.footerLogoUrl ?? footerLogoUrl ?? "",
           footerAddress: savedTheme.footerAddress ?? "",
           footerEmail: savedTheme.footerEmail ?? "",
           footerPhone: savedTheme.footerPhone ?? "",
-          footerCol1Links: Array.isArray(savedTheme.footerCol1Links) ? savedTheme.footerCol1Links : [],
-          footerCol2Links: Array.isArray(savedTheme.footerCol2Links) ? savedTheme.footerCol2Links : [],
+          footerCol1Links: Array.isArray(savedTheme.footerCol1Links)
+            ? savedTheme.footerCol1Links
+            : [],
+          footerCol2Links: Array.isArray(savedTheme.footerCol2Links)
+            ? savedTheme.footerCol2Links
+            : [],
           footerCopyrightText: savedTheme.footerCopyrightText ?? "",
           footerBgColorKey: savedTheme.footerBgColorKey ?? "",
           footerBackgroundImageUrl: savedTheme.footerBackgroundImageUrl ?? "",
           footerBgType: savedBgType,
           footerTextColorKey: savedTheme.footerTextColorKey ?? "",
-          footerCopyrightBarColorKey: savedTheme.footerCopyrightBarColorKey ?? "",
+          footerCopyrightBarColorKey:
+            savedTheme.footerCopyrightBarColorKey ?? "",
         });
-        setThemeFooterSnapshot((prev) => (prev ? {
-          ...prev,
-          footerLogoUrl: savedTheme.footerLogoUrl ?? footerLogoUrl ?? "",
-          footerBackgroundImageUrl: savedTheme.footerBackgroundImageUrl ?? "",
-        } : prev));
+        setThemeFooterSnapshot((prev) =>
+          prev
+            ? {
+                ...prev,
+                footerLogoUrl: savedTheme.footerLogoUrl ?? footerLogoUrl ?? "",
+                footerBackgroundImageUrl:
+                  savedTheme.footerBackgroundImageUrl ?? "",
+              }
+            : prev,
+        );
       }
 
       const res = await fetch(
@@ -361,8 +431,15 @@ export default function AdminComponentEditPage() {
               <Input
                 autoFocus
                 size="small"
-                value={displayNameValue ?? record?.displayName ?? record?.componentId ?? ""}
-                onChange={(e) => form.setFieldsValue({ displayName: e.target.value })}
+                value={
+                  displayNameValue ??
+                  record?.displayName ??
+                  record?.componentId ??
+                  ""
+                }
+                onChange={(e) =>
+                  form.setFieldsValue({ displayName: e.target.value })
+                }
                 onBlur={() => setEditingDisplayName(false)}
                 onPressEnter={() => setEditingDisplayName(false)}
                 style={{ width: 220, fontSize: 18, fontWeight: 600 }}
@@ -372,7 +449,10 @@ export default function AdminComponentEditPage() {
                 role="button"
                 tabIndex={0}
                 onClick={() => setEditingDisplayName(true)}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setEditingDisplayName(true); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ")
+                    setEditingDisplayName(true);
+                }}
                 onMouseEnter={() => setHoveringName(true)}
                 onMouseLeave={() => setHoveringName(false)}
                 style={{
@@ -385,8 +465,16 @@ export default function AdminComponentEditPage() {
                 }}
                 title="Click to edit name"
               >
-                <span>Edit {displayNameValue || record?.displayName || record?.componentId || ""}</span>
-                {hoveringName && <EditOutlined style={{ fontSize: 14, opacity: 0.7 }} />}
+                <span>
+                  Edit{" "}
+                  {displayNameValue ||
+                    record?.displayName ||
+                    record?.componentId ||
+                    ""}
+                </span>
+                {hoveringName && (
+                  <EditOutlined style={{ fontSize: 14, opacity: 0.7 }} />
+                )}
               </div>
             )}
           </div>
@@ -585,57 +673,11 @@ export default function AdminComponentEditPage() {
                       label: "Header colors (mobile menu)",
                       children: (
                         <>
-                          <Button
-                            type="default"
-                            size="small"
-                            style={{ marginBottom: 12 }}
-                            onClick={() => {
-                              setThemeLoading(true);
-                              fetch("/api/theme", { cache: "no-store" })
-                                .then((res) => (res.ok ? res.json() : {}))
-                                .then((theme) => {
-                                  const palette = theme.themePalette || {};
-                                  const customColors = Array.isArray(
-                                    theme.colors,
-                                  )
-                                    ? theme.colors
-                                    : [];
-                                  setThemePaletteData({
-                                    themePalette: palette,
-                                    colors: customColors,
-                                  });
-                                  const names = [
-                                    ...new Set([
-                                      ...Object.keys(palette),
-                                      ...customColors
-                                        .map((c) => c?.name)
-                                        .filter(Boolean),
-                                    ]),
-                                  ].sort();
-                                  setThemeColorOptions(
-                                    names.map((name) => ({
-                                      label: name,
-                                      value: name,
-                                    })),
-                                  );
-                                  message.success(
-                                    "Colors list updated from Theme",
-                                  );
-                                })
-                                .catch(() =>
-                                  message.error("Failed to refresh colors"),
-                                )
-                                .finally(() => setThemeLoading(false));
-                            }}
-                            loading={themeLoading}
-                          >
-                            Refresh colors from Theme
-                          </Button>
                           <Row gutter={24}>
                             <Col xs={24} md={8}>
                               <Form.Item
                                 name="headerBgColorKey"
-                                label="Mobile menu / bar background"
+                                label="Responsive Nav Background"
                               >
                                 <Select
                                   options={themeColorOptions}
@@ -682,7 +724,10 @@ export default function AdminComponentEditPage() {
                       children: (
                         <Row gutter={24}>
                           <Col xs={24} md={8}>
-                            <Form.Item name="footerLogoUrl" label="Footer logo image URL">
+                            <Form.Item
+                              name="footerLogoUrl"
+                              label="Footer logo image URL"
+                            >
                               <Input placeholder="/images/footer-logo.svg" />
                             </Form.Item>
                           </Col>
@@ -696,7 +741,10 @@ export default function AdminComponentEditPage() {
                         <Row gutter={24}>
                           <Col xs={24} md={8}>
                             <Form.Item name="footerAddress" label="Address">
-                              <Input.TextArea rows={3} placeholder="Full address" />
+                              <Input.TextArea
+                                rows={3}
+                                placeholder="Full address"
+                              />
                             </Form.Item>
                           </Col>
                           <Col xs={24} md={8}>
@@ -717,31 +765,77 @@ export default function AdminComponentEditPage() {
                       label: "Column 1 links",
                       children: (
                         <>
-                          <p style={{ marginBottom: 12, color: "#666", fontSize: 12 }}>
-                            Add: click &quot;+ Add link&quot;. Update: edit Link text and URL in each row. Delete: click the delete icon on a row.
+                          <p
+                            style={{
+                              marginBottom: 12,
+                              color: "#666",
+                              fontSize: 12,
+                            }}
+                          >
+                            Add: click &quot;+ Add link&quot;. Update: edit Link
+                            text and URL in each row. Delete: click the delete
+                            icon on a row.
                           </p>
                           <Form.List name="footerCol1Links">
                             {(fields, { add, remove }) => (
                               <>
                                 {fields.map(({ key, name, ...rest }) => (
-                                  <Row key={key} gutter={8} align="middle" style={{ marginBottom: 8 }}>
+                                  <Row
+                                    key={key}
+                                    gutter={8}
+                                    align="middle"
+                                    style={{ marginBottom: 8 }}
+                                  >
                                     <Col xs={24} md={9}>
-                                      <Form.Item {...rest} name={[name, "label"]} label="Link text" rules={[{ required: true, message: "Required" }]}>
+                                      <Form.Item
+                                        {...rest}
+                                        name={[name, "label"]}
+                                        label="Link text"
+                                        rules={[
+                                          {
+                                            required: true,
+                                            message: "Required",
+                                          },
+                                        ]}
+                                      >
                                         <Input placeholder="e.g. Educational Support Programmes" />
                                       </Form.Item>
                                     </Col>
                                     <Col xs={24} md={9}>
-                                      <Form.Item {...rest} name={[name, "url"]} label="URL" rules={[{ required: true, message: "Required" }]}>
+                                      <Form.Item
+                                        {...rest}
+                                        name={[name, "url"]}
+                                        label="URL"
+                                        rules={[
+                                          {
+                                            required: true,
+                                            message: "Required",
+                                          },
+                                        ]}
+                                      >
                                         <Input placeholder="e.g. /programmes" />
                                       </Form.Item>
                                     </Col>
                                     <Col xs={24} md={6}>
-                                      <Button type="text" danger onClick={() => remove(name)} style={{ marginTop: 4 }} icon={<DeleteOutlined />} aria-label="Remove link" />
+                                      <Button
+                                        type="text"
+                                        danger
+                                        onClick={() => remove(name)}
+                                        style={{ marginTop: 4 }}
+                                        icon={<DeleteOutlined />}
+                                        aria-label="Remove link"
+                                      />
                                     </Col>
                                   </Row>
                                 ))}
                                 <Form.Item>
-                                  <Button type="dashed" onClick={() => add()} block>+ Add link</Button>
+                                  <Button
+                                    type="dashed"
+                                    onClick={() => add()}
+                                    block
+                                  >
+                                    + Add link
+                                  </Button>
                                 </Form.Item>
                               </>
                             )}
@@ -754,31 +848,77 @@ export default function AdminComponentEditPage() {
                       label: "Column 2 links",
                       children: (
                         <>
-                          <p style={{ marginBottom: 12, color: "#666", fontSize: 12 }}>
-                            Add: click &quot;+ Add link&quot;. Update: edit Link text and URL in each row. Delete: click the delete icon on a row.
+                          <p
+                            style={{
+                              marginBottom: 12,
+                              color: "#666",
+                              fontSize: 12,
+                            }}
+                          >
+                            Add: click &quot;+ Add link&quot;. Update: edit Link
+                            text and URL in each row. Delete: click the delete
+                            icon on a row.
                           </p>
                           <Form.List name="footerCol2Links">
                             {(fields, { add, remove }) => (
                               <>
                                 {fields.map(({ key, name, ...rest }) => (
-                                  <Row key={key} gutter={8} align="middle" style={{ marginBottom: 8 }}>
+                                  <Row
+                                    key={key}
+                                    gutter={8}
+                                    align="middle"
+                                    style={{ marginBottom: 8 }}
+                                  >
                                     <Col xs={24} md={9}>
-                                      <Form.Item {...rest} name={[name, "label"]} label="Link text" rules={[{ required: true, message: "Required" }]}>
+                                      <Form.Item
+                                        {...rest}
+                                        name={[name, "label"]}
+                                        label="Link text"
+                                        rules={[
+                                          {
+                                            required: true,
+                                            message: "Required",
+                                          },
+                                        ]}
+                                      >
                                         <Input placeholder="e.g. Relief of Poverty" />
                                       </Form.Item>
                                     </Col>
                                     <Col xs={24} md={9}>
-                                      <Form.Item {...rest} name={[name, "url"]} label="URL" rules={[{ required: true, message: "Required" }]}>
+                                      <Form.Item
+                                        {...rest}
+                                        name={[name, "url"]}
+                                        label="URL"
+                                        rules={[
+                                          {
+                                            required: true,
+                                            message: "Required",
+                                          },
+                                        ]}
+                                      >
                                         <Input placeholder="e.g. /relief" />
                                       </Form.Item>
                                     </Col>
                                     <Col xs={24} md={6}>
-                                      <Button type="text" danger onClick={() => remove(name)} style={{ marginTop: 4 }} icon={<DeleteOutlined />} aria-label="Remove link" />
+                                      <Button
+                                        type="text"
+                                        danger
+                                        onClick={() => remove(name)}
+                                        style={{ marginTop: 4 }}
+                                        icon={<DeleteOutlined />}
+                                        aria-label="Remove link"
+                                      />
                                     </Col>
                                   </Row>
                                 ))}
                                 <Form.Item>
-                                  <Button type="dashed" onClick={() => add()} block>+ Add link</Button>
+                                  <Button
+                                    type="dashed"
+                                    onClick={() => add()}
+                                    block
+                                  >
+                                    + Add link
+                                  </Button>
                                 </Form.Item>
                               </>
                             )}
@@ -792,7 +932,10 @@ export default function AdminComponentEditPage() {
                       children: (
                         <Row gutter={24}>
                           <Col xs={24} md={12}>
-                            <Form.Item name="footerCopyrightText" label="Copyright text">
+                            <Form.Item
+                              name="footerCopyrightText"
+                              label="Copyright text"
+                            >
                               <Input placeholder="Copyright © 2023 All Rights Reserved." />
                             </Form.Item>
                           </Col>
@@ -805,7 +948,10 @@ export default function AdminComponentEditPage() {
                       children: (
                         <Row gutter={24}>
                           <Col xs={24} md={8}>
-                            <Form.Item name="footerBgType" label="Footer background">
+                            <Form.Item
+                              name="footerBgType"
+                              label="Footer background"
+                            >
                               <Select
                                 options={[
                                   { value: "color", label: "Color" },
@@ -818,23 +964,50 @@ export default function AdminComponentEditPage() {
                           </Col>
                           <Col xs={24} md={8}>
                             {footerBgType === "image" ? (
-                              <Form.Item name="footerBackgroundImageUrl" label="Background image URL">
+                              <Form.Item
+                                name="footerBackgroundImageUrl"
+                                label="Background image URL"
+                              >
                                 <Input placeholder="/uploads/1772449953147_footer-bg.svg" />
                               </Form.Item>
                             ) : (
-                              <Form.Item name="footerBgColorKey" label="Background color">
-                                <Select options={themeColorOptions} placeholder="Select color from Theme" style={{ width: "100%" }} allowClear />
+                              <Form.Item
+                                name="footerBgColorKey"
+                                label="Background color"
+                              >
+                                <Select
+                                  options={themeColorOptions}
+                                  placeholder="Select color from Theme"
+                                  style={{ width: "100%" }}
+                                  allowClear
+                                />
                               </Form.Item>
                             )}
                           </Col>
                           <Col xs={24} md={8}>
-                            <Form.Item name="footerTextColorKey" label="Text & links color">
-                              <Select options={themeColorOptions} placeholder="Select color from Theme" style={{ width: "100%" }} allowClear />
+                            <Form.Item
+                              name="footerTextColorKey"
+                              label="Text & links color"
+                            >
+                              <Select
+                                options={themeColorOptions}
+                                placeholder="Select color from Theme"
+                                style={{ width: "100%" }}
+                                allowClear
+                              />
                             </Form.Item>
                           </Col>
                           <Col xs={24} md={8}>
-                            <Form.Item name="footerCopyrightBarColorKey" label="Copyright bar color">
-                              <Select options={themeColorOptions} placeholder="Select color from Theme" style={{ width: "100%" }} allowClear />
+                            <Form.Item
+                              name="footerCopyrightBarColorKey"
+                              label="Copyright bar color"
+                            >
+                              <Select
+                                options={themeColorOptions}
+                                placeholder="Select color from Theme"
+                                style={{ width: "100%" }}
+                                allowClear
+                              />
                             </Form.Item>
                           </Col>
                         </Row>
@@ -880,11 +1053,15 @@ function HeaderPreviewBlock({ form, themePaletteData, themeHeaderSnapshot }) {
   const logoMobileUrl =
     Form.useWatch("logoMobileUrl", form) || s?.logoMobileUrl || "";
   const volunteerLabel =
-    Form.useWatch("headerVolunteerLabel", form) || s?.headerVolunteerLabel || "";
+    Form.useWatch("headerVolunteerLabel", form) ||
+    s?.headerVolunteerLabel ||
+    "";
   const volunteerHref =
     Form.useWatch("headerVolunteerHref", form) || s?.headerVolunteerHref || "";
   const volunteerIconUrl =
-    Form.useWatch("headerVolunteerIconUrl", form) || s?.headerVolunteerIconUrl || "";
+    Form.useWatch("headerVolunteerIconUrl", form) ||
+    s?.headerVolunteerIconUrl ||
+    "";
   const volunteerIconUrlMobile =
     Form.useWatch("headerVolunteerIconUrlMobile", form) ||
     s?.headerVolunteerIconUrlMobile ||
@@ -900,7 +1077,9 @@ function HeaderPreviewBlock({ form, themePaletteData, themeHeaderSnapshot }) {
     s?.headerDonateIconUrlMobile ||
     "";
   const headerBgColorKey =
-    Form.useWatch("headerBgColorKey", form) || s?.headerBgColorKey || "headerBg";
+    Form.useWatch("headerBgColorKey", form) ||
+    s?.headerBgColorKey ||
+    "headerBg";
   const headerCtaBgColorKey =
     Form.useWatch("headerCtaBgColorKey", form) ||
     s?.headerCtaBgColorKey ||
@@ -976,17 +1155,32 @@ function HeaderPreviewBlock({ form, themePaletteData, themeHeaderSnapshot }) {
 function FooterPreviewBlock({ form, themePaletteData, themeFooterSnapshot }) {
   const s = themeFooterSnapshot;
   const siteTitle = s?.siteTitle || "Mesco Trust";
-  const footerLogoUrl = Form.useWatch("footerLogoUrl", form) || s?.footerLogoUrl || "";
-  const footerAddress = Form.useWatch("footerAddress", form) || s?.footerAddress || "";
-  const footerEmail = Form.useWatch("footerEmail", form) || s?.footerEmail || "";
-  const footerPhone = Form.useWatch("footerPhone", form) || s?.footerPhone || "";
-  const footerCol1Links = Form.useWatch("footerCol1Links", form) || s?.footerCol1Links || [];
-  const footerCol2Links = Form.useWatch("footerCol2Links", form) || s?.footerCol2Links || [];
-  const footerCopyrightText = Form.useWatch("footerCopyrightText", form) || s?.footerCopyrightText || "";
-  const footerBgColorKey = Form.useWatch("footerBgColorKey", form) || s?.footerBgColorKey || "";
-  const footerBackgroundImageUrl = Form.useWatch("footerBackgroundImageUrl", form) || s?.footerBackgroundImageUrl || "";
-  const footerTextColorKey = Form.useWatch("footerTextColorKey", form) || s?.footerTextColorKey || "";
-  const footerCopyrightBarColorKey = Form.useWatch("footerCopyrightBarColorKey", form) || s?.footerCopyrightBarColorKey || "";
+  const footerLogoUrl =
+    Form.useWatch("footerLogoUrl", form) || s?.footerLogoUrl || "";
+  const footerAddress =
+    Form.useWatch("footerAddress", form) || s?.footerAddress || "";
+  const footerEmail =
+    Form.useWatch("footerEmail", form) || s?.footerEmail || "";
+  const footerPhone =
+    Form.useWatch("footerPhone", form) || s?.footerPhone || "";
+  const footerCol1Links =
+    Form.useWatch("footerCol1Links", form) || s?.footerCol1Links || [];
+  const footerCol2Links =
+    Form.useWatch("footerCol2Links", form) || s?.footerCol2Links || [];
+  const footerCopyrightText =
+    Form.useWatch("footerCopyrightText", form) || s?.footerCopyrightText || "";
+  const footerBgColorKey =
+    Form.useWatch("footerBgColorKey", form) || s?.footerBgColorKey || "";
+  const footerBackgroundImageUrl =
+    Form.useWatch("footerBackgroundImageUrl", form) ||
+    s?.footerBackgroundImageUrl ||
+    "";
+  const footerTextColorKey =
+    Form.useWatch("footerTextColorKey", form) || s?.footerTextColorKey || "";
+  const footerCopyrightBarColorKey =
+    Form.useWatch("footerCopyrightBarColorKey", form) ||
+    s?.footerCopyrightBarColorKey ||
+    "";
 
   return (
     <div
@@ -1011,10 +1205,19 @@ function FooterPreviewBlock({ form, themePaletteData, themeFooterSnapshot }) {
         footerCol1Links={Array.isArray(footerCol1Links) ? footerCol1Links : []}
         footerCol2Links={Array.isArray(footerCol2Links) ? footerCol2Links : []}
         footerCopyrightText={footerCopyrightText}
-        footerBgValue={resolveThemeColorFromPalette(themePaletteData, footerBgColorKey)}
+        footerBgValue={resolveThemeColorFromPalette(
+          themePaletteData,
+          footerBgColorKey,
+        )}
         footerBackgroundImageUrl={footerBackgroundImageUrl}
-        footerTextValue={resolveThemeColorFromPalette(themePaletteData, footerTextColorKey)}
-        footerCopyrightBarValue={resolveThemeColorFromPalette(themePaletteData, footerCopyrightBarColorKey)}
+        footerTextValue={resolveThemeColorFromPalette(
+          themePaletteData,
+          footerTextColorKey,
+        )}
+        footerCopyrightBarValue={resolveThemeColorFromPalette(
+          themePaletteData,
+          footerCopyrightBarColorKey,
+        )}
       />
     </div>
   );

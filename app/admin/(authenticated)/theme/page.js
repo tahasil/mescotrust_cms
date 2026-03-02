@@ -16,6 +16,9 @@ import {
   Segmented,
   Typography,
   Switch,
+  Divider,
+  Row,
+  Col,
 } from "antd";
 import {
   PlusOutlined,
@@ -28,9 +31,26 @@ import {
 } from "@ant-design/icons";
 
 const POPULAR_GOOGLE_FONTS = [
-  "Inter", "Roboto", "Open Sans", "Lato", "Montserrat", "Poppins",
-  "Raleway", "Nunito", "Playfair Display", "Merriweather", "Source Sans Pro",
-  "PT Sans", "Noto Sans", "Cairo", "Tajawal", "Ubuntu", "Oswald", "Rubik", "Work Sans", "Fira Sans",
+  "Inter",
+  "Roboto",
+  "Open Sans",
+  "Lato",
+  "Montserrat",
+  "Poppins",
+  "Raleway",
+  "Nunito",
+  "Playfair Display",
+  "Merriweather",
+  "Source Sans Pro",
+  "PT Sans",
+  "Noto Sans",
+  "Cairo",
+  "Tajawal",
+  "Ubuntu",
+  "Oswald",
+  "Rubik",
+  "Work Sans",
+  "Fira Sans",
 ];
 
 /** Parse hex or rgb/rgba or first hex in gradient to a 6-char hex for the color picker */
@@ -40,9 +60,13 @@ function parseToHex(str) {
   const hexMatch = raw.match(/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/);
   if (hexMatch) {
     const h = hexMatch[1];
-    return h.length === 3 ? `#${h[0]}${h[0]}${h[1]}${h[1]}${h[2]}${h[2]}` : `#${h}`;
+    return h.length === 3
+      ? `#${h[0]}${h[0]}${h[1]}${h[1]}${h[2]}${h[2]}`
+      : `#${h}`;
   }
-  const rgbMatch = raw.match(/rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*[\d.]+\s*)?\)/);
+  const rgbMatch = raw.match(
+    /rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*[\d.]+\s*)?\)/,
+  );
   if (rgbMatch) {
     const r = Math.max(0, Math.min(255, parseInt(rgbMatch[1], 10)));
     const g = Math.max(0, Math.min(255, parseInt(rgbMatch[2], 10)));
@@ -52,7 +76,9 @@ function parseToHex(str) {
   const anyHex = raw.match(/#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})\b/);
   if (anyHex) {
     const h = anyHex[1];
-    return h.length === 3 ? `#${h[0]}${h[0]}${h[1]}${h[1]}${h[2]}${h[2]}` : `#${h}`;
+    return h.length === 3
+      ? `#${h[0]}${h[0]}${h[1]}${h[1]}${h[2]}${h[2]}`
+      : `#${h}`;
   }
   return null;
 }
@@ -60,7 +86,9 @@ function parseToHex(str) {
 /** Get alpha from rgba string or 1 */
 function parseAlpha(str) {
   if (!str || typeof str !== "string") return 1;
-  const m = str.trim().match(/rgba\s*\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*([\d.]+)\s*\)/);
+  const m = str
+    .trim()
+    .match(/rgba\s*\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*([\d.]+)\s*\)/);
   return m ? parseFloat(m[1]) : 1;
 }
 
@@ -99,13 +127,23 @@ function ColorCodeInput({ value, onChange, placeholder }) {
         type="color"
         value={pickerHex}
         onChange={handlePickerChange}
-        style={{ width: 40, height: 32, padding: 2, border: "1px solid #d9d9d9", borderRadius: 6, cursor: "pointer", flexShrink: 0 }}
+        style={{
+          width: 40,
+          height: 32,
+          padding: 2,
+          border: "1px solid #d9d9d9",
+          borderRadius: 6,
+          cursor: "pointer",
+          flexShrink: 0,
+        }}
         title="Pick color"
       />
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder || "e.g. #1890ff, rgba(...), linear-gradient(...)"}
+        placeholder={
+          placeholder || "e.g. #1890ff, rgba(...), linear-gradient(...)"
+        }
         style={{ flex: 1, minWidth: 0 }}
       />
     </Space.Compact>
@@ -212,7 +250,10 @@ export default function AdminThemePage() {
           ...initialFormValues,
           ...data,
           themePalette: palette,
-          paletteColors: Object.entries(palette).map(([key, value]) => ({ key, value })),
+          paletteColors: Object.entries(palette).map(([key, value]) => ({
+            key,
+            value,
+          })),
           colors: Array.isArray(data.colors) ? data.colors : [],
         });
         setGoogleFonts(data.googleFonts || []);
@@ -227,11 +268,15 @@ export default function AdminThemePage() {
       message.warning("Font already added");
       return;
     }
-    setGoogleFonts([...googleFonts, { family: newFont, weights: ["400", "700"] }]);
+    setGoogleFonts([
+      ...googleFonts,
+      { family: newFont, weights: ["400", "700"] },
+    ]);
     setNewFont(null);
   };
 
-  const handleRemoveFont = (family) => setGoogleFonts(googleFonts.filter((f) => f.family !== family));
+  const handleRemoveFont = (family) =>
+    setGoogleFonts(googleFonts.filter((f) => f.family !== family));
 
   const handleFontUpload = async (info) => {
     const file = info.file;
@@ -256,7 +301,10 @@ export default function AdminThemePage() {
   };
 
   const handleDeleteFont = async (filename) => {
-    const res = await fetch(`/api/admin/fonts?filename=${encodeURIComponent(filename)}`, { method: "DELETE" });
+    const res = await fetch(
+      `/api/admin/fonts?filename=${encodeURIComponent(filename)}`,
+      { method: "DELETE" },
+    );
     if (!res.ok) message.error("Failed to delete font");
     else {
       message.success("Font deleted");
@@ -270,7 +318,9 @@ export default function AdminThemePage() {
       const payload = {
         ...values,
         googleFonts,
-        paletteColors: Array.isArray(values.paletteColors) ? values.paletteColors : [],
+        paletteColors: Array.isArray(values.paletteColors)
+          ? values.paletteColors
+          : [],
         colors: Array.isArray(values.colors) ? values.colors : [],
       };
       const res = await fetch("/api/theme", {
@@ -287,8 +337,13 @@ export default function AdminThemePage() {
       const palette = data.themePalette || {};
       form.setFieldsValue({
         ...data,
-        paletteColors: Object.entries(palette).map(([key, value]) => ({ key, value })),
-        colors: Array.isArray(data.colors) ? data.colors : form.getFieldValue("colors") ?? [],
+        paletteColors: Object.entries(palette).map(([key, value]) => ({
+          key,
+          value,
+        })),
+        colors: Array.isArray(data.colors)
+          ? data.colors
+          : (form.getFieldValue("colors") ?? []),
       });
     } finally {
       setSaving(false);
@@ -298,47 +353,103 @@ export default function AdminThemePage() {
   const collapseItems = [
     {
       key: "layout",
-      label: <span><BulbOutlined style={{ marginRight: 8 }} />Layout & Locale</span>,
+      label: (
+        <span>
+          <BulbOutlined style={{ marginRight: 8 }} />
+          Layout & Locale
+        </span>
+      ),
       children: (
         <div style={{ paddingBlock: 8 }}>
-          <Form.Item name="siteTitle" label="Site title">
-            <Input placeholder="Mesco Trust" />
-          </Form.Item>
-          <Form.Item name="layoutWidth" label="Container max-width (px)"><InputNumber min={600} max={1920} style={{ width: "100%" }} /></Form.Item>
-          <Form.Item name="defaultLocale" label="Default locale"><Input placeholder="en" /></Form.Item>
-          <Form.Item name="direction" label="Direction"><Select options={[{ value: "ltr", label: "LTR" }, { value: "rtl", label: "RTL" }]} /></Form.Item>
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={12} md={8}>
+              <Form.Item name="siteTitle" label="Site title">
+                <Input placeholder="Mesco Trust" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={8}>
+              <Form.Item name="layoutWidth" label="Container max-width (px)">
+                <InputNumber min={600} max={1920} style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={8}>
+              <Form.Item name="defaultLocale" label="Default locale">
+                <Input placeholder="en" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={8}>
+              <Form.Item name="direction" label="Direction">
+                <Select
+                  options={[
+                    { value: "ltr", label: "LTR" },
+                    { value: "rtl", label: "RTL" },
+                  ]}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
         </div>
       ),
     },
     {
       key: "colors-primary",
-      label: <span><BgColorsOutlined style={{ marginRight: 8 }} />Colors</span>,
+      label: (
+        <span>
+          <BgColorsOutlined style={{ marginRight: 8 }} />
+          Colors
+        </span>
+      ),
       children: (
         <div style={{ paddingBlock: 8 }}>
           <Form.List name="colors">
             {(fields, { add, remove }) => (
               <>
-                {fields.length > 0 && (
-                  <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 8, paddingRight: 40 }}>
-                    <Typography.Text strong style={{ flex: "1 1 140px" }}>Name</Typography.Text>
-                    <Typography.Text strong style={{ flex: "1 1 200px" }}>Value</Typography.Text>
-                    <Typography.Text strong style={{ flex: "0 0 90px", textAlign: "right" }}>Action</Typography.Text>
-                  </div>
-                )}
-                {fields.map(({ key, name }) => (
-                  <div key={key} style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
-                    <Form.Item name={[name, "name"]} rules={[{ required: true, message: "Name required" }]} style={{ marginBottom: 0, flex: "1 1 140px" }} label={null}>
-                      <Input placeholder="e.g. accent" />
-                    </Form.Item>
-                    <Form.Item name={[name, "value"]} rules={[{ required: true, message: "Value required" }]} style={{ marginBottom: 0, flex: "1 1 200px" }} label={null}>
-                      <ColorCodeInput placeholder="#hex or rgba(...)" />
-                    </Form.Item>
-                    <Button type="default" danger size="small" icon={<DeleteOutlined />} onClick={() => remove(name)} style={{ flex: "0 0 90px", marginTop: 4 }}>
-                      Delete
-                    </Button>
-                  </div>
-                ))}
-                <Button type="dashed" onClick={() => add({ name: "", value: "" })} icon={<PlusOutlined />} style={{ marginTop: 4 }}>
+                <Row gutter={[16, 12]}>
+                  {fields.map(({ key, name }) => (
+                    <Col xs={24} md={12} key={key}>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: 12,
+                          alignItems: "flex-start",
+                          marginBottom: 0,
+                        }}
+                      >
+                        <Form.Item
+                          name={[name, "name"]}
+                          rules={[{ required: true, message: "Name required" }]}
+                          style={{ marginBottom: 0, flex: "1 1 100px", minWidth: 0 }}
+                          label={null}
+                        >
+                          <Input placeholder="e.g. accent" />
+                        </Form.Item>
+                        <Form.Item
+                          name={[name, "value"]}
+                          rules={[{ required: true, message: "Value required" }]}
+                          style={{ marginBottom: 0, flex: "1 1 140px", minWidth: 0 }}
+                          label={null}
+                        >
+                          <ColorCodeInput placeholder="#hex or rgba(...)" />
+                        </Form.Item>
+                        <Button
+                          type="default"
+                          danger
+                          size="small"
+                          icon={<DeleteOutlined />}
+                          onClick={() => remove(name)}
+                          style={{ flexShrink: 0, marginTop: 4 }}
+                          aria-label="Delete"
+                        />
+                      </div>
+                    </Col>
+                  ))}
+                </Row>
+                <Button
+                  type="dashed"
+                  onClick={() => add({ name: "", value: "" })}
+                  icon={<PlusOutlined />}
+                  style={{ marginTop: 12 }}
+                >
                   Add color
                 </Button>
               </>
@@ -348,26 +459,46 @@ export default function AdminThemePage() {
           <Form.List name="paletteColors">
             {(fields, { add, remove }) => (
               <>
-                {fields.length > 0 && (
-                  <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 8, marginTop: 16, paddingRight: 40 }}>
-                    <Typography.Text strong style={{ flex: "1 1 140px" }}>Name</Typography.Text>
-                    <Typography.Text strong style={{ flex: "1 1 200px" }}>Value</Typography.Text>
-                    <Typography.Text strong style={{ flex: "0 0 90px", textAlign: "right" }}>Action</Typography.Text>
-                  </div>
-                )}
-                {fields.map(({ key, name }) => (
-                  <div key={key} style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
-                    <Form.Item name={[name, "key"]} rules={[{ required: true, message: "Name" }]} style={{ marginBottom: 0, flex: "1 1 140px" }} label={null}>
-                      <Input placeholder="e.g. primary, headerBg" />
-                    </Form.Item>
-                    <Form.Item name={[name, "value"]} rules={[{ required: true, message: "Value" }]} style={{ marginBottom: 0, flex: "1 1 200px" }} label={null}>
-                      <ColorCodeInput placeholder="#hex or rgba(...)" />
-                    </Form.Item>
-                    <Button type="default" danger size="small" icon={<DeleteOutlined />} onClick={() => remove(name)} style={{ flex: "0 0 90px", marginTop: 4 }}>
-                      Delete
-                    </Button>
-                  </div>
-                ))}
+                <Row gutter={[16, 12]} style={{ marginTop: 16 }}>
+                  {fields.map(({ key, name }) => (
+                    <Col xs={24} md={12} key={key}>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: 12,
+                          alignItems: "flex-start",
+                          marginBottom: 0,
+                        }}
+                      >
+                        <Form.Item
+                          name={[name, "key"]}
+                          rules={[{ required: true, message: "Name" }]}
+                          style={{ marginBottom: 0, flex: "1 1 100px", minWidth: 0 }}
+                          label={null}
+                        >
+                          <Input placeholder="e.g. primary, headerBg" />
+                        </Form.Item>
+                        <Form.Item
+                          name={[name, "value"]}
+                          rules={[{ required: true, message: "Value" }]}
+                          style={{ marginBottom: 0, flex: "1 1 140px", minWidth: 0 }}
+                          label={null}
+                        >
+                          <ColorCodeInput placeholder="#hex or rgba(...)" />
+                        </Form.Item>
+                        <Button
+                          type="default"
+                          danger
+                          size="small"
+                          icon={<DeleteOutlined />}
+                          onClick={() => remove(name)}
+                          style={{ flexShrink: 0, marginTop: 4 }}
+                          aria-label="Delete"
+                        />
+                      </div>
+                    </Col>
+                  ))}
+                </Row>
               </>
             )}
           </Form.List>
@@ -376,14 +507,45 @@ export default function AdminThemePage() {
     },
     {
       key: "advanced",
-      label: <span><CodeOutlined style={{ marginRight: 8 }} />Advanced</span>,
+      label: (
+        <span>
+          <CodeOutlined style={{ marginRight: 8 }} />
+          Advanced
+        </span>
+      ),
       children: (
         <div style={{ paddingBlock: 8 }}>
-          <Form.Item name="customCss" label="Custom CSS"><Input.TextArea rows={6} placeholder=".my-class { color: red; }" style={{ fontFamily: "monospace", fontSize: 12 }} /></Form.Item>
-          <Form.Item name="customJs" label="Custom JS"><Input.TextArea rows={4} placeholder="JavaScript" style={{ fontFamily: "monospace", fontSize: 12 }} /></Form.Item>
-          <Form.Item name="headScripts" label="Head Scripts"><Input.TextArea rows={3} placeholder="<script>...</script>" style={{ fontFamily: "monospace", fontSize: 12 }} /></Form.Item>
-          <Form.Item name="footerScripts" label="Footer Scripts"><Input.TextArea rows={3} placeholder="<script>...</script>" style={{ fontFamily: "monospace", fontSize: 12 }} /></Form.Item>
-          <Form.Item name="googleAnalyticsId" label="Google Analytics ID"><Input placeholder="G-XXXXXXXXXX" /></Form.Item>
+          <Form.Item name="customCss" label="Custom CSS">
+            <Input.TextArea
+              rows={6}
+              placeholder=".my-class { color: red; }"
+              style={{ fontFamily: "monospace", fontSize: 12 }}
+            />
+          </Form.Item>
+          <Form.Item name="customJs" label="Custom JS">
+            <Input.TextArea
+              rows={4}
+              placeholder="JavaScript"
+              style={{ fontFamily: "monospace", fontSize: 12 }}
+            />
+          </Form.Item>
+          <Form.Item name="headScripts" label="Head Scripts">
+            <Input.TextArea
+              rows={3}
+              placeholder="<script>...</script>"
+              style={{ fontFamily: "monospace", fontSize: 12 }}
+            />
+          </Form.Item>
+          <Form.Item name="footerScripts" label="Footer Scripts">
+            <Input.TextArea
+              rows={3}
+              placeholder="<script>...</script>"
+              style={{ fontFamily: "monospace", fontSize: 12 }}
+            />
+          </Form.Item>
+          <Form.Item name="googleAnalyticsId" label="Google Analytics ID">
+            <Input placeholder="G-XXXXXXXXXX" />
+          </Form.Item>
         </div>
       ),
     },
@@ -391,15 +553,29 @@ export default function AdminThemePage() {
 
   return (
     <>
-      <Typography.Title level={3} style={{ marginBottom: 24 }}>Theme Settings</Typography.Title>
-      <Card loading={loading}>
-        <Form form={form} layout="vertical" onFinish={onFinish} initialValues={initialFormValues} style={{ maxWidth: 720 }}>
-          <Collapse items={collapseItems} defaultActiveKey={["layout", "colors-primary"]} />
-          <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
-            <Button type="primary" htmlType="submit" size="large" loading={saving}>Save theme</Button>
-          </Form.Item>
-        </Form>
-      </Card>
+      <Typography.Title level={3} style={{ marginBottom: 24 }}>
+        Theme Settings
+      </Typography.Title>
+      <Divider />
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        initialValues={initialFormValues}
+        loading={loading}
+      >
+        <Collapse items={collapseItems} defaultActiveKey={[]} />
+        <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
+          <Button
+            type="primary"
+            htmlType="submit"
+            size="large"
+            loading={saving}
+          >
+            Save theme
+          </Button>
+        </Form.Item>
+      </Form>
     </>
   );
 }
