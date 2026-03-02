@@ -95,6 +95,7 @@ export default function Header({
   logoType = "text",
   logoImageUrl = "",
   logoLightUrl = "",
+  logoMobileUrl = "",
   logoDarkUrl = "",
   sticky = true,
   transparent = false,
@@ -104,7 +105,9 @@ export default function Header({
   volunteerHref = "/volunteer",
   donateHref = "/donate",
   volunteerIconUrl = "/images/volunteer-icon.svg",
+  volunteerIconUrlMobile,
   donateIconUrl = "/images/donate-now-icon.svg",
+  donateIconUrlMobile,
   preview = false,
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -113,7 +116,10 @@ export default function Header({
 
   const items = cmsMenuToHeaderItems(menuItems);
   const logoUrl = logoLightUrl || logoImageUrl;
+  const logoUrlMobile = logoMobileUrl || logoUrl;
   const title = siteTitle || "Mesco Trust";
+  const volunteerIconMobile = volunteerIconUrlMobile ?? volunteerIconUrl;
+  const donateIconMobile = donateIconUrlMobile ?? donateIconUrl;
 
   useEffect(() => {
     const onScroll = () => setScrolled(typeof window !== "undefined" && window.scrollY >= SCROLL_THRESHOLD_PX);
@@ -232,7 +238,7 @@ export default function Header({
       <MobileMenu $open={mobileOpen} $preview={preview}>
         <MobileMenuHeader>
           <MobileMenuLogo href="/" onClick={closeMobile}>
-            {logoType === "image" && logoUrl ? <img src={logoUrl} alt={title} /> : <span>{title}</span>}
+            {logoType === "image" && logoUrlMobile ? <img src={logoUrlMobile} alt={title} /> : <span>{title}</span>}
           </MobileMenuLogo>
           <MobileMenuCloseBtn type="button" aria-label="Close menu" onClick={closeMobile}>
             <CloseIcon />
@@ -291,11 +297,11 @@ export default function Header({
         </MobileNav>
         <MobileActions>
           <MobileBtnVolunteer href={volunteerHref} onClick={closeMobile}>
-            <IconWrap>{volunteerIconUrl ? <img src={volunteerIconUrl} alt={volunteerLabel} /> : null}</IconWrap>
+            <IconWrap>{volunteerIconMobile ? <img src={volunteerIconMobile} alt={volunteerLabel} /> : null}</IconWrap>
             {volunteerLabel}
           </MobileBtnVolunteer>
           <MobileBtnDonate href={donateHref} onClick={closeMobile}>
-            <IconWrap>{donateIconUrl ? <img src={donateIconUrl} alt={donateLabel} /> : null}</IconWrap>
+            <IconWrap>{donateIconMobile ? <img src={donateIconMobile} alt={donateLabel} /> : null}</IconWrap>
             {donateLabel}
           </MobileBtnDonate>
         </MobileActions>

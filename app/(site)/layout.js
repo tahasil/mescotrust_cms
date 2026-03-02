@@ -26,6 +26,7 @@ export default async function SiteLayout({ children }) {
         tagline={theme.tagline}
         logoType={theme.logoType || "text"}
         logoLightUrl={logoUrl}
+        logoMobileUrl={theme.logoMobileUrl || ""}
         logoDarkUrl={theme.logoDarkUrl || ""}
         footerCopyrightText={theme.footerCopyrightText}
         headerSticky={theme.headerSticky !== false}
@@ -34,9 +35,11 @@ export default async function SiteLayout({ children }) {
         headerVolunteerLabel={theme.headerVolunteerLabel}
         headerVolunteerHref={theme.headerVolunteerHref}
         headerVolunteerIconUrl={theme.headerVolunteerIconUrl}
+        headerVolunteerIconUrlMobile={theme.headerVolunteerIconUrlMobile || ""}
         headerDonateLabel={theme.headerDonateLabel}
         headerDonateHref={theme.headerDonateHref}
         headerDonateIconUrl={theme.headerDonateIconUrl}
+        headerDonateIconUrlMobile={theme.headerDonateIconUrlMobile || ""}
         footerColumnsCount={theme.footerColumnsCount ?? 4}
         footerSocialIcons={theme.footerSocialIcons !== false}
         footerLayoutStyle={theme.footerLayoutStyle}

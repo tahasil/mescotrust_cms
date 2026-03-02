@@ -238,13 +238,16 @@ export const IconWrap = styled.span`
   height: 28px;
   min-width: 28px;
   min-height: 28px;
-  border-radius: 50%;
   flex-shrink: 0;
-  background: ${Theme.colors.white};
+  background: transparent;
   img {
-    width: 14px;
-    height: 14px;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
     object-fit: contain;
+    display: block;
+    vertical-align: middle;
   }
 `;
 
@@ -253,9 +256,6 @@ export const BtnVolunteer = styled(Btn)`
   color: ${Theme.colors.primary};
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border-radius: 30px;
-  ${IconWrap} {
-    background: rgba(207, 55, 47, 0.2);
-  }
   &:hover {
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
   }
@@ -266,9 +266,6 @@ export const BtnDonate = styled(Btn)`
   color: ${Theme.colors.white};
   box-shadow: 0 4px 14px rgba(139, 34, 32, 0.35);
   border-radius: 30px;
-  ${IconWrap} {
-    background: rgba(0, 0, 0, 0.25);
-  }
   &:hover {
     color: ${Theme.colors.white};
     box-shadow: 0 4px 18px rgba(139, 34, 32, 0.45);
@@ -465,16 +462,10 @@ export const MobileBtnVolunteer = styled(MobileBtn)`
   background: ${Theme.colors.headerCta};
   color: ${Theme.colors.primary};
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  ${IconWrap} {
-    background: rgba(207, 55, 47, 0.2);
-  }
 `;
 
 export const MobileBtnDonate = styled(MobileBtn)`
   background: ${Theme.colors.gradient};
   color: ${Theme.colors.white};
   box-shadow: 0 4px 14px rgba(139, 34, 32, 0.35);
-  ${IconWrap} {
-    background: rgba(0, 0, 0, 0.25);
-  }
 `;
