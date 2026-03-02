@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
+import * as SiteComponents from "@/components/site";
 
 function PublicHeader({ menuItems, siteTitle, logoType, logoImageUrl, logoLightUrl, logoDarkUrl, sticky, transparent, layout }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -184,11 +185,40 @@ function PublicFooter({ menuItems, siteTitle, copyrightText, columnsCount, socia
   );
 }
 
+const headerThemeProps = (props) => ({
+  menuItems: props.headerItems,
+  siteTitle: props.siteTitle,
+  logoType: props.logoType,
+  logoImageUrl: props.logoImageUrl,
+  logoLightUrl: props.logoLightUrl,
+  logoDarkUrl: props.logoDarkUrl,
+  sticky: props.headerSticky,
+  transparent: props.headerTransparent,
+  layout: props.headerLayout,
+  volunteerLabel: props.headerVolunteerLabel,
+  volunteerHref: props.headerVolunteerHref,
+  volunteerIconUrl: props.headerVolunteerIconUrl,
+  donateLabel: props.headerDonateLabel,
+  donateHref: props.headerDonateHref,
+  donateIconUrl: props.headerDonateIconUrl,
+});
+
+const footerThemeProps = (props) => ({
+  menuItems: props.footerItems,
+  siteTitle: props.siteTitle,
+  copyrightText: props.footerCopyrightText,
+  columnsCount: props.footerColumnsCount,
+  socialIcons: props.footerSocialIcons,
+  layoutStyle: props.footerLayoutStyle,
+});
+
 export default function PublicShell({
   headerItems,
   footerItems,
   customHeaderLayout,
   customFooterLayout,
+  globalBefore = [],
+  globalAfter = [],
   siteTitle,
   tagline,
   logoType,
@@ -199,17 +229,59 @@ export default function PublicShell({
   headerSticky,
   headerTransparent,
   headerLayout,
+  headerVolunteerLabel,
+  headerVolunteerHref,
+  headerVolunteerIconUrl,
+  headerDonateLabel,
+  headerDonateHref,
+  headerDonateIconUrl,
   footerColumnsCount,
   footerSocialIcons,
   footerLayoutStyle,
   children,
 }) {
+  const hasGlobalBefore = Array.isArray(globalBefore) && globalBefore.length > 0;
+  const hasGlobalAfter = Array.isArray(globalAfter) && globalAfter.length > 0;
   const hasCustomHeader = Array.isArray(customHeaderLayout) && customHeaderLayout.length > 0;
   const hasCustomFooter = Array.isArray(customFooterLayout) && customFooterLayout.length > 0;
 
+  const themeProps = {
+    headerItems,
+    footerItems,
+    siteTitle,
+    tagline,
+    logoType,
+    logoImageUrl,
+    logoLightUrl,
+    logoDarkUrl,
+    footerCopyrightText,
+    headerSticky,
+    headerTransparent,
+    headerLayout,
+    headerVolunteerLabel,
+    headerVolunteerHref,
+    headerVolunteerIconUrl,
+    headerDonateLabel,
+    headerDonateHref,
+    headerDonateIconUrl,
+    footerColumnsCount,
+    footerSocialIcons,
+    footerLayoutStyle,
+  };
+
+  const renderGlobalComponent = (id, position) => {
+    const Comp = SiteComponents[id];
+    if (!Comp) return null;
+    if (id === "Header") return <Comp key={id} {...headerThemeProps(themeProps)} />;
+    if (id === "Footer") return <Comp key={id} {...footerThemeProps(themeProps)} />;
+    return <Comp key={id} {...themeProps} />;
+  };
+
   return (
     <div className="public-site" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      {hasCustomHeader ? (
+      {hasGlobalBefore ? (
+        globalBefore.map((id) => renderGlobalComponent(id, "before"))
+      ) : hasCustomHeader ? (
         <ComponentRenderer layout={customHeaderLayout} />
       ) : (
         <PublicHeader
@@ -225,7 +297,9 @@ export default function PublicShell({
         />
       )}
       <div style={{ flex: 1 }}>{children}</div>
-      {hasCustomFooter ? (
+      {hasGlobalAfter ? (
+        globalAfter.map((id) => renderGlobalComponent(id, "after"))
+      ) : hasCustomFooter ? (
         <ComponentRenderer layout={customFooterLayout} />
       ) : (
         <PublicFooter

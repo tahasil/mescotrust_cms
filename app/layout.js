@@ -1,12 +1,7 @@
 import "./globals.css";
-import Script from "next/script";
 import { headers } from "next/headers";
-import { connectDB } from "@/lib/db";
 import { getSiteUrl } from "@/lib/env";
-import ThemeConfig from "@/models/ThemeConfig";
-import Menu from "@/models/Menu";
-import Component from "@/models/Component";
-import PublicShell from "@/components/layout/PublicShell";
+import { getTheme, THEME_DEFAULTS } from "@/lib/layoutData";
 
 /** Always fetch fresh theme and menu from DB; no cache so menu changes show immediately. */
 export const dynamic = "force-dynamic";
@@ -22,52 +17,6 @@ export const metadata = {
   openGraph: {
     siteName: "Mesco Trust CMS",
   },
-};
-
-const THEME_DEFAULTS = {
-  siteTitle: "Mesco Trust",
-  tagline: "",
-  logoType: "text",
-  logoLightUrl: "",
-  logoDarkUrl: "",
-  logoImageUrl: "",
-  faviconUrl: "",
-  footerCopyrightText: "",
-  primaryColor: "",
-  secondaryColor: "",
-  bodyBackground: "",
-  sectionBackground: "",
-  cardBackground: "",
-  headerBackground: "",
-  footerBackground: "",
-  headingColor: "",
-  paragraphColor: "",
-  linkColor: "",
-  hoverColor: "",
-  mutedTextColor: "",
-  borderColor: "",
-  dividerColor: "",
-  inputBorderColor: "",
-  colors: [],
-  bodyFont: "system-ui, sans-serif",
-  headingFont: "",
-  buttonFont: "",
-  baseFontSize: 16,
-  lineHeight: 1.6,
-  letterSpacing: 0,
-  fontWeightNormal: 400,
-  fontWeightMedium: 500,
-  fontWeightBold: 700,
-  buttonRadius: 6,
-  cardRadius: 8,
-  inputRadius: 6,
-  cardShadow: true,
-  buttonShadow: false,
-  layoutWidth: 1200,
-  defaultLocale: "en",
-  direction: "ltr",
-  googleFonts: [],
-  customFontUrl: "",
 };
 
 const NAME_TO_CSS_VAR = {
@@ -133,109 +82,6 @@ function buildThemeCssVars(theme) {
   };
 }
 
-/** Convert menu items (from Menu model) to header nav items; supports nested children (submenu of submenu). */
-function menuItemsToNavItems(menuItems) {
-  if (!Array.isArray(menuItems)) return [];
-  return menuItems.map((it) => {
-    const item = it && typeof it === "object" ? it : {};
-    const url = typeof item.url === "string" && item.url ? item.url : (item.type === "page" && item.pageSlug ? `/${String(item.pageSlug)}` : "#");
-    const childList = Array.isArray(item.children) ? item.children : [];
-    const children = menuItemsToNavItems(childList);
-    const result = {
-      label: String(item.label ?? ""),
-      url,
-      hasDropdown: children.length > 0,
-      openInNewTab: !!item.openInNewTab,
-    };
-    if (children.length > 0) result.children = children;
-    return result;
-  });
-}
-
-async function getLayoutData(pathname) {
-  const isAdminRoute = pathname?.startsWith("/admin");
-  try {
-    await connectDB();
-    const [themeDoc, footerMenu, headerComponents, footerComponents] = await Promise.all([
-      ThemeConfig.findOne().lean(),
-      isAdminRoute ? null : Menu.findOne({ name: "footer" }).lean(),
-      isAdminRoute ? null : Component.find({ baseComponent: "Header" }).lean(),
-      isAdminRoute ? null : Component.find({ baseComponent: "Footer" }).lean(),
-    ]);
-    // Prefer the Header that has saved layout (so saved settings persist after restart)
-    const headerComponent = !headerComponents?.length ? null : headerComponents.sort((a, b) => {
-      const aHas = Array.isArray(a.layout) && a.layout.length > 0;
-      const bHas = Array.isArray(b.layout) && b.layout.length > 0;
-      if (aHas && !bHas) return -1;
-      if (!aHas && bHas) return 1;
-      return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
-    })[0];
-    const footerComponent = !footerComponents?.length ? null : footerComponents.sort((a, b) => {
-      const aHas = Array.isArray(a.layout) && a.layout.length > 0;
-      const bHas = Array.isArray(b.layout) && b.layout.length > 0;
-      if (aHas && !bHas) return -1;
-      if (!aHas && bHas) return 1;
-      return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
-    })[0];
-    const theme = themeDoc ? { ...THEME_DEFAULTS, ...themeDoc } : THEME_DEFAULTS;
-    if (theme.logoImageUrl && !theme.logoLightUrl) theme.logoLightUrl = theme.logoImageUrl;
-    if (theme.fontFamily && !theme.bodyFont) theme.bodyFont = theme.fontFamily;
-    if (theme.headingFontFamily && !theme.headingFont) theme.headingFont = theme.headingFontFamily;
-    if (theme.fontSize != null && theme.baseFontSize == null) theme.baseFontSize = theme.fontSize;
-    const rawHeaderLayout = headerComponent?.layout && Array.isArray(headerComponent.layout) && headerComponent.layout.length > 0
-      ? headerComponent.layout
-      : null;
-    const headerBlock = rawHeaderLayout?.find((b) => b?.baseComponent === "Header");
-    const headerMenuName = (headerBlock?.props?.menuName && String(headerBlock.props.menuName).trim()) || null;
-    let headerMenuForBlock = null;
-    if (!isAdminRoute) {
-      const nameToFetch = headerMenuName || "Header Menu";
-      headerMenuForBlock = await Menu.findOne({ name: nameToFetch }).lean();
-      if (!headerMenuForBlock && nameToFetch !== "header") {
-        headerMenuForBlock = await Menu.findOne({ name: "header" }).lean();
-      }
-      if (!headerMenuForBlock) {
-        headerMenuForBlock = await Menu.findOne().sort({ updatedAt: -1 }).lean();
-      }
-    }
-    const freshNavItems = headerMenuForBlock?.items?.length ? menuItemsToNavItems(headerMenuForBlock.items) : null;
-    const headerLayout = rawHeaderLayout
-      ? rawHeaderLayout.map((block) => {
-          const base = block?.baseComponent || "Paragraph";
-          const props = block?.props && typeof block.props === "object" ? { ...block.props } : {};
-          if (base === "Header" && Array.isArray(freshNavItems)) props.navItems = freshNavItems;
-          return {
-            ...(typeof block === "object" && block !== null ? block : {}),
-            baseComponent: base,
-            props,
-          };
-        })
-      : null;
-    const headerItems = headerMenuForBlock?.items?.length
-      ? menuItemsToNavItems(headerMenuForBlock.items)
-      : [];
-    const rawFooterLayout = footerComponent?.layout && Array.isArray(footerComponent.layout) && footerComponent.layout.length > 0
-      ? footerComponent.layout
-      : null;
-    const footerLayout = rawFooterLayout
-      ? rawFooterLayout.map((block) => ({
-          ...(typeof block === "object" && block !== null ? block : {}),
-          baseComponent: block?.baseComponent || "Footer",
-          props: block?.props && typeof block.props === "object" ? { ...block.props } : {},
-        }))
-      : null;
-    return {
-      theme: JSON.parse(JSON.stringify(theme)),
-      headerItems,
-      footerItems: footerMenu?.items ? JSON.parse(JSON.stringify(footerMenu.items)) : [],
-      customHeaderLayout: headerLayout,
-      customFooterLayout: footerLayout,
-    };
-  } catch {
-    return { theme: THEME_DEFAULTS, headerItems: [], footerItems: [], customHeaderLayout: null, customFooterLayout: null };
-  }
-}
-
 function buildGoogleFontsUrl(fonts) {
   if (!fonts?.length) return null;
   const families = fonts
@@ -249,11 +95,9 @@ function buildGoogleFontsUrl(fonts) {
 
 export default async function RootLayout({ children }) {
   const headersList = headers();
-  const pathname = headersList.get("x-pathname") || "";
+  const pathname = headersList.get("x-pathname") || headersList.get("X-Pathname") || "";
+  const theme = await getTheme();
   const isAdmin = pathname.startsWith("/admin");
-
-  const data = await getLayoutData(pathname);
-  const theme = data?.theme || THEME_DEFAULTS;
   const dir = theme.direction || "ltr";
   const googleFontsUrl = buildGoogleFontsUrl(theme.googleFonts);
 
@@ -282,9 +126,6 @@ export default async function RootLayout({ children }) {
       }
     : null;
 
-  const logoUrl = theme.logoLightUrl || theme.logoImageUrl || "";
-
-  /* Apply theme vars everywhere so: (1) public pages get theme, (2) page builder preview in admin gets theme */
   return (
     <html lang={theme.defaultLocale || "en"} dir={dir} style={cssVars} data-header-layout={theme.headerLayout} data-card-style={theme.cardStyle}>
       <head>
@@ -310,37 +151,7 @@ export default async function RootLayout({ children }) {
         )}
       </head>
       <body>
-        {isAdmin ? (
-          children
-        ) : (
-          <PublicShell
-            headerItems={data?.headerItems || []}
-            footerItems={data?.footerItems || []}
-            customHeaderLayout={data?.customHeaderLayout || null}
-            customFooterLayout={data?.customFooterLayout || null}
-            siteTitle={theme.siteTitle || "Mesco Trust"}
-            tagline={theme.tagline}
-            logoType={theme.logoType || "text"}
-            logoLightUrl={logoUrl}
-            logoDarkUrl={theme.logoDarkUrl || ""}
-            footerCopyrightText={theme.footerCopyrightText}
-            headerSticky={theme.headerSticky !== false}
-            headerTransparent={theme.headerTransparent}
-            headerLayout={theme.headerLayout || "default"}
-            footerColumnsCount={theme.footerColumnsCount ?? 4}
-            footerSocialIcons={theme.footerSocialIcons !== false}
-            footerLayoutStyle={theme.footerLayoutStyle}
-          >
-            {children}
-          </PublicShell>
-        )}
-        {!isAdmin && theme.footerScripts && <script dangerouslySetInnerHTML={{ __html: theme.footerScripts }} />}
-        {!isAdmin && (
-          <Script
-            src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-            strategy="afterInteractive"
-          />
-        )}
+        {children}
       </body>
     </html>
   );

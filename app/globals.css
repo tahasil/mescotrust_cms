@@ -54,6 +54,12 @@ a {
   color: var(--link-color);
 }
 
+/* Admin sidebar: no underline on menu links */
+.ant-layout-sider .ant-menu-item a,
+.ant-layout-sider .ant-menu-item a:hover {
+  text-decoration: none;
+}
+
 /* RTL-aware spacing: use logical properties */
 .cms-layout {
   width: 100%;

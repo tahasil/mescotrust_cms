@@ -9,7 +9,7 @@ export async function GET(req) {
 
   try {
     await connectDB();
-    const components = await Component.find({ baseComponent: { $nin: ["Header", "Footer"] } })
+    const components = await Component.find()
       .sort({ category: 1, name: 1 })
       .lean();
     return NextResponse.json(components);

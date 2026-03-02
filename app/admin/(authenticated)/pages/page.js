@@ -1,11 +1,23 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Table, Button, Space, message, Modal, Form, Input, Select, Tag } from "antd";
+import { useRouter } from "next/navigation";
+import {
+  Table,
+  Button,
+  Space,
+  message,
+  Modal,
+  Form,
+  Input,
+  Select,
+  Tag,
+} from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import Link from "next/link";
 
 export default function AdminPagesPage() {
+  const router = useRouter();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -53,7 +65,9 @@ export default function AdminPagesPage() {
       okText: "Delete",
       okType: "danger",
       onOk: async () => {
-        const res = await fetch(`/api/admin/pages/${record._id}`, { method: "DELETE" });
+        const res = await fetch(`/api/admin/pages/${record._id}`, {
+          method: "DELETE",
+        });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
           message.error(data.error || "Delete failed");
@@ -68,7 +82,9 @@ export default function AdminPagesPage() {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      const url = editingId ? `/api/admin/pages/${editingId}` : "/api/admin/pages";
+      const url = editingId
+        ? `/api/admin/pages/${editingId}`
+        : "/api/admin/pages";
       const method = editingId ? "PUT" : "POST";
       const res = await fetch(url, {
         method,
@@ -83,6 +99,9 @@ export default function AdminPagesPage() {
       message.success(editingId ? "Page updated" : "Page created");
       setModalOpen(false);
       fetchPages();
+      if (!editingId && data._id) {
+        router.push(`/admin/pages/${data._id}`);
+      }
     } catch (e) {
       if (e.errorFields) return;
       message.error(e.message || "Error");
@@ -90,23 +109,41 @@ export default function AdminPagesPage() {
   };
 
   const columns = [
-    { title: "Title", dataIndex: "title", key: "title", render: (t, r) => <Link href={`/admin/pages/${r._id}`}>{t}</Link> },
+    {
+      title: "Title",
+      dataIndex: "title",
+      key: "title",
+      render: (t, r) => <Link href={`/admin/pages/${r._id}`}>{t}</Link>,
+    },
     { title: "Slug", dataIndex: "slug", key: "slug" },
     {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      render: (s) => <Tag color={s === "published" ? "green" : "default"}>{s}</Tag>,
+      render: (s) => (
+        <Tag color={s === "published" ? "green" : "default"}>{s}</Tag>
+      ),
     },
     {
       title: "Actions",
       key: "actions",
       render: (_, record) => (
         <Space>
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
+          <Button
+            type="link"
+            size="small"
+            icon={<EditOutlined />}
+            onClick={() => handleEdit(record)}
+          >
             Edit
           </Button>
-          <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)}>
+          <Button
+            type="link"
+            size="small"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => handleDelete(record)}
+          >
             Delete
           </Button>
         </Space>
@@ -117,10 +154,21 @@ export default function AdminPagesPage() {
   return (
     <>
       <h1 style={{ marginBottom: 16 }}>Pages</h1>
-      <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate} style={{ marginBottom: 16 }}>
+      <Button
+        type="primary"
+        icon={<PlusOutlined />}
+        onClick={handleCreate}
+        style={{ marginBottom: 16 }}
+      >
         Add page
       </Button>
-      <Table rowKey="_id" columns={columns} dataSource={list} loading={loading} pagination={{ pageSize: 20 }} />
+      <Table
+        rowKey="_id"
+        columns={columns}
+        dataSource={list}
+        loading={loading}
+        pagination={{ pageSize: 20 }}
+      />
 
       <Modal
         title={editingId ? "Edit page" : "New page"}
@@ -137,9 +185,19 @@ export default function AdminPagesPage() {
             <Input placeholder="url-slug" />
           </Form.Item>
           <Form.Item name="status" label="Status" initialValue="draft">
-            <Select options={[{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }]} />
+            <Select
+              options={[
+                { value: "draft", label: "Draft" },
+                { value: "published", label: "Published" },
+              ]}
+            />
           </Form.Item>
-          <Form.Item name="locale" label="Locale" initialValue="en" extra="Language code (e.g. en, ar, he)">
+          <Form.Item
+            name="locale"
+            label="Locale"
+            initialValue="en"
+            extra="Language code (e.g. en, ar, he)"
+          >
             <Input placeholder="en" />
           </Form.Item>
         </Form>

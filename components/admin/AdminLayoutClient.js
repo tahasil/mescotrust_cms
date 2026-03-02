@@ -22,26 +22,59 @@ import { signOut } from "next-auth/react";
 
 const { Header, Sider, Content } = Layout;
 
+const linkStyle = { textDecoration: "none" };
+
 const menuItems = [
-  { key: "/admin", icon: <DashboardOutlined />, label: <Link href="/admin">Dashboard</Link> },
-  { key: "/admin/pages", icon: <FileTextOutlined />, label: <Link href="/admin/pages">Pages</Link> },
   {
-    key: "components",
-    icon: <AppstoreOutlined />,
-    label: "Components",
-    children: [
-      { key: "/admin/components", label: <Link href="/admin/components">All components</Link> },
-      { key: "/admin/components/header", label: <Link href="/admin/components/header">Header</Link> },
-      { key: "/admin/components/footer", label: <Link href="/admin/components/footer">Footer</Link> },
-    ],
+    key: "/admin",
+    icon: <DashboardOutlined />,
+    label: <Link href="/admin" style={linkStyle}>Dashboard</Link>,
   },
-  { key: "/admin/blogs", icon: <BookOutlined />, label: <Link href="/admin/blogs">Blogs</Link> },
-  { key: "/admin/blog-categories", icon: <BookOutlined />, label: <Link href="/admin/blog-categories">Categories</Link> },
-  { key: "/admin/media", icon: <AppstoreOutlined />, label: <Link href="/admin/media">Media</Link> },
-  { key: "/admin/menus", icon: <MenuOutlined />, label: <Link href="/admin/menus">Menus</Link> },
-  { key: "/admin/theme", icon: <BgColorsOutlined />, label: <Link href="/admin/theme">Theme</Link> },
-  { key: "/admin/contacts", icon: <MailOutlined />, label: <Link href="/admin/contacts">Contacts</Link> },
-  { key: "/admin/users", icon: <TeamOutlined />, label: <Link href="/admin/users">Users</Link> },
+  {
+    key: "/admin/pages",
+    icon: <FileTextOutlined />,
+    label: <Link href="/admin/pages" style={linkStyle}>Pages</Link>,
+  },
+  {
+    key: "/admin/components",
+    icon: <AppstoreOutlined />,
+    label: <Link href="/admin/components" style={linkStyle}>Components</Link>,
+  },
+  {
+    key: "/admin/blogs",
+    icon: <BookOutlined />,
+    label: <Link href="/admin/blogs" style={linkStyle}>Blogs</Link>,
+  },
+  {
+    key: "/admin/blog-categories",
+    icon: <BookOutlined />,
+    label: <Link href="/admin/blog-categories" style={linkStyle}>Categories</Link>,
+  },
+  {
+    key: "/admin/media",
+    icon: <AppstoreOutlined />,
+    label: <Link href="/admin/media" style={linkStyle}>Media</Link>,
+  },
+  {
+    key: "/admin/menus",
+    icon: <MenuOutlined />,
+    label: <Link href="/admin/menus" style={linkStyle}>Menus</Link>,
+  },
+  {
+    key: "/admin/theme",
+    icon: <BgColorsOutlined />,
+    label: <Link href="/admin/theme" style={linkStyle}>Theme</Link>,
+  },
+  {
+    key: "/admin/contacts",
+    icon: <MailOutlined />,
+    label: <Link href="/admin/contacts" style={linkStyle}>Contacts</Link>,
+  },
+  {
+    key: "/admin/users",
+    icon: <TeamOutlined />,
+    label: <Link href="/admin/users" style={linkStyle}>Users</Link>,
+  },
 ];
 
 export default function AdminLayoutClient({ children, userName, userRole }) {
@@ -61,20 +94,43 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sider trigger={null} collapsible collapsed={collapsed} breakpoint="lg" collapsedWidth={0}>
-        <div style={{ height: 32, margin: 16, color: "#fff", fontSize: collapsed ? 14 : 16, overflow: "hidden" }}>
+      <Sider
+        trigger={null}
+        collapsible
+        collapsed={collapsed}
+        breakpoint="lg"
+        collapsedWidth={0}
+      >
+        <div
+          style={{
+            height: 32,
+            margin: 16,
+            color: "#fff",
+            fontSize: collapsed ? 14 : 16,
+            overflow: "hidden",
+          }}
+        >
           {collapsed ? "CMS" : "Mesco Trust CMS"}
         </div>
         <Menu
           theme="dark"
           mode="inline"
           selectedKeys={[pathname]}
-          defaultOpenKeys={["components", "/admin/blogs"]}
+          defaultOpenKeys={["/admin/blogs"]}
           items={menuItems}
+          style={{ borderRight: 0 }}
         />
       </Sider>
       <Layout>
-        <Header style={{ padding: "0 16px", background: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <Header
+          style={{
+            padding: "0 16px",
+            background: "#fff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
           <Button
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
@@ -84,11 +140,21 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
           <Dropdown menu={userMenu} placement="bottomRight">
             <Space style={{ cursor: "pointer" }}>
               <UserOutlined />
-              <span>{userName || "Admin"}{userRole ? ` (${userRole})` : ""}</span>
+              <span>
+                {userName || "Admin"}
+                {userRole ? ` (${userRole})` : ""}
+              </span>
             </Space>
           </Dropdown>
         </Header>
-        <Content style={{ margin: "24px 16px", padding: 24, background: "#fff", minHeight: 280 }}>
+        <Content
+          style={{
+            margin: "24px 16px",
+            padding: 24,
+            background: "#fff",
+            minHeight: 280,
+          }}
+        >
           {children}
         </Content>
       </Layout>

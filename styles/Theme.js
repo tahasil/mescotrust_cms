@@ -1,0 +1,379 @@
+import { Button, Card, Modal } from "antd";
+import styled, { createGlobalStyle } from "styled-components";
+export const BREAKPOINT = "992px";
+/** Space needed so content starts below the fixed header (desktop: top offset + bar height) */
+export const HEADER_OFFSET_DESKTOP = "88px";
+/** Space needed on mobile (full-width bar) */
+export const HEADER_OFFSET_MOBILE = "56px";
+
+const Theme = {
+  colors: {
+    primary: "#CF372F",
+    white: "#FFFFFF",
+    black: "#050505",
+    headerBg: "rgba(5, 5, 5, 0.5)",
+    headerCta: "rgba(207, 55, 47, 0.1)",
+    ctaBorder: "rgba(255, 255, 255, 0.2)",
+    gradient: "linear-gradient(90deg, #CF372F 0%, #691C18 100%)",
+    themeBorder: "rgba(0, 0, 0, 0.1)",
+    imgFillWhite:
+      "brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(3%) hue-rotate(51deg) brightness(115%) contrast(100%)",
+    imgFillTheme:
+      "filter: brightness(0) saturate(100%) invert(25%) sepia(76%) saturate(6383%) hue-rotate(354deg) brightness(93%) contrast(73%);",
+  },
+  fonts: {
+    sans: "'Inter', sans-serif",
+    heading: "'Inter', sans-serif",
+  },
+};
+
+export const GlobalStyle = createGlobalStyle`
+  body {
+    margin: 0px;
+    padding: 0px;
+    font-family: ${Theme.fonts.sans};
+    background: ${Theme.colors.white};
+    color: ${Theme.colors.black};
+  }
+`;
+export const PageContainer = styled.div`
+  width: 90%;
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+  padding: 80px 0px;
+  &.lightBackground {
+    background: #f0f0f0;
+  }
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 40px 20px;
+  }
+`;
+export const ThemeButton = styled(Button)`
+  background: ${Theme.colors.gradient};
+  border: 1px solid ${Theme.colors.ctaBorder};
+  box-shadow: 0px 0px 10px rgba(207, 55, 47, 0.25);
+  border-radius: 30px;
+  color: ${Theme.colors.white};
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  transform: translateY(0);
+  &:hover {
+    background: ${Theme.colors.white} !important;
+    border-color: ${Theme.colors.primary} !important;
+    color: ${Theme.colors.primary} !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(207, 55, 47, 0.35);
+  }
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(207, 55, 47, 0.25);
+  }
+  &.link {
+    gap: 10px;
+    background: transparent;
+    border: none;
+    color: ${(props) => props.color || props.theme.colors.ctaBorder};
+    padding: 0px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    transform: translateY(0);
+    box-shadow: none !important;
+    &:hover,
+    &:active {
+      background: transparent !important;
+      border: none !important;
+      color: ${Theme.colors.primary};
+      text-decoration: none;
+      box-shadow: none;
+    }
+    svg {
+      rotate: ${(props) => props.rotate || -45}deg;
+    }
+  }
+  &.volunteer {
+    background: rgba(207, 55, 47, 0.1);
+    box-shadow: none;
+    border: 1px solid transparent;
+    color: ${Theme.colors.primary};
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    img {
+      width: 30px;
+      height: 30px;
+      background: ${Theme.colors.white};
+      border: 1px solid transparent;
+      padding: 7px;
+      border-radius: 50%;
+      object-fit: contain;
+    }
+    &:hover {
+      background: ${Theme.colors.primary};
+      color: ${Theme.colors.white};
+      border: 1px solid ${Theme.colors.primary};
+      box-shadow: 0px 0px 10px rgba(207, 55, 47, 0.25);
+      img {
+        background: ${Theme.colors.white};
+        border: 1px solid ${Theme.colors.primary};
+      }
+    }
+    &:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+  }
+`;
+export const FullWidthBackground = styled.div`
+  width: 100%;
+  position: relative;
+  background: url("/images/event-bg.svg") no-repeat top center;
+  background-size: cover;
+  &.aboutUs {
+    background: url("/images/about-card-bg.svg") no-repeat top center;
+    background-size: cover;
+  }
+  &.aboutUsAims {
+    background: url("/images/about-card-bg-2.svg") no-repeat top center;
+    background-size: cover;
+  }
+  &.medicalAid {
+    background: url("/images/medical-aid-bg.svg") no-repeat top center;
+    background-size: cover;
+  }
+  .innerEventBox {
+    position: relative;
+    width: 80%;
+    margin: 0 auto;
+    height: 100%;
+    background: ${(props) => props.theme.colors.black};
+    border: 1px solid ${(props) => props.theme.colors.ctaBorder};
+    border-radius: 20px;
+    padding: 24px;
+    @media (max-width: 768px) {
+      width: 100%;
+      padding: 16px;
+    }
+    h2 {
+      margin: 0px;
+      font-size: 24px;
+      font-weight: 600;
+      color: ${(props) => props.theme.colors.white};
+      margin-bottom: 20px;
+      @media (max-width: 768px) {
+        font-size: 20px;
+        margin-bottom: 16px;
+      }
+    }
+  }
+`;
+export const ThemeCard = styled(Card)`
+  width: 100%;
+  height: 100%;
+  background: ${(props) => props.theme.colors.white};
+  border: 1px solid ${(props) => props.theme.colors.themeBorder};
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.05);
+  border-radius: ${(props) => props.radius || 0}px;
+  padding: ${(props) => props.padding || 0}px;
+  .ant-card-body {
+    padding: 0px;
+  }
+`;
+export const MainTitle = styled.h1`
+  width: 100%;
+  position: relative;
+  margin: 0px;
+  font-size: ${(props) => props.fontSize || 36}px;
+  font-weight: ${(props) => props.fontWeight || 600};
+  line-height: ${(props) => props.lineHeight || 40}px;
+  color: ${(props) => props.theme.colors.black};
+  margin-bottom: 10px;
+  opacity: ${(props) => props.opacity || 1};
+  @media (max-width: 768px) {
+    font-size: 20px;
+    line-height: 24px;
+  }
+`;
+export const SubTitle = styled.h2`
+  width: 100%;
+  position: relative;
+  margin: 0px;
+  font-size: 16px;
+  font-weight: 600;
+  color: ${(props) => props.theme.colors.black};
+  margin-bottom: 4px;
+  color: ${(props) => props.color || props.theme.colors.black};
+  @media (max-width: 768px) {
+    font-size: 14px;
+  }
+`;
+export const Paragraph = styled.p`
+  margin: 0px;
+  font-size: ${(props) => props.fontSize || 16}px;
+  font-weight: ${(props) => props.fontWeight || 400};
+  line-height: ${(props) => props.lineHeight || 24}px;
+  color: ${(props) => props.color || props.theme.colors.black};
+  opacity: ${(props) => props.opacity || 1};
+  margin-bottom: 10px;
+`;
+export const InnerBanner = styled.section`
+  width: 100%;
+  margin-top: 80px;
+  position: relative;
+  overflow: hidden;
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  border-top: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+  border-left: none;
+  border-right: none;
+  border-image: linear-gradient(
+      90deg,
+      #e0e0e0 0%,
+      rgba(0, 0, 0, 0.5) 50%,
+      rgba(0, 0, 0, 0.5) 100%
+    )
+    1;
+  background-color: transparent;
+  background-image: url("/images/inner-banner.png");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(248, 248, 248, 0.65) 100% b
+    );
+    pointer-events: none;
+  }
+  > div {
+    position: relative;
+    z-index: 1;
+  }
+  .inner-banner-content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+  }
+  .inner-banner-breadcrumb {
+    margin-bottom: 16px;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0.6;
+    .ant-breadcrumb-link {
+      color: ${Theme.colors.black};
+    }
+    a {
+      color: ${Theme.colors.black};
+      text-decoration: none;
+      &:hover {
+        background: transparent;
+        color: ${Theme.colors.primary};
+      }
+    }
+  }
+  .innerBannerDesc {
+    margin: 0;
+    font-size: 16px;
+    line-height: 24px;
+    color: ${Theme.colors.black};
+    @media (max-width: 768px) {
+      font-size: 14px;
+      line-height: 20px;
+    }
+  }
+`;
+export const ScrolledText = styled.p`
+  margin: 0;
+  width: 100%;
+  position: relative;
+  font-size: ${(props) => props.fontSize || 18}px;
+  font-weight: ${(props) => props.fontWeight || 400};
+  line-height: ${(props) => props.lineHeight || 24}px;
+  opacity: ${(props) => props.opacity ?? 0.8};
+  margin-bottom: 10px;
+  [data-word] {
+    display: inline;
+    transition: none;
+  }
+  @media (max-width: 768px) {
+    font-size: 16px;
+    line-height: 26px;
+  }
+`;
+export const PartnersSection = styled.section`
+  width: 100%;
+  position: relative;
+  margin-top: -4%;
+  background: transparent;
+  overflow: hidden;
+  @media (max-width: 768px) {
+    margin-top: -4%;
+  }
+  @media (min-width: 992px) {
+    margin-top: -16%;
+  }
+  @media (min-width: 1440px) {
+    margin-top: -4%;
+  }
+  h2 {
+    margin: 0px;
+    font-size: 24px;
+    font-weight: 600;
+    color: ${(props) => props.theme.colors.black};
+    text-align: center;
+    margin-bottom: 18px;
+    @media (max-width: 768px) {
+      font-size: 20px;
+    }
+  }
+  .marquee-item {
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 0px;
+    @media (max-width: 992px) {
+      width: 80px;
+      margin-right: 20px;
+    }
+    @media (max-width: 576px) {
+      width: 70px;
+      margin-right: 10px;
+    }
+  }
+`;
+export const ThemeModal = styled(Modal)`
+  .ant-modal-close {
+    background: ${Theme.colors.white};
+    top: -14px;
+    right: -14px;
+    border-radius: 50%;
+    z-index: 1000;
+    svg {
+      font-size: 18px;
+      color: ${Theme.colors.black};
+    }
+  }
+  .ant-modal-content {
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    aspect-ratio: 4 / 3;
+    filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+  }
+`;
+export default Theme;

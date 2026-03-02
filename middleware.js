@@ -51,7 +51,11 @@ function checkSameOrigin(req) {
 function withPathname(req) {
   const headers = new Headers(req.headers);
   headers.set("x-pathname", req.nextUrl.pathname);
-  return NextResponse.next({ request: { headers } });
+  const newRequest = new Request(req.url, {
+    method: req.method,
+    headers,
+  });
+  return NextResponse.next({ request: newRequest });
 }
 
 export async function middleware(req) {
