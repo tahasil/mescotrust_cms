@@ -10,8 +10,22 @@ const themeColorSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const homeHeroSlideSchema = new mongoose.Schema(
+  {
+    bgImageUrl: { type: String, default: "" },
+    title: { type: String, default: "" },
+    description: { type: String, default: "" },
+    buttonText: { type: String, default: "" },
+    buttonLink: { type: String, default: "" },
+    showButton: { type: Boolean, default: true },
+  },
+  { _id: false }
+);
+
 const themeConfigSchema = new mongoose.Schema(
   {
+    // Single theme doc: always query by this so save/load use same document
+    themeKey: { type: String, default: "default" },
     // ─── 1. Brand Identity ─────────────────────────────────────
     siteTitle: { type: String, default: "Mesco Trust" },
     tagline: { type: String, default: "" },
@@ -116,6 +130,31 @@ const themeConfigSchema = new mongoose.Schema(
     footerColumnsCount: { type: Number, default: 4 },
     footerLayoutStyle: { type: String, enum: ["default", "centered", "minimal"], default: "default" },
     footerSocialIcons: { type: Boolean, default: true },
+
+    // ─── Hero Banner (site component) ─────────────────────────
+    heroBannerBackgroundUrl: { type: String, default: "/images/hero_bg.png" },
+    heroBannerIconUrl: { type: String, default: "/images/hero-icon.svg" },
+    heroBannerTitle: { type: String, default: "Because Every Learner" },
+    heroBannerTitleHighlight: { type: String, default: "Deserves Support" },
+    heroBannerDescription: { type: String, default: "" },
+    heroBannerButtonText: { type: String, default: "Contact Us" },
+    heroBannerButtonLink: { type: String, default: "/contact" },
+    heroBannerTitleColorKey: { type: String, default: "black" },
+    heroBannerTitleHighlightColorKey: { type: String, default: "primary" },
+    heroBannerDescriptionColorKey: { type: String, default: "black" },
+
+    // ─── Home Hero / Slider (site component) ───────────────────
+    /** Multiple slides: proper layout saved and read from DB. */
+    homeHeroSlides: { type: [homeHeroSlideSchema], default: [] },
+    homeHeroSliderBgImageUrl: { type: String, default: "/images/slider-1.png" },
+    homeHeroSliderTitle: { type: String, default: "Because Every Learner Deserves Support" },
+    homeHeroSliderDesc: { type: String, default: "A community-powered initiative that brings donors, mentors, and resources together to help learners overcome barriers and continue their education—turning collective support into real opportunities." },
+    homeHeroSliderButtonText: { type: String, default: "Contact Us" },
+    homeHeroContactHref: { type: String, default: "/contact" },
+    homeHeroSliderTitleColorKey: { type: String, default: "" },
+    homeHeroSliderDescColorKey: { type: String, default: "" },
+    homeHeroSliderButtonBgColorKey: { type: String, default: "primary" },
+    homeHeroSliderButtonTextColorKey: { type: String, default: "white" },
 
     // ─── 7. Button Style ──────────────────────────────────────
     buttonBackground: { type: String, default: "" },

@@ -42,6 +42,8 @@ import AntDividerBlock from "@/components/cms/blocks/antd/AntDivider";
 import AntAlertBlock from "@/components/cms/blocks/antd/AntAlert";
 import AntTypographyBlock from "@/components/cms/blocks/antd/AntTypography";
 import AntSpaceBlock from "@/components/cms/blocks/antd/AntSpace";
+import * as SiteComponents from "@/components/site";
+import { PageContainer } from "@/styles/Theme";
 
 const COMPONENT_MAP = {
   Paragraph: ParagraphBlock,
@@ -89,6 +91,11 @@ const COMPONENT_MAP = {
   AntTypography: AntTypographyBlock,
   AntSpace: AntSpaceBlock,
 };
+
+// Register site components (e.g. HeroBanner) so blocks added from Admin → Components render on the frontend
+Object.entries(SiteComponents || {}).forEach(([name, Comp]) => {
+  if (Comp && !COMPONENT_MAP[name]) COMPONENT_MAP[name] = Comp;
+});
 
 const SECTION_PROPS = ["_containerType", "_sectionBg", "_sectionPadding", "_sectionBorderSize", "_sectionBorderStyle", "_sectionBorderColor", "_sectionShadow"];
 
@@ -165,20 +172,30 @@ export default function ComponentRenderer({ layout, wrapperContainer, onElementC
           ? { onElementClick: (elementKey) => onElementClick(block.instanceId, elementKey) }
           : {};
 
-        const innerContainerClass = containerType === "container-fluid" ? "cms-container-fluid" : "cms-container";
+        const usePageContainer = containerType === "container";
 
         if (hasSectionStyle) {
           return (
             <div key={key} className="cms-section cms-container-fluid" style={sectionStyle}>
-              <div className={innerContainerClass}>
-                <Component {...clean} {...elementClickProp} />
-              </div>
+              {usePageContainer ? (
+                <PageContainer>
+                  <Component {...clean} {...elementClickProp} />
+                </PageContainer>
+              ) : (
+                <div className="cms-container-fluid">
+                  <Component {...clean} {...elementClickProp} />
+                </div>
+              )}
             </div>
           );
         }
 
-        return (
-          <div key={key} className={innerContainerClass}>
+        return usePageContainer ? (
+          <PageContainer key={key}>
+            <Component {...clean} {...elementClickProp} />
+          </PageContainer>
+        ) : (
+          <div key={key} className="cms-container-fluid">
             <Component {...clean} {...elementClickProp} />
           </div>
         );
@@ -186,6 +203,9 @@ export default function ComponentRenderer({ layout, wrapperContainer, onElementC
     </div>
   );
 
+  if (wrapperContainer === "container") {
+    return <PageContainer>{content}</PageContainer>;
+  }
   if (wrapperClass) {
     return <div className={wrapperClass}>{content}</div>;
   }

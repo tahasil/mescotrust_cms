@@ -48,12 +48,7 @@ async function HomeContent() {
       ...block,
       baseComponent: block.baseComponent || (block.componentId?.baseComponent ?? "Paragraph"),
     }));
-    return (
-      <>
-        <h1>{page.title}</h1>
-        <ComponentRenderer layout={layout} />
-      </>
-    );
+    return <ComponentRenderer layout={layout} />;
   }
 
   return (
@@ -69,7 +64,7 @@ async function HomeContent() {
 
 export default function HomePage() {
   return (
-    <main style={{ maxWidth: "var(--layout-width, 800px)", margin: "0 auto", padding: "2rem 1rem" }}>
+    <main>
       <Suspense fallback={<HomeSkeleton />}>
         <HomeContent />
       </Suspense>

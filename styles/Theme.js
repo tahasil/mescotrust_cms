@@ -1,5 +1,11 @@
+import React from "react";
 import { Button, Card, Modal } from "antd";
 import styled, { createGlobalStyle } from "styled-components";
+
+/** Thin wrappers so styled() works with antd components (they receive className from styled-components) */
+const ButtonWrapper = (props) => <Button {...props} />;
+const CardWrapper = (props) => <Card {...props} />;
+const ModalWrapper = (props) => <Modal {...props} />;
 export const BREAKPOINT = "992px";
 /** Space needed so content starts below the fixed header (desktop: top offset + bar height) */
 export const HEADER_OFFSET_DESKTOP = "88px";
@@ -23,8 +29,7 @@ export const FALLBACK_COLORS = {
 };
 
 const Theme = {
-  colors: {
-  },
+  colors: {},
   fonts: {
     sans: "'Inter', sans-serif",
     heading: "'Inter', sans-serif",
@@ -56,7 +61,7 @@ export const PageContainer = styled.div`
     padding: 40px 20px;
   }
 `;
-export const ThemeButton = styled(Button)`
+export const ThemeButton = styled(ButtonWrapper)`
   background: ${getColor("gradient")};
   border: 1px solid ${getColor("ctaBorder")};
   box-shadow: 0px 0px 10px rgba(207, 55, 47, 0.25);
@@ -182,7 +187,7 @@ export const FullWidthBackground = styled.div`
     }
   }
 `;
-export const ThemeCard = styled(Card)`
+export const ThemeCard = styled(CardWrapper)`
   width: 100%;
   height: 100%;
   background: ${(props) => props.theme.colors.white};
@@ -362,7 +367,7 @@ export const PartnersSection = styled.section`
     }
   }
 `;
-export const ThemeModal = styled(Modal)`
+export const ThemeModal = styled(ModalWrapper)`
   .ant-modal-close {
     background: ${getColor("white")};
     top: -14px;

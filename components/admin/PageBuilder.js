@@ -2204,7 +2204,7 @@ function AddBlockButton({ onClick, dropIndex, isOver }) {
           pointerEvents: "none",
         }}
       />
-      <Tooltip title="Add block here or drag from palette">
+      <Tooltip title="Add component here or drag from palette">
         <Button
           type="default"
           size="small"
@@ -2336,12 +2336,12 @@ function EmptyCanvasDropZone({ onAdd }) {
         image={Empty.PRESENTED_IMAGE_SIMPLE}
         description={
           <span style={{ color: "#999" }}>
-            Drag blocks here or click <strong>Add Block</strong> to start
+            Drag components here or click <strong>Add Component</strong> to start
           </span>
         }
       >
         <Button type="primary" icon={<PlusOutlined />} onClick={onAdd}>
-          Add your first block
+          Add your first component
         </Button>
       </Empty>
     </div>
@@ -2540,6 +2540,8 @@ export default function PageBuilder({
 }) {
   /** Palette loads all reusable components from DB (system + custom) via API. */
   const [components, setComponents] = useState([]);
+  /** Site components from /admin/components – shown in Add Component drawer. */
+  const [siteComponentsList, setSiteComponentsList] = useState([]);
   const [theme, setTheme] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [editingIndex, setEditingIndex] = useState(null);
@@ -2631,6 +2633,15 @@ export default function PageBuilder({
       .catch(() => setTheme(null));
   }, []);
 
+  /** Load site components for Add Component drawer (from /admin/components). */
+  useEffect(() => {
+    if (!addDrawerOpen) return;
+    fetch("/api/admin/site-components")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((list) => setSiteComponentsList(Array.isArray(list) ? list : []))
+      .catch(() => setSiteComponentsList([]));
+  }, [addDrawerOpen]);
+
   const blocks = Array.isArray(layout) ? [...layout] : [];
   const sorted = blocks
     .map((b, i) => ({ ...b, _index: i }))
@@ -2668,6 +2679,21 @@ export default function PageBuilder({
     return groups;
   }, [components, searchQuery]);
 
+  /** Site components filtered by enabled + search (for Add Component drawer). Header/Footer always shown. */
+  const filteredSiteComponents = useMemo(() => {
+    const enabledOnly = siteComponentsList.filter(
+      (c) => c.enabled !== false || c.componentId === "Header" || c.componentId === "Footer"
+    );
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return enabledOnly;
+    return enabledOnly.filter(
+      (c) =>
+        (c.displayName || c.componentId || "").toLowerCase().includes(q) ||
+        (c.componentId || "").toLowerCase().includes(q),
+    );
+  }, [siteComponentsList, searchQuery]);
+
+  /** Add a block from the palette (core/DB component or site component). */
   const handleAdd = (comp) => {
     const newBlock = {
       instanceId: generateId(),
@@ -3140,7 +3166,7 @@ export default function PageBuilder({
                   }}
                   size="middle"
                 >
-                  Add Block
+                  Add Component
                 </Button>
               )}
             </div>
@@ -3264,7 +3290,7 @@ export default function PageBuilder({
               <span>
                 {addToSectionBlockIndex !== null
                   ? "Add element to section"
-                  : "Add Block"}
+                  : "Add Component"}
               </span>
             </div>
           }
@@ -3290,7 +3316,7 @@ export default function PageBuilder({
           >
             <Input
               prefix={<SearchOutlined style={{ color: "#bbb" }} />}
-              placeholder="Search blocks..."
+              placeholder="Search components..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               allowClear
@@ -3298,64 +3324,30 @@ export default function PageBuilder({
               size="large"
             />
           </div>
-          {Object.keys(categorizedComponents).length === 0 ? (
+          {filteredSiteComponents.length === 0 ? (
             <Empty
-              description="No blocks match your search"
+              description={siteComponentsList.length === 0 ? "No components yet. Add components under Admin → Components." : "No components match your search"}
               style={{ marginTop: 40 }}
             />
           ) : (
-            <Collapse
-              defaultActiveKey={Object.keys(CATEGORY_META)}
-              ghost
-              style={{ marginTop: 8 }}
-              items={Object.entries(categorizedComponents).map(
-                ([catKey, comps]) => {
-                  const catMeta = CATEGORY_META[catKey] || {
-                    label: catKey,
-                    icon: <AppstoreOutlined />,
-                    color: "#666",
-                  };
-                  return {
-                    key: catKey,
-                    label: (
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 8,
-                        }}
-                      >
-                        <span style={{ color: catMeta.color }}>
-                          {catMeta.icon}
-                        </span>
-                        <span style={{ fontWeight: 500 }}>{catMeta.label}</span>
-                        <Tag style={{ marginLeft: "auto", borderRadius: 10 }}>
-                          {comps.length}
-                        </Tag>
-                      </div>
-                    ),
-                    children: (
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 2,
-                        }}
-                      >
-                        {comps.map((comp, idx) => (
-                          <ComponentPaletteItem
-                            key={comp._id}
-                            comp={comp}
-                            onAdd={handleAdd}
-                            index={idx}
-                          />
-                        ))}
-                      </div>
-                    ),
-                  };
-                },
-              )}
-            />
+            <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 12 }}>
+              {filteredSiteComponents.map((item) => {
+                const comp = {
+                  _id: item.componentId,
+                  baseComponent: item.componentId,
+                  displayName: item.displayName || item.componentId,
+                  defaultProps: {},
+                };
+                return (
+                  <ComponentPaletteItem
+                    key={item.componentId}
+                    comp={comp}
+                    onAdd={handleAdd}
+                    index={item.componentId}
+                  />
+                );
+              })}
+            </div>
           )}
         </Drawer>
 

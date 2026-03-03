@@ -3,7 +3,8 @@ const mongoose = require("mongoose");
 const blockSchema = new mongoose.Schema(
   {
     instanceId: { type: String, required: true },
-    componentId: { type: mongoose.Schema.Types.ObjectId, ref: "Component", default: null },
+    /** ObjectId for Component ref, or string for site component ID (e.g. "HeroBanner"). */
+    componentId: { type: mongoose.Schema.Types.Mixed, default: null },
     baseComponent: { type: String, default: "Paragraph" },
     props: { type: mongoose.Schema.Types.Mixed, default: {} },
     order: { type: Number, default: 0 },

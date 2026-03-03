@@ -11,6 +11,8 @@ const siteComponentMetaSchema = new mongoose.Schema(
     order: { type: Number, default: 0 },
     /** For global components: "before" = above main content, "after" = below. */
     position: { type: String, enum: ["before", "after"], default: "before" },
+    /** If false, component is hidden from Add Component and not offered in the list. */
+    enabled: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

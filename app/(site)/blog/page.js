@@ -53,7 +53,7 @@ export default async function BlogListPage({ searchParams }) {
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
-    <main style={{ maxWidth: "var(--layout-width, 800px)", margin: "0 auto", padding: "2rem 1rem" }}>
+    <main>
       <h1>Blog</h1>
 
       {categories.length > 0 && (

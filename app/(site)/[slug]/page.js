@@ -59,14 +59,7 @@ async function PageContent({ slug }) {
     baseComponent: block.baseComponent || (block.componentId?.baseComponent ?? "Paragraph"),
   }));
 
-  return (
-    <>
-      <div className="cms-container">
-        <h1>{page.title}</h1>
-      </div>
-      <ComponentRenderer layout={layout} />
-    </>
-  );
+  return <ComponentRenderer layout={layout} />;
 }
 
 export default function DynamicPage({ params }) {
@@ -74,7 +67,7 @@ export default function DynamicPage({ params }) {
   if (RESERVED.includes(slug)) notFound();
 
   return (
-    <main style={{ paddingBlock: "2rem" }}>
+    <main>
       <Suspense fallback={<ContentSkeleton />}>
         <PageContent slug={slug} />
       </Suspense>

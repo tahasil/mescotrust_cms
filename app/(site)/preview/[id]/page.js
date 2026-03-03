@@ -30,7 +30,7 @@ export default async function PreviewPage({ params, searchParams }) {
       if (!post) notFound();
 
       return (
-        <main style={{ maxWidth: 800, margin: "0 auto", padding: "2rem 1rem" }}>
+        <main>
           <div style={{ background: "#fff3cd", padding: "0.5rem 1rem", borderRadius: 4, marginBottom: "1.5rem", fontSize: "0.875rem" }}>
             Draft preview — this content is not published.
           </div>
@@ -52,7 +52,7 @@ export default async function PreviewPage({ params, searchParams }) {
     }));
 
     return (
-      <main style={{ maxWidth: 800, margin: "0 auto", padding: "2rem 1rem" }}>
+      <main>
         <div style={{ background: "#fff3cd", padding: "0.5rem 1rem", borderRadius: 4, marginBottom: "1.5rem", fontSize: "0.875rem" }}>
           Draft preview — this content is not published.
         </div>

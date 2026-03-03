@@ -15,15 +15,18 @@ import {
   Row,
   Col,
   Divider,
+  Modal,
 } from "antd";
 import {
   ArrowLeftOutlined,
   SaveOutlined,
   DeleteOutlined,
   EditOutlined,
+  PlusOutlined,
 } from "@ant-design/icons";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import * as SiteComponents from "@/components/site";
 
 const HeaderPreview = dynamic(() => import("@/components/site/Header"), {
   ssr: false,
@@ -57,14 +60,18 @@ export default function AdminComponentEditPage() {
   });
   const [themeHeaderSnapshot, setThemeHeaderSnapshot] = useState(null);
   const [themeFooterSnapshot, setThemeFooterSnapshot] = useState(null);
+  const [themeHomeHeroSnapshot, setThemeHomeHeroSnapshot] = useState(null);
   const [form] = Form.useForm();
   const [editingDisplayName, setEditingDisplayName] = useState(false);
   const [hoveringName, setHoveringName] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const footerBgType = Form.useWatch("footerBgType", form);
   const displayNameValue = Form.useWatch("displayName", form);
+  const homeHeroSlidesWatch = Form.useWatch("homeHeroSlides", form);
 
   const isHeader = record?.componentId === "Header";
   const isFooter = record?.componentId === "Footer";
+  const isHomeHero = record?.componentId === "HomeHero";
 
   useEffect(() => {
     if (!id) return;
@@ -219,11 +226,103 @@ export default function AdminComponentEditPage() {
       .finally(() => setThemeLoading(false));
   }, [isFooter, form]);
 
+  // HomeHero: same pattern as Header — fetch theme once, set snapshot then form from API response (no cache-bust; rely on cache: "no-store")
+  useEffect(() => {
+    if (!isHomeHero) return;
+    setThemeLoading(true);
+    fetch("/api/theme", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : {}))
+      .then((theme) => {
+        const palette = theme.themePalette || {};
+        const customColors = Array.isArray(theme.colors) ? theme.colors : [];
+        setThemePaletteData({ themePalette: palette, colors: customColors });
+        const names = [
+          ...new Set([
+            ...Object.keys(palette),
+            ...customColors.map((c) => c?.name).filter(Boolean),
+          ]),
+        ].sort();
+        setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
+        // All from DB — no default slide; empty array if no slides
+        const slides = Array.isArray(theme?.homeHeroSlides)
+          ? theme.homeHeroSlides.map((s) => ({
+              bgImageUrl: s?.bgImageUrl != null ? String(s.bgImageUrl).trim() : "",
+              title: s?.title != null ? String(s.title).trim() : "",
+              description: s?.description != null ? String(s.description).trim() : "",
+              buttonText: s?.buttonText != null ? String(s.buttonText).trim() : "",
+              buttonLink: s?.buttonLink != null ? String(s.buttonLink).trim() : "",
+              showButton: s?.showButton !== false,
+            }))
+          : [];
+        setThemeHomeHeroSnapshot({
+          homeHeroSlides: slides,
+          homeHeroSliderTitleColorKey: theme.homeHeroSliderTitleColorKey != null ? String(theme.homeHeroSliderTitleColorKey).trim() : "",
+          homeHeroSliderDescColorKey: theme.homeHeroSliderDescColorKey != null ? String(theme.homeHeroSliderDescColorKey).trim() : "",
+          homeHeroSliderButtonBgColorKey: theme.homeHeroSliderButtonBgColorKey != null ? String(theme.homeHeroSliderButtonBgColorKey).trim() : "",
+          homeHeroSliderButtonTextColorKey: theme.homeHeroSliderButtonTextColorKey != null ? String(theme.homeHeroSliderButtonTextColorKey).trim() : "",
+        });
+        form.setFieldsValue({
+          homeHeroSlides: slides,
+          homeHeroSliderTitleColorKey: theme.homeHeroSliderTitleColorKey != null ? String(theme.homeHeroSliderTitleColorKey).trim() : "",
+          homeHeroSliderDescColorKey: theme.homeHeroSliderDescColorKey != null ? String(theme.homeHeroSliderDescColorKey).trim() : "",
+          homeHeroSliderButtonBgColorKey: theme.homeHeroSliderButtonBgColorKey != null ? String(theme.homeHeroSliderButtonBgColorKey).trim() : "",
+          homeHeroSliderButtonTextColorKey: theme.homeHeroSliderButtonTextColorKey != null ? String(theme.homeHeroSliderButtonTextColorKey).trim() : "",
+        });
+      })
+      .catch(() => message.error("Failed to load theme"))
+      .finally(() => setThemeLoading(false));
+  }, [isHomeHero, form]);
+
   const handleSubmit = async () => {
     if (!record?.componentId) return;
+    setSaving(true);
     try {
-      const values = await form.validateFields();
-      setSaving(true);
+      // Get current form state first so theme (HomeHero) always saves to DB even if validation fails later
+      const rawFormValues = form.getFieldsValue(true);
+      let values = rawFormValues;
+
+      if (isHomeHero) {
+        const rawSlides = rawFormValues.homeHeroSlides ?? [];
+        const slides = Array.isArray(rawSlides)
+          ? rawSlides.map((s) => ({
+              bgImageUrl: s?.bgImageUrl != null ? String(s.bgImageUrl).trim() : "",
+              title: s?.title != null ? String(s.title).trim() : "",
+              description: s?.description != null ? String(s.description).trim() : "",
+              buttonText: s?.buttonText != null ? String(s.buttonText).trim() : "",
+              buttonLink: s?.buttonLink != null ? String(s.buttonLink).trim() : "",
+              showButton: s?.showButton !== false,
+            }))
+          : [];
+        const themeRes = await fetch("/api/theme", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            homeHeroSlides: slides,
+            homeHeroSliderTitleColorKey: rawFormValues.homeHeroSliderTitleColorKey != null ? String(rawFormValues.homeHeroSliderTitleColorKey).trim() : "",
+            homeHeroSliderDescColorKey: rawFormValues.homeHeroSliderDescColorKey != null ? String(rawFormValues.homeHeroSliderDescColorKey).trim() : "",
+            homeHeroSliderButtonBgColorKey: rawFormValues.homeHeroSliderButtonBgColorKey != null ? String(rawFormValues.homeHeroSliderButtonBgColorKey).trim() : "",
+            homeHeroSliderButtonTextColorKey: rawFormValues.homeHeroSliderButtonTextColorKey != null ? String(rawFormValues.homeHeroSliderButtonTextColorKey).trim() : "",
+          }),
+        });
+        if (!themeRes.ok) {
+          const err = await themeRes.json().catch(() => ({}));
+          message.error(err.error || "Failed to save Home Hero");
+          setSaving(false);
+          return;
+        }
+        message.success("Slides saved to database");
+      }
+
+      try {
+        values = await form.validateFields();
+      } catch (e) {
+        if (e.errorFields && isHomeHero) {
+          values = rawFormValues;
+        } else {
+          setSaving(false);
+          throw e;
+        }
+      }
 
       if (isHeader) {
         const themeRes = await fetch("/api/theme", {
@@ -396,6 +495,41 @@ export default function AdminComponentEditPage() {
     }
   };
 
+  const handleDelete = () => {
+    if (!record?.componentId) return;
+    if (record.componentId === "Header" || record.componentId === "Footer") {
+      message.warning("Header and Footer cannot be deleted.");
+      return;
+    }
+    Modal.confirm({
+      title: "Delete this component?",
+      content: `"${record.displayName || record.componentId}" will be removed from the component list and will no longer appear in Add Component. The file components/site/${record.componentId}.js will remain; you can delete it manually if needed.`,
+      okText: "Delete",
+      okType: "danger",
+      cancelText: "Cancel",
+      onOk: async () => {
+        setDeleting(true);
+        try {
+          const res = await fetch(
+            `/api/admin/site-components/${encodeURIComponent(record.componentId)}`,
+            { method: "DELETE" },
+          );
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            message.error(data.error || "Delete failed");
+            return;
+          }
+          message.success("Component deleted");
+          router.push("/admin/components");
+        } catch (e) {
+          message.error(e.message || "Delete failed");
+        } finally {
+          setDeleting(false);
+        }
+      },
+    });
+  };
+
   if (loading) {
     return (
       <div style={{ padding: 24, textAlign: "center" }}>
@@ -493,6 +627,19 @@ export default function AdminComponentEditPage() {
             >
               Save
             </Button>
+            {record?.componentId &&
+              record.componentId !== "Header" &&
+              record.componentId !== "Footer" && (
+                <Button
+                  type="default"
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={handleDelete}
+                  loading={deleting}
+                >
+                  Delete
+                </Button>
+              )}
           </div>
         </div>
 
@@ -1020,6 +1167,215 @@ export default function AdminComponentEditPage() {
           </>
         )}
 
+        {isHomeHero && (
+          <>
+            {themeLoading ? (
+              <div style={{ padding: 48, textAlign: "center" }}>
+                <Spin />
+              </div>
+            ) : (
+              <>
+                <Divider />
+                <div className="mt-5">
+                  <HomeHeroPreviewBlock
+                    form={form}
+                    slides={homeHeroSlidesWatch ?? themeHomeHeroSnapshot?.homeHeroSlides ?? []}
+                    themeHomeHeroSnapshot={themeHomeHeroSnapshot}
+                    themePaletteData={themePaletteData}
+                  />
+                </div>
+                <Collapse
+                  className="mt-4"
+                  defaultActiveKey={["slider", "colors"]}
+                  items={[
+                    {
+                      key: "slider",
+                      label: "Slides (add multiple sliders; order = display order)",
+                      children: (
+                        <Form.List name="homeHeroSlides">
+                          {(fields, { add, remove }) => (
+                            <>
+                              <Collapse
+                                accordion
+                                size="small"
+                                style={{ marginBottom: 12 }}
+                                items={fields.map(({ key, name, ...restField }) => ({
+                                  key: String(name),
+                                  label: (
+                                    <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", paddingRight: 8 }}>
+                                      <strong>Slide {name + 1}</strong>
+                                      {fields.length > 1 && (
+                                        <Button
+                                          type="text"
+                                          danger
+                                          size="small"
+                                          icon={<DeleteOutlined />}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            remove(name);
+                                          }}
+                                        >
+                                          Remove
+                                        </Button>
+                                      )}
+                                    </span>
+                                  ),
+                                  children: (
+                                    <Row gutter={[16, 12]}>
+                                      <Col xs={24} md={8}>
+                                        <Form.Item
+                                          {...restField}
+                                          name={[name, "bgImageUrl"]}
+                                          label="Background image URL"
+                                        >
+                                          <Input placeholder="e.g. /images/slider.png" size="small" />
+                                        </Form.Item>
+                                      </Col>
+                                      <Col xs={24} md={8}>
+                                        <Form.Item {...restField} name={[name, "title"]} label="Title">
+                                          <Input placeholder="Because Every Learner Deserves Support" size="small" />
+                                        </Form.Item>
+                                      </Col>
+                                      <Col xs={24} md={8}>
+                                        <Form.Item {...restField} name={[name, "buttonText"]} label="Button name (label)">
+                                          <Input placeholder="e.g. Contact Us" size="small" />
+                                        </Form.Item>
+                                      </Col>
+                                      <Col xs={24} md={8}>
+                                        <Form.Item {...restField} name={[name, "showButton"]} label="Show button on this slide" valuePropName="checked">
+                                          <Switch />
+                                        </Form.Item>
+                                      </Col>
+                                      <Col xs={24} md={8}>
+                                        <Form.Item {...restField} name={[name, "buttonLink"]} label="Button link (URL)">
+                                          <Input placeholder="/contact" size="small" />
+                                        </Form.Item>
+                                      </Col>
+                                      <Col xs={24} md={8}>
+                                        <Form.Item {...restField} name={[name, "description"]} label="Description">
+                                          <Input.TextArea rows={2} placeholder="A community-powered initiative that brings donors, mentors..." />
+                                        </Form.Item>
+                                      </Col>
+                                    </Row>
+                                  ),
+                                }))}
+                              />
+                              <Button
+                                type="dashed"
+                                onClick={() =>
+                                  add({
+                                    bgImageUrl: "/images/slider-1.png",
+                                    title: "",
+                                    description: "",
+                                    buttonText: "Contact Us",
+                                    buttonLink: "/contact",
+                                    showButton: true,
+                                  })
+                                }
+                                block
+                                icon={<PlusOutlined />}
+                                size="small"
+                              >
+                                Add slide
+                              </Button>
+                            </>
+                          )}
+                        </Form.List>
+                      ),
+                    },
+                    {
+                      key: "colors",
+                      label: "Theme colors",
+                      children: (
+                        <Row gutter={24}>
+                          <Col xs={24} md={12}>
+                            <Form.Item name="homeHeroSliderTitleColorKey" label="Slider title color">
+                              <Select
+                                options={themeColorOptions}
+                                placeholder="Select from Theme (empty = white)"
+                                style={{ width: "100%" }}
+                                allowClear
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={12}>
+                            <Form.Item name="homeHeroSliderDescColorKey" label="Slider description color">
+                              <Select
+                                options={themeColorOptions}
+                                placeholder="Select from Theme (empty = white)"
+                                style={{ width: "100%" }}
+                                allowClear
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={12}>
+                            <Form.Item name="homeHeroSliderButtonBgColorKey" label="Button background color">
+                              <Select
+                                options={themeColorOptions}
+                                placeholder="Select from Theme"
+                                style={{ width: "100%" }}
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={12}>
+                            <Form.Item name="homeHeroSliderButtonTextColorKey" label="Button text color">
+                              <Select
+                                options={themeColorOptions}
+                                placeholder="Select from Theme"
+                                style={{ width: "100%" }}
+                              />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+                      ),
+                    },
+                  ]}
+                />
+              </>
+            )}
+          </>
+        )}
+
+        {!isHeader && !isFooter && !isHomeHero && record?.componentId && (
+          <>
+            <Divider />
+            <div className="mt-5">
+              {SiteComponents[record.componentId] ? (
+                <div
+                  style={{
+                    border: "1px solid #e8e8e8",
+                    borderRadius: 8,
+                    overflow: "hidden",
+                    background: "#fff",
+                    padding: 24,
+                  }}
+                >
+                  {(() => {
+                    const Comp = SiteComponents[record.componentId];
+                    return Comp ? <Comp /> : null;
+                  })()}
+                </div>
+              ) : (
+                <div
+                  style={{
+                    border: "1px solid #e8e8e8",
+                    borderRadius: 8,
+                    overflow: "hidden",
+                    background: "#fff",
+                    padding: 48,
+                    color: "#999",
+                    textAlign: "center",
+                    fontSize: 14,
+                  }}
+                >
+                  File <code>components/site/{record.componentId}.js</code> me
+                  default export add karein; preview yahan dikhega.
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
         <Form.Item name="displayName" hidden>
           <Input type="hidden" />
         </Form.Item>
@@ -1218,6 +1574,43 @@ function FooterPreviewBlock({ form, themePaletteData, themeFooterSnapshot }) {
           themePaletteData,
           footerCopyrightBarColorKey,
         )}
+      />
+    </div>
+  );
+}
+
+function HomeHeroPreviewBlock({ form, slides: slidesProp, themeHomeHeroSnapshot, themePaletteData }) {
+  const slides = Array.isArray(slidesProp) ? slidesProp : (themeHomeHeroSnapshot?.homeHeroSlides ?? []);
+  const titleColorKey = Form.useWatch("homeHeroSliderTitleColorKey", form) ?? themeHomeHeroSnapshot?.homeHeroSliderTitleColorKey ?? "";
+  const descColorKey = Form.useWatch("homeHeroSliderDescColorKey", form) ?? themeHomeHeroSnapshot?.homeHeroSliderDescColorKey ?? "";
+  const buttonBgColorKey = Form.useWatch("homeHeroSliderButtonBgColorKey", form) ?? themeHomeHeroSnapshot?.homeHeroSliderButtonBgColorKey ?? "";
+  const buttonTextColorKey = Form.useWatch("homeHeroSliderButtonTextColorKey", form) ?? themeHomeHeroSnapshot?.homeHeroSliderButtonTextColorKey ?? "";
+
+  const titleColor = titleColorKey ? resolveThemeColorFromPalette(themePaletteData, titleColorKey) : undefined;
+  const descColor = descColorKey ? resolveThemeColorFromPalette(themePaletteData, descColorKey) : undefined;
+  const buttonBgColor = buttonBgColorKey ? resolveThemeColorFromPalette(themePaletteData, buttonBgColorKey) : undefined;
+  const buttonTextColor = buttonTextColorKey ? resolveThemeColorFromPalette(themePaletteData, buttonTextColorKey) : undefined;
+
+  const HomeHeroComp = SiteComponents.HomeHero;
+  if (!HomeHeroComp) return <div style={{ padding: 24, color: "#999" }}>HomeHero component not found.</div>;
+
+  return (
+    <div
+      style={{
+        position: "relative",
+        border: "1px solid #e8e8e8",
+        borderRadius: 8,
+        overflow: "hidden",
+        background: "#fafafa",
+        width: "100%",
+      }}
+    >
+      <HomeHeroComp
+        slides={Array.isArray(slides) ? slides : []}
+        sliderTitleColor={titleColor}
+        sliderDescColor={descColor}
+        sliderButtonBgColor={buttonBgColor}
+        sliderButtonTextColor={buttonTextColor}
       />
     </div>
   );

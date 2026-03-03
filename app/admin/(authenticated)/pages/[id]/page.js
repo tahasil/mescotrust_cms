@@ -104,7 +104,11 @@ export default function AdminPageEditPage() {
           <Button icon={<SettingOutlined />} onClick={() => setSettingsOpen(true)}>
             Page Settings
           </Button>
-          <Button href={`/preview/${id}?type=page`} target="_blank">
+          <Button
+            href={page?.slug ? `${(process.env.NEXT_PUBLIC_SITE_URL || "").replace(/\/$/, "")}/${page.slug}` : "#"}
+            target="_blank"
+            disabled={!page?.slug}
+          >
             Preview
           </Button>
           <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={handleSave}>

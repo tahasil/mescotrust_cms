@@ -117,7 +117,7 @@ async function PostContent({ slug }) {
 
 export default function BlogPostPage({ params }) {
   return (
-    <main style={{ maxWidth: "var(--layout-width, 800px)", margin: "0 auto", padding: "2rem 1rem" }}>
+    <main>
       <Suspense fallback={<PostSkeleton />}>
         <PostContent slug={params.slug} />
       </Suspense>

@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function SearchPage() {
   return (
-    <main style={{ maxWidth: 800, margin: "0 auto", padding: "2rem 1rem" }}>
+    <main>
       <h1>Search</h1>
       <SearchClient />
     </main>

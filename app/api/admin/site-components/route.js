@@ -6,6 +6,23 @@ import { connectDB } from "@/lib/db";
 import SiteComponentMeta from "@/models/SiteComponentMeta";
 import { SITE_COMPONENT_IDS } from "@/lib/siteComponentRegistry";
 
+/** Read current registry IDs from disk (so list is correct after DELETE without restart). */
+function getRegistryIdsFromDisk() {
+  try {
+    const root = process.cwd();
+    const registryPath = path.join(root, "lib", "siteComponentRegistry.js");
+    const content = readFileSync(registryPath, "utf8");
+    const arrayMatch = content.match(/SITE_COMPONENT_IDS\s*=\s*\[([^\]]*)\]/);
+    if (!arrayMatch) return [...SITE_COMPONENT_IDS];
+    return arrayMatch[1]
+      .split(",")
+      .map((s) => s.trim().replace(/^["']|["']$/g, ""))
+      .filter(Boolean);
+  } catch {
+    return [...SITE_COMPONENT_IDS];
+  }
+}
+
 /** GET: list all site components (registry + custom from DB) with metadata */
 export async function GET(req) {
   const session = await requireAuth(req);
@@ -19,8 +36,8 @@ export async function GET(req) {
       metaById[m.componentId] = m;
     });
 
-    const idsFromRegistry = [...SITE_COMPONENT_IDS];
-    const customIds = allMetas.map((m) => m.componentId).filter((id) => !SITE_COMPONENT_IDS.includes(id));
+    const idsFromRegistry = getRegistryIdsFromDisk();
+    const customIds = allMetas.map((m) => m.componentId).filter((id) => !idsFromRegistry.includes(id));
     const allIds = [...new Set([...idsFromRegistry, ...customIds])];
 
     const list = allIds.map((id, index) => {
@@ -32,6 +49,7 @@ export async function GET(req) {
         global: m?.global ?? false,
         order: m?.order ?? index,
         position: m?.position ?? defaultPosition,
+        enabled: m?.enabled !== false,
       };
     });
 
@@ -125,6 +143,7 @@ export default function ${componentId}(props) {
       global,
       order,
       position,
+      enabled: true,
     });
 
     return NextResponse.json(doc.toObject ? doc.toObject() : doc);

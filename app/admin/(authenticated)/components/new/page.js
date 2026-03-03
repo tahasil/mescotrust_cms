@@ -41,8 +41,12 @@ export default function AdminComponentNewPage() {
         message.error(data.error || "Create failed");
         return;
       }
-      message.success("Component created");
-      router.push("/admin/components");
+      const cid = data.componentId || values.componentId?.trim();
+      message.success(
+        `Component created. Add code in components/site/${cid}.js — then use it on any page via Add Component.`,
+        6
+      );
+      router.push(`/admin/components/${encodeURIComponent(cid)}/edit`);
     } catch (e) {
       if (e.errorFields) return;
       message.error(e.message || "Error");

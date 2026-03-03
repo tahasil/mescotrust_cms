@@ -9,6 +9,9 @@ import { isAdmin } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
+/** Single theme doc: match by themeKey or legacy docs without themeKey */
+const THEME_QUERY = { $or: [{ themeKey: "default" }, { themeKey: { $exists: false } }] };
+
 /** No built-in palette; only admin-defined palette + custom colors are stored and synced to Theme.js */
 const THEME_PALETTE_DEFAULTS = {};
 
@@ -160,6 +163,26 @@ const DEFAULTS = {
   footerColumnsCount: 4,
   footerLayoutStyle: "default",
   footerSocialIcons: true,
+  heroBannerBackgroundUrl: "/images/hero_bg.png",
+  heroBannerIconUrl: "/images/hero-icon.svg",
+  heroBannerTitle: "Because Every Learner",
+  heroBannerTitleHighlight: "Deserves Support",
+  heroBannerDescription: "A community-powered initiative that brings donors, mentors, and resources together to help learners overcome barriers and continue their education—turning collective support into real opportunities.",
+  heroBannerButtonText: "Contact Us",
+  heroBannerButtonLink: "/contact",
+  heroBannerTitleColorKey: "black",
+  heroBannerTitleHighlightColorKey: "primary",
+  heroBannerDescriptionColorKey: "black",
+  homeHeroSlides: [],
+  homeHeroSliderBgImageUrl: "",
+  homeHeroSliderTitle: "",
+  homeHeroSliderDesc: "",
+  homeHeroSliderButtonText: "",
+  homeHeroContactHref: "",
+  homeHeroSliderTitleColorKey: "",
+  homeHeroSliderDescColorKey: "",
+  homeHeroSliderButtonBgColorKey: "",
+  homeHeroSliderButtonTextColorKey: "",
   buttonBackground: "",
   buttonTextColor: "",
   buttonHoverBackground: "",
@@ -204,6 +227,10 @@ const THEME_FIELDS = [
   "footerLogoUrl", "footerAddress", "footerEmail", "footerPhone", "footerCol1Links", "footerCol2Links",
   "footerBgColorKey", "footerBackgroundImageUrl", "footerTextColorKey", "footerCopyrightBarColorKey",
   "footerColumnsCount", "footerLayoutStyle", "footerSocialIcons",
+  "heroBannerBackgroundUrl", "heroBannerIconUrl", "heroBannerTitle", "heroBannerTitleHighlight", "heroBannerDescription", "heroBannerButtonText", "heroBannerButtonLink",
+  "heroBannerTitleColorKey", "heroBannerTitleHighlightColorKey", "heroBannerDescriptionColorKey",
+  "homeHeroSlides", "homeHeroSliderBgImageUrl", "homeHeroSliderTitle", "homeHeroSliderDesc", "homeHeroSliderButtonText", "homeHeroContactHref",
+  "homeHeroSliderTitleColorKey", "homeHeroSliderDescColorKey", "homeHeroSliderButtonBgColorKey", "homeHeroSliderButtonTextColorKey",
   "buttonBackground", "buttonTextColor", "buttonHoverBackground", "buttonHoverTextColor", "buttonPadding",
   "cardStyle", "alertStyle", "badgeStyle", "tableStyle", "formStyle", "inputStyle",
   "mobileFontSize", "mobileSectionSpacing", "hideSectionOnMobile",
@@ -225,22 +252,62 @@ function normalizeTheme(theme) {
   return out;
 }
 
+const HERO_BANNER_KEYS = [
+  "heroBannerBackgroundUrl", "heroBannerIconUrl", "heroBannerTitle", "heroBannerTitleHighlight",
+  "heroBannerDescription", "heroBannerButtonText", "heroBannerButtonLink",
+  "heroBannerTitleColorKey", "heroBannerTitleHighlightColorKey", "heroBannerDescriptionColorKey",
+];
+
+const HOME_HERO_KEYS = [
+  "homeHeroSlides", "homeHeroSliderBgImageUrl", "homeHeroSliderTitle", "homeHeroSliderDesc",
+  "homeHeroSliderButtonText", "homeHeroContactHref",
+  "homeHeroSliderTitleColorKey", "homeHeroSliderDescColorKey", "homeHeroSliderButtonBgColorKey", "homeHeroSliderButtonTextColorKey",
+];
+
+/** Normalize one slide: no defaults — all values from DB. Trim strings, use "" when missing. */
+function normalizeSlide(s) {
+  return {
+    bgImageUrl: s?.bgImageUrl != null ? String(s.bgImageUrl).trim() : "",
+    title: s?.title != null ? String(s.title).trim() : "",
+    description: s?.description != null ? String(s.description).trim() : "",
+    buttonText: s?.buttonText != null ? String(s.buttonText).trim() : "",
+    buttonLink: s?.buttonLink != null ? String(s.buttonLink).trim() : "",
+    showButton: s?.showButton !== false,
+  };
+}
+
 export async function GET() {
+  const headers = { "Cache-Control": "no-store, no-cache, must-revalidate" };
   try {
     await connectDB();
-    const theme = await ThemeConfig.findOne().sort({ updatedAt: -1 }).lean();
-    const normalized = normalizeTheme(theme);
-    if (theme && theme.footerBackgroundImageUrl != null) {
-      normalized.footerBackgroundImageUrl = String(theme.footerBackgroundImageUrl).trim();
+    const doc = await ThemeConfig.findOne(THEME_QUERY).sort({ updatedAt: -1 });
+    if (!doc) {
+      return NextResponse.json(normalizeTheme(null), { headers });
     }
-    return NextResponse.json(normalized, {
-      headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
-    });
-  } catch {
-    return NextResponse.json(DEFAULTS, {
-      status: 200,
-      headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
-    });
+    const plain = doc.toObject ? doc.toObject() : { ...doc };
+    const normalized = normalizeTheme(plain);
+    if (plain.footerBackgroundImageUrl != null) {
+      normalized.footerBackgroundImageUrl = String(plain.footerBackgroundImageUrl).trim();
+    }
+    for (const k of HERO_BANNER_KEYS) {
+      if (plain[k] !== undefined) {
+        normalized[k] = typeof plain[k] === "string" ? String(plain[k]).trim() : plain[k];
+      }
+    }
+    for (const k of HOME_HERO_KEYS) {
+      if (k === "homeHeroSlides") {
+        const raw = doc.get ? doc.get("homeHeroSlides") : doc.homeHeroSlides;
+        const arr = Array.isArray(raw) ? raw : [];
+        normalized.homeHeroSlides = arr.length > 0 ? arr.map((s) => normalizeSlide(s)) : [];
+      } else if (plain[k] !== undefined) {
+        normalized[k] = typeof plain[k] === "string" ? String(plain[k]).trim() : plain[k];
+      }
+    }
+    if (!Array.isArray(normalized.homeHeroSlides)) normalized.homeHeroSlides = [];
+    return NextResponse.json(normalized, { headers });
+  } catch (err) {
+    console.error("[Theme GET] error:", err);
+    return NextResponse.json(normalizeTheme(null), { status: 200, headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } });
   }
 }
 
@@ -252,10 +319,37 @@ export async function PUT(req) {
   try {
     const body = await req.json();
     await connectDB();
-    let theme = await ThemeConfig.findOne().sort({ updatedAt: -1 });
+    let theme = await ThemeConfig.findOne(THEME_QUERY).sort({ updatedAt: -1 });
+    let savedFromMemory = null; // set after theme.save() so PUT response matches persisted data
     if (!theme) {
-      theme = await ThemeConfig.create({ ...DEFAULTS, ...body });
+      theme = await ThemeConfig.create({ ...DEFAULTS, themeKey: "default", ...body });
+      // Force-write hero (and footer) fields so new doc has them in DB
+      const initialUpdates = {};
+      for (const f of HERO_BANNER_KEYS) {
+        if (body[f] !== undefined) initialUpdates[f] = typeof body[f] === "string" ? body[f].trim() : body[f];
+      }
+      for (const f of HOME_HERO_KEYS) {
+        if (f === "homeHeroSlides") {
+          if (body.homeHeroSlides !== undefined) {
+            initialUpdates.homeHeroSlides = Array.isArray(body.homeHeroSlides)
+              ? body.homeHeroSlides.map((s) => normalizeSlide(s))
+              : [];
+          }
+        } else if (body[f] !== undefined) {
+          initialUpdates[f] = typeof body[f] === "string" ? body[f].trim() : body[f];
+        }
+      }
+      if (body.footerLogoUrl !== undefined) initialUpdates.footerLogoUrl = typeof body.footerLogoUrl === "string" ? body.footerLogoUrl : String(body.footerLogoUrl || "");
+      if (body.footerBackgroundImageUrl !== undefined) initialUpdates.footerBackgroundImageUrl = typeof body.footerBackgroundImageUrl === "string" ? body.footerBackgroundImageUrl : String(body.footerBackgroundImageUrl || "");
+      if (Object.keys(initialUpdates).length > 0 && theme._id) {
+        initialUpdates.updatedAt = new Date();
+        await ThemeConfig.updateOne({ _id: theme._id }, { $set: initialUpdates });
+      }
     } else {
+      if (theme.themeKey !== "default") {
+        theme.themeKey = "default";
+        theme.markModified("themeKey");
+      }
       for (const f of THEME_FIELDS) {
         if (body[f] !== undefined) theme[f] = body[f];
       }
@@ -275,6 +369,26 @@ export async function PUT(req) {
         theme.footerCol2Links = Array.isArray(body.footerCol2Links) ? body.footerCol2Links : [];
         theme.markModified("footerCol2Links");
       }
+      if (body.homeHeroSlides !== undefined) {
+        const normalized = Array.isArray(body.homeHeroSlides)
+          ? body.homeHeroSlides.map((s) => normalizeSlide(s))
+          : [];
+        theme.homeHeroSlides = normalized;
+        theme.markModified("homeHeroSlides");
+      }
+      for (const f of HERO_BANNER_KEYS) {
+        if (body[f] !== undefined) {
+          theme[f] = typeof body[f] === "string" ? body[f].trim() : body[f];
+          theme.markModified(f);
+        }
+      }
+      for (const f of HOME_HERO_KEYS) {
+        if (f === "homeHeroSlides") continue; // already set and normalized above
+        if (body[f] !== undefined) {
+          theme[f] = typeof body[f] === "string" ? body[f].trim() : body[f];
+          theme.markModified(f);
+        }
+      }
       if (Array.isArray(body.paletteColors)) {
         theme.themePalette = Object.fromEntries(
           body.paletteColors.filter((p) => p && String(p.key).trim()).map((p) => [String(p.key).trim(), p.value])
@@ -286,17 +400,38 @@ export async function PUT(req) {
         theme.markModified("themePalette");
       }
       await theme.save();
+      savedFromMemory = theme.toObject ? theme.toObject() : { ...theme };
+      // Ensure response has the slides we just saved (toObject() can omit Mixed in some Mongoose versions)
+      if (body.homeHeroSlides !== undefined && Array.isArray(body.homeHeroSlides)) {
+        savedFromMemory.homeHeroSlides = body.homeHeroSlides.map((s) => normalizeSlide(s));
+      }
 
-      // Force-persist footerLogoUrl and footerBackgroundImageUrl via direct update (ensures DB write)
-      const footerUpdates = {};
+      // Force-persist footer and hero fields via direct update (ensures DB write on reload)
+      const directUpdates = {};
       if (body.footerLogoUrl !== undefined) {
-        footerUpdates.footerLogoUrl = typeof body.footerLogoUrl === "string" ? body.footerLogoUrl : String(body.footerLogoUrl || "");
+        directUpdates.footerLogoUrl = typeof body.footerLogoUrl === "string" ? body.footerLogoUrl : String(body.footerLogoUrl || "");
       }
       if (body.footerBackgroundImageUrl !== undefined) {
-        footerUpdates.footerBackgroundImageUrl = typeof body.footerBackgroundImageUrl === "string" ? body.footerBackgroundImageUrl : String(body.footerBackgroundImageUrl || "");
+        directUpdates.footerBackgroundImageUrl = typeof body.footerBackgroundImageUrl === "string" ? body.footerBackgroundImageUrl : String(body.footerBackgroundImageUrl || "");
       }
-      if (Object.keys(footerUpdates).length > 0 && theme._id) {
-        await ThemeConfig.updateOne({ _id: theme._id }, { $set: footerUpdates });
+      for (const f of HERO_BANNER_KEYS) {
+        if (body[f] !== undefined) {
+          directUpdates[f] = typeof body[f] === "string" ? body[f].trim() : body[f];
+        }
+      }
+      for (const f of HOME_HERO_KEYS) {
+        if (body[f] !== undefined && f !== "homeHeroSlides") {
+          directUpdates[f] = typeof body[f] === "string" ? body[f].trim() : body[f];
+        }
+      }
+      if (body.homeHeroSlides !== undefined) {
+        directUpdates.homeHeroSlides = Array.isArray(body.homeHeroSlides)
+          ? body.homeHeroSlides.map((s) => normalizeSlide(s))
+          : [];
+      }
+      if (Object.keys(directUpdates).length > 0 && theme._id) {
+        directUpdates.updatedAt = new Date();
+        await ThemeConfig.updateOne({ _id: theme._id }, { $set: directUpdates });
       }
     }
 
@@ -315,13 +450,27 @@ export async function PUT(req) {
     }
 
     revalidatePath("/", "layout");
-    const saved = await ThemeConfig.findOne().sort({ updatedAt: -1 }).lean();
-    // Ensure response includes footer fields we just saved (avoids stale read / missing keys)
+    // Use the document we just saved when we had existing theme (avoids stale read); else re-query (e.g. after create)
+    const saved = savedFromMemory || await ThemeConfig.findOne(THEME_QUERY).sort({ updatedAt: -1 }).lean();
     if (saved && body.footerBackgroundImageUrl !== undefined) {
       saved.footerBackgroundImageUrl = typeof body.footerBackgroundImageUrl === "string" ? body.footerBackgroundImageUrl : String(body.footerBackgroundImageUrl || "");
     }
     if (saved && body.footerLogoUrl !== undefined) {
       saved.footerLogoUrl = typeof body.footerLogoUrl === "string" ? body.footerLogoUrl : String(body.footerLogoUrl || "");
+    }
+    for (const f of HERO_BANNER_KEYS) {
+      if (body[f] !== undefined && saved) {
+        saved[f] = typeof body[f] === "string" ? body[f].trim() : body[f];
+      }
+    }
+    for (const f of HOME_HERO_KEYS) {
+      if (f === "homeHeroSlides" && body.homeHeroSlides !== undefined && saved) {
+        saved.homeHeroSlides = Array.isArray(body.homeHeroSlides)
+          ? body.homeHeroSlides.map((s) => normalizeSlide(s))
+          : [];
+      } else if (body[f] !== undefined && saved) {
+        saved[f] = typeof body[f] === "string" ? body[f].trim() : body[f];
+      }
     }
     return NextResponse.json(normalizeTheme(saved));
   } catch (err) {

@@ -3,6 +3,7 @@
 import { useState, useEffect, Fragment } from "react";
 import {
   HeaderWrapper,
+  HeaderMainWrapper,
   Logo,
   Nav,
   NavItem,
@@ -35,7 +36,6 @@ import {
   MobileActions,
   MobileBtnVolunteer,
   MobileBtnDonate,
-  HeaderMainWrapper,
 } from "./HeaderStyle";
 
 const SCROLL_THRESHOLD_PX = 10;
