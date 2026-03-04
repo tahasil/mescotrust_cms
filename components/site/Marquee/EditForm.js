@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, Button, Row, Col, message, Spin } from "antd";
-import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
+import { Form, Input, Button, Row, Col, Card, message, Spin } from "antd";
+import { DeleteOutlined, PlusOutlined, ArrowUpOutlined, ArrowDownOutlined } from "@ant-design/icons";
 
 /**
  * Edit form for Marquee — used in page builder drawer or component edit.
@@ -12,9 +12,11 @@ function MarqueeEditForm({ onSuccess, onCancel }, ref) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [initialData, setInitialData] = useState(null);
 
   useEffect(() => {
     setLoading(true);
+    setInitialData(null);
     fetch("/api/theme", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : {}))
       .then((theme) => {
@@ -25,11 +27,11 @@ function MarqueeEditForm({ onSuccess, onCancel }, ref) {
               alt: it?.alt != null ? String(it.alt).trim() : "",
             }))
           : [];
-        form.setFieldsValue({ marqueeTitle: title, marqueeItems: items });
+        setInitialData({ marqueeTitle: title, marqueeItems: items });
       })
       .catch(() => message.error("Failed to load theme"))
       .finally(() => setLoading(false));
-  }, [form]);
+  }, []);
 
   const handleUpdate = () => {
     form.validateFields().then(() => {
@@ -62,7 +64,7 @@ function MarqueeEditForm({ onSuccess, onCancel }, ref) {
 
   useImperativeHandle(ref, () => ({ update: handleUpdate }), []);
 
-  if (loading) {
+  if (loading || initialData === null) {
     return (
       <div style={{ padding: 48, textAlign: "center" }}>
         <Spin />
@@ -72,29 +74,45 @@ function MarqueeEditForm({ onSuccess, onCancel }, ref) {
 
   return (
     <>
-      <Form form={form} layout="vertical">
+      <Form
+        form={form}
+        layout="vertical"
+        initialValues={initialData}
+        key="marquee-edit-form"
+      >
         <Form.Item name="marqueeTitle" label="Section title" style={{ marginBottom: 16 }}>
           <Input placeholder="Our CSR Partners | Awards & Recognition" size="large" />
         </Form.Item>
         <Form.List name="marqueeItems">
-          {(fields, { add, remove }) => (
+          {(fields, { add, remove, move }) => (
             <>
               {fields.map(({ key, name, ...restField }) => (
-                <Row key={key} gutter={[0, 8]} style={{ marginBottom: 12 }}>
-                  <Col span={24}>
-                    <Form.Item {...restField} name={[name, "url"]} label="Image URL" rules={[{ required: true, message: "Required" }]}>
-                      <Input placeholder="/images/partner-1.png" size="large" />
-                    </Form.Item>
-                  </Col>
-                  <Col span={24}>
-                    <Form.Item {...restField} name={[name, "alt"]} label="Alt text">
-                      <Input placeholder="Partner" size="large" />
-                    </Form.Item>
-                  </Col>
-                  <Col span={24}>
-                    <Button type="text" danger size="small" icon={<DeleteOutlined />} onClick={() => remove(name)} />
-                  </Col>
-                </Row>
+                <Card
+                  key={key}
+                  size="small"
+                  title={`Item ${name + 1}`}
+                  style={{ marginBottom: 12 }}
+                  extra={
+                    <>
+                      <Button type="text" size="small" icon={<ArrowUpOutlined />} disabled={name === 0} onClick={() => move(name, name - 1)} title="Move up" />
+                      <Button type="text" size="small" icon={<ArrowDownOutlined />} disabled={name === fields.length - 1} onClick={() => move(name, name + 1)} title="Move down" />
+                      <Button type="text" danger size="small" icon={<DeleteOutlined />} onClick={() => remove(name)} />
+                    </>
+                  }
+                >
+                  <Row gutter={[16, 16]}>
+                    <Col span={14}>
+                      <Form.Item {...restField} name={[name, "url"]} label="Image URL" rules={[{ required: true, message: "Required" }]}>
+                        <Input placeholder="/images/partner-1.png" size="large" />
+                      </Form.Item>
+                    </Col>
+                    <Col span={10}>
+                      <Form.Item {...restField} name={[name, "alt"]} label="Alt text">
+                        <Input placeholder="Partner" size="large" />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                </Card>
               ))}
               <Button type="dashed" onClick={() => add({ url: "", alt: "" })} block icon={<PlusOutlined />} size="small">Add item</Button>
             </>

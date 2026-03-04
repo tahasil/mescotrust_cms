@@ -133,7 +133,7 @@ function HomeHeroEditForm({ onSuccess, onCancel }, ref) {
                             </span>
                           ),
                           children: (
-                            <Row gutter={[0, 12]}>
+                            <Row gutter={[16, 16]}>
                               <Col span={24}>
                                 <Form.Item {...restField} name={[name, "bgImageUrl"]} label="Background image URL">
                                   <Input placeholder="e.g. /images/slider.png" size="large" />
@@ -178,7 +178,7 @@ function HomeHeroEditForm({ onSuccess, onCancel }, ref) {
               key: "colors",
               label: "Theme colors",
               children: (
-                <Row gutter={[16, 12]}>
+                <Row gutter={[16, 16]}>
                   <Col span={24}>
                     <Form.Item name="homeHeroSliderTitleColorKey" label="Slider title color">
                       <Select size="large" options={themeColorOptions} placeholder="From theme" style={{ width: "100%" }} allowClear />

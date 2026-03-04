@@ -6,7 +6,10 @@ import ReactMarquee from "react-fast-marquee";
 import { getColor } from "@/styles/Theme";
 
 function fetchTheme() {
-  return fetch("/api/theme", { cache: "no-store", headers: { "Cache-Control": "no-cache" } })
+  return fetch("/api/theme", {
+    cache: "no-store",
+    headers: { "Cache-Control": "no-cache" },
+  })
     .then((res) => (res.ok ? res.json() : null))
     .catch(() => null);
 }
@@ -16,6 +19,7 @@ const PartnersSection = styled.section`
   position: relative;
   background: transparent;
   overflow: hidden;
+  padding: 40px 0px;
   h2 {
     margin: 0px;
     font-size: 24px;
@@ -42,6 +46,7 @@ const PartnersSection = styled.section`
   }
   .marquee-item img {
     max-width: 100%;
+    max-height: 80px;
     height: auto;
     display: block;
   }
@@ -63,7 +68,9 @@ const defaultImages = [
  */
 export default function Marquee(props) {
   const [theme, setTheme] = useState(null);
-  const fromProps = props?.title != null || (Array.isArray(props?.images) && props.images.length > 0);
+  const fromProps =
+    props?.title != null ||
+    (Array.isArray(props?.images) && props.images.length > 0);
 
   useEffect(() => {
     if (fromProps) return;
@@ -89,7 +96,7 @@ export default function Marquee(props) {
     >
       <h2>{title}</h2>
       <ReactMarquee
-        className={props?.className}
+        className="mb-5"
         loop={props?.loop ?? 0}
         speed={props?.speed ?? 25}
         pauseOnHover={props?.pauseOnHover !== false}
