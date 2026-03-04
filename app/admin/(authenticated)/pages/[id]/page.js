@@ -19,6 +19,13 @@ export default function AdminPageEditPage() {
   const [form] = Form.useForm();
 
   useEffect(() => {
+    if (typeof window !== "undefined" && sessionStorage.getItem("pageSaveSuccess") === "1") {
+      sessionStorage.removeItem("pageSaveSuccess");
+      message.success("Page updated successfully");
+    }
+  }, []);
+
+  useEffect(() => {
     if (!id) return;
     (async () => {
       try {
@@ -67,10 +74,8 @@ export default function AdminPageEditPage() {
         message.error(data.error || "Save failed");
         return;
       }
-      const updated = await res.json();
-      setPage(updated);
-      setLayout(Array.isArray(updated.layout) ? updated.layout : []);
-      message.success("Saved");
+      if (typeof sessionStorage !== "undefined") sessionStorage.setItem("pageSaveSuccess", "1");
+      window.location.reload();
     } catch (e) {
       if (e.errorFields) {
         setSettingsOpen(true);

@@ -183,6 +183,8 @@ const DEFAULTS = {
   homeHeroSliderDescColorKey: "",
   homeHeroSliderButtonBgColorKey: "",
   homeHeroSliderButtonTextColorKey: "",
+  homeHeroBackgroundContainer: "full",
+  homeHeroContentContainer: "pageContainer",
   marqueeTitle: "Our CSR Partners | Awards & Recognition",
   marqueeItems: [],
   buttonBackground: "",
@@ -233,6 +235,7 @@ const THEME_FIELDS = [
   "heroBannerTitleColorKey", "heroBannerTitleHighlightColorKey", "heroBannerDescriptionColorKey",
   "homeHeroSlides", "homeHeroSliderBgImageUrl", "homeHeroSliderTitle", "homeHeroSliderDesc", "homeHeroSliderButtonText", "homeHeroContactHref",
   "homeHeroSliderTitleColorKey", "homeHeroSliderDescColorKey", "homeHeroSliderButtonBgColorKey", "homeHeroSliderButtonTextColorKey",
+  "homeHeroBackgroundContainer", "homeHeroContentContainer",
   "marqueeTitle", "marqueeItems",
   "buttonBackground", "buttonTextColor", "buttonHoverBackground", "buttonHoverTextColor", "buttonPadding",
   "cardStyle", "alertStyle", "badgeStyle", "tableStyle", "formStyle", "inputStyle",
@@ -265,6 +268,7 @@ const HOME_HERO_KEYS = [
   "homeHeroSlides", "homeHeroSliderBgImageUrl", "homeHeroSliderTitle", "homeHeroSliderDesc",
   "homeHeroSliderButtonText", "homeHeroContactHref",
   "homeHeroSliderTitleColorKey", "homeHeroSliderDescColorKey", "homeHeroSliderButtonBgColorKey", "homeHeroSliderButtonTextColorKey",
+  "homeHeroBackgroundContainer", "homeHeroContentContainer",
 ];
 
 const MARQUEE_KEYS = ["marqueeTitle", "marqueeItems"];

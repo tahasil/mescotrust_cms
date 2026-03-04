@@ -56,6 +56,15 @@ const SliderSection = styled.section.attrs((p) => ({
   }
 `;
 
+const ContentWrapper = ({ usePageContainer, children, style }) =>
+  usePageContainer ? (
+    <PageContainer style={style}>{children}</PageContainer>
+  ) : (
+    <div style={{ position: "relative", zIndex: 1, padding: "0 5%", ...style }}>
+      {children}
+    </div>
+  );
+
 function SingleSlide({
   bgImageUrl,
   title,
@@ -67,6 +76,7 @@ function SingleSlide({
   descColor,
   buttonBgColor,
   buttonTextColor,
+  contentContainer,
 }) {
   const titleStyle = titleColor ? { color: titleColor } : undefined;
   const descStyle = descColor ? { color: descColor } : undefined;
@@ -78,10 +88,14 @@ function SingleSlide({
         }
       : undefined;
   const renderButton = showButton !== false;
+  const usePageContainer = contentContainer !== "full";
 
   return (
     <SliderSection $bgImage={bgImageUrl}>
-      <PageContainer style={{ position: "relative", zIndex: 1 }}>
+      <ContentWrapper
+        usePageContainer={usePageContainer}
+        style={{ position: "relative", zIndex: 1 }}
+      >
         <h2 className="slider-title" style={titleStyle}>
           {title != null ? title : ""}
         </h2>
@@ -103,15 +117,11 @@ function SingleSlide({
             )}
           </Link>
         )}
-      </PageContainer>
+      </ContentWrapper>
     </SliderSection>
   );
 }
 
-/**
- * Site component: HomeHero — full-width image slider(s). Multiple slides from theme (homeHeroSlides)
- * or props.slides; content and theme colors editable at Admin → Components → HomeHero/edit.
- */
 function fetchTheme() {
   return fetch("/api/theme", {
     cache: "no-store",
@@ -121,6 +131,10 @@ function fetchTheme() {
     .catch(() => null);
 }
 
+/**
+ * Site component: HomeHero — full-width image slider(s). Multiple slides from theme (homeHeroSlides)
+ * or props.slides; content and theme colors editable via EditForm (page builder drawer or component edit).
+ */
 export default function HomeHero(props) {
   const [theme, setTheme] = useState(null);
 
@@ -132,7 +146,6 @@ export default function HomeHero(props) {
     return () => window.removeEventListener("focus", onFocus);
   }, [props.slides]);
 
-  // Resolved slides: from props (admin preview) or from theme API only — no defaults
   const slides =
     Array.isArray(props.slides) && props.slides.length > 0
       ? props.slides
@@ -161,29 +174,36 @@ export default function HomeHero(props) {
       ? getColor(theme.homeHeroSliderButtonTextColorKey)
       : undefined);
 
+  const backgroundContainer =
+    props?.backgroundContainer ?? theme?.homeHeroBackgroundContainer ?? "full";
+  const contentContainer =
+    props?.contentContainer ??
+    theme?.homeHeroContentContainer ??
+    "pageContainer";
+  const isBgContained = backgroundContainer === "contained";
+
+  const slideProps = {
+    titleColor,
+    descColor,
+    buttonBgColor,
+    buttonTextColor,
+    contentContainer,
+  };
+
   if (slides.length === 0) return null;
 
-  if (slides.length === 1) {
-    return (
-      <div className="site-component-homehero" data-component="HomeHero">
-        <SingleSlide
-          bgImageUrl={slides[0].bgImageUrl}
-          title={slides[0].title}
-          description={slides[0].description}
-          buttonText={slides[0].buttonText}
-          buttonLink={slides[0].buttonLink}
-          showButton={slides[0].showButton}
-          titleColor={titleColor}
-          descColor={descColor}
-          buttonBgColor={buttonBgColor}
-          buttonTextColor={buttonTextColor}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div className="site-component-homehero" data-component="HomeHero">
+  const slideContent =
+    slides.length === 1 ? (
+      <SingleSlide
+        bgImageUrl={slides[0].bgImageUrl}
+        title={slides[0].title}
+        description={slides[0].description}
+        buttonText={slides[0].buttonText}
+        buttonLink={slides[0].buttonLink}
+        showButton={slides[0].showButton}
+        {...slideProps}
+      />
+    ) : (
       <Carousel arrows autoplay effect="fade">
         {slides.map((slide, i) => (
           <SingleSlide
@@ -194,13 +214,20 @@ export default function HomeHero(props) {
             buttonText={slide.buttonText}
             buttonLink={slide.buttonLink}
             showButton={slide.showButton}
-            titleColor={titleColor}
-            descColor={descColor}
-            buttonBgColor={buttonBgColor}
-            buttonTextColor={buttonTextColor}
+            {...slideProps}
           />
         ))}
       </Carousel>
+    );
+
+  const inner = (
+    <div className="site-component-homehero" data-component="HomeHero">
+      {slideContent}
     </div>
   );
+
+  if (isBgContained) {
+    return <PageContainer>{inner}</PageContainer>;
+  }
+  return inner;
 }

@@ -99,6 +99,9 @@ Object.entries(SiteComponents || {}).forEach(([name, Comp]) => {
 
 const SECTION_PROPS = ["_containerType", "_sectionBg", "_sectionPadding", "_sectionBorderSize", "_sectionBorderStyle", "_sectionBorderColor", "_sectionShadow"];
 
+/** Site components that must not be wrapped in PageContainer so their background can be full viewport width. */
+const FULL_BLEED_SITE_COMPONENTS = ["HomeHero", "Marquee"];
+
 function extractSectionProps(props) {
   const section = {};
   const clean = {};
@@ -172,7 +175,16 @@ export default function ComponentRenderer({ layout, wrapperContainer, onElementC
           ? { onElementClick: (elementKey) => onElementClick(block.instanceId, elementKey) }
           : {};
 
-        const usePageContainer = containerType === "container";
+        const isFullBleed = FULL_BLEED_SITE_COMPONENTS.includes(baseComponent);
+        const usePageContainer = !isFullBleed && containerType === "container";
+
+        if (isFullBleed) {
+          return (
+            <div key={key} className="cms-full-bleed" style={{ width: "100%" }}>
+              <Component {...clean} {...elementClickProp} />
+            </div>
+          );
+        }
 
         if (hasSectionStyle) {
           return (

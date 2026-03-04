@@ -59,6 +59,7 @@ const defaultImages = [
 /**
  * Site component: Marquee — CSR Partners / Awards & Recognition scrolling strip.
  * Title and items from props (admin preview) or from /api/theme (frontend).
+ * Editable via MarqueeEditForm in page builder or component edit.
  */
 export default function Marquee(props) {
   const [theme, setTheme] = useState(null);

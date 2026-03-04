@@ -18,6 +18,9 @@ import {
   ColorPicker,
   Divider,
   message,
+  Row,
+  Col,
+  Spin,
 } from "antd";
 import {
   PlusOutlined,
@@ -70,6 +73,14 @@ import { Select } from "antd";
 
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
+import * as SiteComponents from "@/components/site";
+import { EDITABLE_SITE_EDIT_FORMS } from "@/components/site";
+import { SITE_COMPONENT_IDS } from "@/lib/siteComponentRegistry";
+
+/** Site components that have full edit flow in page builder. Header/Footer excluded. */
+const EDITABLE_SITE_COMPONENTS = SITE_COMPONENT_IDS.filter(
+  (id) => id !== "Header" && id !== "Footer",
+);
 
 function generateId() {
   return "block_" + Math.random().toString(36).slice(2, 11);
@@ -2560,6 +2571,7 @@ export default function PageBuilder({
   /** Last nav items loaded from selected menu – used at save so all children are persisted (form may not keep them). */
   const lastLoadedNavItemsRef = useRef(null);
   const canvasRef = useRef(null);
+  const siteEditFormRef = useRef(null);
 
   const sectionSettingsDefaults = useMemo(() => {
     const d = {};
@@ -3384,10 +3396,11 @@ export default function PageBuilder({
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {BLOCK_ICON_MAP[editingBlock.baseComponent] || <EditOutlined />}
                 <span>
-                  Edit{" "}
-                  {CORE_PAGE_BUILDER_COMPONENTS.find(
-                    (c) => c.baseComponent === editingBlock?.baseComponent,
-                  )?.displayName || editingBlock?.baseComponent}
+                  {EDITABLE_SITE_COMPONENTS.includes(editingBlock.baseComponent)
+                    ? editingBlock.baseComponent
+                    : CORE_PAGE_BUILDER_COMPONENTS.find(
+                        (c) => c.baseComponent === editingBlock?.baseComponent,
+                      )?.displayName || editingBlock?.baseComponent}
                 </span>
               </div>
             ) : (
@@ -3401,9 +3414,9 @@ export default function PageBuilder({
             setEditingInnerBlock(null);
             setEditingElement(null);
           }}
-          width={480}
+          width={520}
           extra={
-            <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", width: "100%" }}>
               {editingElement !== null && (
                 <Button onClick={() => setEditingElement(null)}>
                   ← Whole block
@@ -3414,28 +3427,71 @@ export default function PageBuilder({
                   ← Back
                 </Button>
               )}
-              <Button
-                onClick={() => {
-                  setDrawerOpen(false);
-                  setEditingIndex(null);
-                  setEditingInnerBlock(null);
-                  setEditingElement(null);
-                }}
-                icon={<CloseOutlined />}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="primary"
-                onClick={handleEditSave}
-                icon={<CheckOutlined />}
-              >
-                Apply
-              </Button>
+              {!(editingBlock && editingInnerBlock === null && editingElement === null && EDITABLE_SITE_COMPONENTS.includes(editingBlock.baseComponent)) && (
+                <>
+                  <Button
+                    onClick={() => {
+                      setDrawerOpen(false);
+                      setEditingIndex(null);
+                      setEditingInnerBlock(null);
+                      setEditingElement(null);
+                    }}
+                    icon={<CloseOutlined />}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="primary"
+                    onClick={handleEditSave}
+                    icon={<CheckOutlined />}
+                  >
+                    Apply
+                  </Button>
+                </>
+              )}
+              {editingBlock && editingInnerBlock === null && editingElement === null && EDITABLE_SITE_COMPONENTS.includes(editingBlock.baseComponent) && (
+                <>
+                  <span style={{ flex: 1, minWidth: 8 }} />
+                  <Button
+                    type="primary"
+                    icon={<CheckOutlined />}
+                    onClick={() => siteEditFormRef.current?.update?.()}
+                  >
+                    Update
+                  </Button>
+                </>
+              )}
             </div>
           }
         >
           <Form form={form} layout="vertical">
+            {editingInnerBlock === null &&
+              editingElement === null &&
+              editingBlock &&
+              EDITABLE_SITE_COMPONENTS.includes(editingBlock.baseComponent) &&
+              (() => {
+                const EditFormComp = EDITABLE_SITE_EDIT_FORMS[editingBlock.baseComponent];
+                if (!EditFormComp) return null;
+                return (
+                  <EditFormComp
+                    ref={siteEditFormRef}
+                    onSuccess={() => {
+                      setDrawerOpen(false);
+                      setEditingIndex(null);
+                      setEditingInnerBlock(null);
+                      setEditingElement(null);
+                      fetch("/api/theme").then((r) => (r.ok ? r.json() : null)).then(setTheme);
+                    }}
+                    onCancel={() => {
+                      setDrawerOpen(false);
+                      setEditingIndex(null);
+                      setEditingInnerBlock(null);
+                      setEditingElement(null);
+                    }}
+                  />
+                );
+              })()}
+
             {editingElement !== null &&
               editingBlock &&
               getPropsFieldsForElement(
@@ -3564,6 +3620,7 @@ export default function PageBuilder({
             {editingInnerBlock === null &&
               editingElement === null &&
               editingBlock &&
+              !EDITABLE_SITE_COMPONENTS.includes(editingBlock.baseComponent) &&
               editingBlock.baseComponent !== "Section" &&
               (editingBlock.baseComponent === "Header" ? (
                 (() => {
@@ -3665,7 +3722,8 @@ export default function PageBuilder({
                     ]}
                   />
                 </>
-              ))}
+              )
+            )}
           </Form>
         </Drawer>
       </>

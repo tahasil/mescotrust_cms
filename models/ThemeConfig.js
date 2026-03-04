@@ -163,6 +163,10 @@ const themeConfigSchema = new mongoose.Schema(
     homeHeroSliderDescColorKey: { type: String, default: "" },
     homeHeroSliderButtonBgColorKey: { type: String, default: "primary" },
     homeHeroSliderButtonTextColorKey: { type: String, default: "white" },
+    /** "full" = background full viewport width; "contained" = background within page width */
+    homeHeroBackgroundContainer: { type: String, enum: ["full", "contained"], default: "full" },
+    /** "pageContainer" = content inside PageContainer; "full" = content full width */
+    homeHeroContentContainer: { type: String, enum: ["pageContainer", "full"], default: "pageContainer" },
 
     // ─── Marquee (site component) ───────────────────────────────
     marqueeTitle: { type: String, default: "Our CSR Partners | Awards & Recognition" },
