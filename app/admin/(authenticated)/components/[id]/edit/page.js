@@ -62,20 +62,28 @@ export default function AdminComponentEditPage() {
   const [themeFooterSnapshot, setThemeFooterSnapshot] = useState(null);
   const [themeHomeHeroSnapshot, setThemeHomeHeroSnapshot] = useState(null);
   const [themeMarqueeSnapshot, setThemeMarqueeSnapshot] = useState(null);
+  const [themeSubscribeSnapshot, setThemeSubscribeSnapshot] = useState(null);
   const [form] = Form.useForm();
   const [editingDisplayName, setEditingDisplayName] = useState(false);
   const [hoveringName, setHoveringName] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const footerBgType = Form.useWatch("footerBgType", form);
   const displayNameValue = Form.useWatch("displayName", form);
+  const globalOn = Form.useWatch("global", form);
   const homeHeroSlidesWatch = Form.useWatch("homeHeroSlides", form);
   const marqueeItemsWatch = Form.useWatch("marqueeItems", form);
   const marqueeTitleWatch = Form.useWatch("marqueeTitle", form);
+  const subscribeSubtitleWatch = Form.useWatch("subscribeSubtitle", form);
+  const subscribeTitleWatch = Form.useWatch("subscribeTitle", form);
+  const subscribePlaceholderWatch = Form.useWatch("subscribePlaceholder", form);
+  const subscribeButtonTextWatch = Form.useWatch("subscribeButtonText", form);
+  const subscribeBgUrlWatch = Form.useWatch("subscribeBgUrl", form);
 
   const isHeader = record?.componentId === "Header";
   const isFooter = record?.componentId === "Footer";
   const isHomeHero = record?.componentId === "HomeHero";
   const isMarquee = record?.componentId === "Marquee";
+  const isSubscribe = record?.componentId === "Subscribe";
 
   useEffect(() => {
     if (!id) return;
@@ -98,6 +106,13 @@ export default function AdminComponentEditPage() {
         if (found.componentId === "Marquee") {
           initialValues.marqueeTitle = "Our CSR Partners | Awards & Recognition";
           initialValues.marqueeItems = [];
+        }
+        if (found.componentId === "Subscribe") {
+          initialValues.subscribeSubtitle = "Latest News";
+          initialValues.subscribeTitle = "To get weekly & monthly news, Subscribe to our newsletter.";
+          initialValues.subscribePlaceholder = "Enter email address";
+          initialValues.subscribeButtonText = "Subscribe";
+          initialValues.subscribeBgUrl = "/images/subscribe-bg.png";
         }
         form.setFieldsValue(initialValues);
       })
@@ -303,6 +318,27 @@ export default function AdminComponentEditPage() {
       .finally(() => setThemeLoading(false));
   }, [isMarquee, form]);
 
+  // Subscribe: fetch theme once, set form from API response
+  useEffect(() => {
+    if (!isSubscribe) return;
+    setThemeLoading(true);
+    fetch("/api/theme", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : {}))
+      .then((theme) => {
+        const snapshot = {
+          subscribeSubtitle: theme.subscribeSubtitle != null ? String(theme.subscribeSubtitle).trim() : "Latest News",
+          subscribeTitle: theme.subscribeTitle != null ? String(theme.subscribeTitle).trim() : "To get weekly & monthly news, Subscribe to our newsletter.",
+          subscribePlaceholder: theme.subscribePlaceholder != null ? String(theme.subscribePlaceholder).trim() : "Enter email address",
+          subscribeButtonText: theme.subscribeButtonText != null ? String(theme.subscribeButtonText).trim() : "Subscribe",
+          subscribeBgUrl: theme.subscribeBgUrl != null ? String(theme.subscribeBgUrl).trim() : "/images/subscribe-bg.png",
+        };
+        setThemeSubscribeSnapshot(snapshot);
+        form.setFieldsValue(snapshot);
+      })
+      .catch(() => message.error("Failed to load theme"))
+      .finally(() => setThemeLoading(false));
+  }, [isSubscribe, form]);
+
   const handleSubmit = async () => {
     if (!record?.componentId) return;
     setSaving(true);
@@ -366,10 +402,46 @@ export default function AdminComponentEditPage() {
         message.success("Marquee saved to database");
       }
 
+      if (isSubscribe) {
+        const subTitle = rawFormValues.subscribeSubtitle != null ? String(rawFormValues.subscribeSubtitle).trim() : "";
+        const title = rawFormValues.subscribeTitle != null ? String(rawFormValues.subscribeTitle).trim() : "";
+        const placeholder = rawFormValues.subscribePlaceholder != null ? String(rawFormValues.subscribePlaceholder).trim() : "";
+        const buttonText = rawFormValues.subscribeButtonText != null ? String(rawFormValues.subscribeButtonText).trim() : "";
+        const bgUrl = rawFormValues.subscribeBgUrl != null ? String(rawFormValues.subscribeBgUrl).trim() : "";
+        const themeRes = await fetch("/api/theme", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            subscribeSubtitle: subTitle || "Latest News",
+            subscribeTitle: title || "To get weekly & monthly news, Subscribe to our newsletter.",
+            subscribePlaceholder: placeholder || "Enter email address",
+            subscribeButtonText: buttonText || "Subscribe",
+            subscribeBgUrl: bgUrl || "/images/subscribe-bg.png",
+          }),
+        });
+        if (!themeRes.ok) {
+          const err = await themeRes.json().catch(() => ({}));
+          message.error(err.error || "Failed to save Subscribe");
+          setSaving(false);
+          return;
+        }
+        const savedTheme = await themeRes.json().catch(() => ({}));
+        const nextSnapshot = {
+          subscribeSubtitle: savedTheme.subscribeSubtitle != null ? String(savedTheme.subscribeSubtitle).trim() : "Latest News",
+          subscribeTitle: savedTheme.subscribeTitle != null ? String(savedTheme.subscribeTitle).trim() : "To get weekly & monthly news, Subscribe to our newsletter.",
+          subscribePlaceholder: savedTheme.subscribePlaceholder != null ? String(savedTheme.subscribePlaceholder).trim() : "Enter email address",
+          subscribeButtonText: savedTheme.subscribeButtonText != null ? String(savedTheme.subscribeButtonText).trim() : "Subscribe",
+          subscribeBgUrl: savedTheme.subscribeBgUrl != null ? String(savedTheme.subscribeBgUrl).trim() : "/images/subscribe-bg.png",
+        };
+        setThemeSubscribeSnapshot(nextSnapshot);
+        form.setFieldsValue(nextSnapshot);
+        message.success("Subscribe saved");
+      }
+
       try {
         values = await form.validateFields();
       } catch (e) {
-        if (e.errorFields && (isHomeHero || isMarquee)) {
+        if (e.errorFields && (isHomeHero || isMarquee || isSubscribe)) {
           values = rawFormValues;
         } else {
           setSaving(false);
@@ -665,13 +737,28 @@ export default function AdminComponentEditPage() {
               </div>
             )}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
             <span style={{ fontSize: 14, color: "#666" }}>
               Show on all pages
             </span>
             <Form.Item name="global" noStyle valuePropName="checked">
               <Switch />
             </Form.Item>
+            {globalOn &&
+              record?.componentId !== "Header" &&
+              record?.componentId !== "Footer" && (
+                <Form.Item
+                  name="position"
+                  label={null}
+                  style={{ marginBottom: 0 }}
+                >
+                  <Select
+                    options={POSITION_OPTIONS}
+                    style={{ minWidth: 200 }}
+                    placeholder="Position (when global)"
+                  />
+                </Form.Item>
+              )}
             <Button
               type="primary"
               icon={<SaveOutlined />}
@@ -1473,7 +1560,88 @@ export default function AdminComponentEditPage() {
           </>
         )}
 
-        {!isHeader && !isFooter && !isHomeHero && !isMarquee && record?.componentId && (
+        {isSubscribe && (
+          <>
+            {themeLoading ? (
+              <div style={{ padding: 48, textAlign: "center" }}>
+                <Spin />
+              </div>
+            ) : (
+              <>
+                <Divider />
+                <div className="mt-5">
+                  <p style={{ marginBottom: 16, color: "#666", fontSize: 13 }}>
+                    Edit the Subscribe block below. Changes are saved to theme; frontend will show them on next load.
+                  </p>
+                  <div
+                    style={{
+                      border: "1px solid #e8e8e8",
+                      borderRadius: 8,
+                      overflow: "hidden",
+                      background: "#fff",
+                      padding: 24,
+                    }}
+                  >
+                    {SiteComponents.Subscribe ? (
+                      <SiteComponents.Subscribe
+                        subscribeSubtitle={subscribeSubtitleWatch ?? themeSubscribeSnapshot?.subscribeSubtitle ?? ""}
+                        subscribeTitle={subscribeTitleWatch ?? themeSubscribeSnapshot?.subscribeTitle ?? ""}
+                        subscribePlaceholder={subscribePlaceholderWatch ?? themeSubscribeSnapshot?.subscribePlaceholder ?? ""}
+                        subscribeButtonText={subscribeButtonTextWatch ?? themeSubscribeSnapshot?.subscribeButtonText ?? ""}
+                        subscribeBgUrl={subscribeBgUrlWatch ?? themeSubscribeSnapshot?.subscribeBgUrl ?? ""}
+                      />
+                    ) : (
+                      <div style={{ color: "#999" }}>Subscribe component not found.</div>
+                    )}
+                  </div>
+                </div>
+                <Collapse
+                  className="mt-4"
+                  defaultActiveKey={["subscribe-content"]}
+                  items={[
+                    {
+                      key: "subscribe-content",
+                      label: "Manage Subscribe",
+                      children: (
+                        <div style={{ padding: "8px 0" }}>
+                          <Row gutter={[16, 16]}>
+                            <Col xs={24} md={12}>
+                              <Form.Item name="subscribeSubtitle" label="Subtitle">
+                                <Input placeholder="Latest News" size="large" />
+                              </Form.Item>
+                            </Col>
+                            <Col xs={24} md={12}>
+                              <Form.Item name="subscribePlaceholder" label="Email input placeholder">
+                                <Input placeholder="Enter email address" size="large" />
+                              </Form.Item>
+                            </Col>
+                            <Col span={24}>
+                              <Form.Item name="subscribeTitle" label="Title">
+                                <Input placeholder="To get weekly & monthly news, Subscribe to our newsletter." size="large" />
+                              </Form.Item>
+                            </Col>
+                            <Col xs={24} md={12}>
+                              <Form.Item name="subscribeButtonText" label="Button text">
+                                <Input placeholder="Subscribe" size="large" />
+                              </Form.Item>
+                            </Col>
+                            <Col xs={24} md={12}>
+                              <Form.Item name="subscribeBgUrl" label="Background image URL">
+                                <Input placeholder="/images/subscribe-bg.png" size="large" />
+                              </Form.Item>
+                            </Col>
+                          </Row>
+                        </div>
+                      ),
+                    },
+                  ]}
+                />
+              </>
+            )}
+          </>
+        )}
+
+        {!isHeader && !isFooter && !isHomeHero && !isMarquee && !isSubscribe && record?.componentId && (
           <>
             <Divider />
             <div className="mt-5">

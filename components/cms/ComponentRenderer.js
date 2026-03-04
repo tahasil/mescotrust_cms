@@ -100,7 +100,7 @@ Object.entries(SiteComponents || {}).forEach(([name, Comp]) => {
 const SECTION_PROPS = ["_containerType", "_sectionBg", "_sectionPadding", "_sectionBorderSize", "_sectionBorderStyle", "_sectionBorderColor", "_sectionShadow"];
 
 /** Site components that must not be wrapped in PageContainer so their background can be full viewport width. */
-const FULL_BLEED_SITE_COMPONENTS = ["HomeHero", "Marquee"];
+const FULL_BLEED_SITE_COMPONENTS = ["HomeHero", "Marquee", "Subscribe"];
 
 function extractSectionProps(props) {
   const section = {};

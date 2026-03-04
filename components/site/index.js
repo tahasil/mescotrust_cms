@@ -19,3 +19,4 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   HomeHero: HomeHeroEditForm,
   Marquee: MarqueeEditForm,
 };
+export { default as Subscribe } from "./Subscribe";

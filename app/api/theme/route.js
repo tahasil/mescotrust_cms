@@ -187,6 +187,11 @@ const DEFAULTS = {
   homeHeroContentContainer: "pageContainer",
   marqueeTitle: "Our CSR Partners | Awards & Recognition",
   marqueeItems: [],
+  subscribeSubtitle: "Latest News",
+  subscribeTitle: "To get weekly & monthly news, Subscribe to our newsletter.",
+  subscribePlaceholder: "Enter email address",
+  subscribeButtonText: "Subscribe",
+  subscribeBgUrl: "/images/subscribe-bg.png",
   buttonBackground: "",
   buttonTextColor: "",
   buttonHoverBackground: "",
@@ -237,6 +242,7 @@ const THEME_FIELDS = [
   "homeHeroSliderTitleColorKey", "homeHeroSliderDescColorKey", "homeHeroSliderButtonBgColorKey", "homeHeroSliderButtonTextColorKey",
   "homeHeroBackgroundContainer", "homeHeroContentContainer",
   "marqueeTitle", "marqueeItems",
+  "subscribeSubtitle", "subscribeTitle", "subscribePlaceholder", "subscribeButtonText", "subscribeBgUrl",
   "buttonBackground", "buttonTextColor", "buttonHoverBackground", "buttonHoverTextColor", "buttonPadding",
   "cardStyle", "alertStyle", "badgeStyle", "tableStyle", "formStyle", "inputStyle",
   "mobileFontSize", "mobileSectionSpacing", "hideSectionOnMobile",
@@ -272,6 +278,7 @@ const HOME_HERO_KEYS = [
 ];
 
 const MARQUEE_KEYS = ["marqueeTitle", "marqueeItems"];
+const SUBSCRIBE_KEYS = ["subscribeSubtitle", "subscribeTitle", "subscribePlaceholder", "subscribeButtonText", "subscribeBgUrl"];
 
 function normalizeMarqueeItem(item) {
   return {
@@ -330,6 +337,14 @@ export async function GET() {
       }
     }
     if (!Array.isArray(normalized.marqueeItems)) normalized.marqueeItems = [];
+    // Subscribe: all fields from database (plain); fallback to DEFAULTS when not set
+    for (const k of SUBSCRIBE_KEYS) {
+      if (plain[k] !== undefined) {
+        normalized[k] = typeof plain[k] === "string" ? String(plain[k]).trim() : plain[k];
+      } else {
+        normalized[k] = DEFAULTS[k];
+      }
+    }
     return NextResponse.json(normalized, { headers });
   } catch (err) {
     console.error("[Theme GET] error:", err);
@@ -368,6 +383,9 @@ export async function PUT(req) {
       if (body.marqueeTitle !== undefined) initialUpdates.marqueeTitle = typeof body.marqueeTitle === "string" ? body.marqueeTitle.trim() : String(body.marqueeTitle || "");
       if (body.marqueeItems !== undefined) {
         initialUpdates.marqueeItems = Array.isArray(body.marqueeItems) ? body.marqueeItems.map((it) => normalizeMarqueeItem(it)) : [];
+      }
+      for (const k of SUBSCRIBE_KEYS) {
+        if (body[k] !== undefined) initialUpdates[k] = typeof body[k] === "string" ? String(body[k]).trim() : body[k];
       }
       if (body.footerLogoUrl !== undefined) initialUpdates.footerLogoUrl = typeof body.footerLogoUrl === "string" ? body.footerLogoUrl : String(body.footerLogoUrl || "");
       if (body.footerBackgroundImageUrl !== undefined) initialUpdates.footerBackgroundImageUrl = typeof body.footerBackgroundImageUrl === "string" ? body.footerBackgroundImageUrl : String(body.footerBackgroundImageUrl || "");
@@ -427,6 +445,12 @@ export async function PUT(req) {
       if (body.marqueeItems !== undefined) {
         theme.marqueeItems = Array.isArray(body.marqueeItems) ? body.marqueeItems.map((it) => normalizeMarqueeItem(it)) : [];
         theme.markModified("marqueeItems");
+      }
+      for (const k of SUBSCRIBE_KEYS) {
+        if (body[k] !== undefined) {
+          theme[k] = typeof body[k] === "string" ? String(body[k]).trim() : body[k];
+          theme.markModified(k);
+        }
       }
       if (Array.isArray(body.paletteColors)) {
         theme.themePalette = Object.fromEntries(
@@ -524,6 +548,11 @@ export async function PUT(req) {
         saved.marqueeItems = Array.isArray(body.marqueeItems) ? body.marqueeItems.map((it) => normalizeMarqueeItem(it)) : [];
       } else if (body[f] !== undefined && saved) {
         saved[f] = typeof body[f] === "string" ? body[f].trim() : body[f];
+      }
+    }
+    for (const k of SUBSCRIBE_KEYS) {
+      if (body[k] !== undefined && saved) {
+        saved[k] = typeof body[k] === "string" ? String(body[k]).trim() : body[k];
       }
     }
     return NextResponse.json(normalizeTheme(saved));

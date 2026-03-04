@@ -2,12 +2,15 @@ const mongoose = require("mongoose");
 
 const googleFontSchema = new mongoose.Schema(
   { family: { type: String, required: true }, weights: [{ type: String }] },
-  { _id: false }
+  { _id: false },
 );
 
 const themeColorSchema = new mongoose.Schema(
-  { name: { type: String, required: true }, value: { type: String, required: true } },
-  { _id: false }
+  {
+    name: { type: String, required: true },
+    value: { type: String, required: true },
+  },
+  { _id: false },
 );
 
 const homeHeroSlideSchema = new mongoose.Schema(
@@ -19,7 +22,7 @@ const homeHeroSlideSchema = new mongoose.Schema(
     buttonLink: { type: String, default: "" },
     showButton: { type: Boolean, default: true },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const marqueeItemSchema = new mongoose.Schema(
@@ -27,7 +30,7 @@ const marqueeItemSchema = new mongoose.Schema(
     url: { type: String, default: "" },
     alt: { type: String, default: "" },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const themeConfigSchema = new mongoose.Schema(
@@ -104,7 +107,11 @@ const themeConfigSchema = new mongoose.Schema(
     buttonShadow: { type: Boolean, default: false },
 
     // ─── 5. Header ──────────────────────────────────────────────
-    headerLayout: { type: String, enum: ["default", "center", "split"], default: "default" },
+    headerLayout: {
+      type: String,
+      enum: ["default", "center", "split"],
+      default: "default",
+    },
     headerSticky: { type: Boolean, default: true },
     headerTransparent: { type: Boolean, default: false },
     headerVolunteerLabel: { type: String, default: "Volunteer" },
@@ -121,8 +128,16 @@ const themeConfigSchema = new mongoose.Schema(
     headerDonateBgColorKey: { type: String, default: "gradient" },
     headerDonateTextColorKey: { type: String, default: "white" },
     megaMenu: { type: Boolean, default: false },
-    dropdownStyle: { type: String, enum: ["default", "minimal", "card"], default: "default" },
-    mobileMenuStyle: { type: String, enum: ["drawer", "fullscreen", "dropdown"], default: "drawer" },
+    dropdownStyle: {
+      type: String,
+      enum: ["default", "minimal", "card"],
+      default: "default",
+    },
+    mobileMenuStyle: {
+      type: String,
+      enum: ["drawer", "fullscreen", "dropdown"],
+      default: "drawer",
+    },
 
     // ─── 6. Footer ──────────────────────────────────────────────
     footerLogoUrl: { type: String, default: "" },
@@ -132,11 +147,18 @@ const themeConfigSchema = new mongoose.Schema(
     footerCol1Links: { type: mongoose.Schema.Types.Mixed, default: () => [] },
     footerCol2Links: { type: mongoose.Schema.Types.Mixed, default: () => [] },
     footerBgColorKey: { type: String, default: "" },
-    footerBackgroundImageUrl: { type: String, default: "/uploads/1772449953147_footer-bg.svg" },
+    footerBackgroundImageUrl: {
+      type: String,
+      default: "/uploads/1772449953147_footer-bg.svg",
+    },
     footerTextColorKey: { type: String, default: "" },
     footerCopyrightBarColorKey: { type: String, default: "" },
     footerColumnsCount: { type: Number, default: 4 },
-    footerLayoutStyle: { type: String, enum: ["default", "centered", "minimal"], default: "default" },
+    footerLayoutStyle: {
+      type: String,
+      enum: ["default", "centered", "minimal"],
+      default: "default",
+    },
     footerSocialIcons: { type: Boolean, default: true },
 
     // ─── Hero Banner (site component) ─────────────────────────
@@ -155,8 +177,15 @@ const themeConfigSchema = new mongoose.Schema(
     /** Multiple slides: proper layout saved and read from DB. */
     homeHeroSlides: { type: [homeHeroSlideSchema], default: [] },
     homeHeroSliderBgImageUrl: { type: String, default: "/images/slider-1.png" },
-    homeHeroSliderTitle: { type: String, default: "Because Every Learner Deserves Support" },
-    homeHeroSliderDesc: { type: String, default: "A community-powered initiative that brings donors, mentors, and resources together to help learners overcome barriers and continue their education—turning collective support into real opportunities." },
+    homeHeroSliderTitle: {
+      type: String,
+      default: "Because Every Learner Deserves Support",
+    },
+    homeHeroSliderDesc: {
+      type: String,
+      default:
+        "A community-powered initiative that brings donors, mentors, and resources together to help learners overcome barriers and continue their education—turning collective support into real opportunities.",
+    },
     homeHeroSliderButtonText: { type: String, default: "Contact Us" },
     homeHeroContactHref: { type: String, default: "/contact" },
     homeHeroSliderTitleColorKey: { type: String, default: "" },
@@ -164,13 +193,34 @@ const themeConfigSchema = new mongoose.Schema(
     homeHeroSliderButtonBgColorKey: { type: String, default: "primary" },
     homeHeroSliderButtonTextColorKey: { type: String, default: "white" },
     /** "full" = background full viewport width; "contained" = background within page width */
-    homeHeroBackgroundContainer: { type: String, enum: ["full", "contained"], default: "full" },
+    homeHeroBackgroundContainer: {
+      type: String,
+      enum: ["full", "contained"],
+      default: "full",
+    },
     /** "pageContainer" = content inside PageContainer; "full" = content full width */
-    homeHeroContentContainer: { type: String, enum: ["pageContainer", "full"], default: "pageContainer" },
+    homeHeroContentContainer: {
+      type: String,
+      enum: ["pageContainer", "full"],
+      default: "pageContainer",
+    },
 
     // ─── Marquee (site component) ───────────────────────────────
-    marqueeTitle: { type: String, default: "Our CSR Partners | Awards & Recognition" },
+    marqueeTitle: {
+      type: String,
+      default: "Our CSR Partners | Awards & Recognition",
+    },
     marqueeItems: { type: [marqueeItemSchema], default: [] },
+
+    // ─── Subscribe (site component); all fields saved to DB, loaded by admin + frontend via /api/theme ───
+    subscribeSubtitle: { type: String, default: "Latest News" },
+    subscribeTitle: {
+      type: String,
+      default: "To get weekly & monthly news, Subscribe to our newsletter.",
+    },
+    subscribePlaceholder: { type: String, default: "Enter email address" },
+    subscribeButtonText: { type: String, default: "Subscribe" },
+    subscribeBgUrl: { type: String, default: "/images/subscribe-bg.png" },
 
     // ─── 7. Button Style ──────────────────────────────────────
     buttonBackground: { type: String, default: "" },
@@ -180,12 +230,36 @@ const themeConfigSchema = new mongoose.Schema(
     buttonPadding: { type: String, default: "8px 20px" },
 
     // ─── 8. Component Style Override ───────────────────────────
-    cardStyle: { type: String, enum: ["flat", "elevated"], default: "elevated" },
-    alertStyle: { type: String, enum: ["default", "minimal", "bordered"], default: "default" },
-    badgeStyle: { type: String, enum: ["default", "solid", "outline"], default: "default" },
-    tableStyle: { type: String, enum: ["default", "bordered", "striped"], default: "default" },
-    formStyle: { type: String, enum: ["default", "compact", "outlined"], default: "default" },
-    inputStyle: { type: String, enum: ["default", "filled", "outlined"], default: "default" },
+    cardStyle: {
+      type: String,
+      enum: ["flat", "elevated"],
+      default: "elevated",
+    },
+    alertStyle: {
+      type: String,
+      enum: ["default", "minimal", "bordered"],
+      default: "default",
+    },
+    badgeStyle: {
+      type: String,
+      enum: ["default", "solid", "outline"],
+      default: "default",
+    },
+    tableStyle: {
+      type: String,
+      enum: ["default", "bordered", "striped"],
+      default: "default",
+    },
+    formStyle: {
+      type: String,
+      enum: ["default", "compact", "outlined"],
+      default: "default",
+    },
+    inputStyle: {
+      type: String,
+      enum: ["default", "filled", "outlined"],
+      default: "default",
+    },
 
     // ─── 9. Responsive ─────────────────────────────────────────
     mobileFontSize: { type: Number, default: 0 }, // 0 = no override
@@ -194,9 +268,17 @@ const themeConfigSchema = new mongoose.Schema(
 
     // ─── 10. Blog Theme ────────────────────────────────────────
     blogLayout: { type: String, enum: ["grid", "list"], default: "grid" },
-    blogSidebarPosition: { type: String, enum: ["left", "right", "none"], default: "right" },
+    blogSidebarPosition: {
+      type: String,
+      enum: ["left", "right", "none"],
+      default: "right",
+    },
     blogFeaturedImageRatio: { type: String, default: "16/9" },
-    blogMetaStyle: { type: String, enum: ["minimal", "full"], default: "minimal" },
+    blogMetaStyle: {
+      type: String,
+      enum: ["minimal", "full"],
+      default: "minimal",
+    },
 
     // ─── 11. Advanced ───────────────────────────────────────────
     customCss: { type: String, default: "" },
@@ -210,7 +292,9 @@ const themeConfigSchema = new mongoose.Schema(
     defaultLocale: { type: String, default: "en" },
     direction: { type: String, enum: ["ltr", "rtl"], default: "ltr" },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-module.exports = mongoose.models.ThemeConfig || mongoose.model("ThemeConfig", themeConfigSchema);
+module.exports =
+  mongoose.models.ThemeConfig ||
+  mongoose.model("ThemeConfig", themeConfigSchema);

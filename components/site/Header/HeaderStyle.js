@@ -253,7 +253,8 @@ export const IconWrap = styled.span`
   min-width: 28px;
   min-height: 28px;
   flex-shrink: 0;
-  background: transparent;
+  background: #fff;
+  border-radius: 50%;
   img {
     max-width: 100%;
     max-height: 100%;
