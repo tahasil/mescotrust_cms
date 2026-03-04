@@ -97,22 +97,14 @@ export default function Marquee(props) {
       <h2>{title}</h2>
       <ReactMarquee
         className="mb-5"
-        loop={props?.loop ?? 0}
+        loop={0}
         speed={props?.speed ?? 25}
         pauseOnHover={props?.pauseOnHover !== false}
         gradient={props?.gradient !== false}
+        autoFill={true}
       >
         {images.map((src, i) => (
-          <div key={`${src}-${i}`} className="marquee-item">
-            <img
-              className="img-fluid"
-              src={typeof src === "string" ? src : (src?.url ?? src)}
-              alt={typeof src === "object" && src?.alt ? src.alt : "Partner"}
-            />
-          </div>
-        ))}
-        {images.map((src, i) => (
-          <div key={`dup-${src}-${i}`} className="marquee-item">
+          <div key={`${i}-${typeof src === "string" ? src : src?.url}`} className="marquee-item">
             <img
               className="img-fluid"
               src={typeof src === "string" ? src : (src?.url ?? src)}
