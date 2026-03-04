@@ -22,6 +22,14 @@ const homeHeroSlideSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const marqueeItemSchema = new mongoose.Schema(
+  {
+    url: { type: String, default: "" },
+    alt: { type: String, default: "" },
+  },
+  { _id: false }
+);
+
 const themeConfigSchema = new mongoose.Schema(
   {
     // Single theme doc: always query by this so save/load use same document
@@ -155,6 +163,10 @@ const themeConfigSchema = new mongoose.Schema(
     homeHeroSliderDescColorKey: { type: String, default: "" },
     homeHeroSliderButtonBgColorKey: { type: String, default: "primary" },
     homeHeroSliderButtonTextColorKey: { type: String, default: "white" },
+
+    // ─── Marquee (site component) ───────────────────────────────
+    marqueeTitle: { type: String, default: "Our CSR Partners | Awards & Recognition" },
+    marqueeItems: { type: [marqueeItemSchema], default: [] },
 
     // ─── 7. Button Style ──────────────────────────────────────
     buttonBackground: { type: String, default: "" },

@@ -95,15 +95,12 @@ export async function POST(req) {
 
 /**
  * Site component: ${componentId} (${displayName}).
- * Edit this file to update the UI and content.
+ * Add your UI code below.
  */
 export default function ${componentId}(props) {
   return (
     <section className="site-component-${componentId.toLowerCase()}" data-component="${componentId}">
-      <div className="container">
-        <h2>${displayName}</h2>
-        <p>Edit <code>components/site/${componentId}.js</code> to customize this component.</p>
-      </div>
+
     </section>
   );
 }

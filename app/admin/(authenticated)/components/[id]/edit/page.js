@@ -61,6 +61,7 @@ export default function AdminComponentEditPage() {
   const [themeHeaderSnapshot, setThemeHeaderSnapshot] = useState(null);
   const [themeFooterSnapshot, setThemeFooterSnapshot] = useState(null);
   const [themeHomeHeroSnapshot, setThemeHomeHeroSnapshot] = useState(null);
+  const [themeMarqueeSnapshot, setThemeMarqueeSnapshot] = useState(null);
   const [form] = Form.useForm();
   const [editingDisplayName, setEditingDisplayName] = useState(false);
   const [hoveringName, setHoveringName] = useState(false);
@@ -68,10 +69,13 @@ export default function AdminComponentEditPage() {
   const footerBgType = Form.useWatch("footerBgType", form);
   const displayNameValue = Form.useWatch("displayName", form);
   const homeHeroSlidesWatch = Form.useWatch("homeHeroSlides", form);
+  const marqueeItemsWatch = Form.useWatch("marqueeItems", form);
+  const marqueeTitleWatch = Form.useWatch("marqueeTitle", form);
 
   const isHeader = record?.componentId === "Header";
   const isFooter = record?.componentId === "Footer";
   const isHomeHero = record?.componentId === "HomeHero";
+  const isMarquee = record?.componentId === "Marquee";
 
   useEffect(() => {
     if (!id) return;
@@ -86,11 +90,16 @@ export default function AdminComponentEditPage() {
           return;
         }
         setRecord(found);
-        form.setFieldsValue({
+        const initialValues = {
           displayName: found.displayName || found.componentId,
           global: found.global === true,
           position: found.position || "before",
-        });
+        };
+        if (found.componentId === "Marquee") {
+          initialValues.marqueeTitle = "Our CSR Partners | Awards & Recognition";
+          initialValues.marqueeItems = [];
+        }
+        form.setFieldsValue(initialValues);
       })
       .catch(() => {
         message.error("Failed to load component");
@@ -273,6 +282,27 @@ export default function AdminComponentEditPage() {
       .finally(() => setThemeLoading(false));
   }, [isHomeHero, form]);
 
+  // Marquee: fetch theme once, set form from API response
+  useEffect(() => {
+    if (!isMarquee) return;
+    setThemeLoading(true);
+    fetch("/api/theme", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : {}))
+      .then((theme) => {
+        const title = theme.marqueeTitle != null ? String(theme.marqueeTitle).trim() : "Our CSR Partners | Awards & Recognition";
+        const items = Array.isArray(theme.marqueeItems)
+          ? theme.marqueeItems.map((it) => ({
+              url: it?.url != null ? String(it.url).trim() : "",
+              alt: it?.alt != null ? String(it.alt).trim() : "",
+            }))
+          : [];
+        setThemeMarqueeSnapshot({ marqueeTitle: title, marqueeItems: items });
+        form.setFieldsValue({ marqueeTitle: title, marqueeItems: items });
+      })
+      .catch(() => message.error("Failed to load theme"))
+      .finally(() => setThemeLoading(false));
+  }, [isMarquee, form]);
+
   const handleSubmit = async () => {
     if (!record?.componentId) return;
     setSaving(true);
@@ -313,10 +343,33 @@ export default function AdminComponentEditPage() {
         message.success("Slides saved to database");
       }
 
+      if (isMarquee) {
+        const title = rawFormValues.marqueeTitle != null ? String(rawFormValues.marqueeTitle).trim() : "";
+        const rawItems = rawFormValues.marqueeItems ?? form.getFieldValue("marqueeItems") ?? [];
+        const items = Array.isArray(rawItems)
+          ? rawItems.map((it) => ({
+              url: it?.url != null ? String(it.url).trim() : "",
+              alt: it?.alt != null ? String(it.alt).trim() : "",
+            }))
+          : [];
+        const themeRes = await fetch("/api/theme", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ marqueeTitle: title, marqueeItems: items }),
+        });
+        if (!themeRes.ok) {
+          const err = await themeRes.json().catch(() => ({}));
+          message.error(err.error || "Failed to save Marquee");
+          setSaving(false);
+          return;
+        }
+        message.success("Marquee saved to database");
+      }
+
       try {
         values = await form.validateFields();
       } catch (e) {
-        if (e.errorFields && isHomeHero) {
+        if (e.errorFields && (isHomeHero || isMarquee)) {
           values = rawFormValues;
         } else {
           setSaving(false);
@@ -1336,7 +1389,91 @@ export default function AdminComponentEditPage() {
           </>
         )}
 
-        {!isHeader && !isFooter && !isHomeHero && record?.componentId && (
+        {isMarquee && (
+          <>
+            {themeLoading ? (
+              <div style={{ padding: 48, textAlign: "center" }}>
+                <Spin />
+              </div>
+            ) : (
+              <>
+                <Divider />
+                <div className="mt-5">
+                  <div
+                    style={{
+                      border: "1px solid #e8e8e8",
+                      borderRadius: 8,
+                      overflow: "hidden",
+                      background: "#fff",
+                      padding: 24,
+                    }}
+                  >
+                    {SiteComponents.Marquee ? (
+                      <SiteComponents.Marquee
+                        title={marqueeTitleWatch ?? themeMarqueeSnapshot?.marqueeTitle ?? ""}
+                        images={marqueeItemsWatch ?? themeMarqueeSnapshot?.marqueeItems ?? []}
+                      />
+                    ) : (
+                      <div style={{ color: "#999" }}>Marquee component not found.</div>
+                    )}
+                  </div>
+                </div>
+                <Collapse
+                  className="mt-4"
+                  defaultActiveKey={["marquee-content"]}
+                  items={[
+                    {
+                      key: "marquee-content",
+                      label: "Update",
+                      children: (
+                        <>
+                          <Form.Item name="marqueeTitle" label="Section title" style={{ marginBottom: 16 }}>
+                            <Input placeholder="Our CSR Partners | Awards & Recognition" />
+                          </Form.Item>
+                          <Form.List name="marqueeItems">
+                            {(fields, { add, remove }) => (
+                              <>
+                                {fields.map(({ key, name, ...restField }) => (
+                                  <Row key={key} gutter={[12, 8]} style={{ marginBottom: 12, alignItems: "center" }}>
+                                    <Col xs={24} md={12}>
+                                      <Form.Item
+                                        {...restField}
+                                        name={[name, "url"]}
+                                        label="Image URL"
+                                        rules={[{ required: true, message: "Required" }]}
+                                      >
+                                        <Input placeholder="/images/partner-1.png" size="small" />
+                                      </Form.Item>
+                                    </Col>
+                                    <Col xs={24} md={8}>
+                                      <Form.Item {...restField} name={[name, "alt"]} label="Alt text">
+                                        <Input placeholder="Partner" size="small" />
+                                      </Form.Item>
+                                    </Col>
+                                    <Col xs={24} md={4}>
+                                      <Button type="text" danger size="small" icon={<DeleteOutlined />} onClick={() => remove(name)}>
+                                        Remove
+                                      </Button>
+                                    </Col>
+                                  </Row>
+                                ))}
+                                <Button type="dashed" onClick={() => add({ url: "", alt: "" })} block icon={<PlusOutlined />} size="small">
+                                  Add item
+                                </Button>
+                              </>
+                            )}
+                          </Form.List>
+                        </>
+                      ),
+                    },
+                  ]}
+                />
+              </>
+            )}
+          </>
+        )}
+
+        {!isHeader && !isFooter && !isHomeHero && !isMarquee && record?.componentId && (
           <>
             <Divider />
             <div className="mt-5">

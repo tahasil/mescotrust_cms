@@ -183,6 +183,8 @@ const DEFAULTS = {
   homeHeroSliderDescColorKey: "",
   homeHeroSliderButtonBgColorKey: "",
   homeHeroSliderButtonTextColorKey: "",
+  marqueeTitle: "Our CSR Partners | Awards & Recognition",
+  marqueeItems: [],
   buttonBackground: "",
   buttonTextColor: "",
   buttonHoverBackground: "",
@@ -231,6 +233,7 @@ const THEME_FIELDS = [
   "heroBannerTitleColorKey", "heroBannerTitleHighlightColorKey", "heroBannerDescriptionColorKey",
   "homeHeroSlides", "homeHeroSliderBgImageUrl", "homeHeroSliderTitle", "homeHeroSliderDesc", "homeHeroSliderButtonText", "homeHeroContactHref",
   "homeHeroSliderTitleColorKey", "homeHeroSliderDescColorKey", "homeHeroSliderButtonBgColorKey", "homeHeroSliderButtonTextColorKey",
+  "marqueeTitle", "marqueeItems",
   "buttonBackground", "buttonTextColor", "buttonHoverBackground", "buttonHoverTextColor", "buttonPadding",
   "cardStyle", "alertStyle", "badgeStyle", "tableStyle", "formStyle", "inputStyle",
   "mobileFontSize", "mobileSectionSpacing", "hideSectionOnMobile",
@@ -263,6 +266,15 @@ const HOME_HERO_KEYS = [
   "homeHeroSliderButtonText", "homeHeroContactHref",
   "homeHeroSliderTitleColorKey", "homeHeroSliderDescColorKey", "homeHeroSliderButtonBgColorKey", "homeHeroSliderButtonTextColorKey",
 ];
+
+const MARQUEE_KEYS = ["marqueeTitle", "marqueeItems"];
+
+function normalizeMarqueeItem(item) {
+  return {
+    url: item?.url != null ? String(item.url).trim() : "",
+    alt: item?.alt != null ? String(item.alt).trim() : "",
+  };
+}
 
 /** Normalize one slide: no defaults — all values from DB. Trim strings, use "" when missing. */
 function normalizeSlide(s) {
@@ -304,6 +316,16 @@ export async function GET() {
       }
     }
     if (!Array.isArray(normalized.homeHeroSlides)) normalized.homeHeroSlides = [];
+    for (const k of MARQUEE_KEYS) {
+      if (k === "marqueeItems") {
+        const raw = doc.get ? doc.get("marqueeItems") : doc.marqueeItems;
+        const arr = Array.isArray(raw) ? raw : [];
+        normalized.marqueeItems = arr.map((it) => normalizeMarqueeItem(it));
+      } else if (k === "marqueeTitle") {
+        normalized.marqueeTitle = plain.marqueeTitle != null ? String(plain.marqueeTitle).trim() : (DEFAULTS.marqueeTitle || "Our CSR Partners | Awards & Recognition");
+      }
+    }
+    if (!Array.isArray(normalized.marqueeItems)) normalized.marqueeItems = [];
     return NextResponse.json(normalized, { headers });
   } catch (err) {
     console.error("[Theme GET] error:", err);
@@ -339,6 +361,10 @@ export async function PUT(req) {
           initialUpdates[f] = typeof body[f] === "string" ? body[f].trim() : body[f];
         }
       }
+      if (body.marqueeTitle !== undefined) initialUpdates.marqueeTitle = typeof body.marqueeTitle === "string" ? body.marqueeTitle.trim() : String(body.marqueeTitle || "");
+      if (body.marqueeItems !== undefined) {
+        initialUpdates.marqueeItems = Array.isArray(body.marqueeItems) ? body.marqueeItems.map((it) => normalizeMarqueeItem(it)) : [];
+      }
       if (body.footerLogoUrl !== undefined) initialUpdates.footerLogoUrl = typeof body.footerLogoUrl === "string" ? body.footerLogoUrl : String(body.footerLogoUrl || "");
       if (body.footerBackgroundImageUrl !== undefined) initialUpdates.footerBackgroundImageUrl = typeof body.footerBackgroundImageUrl === "string" ? body.footerBackgroundImageUrl : String(body.footerBackgroundImageUrl || "");
       if (Object.keys(initialUpdates).length > 0 && theme._id) {
@@ -351,6 +377,7 @@ export async function PUT(req) {
         theme.markModified("themeKey");
       }
       for (const f of THEME_FIELDS) {
+        if (f === "marqueeTitle" || f === "marqueeItems") continue;
         if (body[f] !== undefined) theme[f] = body[f];
       }
       if (body.footerLogoUrl !== undefined) {
@@ -389,6 +416,14 @@ export async function PUT(req) {
           theme.markModified(f);
         }
       }
+      if (body.marqueeTitle !== undefined) {
+        theme.marqueeTitle = typeof body.marqueeTitle === "string" ? body.marqueeTitle.trim() : String(body.marqueeTitle || "");
+        theme.markModified("marqueeTitle");
+      }
+      if (body.marqueeItems !== undefined) {
+        theme.marqueeItems = Array.isArray(body.marqueeItems) ? body.marqueeItems.map((it) => normalizeMarqueeItem(it)) : [];
+        theme.markModified("marqueeItems");
+      }
       if (Array.isArray(body.paletteColors)) {
         theme.themePalette = Object.fromEntries(
           body.paletteColors.filter((p) => p && String(p.key).trim()).map((p) => [String(p.key).trim(), p.value])
@@ -404,6 +439,10 @@ export async function PUT(req) {
       // Ensure response has the slides we just saved (toObject() can omit Mixed in some Mongoose versions)
       if (body.homeHeroSlides !== undefined && Array.isArray(body.homeHeroSlides)) {
         savedFromMemory.homeHeroSlides = body.homeHeroSlides.map((s) => normalizeSlide(s));
+      }
+      if (body.marqueeTitle !== undefined) savedFromMemory.marqueeTitle = typeof body.marqueeTitle === "string" ? body.marqueeTitle.trim() : String(body.marqueeTitle || "");
+      if (body.marqueeItems !== undefined && Array.isArray(body.marqueeItems)) {
+        savedFromMemory.marqueeItems = body.marqueeItems.map((it) => normalizeMarqueeItem(it));
       }
 
       // Force-persist footer and hero fields via direct update (ensures DB write on reload)
@@ -423,6 +462,10 @@ export async function PUT(req) {
         if (body[f] !== undefined && f !== "homeHeroSlides") {
           directUpdates[f] = typeof body[f] === "string" ? body[f].trim() : body[f];
         }
+      }
+      if (body.marqueeTitle !== undefined) directUpdates.marqueeTitle = typeof body.marqueeTitle === "string" ? body.marqueeTitle.trim() : String(body.marqueeTitle || "");
+      if (body.marqueeItems !== undefined) {
+        directUpdates.marqueeItems = Array.isArray(body.marqueeItems) ? body.marqueeItems.map((it) => normalizeMarqueeItem(it)) : [];
       }
       if (body.homeHeroSlides !== undefined) {
         directUpdates.homeHeroSlides = Array.isArray(body.homeHeroSlides)
@@ -468,6 +511,13 @@ export async function PUT(req) {
         saved.homeHeroSlides = Array.isArray(body.homeHeroSlides)
           ? body.homeHeroSlides.map((s) => normalizeSlide(s))
           : [];
+      } else if (body[f] !== undefined && saved) {
+        saved[f] = typeof body[f] === "string" ? body[f].trim() : body[f];
+      }
+    }
+    for (const f of MARQUEE_KEYS) {
+      if (f === "marqueeItems" && body.marqueeItems !== undefined && saved) {
+        saved.marqueeItems = Array.isArray(body.marqueeItems) ? body.marqueeItems.map((it) => normalizeMarqueeItem(it)) : [];
       } else if (body[f] !== undefined && saved) {
         saved[f] = typeof body[f] === "string" ? body[f].trim() : body[f];
       }

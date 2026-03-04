@@ -6,3 +6,4 @@
 export { default as Header } from "./Header";
 export { default as Footer } from "./Footer/index";
 export { default as HomeHero } from "./HomeHero";
+export { default as Marquee } from "./Marquee";
