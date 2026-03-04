@@ -303,11 +303,11 @@ export async function GET() {
   const headers = { "Cache-Control": "no-store, no-cache, must-revalidate" };
   try {
     await connectDB();
-    const doc = await ThemeConfig.findOne(THEME_QUERY).sort({ updatedAt: -1 });
+    const doc = await ThemeConfig.findOne(THEME_QUERY).sort({ updatedAt: -1 }).lean();
     if (!doc) {
       return NextResponse.json(normalizeTheme(null), { headers });
     }
-    const plain = doc.toObject ? doc.toObject() : { ...doc };
+    const plain = doc;
     const normalized = normalizeTheme(plain);
     if (plain.footerBackgroundImageUrl != null) {
       normalized.footerBackgroundImageUrl = String(plain.footerBackgroundImageUrl).trim();
@@ -394,6 +394,18 @@ export async function PUT(req) {
         await ThemeConfig.updateOne({ _id: theme._id }, { $set: initialUpdates });
       }
     } else {
+      // Write subscribe fields to DB first (direct updateOne) so they persist even if theme.save() runs later with other fields
+      const subscribeUpdate = {};
+      for (const k of SUBSCRIBE_KEYS) {
+        if (body[k] !== undefined) {
+          subscribeUpdate[k] = typeof body[k] === "string" ? String(body[k]).trim() : body[k];
+        }
+      }
+      if (Object.keys(subscribeUpdate).length > 0 && theme._id) {
+        subscribeUpdate.updatedAt = new Date();
+        await ThemeConfig.updateOne({ _id: theme._id }, { $set: subscribeUpdate });
+      }
+
       if (theme.themeKey !== "default") {
         theme.themeKey = "default";
         theme.markModified("themeKey");
@@ -472,6 +484,9 @@ export async function PUT(req) {
       if (body.marqueeItems !== undefined && Array.isArray(body.marqueeItems)) {
         savedFromMemory.marqueeItems = body.marqueeItems.map((it) => normalizeMarqueeItem(it));
       }
+      for (const k of SUBSCRIBE_KEYS) {
+        if (body[k] !== undefined) savedFromMemory[k] = typeof body[k] === "string" ? String(body[k]).trim() : body[k];
+      }
 
       // Force-persist footer and hero fields via direct update (ensures DB write on reload)
       const directUpdates = {};
@@ -494,6 +509,9 @@ export async function PUT(req) {
       if (body.marqueeTitle !== undefined) directUpdates.marqueeTitle = typeof body.marqueeTitle === "string" ? body.marqueeTitle.trim() : String(body.marqueeTitle || "");
       if (body.marqueeItems !== undefined) {
         directUpdates.marqueeItems = Array.isArray(body.marqueeItems) ? body.marqueeItems.map((it) => normalizeMarqueeItem(it)) : [];
+      }
+      for (const k of SUBSCRIBE_KEYS) {
+        if (body[k] !== undefined) directUpdates[k] = typeof body[k] === "string" ? String(body[k]).trim() : body[k];
       }
       if (body.homeHeroSlides !== undefined) {
         directUpdates.homeHeroSlides = Array.isArray(body.homeHeroSlides)
@@ -521,7 +539,7 @@ export async function PUT(req) {
     }
 
     revalidatePath("/", "layout");
-    // Use the document we just saved when we had existing theme (avoids stale read); else re-query (e.g. after create)
+    // Same as footer: use in-memory saved doc (savedFromMemory) so response matches what we just saved
     const saved = savedFromMemory || await ThemeConfig.findOne(THEME_QUERY).sort({ updatedAt: -1 }).lean();
     if (saved && body.footerBackgroundImageUrl !== undefined) {
       saved.footerBackgroundImageUrl = typeof body.footerBackgroundImageUrl === "string" ? body.footerBackgroundImageUrl : String(body.footerBackgroundImageUrl || "");
@@ -555,7 +573,15 @@ export async function PUT(req) {
         saved[k] = typeof body[k] === "string" ? String(body[k]).trim() : body[k];
       }
     }
-    return NextResponse.json(normalizeTheme(saved));
+    const responseBody = normalizeTheme(saved);
+    // Ensure subscribe fields are exactly what was saved (for admin/frontend rendering)
+    for (const k of SUBSCRIBE_KEYS) {
+      if (body[k] !== undefined) {
+        responseBody[k] = typeof body[k] === "string" ? String(body[k]).trim() : body[k];
+      }
+    }
+    const headers = { "Cache-Control": "no-store, no-cache, must-revalidate" };
+    return NextResponse.json(responseBody, { headers });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

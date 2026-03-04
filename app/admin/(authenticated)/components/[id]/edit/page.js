@@ -107,13 +107,7 @@ export default function AdminComponentEditPage() {
           initialValues.marqueeTitle = "Our CSR Partners | Awards & Recognition";
           initialValues.marqueeItems = [];
         }
-        if (found.componentId === "Subscribe") {
-          initialValues.subscribeSubtitle = "Latest News";
-          initialValues.subscribeTitle = "To get weekly & monthly news, Subscribe to our newsletter.";
-          initialValues.subscribePlaceholder = "Enter email address";
-          initialValues.subscribeButtonText = "Subscribe";
-          initialValues.subscribeBgUrl = "/images/subscribe-bg.png";
-        }
+        // Subscribe: do not set static defaults here; form is filled from DB via theme fetch in the isSubscribe useEffect
         form.setFieldsValue(initialValues);
       })
       .catch(() => {
@@ -318,20 +312,21 @@ export default function AdminComponentEditPage() {
       .finally(() => setThemeLoading(false));
   }, [isMarquee, form]);
 
-  // Subscribe: fetch theme once, set form from API response
+  // Subscribe: fetch theme from DB and set form (no static defaults; all from API/DB)
   useEffect(() => {
     if (!isSubscribe) return;
     setThemeLoading(true);
-    fetch("/api/theme", { cache: "no-store" })
+    fetch("/api/theme", { cache: "no-store", headers: { "Cache-Control": "no-cache" } })
       .then((res) => (res.ok ? res.json() : {}))
       .then((theme) => {
         const snapshot = {
-          subscribeSubtitle: theme.subscribeSubtitle != null ? String(theme.subscribeSubtitle).trim() : "Latest News",
-          subscribeTitle: theme.subscribeTitle != null ? String(theme.subscribeTitle).trim() : "To get weekly & monthly news, Subscribe to our newsletter.",
-          subscribePlaceholder: theme.subscribePlaceholder != null ? String(theme.subscribePlaceholder).trim() : "Enter email address",
-          subscribeButtonText: theme.subscribeButtonText != null ? String(theme.subscribeButtonText).trim() : "Subscribe",
-          subscribeBgUrl: theme.subscribeBgUrl != null ? String(theme.subscribeBgUrl).trim() : "/images/subscribe-bg.png",
+          subscribeSubtitle: theme.subscribeSubtitle != null ? String(theme.subscribeSubtitle).trim() : "",
+          subscribeTitle: theme.subscribeTitle != null ? String(theme.subscribeTitle).trim() : "",
+          subscribePlaceholder: theme.subscribePlaceholder != null ? String(theme.subscribePlaceholder).trim() : "",
+          subscribeButtonText: theme.subscribeButtonText != null ? String(theme.subscribeButtonText).trim() : "",
+          subscribeBgUrl: theme.subscribeBgUrl != null ? String(theme.subscribeBgUrl).trim() : "",
         };
+        console.log("[Admin Subscribe] loaded from DB:", snapshot);
         setThemeSubscribeSnapshot(snapshot);
         form.setFieldsValue(snapshot);
       })
@@ -403,38 +398,46 @@ export default function AdminComponentEditPage() {
       }
 
       if (isSubscribe) {
-        const subTitle = rawFormValues.subscribeSubtitle != null ? String(rawFormValues.subscribeSubtitle).trim() : "";
-        const title = rawFormValues.subscribeTitle != null ? String(rawFormValues.subscribeTitle).trim() : "";
-        const placeholder = rawFormValues.subscribePlaceholder != null ? String(rawFormValues.subscribePlaceholder).trim() : "";
-        const buttonText = rawFormValues.subscribeButtonText != null ? String(rawFormValues.subscribeButtonText).trim() : "";
-        const bgUrl = rawFormValues.subscribeBgUrl != null ? String(rawFormValues.subscribeBgUrl).trim() : "";
+        // Read from form explicitly so we always send current values
+        const subTitle = (form.getFieldValue("subscribeSubtitle") ?? rawFormValues.subscribeSubtitle ?? "");
+        const title = (form.getFieldValue("subscribeTitle") ?? rawFormValues.subscribeTitle ?? "");
+        const placeholder = (form.getFieldValue("subscribePlaceholder") ?? rawFormValues.subscribePlaceholder ?? "");
+        const buttonText = (form.getFieldValue("subscribeButtonText") ?? rawFormValues.subscribeButtonText ?? "");
+        const bgUrl = (form.getFieldValue("subscribeBgUrl") ?? rawFormValues.subscribeBgUrl ?? "");
+        const payload = {
+          subscribeSubtitle: typeof subTitle === "string" ? subTitle.trim() : "",
+          subscribeTitle: typeof title === "string" ? title.trim() : "",
+          subscribePlaceholder: typeof placeholder === "string" ? placeholder.trim() : "",
+          subscribeButtonText: typeof buttonText === "string" ? buttonText.trim() : "",
+          subscribeBgUrl: typeof bgUrl === "string" ? bgUrl.trim() : "",
+        };
         const themeRes = await fetch("/api/theme", {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            subscribeSubtitle: subTitle || "Latest News",
-            subscribeTitle: title || "To get weekly & monthly news, Subscribe to our newsletter.",
-            subscribePlaceholder: placeholder || "Enter email address",
-            subscribeButtonText: buttonText || "Subscribe",
-            subscribeBgUrl: bgUrl || "/images/subscribe-bg.png",
-          }),
+          headers: { "Content-Type": "application/json", "Cache-Control": "no-cache" },
+          body: JSON.stringify(payload),
         });
+        const responseData = await themeRes.json().catch(() => ({}));
         if (!themeRes.ok) {
-          const err = await themeRes.json().catch(() => ({}));
-          message.error(err.error || "Failed to save Subscribe");
+          message.error(responseData.error || "Failed to save Subscribe");
           setSaving(false);
           return;
         }
-        const savedTheme = await themeRes.json().catch(() => ({}));
+        // PUT response is built from fresh DB read when subscribe is updated — use it directly
         const nextSnapshot = {
-          subscribeSubtitle: savedTheme.subscribeSubtitle != null ? String(savedTheme.subscribeSubtitle).trim() : "Latest News",
-          subscribeTitle: savedTheme.subscribeTitle != null ? String(savedTheme.subscribeTitle).trim() : "To get weekly & monthly news, Subscribe to our newsletter.",
-          subscribePlaceholder: savedTheme.subscribePlaceholder != null ? String(savedTheme.subscribePlaceholder).trim() : "Enter email address",
-          subscribeButtonText: savedTheme.subscribeButtonText != null ? String(savedTheme.subscribeButtonText).trim() : "Subscribe",
-          subscribeBgUrl: savedTheme.subscribeBgUrl != null ? String(savedTheme.subscribeBgUrl).trim() : "/images/subscribe-bg.png",
+          subscribeSubtitle: responseData.subscribeSubtitle != null ? String(responseData.subscribeSubtitle).trim() : "",
+          subscribeTitle: responseData.subscribeTitle != null ? String(responseData.subscribeTitle).trim() : "",
+          subscribePlaceholder: responseData.subscribePlaceholder != null ? String(responseData.subscribePlaceholder).trim() : "",
+          subscribeButtonText: responseData.subscribeButtonText != null ? String(responseData.subscribeButtonText).trim() : "",
+          subscribeBgUrl: responseData.subscribeBgUrl != null ? String(responseData.subscribeBgUrl).trim() : "",
         };
+        console.log("[Admin Subscribe] after save, from PUT response (DB):", nextSnapshot);
         setThemeSubscribeSnapshot(nextSnapshot);
-        form.setFieldsValue(nextSnapshot);
+        form.setFieldsValue({
+          ...nextSnapshot,
+          displayName: form.getFieldValue("displayName"),
+          global: form.getFieldValue("global"),
+          position: form.getFieldValue("position"),
+        });
         message.success("Subscribe saved");
       }
 

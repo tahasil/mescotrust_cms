@@ -6,13 +6,14 @@ import { Input, Button } from "antd";
 import { PageContainer, getColor } from "@/styles/Theme";
 
 const SubscribeWrapper = styled.section.attrs((p) => ({
-  $bgUrl: p.$bgUrl || "/images/subscribe-bg.png",
+  $bgUrl: p.$bgUrl || "",
 }))`
   width: 100%;
   position: relative;
   min-height: 380px;
   padding-bottom: 100px;
-  background: url(${(p) => p.$bgUrl}) no-repeat center bottom;
+  background: ${(p) =>
+    p.$bgUrl ? `url(${p.$bgUrl}) no-repeat center bottom` : "transparent"};
   background-size: cover;
   @media (max-width: 768px) {
     min-height: 300px;
@@ -148,46 +149,54 @@ function fetchTheme() {
 
 /**
  * Site component: Subscribe — newsletter signup.
- * All content (subtitle, title, placeholder, button text, background URL) is stored in the
- * database (ThemeConfig) and loaded via GET /api/theme. Admin and frontend both use the same API.
- * Props are only used when rendering in admin preview; on the frontend we always fetch from DB.
+ * No static content. All content (subtitle, title, placeholder, button text, background URL)
+ * is stored in the database (ThemeConfig) and loaded via GET /api/theme. Rendered from DB
+ * on both admin (props from edit form = DB) and frontend (theme from API = DB).
  */
 export default function Subscribe(props) {
   const [email, setEmail] = useState("");
   const [theme, setTheme] = useState(null);
 
-  // Frontend: fetch all Subscribe content from database (theme API). Admin: use props from edit form.
+  // Frontend: fetch all Subscribe content from database (theme API). Admin: use props from edit form (sourced from DB).
   useEffect(() => {
-    if (props?.subscribeTitle != null || props?.subscribeSubtitle != null) return; // admin preview
-    fetchTheme().then(setTheme); // load from database
+    if (props?.subscribeTitle != null || props?.subscribeSubtitle != null)
+      return; // admin preview
+    fetchTheme().then((data) => {
+      if (data && typeof window !== "undefined") {
+        console.log("[Subscribe] frontend: fetched from DB", {
+          subscribeSubtitle: data.subscribeSubtitle,
+          subscribeTitle: data.subscribeTitle?.slice(0, 50),
+          subscribePlaceholder: data.subscribePlaceholder,
+          subscribeButtonText: data.subscribeButtonText,
+          subscribeBgUrl: data.subscribeBgUrl,
+        });
+      }
+      setTheme(data);
+    }); // load from database
   }, [props?.subscribeTitle, props?.subscribeSubtitle]);
 
-  // Use props (admin) or theme from DB (frontend); fallback to defaults only when value is empty
+  // Only database/props — no static fallbacks; API returns DB values or DEFAULTS for response shape
   const subtitle =
-    props?.subscribeSubtitle ??
-    ((theme?.subscribeSubtitle != null && String(theme.subscribeSubtitle).trim() !== ""
-      ? String(theme.subscribeSubtitle).trim()
-      : "") || "Latest News");
+    (props?.subscribeSubtitle ?? theme?.subscribeSubtitle ?? "")?.trim() ?? "";
   const title =
-    props?.subscribeTitle ??
-    ((theme?.subscribeTitle != null && String(theme.subscribeTitle).trim() !== ""
-      ? String(theme.subscribeTitle).trim()
-      : "") || "To get weekly & monthly news, Subscribe to our newsletter.");
+    (props?.subscribeTitle ?? theme?.subscribeTitle ?? "")?.trim() ?? "";
   const placeholder =
-    props?.subscribePlaceholder ??
-    ((theme?.subscribePlaceholder != null && String(theme.subscribePlaceholder).trim() !== ""
-      ? String(theme.subscribePlaceholder).trim()
-      : "") || "Enter email address");
+    (
+      props?.subscribePlaceholder ??
+      theme?.subscribePlaceholder ??
+      ""
+    )?.trim() ?? "";
   const buttonText =
-    props?.subscribeButtonText ??
-    ((theme?.subscribeButtonText != null && String(theme.subscribeButtonText).trim() !== ""
-      ? String(theme.subscribeButtonText).trim()
-      : "") || "Subscribe");
+    (props?.subscribeButtonText ?? theme?.subscribeButtonText ?? "")?.trim() ??
+    "";
   const bgUrl =
-    props?.subscribeBgUrl ??
-    (theme?.subscribeBgUrl != null && String(theme.subscribeBgUrl).trim() !== ""
-      ? String(theme.subscribeBgUrl).trim()
-      : "/images/subscribe-bg.png");
+    (props?.subscribeBgUrl ?? theme?.subscribeBgUrl ?? "")?.trim() ?? "";
+
+  // Console: verify every element is from DB (props = admin/DB, theme = frontend/DB)
+  const source = props?.subscribeSubtitle != null ? "admin (DB)" : theme ? "frontend (DB)" : "loading";
+  if (typeof window !== "undefined") {
+    console.log("[Subscribe] source:", source, "| subtitle:", subtitle, "| title:", title?.slice(0, 40) + (title?.length > 40 ? "…" : ""), "| placeholder:", placeholder, "| buttonText:", buttonText, "| bgUrl:", bgUrl);
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault();
