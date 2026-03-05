@@ -16,11 +16,13 @@ function HomeHeroEditForm({ onSuccess, onCancel }, ref) {
 
   useEffect(() => {
     setLoading(true);
-    fetch("/api/theme", { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : {}))
-      .then((theme) => {
-        const palette = theme.themePalette || {};
-        const customColors = Array.isArray(theme.colors) ? theme.colors : [];
+    Promise.all([
+      fetch("/api/theme/home-hero", { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
+      fetch("/api/theme", { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
+    ])
+      .then(([hero, theme]) => {
+        const palette = theme?.themePalette || {};
+        const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
         const names = [
           ...new Set([
             ...Object.keys(palette),
@@ -29,8 +31,8 @@ function HomeHeroEditForm({ onSuccess, onCancel }, ref) {
         ].sort();
         setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
 
-        const slides = Array.isArray(theme?.homeHeroSlides)
-          ? theme.homeHeroSlides.map((s) => ({
+        const slides = Array.isArray(hero?.homeHeroSlides)
+          ? hero.homeHeroSlides.map((s) => ({
               bgImageUrl: s?.bgImageUrl != null ? String(s.bgImageUrl).trim() : "",
               title: s?.title != null ? String(s.title).trim() : "",
               description: s?.description != null ? String(s.description).trim() : "",
@@ -41,13 +43,13 @@ function HomeHeroEditForm({ onSuccess, onCancel }, ref) {
           : [];
         form.setFieldsValue({
           homeHeroSlides: slides,
-          homeHeroSliderTitleColorKey: theme.homeHeroSliderTitleColorKey != null ? String(theme.homeHeroSliderTitleColorKey).trim() : "",
-          homeHeroSliderDescColorKey: theme.homeHeroSliderDescColorKey != null ? String(theme.homeHeroSliderDescColorKey).trim() : "",
-          homeHeroSliderButtonBgColorKey: theme.homeHeroSliderButtonBgColorKey != null ? String(theme.homeHeroSliderButtonBgColorKey).trim() : "",
-          homeHeroSliderButtonTextColorKey: theme.homeHeroSliderButtonTextColorKey != null ? String(theme.homeHeroSliderButtonTextColorKey).trim() : "",
+          homeHeroSliderTitleColorKey: hero?.homeHeroSliderTitleColorKey != null ? String(hero.homeHeroSliderTitleColorKey).trim() : "",
+          homeHeroSliderDescColorKey: hero?.homeHeroSliderDescColorKey != null ? String(hero.homeHeroSliderDescColorKey).trim() : "",
+          homeHeroSliderButtonBgColorKey: hero?.homeHeroSliderButtonBgColorKey != null ? String(hero.homeHeroSliderButtonBgColorKey).trim() : "",
+          homeHeroSliderButtonTextColorKey: hero?.homeHeroSliderButtonTextColorKey != null ? String(hero.homeHeroSliderButtonTextColorKey).trim() : "",
         });
       })
-      .catch(() => message.error("Failed to load theme"))
+      .catch(() => message.error("Failed to load Home Hero"))
       .finally(() => setLoading(false));
   }, [form]);
 
@@ -66,7 +68,7 @@ function HomeHeroEditForm({ onSuccess, onCancel }, ref) {
           }))
         : [];
       setSaving(true);
-      fetch("/api/theme", {
+      fetch("/api/theme/home-hero", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

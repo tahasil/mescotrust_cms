@@ -5,6 +5,7 @@ import fs from "fs";
 import path from "path";
 import { connectDB } from "@/lib/db";
 import ThemeConfig from "@/models/ThemeConfig";
+import Component from "@/models/Component";
 import { isAdmin } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
@@ -187,11 +188,11 @@ const DEFAULTS = {
   homeHeroContentContainer: "pageContainer",
   marqueeTitle: "Our CSR Partners | Awards & Recognition",
   marqueeItems: [],
-  subscribeSubtitle: "Latest News",
-  subscribeTitle: "To get weekly & monthly news, Subscribe to our newsletter.",
-  subscribePlaceholder: "Enter email address",
-  subscribeButtonText: "Subscribe",
-  subscribeBgUrl: "/images/subscribe-bg.png",
+  subscribeSubtitle: "",
+  subscribeTitle: "",
+  subscribePlaceholder: "",
+  subscribeButtonText: "",
+  subscribeBgUrl: "",
   buttonBackground: "",
   buttonTextColor: "",
   buttonHoverBackground: "",
@@ -279,7 +280,6 @@ const HOME_HERO_KEYS = [
 
 const MARQUEE_KEYS = ["marqueeTitle", "marqueeItems"];
 const SUBSCRIBE_KEYS = ["subscribeSubtitle", "subscribeTitle", "subscribePlaceholder", "subscribeButtonText", "subscribeBgUrl"];
-
 function normalizeMarqueeItem(item) {
   return {
     url: item?.url != null ? String(item.url).trim() : "",
@@ -337,12 +337,17 @@ export async function GET() {
       }
     }
     if (!Array.isArray(normalized.marqueeItems)) normalized.marqueeItems = [];
-    // Subscribe: all fields from database (plain); fallback to DEFAULTS when not set
     for (const k of SUBSCRIBE_KEYS) {
-      if (plain[k] !== undefined) {
-        normalized[k] = typeof plain[k] === "string" ? String(plain[k]).trim() : plain[k];
-      } else {
-        normalized[k] = DEFAULTS[k];
+      normalized[k] = plain[k] != null ? String(plain[k]).trim() : "";
+    }
+    // Merge from components collection (Header, Footer, Marquee, HomeHero, Subscribe)
+    const comps = await Component.find({ baseComponent: { $in: ["Header", "Footer", "Marquee", "HomeHero", "Subscribe"] } }).lean();
+    for (const c of comps || []) {
+      const props = c.defaultProps;
+      if (props && typeof props === "object") {
+        for (const key of Object.keys(props)) {
+          if (props[key] !== undefined) normalized[key] = props[key];
+        }
       }
     }
     return NextResponse.json(normalized, { headers });
@@ -359,6 +364,10 @@ export async function PUT(req) {
 
   try {
     const body = await req.json();
+    const subscribeInBody = SUBSCRIBE_KEYS.filter((k) => body[k] !== undefined).length;
+    if (subscribeInBody > 0) {
+      console.log("[Subscribe 3] API PUT: received body (Subscribe keys)", SUBSCRIBE_KEYS.map((k) => ({ [k]: body[k] })).reduce((a, b) => ({ ...a, ...b }), {}));
+    }
     await connectDB();
     let theme = await ThemeConfig.findOne(THEME_QUERY).sort({ updatedAt: -1 });
     let savedFromMemory = null; // set after theme.save() so PUT response matches persisted data
@@ -392,18 +401,35 @@ export async function PUT(req) {
       if (Object.keys(initialUpdates).length > 0 && theme._id) {
         initialUpdates.updatedAt = new Date();
         await ThemeConfig.updateOne({ _id: theme._id }, { $set: initialUpdates });
-      }
-    } else {
-      // Write subscribe fields to DB first (direct updateOne) so they persist even if theme.save() runs later with other fields
-      const subscribeUpdate = {};
-      for (const k of SUBSCRIBE_KEYS) {
-        if (body[k] !== undefined) {
-          subscribeUpdate[k] = typeof body[k] === "string" ? String(body[k]).trim() : body[k];
+        if (subscribeInBody > 0) {
+          console.log("[Subscribe 5a] API PUT: new theme doc → updateOne (initialUpdates) → Subscribe saved to DB (themeconfigs)");
         }
       }
-      if (Object.keys(subscribeUpdate).length > 0 && theme._id) {
-        subscribeUpdate.updatedAt = new Date();
-        await ThemeConfig.updateOne({ _id: theme._id }, { $set: subscribeUpdate });
+    } else {
+      // Force-write Subscribe fields using same query as GET so we always update the doc that GET returns
+      const subscribeWrite = {};
+      for (const k of SUBSCRIBE_KEYS) {
+        if (body[k] !== undefined) {
+          subscribeWrite[k] = typeof body[k] === "string" ? String(body[k]).trim() : body[k];
+        }
+      }
+      if (Object.keys(subscribeWrite).length > 0) {
+        subscribeWrite.updatedAt = new Date();
+        const updateResult = await ThemeConfig.findOneAndUpdate(
+          THEME_QUERY,
+          { $set: subscribeWrite },
+          { sort: { updatedAt: -1 }, new: true }
+        );
+        if (subscribeInBody > 0) {
+          if (updateResult) {
+            console.log("[Subscribe] findOneAndUpdate OK → DB written", {
+              subscribeSubtitle: updateResult.subscribeSubtitle,
+              subscribeTitle: updateResult.subscribeTitle,
+            });
+          } else {
+            console.error("[Subscribe] No theme document matched THEME_QUERY — create a theme first (e.g. npm run seed)");
+          }
+        }
       }
 
       if (theme.themeKey !== "default") {
@@ -411,7 +437,7 @@ export async function PUT(req) {
         theme.markModified("themeKey");
       }
       for (const f of THEME_FIELDS) {
-        if (f === "marqueeTitle" || f === "marqueeItems") continue;
+        if (f === "marqueeTitle" || f === "marqueeItems" || SUBSCRIBE_KEYS.includes(f)) continue;
         if (body[f] !== undefined) theme[f] = body[f];
       }
       if (body.footerLogoUrl !== undefined) {
@@ -464,6 +490,9 @@ export async function PUT(req) {
           theme.markModified(k);
         }
       }
+      if (subscribeInBody > 0) {
+        console.log("[Subscribe 4] API PUT: theme document updated in memory (before save)", { subscribeSubtitle: theme.subscribeSubtitle, subscribeTitle: theme.subscribeTitle });
+      }
       if (Array.isArray(body.paletteColors)) {
         theme.themePalette = Object.fromEntries(
           body.paletteColors.filter((p) => p && String(p.key).trim()).map((p) => [String(p.key).trim(), p.value])
@@ -475,6 +504,9 @@ export async function PUT(req) {
         theme.markModified("themePalette");
       }
       await theme.save();
+      if (subscribeInBody > 0) {
+        console.log("[Subscribe 5] API PUT: theme.save() done → written to MongoDB (themeconfigs)");
+      }
       savedFromMemory = theme.toObject ? theme.toObject() : { ...theme };
       // Ensure response has the slides we just saved (toObject() can omit Mixed in some Mongoose versions)
       if (body.homeHeroSlides !== undefined && Array.isArray(body.homeHeroSlides)) {
@@ -521,6 +553,9 @@ export async function PUT(req) {
       if (Object.keys(directUpdates).length > 0 && theme._id) {
         directUpdates.updatedAt = new Date();
         await ThemeConfig.updateOne({ _id: theme._id }, { $set: directUpdates });
+        if (subscribeInBody > 0 && SUBSCRIBE_KEYS.some((k) => directUpdates[k] !== undefined)) {
+          console.log("[Subscribe 6] API PUT: updateOne (direct) done → Subscribe fields confirmed in DB", Object.keys(directUpdates).filter((k) => SUBSCRIBE_KEYS.includes(k)));
+        }
       }
     }
 
@@ -569,17 +604,9 @@ export async function PUT(req) {
       }
     }
     for (const k of SUBSCRIBE_KEYS) {
-      if (body[k] !== undefined && saved) {
-        saved[k] = typeof body[k] === "string" ? String(body[k]).trim() : body[k];
-      }
+      if (body[k] !== undefined && saved) saved[k] = typeof body[k] === "string" ? String(body[k]).trim() : body[k];
     }
     const responseBody = normalizeTheme(saved);
-    // Ensure subscribe fields are exactly what was saved (for admin/frontend rendering)
-    for (const k of SUBSCRIBE_KEYS) {
-      if (body[k] !== undefined) {
-        responseBody[k] = typeof body[k] === "string" ? String(body[k]).trim() : body[k];
-      }
-    }
     const headers = { "Cache-Control": "no-store, no-cache, must-revalidate" };
     return NextResponse.json(responseBody, { headers });
   } catch (err) {

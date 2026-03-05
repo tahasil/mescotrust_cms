@@ -10,13 +10,13 @@ export { default as Header } from "./Header";
 export { default as Footer } from "./Footer/index";
 export { default as HomeHero, HomeHeroEditForm } from "./HomeHero/index";
 export { default as Marquee, MarqueeEditForm } from "./Marquee/index";
-
 import HomeHeroEditForm from "./HomeHero/EditForm";
 import MarqueeEditForm from "./Marquee/EditForm";
-
+import SubscribeEditForm from "./Subscribe/EditForm";
 /** componentId -> EditForm for page builder drawer. Add new editable site components here. */
 export const EDITABLE_SITE_EDIT_FORMS = {
   HomeHero: HomeHeroEditForm,
   Marquee: MarqueeEditForm,
+  Subscribe: SubscribeEditForm,
 };
-export { default as Subscribe } from "./Subscribe";
+export { default as Subscribe, SubscribeEditForm } from "./Subscribe/index";

@@ -212,15 +212,12 @@ const themeConfigSchema = new mongoose.Schema(
     },
     marqueeItems: { type: [marqueeItemSchema], default: [] },
 
-    // ─── Subscribe (site component); all fields saved to DB, loaded by admin + frontend via /api/theme ───
-    subscribeSubtitle: { type: String, default: "Latest News" },
-    subscribeTitle: {
-      type: String,
-      default: "To get weekly & monthly news, Subscribe to our newsletter.",
-    },
-    subscribePlaceholder: { type: String, default: "Enter email address" },
-    subscribeButtonText: { type: String, default: "Subscribe" },
-    subscribeBgUrl: { type: String, default: "/images/subscribe-bg.png" },
+    // ─── Subscribe (site component) ───────────────────────────────
+    subscribeSubtitle: { type: String, default: "" },
+    subscribeTitle: { type: String, default: "" },
+    subscribePlaceholder: { type: String, default: "" },
+    subscribeButtonText: { type: String, default: "" },
+    subscribeBgUrl: { type: String, default: "" },
 
     // ─── 7. Button Style ──────────────────────────────────────
     buttonBackground: { type: String, default: "" },

@@ -5,8 +5,8 @@ import styled from "styled-components";
 import ReactMarquee from "react-fast-marquee";
 import { getColor } from "@/styles/Theme";
 
-function fetchTheme() {
-  return fetch("/api/theme", {
+function fetchMarquee() {
+  return fetch("/api/theme/marquee", {
     cache: "no-store",
     headers: { "Cache-Control": "no-cache" },
   })
@@ -63,30 +63,30 @@ const defaultImages = [
 
 /**
  * Site component: Marquee — CSR Partners / Awards & Recognition scrolling strip.
- * Title and items from props (admin preview) or from /api/theme (frontend).
+ * Title and items from props (admin preview) or from /api/theme/marquee (components collection).
  * Editable via MarqueeEditForm in page builder or component edit.
  */
 export default function Marquee(props) {
-  const [theme, setTheme] = useState(null);
+  const [data, setData] = useState(null);
   const fromProps =
     props?.title != null ||
     (Array.isArray(props?.images) && props.images.length > 0);
 
   useEffect(() => {
     if (fromProps) return;
-    fetchTheme().then(setTheme);
+    fetchMarquee().then(setData);
   }, [fromProps]);
 
   const title =
     props?.title ??
-    (theme?.marqueeTitle != null && String(theme.marqueeTitle).trim() !== ""
-      ? String(theme.marqueeTitle).trim()
+    (data?.marqueeTitle != null && String(data.marqueeTitle).trim() !== ""
+      ? String(data.marqueeTitle).trim()
       : "Our CSR Partners | Awards & Recognition");
   const images =
     Array.isArray(props?.images) && props.images.length > 0
       ? props.images
-      : Array.isArray(theme?.marqueeItems) && theme.marqueeItems.length > 0
-        ? theme.marqueeItems
+      : Array.isArray(data?.marqueeItems) && data.marqueeItems.length > 0
+        ? data.marqueeItems
         : defaultImages;
 
   return (

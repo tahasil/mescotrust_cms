@@ -17,19 +17,19 @@ function MarqueeEditForm({ onSuccess, onCancel }, ref) {
   useEffect(() => {
     setLoading(true);
     setInitialData(null);
-    fetch("/api/theme", { cache: "no-store" })
+    fetch("/api/theme/marquee", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : {}))
-      .then((theme) => {
-        const title = theme.marqueeTitle != null ? String(theme.marqueeTitle).trim() : "Our CSR Partners | Awards & Recognition";
-        const items = Array.isArray(theme.marqueeItems)
-          ? theme.marqueeItems.map((it) => ({
+      .then((data) => {
+        const title = data.marqueeTitle != null ? String(data.marqueeTitle).trim() : "Our CSR Partners | Awards & Recognition";
+        const items = Array.isArray(data.marqueeItems)
+          ? data.marqueeItems.map((it) => ({
               url: it?.url != null ? String(it.url).trim() : "",
               alt: it?.alt != null ? String(it.alt).trim() : "",
             }))
           : [];
         setInitialData({ marqueeTitle: title, marqueeItems: items });
       })
-      .catch(() => message.error("Failed to load theme"))
+      .catch(() => message.error("Failed to load Marquee"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -45,7 +45,7 @@ function MarqueeEditForm({ onSuccess, onCancel }, ref) {
           }))
         : [];
       setSaving(true);
-      fetch("/api/theme", {
+      fetch("/api/theme/marquee", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ marqueeTitle: title, marqueeItems: items }),

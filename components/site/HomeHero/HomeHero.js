@@ -122,8 +122,8 @@ function SingleSlide({
   );
 }
 
-function fetchTheme() {
-  return fetch("/api/theme", {
+function fetchHomeHero() {
+  return fetch("/api/theme/home-hero", {
     cache: "no-store",
     headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
   })
@@ -140,8 +140,8 @@ export default function HomeHero(props) {
 
   useEffect(() => {
     if (Array.isArray(props.slides) && props.slides.length > 0) return;
-    fetchTheme().then(setTheme);
-    const onFocus = () => fetchTheme().then((t) => t != null && setTheme(t));
+    fetchHomeHero().then(setTheme);
+    const onFocus = () => fetchHomeHero().then((t) => t != null && setTheme(t));
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, [props.slides]);
@@ -178,8 +178,7 @@ export default function HomeHero(props) {
     props?.backgroundContainer ?? theme?.homeHeroBackgroundContainer ?? "full";
   const contentContainer =
     props?.contentContainer ??
-    theme?.homeHeroContentContainer ??
-    "pageContainer";
+    (theme?.homeHeroContentContainer ?? "pageContainer");
   const isBgContained = backgroundContainer === "contained";
 
   const slideProps = {
