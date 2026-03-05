@@ -4,19 +4,34 @@ import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Form, Input, Row, Col, message, Spin } from "antd";
 
 /**
- * Edit form for Subscribe — single source for load/save. Used in component edit page or drawer.
- * All Subscribe data is loaded and saved only from here. Exposes update() via ref.
+ * Edit form for Subscribe — used in component edit page or page builder drawer.
+ * When source="page": data from block.props (pages collection); save updates layout only, not components collection.
  * onDataLoad(data) — called with loaded data so parent can show preview.
  * onSuccess(payload) — called with saved payload after save so parent can update preview.
  */
-function SubscribeEditForm({ onSuccess, onDataLoad }, ref) {
+function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onDataLoad }, ref) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [initialData, setInitialData] = useState(null);
+  const isPageBlock = source === "page";
 
   useEffect(() => {
     setLoading(true);
+    if (isPageBlock) {
+      const data = initialDataProp ?? {};
+      const normalized = {
+        subscribeSubtitle: data?.subscribeSubtitle != null ? String(data.subscribeSubtitle).trim() : "",
+        subscribeTitle: data?.subscribeTitle != null ? String(data.subscribeTitle).trim() : "",
+        subscribePlaceholder: data?.subscribePlaceholder != null ? String(data.subscribePlaceholder).trim() : "",
+        subscribeButtonText: data?.subscribeButtonText != null ? String(data.subscribeButtonText).trim() : "",
+        subscribeBgUrl: data?.subscribeBgUrl != null ? String(data.subscribeBgUrl).trim() : "",
+      };
+      setInitialData(normalized);
+      onDataLoad?.(normalized);
+      setLoading(false);
+      return;
+    }
     setInitialData(null);
     fetch("/api/theme/subscribe", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : {}))
@@ -33,7 +48,7 @@ function SubscribeEditForm({ onSuccess, onDataLoad }, ref) {
       })
       .catch(() => message.error("Failed to load Subscribe"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [isPageBlock, initialDataProp]);
 
   // Apply DB values to form when initialData is ready (initialValues alone don't reliably update after async load)
   useEffect(() => {
@@ -43,7 +58,6 @@ function SubscribeEditForm({ onSuccess, onDataLoad }, ref) {
   }, [initialData, form]);
 
   const handleUpdate = () => {
-    console.log("[Subscribe] Save clicked — data flow:");
     return form.validateFields().then(() => {
       const values = form.getFieldsValue(true);
       const payload = {
@@ -53,7 +67,12 @@ function SubscribeEditForm({ onSuccess, onDataLoad }, ref) {
         subscribeButtonText: String(values.subscribeButtonText ?? "").trim(),
         subscribeBgUrl: String(values.subscribeBgUrl ?? "").trim(),
       };
-      console.log("[Subscribe 1] Form → payload (sending to API)", payload);
+      if (isPageBlock && onSaveToPage) {
+        onSaveToPage(payload);
+        message.success("Changes will be saved with the page");
+        onSuccess?.(payload);
+        return;
+      }
       setSaving(true);
       return fetch("/api/theme/subscribe", {
         method: "PUT",
@@ -66,13 +85,6 @@ function SubscribeEditForm({ onSuccess, onDataLoad }, ref) {
           return res.json();
         })
         .then((savedTheme) => {
-          if (savedTheme && (savedTheme.subscribeSubtitle !== undefined || savedTheme.subscribeTitle !== undefined)) {
-            console.log("[Subscribe] API returned saved theme (subscribe fields):", {
-              subscribeSubtitle: savedTheme.subscribeSubtitle,
-              subscribeTitle: savedTheme.subscribeTitle,
-            });
-          }
-          console.log("[Subscribe 2] API responded OK — data saved to DB. Check server terminal for API → DB logs.");
           message.success("Subscribe saved");
           onSuccess?.(savedTheme || payload);
         })

@@ -34,6 +34,7 @@ function HomeSkeleton() {
   );
 }
 
+/** Home content (layout + block props) is loaded only from the pages collection. */
 async function HomeContent() {
   let page = null;
   try {

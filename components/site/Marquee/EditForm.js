@@ -6,16 +6,31 @@ import { DeleteOutlined, PlusOutlined, ArrowUpOutlined, ArrowDownOutlined } from
 
 /**
  * Edit form for Marquee — used in page builder drawer or component edit.
+ * When source="page": data from block.props (pages collection); save updates layout only, not components collection.
  * Exposes update() via ref for drawer header button.
  */
-function MarqueeEditForm({ onSuccess, onCancel }, ref) {
+function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel }, ref) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [initialData, setInitialData] = useState(null);
+  const isPageBlock = source === "page";
 
   useEffect(() => {
     setLoading(true);
+    if (isPageBlock) {
+      const data = initialDataProp ?? {};
+      const title = data.marqueeTitle != null ? String(data.marqueeTitle).trim() : "";
+      const items = Array.isArray(data.marqueeItems)
+        ? data.marqueeItems.map((it) => ({
+            url: it?.url != null ? String(it.url).trim() : "",
+            alt: it?.alt != null ? String(it.alt).trim() : "",
+          }))
+        : [];
+      setInitialData({ marqueeTitle: title, marqueeItems: items });
+      setLoading(false);
+      return;
+    }
     setInitialData(null);
     fetch("/api/theme/marquee", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : {}))
@@ -31,7 +46,7 @@ function MarqueeEditForm({ onSuccess, onCancel }, ref) {
       })
       .catch(() => message.error("Failed to load Marquee"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [isPageBlock, initialDataProp]);
 
   const handleUpdate = () => {
     form.validateFields().then(() => {
@@ -44,11 +59,18 @@ function MarqueeEditForm({ onSuccess, onCancel }, ref) {
             alt: it?.alt != null ? String(it.alt).trim() : "",
           }))
         : [];
+      const payload = { marqueeTitle: title, marqueeItems: items };
+      if (isPageBlock && onSaveToPage) {
+        onSaveToPage(payload);
+        message.success("Changes will be saved with the page");
+        onSuccess?.();
+        return;
+      }
       setSaving(true);
       fetch("/api/theme/marquee", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ marqueeTitle: title, marqueeItems: items }),
+        body: JSON.stringify(payload),
       })
         .then((res) => {
           if (!res.ok) return res.json().then((d) => Promise.reject(d));

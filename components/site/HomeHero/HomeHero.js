@@ -132,53 +132,53 @@ function fetchHomeHero() {
 }
 
 /**
- * Site component: HomeHero — full-width image slider(s). Multiple slides from theme (homeHeroSlides)
- * or props.slides; content and theme colors editable via EditForm (page builder drawer or component edit).
+ * Site component: HomeHero — full-width image slider(s).
+ * Data source: page block props (homeHeroSlides from pages collection) first, else theme API (components collection).
  */
 export default function HomeHero(props) {
   const [theme, setTheme] = useState(null);
+  const fromPage =
+    Array.isArray(props?.homeHeroSlides) && props.homeHeroSlides.length > 0 ||
+    (Array.isArray(props?.slides) && props.slides.length > 0);
 
   useEffect(() => {
-    if (Array.isArray(props.slides) && props.slides.length > 0) return;
+    if (fromPage) return;
     fetchHomeHero().then(setTheme);
     const onFocus = () => fetchHomeHero().then((t) => t != null && setTheme(t));
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
-  }, [props.slides]);
+  }, [fromPage]);
 
   const slides =
-    Array.isArray(props.slides) && props.slides.length > 0
-      ? props.slides
-      : Array.isArray(theme?.homeHeroSlides)
-        ? theme.homeHeroSlides
-        : [];
+    Array.isArray(props?.homeHeroSlides) && props.homeHeroSlides.length > 0
+      ? props.homeHeroSlides
+      : Array.isArray(props?.slides) && props.slides.length > 0
+        ? props.slides
+        : Array.isArray(theme?.homeHeroSlides)
+          ? theme.homeHeroSlides
+          : [];
 
   const titleColor =
     props?.sliderTitleColor ??
-    (theme?.homeHeroSliderTitleColorKey
-      ? getColor(theme.homeHeroSliderTitleColorKey)
-      : undefined);
+    (props?.homeHeroSliderTitleColorKey ? getColor(props.homeHeroSliderTitleColorKey) : undefined) ??
+    (theme?.homeHeroSliderTitleColorKey ? getColor(theme.homeHeroSliderTitleColorKey) : undefined);
   const descColor =
     props?.sliderDescColor ??
-    (theme?.homeHeroSliderDescColorKey
-      ? getColor(theme.homeHeroSliderDescColorKey)
-      : undefined);
+    (props?.homeHeroSliderDescColorKey ? getColor(props.homeHeroSliderDescColorKey) : undefined) ??
+    (theme?.homeHeroSliderDescColorKey ? getColor(theme.homeHeroSliderDescColorKey) : undefined);
   const buttonBgColor =
     props?.sliderButtonBgColor ??
-    (theme?.homeHeroSliderButtonBgColorKey
-      ? getColor(theme.homeHeroSliderButtonBgColorKey)
-      : undefined);
+    (props?.homeHeroSliderButtonBgColorKey ? getColor(props.homeHeroSliderButtonBgColorKey) : undefined) ??
+    (theme?.homeHeroSliderButtonBgColorKey ? getColor(theme.homeHeroSliderButtonBgColorKey) : undefined);
   const buttonTextColor =
     props?.sliderButtonTextColor ??
-    (theme?.homeHeroSliderButtonTextColorKey
-      ? getColor(theme.homeHeroSliderButtonTextColorKey)
-      : undefined);
+    (props?.homeHeroSliderButtonTextColorKey ? getColor(props.homeHeroSliderButtonTextColorKey) : undefined) ??
+    (theme?.homeHeroSliderButtonTextColorKey ? getColor(theme.homeHeroSliderButtonTextColorKey) : undefined);
 
   const backgroundContainer =
-    props?.backgroundContainer ?? theme?.homeHeroBackgroundContainer ?? "full";
+    props?.backgroundContainer ?? props?.homeHeroBackgroundContainer ?? theme?.homeHeroBackgroundContainer ?? "full";
   const contentContainer =
-    props?.contentContainer ??
-    (theme?.homeHeroContentContainer ?? "pageContainer");
+    props?.contentContainer ?? props?.homeHeroContentContainer ?? theme?.homeHeroContentContainer ?? "pageContainer";
   const isBgContained = backgroundContainer === "contained";
 
   const slideProps = {

@@ -14,18 +14,17 @@ import {
 import { PageContainer } from "@/styles/Theme";
 
 /**
- * Subscribe: all content from DB.
- * - Admin: gets props from parent (themeSubscribeSnapshot from EditForm → DB).
- * - Frontend: fetches GET /api/theme/subscribe (components collection) and renders (no props).
+ * Subscribe: content from page block props (pages collection) first, else GET /api/theme/subscribe (components collection).
+ * When block is on a page, props (subscribeSubtitle, subscribeTitle, etc.) come from the page document.
  */
 export default function Subscribe(props) {
   const [email, setEmail] = useState("");
   const [theme, setTheme] = useState(null);
 
-  // Frontend: no props from admin → fetch from components collection via /api/theme/subscribe
+  // No page/block props → fetch from components collection (e.g. global Subscribe block)
   useEffect(() => {
-    const hasAdminProps = props && (props.subscribeSubtitle !== undefined || props.subscribeTitle !== undefined);
-    if (hasAdminProps) return;
+    const hasPageProps = props && (props.subscribeSubtitle !== undefined || props.subscribeTitle !== undefined);
+    if (hasPageProps) return;
     fetch("/api/theme/subscribe", { cache: "no-store", headers: { "Cache-Control": "no-cache, no-store, must-revalidate" } })
       .then((res) => (res.ok ? res.json() : null))
       .then(setTheme)

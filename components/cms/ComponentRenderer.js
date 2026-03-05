@@ -123,6 +123,10 @@ function UnavailableBlock({ baseComponent }) {
   );
 }
 
+/**
+ * Renders page layout from the pages collection only.
+ * layout = page.layout (blocks with baseComponent, props, order). All block content comes from block.props (page document).
+ */
 export default function ComponentRenderer({ layout, wrapperContainer, onElementClick }) {
   if (!Array.isArray(layout) || layout.length === 0) return null;
 

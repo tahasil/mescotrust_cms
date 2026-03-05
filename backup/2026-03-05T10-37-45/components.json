@@ -1,0 +1,65 @@
+[
+  {
+    "_id": "69a94d7006757886a1da95ed",
+    "name": "Subscribe",
+    "displayName": "Subscribe",
+    "type": "system",
+    "category": "",
+    "baseComponent": "Subscribe",
+    "defaultProps": {
+      "subscribeSubtitle": "Latest News 1",
+      "subscribeTitle": "To get weekly & monthly news, Subscribe to our newsletter.",
+      "subscribePlaceholder": "Enter email address",
+      "subscribeButtonText": "Subscribe 1",
+      "subscribeBgUrl": "/uploads/1772600490791_subscribe-bg.webp"
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-05T09:31:28.674Z",
+    "updatedAt": "2026-03-05T09:33:13.635Z",
+    "__v": 0
+  },
+  {
+    "_id": "69a959531e2837aa73742379",
+    "name": "HomeHero",
+    "displayName": "Home Hero",
+    "type": "system",
+    "category": "",
+    "baseComponent": "HomeHero",
+    "defaultProps": {
+      "homeHeroSlides": [
+        {
+          "bgImageUrl": "/uploads/1772598083225_slide-1.webp",
+          "title": "Because Every Learner Deserves Support",
+          "description": "A community-powered initiative that brings donors, mentors, and resources together to help learners overcome barriers and continue their education—turning collective support into real opportunities.",
+          "buttonText": "Contact Us",
+          "buttonLink": "/contact",
+          "showButton": true
+        },
+        {
+          "bgImageUrl": "/uploads/1772598088898_slide-2.webp",
+          "title": "Because Every Learner Deserves Support",
+          "description": "A community-powered initiative that brings donors, mentors, and resources together to help learners overcome barriers and continue their education—turning collective support into real opportunities.",
+          "buttonText": "Contact Us",
+          "buttonLink": "/contact",
+          "showButton": true
+        }
+      ],
+      "homeHeroSliderTitleColorKey": "White",
+      "homeHeroSliderDescColorKey": "White",
+      "homeHeroSliderButtonBgColorKey": "Gradient",
+      "homeHeroSliderButtonTextColorKey": "White",
+      "homeHeroBackgroundContainer": "full",
+      "homeHeroContentContainer": "pageContainer"
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-05T10:22:11.039Z",
+    "updatedAt": "2026-03-05T10:22:31.179Z",
+    "__v": 0
+  }
+]

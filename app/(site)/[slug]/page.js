@@ -38,6 +38,7 @@ function ContentSkeleton() {
   );
 }
 
+/** Page content (layout + block props) is loaded only from the pages collection. */
 async function PageContent({ slug }) {
   let page;
   try {

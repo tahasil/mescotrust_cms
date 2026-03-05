@@ -25,6 +25,7 @@ export default function AdminPageEditPage() {
     }
   }, []);
 
+  // Load page (including layout) from pages collection only — GET /api/admin/pages/[id] returns Page document
   useEffect(() => {
     if (!id) return;
     (async () => {

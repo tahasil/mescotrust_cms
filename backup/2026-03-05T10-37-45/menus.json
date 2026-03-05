@@ -1,0 +1,672 @@
+[
+  {
+    "_id": "699ef962a4c97a87b787f800",
+    "name": "Primary Menu Backup",
+    "items": [
+      {
+        "label": "About Us",
+        "url": "#",
+        "order": 0,
+        "openInNewTab": false,
+        "type": "custom_link",
+        "pageSlug": "",
+        "_id": "699ef962a4c97a87b787f801",
+        "children": [
+          {
+            "label": "MESCO At Glance",
+            "url": "/about-us/mesco -at-glance",
+            "order": 1,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f802",
+            "children": []
+          },
+          {
+            "label": "Managing Committee",
+            "url": "/about-us/managing-committee",
+            "order": 2,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f803",
+            "children": []
+          },
+          {
+            "label": "Our Team",
+            "url": "/about-us/our-team",
+            "order": 3,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f804",
+            "children": []
+          },
+          {
+            "label": "Good Governance",
+            "url": "/about-us/good-governance",
+            "order": 4,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f805",
+            "children": []
+          },
+          {
+            "label": "Institute",
+            "url": "#",
+            "order": 5,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f806",
+            "children": [
+              {
+                "label": "MESCO Education Society",
+                "url": "https://www.mescoeducationsociety.org/",
+                "order": 6,
+                "openInNewTab": true,
+                "type": "custom_link",
+                "pageSlug": "",
+                "_id": "699ef962a4c97a87b787f807",
+                "children": []
+              },
+              {
+                "label": "Angels' Paradise Nursery Schools",
+                "url": "https://www.mescoeducationsociety.org/Pages.aspx?id=34&t=Nursery%20Schools",
+                "order": 7,
+                "openInNewTab": true,
+                "type": "custom_link",
+                "pageSlug": "",
+                "_id": "699ef962a4c97a87b787f808",
+                "children": []
+              },
+              {
+                "label": "Vocational Training Center",
+                "url": "https://www.mescoeducationsociety.org/Pages.aspx?id=34&t=Nursery%20Schools",
+                "order": 8,
+                "openInNewTab": true,
+                "type": "custom_link",
+                "pageSlug": "",
+                "_id": "699ef962a4c97a87b787f809",
+                "children": []
+              },
+              {
+                "label": "ECCE",
+                "url": "https://www.mescoeducationsociety.org/Pages.aspx?id=61&t=ECCE%20Teachers%20Training%20Institute",
+                "order": 9,
+                "openInNewTab": true,
+                "type": "custom_link",
+                "pageSlug": "",
+                "_id": "699ef962a4c97a87b787f80a",
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "Our Works",
+        "url": "#",
+        "order": 10,
+        "openInNewTab": false,
+        "type": "custom_link",
+        "pageSlug": "",
+        "_id": "699ef962a4c97a87b787f80b",
+        "children": [
+          {
+            "label": "Educational Support Programmes",
+            "url": "our-works/educational-support-programmes",
+            "order": 11,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f80c",
+            "children": []
+          },
+          {
+            "label": "Medical Aid",
+            "url": "our-works/medical-aid",
+            "order": 12,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f80d",
+            "children": []
+          },
+          {
+            "label": "Clinics And Dispensaries",
+            "url": "our-works/clinics-and-dispensaries",
+            "order": 13,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f80e",
+            "children": []
+          },
+          {
+            "label": "Relief of Poverty",
+            "url": "our-works/relief-of-poverty",
+            "order": 14,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f80f",
+            "children": []
+          },
+          {
+            "label": "RC Mahim Mun. School Adoption",
+            "url": "/our-works/school-adoption",
+            "order": 15,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f810",
+            "children": []
+          },
+          {
+            "label": "Old Newspaper Units",
+            "url": "/our-works/old-newspaper-units",
+            "order": 16,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f811",
+            "children": []
+          },
+          {
+            "label": "Study Centre",
+            "url": "https://mescotrust.org/studycentre/",
+            "order": 17,
+            "openInNewTab": true,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f812",
+            "children": []
+          }
+        ]
+      },
+      {
+        "label": "Media",
+        "url": "#",
+        "order": 18,
+        "openInNewTab": false,
+        "type": "custom_link",
+        "pageSlug": "",
+        "_id": "699ef962a4c97a87b787f813",
+        "children": [
+          {
+            "label": "In Media",
+            "url": "/media/in-media",
+            "order": 19,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f814",
+            "children": []
+          },
+          {
+            "label": "Image Gallery",
+            "url": "/media/image-gallery",
+            "order": 20,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f815",
+            "children": []
+          },
+          {
+            "label": "Video Gallery",
+            "url": "/media/video-gallery",
+            "order": 21,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f816",
+            "children": []
+          },
+          {
+            "label": "Newsletters",
+            "url": "/media/newsletters",
+            "order": 22,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f817",
+            "children": []
+          },
+          {
+            "label": "Annual Reports",
+            "url": "/media/annual-reports",
+            "order": 23,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f818",
+            "children": []
+          },
+          {
+            "label": "EX Student Directory 2025",
+            "url": "https://mescotrust.org/Ex-Students-Directory-2025.pdf",
+            "order": 24,
+            "openInNewTab": true,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f819",
+            "children": []
+          },
+          {
+            "label": "Success Stories",
+            "url": "/media/success-stories",
+            "order": 25,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f81a",
+            "children": []
+          },
+          {
+            "label": "Donor Testimonials Stories",
+            "url": "/media/donor-testimonials-stories",
+            "order": 26,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f81b",
+            "children": []
+          }
+        ]
+      },
+      {
+        "label": "More",
+        "url": "#",
+        "order": 27,
+        "openInNewTab": false,
+        "type": "custom_link",
+        "pageSlug": "",
+        "_id": "699ef962a4c97a87b787f81c",
+        "children": [
+          {
+            "label": "CSR",
+            "url": "/more/csr",
+            "order": 28,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f81d",
+            "children": []
+          },
+          {
+            "label": "Notices",
+            "url": "/more/notices",
+            "order": 29,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f81e",
+            "children": []
+          },
+          {
+            "label": "Careers",
+            "url": "/more/careers",
+            "order": 30,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f81f",
+            "children": []
+          },
+          {
+            "label": "Contact Us",
+            "url": "/more/contact-us",
+            "order": 31,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "699ef962a4c97a87b787f820",
+            "children": []
+          }
+        ]
+      }
+    ],
+    "locale": "en",
+    "createdAt": "2026-02-25T13:30:10.539Z",
+    "updatedAt": "2026-02-25T13:30:10.539Z",
+    "__v": 0
+  },
+  {
+    "_id": "699ef96ba4c97a87b787f84b",
+    "name": "Primary Menu",
+    "items": [
+      {
+        "label": "About Us",
+        "url": "#",
+        "order": 0,
+        "openInNewTab": false,
+        "type": "custom_link",
+        "pageSlug": "",
+        "_id": "69a58f76daf1bf7f86537fbd",
+        "children": [
+          {
+            "label": "MESCO At Glance",
+            "url": "/about-us/mesco-at-glance",
+            "order": 1,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fbe",
+            "children": []
+          },
+          {
+            "label": "Managing Committee",
+            "url": "/about-us/managing-committee",
+            "order": 2,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fbf",
+            "children": []
+          },
+          {
+            "label": "Our Team",
+            "url": "/about-us/our-team",
+            "order": 3,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fc0",
+            "children": []
+          },
+          {
+            "label": "Good Governance",
+            "url": "/about-us/good-governance",
+            "order": 4,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fc1",
+            "children": []
+          },
+          {
+            "label": "Institute",
+            "url": "#",
+            "order": 5,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fc2",
+            "children": [
+              {
+                "label": "MESCO Education Society",
+                "url": "https://www.mescoeducationsociety.org/",
+                "order": 6,
+                "openInNewTab": true,
+                "type": "custom_link",
+                "pageSlug": "",
+                "_id": "69a58f76daf1bf7f86537fc3",
+                "children": []
+              },
+              {
+                "label": "Angels' Paradise Nursery Schools",
+                "url": "https://www.mescoeducationsociety.org/Pages.aspx?id=34&t=Nursery%20Schools",
+                "order": 7,
+                "openInNewTab": true,
+                "type": "custom_link",
+                "pageSlug": "",
+                "_id": "69a58f76daf1bf7f86537fc4",
+                "children": []
+              },
+              {
+                "label": "Vocational Training Center",
+                "url": "https://www.mescoeducationsociety.org/Pages.aspx?id=34&t=Nursery%20Schools",
+                "order": 8,
+                "openInNewTab": true,
+                "type": "custom_link",
+                "pageSlug": "",
+                "_id": "69a58f76daf1bf7f86537fc5",
+                "children": []
+              },
+              {
+                "label": "ECCE",
+                "url": "https://www.mescoeducationsociety.org/Pages.aspx?id=61&t=ECCE%20Teachers%20Training%20Institute",
+                "order": 9,
+                "openInNewTab": true,
+                "type": "custom_link",
+                "pageSlug": "",
+                "_id": "69a58f76daf1bf7f86537fc6",
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "Our Works",
+        "url": "#",
+        "order": 10,
+        "openInNewTab": false,
+        "type": "custom_link",
+        "pageSlug": "",
+        "_id": "69a58f76daf1bf7f86537fc7",
+        "children": [
+          {
+            "label": "Educational Support Programmes",
+            "url": "our-works/educational-support-programmes",
+            "order": 11,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fc8",
+            "children": []
+          },
+          {
+            "label": "Medical Aid",
+            "url": "our-works/medical-aid",
+            "order": 12,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fc9",
+            "children": []
+          },
+          {
+            "label": "Clinics And Dispensaries",
+            "url": "our-works/clinics-and-dispensaries",
+            "order": 13,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fca",
+            "children": []
+          },
+          {
+            "label": "Relief of Poverty",
+            "url": "our-works/relief-of-poverty",
+            "order": 14,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fcb",
+            "children": []
+          },
+          {
+            "label": "RC Mahim Mun. School Adoption",
+            "url": "/our-works/school-adoption",
+            "order": 15,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fcc",
+            "children": []
+          },
+          {
+            "label": "Old Newspaper Units",
+            "url": "/our-works/old-newspaper-units",
+            "order": 16,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fcd",
+            "children": []
+          },
+          {
+            "label": "Study Centre",
+            "url": "https://mescotrust.org/studycentre/",
+            "order": 17,
+            "openInNewTab": true,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fce",
+            "children": []
+          }
+        ]
+      },
+      {
+        "label": "Media",
+        "url": "#",
+        "order": 18,
+        "openInNewTab": false,
+        "type": "custom_link",
+        "pageSlug": "",
+        "_id": "69a58f76daf1bf7f86537fcf",
+        "children": [
+          {
+            "label": "In Media",
+            "url": "/media/in-media",
+            "order": 19,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fd0",
+            "children": []
+          },
+          {
+            "label": "Image Gallery",
+            "url": "/media/image-gallery",
+            "order": 20,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fd1",
+            "children": []
+          },
+          {
+            "label": "Video Gallery",
+            "url": "/media/video-gallery",
+            "order": 21,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fd2",
+            "children": []
+          },
+          {
+            "label": "Newsletters",
+            "url": "/media/newsletters",
+            "order": 22,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fd3",
+            "children": []
+          },
+          {
+            "label": "Annual Reports",
+            "url": "/media/annual-reports",
+            "order": 23,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fd4",
+            "children": []
+          },
+          {
+            "label": "EX Student Directory 2025",
+            "url": "https://mescotrust.org/Ex-Students-Directory-2025.pdf",
+            "order": 24,
+            "openInNewTab": true,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fd5",
+            "children": []
+          },
+          {
+            "label": "Success Stories",
+            "url": "/media/success-stories",
+            "order": 25,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fd6",
+            "children": []
+          },
+          {
+            "label": "Donor Testimonials Stories",
+            "url": "/media/donor-testimonials-stories",
+            "order": 26,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fd7",
+            "children": []
+          }
+        ]
+      },
+      {
+        "label": "More",
+        "url": "#",
+        "order": 27,
+        "openInNewTab": false,
+        "type": "custom_link",
+        "pageSlug": "",
+        "_id": "69a58f76daf1bf7f86537fd8",
+        "children": [
+          {
+            "label": "CSR",
+            "url": "/more/csr",
+            "order": 28,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fd9",
+            "children": []
+          },
+          {
+            "label": "Notices",
+            "url": "/more/notices",
+            "order": 29,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fda",
+            "children": []
+          },
+          {
+            "label": "Careers",
+            "url": "/more/careers",
+            "order": 30,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fdb",
+            "children": []
+          },
+          {
+            "label": "Contact Us",
+            "url": "/more/contact-us",
+            "order": 31,
+            "openInNewTab": false,
+            "type": "custom_link",
+            "pageSlug": "",
+            "_id": "69a58f76daf1bf7f86537fdc",
+            "children": []
+          }
+        ]
+      }
+    ],
+    "locale": "en",
+    "createdAt": "2026-02-25T13:30:19.848Z",
+    "updatedAt": "2026-03-02T13:24:06.263Z",
+    "__v": 0
+  }
+]

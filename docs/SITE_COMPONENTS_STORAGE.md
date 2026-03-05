@@ -21,3 +21,19 @@ GET `/api/theme` still returns the full theme (from `themeconfigs`) and **merges
 ## Metadata (all site components)
 
 - **sitecomponentmetas**: One doc per site component with `componentId`, `displayName`, `global`, `order`, `position`, `enabled`. Updated via PUT `/api/admin/site-components/[id]`.
+
+## Page content: pages collection only
+
+- **Admin page edit**: When you open a page in PageBuilder (`/admin/pages/[id]`), the page (including `layout` and every block’s `props`) is loaded from the **pages** collection only via `GET /api/admin/pages/[id]`. Save updates the same page document (pages collection).
+- **Frontend**: Page body is loaded from the **pages** collection only. `app/(site)/page.js` and `app/(site)/[slug]/page.js` use `Page.findOne()`, then pass `page.layout` to `ComponentRenderer`. Each block’s content comes from `block.props` on the page document. HomeHero, Marquee, and Subscribe components prefer these page props (`homeHeroSlides`, `marqueeTitle`/`marqueeItems`, `subscribeSubtitle`/`subscribeTitle`, etc.); they only call theme APIs when the block has no such props (e.g. legacy or global usage).
+- **Global shell** (header, footer, global before/after): Still from theme + components collection via `getLayoutData()`.
+
+## PageBuilder palette (dynamic from DB)
+
+- The admin PageBuilder loads its **palette and schema** from **GET /api/admin/components** (components collection). There is no hardcoded core list in code.
+- Run **`npm run seed`** to populate system components (Paragraph, Heading, Section, etc.) so the Add Block palette is complete.
+- Optional Ant Design blocks (Button, Card, Input, …) are still merged when `includeAntdBlocks` is true.
+
+## DB backup
+
+- **`npm run backup-db`** exports `users`, `themeconfigs`, `menus`, `pages`, `components`, `sitecomponentmetas` to **`backup/YYYY-MM-DD_HH-mm-ss/*.json`**. Run before major schema or data changes.

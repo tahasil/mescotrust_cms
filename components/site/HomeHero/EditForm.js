@@ -6,16 +6,51 @@ import { DeleteOutlined, PlusOutlined, ArrowUpOutlined, ArrowDownOutlined } from
 
 /**
  * Edit form for HomeHero — used in page builder drawer or component edit.
+ * When source="page": data comes from block.props (pages collection); save updates layout only, not components collection.
+ * When used on component edit: loads/saves via /api/theme/home-hero (components collection).
  * Exposes update() via ref for drawer header button.
  */
-function HomeHeroEditForm({ onSuccess, onCancel }, ref) {
+function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel }, ref) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [themeColorOptions, setThemeColorOptions] = useState([]);
+  const isPageBlock = source === "page";
 
   useEffect(() => {
     setLoading(true);
+    if (isPageBlock) {
+      // Page block: use block props from pages collection; only fetch theme for color options
+      const data = initialDataProp ?? {};
+      const slides = Array.isArray(data?.homeHeroSlides)
+        ? data.homeHeroSlides.map((s) => ({
+            bgImageUrl: s?.bgImageUrl != null ? String(s.bgImageUrl).trim() : "",
+            title: s?.title != null ? String(s.title).trim() : "",
+            description: s?.description != null ? String(s.description).trim() : "",
+            buttonText: s?.buttonText != null ? String(s.buttonText).trim() : "",
+            buttonLink: s?.buttonLink != null ? String(s.buttonLink).trim() : "",
+            showButton: s?.showButton !== false,
+          }))
+        : [];
+      form.setFieldsValue({
+        homeHeroSlides: slides,
+        homeHeroSliderTitleColorKey: data?.homeHeroSliderTitleColorKey != null ? String(data.homeHeroSliderTitleColorKey).trim() : "",
+        homeHeroSliderDescColorKey: data?.homeHeroSliderDescColorKey != null ? String(data.homeHeroSliderDescColorKey).trim() : "",
+        homeHeroSliderButtonBgColorKey: data?.homeHeroSliderButtonBgColorKey != null ? String(data.homeHeroSliderButtonBgColorKey).trim() : "",
+        homeHeroSliderButtonTextColorKey: data?.homeHeroSliderButtonTextColorKey != null ? String(data.homeHeroSliderButtonTextColorKey).trim() : "",
+      });
+      fetch("/api/theme", { cache: "no-store" })
+        .then((res) => (res.ok ? res.json() : {}))
+        .then((theme) => {
+          const palette = theme?.themePalette || {};
+          const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
+          const names = [...new Set([...Object.keys(palette), ...customColors.map((c) => c?.name).filter(Boolean)])].sort();
+          setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
+        })
+        .catch(() => {})
+        .finally(() => setLoading(false));
+      return;
+    }
     Promise.all([
       fetch("/api/theme/home-hero", { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
       fetch("/api/theme", { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
@@ -23,12 +58,7 @@ function HomeHeroEditForm({ onSuccess, onCancel }, ref) {
       .then(([hero, theme]) => {
         const palette = theme?.themePalette || {};
         const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
-        const names = [
-          ...new Set([
-            ...Object.keys(palette),
-            ...customColors.map((c) => c?.name).filter(Boolean),
-          ]),
-        ].sort();
+        const names = [...new Set([...Object.keys(palette), ...customColors.map((c) => c?.name).filter(Boolean)])].sort();
         setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
 
         const slides = Array.isArray(hero?.homeHeroSlides)
@@ -51,7 +81,7 @@ function HomeHeroEditForm({ onSuccess, onCancel }, ref) {
       })
       .catch(() => message.error("Failed to load Home Hero"))
       .finally(() => setLoading(false));
-  }, [form]);
+  }, [form, isPageBlock, initialDataProp]);
 
   const handleUpdate = () => {
     form.validateFields().then(() => {
@@ -67,19 +97,26 @@ function HomeHeroEditForm({ onSuccess, onCancel }, ref) {
             showButton: s?.showButton !== false,
           }))
         : [];
+      const payload = {
+        homeHeroSlides: slides,
+        homeHeroSliderTitleColorKey: values.homeHeroSliderTitleColorKey != null ? String(values.homeHeroSliderTitleColorKey).trim() : "",
+        homeHeroSliderDescColorKey: values.homeHeroSliderDescColorKey != null ? String(values.homeHeroSliderDescColorKey).trim() : "",
+        homeHeroSliderButtonBgColorKey: values.homeHeroSliderButtonBgColorKey != null ? String(values.homeHeroSliderButtonBgColorKey).trim() : "",
+        homeHeroSliderButtonTextColorKey: values.homeHeroSliderButtonTextColorKey != null ? String(values.homeHeroSliderButtonTextColorKey).trim() : "",
+        homeHeroBackgroundContainer: "full",
+        homeHeroContentContainer: "pageContainer",
+      };
+      if (isPageBlock && onSaveToPage) {
+        onSaveToPage(payload);
+        message.success("Changes will be saved with the page");
+        onSuccess?.();
+        return;
+      }
       setSaving(true);
       fetch("/api/theme/home-hero", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          homeHeroSlides: slides,
-          homeHeroSliderTitleColorKey: values.homeHeroSliderTitleColorKey != null ? String(values.homeHeroSliderTitleColorKey).trim() : "",
-          homeHeroSliderDescColorKey: values.homeHeroSliderDescColorKey != null ? String(values.homeHeroSliderDescColorKey).trim() : "",
-          homeHeroSliderButtonBgColorKey: values.homeHeroSliderButtonBgColorKey != null ? String(values.homeHeroSliderButtonBgColorKey).trim() : "",
-          homeHeroSliderButtonTextColorKey: values.homeHeroSliderButtonTextColorKey != null ? String(values.homeHeroSliderButtonTextColorKey).trim() : "",
-          homeHeroBackgroundContainer: "full",
-          homeHeroContentContainer: "pageContainer",
-        }),
+        body: JSON.stringify(payload),
       })
         .then((res) => {
           if (!res.ok) return res.json().then((d) => Promise.reject(d));

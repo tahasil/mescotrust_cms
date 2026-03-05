@@ -1,0 +1,62 @@
+[
+  {
+    "_id": "69a19d9a10ec029bab77cd4a",
+    "componentId": "Header",
+    "displayName": "Header",
+    "global": true,
+    "order": 1,
+    "position": "before",
+    "createdAt": "2026-02-27T13:35:22.290Z",
+    "updatedAt": "2026-02-27T13:35:22.299Z",
+    "__v": 0,
+    "enabled": true
+  },
+  {
+    "_id": "69a19dc710ec029bab77cd6e",
+    "componentId": "Footer",
+    "displayName": "Footer",
+    "global": true,
+    "order": 1,
+    "position": "after",
+    "createdAt": "2026-02-27T13:36:07.120Z",
+    "updatedAt": "2026-03-02T11:46:24.021Z",
+    "__v": 0,
+    "enabled": true
+  },
+  {
+    "_id": "69a6bd0f4eea59e11f4630f7",
+    "componentId": "HomeHero",
+    "displayName": "Home Hero",
+    "global": false,
+    "order": 0,
+    "position": "before",
+    "enabled": true,
+    "createdAt": "2026-03-03T10:50:55.306Z",
+    "updatedAt": "2026-03-04T03:33:21.485Z",
+    "__v": 0
+  },
+  {
+    "_id": "69a702330669fd915d6020b8",
+    "componentId": "Marquee",
+    "displayName": "Marquee",
+    "global": false,
+    "order": 0,
+    "position": "before",
+    "enabled": true,
+    "createdAt": "2026-03-03T15:45:55.196Z",
+    "updatedAt": "2026-03-03T15:45:55.196Z",
+    "__v": 0
+  },
+  {
+    "_id": "69a80dd2ec15ec6418ed01e6",
+    "componentId": "Subscribe",
+    "displayName": "Subscribe",
+    "global": true,
+    "order": 0,
+    "position": "after",
+    "enabled": true,
+    "createdAt": "2026-03-04T10:47:46.382Z",
+    "updatedAt": "2026-03-04T10:48:10.321Z",
+    "__v": 0
+  }
+]

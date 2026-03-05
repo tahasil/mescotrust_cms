@@ -107,993 +107,7 @@ const CATEGORY_META = {
   antd: { label: "Ant Design", icon: <AppstoreOutlined />, color: "#0170fe" },
 };
 
-const CORE_PAGE_BUILDER_COMPONENTS = [
-  // ── Text ──
-  {
-    _id: "core-Paragraph",
-    name: "Paragraph",
-    displayName: "Paragraph",
-    category: "text",
-    baseComponent: "Paragraph",
-    description: "Rich text paragraph",
-    propsSchema: [
-      { key: "text", type: "richtext", label: "Text" },
-      { key: "color", type: "color", label: "Text color" },
-      {
-        key: "align",
-        type: "select",
-        label: "Alignment",
-        options: ["left", "center", "right"],
-      },
-    ],
-    defaultProps: { text: "<p>Type your paragraph text here...</p>" },
-    active: true,
-  },
-  {
-    _id: "core-Heading",
-    name: "Heading",
-    displayName: "Heading",
-    category: "text",
-    baseComponent: "Heading",
-    description: "Section heading (H1-H6)",
-    propsSchema: [
-      { key: "level", type: "number", label: "Level (1-6)" },
-      { key: "text", type: "text", label: "Text" },
-      {
-        key: "style",
-        type: "select",
-        label: "Style",
-        options: ["default", "underline", "accent", "uppercase", "light"],
-      },
-      { key: "color", type: "color", label: "Text color" },
-      {
-        key: "align",
-        type: "select",
-        label: "Alignment",
-        options: ["left", "center", "right"],
-      },
-    ],
-    defaultProps: { level: 2, text: "Section Heading", style: "default" },
-    active: true,
-  },
-  {
-    _id: "core-List",
-    name: "List",
-    displayName: "List",
-    category: "text",
-    baseComponent: "List",
-    description: "Bulleted or numbered list",
-    propsSchema: [
-      { key: "items", type: "json", label: "Items (JSON array of strings)" },
-      { key: "ordered", type: "boolean", label: "Numbered list" },
-      { key: "color", type: "color", label: "Text color" },
-    ],
-    defaultProps: { items: ["Item 1", "Item 2", "Item 3"], ordered: false },
-    active: true,
-  },
-  {
-    _id: "core-Quote",
-    name: "Quote",
-    displayName: "Quote",
-    category: "text",
-    baseComponent: "Quote",
-    description: "Blockquote with citation",
-    propsSchema: [
-      { key: "text", type: "text", label: "Quote text" },
-      { key: "citation", type: "text", label: "Citation" },
-      { key: "color", type: "color", label: "Text color" },
-    ],
-    defaultProps: { text: "This is a sample quote", citation: "Author" },
-    active: true,
-  },
-  {
-    _id: "core-CodeSnippet",
-    name: "CodeSnippet",
-    displayName: "Code Snippet",
-    category: "text",
-    baseComponent: "CodeSnippet",
-    description: "Formatted code block",
-    propsSchema: [
-      { key: "code", type: "text", label: "Code" },
-      { key: "language", type: "text", label: "Language" },
-    ],
-    defaultProps: { code: "console.log('Hello')", language: "javascript" },
-    active: true,
-  },
-
-  // ── Media ──
-  {
-    _id: "core-Image",
-    name: "Image",
-    displayName: "Image",
-    category: "media",
-    baseComponent: "Image",
-    description: "Single image with alt text",
-    propsSchema: [
-      { key: "src", type: "image", label: "Image URL" },
-      { key: "alt", type: "text", label: "Alt text" },
-    ],
-    defaultProps: { src: "", alt: "" },
-    active: true,
-  },
-  {
-    _id: "core-Gallery",
-    name: "Gallery",
-    displayName: "Gallery",
-    category: "media",
-    baseComponent: "Gallery",
-    description: "Image grid gallery",
-    propsSchema: [
-      { key: "images", type: "json", label: "Images (JSON: [{src, alt}])" },
-      { key: "columns", type: "number", label: "Columns (1-6)" },
-      { key: "gap", type: "number", label: "Gap (px)" },
-    ],
-    defaultProps: { images: [], columns: 3, gap: 8 },
-    active: true,
-  },
-  {
-    _id: "core-Video",
-    name: "Video",
-    displayName: "Video",
-    category: "media",
-    baseComponent: "Video",
-    description: "YouTube/Vimeo/file video",
-    propsSchema: [
-      { key: "url", type: "url", label: "Video URL" },
-      { key: "caption", type: "text", label: "Caption" },
-    ],
-    defaultProps: { url: "", caption: "" },
-    active: true,
-  },
-  {
-    _id: "core-FileDownload",
-    name: "FileDownload",
-    displayName: "File Download",
-    category: "media",
-    baseComponent: "FileDownload",
-    description: "Downloadable file link",
-    propsSchema: [
-      { key: "url", type: "url", label: "File URL" },
-      { key: "label", type: "text", label: "Label" },
-      { key: "description", type: "text", label: "Description" },
-    ],
-    defaultProps: { url: "", label: "Download file", description: "" },
-    active: true,
-  },
-  {
-    _id: "core-Slider",
-    name: "Slider",
-    displayName: "Slider / Carousel",
-    category: "media",
-    baseComponent: "Slider",
-    description: "Image & content carousel",
-    propsSchema: [
-      { key: "slides", type: "json", label: "Slides JSON" },
-      { key: "autoplay", type: "boolean", label: "Autoplay" },
-      { key: "interval", type: "number", label: "Interval (ms)" },
-      { key: "showDots", type: "boolean", label: "Show dots" },
-      { key: "showArrows", type: "boolean", label: "Show arrows" },
-      { key: "height", type: "number", label: "Height (px)" },
-    ],
-    defaultProps: {
-      slides: [{ image: "", heading: "Slide 1", text: "Slide description" }],
-      autoplay: true,
-      interval: 5000,
-      showDots: true,
-      showArrows: true,
-      height: 300,
-    },
-    active: true,
-  },
-  {
-    _id: "core-Embed",
-    name: "Embed",
-    displayName: "Embed",
-    category: "media",
-    baseComponent: "Embed",
-    description: "Embed external content",
-    propsSchema: [
-      { key: "url", type: "url", label: "Embed URL" },
-      { key: "caption", type: "text", label: "Caption" },
-    ],
-    defaultProps: { url: "", caption: "" },
-    active: true,
-  },
-
-  // ── Layout ──
-  {
-    _id: "core-Cover",
-    name: "Cover",
-    displayName: "Cover",
-    category: "layout",
-    baseComponent: "Cover",
-    description: "Background image with overlay",
-    propsSchema: [
-      { key: "src", type: "image", label: "Background image URL" },
-      { key: "alt", type: "text", label: "Alt text" },
-      { key: "heading", type: "text", label: "Heading" },
-      { key: "text", type: "text", label: "Text" },
-      { key: "overlayColor", type: "text", label: "Overlay color" },
-      { key: "minHeight", type: "number", label: "Min height (px)" },
-    ],
-    defaultProps: {
-      src: "",
-      alt: "",
-      heading: "Cover Heading",
-      text: "Cover description",
-      overlayColor: "rgba(0,0,0,0.45)",
-      minHeight: 200,
-    },
-    active: true,
-  },
-  {
-    _id: "core-Hero",
-    name: "Hero",
-    displayName: "Hero Section",
-    category: "layout",
-    baseComponent: "Hero",
-    description: "Full hero with CTA buttons",
-    propsSchema: [
-      { key: "backgroundImage", type: "image", label: "Background image" },
-      { key: "backgroundAlt", type: "text", label: "Alt text" },
-      { key: "heading", type: "text", label: "Heading" },
-      { key: "subheading", type: "text", label: "Subheading" },
-      { key: "buttonLabel", type: "text", label: "Primary button" },
-      { key: "buttonUrl", type: "url", label: "Primary button URL" },
-      {
-        key: "buttonVariant",
-        type: "select",
-        label: "Button style",
-        options: ["solid", "outline"],
-      },
-      { key: "secondaryButtonLabel", type: "text", label: "Secondary button" },
-      { key: "secondaryButtonUrl", type: "url", label: "Secondary URL" },
-      {
-        key: "align",
-        type: "select",
-        label: "Alignment",
-        options: ["left", "center", "right"],
-      },
-      { key: "minHeight", type: "number", label: "Min height (px)" },
-      { key: "overlayColor", type: "text", label: "Overlay color" },
-    ],
-    defaultProps: {
-      backgroundImage: "",
-      heading: "Your headline here",
-      subheading: "Supporting text goes here",
-      buttonLabel: "Get started",
-      buttonUrl: "#",
-      buttonVariant: "solid",
-      align: "center",
-      minHeight: 350,
-      overlayColor: "rgba(0,0,0,0.5)",
-    },
-    active: true,
-  },
-  {
-    _id: "core-Buttons",
-    name: "Buttons",
-    displayName: "Buttons",
-    category: "layout",
-    baseComponent: "Buttons",
-    description: "Action buttons row",
-    propsSchema: [{ key: "buttons", type: "json", label: "Buttons JSON" }],
-    defaultProps: {
-      buttons: [
-        { label: "Primary", url: "#", variant: "solid" },
-        { label: "Secondary", url: "#", variant: "outline" },
-      ],
-    },
-    active: true,
-  },
-  {
-    _id: "core-Spacer",
-    name: "Spacer",
-    displayName: "Spacer",
-    category: "layout",
-    baseComponent: "Spacer",
-    description: "Vertical space or divider",
-    propsSchema: [
-      { key: "height", type: "number", label: "Height (px)" },
-      { key: "showDivider", type: "boolean", label: "Show divider line" },
-    ],
-    defaultProps: { height: 40, showDivider: false },
-    active: true,
-  },
-  {
-    _id: "core-Columns",
-    name: "Columns",
-    displayName: "Columns",
-    category: "layout",
-    baseComponent: "Columns",
-    description: "Multi-column layout",
-    propsSchema: [
-      { key: "columns", type: "number", label: "Columns (1-4)" },
-      { key: "gap", type: "number", label: "Gap (px)" },
-      { key: "content", type: "json", label: "Content JSON" },
-    ],
-    defaultProps: {
-      columns: 2,
-      gap: 24,
-      content: [{ text: "Column 1" }, { text: "Column 2" }],
-    },
-    active: true,
-  },
-  {
-    _id: "core-Divider",
-    name: "Divider",
-    displayName: "Divider",
-    category: "layout",
-    baseComponent: "Divider",
-    description: "Horizontal rule with optional text",
-    propsSchema: [
-      {
-        key: "style",
-        type: "select",
-        label: "Style",
-        options: ["solid", "dashed", "dotted"],
-      },
-      { key: "color", type: "text", label: "Color" },
-      { key: "thickness", type: "number", label: "Thickness (px)" },
-      { key: "width", type: "text", label: "Width" },
-      { key: "spacing", type: "number", label: "Spacing (px)" },
-      { key: "text", type: "text", label: "Center text" },
-    ],
-    defaultProps: {
-      style: "solid",
-      color: "#e8e8e8",
-      thickness: 1,
-      width: "100%",
-      spacing: 24,
-      text: "",
-    },
-    active: true,
-  },
-  {
-    _id: "core-Header",
-    name: "Header",
-    displayName: "Header / Navbar",
-    category: "layout",
-    baseComponent: "Header",
-    description: "Site header with logo, nav links and action buttons",
-    propsSchema: [
-      {
-        key: "sectionsOrder",
-        type: "select",
-        label: "Section order",
-        options: [
-          { value: "logo,nav,buttons", label: "Logo → Nav → Buttons" },
-          { value: "logo,buttons,nav", label: "Logo → Buttons → Nav" },
-          { value: "nav,logo,buttons", label: "Nav → Logo → Buttons" },
-          { value: "nav,buttons,logo", label: "Nav → Buttons → Logo" },
-          { value: "buttons,logo,nav", label: "Buttons → Logo → Nav" },
-          { value: "buttons,nav,logo", label: "Buttons → Nav → Logo" },
-        ],
-      },
-      { key: "logoImage", type: "image", label: "Logo image URL" },
-      { key: "logoTitle", type: "text", label: "Logo title" },
-      { key: "logoTagline", type: "text", label: "Logo tagline" },
-      { key: "logoUrl", type: "url", label: "Logo link URL" },
-      { key: "logoColor", type: "color", label: "Logo text color" },
-      { key: "logoFontSize", type: "number", label: "Logo font size (px)" },
-      {
-        key: "taglineFontSize",
-        type: "number",
-        label: "Tagline font size (px)",
-      },
-      { key: "logoImageWidth", type: "number", label: "Logo width (px)" },
-      { key: "logoImageHeight", type: "number", label: "Logo height (px)" },
-      {
-        key: "navItems",
-        type: "json",
-        label: "Nav items (from menu or add below)",
-      },
-      { key: "actionButtons", type: "json", label: "Action buttons" },
-      { key: "headerBackground", type: "color", label: "Header background" },
-      {
-        key: "headerBorderBottom",
-        type: "text",
-        label: "Header border bottom (e.g. 1px solid #eee)",
-      },
-      {
-        key: "headerShadow",
-        type: "text",
-        label: "Header shadow (e.g. 0 2px 8px rgba(0,0,0,0.08))",
-      },
-      { key: "navColor", type: "color", label: "Nav link color" },
-      { key: "navFontSize", type: "number", label: "Nav font size (px)" },
-      {
-        key: "navFontWeight",
-        type: "select",
-        label: "Nav font weight",
-        options: [
-          { value: "400", label: "400 (Normal)" },
-          { value: "500", label: "500 (Medium)" },
-          { value: "600", label: "600 (Semi-bold)" },
-          { value: "700", label: "700 (Bold)" },
-        ],
-      },
-      { key: "navHoverColor", type: "color", label: "Nav hover color" },
-      { key: "navItemBackground", type: "color", label: "Nav item background" },
-      {
-        key: "navItemHoverBackground",
-        type: "color",
-        label: "Nav item hover background",
-      },
-      {
-        key: "primaryButtonBg",
-        type: "color",
-        label: "Primary button background",
-      },
-      { key: "primaryButtonText", type: "color", label: "Primary button text" },
-      {
-        key: "secondaryButtonBg",
-        type: "color",
-        label: "Secondary button background",
-      },
-      {
-        key: "secondaryButtonText",
-        type: "color",
-        label: "Secondary button text",
-      },
-      { key: "paddingY", type: "number", label: "Vertical padding (px)" },
-      { key: "paddingX", type: "number", label: "Horizontal padding (px)" },
-    ],
-    defaultProps: {
-      sectionsOrder: "logo,nav,buttons",
-      logoTitle: "MESCO®",
-      logoTagline: "A TRUST SINCE 1982",
-      logoUrl: "/",
-      logoImageWidth: 120,
-      logoImageHeight: 48,
-      navItems: [
-        { label: "About", url: "#", hasDropdown: true },
-        { label: "Our Works", url: "#", hasDropdown: true },
-        { label: "Media", url: "#", hasDropdown: true },
-        { label: "More", url: "#", hasDropdown: true },
-      ],
-      actionButtons: [
-        { label: "Volunteer", url: "#", variant: "secondary", icon: "person" },
-        { label: "Donate Now", url: "#", variant: "primary", icon: "heart" },
-      ],
-      headerBackground: "#faf8f5",
-      navColor: "#333",
-      primaryButtonBg: "#a52a2a",
-      primaryButtonText: "#fff",
-      secondaryButtonBg: "#f4c4c4",
-      secondaryButtonText: "#8b0000",
-      paddingY: 16,
-      paddingX: 0,
-    },
-    active: true,
-  },
-  {
-    _id: "core-Footer",
-    name: "Footer",
-    displayName: "Footer",
-    category: "layout",
-    baseComponent: "Footer",
-    description: "Site footer with logo, link columns, social links, address",
-    propsSchema: [
-      { key: "logoImage", type: "image", label: "Logo image URL" },
-      { key: "logoTitle", type: "text", label: "Logo title" },
-      { key: "logoTagline", type: "text", label: "Logo tagline" },
-      { key: "logoUrl", type: "url", label: "Logo link URL" },
-      {
-        key: "columns",
-        type: "json",
-        label: "Link columns (JSON: [{title, links:[{label,url}]})",
-      },
-      {
-        key: "socialLinks",
-        type: "json",
-        label: "Social links (JSON: [{platform, url}])",
-      },
-      { key: "address", type: "text", label: "Address" },
-      { key: "phone", type: "text", label: "Phone" },
-      { key: "email", type: "text", label: "Email" },
-      { key: "copyrightText", type: "text", label: "Copyright text" },
-      { key: "backgroundColor", type: "color", label: "Background color" },
-      { key: "textColor", type: "color", label: "Text color" },
-      { key: "linkColor", type: "color", label: "Link color" },
-      { key: "paddingY", type: "number", label: "Vertical padding (px)" },
-      { key: "paddingX", type: "number", label: "Horizontal padding (px)" },
-    ],
-    defaultProps: {
-      logoTitle: "MESCO",
-      logoTagline: "A TRUST SINCE 1960",
-      columns: [],
-      socialLinks: [],
-      address: "",
-      phone: "",
-      email: "",
-      copyrightText: "",
-      backgroundColor: "#1a1a1a",
-      textColor: "#ccc",
-      linkColor: "#fff",
-      paddingY: 48,
-      paddingX: 24,
-    },
-    active: true,
-  },
-  {
-    _id: "core-Section",
-    name: "Section",
-    displayName: "Section (container)",
-    category: "layout",
-    baseComponent: "Section",
-    description: "Container block – add text, images, icons inside",
-    propsSchema: [
-      { key: "backgroundColor", type: "color", label: "Background color" },
-      { key: "padding", type: "text", label: "Padding (e.g. 2rem 1rem)" },
-    ],
-    defaultProps: { layout: [], backgroundColor: "", padding: "" },
-    active: true,
-  },
-
-  // ── Content ──
-  {
-    _id: "core-CallToAction",
-    name: "CallToAction",
-    displayName: "Call to Action",
-    category: "content",
-    baseComponent: "CallToAction",
-    description: "CTA with heading & button",
-    propsSchema: [
-      { key: "heading", type: "text", label: "Heading" },
-      { key: "text", type: "text", label: "Text" },
-      { key: "buttonLabel", type: "text", label: "Button label" },
-      { key: "buttonUrl", type: "url", label: "Button URL" },
-      {
-        key: "buttonVariant",
-        type: "select",
-        label: "Button style",
-        options: ["solid", "outline"],
-      },
-      {
-        key: "align",
-        type: "select",
-        label: "Alignment",
-        options: ["left", "center", "right"],
-      },
-      { key: "color", type: "color", label: "Heading color" },
-      { key: "backgroundColor", type: "color", label: "Background color" },
-    ],
-    defaultProps: {
-      heading: "Ready to get started?",
-      text: "Join thousands of users today.",
-      buttonLabel: "Learn more",
-      buttonUrl: "#",
-      buttonVariant: "solid",
-      align: "center",
-    },
-    active: true,
-  },
-  {
-    _id: "core-Card",
-    name: "Card",
-    displayName: "Card",
-    category: "content",
-    baseComponent: "Card",
-    description: "Content card with image & link",
-    propsSchema: [
-      { key: "image", type: "image", label: "Image URL" },
-      { key: "imageAlt", type: "text", label: "Image alt" },
-      { key: "title", type: "text", label: "Title" },
-      { key: "description", type: "text", label: "Description" },
-      { key: "linkUrl", type: "url", label: "Link URL" },
-      { key: "linkLabel", type: "text", label: "Link label" },
-      {
-        key: "variant",
-        type: "select",
-        label: "Style",
-        options: ["default", "bordered", "shadow"],
-      },
-    ],
-    defaultProps: {
-      image: "",
-      title: "Card Title",
-      description: "Card description text goes here.",
-      linkUrl: "",
-      linkLabel: "Read more",
-      variant: "shadow",
-    },
-    active: true,
-  },
-  {
-    _id: "core-CardGrid",
-    name: "CardGrid",
-    displayName: "Card Grid",
-    category: "content",
-    baseComponent: "CardGrid",
-    description: "Grid of content cards",
-    propsSchema: [
-      { key: "cards", type: "json", label: "Cards JSON" },
-      { key: "columns", type: "number", label: "Columns (1-4)" },
-      { key: "gap", type: "number", label: "Gap (px)" },
-    ],
-    defaultProps: {
-      cards: [
-        { title: "Card 1", description: "Description 1" },
-        { title: "Card 2", description: "Description 2" },
-        { title: "Card 3", description: "Description 3" },
-      ],
-      columns: 3,
-      gap: 24,
-    },
-    active: true,
-  },
-  {
-    _id: "core-FeatureGrid",
-    name: "FeatureGrid",
-    displayName: "Feature Grid",
-    category: "content",
-    baseComponent: "FeatureGrid",
-    description: "Feature boxes with icons",
-    propsSchema: [
-      { key: "features", type: "json", label: "Features JSON" },
-      { key: "columns", type: "number", label: "Columns (1-4)" },
-      {
-        key: "variant",
-        type: "select",
-        label: "Variant",
-        options: ["default", "cards"],
-      },
-    ],
-    defaultProps: {
-      features: [
-        { icon: "star", title: "Feature 1", description: "Description" },
-        { icon: "heart", title: "Feature 2", description: "Description" },
-        { icon: "rocket", title: "Feature 3", description: "Description" },
-      ],
-      columns: 3,
-      variant: "default",
-    },
-    active: true,
-  },
-  {
-    _id: "core-IconBox",
-    name: "IconBox",
-    displayName: "Icon Box",
-    category: "content",
-    baseComponent: "IconBox",
-    description: "Feature box with icon",
-    propsSchema: [
-      { key: "icon", type: "text", label: "Icon name" },
-      { key: "title", type: "text", label: "Title" },
-      { key: "description", type: "text", label: "Description" },
-      {
-        key: "align",
-        type: "select",
-        label: "Align",
-        options: ["left", "center", "right"],
-      },
-      { key: "iconSize", type: "number", label: "Icon size (px)" },
-      {
-        key: "variant",
-        type: "select",
-        label: "Variant",
-        options: ["default", "bordered", "filled"],
-      },
-    ],
-    defaultProps: {
-      icon: "star",
-      title: "Feature Title",
-      description: "Description text",
-      align: "center",
-      iconSize: 40,
-      variant: "filled",
-    },
-    active: true,
-  },
-  {
-    _id: "core-Testimonial",
-    name: "Testimonial",
-    displayName: "Testimonials",
-    category: "content",
-    baseComponent: "Testimonial",
-    description: "Customer quotes",
-    propsSchema: [
-      { key: "items", type: "json", label: "Items JSON" },
-      { key: "columns", type: "number", label: "Columns (1-3)" },
-    ],
-    defaultProps: {
-      items: [
-        {
-          quote: "Amazing product! Highly recommend.",
-          name: "Jane Doe",
-          role: "CEO",
-        },
-      ],
-      columns: 1,
-    },
-    active: true,
-  },
-  {
-    _id: "core-Team",
-    name: "Team",
-    displayName: "Team Members",
-    category: "content",
-    baseComponent: "Team",
-    description: "Team profile grid",
-    propsSchema: [
-      { key: "members", type: "json", label: "Members JSON" },
-      { key: "columns", type: "number", label: "Columns (1-4)" },
-    ],
-    defaultProps: {
-      members: [{ name: "Team Member", role: "Position", bio: "Short bio" }],
-      columns: 3,
-    },
-    active: true,
-  },
-  {
-    _id: "core-Alert",
-    name: "Alert",
-    displayName: "Alert / Notice",
-    category: "content",
-    baseComponent: "Alert",
-    description: "Info/warning/error banner",
-    propsSchema: [
-      {
-        key: "type",
-        type: "select",
-        label: "Type",
-        options: ["info", "success", "warning", "error"],
-      },
-      { key: "title", type: "text", label: "Title" },
-      { key: "message", type: "text", label: "Message" },
-    ],
-    defaultProps: {
-      type: "info",
-      title: "Notice",
-      message: "This is an informational message.",
-    },
-    active: true,
-  },
-
-  // ── Interactive ──
-  {
-    _id: "core-Accordion",
-    name: "Accordion",
-    displayName: "Accordion / FAQ",
-    category: "interactive",
-    baseComponent: "Accordion",
-    description: "Collapsible sections",
-    propsSchema: [
-      { key: "items", type: "json", label: "Items JSON" },
-      { key: "allowMultiple", type: "boolean", label: "Allow multiple open" },
-    ],
-    defaultProps: {
-      items: [
-        { title: "Question 1?", content: "Answer to question 1." },
-        { title: "Question 2?", content: "Answer to question 2." },
-      ],
-      allowMultiple: false,
-    },
-    active: true,
-  },
-  {
-    _id: "core-Tabs",
-    name: "Tabs",
-    displayName: "Tabs",
-    category: "interactive",
-    baseComponent: "Tabs",
-    description: "Tabbed content panels",
-    propsSchema: [
-      { key: "tabs", type: "json", label: "Tabs JSON" },
-      { key: "defaultTab", type: "number", label: "Default tab" },
-    ],
-    defaultProps: {
-      tabs: [
-        { label: "Tab 1", content: "Content for tab 1" },
-        { label: "Tab 2", content: "Content for tab 2" },
-      ],
-      defaultTab: 0,
-    },
-    active: true,
-  },
-  {
-    _id: "core-Modal",
-    name: "Modal",
-    displayName: "Modal / Popup",
-    category: "interactive",
-    baseComponent: "Modal",
-    description: "Button that opens popup",
-    propsSchema: [
-      { key: "triggerLabel", type: "text", label: "Button label" },
-      {
-        key: "triggerVariant",
-        type: "select",
-        label: "Button style",
-        options: ["solid", "outline"],
-      },
-      { key: "title", type: "text", label: "Modal title" },
-      { key: "content", type: "text", label: "Modal content" },
-      {
-        key: "size",
-        type: "select",
-        label: "Size",
-        options: ["small", "medium", "large"],
-      },
-    ],
-    defaultProps: {
-      triggerLabel: "Open Dialog",
-      triggerVariant: "solid",
-      title: "Dialog Title",
-      content: "Dialog content here...",
-      size: "medium",
-    },
-    active: true,
-  },
-
-  // ── Data Display ──
-  {
-    _id: "core-Stats",
-    name: "Stats",
-    displayName: "Statistics",
-    category: "data",
-    baseComponent: "Stats",
-    description: "Number stats / counters",
-    propsSchema: [
-      { key: "items", type: "json", label: "Items JSON" },
-      { key: "columns", type: "number", label: "Columns (1-6)" },
-      { key: "background", type: "text", label: "Background color" },
-    ],
-    defaultProps: {
-      items: [
-        { value: "100", label: "Users", suffix: "+" },
-        { value: "50", label: "Projects" },
-        { value: "99", label: "Uptime", suffix: "%" },
-      ],
-      columns: 3,
-      background: "#f8f9fa",
-    },
-    active: true,
-  },
-  {
-    _id: "core-Pricing",
-    name: "Pricing",
-    displayName: "Pricing Table",
-    category: "data",
-    baseComponent: "Pricing",
-    description: "Pricing plan comparison",
-    propsSchema: [
-      { key: "plans", type: "json", label: "Plans JSON" },
-      { key: "columns", type: "number", label: "Columns (1-4)" },
-    ],
-    defaultProps: {
-      plans: [
-        {
-          name: "Basic",
-          price: "$9",
-          period: "mo",
-          features: ["Feature 1", "Feature 2"],
-          buttonLabel: "Choose",
-          buttonUrl: "#",
-        },
-        {
-          name: "Pro",
-          price: "$29",
-          period: "mo",
-          features: ["Feature 1", "Feature 2", "Feature 3"],
-          buttonLabel: "Choose",
-          buttonUrl: "#",
-          highlighted: true,
-          badge: "Popular",
-        },
-      ],
-      columns: 2,
-    },
-    active: true,
-  },
-  {
-    _id: "core-Table",
-    name: "Table",
-    displayName: "Table",
-    category: "data",
-    baseComponent: "Table",
-    description: "Data table with headers",
-    propsSchema: [
-      { key: "headers", type: "json", label: "Headers JSON" },
-      { key: "rows", type: "json", label: "Rows JSON" },
-      { key: "striped", type: "boolean", label: "Striped rows" },
-      { key: "bordered", type: "boolean", label: "Bordered" },
-    ],
-    defaultProps: {
-      headers: ["Name", "Role", "Status"],
-      rows: [
-        ["Alice", "Designer", "Active"],
-        ["Bob", "Developer", "Active"],
-      ],
-      striped: true,
-      bordered: true,
-    },
-    active: true,
-  },
-  {
-    _id: "core-Timeline",
-    name: "Timeline",
-    displayName: "Timeline",
-    category: "data",
-    baseComponent: "Timeline",
-    description: "Chronological steps",
-    propsSchema: [
-      { key: "items", type: "json", label: "Items JSON" },
-      {
-        key: "variant",
-        type: "select",
-        label: "Variant",
-        options: ["left", "alternating"],
-      },
-    ],
-    defaultProps: {
-      items: [
-        { date: "2024", title: "Event 1", description: "Description" },
-        { date: "2025", title: "Event 2", description: "Description" },
-      ],
-      variant: "left",
-    },
-    active: true,
-  },
-
-  // ── Navigation ──
-  {
-    _id: "core-Breadcrumbs",
-    name: "Breadcrumbs",
-    displayName: "Breadcrumbs",
-    category: "navigation",
-    baseComponent: "Breadcrumbs",
-    description: "Navigation trail",
-    propsSchema: [
-      { key: "items", type: "json", label: "Items JSON" },
-      { key: "separator", type: "text", label: "Separator" },
-    ],
-    defaultProps: {
-      items: [
-        { label: "Home", url: "/" },
-        { label: "Page", url: "#" },
-      ],
-      separator: "/",
-    },
-    active: true,
-  },
-  {
-    _id: "core-SocialLinks",
-    name: "SocialLinks",
-    displayName: "Social Links",
-    category: "navigation",
-    baseComponent: "SocialLinks",
-    description: "Social media icons",
-    propsSchema: [
-      { key: "links", type: "json", label: "Links JSON" },
-      { key: "size", type: "number", label: "Icon size" },
-      {
-        key: "variant",
-        type: "select",
-        label: "Variant",
-        options: ["filled", "outline", "rounded"],
-      },
-      {
-        key: "align",
-        type: "select",
-        label: "Align",
-        options: ["left", "center", "right"],
-      },
-    ],
-    defaultProps: {
-      links: [
-        { platform: "facebook", url: "#" },
-        { platform: "twitter", url: "#" },
-        { platform: "instagram", url: "#" },
-      ],
-      size: 40,
-      variant: "filled",
-      align: "center",
-    },
-    active: true,
-  },
-];
-
+/** Palette + schema from API (GET /api/admin/components). Seed system components via npm run seed. */
 const BLOCK_ICON_MAP = {
   Paragraph: <FontSizeOutlined />,
   Heading: <FontSizeOutlined />,
@@ -2023,6 +1037,7 @@ function SortableVisualBlock({
   onDuplicate,
   onRemove,
   onElementClick,
+  paletteComponents = [],
 }) {
   const {
     attributes,
@@ -2033,7 +1048,7 @@ function SortableVisualBlock({
     isDragging,
   } = useSortable({ id: block.instanceId });
 
-  const comp = CORE_PAGE_BUILDER_COMPONENTS.find(
+  const comp = paletteComponents.find(
     (c) => c.baseComponent === block.baseComponent,
   );
   const catKey = comp?.category || "content";
@@ -2347,7 +1362,8 @@ function EmptyCanvasDropZone({ onAdd }) {
         image={Empty.PRESENTED_IMAGE_SIMPLE}
         description={
           <span style={{ color: "#999" }}>
-            Drag components here or click <strong>Add Component</strong> to start
+            Drag components here or click <strong>Add Component</strong> to
+            start
           </span>
         }
       >
@@ -2371,6 +1387,7 @@ function LayersPanel({
   onMoveUp,
   onMoveDown,
   onClose,
+  paletteComponents = [],
 }) {
   return (
     <div
@@ -2419,7 +1436,7 @@ function LayersPanel({
           </div>
         ) : (
           sorted.map((block, index) => {
-            const comp = CORE_PAGE_BUILDER_COMPONENTS.find(
+            const comp = paletteComponents.find(
               (c) => c.baseComponent === block.baseComponent,
             );
             const catKey = comp?.category || "content";
@@ -2638,6 +1655,13 @@ export default function PageBuilder({
       .catch(() => setComponents([]));
   }, [includeAntdBlocks]);
 
+  /** Single source for palette + schema: DB components + optional Ant Design blocks. */
+  const fullPalette = useMemo(
+    () =>
+      includeAntdBlocks ? [...components, ...ANT_DESIGN_BLOCKS] : components,
+    [components, includeAntdBlocks],
+  );
+
   useEffect(() => {
     fetch("/api/theme")
       .then((res) => (res.ok ? res.json() : null))
@@ -2694,7 +1718,10 @@ export default function PageBuilder({
   /** Site components filtered by enabled + search (for Add Component drawer). Header/Footer always shown. */
   const filteredSiteComponents = useMemo(() => {
     const enabledOnly = siteComponentsList.filter(
-      (c) => c.enabled !== false || c.componentId === "Header" || c.componentId === "Footer"
+      (c) =>
+        c.enabled !== false ||
+        c.componentId === "Header" ||
+        c.componentId === "Footer",
     );
     const q = searchQuery.toLowerCase().trim();
     if (!q) return enabledOnly;
@@ -2936,11 +1963,8 @@ export default function PageBuilder({
   };
 
   const getPropsFields = (baseComponent) => {
-    const comp = components.find((c) => c.baseComponent === baseComponent);
-    const core = CORE_PAGE_BUILDER_COMPONENTS.find(
-      (c) => c.baseComponent === baseComponent,
-    );
-    const raw = comp?.propsSchema ?? core?.propsSchema ?? [];
+    const comp = fullPalette.find((c) => c.baseComponent === baseComponent);
+    const raw = comp?.propsSchema ?? [];
     if (raw.length === 0)
       return (
         <Form.Item name="text" label="Content">
@@ -2954,11 +1978,8 @@ export default function PageBuilder({
   const getPropsFieldsForElement = (baseComponent, elementKey) => {
     const keys = BLOCK_ELEMENT_FIELDS[baseComponent]?.[elementKey]?.fields;
     if (!keys?.length) return null;
-    const comp = components.find((c) => c.baseComponent === baseComponent);
-    const core = CORE_PAGE_BUILDER_COMPONENTS.find(
-      (c) => c.baseComponent === baseComponent,
-    );
-    const raw = comp?.propsSchema ?? core?.propsSchema ?? [];
+    const comp = fullPalette.find((c) => c.baseComponent === baseComponent);
+    const raw = comp?.propsSchema ?? [];
     const schema = enrichSchema(baseComponent, raw);
     const byKey = Object.fromEntries(schema.map((f) => [f.key, f]));
     const fields = keys.map((k) => byKey[k]).filter(Boolean);
@@ -3207,6 +2228,7 @@ export default function PageBuilder({
                 onMoveUp={handleMoveUp}
                 onMoveDown={handleMoveDown}
                 onClose={() => setLayersPanelOpen(false)}
+                paletteComponents={fullPalette}
               />
             )}
             <div
@@ -3277,6 +2299,7 @@ export default function PageBuilder({
                               );
                               if (idx !== -1) openEditElement(idx, elementKey);
                             }}
+                            paletteComponents={fullPalette}
                           />
                         </div>
                       ))}
@@ -3338,11 +2361,22 @@ export default function PageBuilder({
           </div>
           {filteredSiteComponents.length === 0 ? (
             <Empty
-              description={siteComponentsList.length === 0 ? "No components yet. Add components under Admin → Components." : "No components match your search"}
+              description={
+                siteComponentsList.length === 0
+                  ? "No components yet. Add components under Admin → Components."
+                  : "No components match your search"
+              }
               style={{ marginTop: 40 }}
             />
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 12 }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 4,
+                marginTop: 12,
+              }}
+            >
               {filteredSiteComponents.map((item) => {
                 const comp = {
                   _id: item.componentId,
@@ -3398,7 +2432,7 @@ export default function PageBuilder({
                 <span>
                   {EDITABLE_SITE_COMPONENTS.includes(editingBlock.baseComponent)
                     ? editingBlock.baseComponent
-                    : CORE_PAGE_BUILDER_COMPONENTS.find(
+                    : fullPalette.find(
                         (c) => c.baseComponent === editingBlock?.baseComponent,
                       )?.displayName || editingBlock?.baseComponent}
                 </span>
@@ -3416,7 +2450,15 @@ export default function PageBuilder({
           }}
           width={520}
           extra={
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", width: "100%" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                flexWrap: "wrap",
+                width: "100%",
+              }}
+            >
               {editingElement !== null && (
                 <Button onClick={() => setEditingElement(null)}>
                   ← Whole block
@@ -3427,7 +2469,12 @@ export default function PageBuilder({
                   ← Back
                 </Button>
               )}
-              {!(editingBlock && editingInnerBlock === null && editingElement === null && EDITABLE_SITE_COMPONENTS.includes(editingBlock.baseComponent)) && (
+              {!(
+                editingBlock &&
+                editingInnerBlock === null &&
+                editingElement === null &&
+                EDITABLE_SITE_COMPONENTS.includes(editingBlock.baseComponent)
+              ) && (
                 <>
                   <Button
                     onClick={() => {
@@ -3449,18 +2496,23 @@ export default function PageBuilder({
                   </Button>
                 </>
               )}
-              {editingBlock && editingInnerBlock === null && editingElement === null && EDITABLE_SITE_COMPONENTS.includes(editingBlock.baseComponent) && (
-                <>
-                  <span style={{ flex: 1, minWidth: 8 }} />
-                  <Button
-                    type="primary"
-                    icon={<CheckOutlined />}
-                    onClick={() => siteEditFormRef.current?.update?.()}
-                  >
-                    Update
-                  </Button>
-                </>
-              )}
+              {editingBlock &&
+                editingInnerBlock === null &&
+                editingElement === null &&
+                EDITABLE_SITE_COMPONENTS.includes(
+                  editingBlock.baseComponent,
+                ) && (
+                  <>
+                    <span style={{ flex: 1, minWidth: 8 }} />
+                    <Button
+                      type="primary"
+                      icon={<CheckOutlined />}
+                      onClick={() => siteEditFormRef.current?.update?.()}
+                    >
+                      Update
+                    </Button>
+                  </>
+                )}
             </div>
           }
         >
@@ -3470,17 +2522,39 @@ export default function PageBuilder({
               editingBlock &&
               EDITABLE_SITE_COMPONENTS.includes(editingBlock.baseComponent) &&
               (() => {
-                const EditFormComp = EDITABLE_SITE_EDIT_FORMS[editingBlock.baseComponent];
+                const EditFormComp =
+                  EDITABLE_SITE_EDIT_FORMS[editingBlock.baseComponent];
                 if (!EditFormComp) return null;
+                const isPageContext = !componentBase;
+                const handleSaveToPage = (payload) => {
+                  if (editingIndex == null) return;
+                  const block = sorted[editingIndex];
+                  if (!block) return;
+                  const newProps = { ...(block.props || {}), ...payload };
+                  const newLayout = blocks.map((b) =>
+                    b.instanceId === block.instanceId
+                      ? { ...b, props: newProps }
+                      : b,
+                  );
+                  triggerChange(newLayout);
+                };
                 return (
                   <EditFormComp
                     ref={siteEditFormRef}
+                    source={isPageContext ? "page" : undefined}
+                    initialData={
+                      isPageContext ? editingBlock?.props : undefined
+                    }
+                    onSaveToPage={isPageContext ? handleSaveToPage : undefined}
                     onSuccess={() => {
                       setDrawerOpen(false);
                       setEditingIndex(null);
                       setEditingInnerBlock(null);
                       setEditingElement(null);
-                      fetch("/api/theme").then((r) => (r.ok ? r.json() : null)).then(setTheme);
+                      if (!isPageContext)
+                        fetch("/api/theme")
+                          .then((r) => (r.ok ? r.json() : null))
+                          .then(setTheme);
                     }}
                     onCancel={() => {
                       setDrawerOpen(false);
@@ -3552,7 +2626,7 @@ export default function PageBuilder({
                             ? editingBlock.props.layout
                             : []
                           ).map((inner, idx) => {
-                            const comp = CORE_PAGE_BUILDER_COMPONENTS.find(
+                            const comp = fullPalette.find(
                               (c) => c.baseComponent === inner.baseComponent,
                             );
                             const displayName =
@@ -3624,16 +2698,13 @@ export default function PageBuilder({
               editingBlock.baseComponent !== "Section" &&
               (editingBlock.baseComponent === "Header" ? (
                 (() => {
-                  const comp = components.find(
-                    (c) => c.baseComponent === "Header",
-                  );
-                  const core = CORE_PAGE_BUILDER_COMPONENTS.find(
+                  const comp = fullPalette.find(
                     (c) => c.baseComponent === "Header",
                   );
                   const raw = [
                     ...(Array.isArray(comp?.propsSchema)
                       ? comp.propsSchema
-                      : (core?.propsSchema ?? [])),
+                      : []),
                     ...NAVBAR_SCHEMA,
                     ...LOGO_RESPONSIVE_SCHEMA,
                     ...MENU_SCHEMA,
@@ -3722,8 +2793,7 @@ export default function PageBuilder({
                     ]}
                   />
                 </>
-              )
-            )}
+              ))}
           </Form>
         </Drawer>
       </>

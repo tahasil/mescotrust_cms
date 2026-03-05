@@ -63,31 +63,34 @@ const defaultImages = [
 
 /**
  * Site component: Marquee — CSR Partners / Awards & Recognition scrolling strip.
- * Title and items from props (admin preview) or from /api/theme/marquee (components collection).
- * Editable via MarqueeEditForm in page builder or component edit.
+ * Data source: page block props (marqueeTitle, marqueeItems from pages collection) first, else theme API (components collection).
  */
 export default function Marquee(props) {
   const [data, setData] = useState(null);
-  const fromProps =
+  const fromPage =
+    props?.marqueeTitle != null ||
+    (Array.isArray(props?.marqueeItems) && props.marqueeItems.length > 0) ||
     props?.title != null ||
     (Array.isArray(props?.images) && props.images.length > 0);
 
   useEffect(() => {
-    if (fromProps) return;
+    if (fromPage) return;
     fetchMarquee().then(setData);
-  }, [fromProps]);
+  }, [fromPage]);
 
   const title =
+    (props?.marqueeTitle != null && String(props.marqueeTitle).trim() !== "" ? String(props.marqueeTitle).trim() : null) ??
     props?.title ??
-    (data?.marqueeTitle != null && String(data.marqueeTitle).trim() !== ""
-      ? String(data.marqueeTitle).trim()
-      : "Our CSR Partners | Awards & Recognition");
+    (data?.marqueeTitle != null && String(data.marqueeTitle).trim() !== "" ? String(data.marqueeTitle).trim() : null) ??
+    "Our CSR Partners | Awards & Recognition";
   const images =
-    Array.isArray(props?.images) && props.images.length > 0
-      ? props.images
-      : Array.isArray(data?.marqueeItems) && data.marqueeItems.length > 0
-        ? data.marqueeItems
-        : defaultImages;
+    Array.isArray(props?.marqueeItems) && props.marqueeItems.length > 0
+      ? props.marqueeItems
+      : Array.isArray(props?.images) && props.images.length > 0
+        ? props.images
+        : Array.isArray(data?.marqueeItems) && data.marqueeItems.length > 0
+          ? data.marqueeItems
+          : defaultImages;
 
   return (
     <PartnersSection
