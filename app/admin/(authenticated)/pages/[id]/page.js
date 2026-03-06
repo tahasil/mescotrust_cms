@@ -6,7 +6,6 @@ import { Button, Form, Input, Select, Card, Space, message, Spin, Drawer, Collap
 import { ArrowLeftOutlined, SettingOutlined, SaveOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import PageBuilder from "@/components/admin/PageBuilder";
-import { LOCALE_OPTIONS } from "@/lib/localeOptions";
 
 export default function AdminPageEditPage() {
   const params = useParams();
@@ -52,7 +51,6 @@ export default function AdminPageEditPage() {
           title: data.title,
           slug: data.slug,
           status: data.status,
-          locale: data.locale || "en",
           metaTitle: data.meta?.metaTitle,
           metaDescription: data.meta?.metaDescription,
         });
@@ -76,7 +74,6 @@ export default function AdminPageEditPage() {
           title: values.title,
           slug: values.slug,
           status: values.status,
-          locale: values.locale || "en",
           layout: layoutToSave,
           meta: { metaTitle: values.metaTitle, metaDescription: values.metaDescription },
         }),
@@ -103,31 +100,30 @@ export default function AdminPageEditPage() {
 
   return (
     <div>
-      {/* Top bar */}
+      {/* Top bar — Back + page title only (slug hidden) */}
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
         marginBottom: 16, flexWrap: "wrap", gap: 8,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <Link href="/admin/pages">
-            <Button icon={<ArrowLeftOutlined />} type="text">Pages</Button>
+          <Link href="/admin/pages" style={{ textDecoration: "none" }}>
+            <Button icon={<ArrowLeftOutlined />} type="text" />
           </Link>
-          <div>
-            <h2 style={{ margin: 0, fontSize: 18, lineHeight: 1.3 }}>{page?.title || "Edit Page"}</h2>
-            <span style={{ fontSize: 12, color: "#999" }}>/{page?.slug}</span>
-          </div>
+          <h2 style={{ margin: 0, fontSize: 18, lineHeight: 1.3 }}>{page?.title || "Edit Page"}</h2>
         </div>
         <Space>
           <Button icon={<SettingOutlined />} onClick={() => setSettingsOpen(true)}>
             Page Settings
           </Button>
-          <Button
+          <Link
             href={page?.slug ? `${(process.env.NEXT_PUBLIC_SITE_URL || "").replace(/\/$/, "")}/${page.slug}` : "#"}
             target="_blank"
-            disabled={!page?.slug}
+            style={{ textDecoration: "none" }}
           >
-            Preview
-          </Button>
+            <Button disabled={!page?.slug} style={{ textDecoration: "none" }}>
+              Preview
+            </Button>
+          </Link>
           <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={handleSave}>
             Save
           </Button>
@@ -162,8 +158,13 @@ export default function AdminPageEditPage() {
                     <Form.Item name="title" label="Title" rules={[{ required: true }]}>
                       <Input />
                     </Form.Item>
-                    <Form.Item name="slug" label="Slug" rules={[{ required: true }]}>
-                      <Input />
+                    <Form.Item
+                      name="slug"
+                      label="Slug"
+                      rules={[{ required: true }]}
+                      extra="Use slug 'home' for the homepage (/) and Status 'Published' for the page to show on the site."
+                    >
+                      <Input placeholder="e.g. home, about" />
                     </Form.Item>
                     <Form.Item name="status" label="Status" initialValue="draft">
                       <Select options={[{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }]} />
@@ -176,12 +177,6 @@ export default function AdminPageEditPage() {
                 label: "SEO & Advanced",
                 children: (
                   <>
-                    <Form.Item name="locale" label="Locale">
-                      <Select
-                        placeholder="Select locale"
-                        options={LOCALE_OPTIONS}
-                      />
-                    </Form.Item>
                     <Form.Item name="metaTitle" label="Meta title">
                       <Input />
                     </Form.Item>

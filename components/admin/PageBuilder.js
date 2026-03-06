@@ -76,20 +76,11 @@ import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import * as SiteComponents from "@/components/site";
 import { EDITABLE_SITE_EDIT_FORMS } from "@/components/site";
 import { SITE_COMPONENT_IDS } from "@/lib/siteComponentRegistry";
-import GenericSchemaEditForm from "@/components/admin/GenericSchemaEditForm";
-import SectionEditForm from "@/components/admin/SectionEditForm";
-import { BLOCK_ELEMENT_FIELDS } from "@/components/admin/schemaFormUtils";
 
-/** Site components that have full edit flow in page builder. Header/Footer excluded from palette. */
+/** Site components that have full edit flow in page builder. Header/Footer excluded. */
 const EDITABLE_SITE_COMPONENTS = SITE_COMPONENT_IDS.filter(
   (id) => id !== "Header" && id !== "Footer",
 );
-
-/** All block types that have a dedicated EditForm. Fallback = GenericSchemaEditForm. */
-const EDIT_FORMS = {
-  ...EDITABLE_SITE_EDIT_FORMS,
-  Section: SectionEditForm,
-};
 
 function generateId() {
   return "block_" + Math.random().toString(36).slice(2, 11);
@@ -351,6 +342,455 @@ const ANT_DESIGN_BLOCKS = [
   },
 ];
 
+// ─── Schema Field Renderer ──────────────────────────────────
+
+function ThemeColorInput({ value, onChange, themeColorOptions }) {
+  const options = themeColorOptions || [];
+  const matched = options.find(
+    (o) =>
+      o.value &&
+      String(o.value).toLowerCase() === String(value || "").toLowerCase(),
+  );
+  const isCustom =
+    !matched && (value === undefined || value === null || value === "");
+  const selectValue = matched
+    ? matched.value
+    : isCustom
+      ? "__custom__"
+      : "__custom__";
+  const showPicker = !matched || selectValue === "__custom__";
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      {options.length > 0 && (
+        <Select
+          value={matched ? matched.value : "__custom__"}
+          onChange={(v) => {
+            if (v !== "__custom__") onChange(v);
+          }}
+          options={[
+            ...options.map((o) => ({ label: o.label, value: o.value })),
+            { label: "Custom…", value: "__custom__" },
+          ]}
+          allowClear={false}
+          style={{ width: "100%" }}
+        />
+      )}
+      {showPicker && (
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <ColorPicker
+            value={value || undefined}
+            onChange={(_, hexStr) => onChange(hexStr)}
+            allowClear
+            size="small"
+          />
+          <Input
+            value={value || ""}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="e.g. #333 or inherit"
+            style={{ flex: 1 }}
+            allowClear
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Keeps nav item children array in form state without rendering; avoids Form overwriting array with string from hidden input. */
+function ChildrenPreserver() {
+  return null;
+}
+
+function ArrayEditor({ field, themeColorOptions }) {
+  const { key, label, itemSchema = [], itemLabel = "Item" } = field;
+  const defaultItem = itemSchema.reduce(
+    (acc, f) => ({
+      ...acc,
+      [f.key]: f.default ?? (f.type === "boolean" ? false : ""),
+    }),
+    {},
+  );
+
+  return (
+    <Form.Item label={label}>
+      <Form.List name={key}>
+        {(fields, { add, remove }) => (
+          <>
+            {fields.map(({ key: listKey, name }) => (
+              <div
+                key={listKey}
+                style={{
+                  marginBottom: 12,
+                  padding: 12,
+                  background: "#fafafa",
+                  borderRadius: 8,
+                  border: "1px solid #e8e8e8",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 8,
+                  }}
+                >
+                  <span
+                    style={{ fontSize: 12, fontWeight: 600, color: "#666" }}
+                  >
+                    {itemLabel} #{name + 1}
+                  </span>
+                  <Button
+                    type="text"
+                    size="small"
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => remove(name)}
+                  />
+                </div>
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: 0 }}
+                >
+                  {itemSchema.map((subField) => {
+                    if (subField.type === "children") {
+                      return (
+                        <Form.Item
+                          key={subField.key}
+                          name={[name, "children"]}
+                          noStyle
+                          initialValue={[]}
+                          preserve
+                        >
+                          <ChildrenPreserver />
+                        </Form.Item>
+                      );
+                    }
+                    return (
+                      <Form.Item
+                        key={subField.key}
+                        name={[name, subField.key]}
+                        label={subField.label}
+                        style={{ marginBottom: 8 }}
+                        valuePropName={
+                          subField.type === "boolean" ? "checked" : undefined
+                        }
+                      >
+                        {subField.type === "number" ? (
+                          <InputNumber style={{ width: "100%" }} />
+                        ) : null}
+                        {subField.type === "boolean" ? <Switch /> : null}
+                        {subField.type === "select" ? (
+                          <Select
+                            options={(subField.options || []).map((o) =>
+                              typeof o === "object" && o && "value" in o
+                                ? { value: o.value, label: o.label }
+                                : { value: o, label: o },
+                            )}
+                            allowClear
+                            style={{ width: "100%" }}
+                          />
+                        ) : null}
+                        {subField.type === "color" ? (
+                          <ThemeColorInput
+                            themeColorOptions={themeColorOptions}
+                          />
+                        ) : null}
+                        {(subField.type === "url" ||
+                          subField.type === "image" ||
+                          subField.type === "text") &&
+                        subField.type !== "richtext" ? (
+                          <Input
+                            placeholder={
+                              subField.type === "url" ||
+                              subField.type === "image"
+                                ? "https://..."
+                                : ""
+                            }
+                          />
+                        ) : null}
+                      </Form.Item>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+            <Button
+              type="dashed"
+              onClick={() => add(defaultItem)}
+              block
+              icon={<PlusOutlined />}
+              style={{ marginTop: 4 }}
+            >
+              Add {itemLabel}
+            </Button>
+          </>
+        )}
+      </Form.List>
+    </Form.Item>
+  );
+}
+
+function renderSchemaField(field, themeColorOptions) {
+  const { key, type, label } = field;
+  if (type === "json" && field.itemSchema?.length > 0) {
+    return (
+      <ArrayEditor
+        key={key}
+        field={field}
+        themeColorOptions={themeColorOptions}
+      />
+    );
+  }
+  switch (type) {
+    case "number":
+      return (
+        <Form.Item key={key} name={key} label={label}>
+          <InputNumber style={{ width: "100%" }} />
+        </Form.Item>
+      );
+    case "boolean":
+      return (
+        <Form.Item key={key} name={key} label={label} valuePropName="checked">
+          <Switch />
+        </Form.Item>
+      );
+    case "select":
+      return (
+        <Form.Item key={key} name={key} label={label}>
+          <Select
+            options={(field.options || []).map((o) =>
+              typeof o === "object" && o && "value" in o
+                ? { value: o.value, label: o.label }
+                : { value: o, label: o },
+            )}
+            allowClear
+          />
+        </Form.Item>
+      );
+    case "color":
+      return (
+        <Form.Item key={key} name={key} label={label}>
+          <ThemeColorInput themeColorOptions={themeColorOptions} />
+        </Form.Item>
+      );
+    case "url":
+    case "image":
+      return (
+        <Form.Item key={key} name={key} label={label}>
+          <Input placeholder="https://..." />
+        </Form.Item>
+      );
+    case "richtext":
+      return (
+        <Form.Item key={key} name={key} label={label}>
+          <RichTextEditor />
+        </Form.Item>
+      );
+    case "json":
+      return (
+        <Form.Item
+          key={key}
+          name={key}
+          label={label}
+          getValueFromEvent={(e) => {
+            if (typeof e === "string") {
+              try {
+                return JSON.parse(e);
+              } catch {
+                return e;
+              }
+            }
+            return e?.target?.value ?? e;
+          }}
+          getValueProps={(val) => ({
+            value:
+              typeof val === "object"
+                ? JSON.stringify(val, null, 2)
+                : (val ?? ""),
+          })}
+        >
+          <Input.TextArea
+            rows={5}
+            style={{ fontFamily: "monospace", fontSize: 12 }}
+          />
+        </Form.Item>
+      );
+    case "text":
+    default:
+      return (
+        <Form.Item key={key} name={key} label={label}>
+          {type === "text" && key === "text" ? (
+            <Input.TextArea rows={3} />
+          ) : (
+            <Input />
+          )}
+        </Form.Item>
+      );
+  }
+}
+
+const SECTION_SETTINGS_SCHEMA = [
+  {
+    key: "_containerType",
+    type: "select",
+    label: "Select container (when no section styles)",
+    options: [
+      { value: "container", label: "Container (max-width)" },
+      { value: "container-fluid", label: "Container fluid (full width)" },
+    ],
+  },
+  { key: "_sectionBg", type: "color", label: "Background" },
+  { key: "_sectionPadding", type: "text", label: "Padding (e.g. 2rem 1rem)" },
+  {
+    key: "_sectionBorderSize",
+    type: "text",
+    label: "Border size (e.g. 1px 2px 3px 4px)",
+    default: "0px 0px 0px 0px",
+  },
+  {
+    key: "_sectionBorderStyle",
+    type: "select",
+    label: "Border type",
+    options: [
+      { value: "solid", label: "Solid" },
+      { value: "dashed", label: "Dashed" },
+      { value: "dotted", label: "Dotted" },
+      { value: "double", label: "Double" },
+      { value: "groove", label: "Groove" },
+      { value: "ridge", label: "Ridge" },
+      { value: "inset", label: "Inset" },
+      { value: "outset", label: "Outset" },
+      { value: "none", label: "None" },
+    ],
+  },
+  {
+    key: "_sectionBorderColor",
+    type: "color",
+    label: "Border color (from theme)",
+  },
+  {
+    key: "_sectionShadow",
+    type: "text",
+    label: "Shadow (e.g. 0 2px 8px rgba(0,0,0,0.08))",
+  },
+];
+
+/** Add itemSchema for list-like JSON fields so the drawer shows Add/Remove item UI instead of raw JSON. */
+const SCHEMA_ENRICHMENT = {
+  Header: {
+    navItems: {
+      itemLabel: "Nav item",
+      itemSchema: [
+        { key: "label", type: "text", label: "Label" },
+        { key: "url", type: "url", label: "URL" },
+        {
+          key: "hasDropdown",
+          type: "boolean",
+          label: "Has dropdown",
+          default: false,
+        },
+        { key: "children", type: "children", label: "", default: [] }, // preserve dropdown sub-items (loaded from /admin/menus)
+      ],
+    },
+    actionButtons: {
+      itemLabel: "Button",
+      itemSchema: [
+        { key: "label", type: "text", label: "Label" },
+        { key: "url", type: "url", label: "URL" },
+        {
+          key: "image",
+          type: "image",
+          label: "Icon image (upload in Media, paste URL)",
+        },
+        {
+          key: "imagePosition",
+          type: "select",
+          label: "Icon placement",
+          options: [
+            { value: "left", label: "Left of text" },
+            { value: "right", label: "Right of text" },
+          ],
+        },
+        {
+          key: "imageHeight",
+          type: "number",
+          label: "Icon height (px) – leave empty for 1em",
+        },
+        { key: "fontSize", type: "number", label: "Font size (px)" },
+        {
+          key: "fontWeight",
+          type: "select",
+          label: "Font weight",
+          options: [
+            { value: "400", label: "400 (Normal)" },
+            { value: "500", label: "500 (Medium)" },
+            { value: "600", label: "600 (Semi-bold)" },
+            { value: "700", label: "700 (Bold)" },
+          ],
+        },
+        {
+          key: "letterSpacing",
+          type: "text",
+          label: "Letter spacing (e.g. 0.5px or 0.02em)",
+        },
+        {
+          key: "textTransform",
+          type: "select",
+          label: "Text transform",
+          options: [
+            { value: "none", label: "None" },
+            { value: "uppercase", label: "Uppercase" },
+            { value: "lowercase", label: "Lowercase" },
+            { value: "capitalize", label: "Capitalize" },
+          ],
+        },
+        { key: "background", type: "color", label: "Background color" },
+        { key: "color", type: "color", label: "Text color" },
+        { key: "borderColor", type: "color", label: "Border color" },
+        { key: "borderRadius", type: "number", label: "Border radius (px)" },
+        { key: "paddingY", type: "number", label: "Padding top/bottom (px)" },
+        { key: "paddingX", type: "number", label: "Padding left/right (px)" },
+        { key: "boxShadow", type: "text", label: "Box shadow (CSS)" },
+      ],
+    },
+  },
+  Buttons: {
+    buttons: {
+      itemLabel: "Button",
+      itemSchema: [
+        { key: "label", type: "text", label: "Label" },
+        { key: "url", type: "url", label: "URL" },
+        {
+          key: "variant",
+          type: "select",
+          label: "Style",
+          options: ["solid", "outline"],
+        },
+      ],
+    },
+  },
+  CardGrid: {
+    cards: {
+      itemLabel: "Card",
+      itemSchema: [
+        { key: "title", type: "text", label: "Title" },
+        { key: "description", type: "text", label: "Description" },
+      ],
+    },
+  },
+  Slider: {
+    slides: {
+      itemLabel: "Slide",
+      itemSchema: [
+        { key: "image", type: "image", label: "Image URL" },
+        { key: "heading", type: "text", label: "Heading" },
+        { key: "text", type: "text", label: "Text" },
+      ],
+    },
+  },
+};
+
 /** Convert menu API item to header nav item (plain objects only); supports nested children (submenu of submenu). */
 function menuItemsToNavItems(menuItems) {
   if (!Array.isArray(menuItems)) return [];
@@ -373,6 +813,218 @@ function menuItemsToNavItems(menuItems) {
     return result;
   });
 }
+
+/** React Bootstrap Navbar options – shown in Header edit drawer (see https://react-bootstrap.netlify.app/docs/components/navbar). */
+const NAVBAR_SCHEMA = [
+  {
+    key: "navbarExpand",
+    type: "select",
+    label: "Expand (responsive breakpoint)",
+    options: [
+      { value: "lg", label: "lg (collapse below 992px)" },
+      { value: "md", label: "md (collapse below 768px)" },
+      { value: "sm", label: "sm (collapse below 576px)" },
+      { value: "xl", label: "xl (collapse below 1200px)" },
+      { value: "xxl", label: "xxl (collapse below 1400px)" },
+      { value: "false", label: "Never expand (always collapsed)" },
+    ],
+  },
+  {
+    key: "navbarFixed",
+    type: "select",
+    label: "Fixed position",
+    options: [
+      { value: "", label: "None" },
+      { value: "top", label: "Fixed to top" },
+      { value: "bottom", label: "Fixed to bottom" },
+    ],
+  },
+  {
+    key: "navbarSticky",
+    type: "select",
+    label: "Sticky position",
+    options: [
+      { value: "", label: "None" },
+      { value: "top", label: "Sticky top" },
+      { value: "bottom", label: "Sticky bottom" },
+    ],
+  },
+  {
+    key: "collapseOnSelect",
+    type: "boolean",
+    label: "Collapse when link selected",
+    default: false,
+  },
+  {
+    key: "navbarMobileMenu",
+    type: "select",
+    label: "Mobile menu style",
+    options: [
+      { value: "collapse", label: "Collapse (dropdown below)" },
+      { value: "offcanvas", label: "Offcanvas (overlay drawer)" },
+    ],
+  },
+  {
+    key: "navbarOffcanvasPlacement",
+    type: "select",
+    label: "Offcanvas slide from",
+    options: [
+      { value: "end", label: "Right (end)" },
+      { value: "start", label: "Left (start)" },
+    ],
+  },
+];
+
+/** Responsive logo dimensions – desktop (≥992px), tablet (576–991px), mobile (<576px). */
+const LOGO_RESPONSIVE_SCHEMA = [
+  {
+    key: "logoImageWidthDesktop",
+    type: "number",
+    label: "Logo width – desktop (px)",
+  },
+  {
+    key: "logoImageHeightDesktop",
+    type: "number",
+    label: "Logo height – desktop (px)",
+  },
+  {
+    key: "logoImageWidthTablet",
+    type: "number",
+    label: "Logo width – tablet (px)",
+  },
+  {
+    key: "logoImageHeightTablet",
+    type: "number",
+    label: "Logo height – tablet (px)",
+  },
+  {
+    key: "logoImageWidthMobile",
+    type: "number",
+    label: "Logo width – mobile (px)",
+  },
+  {
+    key: "logoImageHeightMobile",
+    type: "number",
+    label: "Logo height – mobile (px)",
+  },
+];
+
+const MENU_SCHEMA = [
+  {
+    key: "menuPosition",
+    type: "select",
+    label: "Menu position (desktop)",
+    options: [
+      { value: "left", label: "Left" },
+      { value: "center", label: "Center" },
+      { value: "right", label: "Right" },
+    ],
+  },
+  { key: "navColor", type: "color", label: "Nav link color" },
+  { key: "navFontSize", type: "number", label: "Nav font size (px)" },
+  {
+    key: "navFontWeight",
+    type: "select",
+    label: "Nav font weight",
+    options: [
+      { value: "400", label: "400 (Normal)" },
+      { value: "500", label: "500 (Medium)" },
+      { value: "600", label: "600 (Semi-bold)" },
+      { value: "700", label: "700 (Bold)" },
+    ],
+  },
+  { key: "navHoverColor", type: "color", label: "Nav hover color" },
+  { key: "navItemBackground", type: "color", label: "Nav item background" },
+  {
+    key: "navItemHoverBackground",
+    type: "color",
+    label: "Nav item hover background",
+  },
+];
+
+/** Header edit drawer: group field keys for Logo, Menu, Navbar, Buttons. Nav items set only via "Load from menu". */
+const HEADER_FIELD_GROUPS = [
+  {
+    label: "Logo and link",
+    keys: [
+      "logoImage",
+      "logoImageWidth",
+      "logoImageHeight",
+      "logoImageWidthDesktop",
+      "logoImageHeightDesktop",
+      "logoImageWidthTablet",
+      "logoImageHeightTablet",
+      "logoImageWidthMobile",
+      "logoImageHeightMobile",
+      "logoTitle",
+      "logoTagline",
+      "logoUrl",
+      "logoColor",
+      "logoFontSize",
+      "taglineFontSize",
+      "sectionsOrder",
+    ],
+  },
+  {
+    label: "Menu",
+    keys: [
+      "menuPosition",
+      "navColor",
+      "navFontSize",
+      "navFontWeight",
+      "navHoverColor",
+      "navItemBackground",
+      "navItemHoverBackground",
+    ],
+  },
+  {
+    label: "Navbar (Bootstrap)",
+    keys: [
+      "navbarExpand",
+      "navbarFixed",
+      "navbarSticky",
+      "collapseOnSelect",
+      "navbarMobileMenu",
+      "navbarOffcanvasPlacement",
+    ],
+  },
+  { label: "Custom buttons", keys: ["actionButtons"] },
+];
+
+/** Which props belong to which clickable element (for "click element → edit in drawer"). */
+const BLOCK_ELEMENT_FIELDS = {
+  Hero: {
+    heading: { label: "Heading", fields: ["heading"] },
+    subheading: { label: "Subheading", fields: ["subheading"] },
+    primaryButton: {
+      label: "Primary button",
+      fields: ["buttonLabel", "buttonUrl", "buttonVariant"],
+    },
+    secondaryButton: {
+      label: "Secondary button",
+      fields: ["secondaryButtonLabel", "secondaryButtonUrl"],
+    },
+    background: {
+      label: "Background image",
+      fields: ["backgroundImage", "backgroundAlt"],
+    },
+  },
+  CallToAction: {
+    heading: { label: "Heading", fields: ["heading"] },
+    text: { label: "Text", fields: ["text"] },
+    button: {
+      label: "Button",
+      fields: ["buttonLabel", "buttonUrl", "buttonVariant"],
+    },
+  },
+  Paragraph: { content: { label: "Text", fields: ["text", "color", "align"] } },
+  Heading: {
+    content: {
+      label: "Heading",
+      fields: ["level", "text", "style", "color", "align"],
+    },
+  },
+};
 
 // ─── Sortable Visual Block ──────────────────────────────────
 
@@ -938,6 +1590,14 @@ export default function PageBuilder({
   const canvasRef = useRef(null);
   const siteEditFormRef = useRef(null);
 
+  const sectionSettingsDefaults = useMemo(() => {
+    const d = {};
+    SECTION_SETTINGS_SCHEMA.forEach((f) => {
+      if (f.default !== undefined) d[f.key] = f.default;
+    });
+    return d;
+  }, []);
+
   const themeColorOptions = useMemo(() => {
     const out = [];
     const structured = [
@@ -1055,14 +1715,17 @@ export default function PageBuilder({
     return groups;
   }, [components, searchQuery]);
 
-  /** Site components for Add Component drawer: enabled only, exclude global=true ("Show on all pages"). Global components are rendered automatically on every page via layout (getLayoutData → globalBefore/globalAfter → PublicShell), so they are not added per-page in PageBuilder. */
+  /** Site components filtered by enabled + search (for Add Component drawer). Header/Footer always shown. */
   const filteredSiteComponents = useMemo(() => {
-    const forPalette = siteComponentsList.filter(
-      (c) => c.enabled !== false && c.global !== true,
+    const enabledOnly = siteComponentsList.filter(
+      (c) =>
+        c.enabled !== false ||
+        c.componentId === "Header" ||
+        c.componentId === "Footer",
     );
     const q = searchQuery.toLowerCase().trim();
-    if (!q) return forPalette;
-    return forPalette.filter(
+    if (!q) return enabledOnly;
+    return enabledOnly.filter(
       (c) =>
         (c.displayName || c.componentId || "").toLowerCase().includes(q) ||
         (c.componentId || "").toLowerCase().includes(q),
@@ -1159,6 +1822,8 @@ export default function PageBuilder({
     setEditingInnerBlock(null);
     setEditingElement(null);
     const block = sorted[index];
+    form.resetFields();
+    form.setFieldsValue({ ...sectionSettingsDefaults, ...(block.props || {}) });
     setDrawerOpen(true);
   };
 
@@ -1170,11 +1835,20 @@ export default function PageBuilder({
     setEditingIndex(blockIndex);
     setEditingInnerBlock(null);
     setEditingElement({ blockIndex, elementKey });
+    form.resetFields();
+    form.setFieldsValue({ ...sectionSettingsDefaults, ...(block.props || {}) });
     setDrawerOpen(true);
   };
 
   const openEditInner = (sectionIndex, innerIndex) => {
     setEditingInnerBlock({ sectionIndex, innerIndex });
+    const sectionBlock = sorted[sectionIndex];
+    const innerLayout = Array.isArray(sectionBlock?.props?.layout)
+      ? sectionBlock.props.layout
+      : [];
+    const inner = innerLayout[innerIndex];
+    form.resetFields();
+    form.setFieldsValue(inner?.props || {});
   };
 
   const handleEditSave = () => {
@@ -1281,6 +1955,38 @@ export default function PageBuilder({
     setEditingInnerBlock(null);
   };
 
+  const enrichSchema = (baseComponent, schema) => {
+    if (!Array.isArray(schema)) return schema;
+    const enrichment = SCHEMA_ENRICHMENT[baseComponent];
+    if (!enrichment) return schema;
+    return schema.map((f) => ({ ...f, ...(enrichment[f.key] || {}) }));
+  };
+
+  const getPropsFields = (baseComponent) => {
+    const comp = fullPalette.find((c) => c.baseComponent === baseComponent);
+    const raw = comp?.propsSchema ?? [];
+    if (raw.length === 0)
+      return (
+        <Form.Item name="text" label="Content">
+          <Input.TextArea rows={2} />
+        </Form.Item>
+      );
+    const schema = enrichSchema(baseComponent, raw);
+    return schema.map((f) => renderSchemaField(f, themeColorOptions));
+  };
+
+  const getPropsFieldsForElement = (baseComponent, elementKey) => {
+    const keys = BLOCK_ELEMENT_FIELDS[baseComponent]?.[elementKey]?.fields;
+    if (!keys?.length) return null;
+    const comp = fullPalette.find((c) => c.baseComponent === baseComponent);
+    const raw = comp?.propsSchema ?? [];
+    const schema = enrichSchema(baseComponent, raw);
+    const byKey = Object.fromEntries(schema.map((f) => [f.key, f]));
+    const fields = keys.map((k) => byKey[k]).filter(Boolean);
+    if (fields.length === 0) return null;
+    return fields.map((f) => renderSchemaField(f, themeColorOptions));
+  };
+
   const handleDragEnd = (event) => {
     const { active, over } = event;
     if (!over) return;
@@ -1378,14 +2084,49 @@ export default function PageBuilder({
   );
 
   useEffect(() => {
-    if (!drawerOpen) return;
+    if (!drawerOpen || editingBlock?.baseComponent !== "Header") return;
+    let cancelled = false;
     fetch("/api/admin/menus")
       .then((res) => (res.ok ? res.json() : []))
-      .then((list) =>
-        setAdminMenusList(Array.isArray(list) ? list : []),
-      )
-      .catch(() => setAdminMenusList([]));
-  }, [drawerOpen]);
+      .then((list) => {
+        const menus = Array.isArray(list) ? list : [];
+        setAdminMenusList(menus);
+        if (cancelled || menus.length === 0) return null;
+        const savedName = editingBlock?.props?.menuName;
+        const preferred = savedName
+          ? menus.find((m) => m.name === savedName)
+          : menus.find(
+              (m) => m.name && /header|main|primary/i.test(String(m.name)),
+            ) || menus[0];
+        const menuName = preferred?.name;
+        if (!menuName) return null;
+        return fetch(`/api/admin/menus/${encodeURIComponent(menuName)}`).then(
+          (r) => (r.ok ? r.json() : null),
+        );
+      })
+      .then((menu) => {
+        if (cancelled) return;
+        if (menu?.items?.length) {
+          const navItems = menuItemsToNavItems(menu.items);
+          form.setFieldValue("navItems", navItems);
+          form.setFieldValue(
+            "menuName",
+            editingBlock?.props?.menuName ?? menu.name,
+          );
+          lastLoadedNavItemsRef.current = JSON.parse(JSON.stringify(navItems));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    drawerOpen,
+    editingIndex,
+    editingBlock?.baseComponent,
+    editingBlock?.props?.menuName,
+    form,
+  ]);
 
   return (
     <DndContext
@@ -1689,7 +2430,7 @@ export default function PageBuilder({
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {BLOCK_ICON_MAP[editingBlock.baseComponent] || <EditOutlined />}
                 <span>
-                  {EDIT_FORMS[editingBlock?.baseComponent]
+                  {EDITABLE_SITE_COMPONENTS.includes(editingBlock.baseComponent)
                     ? editingBlock.baseComponent
                     : fullPalette.find(
                         (c) => c.baseComponent === editingBlock?.baseComponent,
@@ -1728,143 +2469,332 @@ export default function PageBuilder({
                   ← Back
                 </Button>
               )}
-              {(editingBlock || editingInnerBlock) && (
+              {!(
+                editingBlock &&
+                editingInnerBlock === null &&
+                editingElement === null &&
+                EDITABLE_SITE_COMPONENTS.includes(editingBlock.baseComponent)
+              ) && (
                 <>
-                  <span style={{ flex: 1, minWidth: 8 }} />
+                  <Button
+                    onClick={() => {
+                      setDrawerOpen(false);
+                      setEditingIndex(null);
+                      setEditingInnerBlock(null);
+                      setEditingElement(null);
+                    }}
+                    icon={<CloseOutlined />}
+                  >
+                    Cancel
+                  </Button>
                   <Button
                     type="primary"
+                    onClick={handleEditSave}
                     icon={<CheckOutlined />}
-                    onClick={() => siteEditFormRef.current?.update?.()}
                   >
-                    Update
+                    Apply
                   </Button>
                 </>
               )}
+              {editingBlock &&
+                editingInnerBlock === null &&
+                editingElement === null &&
+                EDITABLE_SITE_COMPONENTS.includes(
+                  editingBlock.baseComponent,
+                ) && (
+                  <>
+                    <span style={{ flex: 1, minWidth: 8 }} />
+                    <Button
+                      type="primary"
+                      icon={<CheckOutlined />}
+                      onClick={() => siteEditFormRef.current?.update?.()}
+                    >
+                      Update
+                    </Button>
+                  </>
+                )}
             </div>
           }
         >
-          {(() => {
-            if (!editingBlock && !editingInnerBlock) return null;
-            const sectionBlock =
-              editingInnerBlock != null
-                ? sorted[editingInnerBlock.sectionIndex]
-                : null;
-            const innerBlock =
-              sectionBlock?.props?.layout?.[editingInnerBlock?.innerIndex];
-            const effectiveBlock = editingInnerBlock
-              ? innerBlock
-              : editingBlock;
-            const effectiveBase =
-              effectiveBlock?.baseComponent ?? editingBlock?.baseComponent;
-            const effectivePaletteComponent = fullPalette.find(
-              (c) => c.baseComponent === effectiveBase,
-            );
-            let effectiveOnSaveToPage = (payload) => {
-              if (editingIndex == null) return;
-              const block = sorted[editingIndex];
-              if (!block) return;
-              const newProps = { ...(block.props || {}), ...payload };
-              triggerChange(
-                blocks.map((b) =>
-                  b.instanceId === block.instanceId
-                    ? { ...b, props: newProps }
-                    : b,
-                ),
-              );
-            };
-            if (editingInnerBlock != null) {
-              effectiveOnSaveToPage = (payload) => {
-                const section = sorted[editingInnerBlock.sectionIndex];
-                const layout = [...(section?.props?.layout ?? [])];
-                if (layout[editingInnerBlock.innerIndex]) {
-                  layout[editingInnerBlock.innerIndex] = {
-                    ...layout[editingInnerBlock.innerIndex],
-                    props: payload,
-                  };
-                  triggerChange(
-                    blocks.map((b) =>
-                      b.instanceId === section.instanceId
-                        ? { ...b, props: { ...b.props, layout } }
-                        : b,
-                    ),
-                  );
-                }
-                setEditingInnerBlock(null);
-              };
-            } else if (editingElement != null) {
-              effectiveOnSaveToPage = (payload) => {
-                const block = sorted[editingElement.blockIndex];
-                const meta =
-                  BLOCK_ELEMENT_FIELDS[block?.baseComponent]?.[
-                    editingElement.elementKey
-                  ];
-                const keys = meta?.fields ?? [];
-                const patch = {};
-                keys.forEach((k) => {
-                  if (payload[k] !== undefined) patch[k] = payload[k];
-                });
-                const newProps = { ...(block?.props || {}), ...patch };
-                triggerChange(
-                  blocks.map((b) =>
+          <Form form={form} layout="vertical">
+            {editingInnerBlock === null &&
+              editingElement === null &&
+              editingBlock &&
+              EDITABLE_SITE_COMPONENTS.includes(editingBlock.baseComponent) &&
+              (() => {
+                const EditFormComp =
+                  EDITABLE_SITE_EDIT_FORMS[editingBlock.baseComponent];
+                if (!EditFormComp) return null;
+                const isPageContext = !componentBase;
+                const handleSaveToPage = (payload) => {
+                  if (editingIndex == null) return;
+                  const block = sorted[editingIndex];
+                  if (!block) return;
+                  const newProps = { ...(block.props || {}), ...payload };
+                  const newLayout = blocks.map((b) =>
                     b.instanceId === block.instanceId
                       ? { ...b, props: newProps }
                       : b,
-                  ),
+                  );
+                  triggerChange(newLayout);
+                };
+                return (
+                  <EditFormComp
+                    ref={siteEditFormRef}
+                    source={isPageContext ? "page" : undefined}
+                    initialData={
+                      isPageContext ? editingBlock?.props : undefined
+                    }
+                    onSaveToPage={isPageContext ? handleSaveToPage : undefined}
+                    onSuccess={() => {
+                      setDrawerOpen(false);
+                      setEditingIndex(null);
+                      setEditingInnerBlock(null);
+                      setEditingElement(null);
+                      if (!isPageContext)
+                        fetch("/api/theme")
+                          .then((r) => (r.ok ? r.json() : null))
+                          .then(setTheme);
+                    }}
+                    onCancel={() => {
+                      setDrawerOpen(false);
+                      setEditingIndex(null);
+                      setEditingInnerBlock(null);
+                      setEditingElement(null);
+                    }}
+                  />
                 );
-                setEditingElement(null);
-              };
-            }
-            const EditFormComp =
-              EDIT_FORMS[effectiveBase] || GenericSchemaEditForm;
-            const commonProps = {
-              ref: siteEditFormRef,
-              source: "page",
-              initialData: effectiveBlock?.props,
-              onSaveToPage: effectiveOnSaveToPage,
-              onSuccess: () => {
-                setDrawerOpen(false);
-                setEditingIndex(null);
-                setEditingInnerBlock(null);
-                setEditingElement(null);
-                if (componentBase)
-                  fetch("/api/theme")
-                    .then((r) => (r.ok ? r.json() : null))
-                    .then(setTheme);
-              },
-              onCancel: () => {
-                setDrawerOpen(false);
-                setEditingIndex(null);
-                setEditingInnerBlock(null);
-                setEditingElement(null);
-              },
-              paletteComponent: effectivePaletteComponent,
-            };
-            if (editingElement)
-              commonProps.elementKey = editingElement.elementKey;
-            if (
-              effectiveBase === "Section" &&
+              })()}
+
+            {editingElement !== null &&
               editingBlock &&
-              !editingInnerBlock
-            ) {
-              return (
-                <SectionEditForm
-                  {...commonProps}
-                  innerBlocks={editingBlock?.props?.layout ?? []}
-                  onEditInner={(idx) => openEditInner(editingIndex, idx)}
-                  onRemoveInner={(idx) =>
-                    handleRemoveInner(editingIndex, idx)
-                  }
-                  onAddInner={() => {
-                    setAddToSectionBlockIndex(editingIndex);
-                    setDrawerOpen(false);
-                    setAddDrawerOpen(true);
-                  }}
-                  fullPalette={fullPalette}
+              getPropsFieldsForElement(
+                editingBlock.baseComponent,
+                editingElement.elementKey,
+              )}
+
+            {editingInnerBlock !== null &&
+              editingBlock &&
+              editingElement === null &&
+              (() => {
+                const sectionBlock = sorted[editingInnerBlock.sectionIndex];
+                const innerBlock =
+                  sectionBlock?.props?.layout?.[editingInnerBlock.innerIndex];
+                return innerBlock
+                  ? getPropsFields(innerBlock.baseComponent)
+                  : null;
+              })()}
+
+            {editingInnerBlock === null &&
+              editingElement === null &&
+              editingBlock &&
+              editingBlock.baseComponent === "Section" && (
+                <Collapse
+                  accordion
+                  defaultActiveKey={[]}
+                  items={[
+                    {
+                      key: "section-settings",
+                      label: "Section settings",
+                      children: (
+                        <>
+                          {renderSchemaField(
+                            {
+                              key: "backgroundColor",
+                              type: "color",
+                              label: "Background color",
+                            },
+                            themeColorOptions,
+                          )}
+                          {renderSchemaField(
+                            {
+                              key: "padding",
+                              type: "text",
+                              label: "Padding (e.g. 2rem 1rem)",
+                            },
+                            themeColorOptions,
+                          )}
+                        </>
+                      ),
+                    },
+                    {
+                      key: "section-content",
+                      label: "Content – add elements inside this section",
+                      children: (
+                        <div style={{ marginBottom: 12 }}>
+                          {(Array.isArray(editingBlock?.props?.layout)
+                            ? editingBlock.props.layout
+                            : []
+                          ).map((inner, idx) => {
+                            const comp = fullPalette.find(
+                              (c) => c.baseComponent === inner.baseComponent,
+                            );
+                            const displayName =
+                              comp?.displayName || inner.baseComponent;
+                            return (
+                              <div
+                                key={inner.instanceId || idx}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 8,
+                                  padding: "8px 12px",
+                                  background: "#fafafa",
+                                  borderRadius: 6,
+                                  marginBottom: 6,
+                                }}
+                              >
+                                <span style={{ flex: 1, fontSize: 13 }}>
+                                  {displayName}
+                                </span>
+                                <Button
+                                  type="text"
+                                  size="small"
+                                  icon={<EditOutlined />}
+                                  onClick={() =>
+                                    openEditInner(editingIndex, idx)
+                                  }
+                                >
+                                  Edit
+                                </Button>
+                                <Button
+                                  type="text"
+                                  size="small"
+                                  danger
+                                  icon={<DeleteOutlined />}
+                                  onClick={() =>
+                                    handleRemoveInner(editingIndex, idx)
+                                  }
+                                >
+                                  Delete
+                                </Button>
+                              </div>
+                            );
+                          })}
+                          <Button
+                            type="dashed"
+                            block
+                            icon={<PlusOutlined />}
+                            onClick={() => {
+                              setAddToSectionBlockIndex(editingIndex);
+                              setDrawerOpen(false);
+                              setAddDrawerOpen(true);
+                            }}
+                            style={{ marginTop: 8 }}
+                          >
+                            Add element (text, image, icon…)
+                          </Button>
+                        </div>
+                      ),
+                    },
+                  ]}
                 />
-              );
-            }
-            return <EditFormComp {...commonProps} />;
-          })()}
+              )}
+
+            {editingInnerBlock === null &&
+              editingElement === null &&
+              editingBlock &&
+              !EDITABLE_SITE_COMPONENTS.includes(editingBlock.baseComponent) &&
+              editingBlock.baseComponent !== "Section" &&
+              (editingBlock.baseComponent === "Header" ? (
+                (() => {
+                  const comp = fullPalette.find(
+                    (c) => c.baseComponent === "Header",
+                  );
+                  const raw = [
+                    ...(Array.isArray(comp?.propsSchema)
+                      ? comp.propsSchema
+                      : []),
+                    ...NAVBAR_SCHEMA,
+                    ...LOGO_RESPONSIVE_SCHEMA,
+                    ...MENU_SCHEMA,
+                  ];
+                  const schema = enrichSchema("Header", raw);
+                  const byKey = Object.fromEntries(
+                    schema.map((f) => [f.key, f]),
+                  );
+                  const headerItems = [
+                    ...HEADER_FIELD_GROUPS.map((grp) => ({
+                      key: grp.label
+                        .replace(/\s+/g, "-")
+                        .toLowerCase()
+                        .replace(/&/g, "and"),
+                      label: grp.label,
+                      children: (
+                        <>
+                          {grp.label === "Menu" && (
+                            <Form.Item
+                              key="select-menu"
+                              label="Select menu"
+                              name="menuName"
+                            >
+                              <Select
+                                placeholder="Choose a menu…"
+                                allowClear
+                                options={adminMenusList.map((m) => ({
+                                  value: m.name,
+                                  label: m.name,
+                                }))}
+                                onChange={(name) => {
+                                  if (name) loadMenuIntoNavItems(name);
+                                }}
+                                style={{ width: "100%" }}
+                              />
+                            </Form.Item>
+                          )}
+                          {grp.keys
+                            .map((k) =>
+                              byKey[k]
+                                ? renderSchemaField(byKey[k], themeColorOptions)
+                                : null,
+                            )
+                            .filter(Boolean)}
+                        </>
+                      ),
+                    })),
+                    {
+                      key: "section-settings",
+                      label: "Section Settings",
+                      children: (
+                        <>
+                          {SECTION_SETTINGS_SCHEMA.map((f) =>
+                            renderSchemaField(f, themeColorOptions),
+                          )}
+                        </>
+                      ),
+                    },
+                  ];
+                  return (
+                    <Collapse
+                      accordion
+                      defaultActiveKey={[]}
+                      items={headerItems}
+                    />
+                  );
+                })()
+              ) : (
+                <>
+                  {getPropsFields(editingBlock.baseComponent)}
+                  <Collapse
+                    accordion
+                    defaultActiveKey={[]}
+                    items={[
+                      {
+                        key: "section-settings",
+                        label: "Section Settings",
+                        children: (
+                          <>
+                            {SECTION_SETTINGS_SCHEMA.map((f) =>
+                              renderSchemaField(f, themeColorOptions),
+                            )}
+                          </>
+                        ),
+                      },
+                    ]}
+                  />
+                </>
+              ))}
+          </Form>
         </Drawer>
       </>
     </DndContext>

@@ -45,10 +45,14 @@ async function HomeContent() {
   }
 
   if (page) {
-    const layout = (page.layout || []).map((block) => ({
-      ...block,
-      baseComponent: block.baseComponent || (block.componentId?.baseComponent ?? "Paragraph"),
-    }));
+    const layout = (page.layout || []).map((block) => {
+      const base =
+        block.baseComponent ||
+        (typeof block.componentId === "object" && block.componentId?.baseComponent) ||
+        (typeof block.componentId === "string" ? block.componentId : null) ||
+        "Paragraph";
+      return { ...block, baseComponent: base };
+    });
     return <ComponentRenderer layout={layout} />;
   }
 
