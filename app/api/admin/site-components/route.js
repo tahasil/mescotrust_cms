@@ -55,7 +55,8 @@ export async function GET(req) {
 
     list.sort((a, b) => (a.order !== b.order ? a.order - b.order : a.componentId.localeCompare(b.componentId)));
 
-    return NextResponse.json(list);
+    const filtered = list.filter((item) => item.componentId !== "LatestEvents");
+    return NextResponse.json(filtered);
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
