@@ -20,5 +20,5 @@ const siteComponentMetaSchema = new mongoose.Schema(
 siteComponentMetaSchema.index({ global: 1, position: 1, order: 1 });
 
 module.exports =
-  mongoose.models.SiteComponentMeta ||
+  (mongoose.models && mongoose.models.SiteComponentMeta) ||
   mongoose.model("SiteComponentMeta", siteComponentMetaSchema);

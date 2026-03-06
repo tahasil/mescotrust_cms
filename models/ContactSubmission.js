@@ -14,4 +14,5 @@ const contactSubmissionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.models.ContactSubmission || mongoose.model("ContactSubmission", contactSubmissionSchema);
+module.exports =
+  (mongoose.models && mongoose.models.ContactSubmission) || mongoose.model("ContactSubmission", contactSubmissionSchema);

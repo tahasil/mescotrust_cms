@@ -20,4 +20,5 @@ const componentSchema = new mongoose.Schema(
 
 componentSchema.index({ baseComponent: 1 });
 
-module.exports = mongoose.models.Component || mongoose.model("Component", componentSchema);
+module.exports =
+  (mongoose.models && mongoose.models.Component) || mongoose.model("Component", componentSchema);

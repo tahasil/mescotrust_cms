@@ -293,5 +293,5 @@ const themeConfigSchema = new mongoose.Schema(
 );
 
 module.exports =
-  mongoose.models.ThemeConfig ||
+  (mongoose.models && mongoose.models.ThemeConfig) ||
   mongoose.model("ThemeConfig", themeConfigSchema);

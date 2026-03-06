@@ -31,4 +31,5 @@ const pageSchema = new mongoose.Schema(
 
 pageSchema.index({ status: 1 });
 
-module.exports = mongoose.models.Page || mongoose.model("Page", pageSchema);
+module.exports =
+  (mongoose.models && mongoose.models.Page) || mongoose.model("Page", pageSchema);

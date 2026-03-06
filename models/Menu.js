@@ -22,4 +22,5 @@ const menuSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.models.Menu || mongoose.model("Menu", menuSchema);
+module.exports =
+  (mongoose.models && mongoose.models.Menu) || mongoose.model("Menu", menuSchema);

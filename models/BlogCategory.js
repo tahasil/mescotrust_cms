@@ -12,4 +12,5 @@ const blogCategorySchema = new mongoose.Schema(
 
 blogCategorySchema.index({ order: 1 });
 
-module.exports = mongoose.models.BlogCategory || mongoose.model("BlogCategory", blogCategorySchema);
+module.exports =
+  (mongoose.models && mongoose.models.BlogCategory) || mongoose.model("BlogCategory", blogCategorySchema);

@@ -26,4 +26,5 @@ const blogSchema = new mongoose.Schema(
 blogSchema.index({ status: 1 });
 blogSchema.index({ publishedAt: -1 });
 
-module.exports = mongoose.models.Blog || mongoose.model("Blog", blogSchema);
+module.exports =
+  (mongoose.models && mongoose.models.Blog) || mongoose.model("Blog", blogSchema);

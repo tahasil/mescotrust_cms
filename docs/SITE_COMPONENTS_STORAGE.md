@@ -34,6 +34,11 @@ GET `/api/theme` still returns the full theme (from `themeconfigs`) and **merges
 - Run **`npm run seed`** to populate system components (Paragraph, Heading, Section, etc.) so the Add Block palette is complete.
 - Optional Ant Design blocks (Button, Card, Input, …) are still merged when `includeAntdBlocks` is true.
 
+## "Show on all pages" (global) and PageBuilder
+
+- When a site component has **Show on all pages = Yes** (`global: true` in `sitecomponentmetas`), it is **automatically** rendered on every page via the layout: `getLayoutData()` returns `globalBefore` / `globalAfter` (componentIds with `global: true`), and `PublicShell` renders them with `renderGlobalComponent(id)`. No need to add them in the page builder.
+- PageBuilder **Add Component** list excludes `global === true` components, so they do not appear in the palette. Editing global components is done in **Admin → Components → [id]/edit**; their content is stored in the components collection and used by the layout on all pages.
+
 ## DB backup
 
 - **`npm run backup-db`** exports `users`, `themeconfigs`, `menus`, `pages`, `components`, `sitecomponentmetas` to **`backup/YYYY-MM-DD_HH-mm-ss/*.json`**. Run before major schema or data changes.
