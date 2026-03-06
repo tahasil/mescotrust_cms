@@ -28,7 +28,7 @@ import {
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import * as SiteComponents from "@/components/site";
-import HomeHeroEditForm from "@/components/site/HomeHero/EditForm";
+import { EDITABLE_SITE_EDIT_FORMS } from "@/components/site";
 
 const HeaderPreview = dynamic(() => import("@/components/site/Header"), {
   ssr: false,
@@ -65,22 +65,20 @@ export default function AdminComponentEditPage() {
   const [themeHomeHeroSnapshot, setThemeHomeHeroSnapshot] = useState(null);
   const [themeMarqueeSnapshot, setThemeMarqueeSnapshot] = useState(null);
   const [themeSubscribeSnapshot, setThemeSubscribeSnapshot] = useState(null);
-  const subscribeEditFormRef = useRef(null);
-  const [homeHeroDrawerOpen, setHomeHeroDrawerOpen] = useState(false);
-  const homeHeroEditFormRef = useRef(null);
+  const [componentDrawerOpen, setComponentDrawerOpen] = useState(false);
+  const componentEditFormRef = useRef(null);
   const [form] = Form.useForm();
   const [editingDisplayName, setEditingDisplayName] = useState(false);
   const [hoveringName, setHoveringName] = useState(false);
-  const footerBgType = Form.useWatch("footerBgType", form);
   const displayNameValue = Form.useWatch("displayName", form);
   const globalOn = Form.useWatch("global", form);
-  const marqueeItemsWatch = Form.useWatch("marqueeItems", form);
-  const marqueeTitleWatch = Form.useWatch("marqueeTitle", form);
   const isHeader = record?.componentId === "Header";
   const isFooter = record?.componentId === "Footer";
   const isHomeHero = record?.componentId === "HomeHero";
   const isMarquee = record?.componentId === "Marquee";
   const isSubscribe = record?.componentId === "Subscribe";
+  const hasEditForm =
+    record?.componentId && EDITABLE_SITE_EDIT_FORMS[record.componentId];
 
   useEffect(() => {
     if (!id) return;
@@ -327,210 +325,9 @@ export default function AdminComponentEditPage() {
     if (!record?.componentId) return;
     setSaving(true);
     try {
-      // Get current form state first so theme (HomeHero) always saves to DB even if validation fails later
-      const rawFormValues = form.getFieldsValue(true);
-      let values = rawFormValues;
-
-      // HomeHero is saved via drawer EditForm (components collection), not from main form
-      if (isMarquee) {
-        const title =
-          rawFormValues.marqueeTitle != null
-            ? String(rawFormValues.marqueeTitle).trim()
-            : "";
-        const rawItems =
-          rawFormValues.marqueeItems ??
-          form.getFieldValue("marqueeItems") ??
-          [];
-        const items = Array.isArray(rawItems)
-          ? rawItems.map((it) => ({
-              url: it?.url != null ? String(it.url).trim() : "",
-              alt: it?.alt != null ? String(it.alt).trim() : "",
-            }))
-          : [];
-        const themeRes = await fetch("/api/theme/marquee", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ marqueeTitle: title, marqueeItems: items }),
-        });
-        if (!themeRes.ok) {
-          const err = await themeRes.json().catch(() => ({}));
-          message.error(err.error || "Failed to save Marquee");
-          setSaving(false);
-          return;
-        }
-        message.success("Marquee saved to database");
-      }
-
-      if (isSubscribe) {
-        if (!subscribeEditFormRef.current?.update) {
-          message.warning(
-            "Open the 'Manage Subscribe' section below, then click Save again.",
-          );
-          setSaving(false);
-          return;
-        }
-        try {
-          await subscribeEditFormRef.current.update();
-        } catch {
-          setSaving(false);
-          return;
-        }
-      }
-
-      try {
-        values = await form.validateFields();
-      } catch (e) {
-        if (e.errorFields && (isMarquee || isSubscribe)) {
-          values = rawFormValues;
-        } else {
-          setSaving(false);
-          throw e;
-        }
-      }
-
-      if (isHeader) {
-        const themeRes = await fetch("/api/theme/header", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            logoType: values.logoType || "text",
-            logoLightUrl: values.logoLightUrl?.trim() || "",
-            logoMobileUrl: values.logoMobileUrl?.trim() || "",
-            logoImageUrl: values.logoLightUrl?.trim() || "",
-            headerVolunteerLabel: values.headerVolunteerLabel?.trim() ?? "",
-            headerVolunteerHref: values.headerVolunteerHref?.trim() ?? "",
-            headerVolunteerIconUrl: values.headerVolunteerIconUrl?.trim() ?? "",
-            headerVolunteerIconUrlMobile:
-              values.headerVolunteerIconUrlMobile?.trim() ?? "",
-            headerDonateLabel: values.headerDonateLabel?.trim() ?? "",
-            headerDonateHref: values.headerDonateHref?.trim() ?? "",
-            headerDonateIconUrl: values.headerDonateIconUrl?.trim() || "",
-            headerDonateIconUrlMobile:
-              values.headerDonateIconUrlMobile?.trim() || "",
-            headerBgColorKey: values.headerBgColorKey ?? "headerBg",
-            headerCtaBgColorKey: values.headerCtaBgColorKey ?? "headerCta",
-            headerCtaTextColorKey: values.headerCtaTextColorKey ?? "primary",
-            headerDonateBgColorKey: values.headerDonateBgColorKey ?? "gradient",
-            headerDonateTextColorKey:
-              values.headerDonateTextColorKey ?? "white",
-          }),
-        });
-        if (!themeRes.ok) {
-          const err = await themeRes.json().catch(() => ({}));
-          message.error(err.error || "Failed to save header content");
-          setSaving(false);
-          return;
-        }
-      }
-
-      if (isFooter) {
-        const allValues = form.getFieldsValue(true);
-        const col1 = Array.isArray(allValues.footerCol1Links)
-          ? allValues.footerCol1Links
-          : [];
-        const col2 = Array.isArray(allValues.footerCol2Links)
-          ? allValues.footerCol2Links
-          : [];
-        const footerLogoUrl =
-          allValues.footerLogoUrl && String(allValues.footerLogoUrl).trim()
-            ? String(allValues.footerLogoUrl).trim()
-            : "";
-        const themeRes = await fetch("/api/theme/footer", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            footerLogoUrl,
-            footerAddress:
-              allValues.footerAddress && String(allValues.footerAddress).trim()
-                ? String(allValues.footerAddress).trim()
-                : "",
-            footerEmail:
-              allValues.footerEmail && String(allValues.footerEmail).trim()
-                ? String(allValues.footerEmail).trim()
-                : "",
-            footerPhone:
-              allValues.footerPhone && String(allValues.footerPhone).trim()
-                ? String(allValues.footerPhone).trim()
-                : "",
-            footerCol1Links: col1.map((it) => ({
-              label: it?.label ?? "",
-              url: it?.url ?? "",
-            })),
-            footerCol2Links: col2.map((it) => ({
-              label: it?.label ?? "",
-              url: it?.url ?? "",
-            })),
-            footerCopyrightText:
-              allValues.footerCopyrightText &&
-              String(allValues.footerCopyrightText).trim()
-                ? String(allValues.footerCopyrightText).trim()
-                : "",
-            footerBgColorKey:
-              allValues.footerBgType === "image"
-                ? ""
-                : (allValues.footerBgColorKey ?? ""),
-            footerBackgroundImageUrl:
-              allValues.footerBgType === "image"
-                ? allValues.footerBackgroundImageUrl != null
-                  ? String(allValues.footerBackgroundImageUrl).trim()
-                  : ""
-                : "",
-            footerTextColorKey: allValues.footerTextColorKey ?? "",
-            footerCopyrightBarColorKey:
-              allValues.footerCopyrightBarColorKey ?? "",
-          }),
-        });
-        if (!themeRes.ok) {
-          const err = await themeRes.json().catch(() => ({}));
-          message.error(err.error || "Failed to save footer content");
-          setSaving(false);
-          return;
-        }
-        const savedTheme = await themeRes.json().catch(() => ({}));
-        const savedBgImage =
-          savedTheme.footerBackgroundImageUrl != null
-            ? String(savedTheme.footerBackgroundImageUrl).trim()
-            : "";
-        const savedBgColorKey =
-          savedTheme.footerBgColorKey != null
-            ? String(savedTheme.footerBgColorKey).trim()
-            : "";
-        const savedBgType = savedBgImage
-          ? "image"
-          : savedBgColorKey
-            ? "color"
-            : "image";
-        form.setFieldsValue({
-          footerLogoUrl: savedTheme.footerLogoUrl ?? footerLogoUrl ?? "",
-          footerAddress: savedTheme.footerAddress ?? "",
-          footerEmail: savedTheme.footerEmail ?? "",
-          footerPhone: savedTheme.footerPhone ?? "",
-          footerCol1Links: Array.isArray(savedTheme.footerCol1Links)
-            ? savedTheme.footerCol1Links
-            : [],
-          footerCol2Links: Array.isArray(savedTheme.footerCol2Links)
-            ? savedTheme.footerCol2Links
-            : [],
-          footerCopyrightText: savedTheme.footerCopyrightText ?? "",
-          footerBgColorKey: savedTheme.footerBgColorKey ?? "",
-          footerBackgroundImageUrl: savedTheme.footerBackgroundImageUrl ?? "",
-          footerBgType: savedBgType,
-          footerTextColorKey: savedTheme.footerTextColorKey ?? "",
-          footerCopyrightBarColorKey:
-            savedTheme.footerCopyrightBarColorKey ?? "",
-        });
-        setThemeFooterSnapshot((prev) =>
-          prev
-            ? {
-                ...prev,
-                footerLogoUrl: savedTheme.footerLogoUrl ?? footerLogoUrl ?? "",
-                footerBackgroundImageUrl:
-                  savedTheme.footerBackgroundImageUrl ?? "",
-              }
-            : prev,
-        );
-      }
-
+      // Component content (Header, Footer, HomeHero, Marquee, Subscribe) is saved via drawer EditForm → components collection.
+      // Main Save only updates metadata: displayName, global, position.
+      const values = await form.validateFields();
       const res = await fetch(
         `/api/admin/site-components/${record.componentId}`,
         {
@@ -670,11 +467,11 @@ export default function AdminComponentEditPage() {
                   />
                 </Form.Item>
               )}
-            {isHomeHero && (
+            {hasEditForm && (
               <Button
                 type="default"
                 icon={<EditOutlined />}
-                onClick={() => setHomeHeroDrawerOpen(true)}
+                onClick={() => setComponentDrawerOpen(true)}
               >
                 Edit
               </Button>
@@ -704,186 +501,6 @@ export default function AdminComponentEditPage() {
                   themePaletteData={themePaletteData}
                   themeHeaderSnapshot={themeHeaderSnapshot}
                 />
-
-                <Collapse
-                  className="mt-4"
-                  defaultActiveKey={[]}
-                  items={[
-                    {
-                      key: "logo",
-                      label: "Logo",
-                      children: (
-                        <Row gutter={24}>
-                          <Col xs={24} md={8}>
-                            <Form.Item name="logoType" label="Logo type">
-                              <Select options={LOGO_TYPE_OPTIONS} />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} md={8}>
-                            <Form.Item
-                              name="logoLightUrl"
-                              label="Desktop logo image URL"
-                            >
-                              <Input placeholder="/images/logo.svg" />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} md={8}>
-                            <Form.Item
-                              name="logoMobileUrl"
-                              label="Mobile logo image URL (optional)"
-                            >
-                              <Input placeholder="/images/logo-mobile.svg" />
-                            </Form.Item>
-                          </Col>
-                        </Row>
-                      ),
-                    },
-                    {
-                      key: "volunteer",
-                      label: "Volunteer button",
-                      children: (
-                        <Row gutter={24}>
-                          <Col xs={24} md={8}>
-                            <Form.Item
-                              name="headerVolunteerLabel"
-                              label="Label (text)"
-                            >
-                              <Input placeholder="Volunteer" />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} md={8}>
-                            <Form.Item name="headerVolunteerHref" label="Link">
-                              <Input placeholder="/volunteer" />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} md={8}>
-                            <Form.Item
-                              name="headerVolunteerIconUrl"
-                              label="Desktop icon image URL"
-                            >
-                              <Input placeholder="/images/volunteer-icon.svg" />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} md={8}>
-                            <Form.Item
-                              name="headerVolunteerIconUrlMobile"
-                              label="Mobile icon image URL (optional)"
-                            >
-                              <Input placeholder="/images/volunteer-icon-mobile.svg" />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} md={8}>
-                            <Form.Item
-                              name="headerCtaBgColorKey"
-                              label="Button background color"
-                            >
-                              <Select
-                                options={themeColorOptions}
-                                placeholder="Select from Theme"
-                                style={{ width: "100%" }}
-                              />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} md={8}>
-                            <Form.Item
-                              name="headerCtaTextColorKey"
-                              label="Button text color"
-                            >
-                              <Select
-                                options={themeColorOptions}
-                                placeholder="Select from Theme"
-                                style={{ width: "100%" }}
-                              />
-                            </Form.Item>
-                          </Col>
-                        </Row>
-                      ),
-                    },
-                    {
-                      key: "donate",
-                      label: "Donate button",
-                      children: (
-                        <Row gutter={24}>
-                          <Col xs={24} md={8}>
-                            <Form.Item
-                              name="headerDonateLabel"
-                              label="Label (text)"
-                            >
-                              <Input placeholder="Donate Now" />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} md={8}>
-                            <Form.Item name="headerDonateHref" label="Link">
-                              <Input placeholder="/donate" />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} md={8}>
-                            <Form.Item
-                              name="headerDonateIconUrl"
-                              label="Desktop icon image URL"
-                            >
-                              <Input placeholder="/images/donate-now-icon.svg" />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} md={8}>
-                            <Form.Item
-                              name="headerDonateIconUrlMobile"
-                              label="Mobile icon image URL (optional)"
-                            >
-                              <Input placeholder="/images/donate-now-icon-mobile.svg" />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} md={8}>
-                            <Form.Item
-                              name="headerDonateBgColorKey"
-                              label="Button background color"
-                            >
-                              <Select
-                                options={themeColorOptions}
-                                placeholder="Select from Theme"
-                                style={{ width: "100%" }}
-                              />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} md={8}>
-                            <Form.Item
-                              name="headerDonateTextColorKey"
-                              label="Button text color"
-                            >
-                              <Select
-                                options={themeColorOptions}
-                                placeholder="Select from Theme"
-                                style={{ width: "100%" }}
-                              />
-                            </Form.Item>
-                          </Col>
-                        </Row>
-                      ),
-                    },
-                    {
-                      key: "colors",
-                      label: "Header colors (mobile menu)",
-                      children: (
-                        <>
-                          <Row gutter={24}>
-                            <Col xs={24} md={8}>
-                              <Form.Item
-                                name="headerBgColorKey"
-                                label="Responsive Nav Background"
-                              >
-                                <Select
-                                  options={themeColorOptions}
-                                  placeholder="Select from Theme"
-                                  style={{ width: "100%" }}
-                                />
-                              </Form.Item>
-                            </Col>
-                          </Row>
-                        </>
-                      ),
-                    },
-                  ]}
-                />
               </>
             )}
           </>
@@ -901,308 +518,6 @@ export default function AdminComponentEditPage() {
                   form={form}
                   themePaletteData={themePaletteData}
                   themeFooterSnapshot={themeFooterSnapshot}
-                />
-                <Collapse
-                  className="mt-4"
-                  defaultActiveKey={[]}
-                  destroyInactivePanelContent={false}
-                  items={[
-                    {
-                      key: "logo",
-                      label: "Logo",
-                      children: (
-                        <Row gutter={24}>
-                          <Col xs={24} md={8}>
-                            <Form.Item
-                              name="footerLogoUrl"
-                              label="Footer logo image URL"
-                            >
-                              <Input placeholder="/images/footer-logo.svg" />
-                            </Form.Item>
-                          </Col>
-                        </Row>
-                      ),
-                    },
-                    {
-                      key: "address",
-                      label: "Address & contact",
-                      children: (
-                        <Row gutter={24}>
-                          <Col xs={24} md={8}>
-                            <Form.Item name="footerAddress" label="Address">
-                              <Input.TextArea
-                                rows={3}
-                                placeholder="Full address"
-                              />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} md={8}>
-                            <Form.Item name="footerEmail" label="Email">
-                              <Input placeholder="email@example.org" />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} md={8}>
-                            <Form.Item name="footerPhone" label="Phone">
-                              <Input placeholder="Phone numbers" />
-                            </Form.Item>
-                          </Col>
-                        </Row>
-                      ),
-                    },
-                    {
-                      key: "col1",
-                      label: "Column 1 links",
-                      children: (
-                        <>
-                          <p
-                            style={{
-                              marginBottom: 12,
-                              color: "#666",
-                              fontSize: 12,
-                            }}
-                          >
-                            Add: click &quot;+ Add link&quot;. Update: edit Link
-                            text and URL in each row. Delete: click the delete
-                            icon on a row.
-                          </p>
-                          <Form.List name="footerCol1Links">
-                            {(fields, { add, remove }) => (
-                              <>
-                                {fields.map(({ key, name, ...rest }) => (
-                                  <Row
-                                    key={key}
-                                    gutter={8}
-                                    align="middle"
-                                    style={{ marginBottom: 8 }}
-                                  >
-                                    <Col xs={24} md={9}>
-                                      <Form.Item
-                                        {...rest}
-                                        name={[name, "label"]}
-                                        label="Link text"
-                                        rules={[
-                                          {
-                                            required: true,
-                                            message: "Required",
-                                          },
-                                        ]}
-                                      >
-                                        <Input placeholder="e.g. Educational Support Programmes" />
-                                      </Form.Item>
-                                    </Col>
-                                    <Col xs={24} md={9}>
-                                      <Form.Item
-                                        {...rest}
-                                        name={[name, "url"]}
-                                        label="URL"
-                                        rules={[
-                                          {
-                                            required: true,
-                                            message: "Required",
-                                          },
-                                        ]}
-                                      >
-                                        <Input placeholder="e.g. /programmes" />
-                                      </Form.Item>
-                                    </Col>
-                                    <Col xs={24} md={6}>
-                                      <Button
-                                        type="text"
-                                        danger
-                                        onClick={() => remove(name)}
-                                        style={{ marginTop: 4 }}
-                                        icon={<DeleteOutlined />}
-                                        aria-label="Remove link"
-                                      />
-                                    </Col>
-                                  </Row>
-                                ))}
-                                <Form.Item>
-                                  <Button
-                                    type="dashed"
-                                    onClick={() => add()}
-                                    block
-                                  >
-                                    + Add link
-                                  </Button>
-                                </Form.Item>
-                              </>
-                            )}
-                          </Form.List>
-                        </>
-                      ),
-                    },
-                    {
-                      key: "col2",
-                      label: "Column 2 links",
-                      children: (
-                        <>
-                          <p
-                            style={{
-                              marginBottom: 12,
-                              color: "#666",
-                              fontSize: 12,
-                            }}
-                          >
-                            Add: click &quot;+ Add link&quot;. Update: edit Link
-                            text and URL in each row. Delete: click the delete
-                            icon on a row.
-                          </p>
-                          <Form.List name="footerCol2Links">
-                            {(fields, { add, remove }) => (
-                              <>
-                                {fields.map(({ key, name, ...rest }) => (
-                                  <Row
-                                    key={key}
-                                    gutter={8}
-                                    align="middle"
-                                    style={{ marginBottom: 8 }}
-                                  >
-                                    <Col xs={24} md={9}>
-                                      <Form.Item
-                                        {...rest}
-                                        name={[name, "label"]}
-                                        label="Link text"
-                                        rules={[
-                                          {
-                                            required: true,
-                                            message: "Required",
-                                          },
-                                        ]}
-                                      >
-                                        <Input placeholder="e.g. Relief of Poverty" />
-                                      </Form.Item>
-                                    </Col>
-                                    <Col xs={24} md={9}>
-                                      <Form.Item
-                                        {...rest}
-                                        name={[name, "url"]}
-                                        label="URL"
-                                        rules={[
-                                          {
-                                            required: true,
-                                            message: "Required",
-                                          },
-                                        ]}
-                                      >
-                                        <Input placeholder="e.g. /relief" />
-                                      </Form.Item>
-                                    </Col>
-                                    <Col xs={24} md={6}>
-                                      <Button
-                                        type="text"
-                                        danger
-                                        onClick={() => remove(name)}
-                                        style={{ marginTop: 4 }}
-                                        icon={<DeleteOutlined />}
-                                        aria-label="Remove link"
-                                      />
-                                    </Col>
-                                  </Row>
-                                ))}
-                                <Form.Item>
-                                  <Button
-                                    type="dashed"
-                                    onClick={() => add()}
-                                    block
-                                  >
-                                    + Add link
-                                  </Button>
-                                </Form.Item>
-                              </>
-                            )}
-                          </Form.List>
-                        </>
-                      ),
-                    },
-                    {
-                      key: "copyright",
-                      label: "Copyright",
-                      children: (
-                        <Row gutter={24}>
-                          <Col xs={24} md={12}>
-                            <Form.Item
-                              name="footerCopyrightText"
-                              label="Copyright text"
-                            >
-                              <Input placeholder="Copyright © 2023 All Rights Reserved." />
-                            </Form.Item>
-                          </Col>
-                        </Row>
-                      ),
-                    },
-                    {
-                      key: "colors",
-                      label: "Footer colors",
-                      children: (
-                        <Row gutter={24}>
-                          <Col xs={24} md={8}>
-                            <Form.Item
-                              name="footerBgType"
-                              label="Footer background"
-                            >
-                              <Select
-                                options={[
-                                  { value: "color", label: "Color" },
-                                  { value: "image", label: "Image" },
-                                ]}
-                                placeholder="Select"
-                                style={{ width: "100%" }}
-                              />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} md={8}>
-                            {footerBgType === "image" ? (
-                              <Form.Item
-                                name="footerBackgroundImageUrl"
-                                label="Background image URL"
-                              >
-                                <Input placeholder="/uploads/1772449953147_footer-bg.svg" />
-                              </Form.Item>
-                            ) : (
-                              <Form.Item
-                                name="footerBgColorKey"
-                                label="Background color"
-                              >
-                                <Select
-                                  options={themeColorOptions}
-                                  placeholder="Select color from Theme"
-                                  style={{ width: "100%" }}
-                                  allowClear
-                                />
-                              </Form.Item>
-                            )}
-                          </Col>
-                          <Col xs={24} md={8}>
-                            <Form.Item
-                              name="footerTextColorKey"
-                              label="Text & links color"
-                            >
-                              <Select
-                                options={themeColorOptions}
-                                placeholder="Select color from Theme"
-                                style={{ width: "100%" }}
-                                allowClear
-                              />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} md={8}>
-                            <Form.Item
-                              name="footerCopyrightBarColorKey"
-                              label="Copyright bar color"
-                            >
-                              <Select
-                                options={themeColorOptions}
-                                placeholder="Select color from Theme"
-                                style={{ width: "100%" }}
-                                allowClear
-                              />
-                            </Form.Item>
-                          </Col>
-                        </Row>
-                      ),
-                    },
-                  ]}
                 />
               </>
             )}
@@ -1224,102 +539,6 @@ export default function AdminComponentEditPage() {
                   themeHomeHeroSnapshot={themeHomeHeroSnapshot}
                   themePaletteData={themePaletteData}
                 />
-                <Drawer
-                  title="Edit Home Hero"
-                  placement="right"
-                  width={Math.min(
-                    520,
-                    typeof window !== "undefined"
-                      ? window.innerWidth * 0.9
-                      : 520,
-                  )}
-                  open={homeHeroDrawerOpen}
-                  onClose={() => setHomeHeroDrawerOpen(false)}
-                  footer={
-                    <div style={{ textAlign: "right" }}>
-                      <Button
-                        onClick={() => setHomeHeroDrawerOpen(false)}
-                        style={{ marginRight: 8 }}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        type="primary"
-                        icon={<CheckOutlined />}
-                        onClick={async () => {
-                          try {
-                            await homeHeroEditFormRef.current?.update?.();
-                          } catch {
-                            // error already shown by EditForm
-                          }
-                        }}
-                      >
-                        Update
-                      </Button>
-                    </div>
-                  }
-                >
-                  <HomeHeroEditForm
-                    ref={homeHeroEditFormRef}
-                    onSuccess={async () => {
-                      const res = await fetch("/api/theme", {
-                        cache: "no-store",
-                      });
-                      if (res.ok) {
-                        const theme = await res.json();
-                        const slides = Array.isArray(theme?.homeHeroSlides)
-                          ? theme.homeHeroSlides.map((s) => ({
-                              bgImageUrl:
-                                s?.bgImageUrl != null
-                                  ? String(s.bgImageUrl).trim()
-                                  : "",
-                              title:
-                                s?.title != null ? String(s.title).trim() : "",
-                              description:
-                                s?.description != null
-                                  ? String(s.description).trim()
-                                  : "",
-                              buttonText:
-                                s?.buttonText != null
-                                  ? String(s.buttonText).trim()
-                                  : "",
-                              buttonLink:
-                                s?.buttonLink != null
-                                  ? String(s.buttonLink).trim()
-                                  : "",
-                              showButton: s?.showButton !== false,
-                            }))
-                          : [];
-                        setThemeHomeHeroSnapshot({
-                          homeHeroSlides: slides,
-                          homeHeroSliderTitleColorKey:
-                            theme.homeHeroSliderTitleColorKey != null
-                              ? String(theme.homeHeroSliderTitleColorKey).trim()
-                              : "",
-                          homeHeroSliderDescColorKey:
-                            theme.homeHeroSliderDescColorKey != null
-                              ? String(theme.homeHeroSliderDescColorKey).trim()
-                              : "",
-                          homeHeroSliderButtonBgColorKey:
-                            theme.homeHeroSliderButtonBgColorKey != null
-                              ? String(
-                                  theme.homeHeroSliderButtonBgColorKey,
-                                ).trim()
-                              : "",
-                          homeHeroSliderButtonTextColorKey:
-                            theme.homeHeroSliderButtonTextColorKey != null
-                              ? String(
-                                  theme.homeHeroSliderButtonTextColorKey,
-                                ).trim()
-                              : "",
-                        });
-                      }
-                      setHomeHeroDrawerOpen(false);
-                      message.success("Home Hero saved");
-                    }}
-                    onCancel={() => setHomeHeroDrawerOpen(false)}
-                  />
-                </Drawer>
               </>
             )}
           </>
@@ -1336,110 +555,14 @@ export default function AdminComponentEditPage() {
                 <Divider />
                 {SiteComponents.Marquee ? (
                   <SiteComponents.Marquee
-                    title={
-                      marqueeTitleWatch ??
-                      themeMarqueeSnapshot?.marqueeTitle ??
-                      ""
-                    }
-                    images={
-                      marqueeItemsWatch ??
-                      themeMarqueeSnapshot?.marqueeItems ??
-                      []
-                    }
+                    title={themeMarqueeSnapshot?.marqueeTitle ?? ""}
+                    images={themeMarqueeSnapshot?.marqueeItems ?? []}
                   />
                 ) : (
                   <div style={{ color: "#999" }}>
                     Marquee component not found.
                   </div>
                 )}
-                <Collapse
-                  className="mt-4"
-                  defaultActiveKey={["marquee-content"]}
-                  items={[
-                    {
-                      key: "marquee-content",
-                      label: "Update",
-                      children: (
-                        <>
-                          <Form.Item
-                            name="marqueeTitle"
-                            label="Section title"
-                            style={{ marginBottom: 16 }}
-                          >
-                            <Input placeholder="Our CSR Partners | Awards & Recognition" />
-                          </Form.Item>
-                          <Form.List name="marqueeItems">
-                            {(fields, { add, remove }) => (
-                              <>
-                                {fields.map(({ key, name, ...restField }) => (
-                                  <Row
-                                    key={key}
-                                    gutter={[12, 8]}
-                                    style={{
-                                      marginBottom: 12,
-                                      alignItems: "center",
-                                    }}
-                                  >
-                                    <Col xs={24} md={12}>
-                                      <Form.Item
-                                        {...restField}
-                                        name={[name, "url"]}
-                                        label="Image URL"
-                                        rules={[
-                                          {
-                                            required: true,
-                                            message: "Required",
-                                          },
-                                        ]}
-                                      >
-                                        <Input
-                                          placeholder="/images/partner-1.png"
-                                          size="small"
-                                        />
-                                      </Form.Item>
-                                    </Col>
-                                    <Col xs={24} md={8}>
-                                      <Form.Item
-                                        {...restField}
-                                        name={[name, "alt"]}
-                                        label="Alt text"
-                                      >
-                                        <Input
-                                          placeholder="Partner"
-                                          size="small"
-                                        />
-                                      </Form.Item>
-                                    </Col>
-                                    <Col xs={24} md={4}>
-                                      <Button
-                                        type="text"
-                                        danger
-                                        size="small"
-                                        icon={<DeleteOutlined />}
-                                        onClick={() => remove(name)}
-                                      >
-                                        Remove
-                                      </Button>
-                                    </Col>
-                                  </Row>
-                                ))}
-                                <Button
-                                  type="dashed"
-                                  onClick={() => add({ url: "", alt: "" })}
-                                  block
-                                  icon={<PlusOutlined />}
-                                  size="small"
-                                >
-                                  Add item
-                                </Button>
-                              </>
-                            )}
-                          </Form.List>
-                        </>
-                      ),
-                    },
-                  ]}
-                />
               </>
             )}
           </>
@@ -1447,41 +570,194 @@ export default function AdminComponentEditPage() {
 
         {isSubscribe && (
           <>
-            {SiteComponents.Subscribe && themeSubscribeSnapshot ? (
-              <SiteComponents.Subscribe {...themeSubscribeSnapshot} />
-            ) : SiteComponents.Subscribe ? (
-              <SiteComponents.Subscribe />
-            ) : (
-              <div style={{ color: "#999" }}>
-                Subscribe component not found.
+            {themeLoading ? (
+              <div style={{ padding: 48, textAlign: "center" }}>
+                <Spin />
               </div>
+            ) : (
+              <>
+                <Divider />
+                {SiteComponents.Subscribe ? (
+                  <SiteComponents.Subscribe
+                    {...(themeSubscribeSnapshot || {})}
+                  />
+                ) : (
+                  <div style={{ color: "#999" }}>
+                    Subscribe component not found.
+                  </div>
+                )}
+              </>
             )}
-            <Collapse
-              className="mt-4"
-              defaultActiveKey={["subscribe-edit"]}
-              forceRender
-              items={[
-                {
-                  key: "subscribe-edit",
-                  label: "Manage Subscribe",
-                  forceRender: true,
-                  children: (
-                    <div style={{ padding: "8px 0" }}>
-                      {SiteComponents.SubscribeEditForm && (
-                        <SiteComponents.SubscribeEditForm
-                          ref={subscribeEditFormRef}
-                          onDataLoad={(data) => setThemeSubscribeSnapshot(data)}
-                          onSuccess={(data) =>
-                            setThemeSubscribeSnapshot(data ?? {})
-                          }
-                        />
-                      )}
-                    </div>
-                  ),
-                },
-              ]}
-            />
           </>
+        )}
+
+        {hasEditForm && (
+          <Drawer
+            title={`Edit ${record?.displayName || record?.componentId || ""}`}
+            placement="right"
+            width={Math.min(
+              520,
+              typeof window !== "undefined" ? window.innerWidth * 0.9 : 520,
+            )}
+            open={componentDrawerOpen}
+            onClose={() => setComponentDrawerOpen(false)}
+            footer={
+              <div style={{ textAlign: "right" }}>
+                <Button
+                  onClick={() => setComponentDrawerOpen(false)}
+                  style={{ marginRight: 8 }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="primary"
+                  icon={<CheckOutlined />}
+                  onClick={async () => {
+                    try {
+                      await componentEditFormRef.current?.update?.();
+                    } catch {
+                      // error already shown by EditForm
+                    }
+                  }}
+                >
+                  Update
+                </Button>
+              </div>
+            }
+          >
+            {(() => {
+              const EditFormComp =
+                record?.componentId &&
+                EDITABLE_SITE_EDIT_FORMS[record.componentId];
+              if (!EditFormComp) return null;
+              const refetchAndClose = async () => {
+                const cid = record?.componentId;
+                const res = await fetch("/api/theme", { cache: "no-store" });
+                if (!res.ok) return;
+                const theme = await res.json();
+                if (cid === "Header") {
+                  setThemeHeaderSnapshot({
+                    siteTitle: theme.siteTitle ?? "",
+                    logoType: theme.logoType ?? "text",
+                    logoLightUrl:
+                      theme.logoLightUrl || theme.logoImageUrl || "",
+                    logoMobileUrl: theme.logoMobileUrl ?? "",
+                    headerVolunteerLabel: theme.headerVolunteerLabel ?? "",
+                    headerVolunteerHref: theme.headerVolunteerHref ?? "",
+                    headerVolunteerIconUrl: theme.headerVolunteerIconUrl ?? "",
+                    headerVolunteerIconUrlMobile:
+                      theme.headerVolunteerIconUrlMobile ?? "",
+                    headerDonateLabel: theme.headerDonateLabel ?? "",
+                    headerDonateHref: theme.headerDonateHref ?? "",
+                    headerDonateIconUrl: theme.headerDonateIconUrl ?? "",
+                    headerDonateIconUrlMobile:
+                      theme.headerDonateIconUrlMobile ?? "",
+                    headerBgColorKey: theme.headerBgColorKey ?? "headerBg",
+                    headerCtaBgColorKey:
+                      theme.headerCtaBgColorKey ?? "headerCta",
+                    headerCtaTextColorKey:
+                      theme.headerCtaTextColorKey ?? "primary",
+                    headerDonateBgColorKey:
+                      theme.headerDonateBgColorKey ?? "gradient",
+                    headerDonateTextColorKey:
+                      theme.headerDonateTextColorKey ?? "white",
+                  });
+                } else if (cid === "Footer") {
+                  setThemeFooterSnapshot({
+                    footerLogoUrl: theme.footerLogoUrl ?? "",
+                    footerAddress: theme.footerAddress ?? "",
+                    footerEmail: theme.footerEmail ?? "",
+                    footerPhone: theme.footerPhone ?? "",
+                    footerCol1Links: Array.isArray(theme.footerCol1Links)
+                      ? theme.footerCol1Links
+                      : [],
+                    footerCol2Links: Array.isArray(theme.footerCol2Links)
+                      ? theme.footerCol2Links
+                      : [],
+                    footerCopyrightText: theme.footerCopyrightText ?? "",
+                    footerBgColorKey: theme.footerBgColorKey ?? "",
+                    footerBackgroundImageUrl:
+                      theme.footerBackgroundImageUrl ?? "",
+                    footerTextColorKey: theme.footerTextColorKey ?? "",
+                    footerCopyrightBarColorKey:
+                      theme.footerCopyrightBarColorKey ?? "",
+                  });
+                } else if (cid === "HomeHero") {
+                  const slides = Array.isArray(theme?.homeHeroSlides)
+                    ? theme.homeHeroSlides.map((s) => ({
+                        bgImageUrl:
+                          s?.bgImageUrl != null
+                            ? String(s.bgImageUrl).trim()
+                            : "",
+                        title: s?.title != null ? String(s.title).trim() : "",
+                        description:
+                          s?.description != null
+                            ? String(s.description).trim()
+                            : "",
+                        buttonText:
+                          s?.buttonText != null
+                            ? String(s.buttonText).trim()
+                            : "",
+                        buttonLink:
+                          s?.buttonLink != null
+                            ? String(s.buttonLink).trim()
+                            : "",
+                        showButton: s?.showButton !== false,
+                      }))
+                    : [];
+                  setThemeHomeHeroSnapshot({
+                    homeHeroSlides: slides,
+                    homeHeroSliderTitleColorKey:
+                      theme.homeHeroSliderTitleColorKey != null
+                        ? String(theme.homeHeroSliderTitleColorKey).trim()
+                        : "",
+                    homeHeroSliderDescColorKey:
+                      theme.homeHeroSliderDescColorKey != null
+                        ? String(theme.homeHeroSliderDescColorKey).trim()
+                        : "",
+                    homeHeroSliderButtonBgColorKey:
+                      theme.homeHeroSliderButtonBgColorKey != null
+                        ? String(theme.homeHeroSliderButtonBgColorKey).trim()
+                        : "",
+                    homeHeroSliderButtonTextColorKey:
+                      theme.homeHeroSliderButtonTextColorKey != null
+                        ? String(theme.homeHeroSliderButtonTextColorKey).trim()
+                        : "",
+                  });
+                } else if (cid === "Marquee") {
+                  setThemeMarqueeSnapshot({
+                    marqueeTitle:
+                      theme.marqueeTitle != null
+                        ? String(theme.marqueeTitle).trim()
+                        : "",
+                    marqueeItems: Array.isArray(theme.marqueeItems)
+                      ? theme.marqueeItems.map((it) => ({
+                          url: it?.url ?? "",
+                          alt: it?.alt ?? "",
+                        }))
+                      : [],
+                  });
+                } else if (cid === "Subscribe") {
+                  setThemeSubscribeSnapshot({
+                    subscribeSubtitle: theme.subscribeSubtitle ?? "",
+                    subscribeTitle: theme.subscribeTitle ?? "",
+                    subscribePlaceholder: theme.subscribePlaceholder ?? "",
+                    subscribeButtonText: theme.subscribeButtonText ?? "",
+                    subscribeBgUrl: theme.subscribeBgUrl ?? "",
+                  });
+                }
+                setComponentDrawerOpen(false);
+                message.success(`${record?.displayName || cid} saved`);
+              };
+              return (
+                <EditFormComp
+                  ref={componentEditFormRef}
+                  onSuccess={refetchAndClose}
+                  onCancel={() => setComponentDrawerOpen(false)}
+                />
+              );
+            })()}
+          </Drawer>
         )}
 
         {!isHeader &&

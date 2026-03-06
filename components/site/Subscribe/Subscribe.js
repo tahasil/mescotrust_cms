@@ -23,9 +23,15 @@ export default function Subscribe(props) {
 
   // No page/block props → fetch from components collection (e.g. global Subscribe block)
   useEffect(() => {
-    const hasPageProps = props && (props.subscribeSubtitle !== undefined || props.subscribeTitle !== undefined);
+    const hasPageProps =
+      props &&
+      (props.subscribeSubtitle !== undefined ||
+        props.subscribeTitle !== undefined);
     if (hasPageProps) return;
-    fetch("/api/theme/subscribe", { cache: "no-store", headers: { "Cache-Control": "no-cache, no-store, must-revalidate" } })
+    fetch("/api/theme/subscribe", {
+      cache: "no-store",
+      headers: { "Cache-Control": "no-cache, no-store, must-revalidate" },
+    })
       .then((res) => (res.ok ? res.json() : null))
       .then(setTheme)
       .catch(() => setTheme(null));
@@ -40,11 +46,22 @@ export default function Subscribe(props) {
   };
 
   // Admin: props = themeSubscribeSnapshot (from DB via EditForm). Frontend: theme = GET /api/theme (from DB).
-  const raw = props && (props.subscribeSubtitle !== undefined || props.subscribeTitle !== undefined) ? props : theme;
-  const subtitle = (raw?.subscribeSubtitle ?? raw?.subtitle ?? "").toString().trim();
+  const raw =
+    props &&
+    (props.subscribeSubtitle !== undefined ||
+      props.subscribeTitle !== undefined)
+      ? props
+      : theme;
+  const subtitle = (raw?.subscribeSubtitle ?? raw?.subtitle ?? "")
+    .toString()
+    .trim();
   const title = (raw?.subscribeTitle ?? raw?.title ?? "").toString().trim();
-  const placeholder = (raw?.subscribePlaceholder ?? raw?.placeholder ?? "").toString().trim();
-  const buttonText = (raw?.subscribeButtonText ?? raw?.buttonText ?? "").toString().trim();
+  const placeholder = (raw?.subscribePlaceholder ?? raw?.placeholder ?? "")
+    .toString()
+    .trim();
+  const buttonText = (raw?.subscribeButtonText ?? raw?.buttonText ?? "")
+    .toString()
+    .trim();
   const bgUrl = (raw?.subscribeBgUrl ?? raw?.bgUrl ?? "").toString().trim();
 
   return (

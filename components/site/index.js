@@ -4,7 +4,7 @@
  * PageBuilder → save to pages. Components edit page → save to components collection.
  */
 export { default as Header, HeaderEditForm } from "./Header";
-export { default as Footer } from "./Footer/index";
+export { default as Footer, FooterEditForm } from "./Footer/index";
 export { default as HomeHero, HomeHeroEditForm } from "./HomeHero/index";
 export { default as Marquee, MarqueeEditForm } from "./Marquee/index";
 export { default as Subscribe, SubscribeEditForm } from "./Subscribe/index";
@@ -12,9 +12,11 @@ import HomeHeroEditForm from "./HomeHero/EditForm";
 import MarqueeEditForm from "./Marquee/EditForm";
 import SubscribeEditForm from "./Subscribe/EditForm";
 import HeaderEditForm from "./Header/EditForm";
+import FooterEditForm from "./Footer/EditForm";
 /** componentId -> EditForm for drawer. Add new editable site components here. */
 export const EDITABLE_SITE_EDIT_FORMS = {
   Header: HeaderEditForm,
+  Footer: FooterEditForm,
   HomeHero: HomeHeroEditForm,
   Marquee: MarqueeEditForm,
   Subscribe: SubscribeEditForm,
