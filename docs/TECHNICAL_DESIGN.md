@@ -330,6 +330,7 @@ Base URL: `/api`. Auth: public (no auth), admin (JWT via NextAuth + `requireAuth
 - **Layout:** Pages use a **flat** array of blocks; no nested layout tree. Section blocks can store a `props.layout` array for inner blocks; structure is defined in the Component’s schema and validated on save.
 - **componentId in layout:** Can be a MongoDB ObjectId (reference to `Component`) or a string site component ID (e.g. `"Header"`, `"HomeHero"`). Resolved at read time for `baseComponent` and props.
 - **Site components:** Implemented under `components/site/`; IDs in `lib/siteComponentRegistry.js` (`SITE_COMPONENT_IDS`). Metadata (global, order, position, enabled) in `SiteComponentMeta`. Creating/deleting via admin API also updates registry and component file.
+- **New site components:** Jab bhi naya site component add karein, **exact same pattern** follow karein jaise LatestEvents1 / HomeHero / Subscribe — 3-file folder, EditForm (load/save API), `EDITABLE_SITE_EDIT_FORMS` entry, aur admin edit page me snapshot + preview + refetch. Full checklist: [NEW_SITE_COMPONENT_CHECKLIST.md](./NEW_SITE_COMPONENT_CHECKLIST.md).
 - **Props schema:** Component and site-component edit forms use a shared schema format (see [API.md](./API.md) “Component Props Schema Format”). Site-specific drawer schemas (e.g. Header) live next to the component (e.g. `headerDrawerSchemas.js`).
 
 ---
@@ -346,6 +347,7 @@ Keep this doc in sync when you change low-level behaviour:
 | **Layout block shape or validation** | §2.1 (Layout block table), §4 (Key conventions). |
 | **Theme config fields** | §2.10 — add new ThemeConfig fields or document new slices. |
 | **Site component registry / metadata** | §2.3, §4 (Site components bullet). |
+| **New site component add karna** | [NEW_SITE_COMPONENT_CHECKLIST.md](./NEW_SITE_COMPONENT_CHECKLIST.md) follow karein; §4 (New site components bullet); edit page me snapshot + preview + refetch add karein. |
 
 After editing, bump the *Last updated* line at the end of the file.
 
@@ -355,6 +357,7 @@ After editing, bump the *Last updated* line at the end of the file.
 
 - [API.md](./API.md) — Path convention, auth, public vs admin, props schema format, layout contract, schema change handling, versioning.
 - [SITE_COMPONENTS_STORAGE.md](./SITE_COMPONENTS_STORAGE.md) — Site components storage and registry.
+- [NEW_SITE_COMPONENT_CHECKLIST.md](./NEW_SITE_COMPONENT_CHECKLIST.md) — **New site component create karte waqt follow karne wale steps** (LatestEvents1 jaisa structure + edit flow).
 - [COMPONENT_PLATFORM.md](./COMPONENT_PLATFORM.md) — Page builder and component platform.
 - [PERMISSIONS.md](./PERMISSIONS.md) — Roles and permissions.
 

@@ -2,6 +2,8 @@
 
 All site component **content** is stored in the **components** collection (one document per component with `baseComponent` and `defaultProps`).
 
+**New component add karte waqt:** Naya site component hamesha **LatestEvents1 / HomeHero / Subscribe jaisa hi** banao — 3-file folder, EditForm, `EDITABLE_SITE_EDIT_FORMS`, aur admin edit page me Edit button + preview + refetch. Full checklist: [NEW_SITE_COMPONENT_CHECKLIST.md](./NEW_SITE_COMPONENT_CHECKLIST.md).
+
 | Component   | Collection    | API (GET = public, PUT = admin)     |
 |------------|----------------|-------------------------------------|
 | **Subscribe** | `components` | GET/PUT `/api/theme/subscribe`  |

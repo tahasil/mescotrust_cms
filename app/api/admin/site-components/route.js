@@ -46,7 +46,12 @@ export async function GET(req) {
   }
 }
 
-/** POST: create new site component — creates file in components/site/, updates registry and index */
+/**
+ * POST: create new site component — creates 3-file folder, registry, index, Component doc.
+ * New components must follow same pattern as LatestEvents1: add to EDITABLE_SITE_EDIT_FORMS
+ * and add edit-page snapshot/preview/refetch in components/[id]/edit/page.js.
+ * See docs/NEW_SITE_COMPONENT_CHECKLIST.md.
+ */
 export async function POST(req) {
   const session = await requireAuth(req);
   if (session instanceof NextResponse) return session;
