@@ -65,6 +65,7 @@ export default function AdminComponentEditPage() {
   const [themeHomeHeroSnapshot, setThemeHomeHeroSnapshot] = useState(null);
   const [themeMarqueeSnapshot, setThemeMarqueeSnapshot] = useState(null);
   const [themeSubscribeSnapshot, setThemeSubscribeSnapshot] = useState(null);
+  const [themeLatestEvents1Snapshot, setThemeLatestEvents1Snapshot] = useState(null);
   const [componentDrawerOpen, setComponentDrawerOpen] = useState(false);
   const [drawerUpdateLoading, setDrawerUpdateLoading] = useState(false);
   const componentEditFormRef = useRef(null);
@@ -78,6 +79,7 @@ export default function AdminComponentEditPage() {
   const isHomeHero = record?.componentId === "HomeHero";
   const isMarquee = record?.componentId === "Marquee";
   const isSubscribe = record?.componentId === "Subscribe";
+  const isLatestEvents1 = record?.componentId === "LatestEvents1";
   const hasEditForm =
     record?.componentId && EDITABLE_SITE_EDIT_FORMS[record.componentId];
 
@@ -321,6 +323,36 @@ export default function AdminComponentEditPage() {
       .catch(() => message.error("Failed to load theme"))
       .finally(() => setThemeLoading(false));
   }, [isMarquee, form]);
+
+  // LatestEvents1: fetch component data for preview
+  useEffect(() => {
+    if (!isLatestEvents1) return;
+    setThemeLoading(true);
+    fetch("/api/theme/LatestEvents1", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : {}))
+      .then((data) => {
+        const items = Array.isArray(data?.latestEvents1Items)
+          ? data.latestEvents1Items.map((it) => ({
+              imageUrl: it?.imageUrl != null ? String(it.imageUrl).trim() : "",
+              date: it?.date != null ? String(it.date).trim() : "",
+              title: it?.title != null ? String(it.title).trim() : "",
+              description: it?.description != null ? String(it.description).trim() : "",
+              buttonText: it?.buttonText != null ? String(it.buttonText).trim() : "Read Post",
+              buttonLink: it?.buttonLink != null ? String(it.buttonLink).trim() : "/",
+            }))
+          : [];
+        setThemeLatestEvents1Snapshot({
+          latestEvents1SubTitle: data?.latestEvents1SubTitle != null ? String(data.latestEvents1SubTitle).trim() : "Latest News",
+          latestEvents1MainTitle: data?.latestEvents1MainTitle != null ? String(data.latestEvents1MainTitle).trim() : "Stay Informed. Stay Ahead.",
+          latestEvents1Items: items,
+          latestEvents1SubTitleColorKey: data?.latestEvents1SubTitleColorKey != null ? String(data.latestEvents1SubTitleColorKey).trim() : "",
+          latestEvents1MainTitleColorKey: data?.latestEvents1MainTitleColorKey != null ? String(data.latestEvents1MainTitleColorKey).trim() : "",
+          latestEvents1ButtonColorKey: data?.latestEvents1ButtonColorKey != null ? String(data.latestEvents1ButtonColorKey).trim() : "",
+        });
+      })
+      .catch(() => message.error("Failed to load Latest Events"))
+      .finally(() => setThemeLoading(false));
+  }, [isLatestEvents1]);
 
   const handleSubmit = async () => {
     if (!record?.componentId) return;
@@ -592,6 +624,29 @@ export default function AdminComponentEditPage() {
           </>
         )}
 
+        {isLatestEvents1 && (
+          <>
+            {themeLoading ? (
+              <div style={{ padding: 48, textAlign: "center" }}>
+                <Spin />
+              </div>
+            ) : (
+              <>
+                <Divider />
+                {SiteComponents.LatestEvents1 ? (
+                  <SiteComponents.LatestEvents1
+                    {...(themeLatestEvents1Snapshot || {})}
+                  />
+                ) : (
+                  <div style={{ color: "#999" }}>
+                    Latest Events component not found.
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        )}
+
         {hasEditForm && (
           <Drawer
             title={`Edit ${record?.displayName || record?.componentId || ""}`}
@@ -746,6 +801,25 @@ export default function AdminComponentEditPage() {
                     subscribeButtonBgColorKey: theme.subscribeButtonBgColorKey ?? "",
                     subscribeButtonTextColorKey: theme.subscribeButtonTextColorKey ?? "",
                   });
+                } else if (cid === "LatestEvents1") {
+                  const items = Array.isArray(theme?.latestEvents1Items)
+                    ? theme.latestEvents1Items.map((it) => ({
+                        imageUrl: it?.imageUrl != null ? String(it.imageUrl).trim() : "",
+                        date: it?.date != null ? String(it.date).trim() : "",
+                        title: it?.title != null ? String(it.title).trim() : "",
+                        description: it?.description != null ? String(it.description).trim() : "",
+                        buttonText: it?.buttonText != null ? String(it.buttonText).trim() : "Read Post",
+                        buttonLink: it?.buttonLink != null ? String(it.buttonLink).trim() : "/",
+                      }))
+                    : [];
+                  setThemeLatestEvents1Snapshot({
+                    latestEvents1SubTitle: theme?.latestEvents1SubTitle != null ? String(theme.latestEvents1SubTitle).trim() : "Latest News",
+                    latestEvents1MainTitle: theme?.latestEvents1MainTitle != null ? String(theme.latestEvents1MainTitle).trim() : "Stay Informed. Stay Ahead.",
+                    latestEvents1Items: items,
+                    latestEvents1SubTitleColorKey: theme?.latestEvents1SubTitleColorKey != null ? String(theme.latestEvents1SubTitleColorKey).trim() : "",
+                    latestEvents1MainTitleColorKey: theme?.latestEvents1MainTitleColorKey != null ? String(theme.latestEvents1MainTitleColorKey).trim() : "",
+                    latestEvents1ButtonColorKey: theme?.latestEvents1ButtonColorKey != null ? String(theme.latestEvents1ButtonColorKey).trim() : "",
+                  });
                 }
                 setComponentDrawerOpen(false);
                 setDrawerUpdateLoading(false);
@@ -767,6 +841,7 @@ export default function AdminComponentEditPage() {
           !isHomeHero &&
           !isMarquee &&
           !isSubscribe &&
+          !isLatestEvents1 &&
           record?.componentId && (
             <>
               <Divider />

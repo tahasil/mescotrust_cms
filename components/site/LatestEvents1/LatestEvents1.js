@@ -59,93 +59,135 @@ const HomeCardNews = styled(Card)`
   }
 `;
 
+function normalizeItem(it) {
+  return {
+    imageUrl: it?.imageUrl != null ? String(it.imageUrl).trim() : "",
+    date: it?.date != null ? String(it.date).trim() : "",
+    title: it?.title != null ? String(it.title).trim() : "",
+    description: it?.description != null ? String(it.description).trim() : "",
+    buttonText:
+      it?.buttonText != null ? String(it.buttonText).trim() : "Read Post",
+    buttonLink: it?.buttonLink != null ? String(it.buttonLink).trim() : "/",
+  };
+}
+
 /**
- * Site component: LatestEvents1 (Latest News / Latest Events).
- * Props come from theme/Component defaultProps (e.g. sectionTitle, items).
+ * Site component: LatestEvents1 (Latest News). All content editable via EditForm (same as HomeHero/Subscribe).
+ * Props (from theme/layout): latestEvents1SubTitle, latestEvents1MainTitle, latestEvents1Items[], color keys.
  */
 export default function LatestEvents1(props) {
-  const primaryColor = getColor("primary") || getColor("gradient");
+  const subTitle = (props?.latestEvents1SubTitle ?? "Latest News")
+    .toString()
+    .trim();
+  const mainTitle = (
+    props?.latestEvents1MainTitle ?? "Stay Informed. Stay Ahead."
+  )
+    .toString()
+    .trim();
+  const rawItems =
+    Array.isArray(props?.latestEvents1Items) &&
+    props.latestEvents1Items.length > 0
+      ? props.latestEvents1Items
+      : [
+          {
+            imageUrl: "/images/news-1.png",
+            date: "02 Feb 2026",
+            title: "Scholarship information for the year 2025-26",
+            description:
+              "Lorem ipsum dolor sit amet consectetur. Amet mattis tellus et as ectus orc.",
+            buttonText: "Read Post",
+            buttonLink: "/",
+          },
+          {
+            imageUrl: "/images/news-2.png",
+            date: "02 Feb 2026",
+            title:
+              "Congratulations to all our EAS students for passing their HSC examination.",
+            description: "",
+            buttonText: "Read Post",
+            buttonLink: "/",
+          },
+        ];
+
+  const items = rawItems.map(normalizeItem);
+
+  const subTitleColorKey = (props?.latestEvents1SubTitleColorKey ?? "")
+    .toString()
+    .trim();
+  const mainTitleColorKey = (props?.latestEvents1MainTitleColorKey ?? "")
+    .toString()
+    .trim();
+  const buttonColorKey = (props?.latestEvents1ButtonColorKey ?? "")
+    .toString()
+    .trim();
+
+  const subTitleColor = subTitleColorKey
+    ? getColor(subTitleColorKey)
+    : getColor("black");
+  const mainTitleColor = mainTitleColorKey
+    ? getColor(mainTitleColorKey)
+    : getColor("black");
+  const buttonColor = buttonColorKey
+    ? getColor(buttonColorKey)
+    : getColor("primary");
+
+  if (items.length === 0) return null;
 
   return (
     <section
       className="site-component-latestevents1"
       data-component="LatestEvents1"
     >
-      <PageContainer>
-        <Row gutter={[16, 16]}>
-          <Col span={24} className="mb-4">
-            <SubTitle>Latest News</SubTitle>
-            <MainTitle>Stay Informed. Stay Ahead.</MainTitle>
-          </Col>
-        </Row>
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={24} md={24} lg={12}>
+      <Row gutter={[16, 16]}>
+        <Col span={24} className="mb-4">
+          <SubTitle color={subTitleColor}>{subTitle}</SubTitle>
+          <MainTitle color={mainTitleColor}>{mainTitle}</MainTitle>
+        </Col>
+      </Row>
+      <Row gutter={[16, 16]}>
+        {items.map((item, index) => (
+          <Col key={index} xs={24} sm={24} md={24} lg={12}>
             <HomeCardNews>
               <Row gutter={[16, 16]} align="middle">
                 <Col span={24} sm={8} md={8} lg={10}>
-                  <img
-                    className="img-fluid"
-                    src="/images/news-1.png"
-                    alt="News 1"
-                  />
+                  {item.imageUrl ? (
+                    <img
+                      className="img-fluid"
+                      src={item.imageUrl}
+                      alt={item.title || `News ${index + 1}`}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        minHeight: 120,
+                        background: "#f0f0f0",
+                        borderRadius: 8,
+                      }}
+                    />
+                  )}
                 </Col>
                 <Col span={24} sm={16} md={16} lg={14}>
-                  <h1>02 Feb 2026</h1>
-                  <h2>Scholarship information for the year 2025-26</h2>
-                  <p>
-                    Lorem ipsum dolor sit amet consectetur. Amet mattis tellus et
-                    as ectus orc.
-                  </p>
-                  <Link href="/">
+                  {item.date ? <h1>{item.date}</h1> : null}
+                  {item.title ? <h2>{item.title}</h2> : null}
+                  {item.description ? <p>{item.description}</p> : null}
+                  <Link href={item.buttonLink || "/"}>
                     <ThemeButton
                       className="link"
-                      color={primaryColor}
+                      color={buttonColor}
                       type="button"
                       size="large"
                       icon={<ArrowRightOutlined />}
                       iconPosition="end"
                     >
-                      Read Post
+                      {item.buttonText || "Read Post"}
                     </ThemeButton>
                   </Link>
                 </Col>
               </Row>
             </HomeCardNews>
           </Col>
-          <Col xs={24} sm={24} md={24} lg={12}>
-            <HomeCardNews>
-              <Row gutter={[16, 16]} align="middle">
-                <Col span={24} sm={8} md={8} lg={10}>
-                  <img
-                    className="img-fluid"
-                    src="/images/news-2.png"
-                    alt="News 2"
-                  />
-                </Col>
-                <Col span={24} sm={16} md={16} lg={14}>
-                  <h1>02 Feb 2026</h1>
-                  <h2>
-                    Congratulations to all our EAS students for passing their
-                    HSC examination.
-                  </h2>
-                  <Link href="/">
-                    <ThemeButton
-                      className="link"
-                      color={primaryColor}
-                      type="button"
-                      size="large"
-                      icon={<ArrowRightOutlined />}
-                      iconPosition="end"
-                    >
-                      Read Post
-                    </ThemeButton>
-                  </Link>
-                </Col>
-              </Row>
-            </HomeCardNews>
-          </Col>
-        </Row>
-      </PageContainer>
+        ))}
+      </Row>
     </section>
   );
 }
