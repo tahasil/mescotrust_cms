@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Table, Button, message, Switch } from "antd";
+import { Table, Button, message } from "antd";
 import { EditOutlined, PlusOutlined } from "@ant-design/icons";
 import Link from "next/link";
 
@@ -45,40 +45,6 @@ export default function AdminComponentsPage() {
       render: (_, r) => (r.global ? (r.position === "after" ? "Below content" : "Above content") : "—"),
     },
     {
-      title: "Status",
-      key: "enabled",
-      width: 100,
-      render: (_, record) => {
-        const isHeaderOrFooter = record.componentId === "Header" || record.componentId === "Footer";
-        if (isHeaderOrFooter) return <span style={{ color: "#999" }}>—</span>;
-        return (
-          <Switch
-            checked={record.enabled !== false}
-            checkedChildren="Enabled"
-            unCheckedChildren="Disabled"
-            onChange={async (checked) => {
-              try {
-                const res = await fetch(`/api/admin/site-components/${encodeURIComponent(record.componentId)}`, {
-                  method: "PUT",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ enabled: checked }),
-                });
-                if (!res.ok) {
-                  const data = await res.json().catch(() => ({}));
-                  message.error(data.error || "Failed to update");
-                  return;
-                }
-                message.success(checked ? "Component enabled" : "Component disabled");
-                fetchList();
-              } catch {
-                message.error("Failed to update");
-              }
-            }}
-          />
-        );
-      },
-    },
-    {
       title: "Actions",
       key: "actions",
       width: 100,
@@ -98,7 +64,7 @@ export default function AdminComponentsPage() {
         <div>
           <h1 style={{ margin: "0 0 4px", fontSize: 22 }}>Components</h1>
           <p style={{ margin: 0, color: "#666", fontSize: 13 }}>
-            Each component is a file in <code>components/site/</code>. Use <strong>Status</strong> to enable or disable a component; disabled components do not appear in the Add Component list on pages. Use Edit to open the edit page, or create a new one below.
+            Each component is a file in <code>components/site/</code>. Use Edit to open the edit page, or create a new one below.
           </p>
         </div>
         <Link href="/admin/components/new">

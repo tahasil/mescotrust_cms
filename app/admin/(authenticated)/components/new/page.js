@@ -21,6 +21,14 @@ export default function AdminComponentNewPage() {
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
 
+  // System-generated ID from display name: no spaces, alphanumeric
+  const deriveComponentId = (displayName) => {
+    if (!displayName || typeof displayName !== "string") return "";
+    let base = displayName.replace(/\s+/g, "").replace(/[^a-zA-Z0-9]/g, "");
+    if (!/^[a-zA-Z]/.test(base) && base.length) base = "C" + base;
+    return base;
+  };
+
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
@@ -29,8 +37,7 @@ export default function AdminComponentNewPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          componentId: values.componentId?.trim(),
-          displayName: values.displayName?.trim() || values.componentId?.trim(),
+          displayName: values.displayName?.trim(),
           global: values.global ?? false,
           position: values.position || "before",
           order: Number(values.order) ?? 0,
@@ -41,7 +48,7 @@ export default function AdminComponentNewPage() {
         message.error(data.error || "Create failed");
         return;
       }
-      const cid = data.componentId || values.componentId?.trim();
+      const cid = data.componentId;
       message.success(
         `Component created. Add code in components/site/${cid}.js — then use it on any page via Add Component.`,
         6
@@ -72,21 +79,26 @@ export default function AdminComponentNewPage() {
       <Form
         form={form}
         layout="vertical"
-        initialValues={{ global: false, position: "before", order: 0 }}
+        initialValues={{ global: false, position: "before", order: 0, _derivedId: "" }}
+        onValuesChange={(_, all) => form.setFieldValue("_derivedId", deriveComponentId(all.displayName))}
       >
         <Row gutter={16}>
           <Col xs={24} sm={12} md={8}>
             <Form.Item
-              name="componentId"
-              label="Component ID"
+              name="displayName"
+              label="Display name"
               rules={[{ required: true, message: "Required" }]}
             >
-              <Input placeholder="e.g. HeroBanner" />
+              <Input placeholder="e.g. Hero Banner" />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12} md={8}>
-            <Form.Item name="displayName" label="Display name">
-              <Input placeholder="e.g. Hero Banner" />
+            <Form.Item
+              name="_derivedId"
+              label="Component ID"
+              tooltip="Generated from display name (no spaces). Cannot be edited."
+            >
+              <Input disabled placeholder="Generated from display name" />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12} md={8}>

@@ -68,21 +68,25 @@ export async function POST(req) {
 
   try {
     const body = await req.json();
-    const componentId = (body.componentId || "").trim().replace(/\s+/g, "");
-    if (!componentId) {
-      return NextResponse.json({ error: "componentId is required" }, { status: 400 });
+    const displayName = (body.displayName || "").trim();
+    if (!displayName) {
+      return NextResponse.json({ error: "Display name is required" }, { status: 400 });
     }
-    if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(componentId)) {
-      return NextResponse.json({ error: "componentId must be alphanumeric (e.g. HeroBanner)" }, { status: 400 });
+
+    // System-generated component ID from display name: no spaces, alphanumeric, unique
+    let baseName = displayName.replace(/\s+/g, "").replace(/[^a-zA-Z0-9]/g, "");
+    if (!baseName) {
+      return NextResponse.json({ error: "Display name must contain at least one letter or number" }, { status: 400 });
     }
+    if (!/^[a-zA-Z]/.test(baseName)) baseName = "C" + baseName;
 
     await connectDB();
-    const existing = await SiteComponentMeta.findOne({ componentId });
-    if (existing) {
-      return NextResponse.json({ error: "Component with this ID already exists" }, { status: 400 });
+    let componentId = baseName;
+    let suffix = 0;
+    while (await SiteComponentMeta.findOne({ componentId })) {
+      suffix += 1;
+      componentId = `${baseName}${suffix}`;
     }
-
-    const displayName = (body.displayName || componentId).trim() || componentId;
     const global = Boolean(body.global);
     const order = Number(body.order) ?? 0;
     const position = body.position === "after" ? "after" : "before";
