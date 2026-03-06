@@ -186,7 +186,7 @@ export default function HeaderEditorForm({
     >
       <Collapse
         accordion
-        defaultActiveKey={["logo", "menu", "navbar", "buttons"]}
+        defaultActiveKey={[]}
         items={[
           {
             key: "logo",

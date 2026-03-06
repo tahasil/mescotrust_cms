@@ -66,6 +66,7 @@ export default function AdminComponentEditPage() {
   const [themeMarqueeSnapshot, setThemeMarqueeSnapshot] = useState(null);
   const [themeSubscribeSnapshot, setThemeSubscribeSnapshot] = useState(null);
   const [componentDrawerOpen, setComponentDrawerOpen] = useState(false);
+  const [drawerUpdateLoading, setDrawerUpdateLoading] = useState(false);
   const componentEditFormRef = useRef(null);
   const [form] = Form.useForm();
   const [editingDisplayName, setEditingDisplayName] = useState(false);
@@ -601,28 +602,24 @@ export default function AdminComponentEditPage() {
             )}
             open={componentDrawerOpen}
             onClose={() => setComponentDrawerOpen(false)}
-            footer={
-              <div style={{ textAlign: "right" }}>
-                <Button
-                  onClick={() => setComponentDrawerOpen(false)}
-                  style={{ marginRight: 8 }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="primary"
-                  icon={<CheckOutlined />}
-                  onClick={async () => {
-                    try {
-                      await componentEditFormRef.current?.update?.();
-                    } catch {
-                      // error already shown by EditForm
-                    }
-                  }}
-                >
-                  Update
-                </Button>
-              </div>
+            extra={
+              <Button
+                type="primary"
+                icon={<CheckOutlined />}
+                loading={drawerUpdateLoading}
+                disabled={drawerUpdateLoading}
+                onClick={async () => {
+                  try {
+                    setDrawerUpdateLoading(true);
+                    await componentEditFormRef.current?.update?.();
+                  } catch {
+                    setDrawerUpdateLoading(false);
+                    // error already shown by EditForm
+                  }
+                }}
+              >
+                Update
+              </Button>
             }
           >
             {(() => {
@@ -744,9 +741,14 @@ export default function AdminComponentEditPage() {
                     subscribePlaceholder: theme.subscribePlaceholder ?? "",
                     subscribeButtonText: theme.subscribeButtonText ?? "",
                     subscribeBgUrl: theme.subscribeBgUrl ?? "",
+                    subscribeSubtitleColorKey: theme.subscribeSubtitleColorKey ?? "",
+                    subscribeTitleColorKey: theme.subscribeTitleColorKey ?? "",
+                    subscribeButtonBgColorKey: theme.subscribeButtonBgColorKey ?? "",
+                    subscribeButtonTextColorKey: theme.subscribeButtonTextColorKey ?? "",
                   });
                 }
                 setComponentDrawerOpen(false);
+                setDrawerUpdateLoading(false);
                 message.success(`${record?.displayName || cid} saved`);
               };
               return (

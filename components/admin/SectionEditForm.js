@@ -140,7 +140,7 @@ function SectionEditForm(
 
   return (
     <Form form={form} layout="vertical">
-      <Collapse accordion defaultActiveKey={["section-settings", "section-content"]} items={items} />
+      <Collapse accordion defaultActiveKey={[]} items={items} />
     </Form>
   );
 }

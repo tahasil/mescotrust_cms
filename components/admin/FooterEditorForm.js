@@ -91,7 +91,7 @@ export default function FooterEditorForm({ initialValues, onSave, saving }) {
   return (
     <Form form={form} layout="vertical" onFinish={(v) => onSave(v)} initialValues={DEFAULT_FOOTER_PROPS}>
       <Collapse
-        defaultActiveKey={["logo", "contact", "columns", "social", "colors"]}
+        defaultActiveKey={[]}
         items={[
           {
             key: "logo",

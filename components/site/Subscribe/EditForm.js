@@ -1,60 +1,73 @@
 "use client";
 
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, Row, Col, message, Spin } from "antd";
+import { Form, Input, Row, Col, Collapse, Select, message, Spin } from "antd";
 
 /**
  * Edit form for Subscribe — used in component edit page or page builder drawer.
- * When source="page": data from block.props (pages collection); save updates layout only, not components collection.
- * onDataLoad(data) — called with loaded data so parent can show preview.
- * onSuccess(payload) — called with saved payload after save so parent can update preview.
+ * When source="page": data from block.props (pages collection); save updates layout only.
+ * Theme colors: same pattern as HomeHero — Select from theme palette.
  */
 function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onDataLoad }, ref) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [themeColorOptions, setThemeColorOptions] = useState([]);
   const [initialData, setInitialData] = useState(null);
   const isPageBlock = source === "page";
 
   useEffect(() => {
     setLoading(true);
+    const normalize = (data) => ({
+      subscribeSubtitle: data?.subscribeSubtitle != null ? String(data.subscribeSubtitle).trim() : "",
+      subscribeTitle: data?.subscribeTitle != null ? String(data.subscribeTitle).trim() : "",
+      subscribePlaceholder: data?.subscribePlaceholder != null ? String(data.subscribePlaceholder).trim() : "",
+      subscribeButtonText: data?.subscribeButtonText != null ? String(data.subscribeButtonText).trim() : "",
+      subscribeBgUrl: data?.subscribeBgUrl != null ? String(data.subscribeBgUrl).trim() : "",
+      subscribeSubtitleColorKey: data?.subscribeSubtitleColorKey != null ? String(data.subscribeSubtitleColorKey).trim() : "",
+      subscribeTitleColorKey: data?.subscribeTitleColorKey != null ? String(data.subscribeTitleColorKey).trim() : "",
+      subscribeButtonBgColorKey: data?.subscribeButtonBgColorKey != null ? String(data.subscribeButtonBgColorKey).trim() : "",
+      subscribeButtonTextColorKey: data?.subscribeButtonTextColorKey != null ? String(data.subscribeButtonTextColorKey).trim() : "",
+    });
+
     if (isPageBlock) {
       const data = initialDataProp ?? {};
-      const normalized = {
-        subscribeSubtitle: data?.subscribeSubtitle != null ? String(data.subscribeSubtitle).trim() : "",
-        subscribeTitle: data?.subscribeTitle != null ? String(data.subscribeTitle).trim() : "",
-        subscribePlaceholder: data?.subscribePlaceholder != null ? String(data.subscribePlaceholder).trim() : "",
-        subscribeButtonText: data?.subscribeButtonText != null ? String(data.subscribeButtonText).trim() : "",
-        subscribeBgUrl: data?.subscribeBgUrl != null ? String(data.subscribeBgUrl).trim() : "",
-      };
+      const normalized = normalize(data);
       setInitialData(normalized);
       onDataLoad?.(normalized);
-      setLoading(false);
+      fetch("/api/theme", { cache: "no-store" })
+        .then((res) => (res.ok ? res.json() : {}))
+        .then((theme) => {
+          const palette = theme?.themePalette || {};
+          const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
+          const names = [...new Set([...Object.keys(palette), ...customColors.map((c) => c?.name).filter(Boolean)])].sort();
+          setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
+        })
+        .catch(() => {})
+        .finally(() => setLoading(false));
       return;
     }
+
     setInitialData(null);
-    fetch("/api/theme/subscribe", { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : {}))
-      .then((data) => {
-        const normalized = {
-          subscribeSubtitle: data?.subscribeSubtitle != null ? String(data.subscribeSubtitle).trim() : "",
-          subscribeTitle: data?.subscribeTitle != null ? String(data.subscribeTitle).trim() : "",
-          subscribePlaceholder: data?.subscribePlaceholder != null ? String(data.subscribePlaceholder).trim() : "",
-          subscribeButtonText: data?.subscribeButtonText != null ? String(data.subscribeButtonText).trim() : "",
-          subscribeBgUrl: data?.subscribeBgUrl != null ? String(data.subscribeBgUrl).trim() : "",
-        };
+    Promise.all([
+      fetch("/api/theme/subscribe", { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
+      fetch("/api/theme", { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
+    ])
+      .then(([data, theme]) => {
+        const normalized = normalize(data);
         setInitialData(normalized);
         onDataLoad?.(normalized);
+        const palette = theme?.themePalette || {};
+        const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
+        const names = [...new Set([...Object.keys(palette), ...customColors.map((c) => c?.name).filter(Boolean)])].sort();
+        setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
       })
       .catch(() => message.error("Failed to load Subscribe"))
       .finally(() => setLoading(false));
   }, [isPageBlock, initialDataProp]);
 
-  // Apply DB values to form when initialData is ready (initialValues alone don't reliably update after async load)
   useEffect(() => {
-    if (initialData) {
-      form.setFieldsValue(initialData);
-    }
+    if (initialData) form.setFieldsValue(initialData);
   }, [initialData, form]);
 
   const handleUpdate = () => {
@@ -66,6 +79,10 @@ function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage,
         subscribePlaceholder: String(values.subscribePlaceholder ?? "").trim(),
         subscribeButtonText: String(values.subscribeButtonText ?? "").trim(),
         subscribeBgUrl: String(values.subscribeBgUrl ?? "").trim(),
+        subscribeSubtitleColorKey: String(values.subscribeSubtitleColorKey ?? "").trim(),
+        subscribeTitleColorKey: String(values.subscribeTitleColorKey ?? "").trim(),
+        subscribeButtonBgColorKey: String(values.subscribeButtonBgColorKey ?? "").trim(),
+        subscribeButtonTextColorKey: String(values.subscribeButtonTextColorKey ?? "").trim(),
       };
       if (isPageBlock && onSaveToPage) {
         onSaveToPage(payload);
@@ -106,53 +123,74 @@ function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage,
     );
   }
 
-  // Field names must match ThemeConfig / SUBSCRIBE_KEYS — all saved to and loaded from DB (themeconfigs).
-  const subscribeFields = [
-    {
-      name: "subscribeSubtitle",
-      label: "Subtitle",
-      placeholder: "Subtitle",
-      span: 8,
-    },
-    {
-      name: "subscribePlaceholder",
-      label: "Email placeholder",
-      placeholder: "Placeholder",
-      span: 8,
-    },
-    { name: "subscribeTitle", label: "Title", placeholder: "Title", span: 8 },
-    {
-      name: "subscribeButtonText",
-      label: "Button text",
-      placeholder: "Button text",
-      span: 8,
-    },
-    {
-      name: "subscribeBgUrl",
-      label: "Background image URL",
-      placeholder: "URL",
-      span: 8,
-    },
-  ];
-
   return (
-    <Form
-      form={form}
-      layout="vertical"
-      initialValues={initialData}
-      key="subscribe-edit-form"
-    >
-      <Row gutter={[16, 16]}>
-        {subscribeFields.map(
-          ({ name, label, placeholder, span, ...restField }) => (
-            <Col key={name} xs={24} md={span}>
-              <Form.Item {...restField} name={name} label={label}>
-                <Input placeholder={placeholder} size="large" />
-              </Form.Item>
-            </Col>
-          ),
-        )}
-      </Row>
+    <Form form={form} layout="vertical" initialValues={initialData} key="subscribe-edit-form">
+      <Collapse
+        defaultActiveKey={[]}
+        items={[
+          {
+            key: "content",
+            label: "Content",
+            children: (
+              <Row gutter={[16, 12]}>
+                <Col span={24}>
+                  <Form.Item name="subscribeSubtitle" label="Subtitle">
+                    <Input placeholder="e.g. Latest News" size="large" />
+                  </Form.Item>
+                </Col>
+                <Col span={24}>
+                  <Form.Item name="subscribeTitle" label="Title">
+                    <Input placeholder="e.g. To get weekly updates" size="large" />
+                  </Form.Item>
+                </Col>
+                <Col span={24}>
+                  <Form.Item name="subscribePlaceholder" label="Email placeholder">
+                    <Input placeholder="e.g. Enter email address" size="large" />
+                  </Form.Item>
+                </Col>
+                <Col span={24}>
+                  <Form.Item name="subscribeButtonText" label="Button text">
+                    <Input placeholder="e.g. Subscribe" size="large" />
+                  </Form.Item>
+                </Col>
+                <Col span={24}>
+                  <Form.Item name="subscribeBgUrl" label="Background image URL">
+                    <Input placeholder="/uploads/..." size="large" />
+                  </Form.Item>
+                </Col>
+              </Row>
+            ),
+          },
+          {
+            key: "colors",
+            label: "Theme colors",
+            children: (
+              <Row gutter={[16, 12]}>
+                <Col span={24}>
+                  <Form.Item name="subscribeSubtitleColorKey" label="Subtitle color">
+                    <Select size="large" options={themeColorOptions} placeholder="From theme" style={{ width: "100%" }} allowClear />
+                  </Form.Item>
+                </Col>
+                <Col span={24}>
+                  <Form.Item name="subscribeTitleColorKey" label="Title color">
+                    <Select size="large" options={themeColorOptions} placeholder="From theme" style={{ width: "100%" }} allowClear />
+                  </Form.Item>
+                </Col>
+                <Col span={24}>
+                  <Form.Item name="subscribeButtonBgColorKey" label="Button background">
+                    <Select size="large" options={themeColorOptions} placeholder="From theme" style={{ width: "100%" }} allowClear />
+                  </Form.Item>
+                </Col>
+                <Col span={24}>
+                  <Form.Item name="subscribeButtonTextColorKey" label="Button text color">
+                    <Select size="large" options={themeColorOptions} placeholder="From theme" style={{ width: "100%" }} allowClear />
+                  </Form.Item>
+                </Col>
+              </Row>
+            ),
+          },
+        ]}
+      />
     </Form>
   );
 }

@@ -51,19 +51,23 @@ export const SubscribeContent = styled.div`
   }
 `;
 
-export const StyledSubTitle = styled.h2`
+export const StyledSubTitle = styled.h2.attrs((p) => ({
+  $colorKey: p.$subtitleColorKey && String(p.$subtitleColorKey).trim() ? p.$subtitleColorKey : "black",
+}))`
   margin: 0 0 8px;
   font-size: 16px;
   font-weight: 600;
-  color: ${() => getColor("black")};
+  color: ${(p) => getColor(p.$colorKey)};
 `;
 
-export const StyledMainTitle = styled.h1`
+export const StyledMainTitle = styled.h1.attrs((p) => ({
+  $colorKey: p.$titleColorKey && String(p.$titleColorKey).trim() ? p.$titleColorKey : "black",
+}))`
   margin: 0;
   font-size: 30px;
   font-weight: 500;
   line-height: 40px;
-  color: ${() => getColor("black")};
+  color: ${(p) => getColor(p.$colorKey)};
   opacity: 1;
   @media (max-width: 768px) {
     font-size: 22px;
@@ -114,7 +118,10 @@ export const SubscribeInput = styled(Input)`
   }
 `;
 
-export const SubscribeButton = styled(Button)`
+export const SubscribeButton = styled(Button).attrs((p) => ({
+  $bgKey: p.$buttonBgColorKey && String(p.$buttonBgColorKey).trim() ? p.$buttonBgColorKey : "gradient",
+  $textKey: p.$buttonTextColorKey && String(p.$buttonTextColorKey).trim() ? p.$buttonTextColorKey : "white",
+}))`
   flex: 0 0 auto;
   width: 28%;
   min-width: 120px;
@@ -124,8 +131,8 @@ export const SubscribeButton = styled(Button)`
   border: 1px solid ${() => getColor("primary")} !important;
   font-size: 16px;
   font-weight: 600;
-  color: ${() => getColor("white")} !important;
-  background: ${() => getColor("gradient")} !important;
+  color: ${(p) => getColor(p.$textKey)} !important;
+  background: ${(p) => getColor(p.$bgKey)} !important;
   transition: all 0.3s ease;
   text-decoration: none;
   &:hover {

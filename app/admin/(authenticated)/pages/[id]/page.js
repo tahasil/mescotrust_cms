@@ -6,6 +6,7 @@ import { Button, Form, Input, Select, Card, Space, message, Spin, Drawer, Collap
 import { ArrowLeftOutlined, SettingOutlined, SaveOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import PageBuilder from "@/components/admin/PageBuilder";
+import { LOCALE_OPTIONS } from "@/lib/localeOptions";
 
 export default function AdminPageEditPage() {
   const params = useParams();
@@ -136,43 +137,62 @@ export default function AdminPageEditPage() {
       {/* Visual builder - this IS the editor now */}
       <PageBuilder layout={layout} onChange={setLayoutAndRef} showLayers={false} />
 
-      {/* Page settings drawer */}
+      {/* Page settings drawer — accordion style like components drawer */}
       <Drawer
         title="Page Settings"
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
         width={420}
         extra={
-          <Button type="primary" onClick={() => setSettingsOpen(false)}>Done</Button>
+          <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={handleSave}>
+            Update
+          </Button>
         }
       >
         <Form form={form} layout="vertical">
-          <Form.Item name="title" label="Title" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="slug" label="Slug" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="status" label="Status" initialValue="draft">
-            <Select options={[{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }]} />
-          </Form.Item>
-          <Collapse ghost items={[{
-            key: "seo",
-            label: "SEO & Advanced",
-            children: (
-              <>
-                <Form.Item name="locale" label="Locale">
-                  <Input placeholder="en" />
-                </Form.Item>
-                <Form.Item name="metaTitle" label="Meta title">
-                  <Input />
-                </Form.Item>
-                <Form.Item name="metaDescription" label="Meta description">
-                  <Input.TextArea rows={2} />
-                </Form.Item>
-              </>
-            ),
-          }]} />
+          <Collapse
+            defaultActiveKey={[]}
+            style={{ border: "1px solid #e8e8e8", borderRadius: 8, overflow: "hidden" }}
+            items={[
+              {
+                key: "page-settings",
+                label: "Page settings",
+                children: (
+                  <>
+                    <Form.Item name="title" label="Title" rules={[{ required: true }]}>
+                      <Input />
+                    </Form.Item>
+                    <Form.Item name="slug" label="Slug" rules={[{ required: true }]}>
+                      <Input />
+                    </Form.Item>
+                    <Form.Item name="status" label="Status" initialValue="draft">
+                      <Select options={[{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }]} />
+                    </Form.Item>
+                  </>
+                ),
+              },
+              {
+                key: "seo",
+                label: "SEO & Advanced",
+                children: (
+                  <>
+                    <Form.Item name="locale" label="Locale">
+                      <Select
+                        placeholder="Select locale"
+                        options={LOCALE_OPTIONS}
+                      />
+                    </Form.Item>
+                    <Form.Item name="metaTitle" label="Meta title">
+                      <Input />
+                    </Form.Item>
+                    <Form.Item name="metaDescription" label="Meta description">
+                      <Input.TextArea rows={2} />
+                    </Form.Item>
+                  </>
+                ),
+              },
+            ]}
+          />
         </Form>
       </Drawer>
     </div>

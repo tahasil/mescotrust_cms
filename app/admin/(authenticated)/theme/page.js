@@ -29,6 +29,7 @@ import {
   CodeOutlined,
   BulbOutlined,
 } from "@ant-design/icons";
+import { LOCALE_OPTIONS } from "@/lib/localeOptions";
 
 const POPULAR_GOOGLE_FONTS = [
   "Inter",
@@ -374,7 +375,11 @@ export default function AdminThemePage() {
             </Col>
             <Col xs={24} sm={12} md={8}>
               <Form.Item name="defaultLocale" label="Default locale">
-                <Input placeholder="en" />
+                <Select
+                  placeholder="Select locale"
+                  allowClear={false}
+                  options={LOCALE_OPTIONS}
+                />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12} md={8}>

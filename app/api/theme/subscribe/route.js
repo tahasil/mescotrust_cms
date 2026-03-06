@@ -11,13 +11,27 @@ import { isAdmin } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
-const SUBSCRIBE_KEYS = ["subscribeSubtitle", "subscribeTitle", "subscribePlaceholder", "subscribeButtonText", "subscribeBgUrl"];
+const SUBSCRIBE_KEYS = [
+  "subscribeSubtitle",
+  "subscribeTitle",
+  "subscribePlaceholder",
+  "subscribeButtonText",
+  "subscribeBgUrl",
+  "subscribeSubtitleColorKey",
+  "subscribeTitleColorKey",
+  "subscribeButtonBgColorKey",
+  "subscribeButtonTextColorKey",
+];
 const SUBSCRIBE_DEFAULTS = {
   subscribeSubtitle: "",
   subscribeTitle: "",
   subscribePlaceholder: "",
   subscribeButtonText: "",
   subscribeBgUrl: "",
+  subscribeSubtitleColorKey: "",
+  subscribeTitleColorKey: "",
+  subscribeButtonBgColorKey: "",
+  subscribeButtonTextColorKey: "",
 };
 
 function toPayload(defaultProps) {

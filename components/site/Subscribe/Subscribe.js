@@ -63,14 +63,18 @@ export default function Subscribe(props) {
     .toString()
     .trim();
   const bgUrl = (raw?.subscribeBgUrl ?? raw?.bgUrl ?? "").toString().trim();
+  const subtitleColorKey = (raw?.subscribeSubtitleColorKey ?? "").toString().trim();
+  const titleColorKey = (raw?.subscribeTitleColorKey ?? "").toString().trim();
+  const buttonBgColorKey = (raw?.subscribeButtonBgColorKey ?? "").toString().trim();
+  const buttonTextColorKey = (raw?.subscribeButtonTextColorKey ?? "").toString().trim();
 
   return (
     <section className="site-component-subscribe" data-component="Subscribe">
       <SubscribeWrapper $bgUrl={bgUrl} />
       <SubscribeCard as={PageContainer}>
         <SubscribeContent>
-          <StyledSubTitle>{subtitle}</StyledSubTitle>
-          <StyledMainTitle>{title}</StyledMainTitle>
+          <StyledSubTitle $subtitleColorKey={subtitleColorKey || undefined}>{subtitle}</StyledSubTitle>
+          <StyledMainTitle $titleColorKey={titleColorKey || undefined}>{title}</StyledMainTitle>
         </SubscribeContent>
         <SubscribeForm onSubmit={handleSubmit}>
           <SubscribeInput
@@ -80,7 +84,13 @@ export default function Subscribe(props) {
             onChange={(e) => setEmail(e.target.value)}
             size="large"
           />
-          <SubscribeButton type="primary" htmlType="submit" size="large">
+          <SubscribeButton
+            type="primary"
+            htmlType="submit"
+            size="large"
+            $buttonBgColorKey={buttonBgColorKey || undefined}
+            $buttonTextColorKey={buttonTextColorKey || undefined}
+          >
             {buttonText}
           </SubscribeButton>
         </SubscribeForm>

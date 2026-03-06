@@ -122,7 +122,7 @@ function GenericSchemaEditForm(
 
   return (
     <Form form={form} layout="vertical">
-      <Collapse accordion defaultActiveKey={items.length ? ["props"] : ["section-settings"]} items={items} />
+      <Collapse accordion defaultActiveKey={[]} items={items} />
     </Form>
   );
 }

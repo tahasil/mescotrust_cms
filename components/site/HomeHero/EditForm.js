@@ -144,7 +144,7 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
     <>
       <Form form={form} layout="vertical">
         <Collapse
-          defaultActiveKey={["slider", "colors"]}
+          defaultActiveKey={[]}
           items={[
             {
               key: "slider",
