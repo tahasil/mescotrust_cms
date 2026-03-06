@@ -5,8 +5,9 @@ import { Form, Select, Collapse, message } from "antd";
 import { renderSchemaField, enrichSchema } from "@/components/admin/schemaFormUtils";
 import {
   NAVBAR_SCHEMA,
-  LOGO_RESPONSIVE_SCHEMA,
+  LOGO_LINK_SCHEMA,
   MENU_SCHEMA,
+  CUSTOM_BUTTONS_SCHEMA,
   HEADER_FIELD_GROUPS,
   SECTION_SETTINGS_SCHEMA,
 } from "./headerDrawerSchemas";
@@ -56,8 +57,11 @@ function HeaderEditForm(
   const [saving, setSaving] = useState(false);
   const [menusList, setMenusList] = useState([]);
   const [themeColorOptions, setThemeColorOptions] = useState([]);
+  const [themePaletteKeyOptions, setThemePaletteKeyOptions] = useState([]);
   const lastLoadedNavItemsRef = useRef(null);
   const isPageBlock = source === "page";
+
+  const THEME_COLOR_KEY_FIELDS = ["headerCtaBgColorKey", "headerCtaTextColorKey", "headerDonateBgColorKey", "headerDonateTextColorKey"];
 
   useEffect(() => {
     fetch("/api/admin/menus")
@@ -78,14 +82,41 @@ function HeaderEditForm(
       .then((theme) => {
         const flat = theme?.header ? { ...theme.header } : {};
         if (theme?.logoType != null) flat.logoType = theme.logoType;
-        if (theme?.logoLightUrl != null) flat.logoImage = theme.logoLightUrl;
+        if (theme?.logoLightUrl != null) flat.logoLightUrl = theme.logoLightUrl;
+        if (theme?.logoImageUrl != null && !flat.logoLightUrl) flat.logoLightUrl = theme.logoImageUrl;
+        if (theme?.logoMobileUrl != null) flat.logoMobileUrl = theme.logoMobileUrl;
+        if (theme?.logoDarkUrl != null) flat.logoDarkUrl = theme.logoDarkUrl;
         if (theme?.logoTitle != null) flat.logoTitle = theme.logoTitle;
         if (theme?.logoTagline != null) flat.logoTagline = theme.logoTagline;
         if (theme?.headerVolunteerLabel != null) flat.headerVolunteerLabel = theme.headerVolunteerLabel;
+        if (theme?.headerVolunteerHref != null) flat.headerVolunteerHref = theme.headerVolunteerHref;
+        if (theme?.headerVolunteerIconUrl != null) flat.headerVolunteerIconUrl = theme.headerVolunteerIconUrl;
+        if (theme?.headerVolunteerIconUrlMobile != null) flat.headerVolunteerIconUrlMobile = theme.headerVolunteerIconUrlMobile;
         if (theme?.headerDonateLabel != null) flat.headerDonateLabel = theme.headerDonateLabel;
+        if (theme?.headerDonateHref != null) flat.headerDonateHref = theme.headerDonateHref;
+        if (theme?.headerDonateIconUrl != null) flat.headerDonateIconUrl = theme.headerDonateIconUrl;
+        if (theme?.headerDonateIconUrlMobile != null) flat.headerDonateIconUrlMobile = theme.headerDonateIconUrlMobile;
+        if (theme?.headerCtaBgColorKey != null) flat.headerCtaBgColorKey = theme.headerCtaBgColorKey;
+        if (theme?.headerCtaTextColorKey != null) flat.headerCtaTextColorKey = theme.headerCtaTextColorKey;
+        if (theme?.headerDonateBgColorKey != null) flat.headerDonateBgColorKey = theme.headerDonateBgColorKey;
+        if (theme?.headerDonateTextColorKey != null) flat.headerDonateTextColorKey = theme.headerDonateTextColorKey;
+        if (theme?.menuName != null) flat.menuName = theme.menuName;
         if (theme?.navItems != null) flat.navItems = theme.navItems;
         form.setFieldsValue(flat);
-        const palette = theme?.themePalette || {};
+        const savedNavItems = Array.isArray(theme?.navItems) ? theme.navItems : [];
+        lastLoadedNavItemsRef.current = savedNavItems.length ? JSON.parse(JSON.stringify(savedNavItems)) : null;
+        if (flat.menuName && savedNavItems.length === 0) {
+          fetch(`/api/admin/menus/${encodeURIComponent(flat.menuName)}`)
+            .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Menu not found"))))
+            .then((menu) => {
+              const items = Array.isArray(menu?.items) ? menu.items : [];
+              const navItems = menuItemsToNavItems(items);
+              form.setFieldsValue({ navItems, menuName: flat.menuName });
+              lastLoadedNavItemsRef.current = JSON.parse(JSON.stringify(navItems));
+            })
+            .catch(() => {});
+        }
+        const palette = theme?.themePalette && typeof theme.themePalette === "object" ? theme.themePalette : {};
         const opts = Object.entries(palette)
           .filter(([, v]) => v != null && String(v).trim() !== "")
           .map(([k, v]) => ({ label: k, value: String(v).trim() }));
@@ -94,6 +125,13 @@ function HeaderEditForm(
             if (c?.name && c.value != null) opts.push({ label: c.name, value: String(c.value) });
           });
         setThemeColorOptions(opts);
+        // Only custom colors (admin/theme → Custom colors), not palette – dropdown stays in sync with Theme
+        const keyOpts = (Array.isArray(theme?.colors) ? theme.colors : [])
+          .filter((c) => c?.name && String(c.name).trim() !== "")
+          .map((c) => String(c.name).trim())
+          .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }))
+          .map((k) => ({ label: k, value: k }));
+        setThemePaletteKeyOptions(keyOpts);
       })
       .catch(() => message.error("Failed to load header"))
       .finally(() => setLoading(false));
@@ -168,11 +206,15 @@ function HeaderEditForm(
   const raw = [
     ...compPropsSchema,
     ...NAVBAR_SCHEMA,
-    ...LOGO_RESPONSIVE_SCHEMA,
+    ...LOGO_LINK_SCHEMA,
     ...MENU_SCHEMA,
+    ...CUSTOM_BUTTONS_SCHEMA,
   ];
-  const schema = enrichSchema("Header", raw);
-  const byKey = Object.fromEntries((Array.isArray(schema) ? schema : raw).map((f) => [f.key, f]));
+  const rawWithKeyOpts = raw.map((f) =>
+    THEME_COLOR_KEY_FIELDS.includes(f.key) ? { ...f, options: themePaletteKeyOptions } : f,
+  );
+  const schema = enrichSchema("Header", rawWithKeyOpts);
+  const byKey = Object.fromEntries((Array.isArray(schema) ? schema : rawWithKeyOpts).map((f) => [f.key, f]));
 
   const renderField = (field) => renderSchemaField(field, themeColorOptions);
 

@@ -1,5 +1,7 @@
 # API Reference
 
+For low-level details (data models, database schemas, full endpoint list), see [TECHNICAL_DESIGN.md](./TECHNICAL_DESIGN.md).
+
 ## Path Convention
 
 All API routes live under `/api/`. The convention is:

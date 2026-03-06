@@ -11,9 +11,12 @@ import { isAdmin } from "@/lib/permissions";
 export const dynamic = "force-dynamic";
 
 const HEADER_KEYS = [
+  "menuName",
+  "navItems",
   "logoType",
   "logoLightUrl",
   "logoMobileUrl",
+  "logoDarkUrl",
   "logoImageUrl",
   "headerVolunteerLabel",
   "headerVolunteerHref",
@@ -31,9 +34,12 @@ const HEADER_KEYS = [
 ];
 
 const HEADER_DEFAULTS = {
+  menuName: "",
+  navItems: [],
   logoType: "text",
   logoLightUrl: "",
   logoMobileUrl: "",
+  logoDarkUrl: "",
   logoImageUrl: "",
   headerVolunteerLabel: "",
   headerVolunteerHref: "",
@@ -54,7 +60,14 @@ function toPayload(defaultProps) {
   const out = { ...HEADER_DEFAULTS };
   if (defaultProps && typeof defaultProps === "object") {
     for (const k of HEADER_KEYS) {
-      if (defaultProps[k] != null) out[k] = String(defaultProps[k]).trim();
+      if (defaultProps[k] == null) continue;
+      if (k === "navItems") {
+        out.navItems = Array.isArray(defaultProps.navItems) ? defaultProps.navItems : [];
+      } else if (k === "menuName") {
+        out.menuName = String(defaultProps.menuName || "").trim();
+      } else {
+        out[k] = typeof defaultProps[k] === "string" ? String(defaultProps[k]).trim() : defaultProps[k];
+      }
     }
   }
   return out;
@@ -83,7 +96,12 @@ export async function PUT(req) {
     const body = await req.json();
     const defaultProps = { ...HEADER_DEFAULTS };
     for (const k of HEADER_KEYS) {
-      if (body[k] !== undefined) {
+      if (body[k] === undefined) continue;
+      if (k === "navItems") {
+        defaultProps.navItems = Array.isArray(body.navItems) ? body.navItems : [];
+      } else if (k === "menuName") {
+        defaultProps.menuName = typeof body.menuName === "string" ? String(body.menuName).trim() : "";
+      } else {
         defaultProps[k] = typeof body[k] === "string" ? String(body[k]).trim() : body[k];
       }
     }

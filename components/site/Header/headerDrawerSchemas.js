@@ -12,13 +12,12 @@ export const NAVBAR_SCHEMA = [
   { key: "navbarOffcanvasPlacement", type: "select", label: "Offcanvas slide from", options: [{ value: "end", label: "Right (end)" }, { value: "start", label: "Left (start)" }] },
 ];
 
-export const LOGO_RESPONSIVE_SCHEMA = [
-  { key: "logoImageWidthDesktop", type: "number", label: "Logo width – desktop (px)" },
-  { key: "logoImageHeightDesktop", type: "number", label: "Logo height – desktop (px)" },
-  { key: "logoImageWidthTablet", type: "number", label: "Logo width – tablet (px)" },
-  { key: "logoImageHeightTablet", type: "number", label: "Logo height – tablet (px)" },
-  { key: "logoImageWidthMobile", type: "number", label: "Logo width – mobile (px)" },
-  { key: "logoImageHeightMobile", type: "number", label: "Logo height – mobile (px)" },
+/** Logo image URLs and type – editable in Header drawer. */
+export const LOGO_LINK_SCHEMA = [
+  { key: "logoType", type: "select", label: "Logo type", options: [{ value: "text", label: "Text" }, { value: "image", label: "Image" }] },
+  { key: "logoLightUrl", type: "image", label: "Logo image URL (desktop/light)" },
+  { key: "logoMobileUrl", type: "image", label: "Logo image URL (mobile)" },
+  { key: "logoDarkUrl", type: "image", label: "Logo image URL (dark mode)" },
 ];
 
 export const MENU_SCHEMA = [
@@ -31,11 +30,27 @@ export const MENU_SCHEMA = [
   { key: "navItemHoverBackground", type: "color", label: "Nav item hover background" },
 ];
 
+/** Volunteer & Donate button labels, links, icons and styles – editable in Header drawer. */
+export const CUSTOM_BUTTONS_SCHEMA = [
+  { key: "headerVolunteerLabel", type: "text", label: "Volunteer button label" },
+  { key: "headerVolunteerHref", type: "url", label: "Volunteer button link" },
+  { key: "headerVolunteerIconUrl", type: "image", label: "Volunteer icon URL (desktop)" },
+  { key: "headerVolunteerIconUrlMobile", type: "image", label: "Volunteer icon URL (mobile)" },
+  { key: "headerCtaBgColorKey", type: "select", label: "Volunteer button background", options: [] },
+  { key: "headerCtaTextColorKey", type: "select", label: "Volunteer button text color", options: [] },
+  { key: "headerDonateLabel", type: "text", label: "Donate button label" },
+  { key: "headerDonateHref", type: "url", label: "Donate button link" },
+  { key: "headerDonateIconUrl", type: "image", label: "Donate icon URL (desktop)" },
+  { key: "headerDonateIconUrlMobile", type: "image", label: "Donate icon URL (mobile)" },
+  { key: "headerDonateBgColorKey", type: "select", label: "Donate button background", options: [] },
+  { key: "headerDonateTextColorKey", type: "select", label: "Donate button text color", options: [] },
+];
+
 export const HEADER_FIELD_GROUPS = [
-  { label: "Logo and link", keys: ["logoImage", "logoImageWidth", "logoImageHeight", "logoImageWidthDesktop", "logoImageHeightDesktop", "logoImageWidthTablet", "logoImageHeightTablet", "logoImageWidthMobile", "logoImageHeightMobile", "logoTitle", "logoTagline", "logoUrl", "logoColor", "logoFontSize", "taglineFontSize", "sectionsOrder"] },
+  { label: "Logo and link", keys: ["logoType", "logoLightUrl", "logoMobileUrl", "logoDarkUrl", "logoTitle", "logoTagline", "logoUrl", "logoColor", "logoFontSize", "taglineFontSize", "sectionsOrder"] },
   { label: "Menu", keys: ["menuPosition", "navColor", "navFontSize", "navFontWeight", "navHoverColor", "navItemBackground", "navItemHoverBackground"] },
   { label: "Navbar (Bootstrap)", keys: ["navbarExpand", "navbarFixed", "navbarSticky", "collapseOnSelect", "navbarMobileMenu", "navbarOffcanvasPlacement"] },
-  { label: "Custom buttons", keys: ["actionButtons"] },
+  { label: "Custom buttons", keys: ["headerVolunteerLabel", "headerVolunteerHref", "headerVolunteerIconUrl", "headerVolunteerIconUrlMobile", "headerCtaBgColorKey", "headerCtaTextColorKey", "headerDonateLabel", "headerDonateHref", "headerDonateIconUrl", "headerDonateIconUrlMobile", "headerDonateBgColorKey", "headerDonateTextColorKey"] },
 ];
 
 export const SECTION_SETTINGS_SCHEMA = [
