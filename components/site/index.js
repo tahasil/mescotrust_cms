@@ -8,9 +8,11 @@ export { default as Footer, FooterEditForm } from "./Footer/index";
 export { default as HomeHero, HomeHeroEditForm } from "./HomeHero/index";
 export { default as Marquee, MarqueeEditForm } from "./Marquee/index";
 export { default as Subscribe, SubscribeEditForm } from "./Subscribe/index";
+export { default as LatestEvents1, LatestEvents1EditForm } from "./LatestEvents1/index";
 import HomeHeroEditForm from "./HomeHero/EditForm";
 import MarqueeEditForm from "./Marquee/EditForm";
 import SubscribeEditForm from "./Subscribe/EditForm";
+import LatestEvents1EditForm from "./LatestEvents1/EditForm";
 import HeaderEditForm from "./Header/EditForm";
 import FooterEditForm from "./Footer/EditForm";
 /** componentId -> EditForm for drawer. Add new editable site components here. */

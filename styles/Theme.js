@@ -177,8 +177,8 @@ export const FullWidthBackground = styled.div`
     width: 80%;
     margin: 0 auto;
     height: 100%;
-    background: ${(props) => props.theme.colors.black};
-    border: 1px solid ${(props) => props.theme.colors.ctaBorder};
+    background: ${getColor("black")};
+    border: 1px solid ${getColor("ctaBorder")};
     border-radius: 20px;
     padding: 24px;
     @media (max-width: 768px) {
@@ -189,7 +189,7 @@ export const FullWidthBackground = styled.div`
       margin: 0px;
       font-size: 24px;
       font-weight: 600;
-      color: ${(props) => props.theme.colors.white};
+      color: ${getColor("white")};
       margin-bottom: 20px;
       @media (max-width: 768px) {
         font-size: 20px;
@@ -201,8 +201,8 @@ export const FullWidthBackground = styled.div`
 export const ThemeCard = styled(CardWrapper)`
   width: 100%;
   height: 100%;
-  background: ${(props) => props.theme.colors.white};
-  border: 1px solid ${(props) => props.theme.colors.themeBorder};
+  background: ${getColor("white")};
+  border: 1px solid ${getColor("themeBorder")};
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.05);
   border-radius: ${(props) => props.radius || 0}px;
   padding: ${(props) => props.padding || 0}px;
@@ -217,7 +217,7 @@ export const MainTitle = styled.h1`
   font-size: ${(props) => props.fontSize || 36}px;
   font-weight: ${(props) => props.fontWeight || 600};
   line-height: ${(props) => props.lineHeight || 40}px;
-  color: ${(props) => props.theme.colors.black};
+  color: ${(props) => props.color || getColor("black")};
   margin-bottom: 10px;
   opacity: ${(props) => props.opacity || 1};
   @media (max-width: 768px) {
@@ -231,9 +231,8 @@ export const SubTitle = styled.h2`
   margin: 0px;
   font-size: 16px;
   font-weight: 600;
-  color: ${(props) => props.theme.colors.black};
+  color: ${(props) => props.color || getColor("black")};
   margin-bottom: 4px;
-  color: ${(props) => props.color || props.theme.colors.black};
   @media (max-width: 768px) {
     font-size: 14px;
   }
@@ -243,7 +242,7 @@ export const Paragraph = styled.p`
   font-size: ${(props) => props.fontSize || 16}px;
   font-weight: ${(props) => props.fontWeight || 400};
   line-height: ${(props) => props.lineHeight || 24}px;
-  color: ${(props) => props.color || props.theme.colors.black};
+  color: ${(props) => props.color || getColor("black")};
   opacity: ${(props) => props.opacity || 1};
   margin-bottom: 10px;
 `;
@@ -357,7 +356,7 @@ export const PartnersSection = styled.section`
     margin: 0px;
     font-size: 24px;
     font-weight: 600;
-    color: ${(props) => props.theme.colors.black};
+    color: ${getColor("black")};
     text-align: center;
     margin-bottom: 18px;
     @media (max-width: 768px) {

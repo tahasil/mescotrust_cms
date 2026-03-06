@@ -1,27 +1,11 @@
 import { NextResponse } from "next/server";
-import { writeFileSync, readFileSync } from "fs";
+import { writeFileSync, readFileSync, mkdirSync } from "fs";
 import path from "path";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import SiteComponentMeta from "@/models/SiteComponentMeta";
-import { SITE_COMPONENT_IDS } from "@/lib/siteComponentRegistry";
-
-/** Read current registry IDs from disk (so list is correct after DELETE without restart). */
-function getRegistryIdsFromDisk() {
-  try {
-    const root = process.cwd();
-    const registryPath = path.join(root, "lib", "siteComponentRegistry.js");
-    const content = readFileSync(registryPath, "utf8");
-    const arrayMatch = content.match(/SITE_COMPONENT_IDS\s*=\s*\[([^\]]*)\]/);
-    if (!arrayMatch) return [...SITE_COMPONENT_IDS];
-    return arrayMatch[1]
-      .split(",")
-      .map((s) => s.trim().replace(/^["']|["']$/g, ""))
-      .filter(Boolean);
-  } catch {
-    return [...SITE_COMPONENT_IDS];
-  }
-}
+import Component from "@/models/Component";
+import { getRegistryIdsFromDisk } from "@/lib/getRegistryIdsFromDisk";
 
 /** GET: list all site components (registry + custom from DB) with metadata */
 export async function GET(req) {
@@ -94,13 +78,15 @@ export async function POST(req) {
 
     const root = process.cwd();
     const siteDir = path.join(root, "components", "site");
-    const componentPath = path.join(siteDir, `${componentId}.js`);
+    const componentFolder = path.join(siteDir, componentId);
+    mkdirSync(componentFolder, { recursive: true });
 
-    const componentTemplate = `"use client";
+    const mainComponentPath = path.join(componentFolder, `${componentId}.js`);
+    const mainComponentTemplate = `"use client";
 
 /**
  * Site component: ${componentId} (${displayName}).
- * Add your UI code below.
+ * Add your UI code below. Props come from theme/Component defaultProps.
  */
 export default function ${componentId}(props) {
   return (
@@ -110,8 +96,96 @@ export default function ${componentId}(props) {
   );
 }
 `;
+    writeFileSync(mainComponentPath, mainComponentTemplate, "utf8");
 
-    writeFileSync(componentPath, componentTemplate, "utf8");
+    const editFormPath = path.join(componentFolder, "EditForm.js");
+    const editFormTemplate = `"use client";
+
+import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import { Form, message, Spin } from "antd";
+
+const API_PATH = "/api/theme/${componentId}";
+
+/**
+ * Edit form for ${componentId} — used in component edit drawer (same pattern as HomeHero/Marquee).
+ * Loads/saves via \${API_PATH} (components collection).
+ */
+function ${componentId}EditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel }, ref) {
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const isPageBlock = source === "page";
+
+  useEffect(() => {
+    setLoading(true);
+    if (isPageBlock) {
+      const data = initialDataProp ?? {};
+      form.setFieldsValue(data);
+      setLoading(false);
+      return;
+    }
+    fetch(API_PATH, { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : {}))
+      .then((data) => {
+        form.setFieldsValue(data && typeof data === "object" ? data : {});
+      })
+      .catch(() => message.error("Failed to load ${componentId}"))
+      .finally(() => setLoading(false));
+  }, [form, isPageBlock, initialDataProp]);
+
+  const handleUpdate = () => {
+    form.validateFields().then(() => {
+      const values = form.getFieldsValue(true);
+      if (isPageBlock && onSaveToPage) {
+        onSaveToPage(values);
+        message.success("Changes will be saved with the page");
+        onSuccess?.();
+        return;
+      }
+      setSaving(true);
+      fetch(API_PATH, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      })
+        .then((res) => {
+          if (!res.ok) return res.json().then((d) => Promise.reject(d));
+        })
+        .then(() => {
+          message.success("${displayName} saved");
+          onSuccess?.();
+        })
+        .catch((err) => message.error(err?.error || "Failed to save"))
+        .finally(() => setSaving(false));
+    }).catch(() => {});
+  };
+
+  useImperativeHandle(ref, () => ({ update: handleUpdate }), []);
+
+  if (loading) {
+    return (
+      <div style={{ padding: 48, textAlign: "center" }}>
+        <Spin />
+      </div>
+    );
+  }
+
+  return (
+    <Form form={form} layout="vertical">
+      <p style={{ color: "#666" }}>Add configuration fields in EditForm.js. Save uses \${API_PATH}.</p>
+    </Form>
+  );
+}
+
+export default forwardRef(${componentId}EditForm);
+`;
+    writeFileSync(editFormPath, editFormTemplate, "utf8");
+
+    const folderIndexPath = path.join(componentFolder, "index.js");
+    const folderIndexTemplate = `export { default } from "./${componentId}";
+export { default as ${componentId}EditForm } from "./EditForm";
+`;
+    writeFileSync(folderIndexPath, folderIndexTemplate, "utf8");
 
     const registryPath = path.join(root, "lib", "siteComponentRegistry.js");
     let registryContent = readFileSync(registryPath, "utf8");
@@ -131,15 +205,31 @@ export default function ${componentId}(props) {
       }
     }
 
-    const indexPath = path.join(root, "components", "site", "index.js");
-    let indexContent = readFileSync(indexPath, "utf8");
-    const exportLine = `export { default as ${componentId} } from "./${componentId}";`;
-    if (!indexContent.includes(exportLine)) {
-      indexContent = indexContent.trimEnd() + "\n" + exportLine + "\n";
-      writeFileSync(indexPath, indexContent, "utf8");
+    const siteIndexPath = path.join(root, "components", "site", "index.js");
+    let siteIndexContent = readFileSync(siteIndexPath, "utf8");
+    const exportLine = `export { default as ${componentId}, ${componentId}EditForm } from "./${componentId}/index";`;
+    if (!siteIndexContent.includes(`"./${componentId}/"`)) {
+      if (!siteIndexContent.includes(exportLine)) {
+        siteIndexContent = siteIndexContent.replace(
+          /(export \{ default as Subscribe, SubscribeEditForm \} from "\.\/Subscribe\/index";)/,
+          `$1\n${exportLine}`
+        );
+      }
+      const importEditForm = `import ${componentId}EditForm from "./${componentId}/EditForm";`;
+      if (!siteIndexContent.includes(importEditForm)) {
+        siteIndexContent = siteIndexContent.replace(
+          /(import SubscribeEditForm from "\.\/Subscribe\/EditForm";)/,
+          `$1\nimport ${componentId}EditForm from "./${componentId}/EditForm";`
+        );
+      }
+      siteIndexContent = siteIndexContent.replace(
+        "  Subscribe: SubscribeEditForm,\n};",
+        `  Subscribe: SubscribeEditForm,\n  ${componentId}: ${componentId}EditForm,\n};`
+      );
+      writeFileSync(siteIndexPath, siteIndexContent, "utf8");
     }
 
-    const doc = await SiteComponentMeta.create({
+    const metaDoc = await SiteComponentMeta.create({
       componentId,
       displayName,
       global,
@@ -148,7 +238,20 @@ export default function ${componentId}(props) {
       enabled: true,
     });
 
-    return NextResponse.json(doc.toObject ? doc.toObject() : doc);
+    const existingComp = await Component.findOne({ baseComponent: componentId });
+    if (!existingComp) {
+      await Component.create({
+        name: componentId,
+        displayName,
+        type: "custom",
+        baseComponent: componentId,
+        defaultProps: {},
+        layout: [],
+        active: true,
+      });
+    }
+
+    return NextResponse.json(metaDoc.toObject ? metaDoc.toObject() : metaDoc);
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

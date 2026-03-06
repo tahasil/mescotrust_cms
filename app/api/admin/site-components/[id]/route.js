@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { readFileSync, writeFileSync, unlinkSync, existsSync } from "fs";
+import { readFileSync, writeFileSync, unlinkSync, existsSync, rmSync } from "fs";
 import path from "path";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
@@ -124,37 +124,44 @@ export async function DELETE(req, { params }) {
       writeFileSync(registryPath, registryContent, "utf8");
     }
 
-    // Remove export from components/site/index.js (e.g. "export { default as HeroBanner } from \"./HeroBanner\";")
+    // Remove export, import EditForm, and EDITABLE_SITE_EDIT_FORMS entry from components/site/index.js
     let indexContent = readFileSync(indexPath, "utf8");
-    const lines = indexContent.split(/\r?\n/);
-    const filtered = lines.filter((line) => {
-      const trimmed = line.trim();
-      if (!trimmed.startsWith("export ")) return true;
-      const match = trimmed.match(
-        /export\s*\{\s*default\s+as\s+(\w+)\s*\}\s*from/,
-      );
-      return !match || match[1] !== id;
-    });
+    indexContent = indexContent
+      .split(/\r?\n/)
+      .filter((line) => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith("export ") && trimmed.includes(` from "./${id}/"`)) return false;
+        if (trimmed.startsWith("export ") && trimmed.includes(` from "./${id}";`)) return false;
+        const exportMatch = trimmed.match(/export\s*\{\s*default\s+as\s+(\w+)/);
+        if (exportMatch && exportMatch[1] === id) return false;
+        if (trimmed.includes(`import ${id}EditForm from "./${id}/EditForm"`)) return false;
+        return true;
+      })
+      .join("\n");
+    indexContent = indexContent.replace(
+      new RegExp(`\\s*${id}:\\s*${id}EditForm,?\\n?`, "g"),
+      "",
+    );
     writeFileSync(
       indexPath,
-      filtered
-        .join("\n")
-        .replace(/\n{2,}/g, "\n")
-        .trimEnd() + "\n",
+      indexContent.replace(/\n{2,}/g, "\n").trimEnd() + "\n",
       "utf8",
     );
 
-    // Delete the component file from components/site/
-    const componentFilePath = path.join(root, "components", "site", `${id}.js`);
-    if (existsSync(componentFilePath)) {
+    // Delete component: folder (new 3-file structure) or single file (legacy)
+    const componentFolder = path.join(root, "components", "site", id);
+    const componentFile = path.join(root, "components", "site", `${id}.js`);
+    if (existsSync(componentFolder)) {
       try {
-        unlinkSync(componentFilePath);
+        rmSync(componentFolder, { recursive: true });
       } catch (fileErr) {
-        console.warn(
-          `[site-components] Could not delete file ${componentFilePath}:`,
-          fileErr?.message,
-        );
-        // Continue — registry/index/pages are already updated; user can delete file manually if locked
+        console.warn(`[site-components] Could not delete folder ${componentFolder}:`, fileErr?.message);
+      }
+    } else if (existsSync(componentFile)) {
+      try {
+        unlinkSync(componentFile);
+      } catch (fileErr) {
+        console.warn(`[site-components] Could not delete file ${componentFile}:`, fileErr?.message);
       }
     }
 

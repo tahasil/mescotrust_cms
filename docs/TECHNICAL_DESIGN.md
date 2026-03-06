@@ -95,6 +95,11 @@ Metadata for site-level components (Header, Footer, HomeHero, etc.). Component I
 
 **Indexes:** `{ global: 1, position: 1, order: 1 }`
 
+**Where `sitecomponentmetas` is used:**
+- **Admin:** `GET/POST /api/admin/site-components` (list/create), `GET/PUT/DELETE /api/admin/site-components/[id]` (get/update/delete meta and files).
+- **Public API:** `GET /api/public/site-components` returns `{ before, after }` from this collection (global components in render order).
+- **Server (SSR):** `lib/layoutData.js` → `getLayoutData()` reads `SiteComponentMeta` for `globalBefore` / `globalAfter`; the public layout uses this to render global components (no client-side call to the public API).
+
 ---
 
 ### 2.4 User

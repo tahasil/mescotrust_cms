@@ -7,6 +7,7 @@ import { connectDB } from "@/lib/db";
 import ThemeConfig from "@/models/ThemeConfig";
 import Component from "@/models/Component";
 import { isAdmin } from "@/lib/permissions";
+import { getRegistryIdsFromDisk } from "@/lib/getRegistryIdsFromDisk";
 
 export const dynamic = "force-dynamic";
 
@@ -340,8 +341,8 @@ export async function GET() {
     for (const k of SUBSCRIBE_KEYS) {
       normalized[k] = plain[k] != null ? String(plain[k]).trim() : "";
     }
-    // Merge from components collection (Header, Footer, Marquee, HomeHero, Subscribe)
-    const comps = await Component.find({ baseComponent: { $in: ["Header", "Footer", "Marquee", "HomeHero", "Subscribe"] } }).lean();
+    // Merge from components collection (all site components: Header, Footer, HomeHero, Subscribe + any new)
+    const comps = await Component.find({ baseComponent: { $in: getRegistryIdsFromDisk() } }).lean();
     for (const c of comps || []) {
       const props = c.defaultProps;
       if (props && typeof props === "object") {
