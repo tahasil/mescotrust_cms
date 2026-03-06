@@ -15,7 +15,7 @@ import {
   Row,
   Col,
   Divider,
-  Modal,
+  Drawer,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -23,10 +23,12 @@ import {
   DeleteOutlined,
   EditOutlined,
   PlusOutlined,
+  CheckOutlined,
 } from "@ant-design/icons";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import * as SiteComponents from "@/components/site";
+import HomeHeroEditForm from "@/components/site/HomeHero/EditForm";
 
 const HeaderPreview = dynamic(() => import("@/components/site/Header"), {
   ssr: false,
@@ -64,14 +66,14 @@ export default function AdminComponentEditPage() {
   const [themeMarqueeSnapshot, setThemeMarqueeSnapshot] = useState(null);
   const [themeSubscribeSnapshot, setThemeSubscribeSnapshot] = useState(null);
   const subscribeEditFormRef = useRef(null);
+  const [homeHeroDrawerOpen, setHomeHeroDrawerOpen] = useState(false);
+  const homeHeroEditFormRef = useRef(null);
   const [form] = Form.useForm();
   const [editingDisplayName, setEditingDisplayName] = useState(false);
   const [hoveringName, setHoveringName] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const footerBgType = Form.useWatch("footerBgType", form);
   const displayNameValue = Form.useWatch("displayName", form);
   const globalOn = Form.useWatch("global", form);
-  const homeHeroSlidesWatch = Form.useWatch("homeHeroSlides", form);
   const marqueeItemsWatch = Form.useWatch("marqueeItems", form);
   const marqueeTitleWatch = Form.useWatch("marqueeTitle", form);
   const isHeader = record?.componentId === "Header";
@@ -99,7 +101,8 @@ export default function AdminComponentEditPage() {
           position: found.position || "before",
         };
         if (found.componentId === "Marquee") {
-          initialValues.marqueeTitle = "Our CSR Partners | Awards & Recognition";
+          initialValues.marqueeTitle =
+            "Our CSR Partners | Awards & Recognition";
           initialValues.marqueeItems = [];
         }
         form.setFieldsValue(initialValues);
@@ -254,31 +257,42 @@ export default function AdminComponentEditPage() {
             ...customColors.map((c) => c?.name).filter(Boolean),
           ]),
         ].sort();
-        setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
+        setThemeColorOptions(
+          names.map((name) => ({ label: name, value: name })),
+        );
         // All from DB — no default slide; empty array if no slides
         const slides = Array.isArray(theme?.homeHeroSlides)
           ? theme.homeHeroSlides.map((s) => ({
-              bgImageUrl: s?.bgImageUrl != null ? String(s.bgImageUrl).trim() : "",
+              bgImageUrl:
+                s?.bgImageUrl != null ? String(s.bgImageUrl).trim() : "",
               title: s?.title != null ? String(s.title).trim() : "",
-              description: s?.description != null ? String(s.description).trim() : "",
-              buttonText: s?.buttonText != null ? String(s.buttonText).trim() : "",
-              buttonLink: s?.buttonLink != null ? String(s.buttonLink).trim() : "",
+              description:
+                s?.description != null ? String(s.description).trim() : "",
+              buttonText:
+                s?.buttonText != null ? String(s.buttonText).trim() : "",
+              buttonLink:
+                s?.buttonLink != null ? String(s.buttonLink).trim() : "",
               showButton: s?.showButton !== false,
             }))
           : [];
         setThemeHomeHeroSnapshot({
           homeHeroSlides: slides,
-          homeHeroSliderTitleColorKey: theme.homeHeroSliderTitleColorKey != null ? String(theme.homeHeroSliderTitleColorKey).trim() : "",
-          homeHeroSliderDescColorKey: theme.homeHeroSliderDescColorKey != null ? String(theme.homeHeroSliderDescColorKey).trim() : "",
-          homeHeroSliderButtonBgColorKey: theme.homeHeroSliderButtonBgColorKey != null ? String(theme.homeHeroSliderButtonBgColorKey).trim() : "",
-          homeHeroSliderButtonTextColorKey: theme.homeHeroSliderButtonTextColorKey != null ? String(theme.homeHeroSliderButtonTextColorKey).trim() : "",
-        });
-        form.setFieldsValue({
-          homeHeroSlides: slides,
-          homeHeroSliderTitleColorKey: theme.homeHeroSliderTitleColorKey != null ? String(theme.homeHeroSliderTitleColorKey).trim() : "",
-          homeHeroSliderDescColorKey: theme.homeHeroSliderDescColorKey != null ? String(theme.homeHeroSliderDescColorKey).trim() : "",
-          homeHeroSliderButtonBgColorKey: theme.homeHeroSliderButtonBgColorKey != null ? String(theme.homeHeroSliderButtonBgColorKey).trim() : "",
-          homeHeroSliderButtonTextColorKey: theme.homeHeroSliderButtonTextColorKey != null ? String(theme.homeHeroSliderButtonTextColorKey).trim() : "",
+          homeHeroSliderTitleColorKey:
+            theme.homeHeroSliderTitleColorKey != null
+              ? String(theme.homeHeroSliderTitleColorKey).trim()
+              : "",
+          homeHeroSliderDescColorKey:
+            theme.homeHeroSliderDescColorKey != null
+              ? String(theme.homeHeroSliderDescColorKey).trim()
+              : "",
+          homeHeroSliderButtonBgColorKey:
+            theme.homeHeroSliderButtonBgColorKey != null
+              ? String(theme.homeHeroSliderButtonBgColorKey).trim()
+              : "",
+          homeHeroSliderButtonTextColorKey:
+            theme.homeHeroSliderButtonTextColorKey != null
+              ? String(theme.homeHeroSliderButtonTextColorKey).trim()
+              : "",
         });
       })
       .catch(() => message.error("Failed to load theme"))
@@ -292,7 +306,10 @@ export default function AdminComponentEditPage() {
     fetch("/api/theme", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : {}))
       .then((theme) => {
-        const title = theme.marqueeTitle != null ? String(theme.marqueeTitle).trim() : "Our CSR Partners | Awards & Recognition";
+        const title =
+          theme.marqueeTitle != null
+            ? String(theme.marqueeTitle).trim()
+            : "Our CSR Partners | Awards & Recognition";
         const items = Array.isArray(theme.marqueeItems)
           ? theme.marqueeItems.map((it) => ({
               url: it?.url != null ? String(it.url).trim() : "",
@@ -314,43 +331,16 @@ export default function AdminComponentEditPage() {
       const rawFormValues = form.getFieldsValue(true);
       let values = rawFormValues;
 
-      if (isHomeHero) {
-        const rawSlides = rawFormValues.homeHeroSlides ?? [];
-        const slides = Array.isArray(rawSlides)
-          ? rawSlides.map((s) => ({
-              bgImageUrl: s?.bgImageUrl != null ? String(s.bgImageUrl).trim() : "",
-              title: s?.title != null ? String(s.title).trim() : "",
-              description: s?.description != null ? String(s.description).trim() : "",
-              buttonText: s?.buttonText != null ? String(s.buttonText).trim() : "",
-              buttonLink: s?.buttonLink != null ? String(s.buttonLink).trim() : "",
-              showButton: s?.showButton !== false,
-            }))
-          : [];
-        const themeRes = await fetch("/api/theme/home-hero", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            homeHeroSlides: slides,
-            homeHeroSliderTitleColorKey: rawFormValues.homeHeroSliderTitleColorKey != null ? String(rawFormValues.homeHeroSliderTitleColorKey).trim() : "",
-            homeHeroSliderDescColorKey: rawFormValues.homeHeroSliderDescColorKey != null ? String(rawFormValues.homeHeroSliderDescColorKey).trim() : "",
-            homeHeroSliderButtonBgColorKey: rawFormValues.homeHeroSliderButtonBgColorKey != null ? String(rawFormValues.homeHeroSliderButtonBgColorKey).trim() : "",
-            homeHeroSliderButtonTextColorKey: rawFormValues.homeHeroSliderButtonTextColorKey != null ? String(rawFormValues.homeHeroSliderButtonTextColorKey).trim() : "",
-            homeHeroBackgroundContainer: "full",
-            homeHeroContentContainer: "pageContainer",
-          }),
-        });
-        if (!themeRes.ok) {
-          const err = await themeRes.json().catch(() => ({}));
-          message.error(err.error || "Failed to save Home Hero");
-          setSaving(false);
-          return;
-        }
-        message.success("Slides saved to database");
-      }
-
+      // HomeHero is saved via drawer EditForm (components collection), not from main form
       if (isMarquee) {
-        const title = rawFormValues.marqueeTitle != null ? String(rawFormValues.marqueeTitle).trim() : "";
-        const rawItems = rawFormValues.marqueeItems ?? form.getFieldValue("marqueeItems") ?? [];
+        const title =
+          rawFormValues.marqueeTitle != null
+            ? String(rawFormValues.marqueeTitle).trim()
+            : "";
+        const rawItems =
+          rawFormValues.marqueeItems ??
+          form.getFieldValue("marqueeItems") ??
+          [];
         const items = Array.isArray(rawItems)
           ? rawItems.map((it) => ({
               url: it?.url != null ? String(it.url).trim() : "",
@@ -373,7 +363,9 @@ export default function AdminComponentEditPage() {
 
       if (isSubscribe) {
         if (!subscribeEditFormRef.current?.update) {
-          message.warning("Open the 'Manage Subscribe' section below, then click Save again.");
+          message.warning(
+            "Open the 'Manage Subscribe' section below, then click Save again.",
+          );
           setSaving(false);
           return;
         }
@@ -388,7 +380,7 @@ export default function AdminComponentEditPage() {
       try {
         values = await form.validateFields();
       } catch (e) {
-        if (e.errorFields && (isHomeHero || isMarquee || isSubscribe)) {
+        if (e.errorFields && (isMarquee || isSubscribe)) {
           values = rawFormValues;
         } else {
           setSaving(false);
@@ -567,41 +559,6 @@ export default function AdminComponentEditPage() {
     }
   };
 
-  const handleDelete = () => {
-    if (!record?.componentId) return;
-    if (record.componentId === "Header" || record.componentId === "Footer") {
-      message.warning("Header and Footer cannot be deleted.");
-      return;
-    }
-    Modal.confirm({
-      title: "Delete this component?",
-      content: `"${record.displayName || record.componentId}" will be removed from the component list and will no longer appear in Add Component. The file components/site/${record.componentId}.js will remain; you can delete it manually if needed.`,
-      okText: "Delete",
-      okType: "danger",
-      cancelText: "Cancel",
-      onOk: async () => {
-        setDeleting(true);
-        try {
-          const res = await fetch(
-            `/api/admin/site-components/${encodeURIComponent(record.componentId)}`,
-            { method: "DELETE" },
-          );
-          const data = await res.json().catch(() => ({}));
-          if (!res.ok) {
-            message.error(data.error || "Delete failed");
-            return;
-          }
-          message.success("Component deleted");
-          router.push("/admin/components");
-        } catch (e) {
-          message.error(e.message || "Delete failed");
-        } finally {
-          setDeleting(false);
-        }
-      },
-    });
-  };
-
   if (loading) {
     return (
       <div style={{ padding: 24, textAlign: "center" }}>
@@ -684,7 +641,14 @@ export default function AdminComponentEditPage() {
               </div>
             )}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 16,
+              flexWrap: "wrap",
+            }}
+          >
             <span style={{ fontSize: 14, color: "#666" }}>
               Show on all pages
             </span>
@@ -706,6 +670,15 @@ export default function AdminComponentEditPage() {
                   />
                 </Form.Item>
               )}
+            {isHomeHero && (
+              <Button
+                type="default"
+                icon={<EditOutlined />}
+                onClick={() => setHomeHeroDrawerOpen(true)}
+              >
+                Edit
+              </Button>
+            )}
             <Button
               type="primary"
               icon={<SaveOutlined />}
@@ -714,19 +687,6 @@ export default function AdminComponentEditPage() {
             >
               Save
             </Button>
-            {record?.componentId &&
-              record.componentId !== "Header" &&
-              record.componentId !== "Footer" && (
-                <Button
-                  type="default"
-                  danger
-                  icon={<DeleteOutlined />}
-                  onClick={handleDelete}
-                  loading={deleting}
-                >
-                  Delete
-                </Button>
-              )}
           </div>
         </div>
 
@@ -739,13 +699,11 @@ export default function AdminComponentEditPage() {
             ) : (
               <>
                 <Divider />
-                <div className="mt-5">
-                  <HeaderPreviewBlock
-                    form={form}
-                    themePaletteData={themePaletteData}
-                    themeHeaderSnapshot={themeHeaderSnapshot}
-                  />
-                </div>
+                <HeaderPreviewBlock
+                  form={form}
+                  themePaletteData={themePaletteData}
+                  themeHeaderSnapshot={themeHeaderSnapshot}
+                />
 
                 <Collapse
                   className="mt-4"
@@ -939,14 +897,11 @@ export default function AdminComponentEditPage() {
               </div>
             ) : (
               <>
-                <Divider />
-                <div className="mt-5">
-                  <FooterPreviewBlock
-                    form={form}
-                    themePaletteData={themePaletteData}
-                    themeFooterSnapshot={themeFooterSnapshot}
-                  />
-                </div>
+                <FooterPreviewBlock
+                  form={form}
+                  themePaletteData={themePaletteData}
+                  themeFooterSnapshot={themeFooterSnapshot}
+                />
                 <Collapse
                   className="mt-4"
                   defaultActiveKey={[]}
@@ -1263,161 +1218,108 @@ export default function AdminComponentEditPage() {
             ) : (
               <>
                 <Divider />
-                <div className="mt-5">
-                  <HomeHeroPreviewBlock
-                    form={form}
-                    slides={homeHeroSlidesWatch ?? themeHomeHeroSnapshot?.homeHeroSlides ?? []}
-                    themeHomeHeroSnapshot={themeHomeHeroSnapshot}
-                    themePaletteData={themePaletteData}
-                  />
-                </div>
-                <Collapse
-                  className="mt-4"
-                  defaultActiveKey={["slider", "colors"]}
-                  items={[
-                    {
-                      key: "slider",
-                      label: "Slides (add multiple sliders; order = display order)",
-                      children: (
-                        <Form.List name="homeHeroSlides">
-                          {(fields, { add, remove }) => (
-                            <>
-                              <Collapse
-                                accordion
-                                size="small"
-                                style={{ marginBottom: 12 }}
-                                items={fields.map(({ key, name, ...restField }) => ({
-                                  key: String(name),
-                                  label: (
-                                    <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", paddingRight: 8 }}>
-                                      <strong>Slide {name + 1}</strong>
-                                      {fields.length > 1 && (
-                                        <Button
-                                          type="text"
-                                          danger
-                                          size="small"
-                                          icon={<DeleteOutlined />}
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            remove(name);
-                                          }}
-                                        >
-                                          Remove
-                                        </Button>
-                                      )}
-                                    </span>
-                                  ),
-                                  children: (
-                                    <Row gutter={[16, 12]}>
-                                      <Col xs={24} md={8}>
-                                        <Form.Item
-                                          {...restField}
-                                          name={[name, "bgImageUrl"]}
-                                          label="Background image URL"
-                                        >
-                                          <Input placeholder="e.g. /images/slider.png" size="small" />
-                                        </Form.Item>
-                                      </Col>
-                                      <Col xs={24} md={8}>
-                                        <Form.Item {...restField} name={[name, "title"]} label="Title">
-                                          <Input placeholder="Because Every Learner Deserves Support" size="small" />
-                                        </Form.Item>
-                                      </Col>
-                                      <Col xs={24} md={8}>
-                                        <Form.Item {...restField} name={[name, "buttonText"]} label="Button name (label)">
-                                          <Input placeholder="e.g. Contact Us" size="small" />
-                                        </Form.Item>
-                                      </Col>
-                                      <Col xs={24} md={8}>
-                                        <Form.Item {...restField} name={[name, "showButton"]} label="Show button on this slide" valuePropName="checked">
-                                          <Switch />
-                                        </Form.Item>
-                                      </Col>
-                                      <Col xs={24} md={8}>
-                                        <Form.Item {...restField} name={[name, "buttonLink"]} label="Button link (URL)">
-                                          <Input placeholder="/contact" size="small" />
-                                        </Form.Item>
-                                      </Col>
-                                      <Col xs={24} md={8}>
-                                        <Form.Item {...restField} name={[name, "description"]} label="Description">
-                                          <Input.TextArea rows={2} placeholder="A community-powered initiative that brings donors, mentors..." />
-                                        </Form.Item>
-                                      </Col>
-                                    </Row>
-                                  ),
-                                }))}
-                              />
-                              <Button
-                                type="dashed"
-                                onClick={() =>
-                                  add({
-                                    bgImageUrl: "/images/slider-1.png",
-                                    title: "",
-                                    description: "",
-                                    buttonText: "Contact Us",
-                                    buttonLink: "/contact",
-                                    showButton: true,
-                                  })
-                                }
-                                block
-                                icon={<PlusOutlined />}
-                                size="small"
-                              >
-                                Add slide
-                              </Button>
-                            </>
-                          )}
-                        </Form.List>
-                      ),
-                    },
-                    {
-                      key: "colors",
-                      label: "Theme colors",
-                      children: (
-                        <Row gutter={24}>
-                          <Col xs={24} md={12}>
-                            <Form.Item name="homeHeroSliderTitleColorKey" label="Slider title color">
-                              <Select
-                                options={themeColorOptions}
-                                placeholder="Select from Theme (empty = white)"
-                                style={{ width: "100%" }}
-                                allowClear
-                              />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} md={12}>
-                            <Form.Item name="homeHeroSliderDescColorKey" label="Slider description color">
-                              <Select
-                                options={themeColorOptions}
-                                placeholder="Select from Theme (empty = white)"
-                                style={{ width: "100%" }}
-                                allowClear
-                              />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} md={12}>
-                            <Form.Item name="homeHeroSliderButtonBgColorKey" label="Button background color">
-                              <Select
-                                options={themeColorOptions}
-                                placeholder="Select from Theme"
-                                style={{ width: "100%" }}
-                              />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} md={12}>
-                            <Form.Item name="homeHeroSliderButtonTextColorKey" label="Button text color">
-                              <Select
-                                options={themeColorOptions}
-                                placeholder="Select from Theme"
-                                style={{ width: "100%" }}
-                              />
-                            </Form.Item>
-                          </Col>
-                        </Row>
-                      ),
-                    },
-                  ]}
+                <HomeHeroPreviewBlock
+                  form={form}
+                  slides={themeHomeHeroSnapshot?.homeHeroSlides ?? []}
+                  themeHomeHeroSnapshot={themeHomeHeroSnapshot}
+                  themePaletteData={themePaletteData}
                 />
+                <Drawer
+                  title="Edit Home Hero"
+                  placement="right"
+                  width={Math.min(
+                    520,
+                    typeof window !== "undefined"
+                      ? window.innerWidth * 0.9
+                      : 520,
+                  )}
+                  open={homeHeroDrawerOpen}
+                  onClose={() => setHomeHeroDrawerOpen(false)}
+                  footer={
+                    <div style={{ textAlign: "right" }}>
+                      <Button
+                        onClick={() => setHomeHeroDrawerOpen(false)}
+                        style={{ marginRight: 8 }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="primary"
+                        icon={<CheckOutlined />}
+                        onClick={async () => {
+                          try {
+                            await homeHeroEditFormRef.current?.update?.();
+                          } catch {
+                            // error already shown by EditForm
+                          }
+                        }}
+                      >
+                        Update
+                      </Button>
+                    </div>
+                  }
+                >
+                  <HomeHeroEditForm
+                    ref={homeHeroEditFormRef}
+                    onSuccess={async () => {
+                      const res = await fetch("/api/theme", {
+                        cache: "no-store",
+                      });
+                      if (res.ok) {
+                        const theme = await res.json();
+                        const slides = Array.isArray(theme?.homeHeroSlides)
+                          ? theme.homeHeroSlides.map((s) => ({
+                              bgImageUrl:
+                                s?.bgImageUrl != null
+                                  ? String(s.bgImageUrl).trim()
+                                  : "",
+                              title:
+                                s?.title != null ? String(s.title).trim() : "",
+                              description:
+                                s?.description != null
+                                  ? String(s.description).trim()
+                                  : "",
+                              buttonText:
+                                s?.buttonText != null
+                                  ? String(s.buttonText).trim()
+                                  : "",
+                              buttonLink:
+                                s?.buttonLink != null
+                                  ? String(s.buttonLink).trim()
+                                  : "",
+                              showButton: s?.showButton !== false,
+                            }))
+                          : [];
+                        setThemeHomeHeroSnapshot({
+                          homeHeroSlides: slides,
+                          homeHeroSliderTitleColorKey:
+                            theme.homeHeroSliderTitleColorKey != null
+                              ? String(theme.homeHeroSliderTitleColorKey).trim()
+                              : "",
+                          homeHeroSliderDescColorKey:
+                            theme.homeHeroSliderDescColorKey != null
+                              ? String(theme.homeHeroSliderDescColorKey).trim()
+                              : "",
+                          homeHeroSliderButtonBgColorKey:
+                            theme.homeHeroSliderButtonBgColorKey != null
+                              ? String(
+                                  theme.homeHeroSliderButtonBgColorKey,
+                                ).trim()
+                              : "",
+                          homeHeroSliderButtonTextColorKey:
+                            theme.homeHeroSliderButtonTextColorKey != null
+                              ? String(
+                                  theme.homeHeroSliderButtonTextColorKey,
+                                ).trim()
+                              : "",
+                        });
+                      }
+                      setHomeHeroDrawerOpen(false);
+                      message.success("Home Hero saved");
+                    }}
+                    onCancel={() => setHomeHeroDrawerOpen(false)}
+                  />
+                </Drawer>
               </>
             )}
           </>
@@ -1432,26 +1334,24 @@ export default function AdminComponentEditPage() {
             ) : (
               <>
                 <Divider />
-                <div className="mt-5">
-                  <div
-                    style={{
-                      border: "1px solid #e8e8e8",
-                      borderRadius: 8,
-                      overflow: "hidden",
-                      background: "#fff",
-                      padding: 24,
-                    }}
-                  >
-                    {SiteComponents.Marquee ? (
-                      <SiteComponents.Marquee
-                        title={marqueeTitleWatch ?? themeMarqueeSnapshot?.marqueeTitle ?? ""}
-                        images={marqueeItemsWatch ?? themeMarqueeSnapshot?.marqueeItems ?? []}
-                      />
-                    ) : (
-                      <div style={{ color: "#999" }}>Marquee component not found.</div>
-                    )}
+                {SiteComponents.Marquee ? (
+                  <SiteComponents.Marquee
+                    title={
+                      marqueeTitleWatch ??
+                      themeMarqueeSnapshot?.marqueeTitle ??
+                      ""
+                    }
+                    images={
+                      marqueeItemsWatch ??
+                      themeMarqueeSnapshot?.marqueeItems ??
+                      []
+                    }
+                  />
+                ) : (
+                  <div style={{ color: "#999" }}>
+                    Marquee component not found.
                   </div>
-                </div>
+                )}
                 <Collapse
                   className="mt-4"
                   defaultActiveKey={["marquee-content"]}
@@ -1461,37 +1361,75 @@ export default function AdminComponentEditPage() {
                       label: "Update",
                       children: (
                         <>
-                          <Form.Item name="marqueeTitle" label="Section title" style={{ marginBottom: 16 }}>
+                          <Form.Item
+                            name="marqueeTitle"
+                            label="Section title"
+                            style={{ marginBottom: 16 }}
+                          >
                             <Input placeholder="Our CSR Partners | Awards & Recognition" />
                           </Form.Item>
                           <Form.List name="marqueeItems">
                             {(fields, { add, remove }) => (
                               <>
                                 {fields.map(({ key, name, ...restField }) => (
-                                  <Row key={key} gutter={[12, 8]} style={{ marginBottom: 12, alignItems: "center" }}>
+                                  <Row
+                                    key={key}
+                                    gutter={[12, 8]}
+                                    style={{
+                                      marginBottom: 12,
+                                      alignItems: "center",
+                                    }}
+                                  >
                                     <Col xs={24} md={12}>
                                       <Form.Item
                                         {...restField}
                                         name={[name, "url"]}
                                         label="Image URL"
-                                        rules={[{ required: true, message: "Required" }]}
+                                        rules={[
+                                          {
+                                            required: true,
+                                            message: "Required",
+                                          },
+                                        ]}
                                       >
-                                        <Input placeholder="/images/partner-1.png" size="small" />
+                                        <Input
+                                          placeholder="/images/partner-1.png"
+                                          size="small"
+                                        />
                                       </Form.Item>
                                     </Col>
                                     <Col xs={24} md={8}>
-                                      <Form.Item {...restField} name={[name, "alt"]} label="Alt text">
-                                        <Input placeholder="Partner" size="small" />
+                                      <Form.Item
+                                        {...restField}
+                                        name={[name, "alt"]}
+                                        label="Alt text"
+                                      >
+                                        <Input
+                                          placeholder="Partner"
+                                          size="small"
+                                        />
                                       </Form.Item>
                                     </Col>
                                     <Col xs={24} md={4}>
-                                      <Button type="text" danger size="small" icon={<DeleteOutlined />} onClick={() => remove(name)}>
+                                      <Button
+                                        type="text"
+                                        danger
+                                        size="small"
+                                        icon={<DeleteOutlined />}
+                                        onClick={() => remove(name)}
+                                      >
                                         Remove
                                       </Button>
                                     </Col>
                                   </Row>
                                 ))}
-                                <Button type="dashed" onClick={() => add({ url: "", alt: "" })} block icon={<PlusOutlined />} size="small">
+                                <Button
+                                  type="dashed"
+                                  onClick={() => add({ url: "", alt: "" })}
+                                  block
+                                  icon={<PlusOutlined />}
+                                  size="small"
+                                >
                                   Add item
                                 </Button>
                               </>
@@ -1509,29 +1447,15 @@ export default function AdminComponentEditPage() {
 
         {isSubscribe && (
           <>
-            <Divider />
-            <div className="mt-5">
-              <p style={{ marginBottom: 16, color: "#666", fontSize: 13 }}>
-                Edit the Subscribe block below. All updates happen only from the form here.
-              </p>
-              <div
-                style={{
-                  border: "1px solid #e8e8e8",
-                  borderRadius: 8,
-                  overflow: "hidden",
-                  background: "#fff",
-                  padding: 24,
-                }}
-              >
-                {SiteComponents.Subscribe && themeSubscribeSnapshot ? (
-                  <SiteComponents.Subscribe {...themeSubscribeSnapshot} />
-                ) : SiteComponents.Subscribe ? (
-                  <SiteComponents.Subscribe />
-                ) : (
-                  <div style={{ color: "#999" }}>Subscribe component not found.</div>
-                )}
+            {SiteComponents.Subscribe && themeSubscribeSnapshot ? (
+              <SiteComponents.Subscribe {...themeSubscribeSnapshot} />
+            ) : SiteComponents.Subscribe ? (
+              <SiteComponents.Subscribe />
+            ) : (
+              <div style={{ color: "#999" }}>
+                Subscribe component not found.
               </div>
-            </div>
+            )}
             <Collapse
               className="mt-4"
               defaultActiveKey={["subscribe-edit"]}
@@ -1547,7 +1471,9 @@ export default function AdminComponentEditPage() {
                         <SiteComponents.SubscribeEditForm
                           ref={subscribeEditFormRef}
                           onDataLoad={(data) => setThemeSubscribeSnapshot(data)}
-                          onSuccess={(data) => setThemeSubscribeSnapshot(data ?? {})}
+                          onSuccess={(data) =>
+                            setThemeSubscribeSnapshot(data ?? {})
+                          }
                         />
                       )}
                     </div>
@@ -1558,45 +1484,50 @@ export default function AdminComponentEditPage() {
           </>
         )}
 
-        {!isHeader && !isFooter && !isHomeHero && !isMarquee && !isSubscribe && record?.componentId && (
-          <>
-            <Divider />
-            <div className="mt-5">
-              {SiteComponents[record.componentId] ? (
-                <div
-                  style={{
-                    border: "1px solid #e8e8e8",
-                    borderRadius: 8,
-                    overflow: "hidden",
-                    background: "#fff",
-                    padding: 24,
-                  }}
-                >
-                  {(() => {
-                    const Comp = SiteComponents[record.componentId];
-                    return Comp ? <Comp /> : null;
-                  })()}
-                </div>
-              ) : (
-                <div
-                  style={{
-                    border: "1px solid #e8e8e8",
-                    borderRadius: 8,
-                    overflow: "hidden",
-                    background: "#fff",
-                    padding: 48,
-                    color: "#999",
-                    textAlign: "center",
-                    fontSize: 14,
-                  }}
-                >
-                  File <code>components/site/{record.componentId}.js</code> me
-                  default export add karein; preview yahan dikhega.
-                </div>
-              )}
-            </div>
-          </>
-        )}
+        {!isHeader &&
+          !isFooter &&
+          !isHomeHero &&
+          !isMarquee &&
+          !isSubscribe &&
+          record?.componentId && (
+            <>
+              <Divider />
+              <div className="mt-5">
+                {SiteComponents[record.componentId] ? (
+                  <div
+                    style={{
+                      border: "1px solid #e8e8e8",
+                      borderRadius: 8,
+                      overflow: "hidden",
+                      background: "#fff",
+                      padding: 24,
+                    }}
+                  >
+                    {(() => {
+                      const Comp = SiteComponents[record.componentId];
+                      return Comp ? <Comp /> : null;
+                    })()}
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      border: "1px solid #e8e8e8",
+                      borderRadius: 8,
+                      overflow: "hidden",
+                      background: "#fff",
+                      padding: 48,
+                      color: "#999",
+                      textAlign: "center",
+                      fontSize: 14,
+                    }}
+                  >
+                    File <code>components/site/{record.componentId}.js</code> me
+                    default export add karein; preview yahan dikhega.
+                  </div>
+                )}
+              </div>
+            </>
+          )}
 
         <Form.Item name="displayName" hidden>
           <Input type="hidden" />
@@ -1801,20 +1732,52 @@ function FooterPreviewBlock({ form, themePaletteData, themeFooterSnapshot }) {
   );
 }
 
-function HomeHeroPreviewBlock({ form, slides: slidesProp, themeHomeHeroSnapshot, themePaletteData }) {
-  const slides = Array.isArray(slidesProp) ? slidesProp : (themeHomeHeroSnapshot?.homeHeroSlides ?? []);
-  const titleColorKey = Form.useWatch("homeHeroSliderTitleColorKey", form) ?? themeHomeHeroSnapshot?.homeHeroSliderTitleColorKey ?? "";
-  const descColorKey = Form.useWatch("homeHeroSliderDescColorKey", form) ?? themeHomeHeroSnapshot?.homeHeroSliderDescColorKey ?? "";
-  const buttonBgColorKey = Form.useWatch("homeHeroSliderButtonBgColorKey", form) ?? themeHomeHeroSnapshot?.homeHeroSliderButtonBgColorKey ?? "";
-  const buttonTextColorKey = Form.useWatch("homeHeroSliderButtonTextColorKey", form) ?? themeHomeHeroSnapshot?.homeHeroSliderButtonTextColorKey ?? "";
+function HomeHeroPreviewBlock({
+  form,
+  slides: slidesProp,
+  themeHomeHeroSnapshot,
+  themePaletteData,
+}) {
+  const slides = Array.isArray(slidesProp)
+    ? slidesProp
+    : (themeHomeHeroSnapshot?.homeHeroSlides ?? []);
+  const titleColorKey =
+    Form.useWatch("homeHeroSliderTitleColorKey", form) ??
+    themeHomeHeroSnapshot?.homeHeroSliderTitleColorKey ??
+    "";
+  const descColorKey =
+    Form.useWatch("homeHeroSliderDescColorKey", form) ??
+    themeHomeHeroSnapshot?.homeHeroSliderDescColorKey ??
+    "";
+  const buttonBgColorKey =
+    Form.useWatch("homeHeroSliderButtonBgColorKey", form) ??
+    themeHomeHeroSnapshot?.homeHeroSliderButtonBgColorKey ??
+    "";
+  const buttonTextColorKey =
+    Form.useWatch("homeHeroSliderButtonTextColorKey", form) ??
+    themeHomeHeroSnapshot?.homeHeroSliderButtonTextColorKey ??
+    "";
 
-  const titleColor = titleColorKey ? resolveThemeColorFromPalette(themePaletteData, titleColorKey) : undefined;
-  const descColor = descColorKey ? resolveThemeColorFromPalette(themePaletteData, descColorKey) : undefined;
-  const buttonBgColor = buttonBgColorKey ? resolveThemeColorFromPalette(themePaletteData, buttonBgColorKey) : undefined;
-  const buttonTextColor = buttonTextColorKey ? resolveThemeColorFromPalette(themePaletteData, buttonTextColorKey) : undefined;
+  const titleColor = titleColorKey
+    ? resolveThemeColorFromPalette(themePaletteData, titleColorKey)
+    : undefined;
+  const descColor = descColorKey
+    ? resolveThemeColorFromPalette(themePaletteData, descColorKey)
+    : undefined;
+  const buttonBgColor = buttonBgColorKey
+    ? resolveThemeColorFromPalette(themePaletteData, buttonBgColorKey)
+    : undefined;
+  const buttonTextColor = buttonTextColorKey
+    ? resolveThemeColorFromPalette(themePaletteData, buttonTextColorKey)
+    : undefined;
 
   const HomeHeroComp = SiteComponents.HomeHero;
-  if (!HomeHeroComp) return <div style={{ padding: 24, color: "#999" }}>HomeHero component not found.</div>;
+  if (!HomeHeroComp)
+    return (
+      <div style={{ padding: 24, color: "#999" }}>
+        HomeHero component not found.
+      </div>
+    );
 
   return (
     <div

@@ -36,7 +36,18 @@ const Theme = {
   },
 };
 
-export const getColor = (key) => Theme.colors[key] ?? FALLBACK_COLORS[key];
+/**
+ * Resolve theme color by key. Uses Theme.colors, then FALLBACK_COLORS (case-insensitive),
+ * then CSS variable var(--theme-{key}) so layout-injected theme palette applies (admin + frontend).
+ */
+export const getColor = (key) => {
+  if (key == null || String(key).trim() === "") return undefined;
+  const k = String(key).trim();
+  if (Theme.colors[k]) return Theme.colors[k];
+  const fallbackKey = Object.keys(FALLBACK_COLORS).find((f) => f.toLowerCase() === k.toLowerCase());
+  if (fallbackKey) return FALLBACK_COLORS[fallbackKey];
+  return `var(--theme-${k})`;
+};
 
 export const GlobalStyle = createGlobalStyle`
   body {

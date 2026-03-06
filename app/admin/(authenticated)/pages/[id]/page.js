@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button, Form, Input, Select, Card, Space, message, Spin, Drawer, Collapse } from "antd";
 import { ArrowLeftOutlined, SettingOutlined, SaveOutlined } from "@ant-design/icons";
@@ -13,10 +13,17 @@ export default function AdminPageEditPage() {
   const id = params.id;
   const [page, setPage] = useState(null);
   const [layout, setLayout] = useState([]);
+  const layoutRef = useRef([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [form] = Form.useForm();
+
+  const setLayoutAndRef = useCallback((next) => {
+    const nextLayout = typeof next === "function" ? next(layoutRef.current) : next;
+    layoutRef.current = Array.isArray(nextLayout) ? nextLayout : [];
+    setLayout(layoutRef.current);
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined" && sessionStorage.getItem("pageSaveSuccess") === "1") {
@@ -37,7 +44,9 @@ export default function AdminPageEditPage() {
         }
         const data = await res.json();
         setPage(data);
-        setLayout(Array.isArray(data.layout) ? data.layout : []);
+        const initialLayout = Array.isArray(data.layout) ? data.layout : [];
+        layoutRef.current = initialLayout;
+        setLayout(initialLayout);
         form.setFieldsValue({
           title: data.title,
           slug: data.slug,
@@ -58,6 +67,7 @@ export default function AdminPageEditPage() {
     try {
       const values = await form.validateFields();
       setSaving(true);
+      const layoutToSave = layoutRef.current;
       const res = await fetch(`/api/admin/pages/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -66,7 +76,7 @@ export default function AdminPageEditPage() {
           slug: values.slug,
           status: values.status,
           locale: values.locale || "en",
-          layout,
+          layout: layoutToSave,
           meta: { metaTitle: values.metaTitle, metaDescription: values.metaDescription },
         }),
       });
@@ -124,7 +134,7 @@ export default function AdminPageEditPage() {
       </div>
 
       {/* Visual builder - this IS the editor now */}
-      <PageBuilder layout={layout} onChange={setLayout} showLayers={false} />
+      <PageBuilder layout={layout} onChange={setLayoutAndRef} showLayers={false} />
 
       {/* Page settings drawer */}
       <Drawer
