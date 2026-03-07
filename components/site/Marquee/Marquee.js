@@ -79,9 +79,13 @@ export default function Marquee(props) {
   }, [fromPage]);
 
   const title =
-    (props?.marqueeTitle != null && String(props.marqueeTitle).trim() !== "" ? String(props.marqueeTitle).trim() : null) ??
+    (props?.marqueeTitle != null && String(props.marqueeTitle).trim() !== ""
+      ? String(props.marqueeTitle).trim()
+      : null) ??
     props?.title ??
-    (data?.marqueeTitle != null && String(data.marqueeTitle).trim() !== "" ? String(data.marqueeTitle).trim() : null) ??
+    (data?.marqueeTitle != null && String(data.marqueeTitle).trim() !== ""
+      ? String(data.marqueeTitle).trim()
+      : null) ??
     "Our CSR Partners | Awards & Recognition";
   const images =
     Array.isArray(props?.marqueeItems) && props.marqueeItems.length > 0
@@ -99,7 +103,6 @@ export default function Marquee(props) {
     >
       <h2>{title}</h2>
       <ReactMarquee
-        className="mb-5"
         loop={0}
         speed={props?.speed ?? 25}
         pauseOnHover={props?.pauseOnHover !== false}
@@ -107,7 +110,10 @@ export default function Marquee(props) {
         autoFill={true}
       >
         {images.map((src, i) => (
-          <div key={`${i}-${typeof src === "string" ? src : src?.url}`} className="marquee-item">
+          <div
+            key={`${i}-${typeof src === "string" ? src : src?.url}`}
+            className="marquee-item"
+          >
             <img
               className="img-fluid"
               src={typeof src === "string" ? src : (src?.url ?? src)}

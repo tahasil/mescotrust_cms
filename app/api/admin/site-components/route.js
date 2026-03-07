@@ -89,15 +89,31 @@ export async function POST(req) {
     const mainComponentPath = path.join(componentFolder, `${componentId}.js`);
     const mainComponentTemplate = `"use client";
 
+import { Row, Col } from "antd";
+import { PageContainer, MainTitle, SubTitle } from "@/styles/Theme";
+
 /**
  * Site component: ${componentId} (${displayName}).
- * Add your UI code below. Props come from theme/Component defaultProps.
+ * Section comes from ComponentRenderer. Props from theme/Component defaultProps.
  */
 export default function ${componentId}(props) {
-  return (
-    <section className="site-component-${componentId.toLowerCase()}" data-component="${componentId}">
+  const mainTitle = (props?.mainTitle ?? "Section Title").toString().trim();
+  const subTitle = (props?.subTitle ?? "Subtitle").toString().trim();
 
-    </section>
+  return (
+    <PageContainer>
+      <Row gutter={[16, 16]}>
+        <Col span={24} className="mb-4">
+          <SubTitle>{subTitle}</SubTitle>
+          <MainTitle>{mainTitle}</MainTitle>
+        </Col>
+      </Row>
+      <Row gutter={[16, 16]}>
+        <Col span={24}>
+          {/* Add your content here */}
+        </Col>
+      </Row>
+    </PageContainer>
   );
 }
 `;
@@ -107,12 +123,12 @@ export default function ${componentId}(props) {
     const editFormTemplate = `"use client";
 
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { Form, message, Spin } from "antd";
+import { Form, Input, message, Spin } from "antd";
 
 const API_PATH = "/api/theme/${componentId}";
 
 /**
- * Edit form for ${componentId} — used in component edit drawer (same pattern as HomeHero/Marquee).
+ * Edit form for ${componentId} — used in component edit drawer.
  * Loads/saves via \${API_PATH} (components collection).
  */
 function ${componentId}EditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel }, ref) {
@@ -125,14 +141,22 @@ function ${componentId}EditForm({ source, initialData: initialDataProp, onSaveTo
     setLoading(true);
     if (isPageBlock) {
       const data = initialDataProp ?? {};
-      form.setFieldsValue(data);
+      form.setFieldsValue({
+        mainTitle: data.mainTitle ?? "Section Title",
+        subTitle: data.subTitle ?? "Subtitle",
+        ...data,
+      });
       setLoading(false);
       return;
     }
     fetch(API_PATH, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : {}))
       .then((data) => {
-        form.setFieldsValue(data && typeof data === "object" ? data : {});
+        form.setFieldsValue({
+          mainTitle: (data && data.mainTitle) ?? "Section Title",
+          subTitle: (data && data.subTitle) ?? "Subtitle",
+          ...(data && typeof data === "object" ? data : {}),
+        });
       })
       .catch(() => message.error("Failed to load ${componentId}"))
       .finally(() => setLoading(false));
@@ -177,7 +201,13 @@ function ${componentId}EditForm({ source, initialData: initialDataProp, onSaveTo
 
   return (
     <Form form={form} layout="vertical">
-      <p style={{ color: "#666" }}>Add configuration fields in EditForm.js. Save uses \${API_PATH}.</p>
+      <Form.Item name="subTitle" label="Subtitle">
+        <Input placeholder="Subtitle" />
+      </Form.Item>
+      <Form.Item name="mainTitle" label="Main title">
+        <Input placeholder="Section Title" />
+      </Form.Item>
+      <p style={{ color: "#666", marginTop: 16 }}>Add more fields in EditForm.js as needed. Save uses \${API_PATH}.</p>
     </Form>
   );
 }

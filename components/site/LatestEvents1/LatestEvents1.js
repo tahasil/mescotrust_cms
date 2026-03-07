@@ -134,10 +134,7 @@ export default function LatestEvents1(props) {
   if (items.length === 0) return null;
 
   return (
-    <section
-      className="site-component-latestevents1"
-      data-component="LatestEvents1"
-    >
+    <PageContainer className="">
       <Row gutter={[16, 16]}>
         <Col span={24} className="mb-4">
           <SubTitle color={subTitleColor}>{subTitle}</SubTitle>
@@ -188,6 +185,6 @@ export default function LatestEvents1(props) {
           </Col>
         ))}
       </Row>
-    </section>
+    </PageContainer>
   );
 }

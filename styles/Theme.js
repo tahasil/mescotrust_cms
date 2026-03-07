@@ -44,7 +44,9 @@ export const getColor = (key) => {
   if (key == null || String(key).trim() === "") return undefined;
   const k = String(key).trim();
   if (Theme.colors[k]) return Theme.colors[k];
-  const fallbackKey = Object.keys(FALLBACK_COLORS).find((f) => f.toLowerCase() === k.toLowerCase());
+  const fallbackKey = Object.keys(FALLBACK_COLORS).find(
+    (f) => f.toLowerCase() === k.toLowerCase(),
+  );
   if (fallbackKey) return FALLBACK_COLORS[fallbackKey];
   return `var(--theme-${k})`;
 };
@@ -158,18 +160,14 @@ export const ThemeButton = styled(ButtonWrapper)`
 export const FullWidthBackground = styled.div`
   width: 100%;
   position: relative;
-  background: url("/images/event-bg.svg") no-repeat top center;
+  background: transparent no-repeat top center;
   background-size: cover;
-  &.aboutUs {
+  &.redBackground {
     background: url("/images/about-card-bg.svg") no-repeat top center;
     background-size: cover;
   }
-  &.aboutUsAims {
+  &.blackBackground {
     background: url("/images/about-card-bg-2.svg") no-repeat top center;
-    background-size: cover;
-  }
-  &.medicalAid {
-    background: url("/images/medical-aid-bg.svg") no-repeat top center;
     background-size: cover;
   }
   .innerEventBox {

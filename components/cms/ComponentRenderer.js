@@ -97,7 +97,15 @@ Object.entries(SiteComponents || {}).forEach(([name, Comp]) => {
   if (Comp && !COMPONENT_MAP[name]) COMPONENT_MAP[name] = Comp;
 });
 
-const SECTION_PROPS = ["_containerType", "_sectionBg", "_sectionPadding", "_sectionBorderSize", "_sectionBorderStyle", "_sectionBorderColor", "_sectionShadow"];
+const SECTION_PROPS = [
+  "_containerType",
+  "_sectionBg",
+  "_sectionPadding",
+  "_sectionBorderSize",
+  "_sectionBorderStyle",
+  "_sectionBorderColor",
+  "_sectionShadow",
+];
 
 /** Site components that must not be wrapped in PageContainer so their background can be full viewport width. */
 const FULL_BLEED_SITE_COMPONENTS = ["HomeHero", "Marquee", "Subscribe"];
@@ -117,7 +125,14 @@ function extractSectionProps(props) {
 
 function UnavailableBlock({ baseComponent }) {
   return (
-    <div style={{ padding: "1rem", background: "#f5f5f5", color: "#666", borderRadius: 4 }}>
+    <div
+      style={{
+        padding: "1rem",
+        background: "#f5f5f5",
+        color: "#666",
+        borderRadius: 4,
+      }}
+    >
       Unavailable block: {baseComponent || "unknown"}
     </div>
   );
@@ -127,26 +142,38 @@ function UnavailableBlock({ baseComponent }) {
  * Renders page layout from the pages collection only.
  * layout = page.layout (blocks with baseComponent, props, order). All block content comes from block.props (page document).
  */
-export default function ComponentRenderer({ layout, wrapperContainer, onElementClick }) {
+export default function ComponentRenderer({
+  layout,
+  wrapperContainer,
+  onElementClick,
+}) {
   if (!Array.isArray(layout) || layout.length === 0) return null;
 
   const sorted = [...layout].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   const wrapperClass =
-    wrapperContainer === "container-fluid" ? "cms-container-fluid" : wrapperContainer === "container" ? "cms-container" : null;
+    wrapperContainer === "container-fluid"
+      ? "cms-container-fluid"
+      : wrapperContainer === "container"
+        ? "cms-container"
+        : null;
 
   const content = (
     <div className="cms-layout">
       {sorted.map((block) => {
         const baseComponent =
           block.baseComponent ||
-          (block.componentId && typeof block.componentId === "object" && block.componentId.baseComponent) ||
+          (block.componentId &&
+            typeof block.componentId === "object" &&
+            block.componentId.baseComponent) ||
           "Paragraph";
         const Component = COMPONENT_MAP[baseComponent];
         const allProps = block.props || {};
-        const key = block.instanceId || block._id?.toString() || Math.random().toString(36);
+        const key =
+          block.instanceId ||
+          block._id?.toString() ||
+          Math.random().toString(36);
 
         const { section, clean } = extractSectionProps(allProps);
-        const containerType = section._containerType || "container";
         const sectionBg = section._sectionBg || "";
         const sectionPadding = section._sectionPadding || "";
         const sectionBorderSize = section._sectionBorderSize || "";
@@ -162,25 +189,46 @@ export default function ComponentRenderer({ layout, wrapperContainer, onElementC
         if (sectionBg) sectionStyle.background = sectionBg;
         if (sectionPadding) sectionStyle.padding = sectionPadding;
         const borderSizeTrimmed = String(sectionBorderSize || "").trim();
-        const borderParts = borderSizeTrimmed ? borderSizeTrimmed.split(/[\s,]+/).filter(Boolean) : [];
-        const isAllZeroBorder = borderParts.length === 0 || borderParts.every((p) => /^0(px|em|rem)?$/i.test(p.trim()));
+        const borderParts = borderSizeTrimmed
+          ? borderSizeTrimmed.split(/[\s,]+/).filter(Boolean)
+          : [];
+        const isAllZeroBorder =
+          borderParts.length === 0 ||
+          borderParts.every((p) => /^0(px|em|rem)?$/i.test(p.trim()));
         const hasBorderSize = borderSizeTrimmed && !isAllZeroBorder;
-        if (hasBorderSize || (sectionBorderStyle && sectionBorderStyle !== "none" && sectionBorderColor)) {
+        if (
+          hasBorderSize ||
+          (sectionBorderStyle &&
+            sectionBorderStyle !== "none" &&
+            sectionBorderColor)
+        ) {
           if (hasBorderSize) sectionStyle.borderWidth = borderSizeTrimmed;
-          sectionStyle.borderStyle = sectionBorderStyle === "none" ? "solid" : (sectionBorderStyle || "solid");
+          sectionStyle.borderStyle =
+            sectionBorderStyle === "none"
+              ? "solid"
+              : sectionBorderStyle || "solid";
           sectionStyle.borderColor = sectionBorderColor || "currentColor";
           if (!hasBorderSize) sectionStyle.borderWidth = "1px";
         }
         if (sectionShadow) sectionStyle.boxShadow = sectionShadow;
 
-        const hasSectionStyle = sectionBg || sectionPadding || (sectionBorderSize && sectionBorderSize !== "0") || (sectionBorderStyle && sectionBorderStyle !== "none" && sectionBorderColor) || sectionShadow;
+        const hasSectionStyle =
+          sectionBg ||
+          sectionPadding ||
+          (sectionBorderSize && sectionBorderSize !== "0") ||
+          (sectionBorderStyle &&
+            sectionBorderStyle !== "none" &&
+            sectionBorderColor) ||
+          sectionShadow;
 
         const elementClickProp = onElementClick
-          ? { onElementClick: (elementKey) => onElementClick(block.instanceId, elementKey) }
+          ? {
+              onElementClick: (elementKey) =>
+                onElementClick(block.instanceId, elementKey),
+            }
           : {};
 
         const isFullBleed = FULL_BLEED_SITE_COMPONENTS.includes(baseComponent);
-        const usePageContainer = !isFullBleed && containerType === "container";
 
         if (isFullBleed) {
           return (
@@ -190,38 +238,24 @@ export default function ComponentRenderer({ layout, wrapperContainer, onElementC
           );
         }
 
-        if (hasSectionStyle) {
-          return (
-            <div key={key} className="cms-section cms-container-fluid" style={sectionStyle}>
-              {usePageContainer ? (
-                <PageContainer>
-                  <Component {...clean} {...elementClickProp} />
-                </PageContainer>
-              ) : (
-                <div className="cms-container-fluid">
-                  <Component {...clean} {...elementClickProp} />
-                </div>
-              )}
-            </div>
-          );
-        }
-
-        return usePageContainer ? (
-          <PageContainer key={key}>
-            <Component {...clean} {...elementClickProp} />
-          </PageContainer>
-        ) : (
-          <div key={key} className="cms-container-fluid">
-            <Component {...clean} {...elementClickProp} />
-          </div>
+        // section (data-component) > PageContainer > component for every block
+        const sectionClassName = `site-component-${String(baseComponent).toLowerCase()}`;
+        return (
+          <section
+            key={key}
+            className={sectionClassName}
+            data-component={baseComponent}
+            style={hasSectionStyle ? sectionStyle : undefined}
+          >
+            <>
+              <Component {...clean} {...elementClickProp} />
+            </>
+          </section>
         );
       })}
     </div>
   );
 
-  if (wrapperContainer === "container") {
-    return <PageContainer>{content}</PageContainer>;
-  }
   if (wrapperClass) {
     return <div className={wrapperClass}>{content}</div>;
   }
