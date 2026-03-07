@@ -105,11 +105,16 @@ export default function AdminPageEditPage() {
         display: "flex", alignItems: "center", justifyContent: "space-between",
         marginBottom: 16, flexWrap: "wrap", gap: 8,
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <Link href="/admin/pages" style={{ textDecoration: "none" }}>
-            <Button icon={<ArrowLeftOutlined />} type="text" />
-          </Link>
-          <h2 style={{ margin: 0, fontSize: 18, lineHeight: 1.3 }}>{page?.title || "Edit Page"}</h2>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <Link href="/admin/pages" style={{ textDecoration: "none" }}>
+              <Button icon={<ArrowLeftOutlined />} type="text" />
+            </Link>
+            <h2 style={{ margin: 0, fontSize: 18, lineHeight: 1.3 }}>{page?.title || "Edit Page"}</h2>
+          </div>
+          <span style={{ fontSize: 12, color: "#666", marginLeft: 40 }}>
+            Reorder: drag blocks on canvas or use Move up/down in the Layers panel → Save to apply.
+          </span>
         </div>
         <Space>
           <Button icon={<SettingOutlined />} onClick={() => setSettingsOpen(true)}>
@@ -130,8 +135,8 @@ export default function AdminPageEditPage() {
         </Space>
       </div>
 
-      {/* Visual builder - this IS the editor now */}
-      <PageBuilder layout={layout} onChange={setLayoutAndRef} showLayers={false} />
+      {/* Visual builder: reorder blocks via Layers panel (Move up/down) or by dragging on canvas; Save persists order. */}
+      <PageBuilder layout={layout} onChange={setLayoutAndRef} showLayers={true} />
 
       {/* Page settings drawer — accordion style like components drawer */}
       <Drawer

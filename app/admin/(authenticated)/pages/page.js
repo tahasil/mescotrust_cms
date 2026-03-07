@@ -43,9 +43,7 @@ export default function AdminPagesPage() {
   }, []);
 
   const handleCreate = () => {
-    setEditingId(null);
-    form.resetFields();
-    setModalOpen(true);
+    router.push("/admin/pages/new");
   };
 
   const handleEdit = (record) => {
@@ -154,14 +152,15 @@ export default function AdminPagesPage() {
   return (
     <>
       <h1 style={{ marginBottom: 16 }}>Pages</h1>
-      <Button
-        type="primary"
-        icon={<PlusOutlined />}
-        onClick={handleCreate}
-        style={{ marginBottom: 16 }}
-      >
-        Add page
-      </Button>
+      <Link href="/admin/pages/new" style={{ textDecoration: "none" }}>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          style={{ marginBottom: 16 }}
+        >
+          Add page
+        </Button>
+      </Link>
       <Table
         rowKey="_id"
         columns={columns}
