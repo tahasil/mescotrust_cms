@@ -122,6 +122,33 @@ const TESTIMONIALS_DEFAULT_PROPS = {
   ],
 };
 
+/** Full default props when creating a new site component block (Manage Section, Title & Colors, Manage Items, Slide Setting). */
+function getDefaultPropsForNewSiteComponent(componentId) {
+  const prefix = MANAGE_SECTION_PREFIX_BY_COMPONENT_ID[componentId];
+  const base =
+    prefix
+      ? { ...getDefaultManageSectionProps(prefix), ...getDefaultTitleAndColorsProps(componentId) }
+      : {};
+  switch (componentId) {
+    case "HomeHero":
+      return {
+        ...base,
+        homeHeroSlides: [],
+        homeHeroAutoplay: true,
+        homeHeroShowArrows: true,
+        homeHeroShowDots: true,
+        homeHeroAutoplaySpeed: 5000,
+        homeHeroSpeed: 500,
+      };
+    case "Marquee":
+      return { ...base, marqueeItems: [], marqueeTitle: "" };
+    case "LatestEvents1":
+      return { ...base, latestEvents1Items: [] };
+    default:
+      return base;
+  }
+}
+
 function generateId() {
   return "block_" + Math.random().toString(36).slice(2, 11);
 }
@@ -2418,7 +2445,6 @@ export default function PageBuilder({
               }}
             >
               {filteredSiteComponents.map((item) => {
-                const prefix = MANAGE_SECTION_PREFIX_BY_COMPONENT_ID[item.componentId];
                 const comp = {
                   _id: item.componentId,
                   baseComponent: item.componentId,
@@ -2426,9 +2452,7 @@ export default function PageBuilder({
                   defaultProps:
                     item.componentId === "Testimonials"
                       ? TESTIMONIALS_DEFAULT_PROPS
-                      : prefix
-                        ? { ...getDefaultManageSectionProps(prefix), ...getDefaultTitleAndColorsProps(item.componentId) }
-                        : {},
+                      : getDefaultPropsForNewSiteComponent(item.componentId),
                 };
                 return (
                   <ComponentPaletteItem
