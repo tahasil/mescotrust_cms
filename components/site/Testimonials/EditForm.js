@@ -24,7 +24,9 @@ import {
   QuestionCircleOutlined,
 } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
+import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/Testimonials";
 
@@ -270,123 +272,7 @@ function TestimonialsEditForm(
           {
             key: "title",
             label: "Title & Colors",
-            children: (
-              <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-                {/* Main Title: list with title input + enable/disable */}
-                <List
-                  header={<span style={{ fontSize: 13, fontWeight: 600, color: "rgba(0,0,0,0.65)" }}>Main Title</span>}
-                  size="small"
-                  bordered
-                  split
-                  dataSource={[
-                    {
-                      key: "titleText",
-                      type: "input",
-                      name: "testimonialsTitle",
-                      label: "Title",
-                      tooltip: "Section heading text",
-                      rules: [{ required: true, message: "Main title is required" }],
-                    },
-                    {
-                      key: "titleEnabled",
-                      type: "switch",
-                      name: "testimonialsTitleEnabled",
-                      label: "Enable",
-                      tooltip: "Show or hide the section title",
-                    },
-                  ]}
-                  renderItem={(item) => (
-                    <List.Item
-                      actions={[
-                        item.type === "input" ? (
-                          <Form.Item
-                            key="input"
-                            name={item.name}
-                            noStyle
-                            style={{ marginBottom: 0, minWidth: 200 }}
-                            rules={item.rules}
-                          >
-                            <Input placeholder="e.g. Testimonials" size="small" style={{ width: "100%", minWidth: 200 }} />
-                          </Form.Item>
-                        ) : (
-                          <Form.Item
-                            key="switch"
-                            name={item.name}
-                            valuePropName="checked"
-                            noStyle
-                            style={{ marginBottom: 0 }}
-                          >
-                            <Switch />
-                          </Form.Item>
-                        ),
-                      ]}
-                    >
-                      <Tooltip title={item.tooltip}>
-                        <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4, color: "rgba(0,0,0,0.65)" }}>
-                          {item.label}{" "}
-                          <QuestionCircleOutlined style={{ fontSize: 12, color: "#999" }} />
-                        </span>
-                      </Tooltip>
-                    </List.Item>
-                  )}
-                />
-                {/* Colors: List with header like Ant Design */}
-                <List
-                  header={<span style={{ fontSize: 13, fontWeight: 600, color: "rgba(0,0,0,0.65)" }}>Colors</span>}
-                  size="small"
-                  bordered
-                  split
-                  dataSource={[
-                      {
-                        key: "title",
-                        name: "testimonialsTitleColorKey",
-                        label: "Main Title",
-                        tooltip: "Theme color for the section title",
-                      },
-                      {
-                        key: "name",
-                        name: "testimonialsNameColorKey",
-                        label: "Name",
-                        tooltip: "Theme color for testimonial name",
-                      },
-                      {
-                        key: "role",
-                        name: "testimonialsRoleColorKey",
-                        label: "Role / Title",
-                        tooltip: "Theme color for role or title under name",
-                      },
-                      {
-                        key: "rating",
-                        name: "testimonialsRatingColorKey",
-                        label: "Rating (stars)",
-                        tooltip: "Theme color for star rating",
-                      },
-                    ]}
-                    renderItem={(item) => (
-                      <List.Item
-                        actions={[
-                          <Form.Item key="select" name={item.name} noStyle style={{ marginBottom: 0 }}>
-                            <Select
-                              size="small"
-                              options={themeColorOptions}
-                              placeholder="From theme (default)"
-                              style={{ width: 120 }}
-                              allowClear
-                            />
-                          </Form.Item>,
-                        ]}
-                      >
-                        <Tooltip title={item.tooltip}>
-                          <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4, color: "rgba(0,0,0,0.65)" }}>
-                            {item.label}{" "}
-                            <QuestionCircleOutlined style={{ fontSize: 12, color: "#999" }} />
-                          </span>
-                        </Tooltip>
-                      </List.Item>
-                    )}
-                />
-              </div>
-            ),
+            children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("Testimonials")} />,
           },
           {
             key: "setting",

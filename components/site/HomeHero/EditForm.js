@@ -4,7 +4,9 @@ import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Form, Input, Select, Switch, Button, Row, Col, Collapse, message, Spin } from "antd";
 import { DeleteOutlined, PlusOutlined, ArrowUpOutlined, ArrowDownOutlined } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
+import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 /**
  * Edit form for HomeHero — used in page builder drawer or component edit.
@@ -157,8 +159,13 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
               children: <ManageSectionFields prefix="homeHero" form={form} themeColorOptions={themeColorOptions} />,
             },
             {
+              key: "title",
+              label: "Title & Colors",
+              children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("HomeHero")} />,
+            },
+            {
               key: "slider",
-              label: "Manage slides",
+              label: "Manage Slides",
               children: (
                 <Form.List name="homeHeroSlides">
                   {(fields, { add, remove, move }) => (
@@ -221,34 +228,6 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
                     </>
                   )}
                 </Form.List>
-              ),
-            },
-            {
-              key: "colors",
-              label: "Theme colors",
-              children: (
-                <Row gutter={[16, 16]}>
-                  <Col span={24}>
-                    <Form.Item name="homeHeroSliderTitleColorKey" label="Slider title color">
-                      <Select size="large" options={themeColorOptions} placeholder="From theme" style={{ width: "100%" }} allowClear />
-                    </Form.Item>
-                  </Col>
-                  <Col span={24}>
-                    <Form.Item name="homeHeroSliderDescColorKey" label="Slider description color">
-                      <Select size="large" options={themeColorOptions} placeholder="From theme" style={{ width: "100%" }} allowClear />
-                    </Form.Item>
-                  </Col>
-                  <Col span={24}>
-                    <Form.Item name="homeHeroSliderButtonBgColorKey" label="Button background">
-                      <Select size="large" options={themeColorOptions} placeholder="From theme" style={{ width: "100%" }} allowClear />
-                    </Form.Item>
-                  </Col>
-                  <Col span={24}>
-                    <Form.Item name="homeHeroSliderButtonTextColorKey" label="Button text color">
-                      <Select size="large" options={themeColorOptions} placeholder="From theme" style={{ width: "100%" }} allowClear />
-                    </Form.Item>
-                  </Col>
-                </Row>
               ),
             },
           ]}

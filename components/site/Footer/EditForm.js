@@ -4,7 +4,9 @@ import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Form, Input, Button, Row, Col, Select, Collapse, message, Spin } from "antd";
 import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
+import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 /**
  * Edit form for Footer — used in page builder drawer or component edit.
@@ -147,7 +149,10 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
 
   return (
     <Form form={form} layout="vertical">
-      <Collapse defaultActiveKey={[]} style={{ marginBottom: 16 }} items={[{ key: "manage-section", label: "Manage Section", children: <ManageSectionFields prefix="footer" form={form} themeColorOptions={themeColorOptions} /> }]} />
+      <Collapse defaultActiveKey={[]} style={{ marginBottom: 16 }} items={[
+        { key: "manage-section", label: "Manage Section", children: <ManageSectionFields prefix="footer" form={form} themeColorOptions={themeColorOptions} /> },
+        { key: "title", label: "Title & Colors", children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("Footer")} /> },
+      ]} />
       <Form.Item name="footerLogoUrl" label="Footer logo image URL">
         <Input placeholder="/images/footer-logo.svg" />
       </Form.Item>
@@ -181,18 +186,8 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
             <Form.Item name="footerBackgroundImageUrl" label="Background image URL">
               <Input placeholder="/uploads/footer-bg.svg" />
             </Form.Item>
-          ) : (
-            <Form.Item name="footerBgColorKey" label="Background color">
-              <Select options={themeColorOptions} placeholder="Select from Theme" style={{ width: "100%" }} allowClear />
-            </Form.Item>
-          )
+          ) : null
         }
-      </Form.Item>
-      <Form.Item name="footerTextColorKey" label="Text & links color">
-        <Select options={themeColorOptions} placeholder="Select from Theme" style={{ width: "100%" }} allowClear />
-      </Form.Item>
-      <Form.Item name="footerCopyrightBarColorKey" label="Copyright bar color">
-        <Select options={themeColorOptions} placeholder="Select from Theme" style={{ width: "100%" }} allowClear />
       </Form.Item>
       <Form.Item name="footerCopyrightText" label="Copyright text">
         <Input placeholder="Copyright © 2023 All Rights Reserved." />

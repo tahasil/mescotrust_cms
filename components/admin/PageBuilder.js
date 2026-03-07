@@ -77,6 +77,7 @@ import * as SiteComponents from "@/components/site";
 import { EDITABLE_SITE_EDIT_FORMS } from "@/components/site";
 import { SITE_COMPONENT_IDS } from "@/lib/siteComponentRegistry";
 import { getDefaultManageSectionProps, MANAGE_SECTION_PREFIX_BY_COMPONENT_ID } from "@/lib/manageSectionFields";
+import { getDefaultTitleAndColorsProps } from "@/lib/titleAndColorsConfig";
 
 /** Site components that have full edit flow in page builder. Header/Footer excluded. */
 const EDITABLE_SITE_COMPONENTS = SITE_COMPONENT_IDS.filter(
@@ -2426,7 +2427,7 @@ export default function PageBuilder({
                     item.componentId === "Testimonials"
                       ? TESTIMONIALS_DEFAULT_PROPS
                       : prefix
-                        ? getDefaultManageSectionProps(prefix)
+                        ? { ...getDefaultManageSectionProps(prefix), ...getDefaultTitleAndColorsProps(item.componentId) }
                         : {},
                 };
                 return (

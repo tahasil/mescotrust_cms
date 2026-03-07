@@ -331,6 +331,7 @@ export default function AdminComponentEditPage() {
         setThemeMarqueeSnapshot({
           marqueeTitle: title,
           marqueeItems: items,
+          marqueeTitleColorKey: theme?.marqueeTitleColorKey != null ? String(theme.marqueeTitleColorKey).trim() : "",
           ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Marquee, theme),
         });
         form.setFieldsValue({ marqueeTitle: title, marqueeItems: items });
@@ -715,6 +716,7 @@ export default function AdminComponentEditPage() {
                 <Divider />
                 {SiteComponents.Marquee ? (
                   <SiteComponents.Marquee
+                    {...themeMarqueeSnapshot}
                     title={themeMarqueeSnapshot?.marqueeTitle ?? ""}
                     images={themeMarqueeSnapshot?.marqueeItems ?? []}
                   />
@@ -942,6 +944,7 @@ export default function AdminComponentEditPage() {
                           alt: it?.alt ?? "",
                         }))
                       : [],
+                    marqueeTitleColorKey: theme?.marqueeTitleColorKey != null ? String(theme.marqueeTitleColorKey).trim() : "",
                     ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Marquee, theme),
                   });
                 } else if (cid === "Subscribe") {

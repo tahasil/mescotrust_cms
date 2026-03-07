@@ -14,7 +14,9 @@ import {
 } from "antd";
 import { DeleteOutlined, PlusOutlined, ArrowUpOutlined, ArrowDownOutlined } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
+import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/LatestEvents1";
 
@@ -155,22 +157,9 @@ function LatestEvents1EditForm(
             children: <ManageSectionFields prefix="latestEvents1" form={form} themeColorOptions={themeColorOptions} />,
           },
           {
-            key: "content",
-            label: "Section headings",
-            children: (
-              <Row gutter={[16, 16]}>
-                <Col span={24}>
-                  <Form.Item name="latestEvents1SubTitle" label="Subtitle">
-                    <Input placeholder="e.g. Latest News" size="large" />
-                  </Form.Item>
-                </Col>
-                <Col span={24}>
-                  <Form.Item name="latestEvents1MainTitle" label="Main title">
-                    <Input placeholder="e.g. Stay Informed. Stay Ahead." size="large" />
-                  </Form.Item>
-                </Col>
-              </Row>
-            ),
+            key: "title",
+            label: "Title & Colors",
+            children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("LatestEvents1")} />,
           },
           {
             key: "items",
@@ -239,29 +228,6 @@ function LatestEvents1EditForm(
                   </>
                 )}
               </Form.List>
-            ),
-          },
-          {
-            key: "colors",
-            label: "Theme colors",
-            children: (
-              <Row gutter={[16, 16]}>
-                <Col span={24}>
-                  <Form.Item name="latestEvents1SubTitleColorKey" label="Subtitle color">
-                    <Select size="large" options={themeColorOptions} placeholder="From theme" style={{ width: "100%" }} allowClear />
-                  </Form.Item>
-                </Col>
-                <Col span={24}>
-                  <Form.Item name="latestEvents1MainTitleColorKey" label="Main title color">
-                    <Select size="large" options={themeColorOptions} placeholder="From theme" style={{ width: "100%" }} allowClear />
-                  </Form.Item>
-                </Col>
-                <Col span={24}>
-                  <Form.Item name="latestEvents1ButtonColorKey" label="Read Post button color">
-                    <Select size="large" options={themeColorOptions} placeholder="From theme" style={{ width: "100%" }} allowClear />
-                  </Form.Item>
-                </Col>
-              </Row>
             ),
           },
         ]}

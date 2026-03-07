@@ -96,12 +96,14 @@ export default function Marquee(props) {
           ? data.marqueeItems
           : defaultImages;
 
+  const titleColor = getColor(props?.marqueeTitleColorKey || "black");
+
   return (
     <PartnersSection
       className="site-component-marquee"
       data-component="Marquee"
     >
-      <h2>{title}</h2>
+      <h2 style={{ color: titleColor }}>{title}</h2>
       <ReactMarquee
         loop={0}
         speed={props?.speed ?? 25}

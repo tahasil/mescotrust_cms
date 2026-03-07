@@ -36,21 +36,17 @@ export const CUSTOM_BUTTONS_SCHEMA = [
   { key: "headerVolunteerHref", type: "url", label: "Volunteer button link" },
   { key: "headerVolunteerIconUrl", type: "image", label: "Volunteer icon URL (desktop)" },
   { key: "headerVolunteerIconUrlMobile", type: "image", label: "Volunteer icon URL (mobile)" },
-  { key: "headerCtaBgColorKey", type: "select", label: "Volunteer button background", options: [] },
-  { key: "headerCtaTextColorKey", type: "select", label: "Volunteer button text color", options: [] },
   { key: "headerDonateLabel", type: "text", label: "Donate button label" },
   { key: "headerDonateHref", type: "url", label: "Donate button link" },
   { key: "headerDonateIconUrl", type: "image", label: "Donate icon URL (desktop)" },
   { key: "headerDonateIconUrlMobile", type: "image", label: "Donate icon URL (mobile)" },
-  { key: "headerDonateBgColorKey", type: "select", label: "Donate button background", options: [] },
-  { key: "headerDonateTextColorKey", type: "select", label: "Donate button text color", options: [] },
 ];
 
 export const HEADER_FIELD_GROUPS = [
   { label: "Logo and link", keys: ["logoType", "logoLightUrl", "logoMobileUrl", "logoDarkUrl", "logoTitle", "logoTagline", "logoUrl", "logoColor", "logoFontSize", "taglineFontSize", "sectionsOrder"] },
   { label: "Menu", keys: ["menuPosition", "navColor", "navFontSize", "navFontWeight", "navHoverColor", "navItemBackground", "navItemHoverBackground"] },
   { label: "Navbar (Bootstrap)", keys: ["navbarExpand", "navbarFixed", "navbarSticky", "collapseOnSelect", "navbarMobileMenu", "navbarOffcanvasPlacement"] },
-  { label: "Custom buttons", keys: ["headerVolunteerLabel", "headerVolunteerHref", "headerVolunteerIconUrl", "headerVolunteerIconUrlMobile", "headerCtaBgColorKey", "headerCtaTextColorKey", "headerDonateLabel", "headerDonateHref", "headerDonateIconUrl", "headerDonateIconUrlMobile", "headerDonateBgColorKey", "headerDonateTextColorKey"] },
+  { label: "Custom buttons", keys: ["headerVolunteerLabel", "headerVolunteerHref", "headerVolunteerIconUrl", "headerVolunteerIconUrlMobile", "headerDonateLabel", "headerDonateHref", "headerDonateIconUrl", "headerDonateIconUrlMobile"] },
 ];
 
 export const SECTION_SETTINGS_SCHEMA = [

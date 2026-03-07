@@ -3,7 +3,9 @@
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Form, Input, Row, Col, Collapse, Select, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
+import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 /**
  * Edit form for Subscribe — used in component edit page or page builder drawer.
@@ -138,20 +140,15 @@ function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage,
             children: <ManageSectionFields prefix="subscribe" form={form} themeColorOptions={themeColorOptions} />,
           },
           {
+            key: "title",
+            label: "Title & Colors",
+            children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("Subscribe")} />,
+          },
+          {
             key: "content",
             label: "Content",
             children: (
               <Row gutter={[16, 12]}>
-                <Col span={24}>
-                  <Form.Item name="subscribeSubtitle" label="Subtitle">
-                    <Input placeholder="e.g. Latest News" size="large" />
-                  </Form.Item>
-                </Col>
-                <Col span={24}>
-                  <Form.Item name="subscribeTitle" label="Title">
-                    <Input placeholder="e.g. To get weekly updates" size="large" />
-                  </Form.Item>
-                </Col>
                 <Col span={24}>
                   <Form.Item name="subscribePlaceholder" label="Email placeholder">
                     <Input placeholder="e.g. Enter email address" size="large" />
@@ -165,34 +162,6 @@ function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage,
                 <Col span={24}>
                   <Form.Item name="subscribeBgUrl" label="Background image URL">
                     <Input placeholder="/uploads/..." size="large" />
-                  </Form.Item>
-                </Col>
-              </Row>
-            ),
-          },
-          {
-            key: "colors",
-            label: "Theme colors",
-            children: (
-              <Row gutter={[16, 12]}>
-                <Col span={24}>
-                  <Form.Item name="subscribeSubtitleColorKey" label="Subtitle color">
-                    <Select size="large" options={themeColorOptions} placeholder="From theme" style={{ width: "100%" }} allowClear />
-                  </Form.Item>
-                </Col>
-                <Col span={24}>
-                  <Form.Item name="subscribeTitleColorKey" label="Title color">
-                    <Select size="large" options={themeColorOptions} placeholder="From theme" style={{ width: "100%" }} allowClear />
-                  </Form.Item>
-                </Col>
-                <Col span={24}>
-                  <Form.Item name="subscribeButtonBgColorKey" label="Button background">
-                    <Select size="large" options={themeColorOptions} placeholder="From theme" style={{ width: "100%" }} allowClear />
-                  </Form.Item>
-                </Col>
-                <Col span={24}>
-                  <Form.Item name="subscribeButtonTextColorKey" label="Button text color">
-                    <Select size="large" options={themeColorOptions} placeholder="From theme" style={{ width: "100%" }} allowClear />
                   </Form.Item>
                 </Col>
               </Row>

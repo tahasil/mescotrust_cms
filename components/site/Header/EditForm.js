@@ -4,7 +4,9 @@ import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "re
 import { Form, Select, Collapse, message } from "antd";
 import { renderSchemaField, enrichSchema } from "@/components/admin/schemaFormUtils";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
+import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 import {
   NAVBAR_SCHEMA,
   LOGO_LINK_SCHEMA,
@@ -227,6 +229,11 @@ function HeaderEditForm(
       key: "manage-section",
       label: "Manage Section",
       children: <ManageSectionFields prefix="header" form={form} themeColorOptions={themeColorOptions} />,
+    },
+    {
+      key: "title",
+      label: "Title & Colors",
+      children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("Header")} />,
     },
     ...HEADER_FIELD_GROUPS.map((grp) => ({
       key: grp.label.replace(/\s+/g, "-").toLowerCase().replace(/&/g, "and"),
