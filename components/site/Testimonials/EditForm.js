@@ -5,6 +5,7 @@ import {
   Form,
   Input,
   Button,
+  Card,
   Row,
   Col,
   Collapse,
@@ -26,6 +27,20 @@ import {
 
 const API_PATH = "/api/theme/Testimonials";
 
+/** Fallback theme color keys when theme API returns no palette/colors (dropdown only shows theme colors) */
+const FALLBACK_THEME_COLOR_KEYS = [
+  "primary",
+  "secondary",
+  "white",
+  "black",
+  "headingColor",
+  "paragraphColor",
+  "linkColor",
+  "mutedTextColor",
+  "borderColor",
+  "gradient",
+];
+
 /**
  * When source === "page" (block added via Page Builder): all settings and items
  * are loaded from and saved to the page's block.props (pages collection). Each
@@ -38,7 +53,7 @@ function normalizeItem(it) {
     imageUrl: it?.imageUrl != null ? String(it.imageUrl).trim() : "",
     name: it?.name != null ? String(it.name).trim() : "",
     title: it?.title != null ? String(it.title).trim() : "",
-    rating: Math.min(5, Math.max(0, parseInt(it?.rating, 10) || 0)),
+    rating: Math.min(5, Math.max(0, Number(it?.rating) || 0)),
   };
 }
 
@@ -83,6 +98,7 @@ function TestimonialsEditForm(
           data?.testimonialsRatingColorKey != null
             ? String(data.testimonialsRatingColorKey).trim()
             : "",
+        testimonialsTitleEnabled: data?.testimonialsTitleEnabled !== false,
         testimonialsAutoplay: data?.testimonialsAutoplay ?? false,
         testimonialsAutoplaySpeed:
           data?.testimonialsAutoplaySpeed != null
@@ -111,19 +127,17 @@ function TestimonialsEditForm(
         testimonialsItems:
           items.length > 0 ? items : [normalizeItem({}), normalizeItem({})],
       });
-      if (theme) {
-        const palette = theme?.themePalette || {};
-        const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
-        const names = [
-          ...new Set([
-            ...Object.keys(palette),
-            ...customColors.map((c) => c?.name).filter(Boolean),
-          ]),
-        ].sort();
-        setThemeColorOptions(
-          names.map((name) => ({ label: name, value: name })),
-        );
-      }
+      const palette = theme?.themePalette || {};
+      const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
+      const names = [
+        ...new Set([
+          ...Object.keys(palette),
+          ...customColors.map((c) => c?.name).filter(Boolean),
+        ]),
+      ].sort();
+      // Dropdown only shows theme colors; use fallback keys if theme has none
+      const keys = names.length > 0 ? names : FALLBACK_THEME_COLOR_KEYS;
+      setThemeColorOptions(keys.map((name) => ({ label: name, value: name })));
     };
     if (isPageBlock) {
       // Page block: use only block props from page (pages collection). Fetch theme only for color dropdown options.
@@ -177,6 +191,7 @@ function TestimonialsEditForm(
           values.testimonialsRatingColorKey != null
             ? String(values.testimonialsRatingColorKey).trim()
             : "",
+        testimonialsTitleEnabled: values.testimonialsTitleEnabled !== false,
         testimonialsAutoplay: values.testimonialsAutoplay === true,
         testimonialsAutoplaySpeed:
           values.testimonialsAutoplaySpeed != null
@@ -243,92 +258,124 @@ function TestimonialsEditForm(
   return (
     <Form form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={["content", "items", "setting"]}
+        defaultActiveKey={[]}
         items={[
           {
-            key: "content",
-            label: "Section headings",
+            key: "title",
+            label: "Title & Colors",
             children: (
-              <Row gutter={[16, 16]}>
-                <Col span={24}>
-                  <Form.Item
-                    name="testimonialsTitle"
-                    label="Section title"
-                    rules={[
-                      { required: true, message: "Section title is required" },
+              <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                <div>
+                  <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+                    <Col span={24}>
+                      <Form.Item
+                        name="testimonialsTitle"
+                        label="Main Title"
+                        rules={[
+                          { required: true, message: "Main title is required" },
+                        ]}
+                      >
+                        <Input placeholder="e.g. Testimonials" size="large" />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                  <List
+                    size="small"
+                    bordered
+                    split
+                    dataSource={[
+                      {
+                        key: "titleEnabled",
+                        name: "testimonialsTitleEnabled",
+                        label: "Enable",
+                        tooltip: "Show or hide the section title",
+                      },
                     ]}
-                  >
-                    <Input
-                      placeholder="e.g. Testimonials"
-                      size="large"
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={24}>
-                  <Form.Item
-                    name="testimonialsTitleColorKey"
-                    label="Section title color"
-                  >
-                    <Select
-                      size="large"
-                      options={themeColorOptions}
-                      placeholder="From theme (default)"
-                      style={{ width: "100%" }}
-                      allowClear
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={24}>
-                  <Form.Item
-                    name="testimonialsNameColorKey"
-                    label="Name color"
-                    tooltip="Theme color for testimonial name"
-                  >
-                    <Select
-                      size="large"
-                      options={themeColorOptions}
-                      placeholder="From theme (default)"
-                      style={{ width: "100%" }}
-                      allowClear
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={24}>
-                  <Form.Item
-                    name="testimonialsRoleColorKey"
-                    label="Role / Title color"
-                    tooltip="Theme color for role or title under name"
-                  >
-                    <Select
-                      size="large"
-                      options={themeColorOptions}
-                      placeholder="From theme (default)"
-                      style={{ width: "100%" }}
-                      allowClear
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={24}>
-                  <Form.Item
-                    name="testimonialsRatingColorKey"
-                    label="Rating (stars) color"
-                    tooltip="Theme color for star rating"
-                  >
-                    <Select
-                      size="large"
-                      options={themeColorOptions}
-                      placeholder="From theme (default)"
-                      style={{ width: "100%" }}
-                      allowClear
-                    />
-                  </Form.Item>
-                </Col>
-              </Row>
+                    renderItem={(item) => (
+                      <List.Item
+                        actions={[
+                          <Form.Item
+                            key="switch"
+                            name={item.name}
+                            valuePropName="checked"
+                            noStyle
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Switch />
+                          </Form.Item>,
+                        ]}
+                      >
+                        <Tooltip title={item.tooltip}>
+                          <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4, color: "rgba(0,0,0,0.65)" }}>
+                            {item.label}{" "}
+                            <QuestionCircleOutlined style={{ fontSize: 12, color: "#999" }} />
+                          </span>
+                        </Tooltip>
+                      </List.Item>
+                    )}
+                  />
+                </div>
+                <Card size="small" title="Colors">
+                  <List
+                    size="small"
+                    bordered
+                    split
+                    dataSource={[
+                      {
+                        key: "title",
+                        name: "testimonialsTitleColorKey",
+                        label: "Main Title",
+                        tooltip: "Theme color for the section title",
+                      },
+                      {
+                        key: "name",
+                        name: "testimonialsNameColorKey",
+                        label: "Name",
+                        tooltip: "Theme color for testimonial name",
+                      },
+                      {
+                        key: "role",
+                        name: "testimonialsRoleColorKey",
+                        label: "Role / Title",
+                        tooltip: "Theme color for role or title under name",
+                      },
+                      {
+                        key: "rating",
+                        name: "testimonialsRatingColorKey",
+                        label: "Rating (stars)",
+                        tooltip: "Theme color for star rating",
+                      },
+                    ]}
+                    renderItem={(item) => (
+                      <List.Item
+                        actions={[
+                          <Form.Item key="select" name={item.name} noStyle style={{ marginBottom: 0 }}>
+                            <Select
+                              size="small"
+                              options={themeColorOptions}
+                              placeholder="From theme (default)"
+                              style={{ width: 120 }}
+                              allowClear
+                            />
+                          </Form.Item>,
+                        ]}
+                      >
+                        <Tooltip title={item.tooltip}>
+                          <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4, color: "rgba(0,0,0,0.65)" }}>
+                            {item.label}{" "}
+                            <QuestionCircleOutlined style={{ fontSize: 12, color: "#999" }} />
+                          </span>
+                        </Tooltip>
+                      </List.Item>
+                    )}
+                  />
+                </Card>
+              </div>
             ),
           },
           {
             key: "setting",
-            label: "Setting",
+            label: "Slide Setting",
             children: (
               <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
                 {/* Behaviour: Ant Design List — title left, switch right */}
@@ -394,7 +441,7 @@ function TestimonialsEditForm(
                         ]}
                       >
                         <Tooltip title={item.tooltip}>
-                          <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                          <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4, color: "rgba(0,0,0,0.65)" }}>
                             {item.label}{" "}
                             <QuestionCircleOutlined style={{ fontSize: 12, color: "#999" }} />
                           </span>
@@ -459,7 +506,7 @@ function TestimonialsEditForm(
                         ]}
                       >
                         <Tooltip title={item.tooltip}>
-                          <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                          <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4, color: "rgba(0,0,0,0.65)" }}>
                             {item.label}{" "}
                             <QuestionCircleOutlined style={{ fontSize: 12, color: "#999" }} />
                           </span>
@@ -520,7 +567,7 @@ function TestimonialsEditForm(
                         ]}
                       >
                         <Tooltip title={item.tooltip}>
-                          <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                          <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4, color: "rgba(0,0,0,0.65)" }}>
                             {item.label}{" "}
                             <QuestionCircleOutlined style={{ fontSize: 12, color: "#999" }} />
                           </span>
@@ -648,13 +695,22 @@ function TestimonialsEditForm(
                               <Form.Item
                                 {...restField}
                                 name={[name, "rating"]}
-                                label="Star rating (1–5)"
+                                label="Rating (1-5)"
                                 initialValue={5}
                               >
-                                <InputNumber
-                                  min={1}
-                                  max={5}
-                                  placeholder="5"
+                                <Select
+                                  options={[
+                                    { label: "1", value: 1 },
+                                    { label: "1.5", value: 1.5 },
+                                    { label: "2", value: 2 },
+                                    { label: "2.5", value: 2.5 },
+                                    { label: "3", value: 3 },
+                                    { label: "3.5", value: 3.5 },
+                                    { label: "4", value: 4 },
+                                    { label: "4.5", value: 4.5 },
+                                    { label: "5", value: 5 },
+                                  ]}
+                                  placeholder="Select rating"
                                   style={{ width: "100%" }}
                                   size="large"
                                 />

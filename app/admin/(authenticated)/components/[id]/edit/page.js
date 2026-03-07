@@ -394,7 +394,7 @@ export default function AdminComponentEditPage() {
               imageUrl: it?.imageUrl != null ? String(it.imageUrl).trim() : "",
               name: it?.name != null ? String(it.name).trim() : "",
               title: it?.title != null ? String(it.title).trim() : "",
-              rating: Math.min(5, Math.max(0, parseInt(it?.rating, 10) || 0)),
+              rating: Math.min(5, Math.max(0, Number(it?.rating) || 0)),
             }))
           : [];
         setThemeTestimonialsSnapshot({
@@ -418,6 +418,10 @@ export default function AdminComponentEditPage() {
             data?.testimonialsRatingColorKey != null
               ? String(data.testimonialsRatingColorKey).trim()
               : "",
+          testimonialsTitleEnabled: data?.testimonialsTitleEnabled !== false,
+          testimonialsNameColorEnabled: data?.testimonialsNameColorEnabled === true,
+          testimonialsRoleColorEnabled: data?.testimonialsRoleColorEnabled === true,
+          testimonialsRatingColorEnabled: data?.testimonialsRatingColorEnabled === true,
           testimonialsAutoplay: data?.testimonialsAutoplay ?? false,
           testimonialsAutoplaySpeed:
             data?.testimonialsAutoplaySpeed != null
@@ -1000,7 +1004,7 @@ export default function AdminComponentEditPage() {
                         title: it?.title != null ? String(it.title).trim() : "",
                         rating: Math.min(
                           5,
-                          Math.max(0, parseInt(it?.rating, 10) || 0),
+                          Math.max(0, Number(it?.rating) || 0),
                         ),
                       }))
                     : [];
@@ -1025,6 +1029,10 @@ export default function AdminComponentEditPage() {
                       theme?.testimonialsRatingColorKey != null
                         ? String(theme.testimonialsRatingColorKey).trim()
                         : "",
+                    testimonialsTitleEnabled: theme?.testimonialsTitleEnabled !== false,
+                    testimonialsNameColorEnabled: theme?.testimonialsNameColorEnabled === true,
+                    testimonialsRoleColorEnabled: theme?.testimonialsRoleColorEnabled === true,
+                    testimonialsRatingColorEnabled: theme?.testimonialsRatingColorEnabled === true,
                     testimonialsAutoplay: theme?.testimonialsAutoplay ?? false,
                     testimonialsAutoplaySpeed:
                       theme?.testimonialsAutoplaySpeed != null

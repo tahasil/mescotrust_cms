@@ -216,8 +216,39 @@ function normalizeItem(it) {
     imageUrl: it?.imageUrl != null ? String(it.imageUrl).trim() : "",
     name: it?.name != null ? String(it.name).trim() : "",
     title: it?.title != null ? String(it.title).trim() : "",
-    rating: Math.min(5, Math.max(0, parseInt(it?.rating, 10) || 0)),
+    rating: Math.min(5, Math.max(0, Number(it?.rating) || 0)),
   };
+}
+
+function HalfStar({ color }) {
+  return (
+    <span
+      style={{ display: "inline-block", width: "1em", position: "relative" }}
+    >
+      <span
+        style={{
+          overflow: "hidden",
+          width: "50%",
+          display: "inline-block",
+          verticalAlign: "top",
+        }}
+      >
+        <StarFilled style={{ color }} />
+      </span>
+      <span
+        style={{
+          overflow: "hidden",
+          width: "50%",
+          position: "absolute",
+          left: "50%",
+          top: 0,
+          display: "inline-block",
+        }}
+      >
+        <StarOutlined style={{ color, marginLeft: "-100%" }} />
+      </span>
+    </span>
+  );
 }
 
 function StarRating({ rating, starColor }) {
@@ -225,13 +256,11 @@ function StarRating({ rating, starColor }) {
   const color = starColor || getColor("primary");
   return (
     <StarWrap>
-      {[1, 2, 3, 4, 5].map((i) =>
-        i <= r ? (
-          <StarFilled key={i} style={{ color }} />
-        ) : (
-          <StarOutlined key={i} style={{ color }} />
-        ),
-      )}
+      {[1, 2, 3, 4, 5].map((i) => {
+        if (i <= r) return <StarFilled key={i} style={{ color }} />;
+        if (r >= i - 0.5) return <HalfStar key={i} color={color} />;
+        return <StarOutlined key={i} style={{ color }} />;
+      })}
     </StarWrap>
   );
 }
@@ -294,15 +323,20 @@ export default function Testimonials(props) {
       .toString()
       .trim() || "Testimonials";
 
+  const titleEnabled = props?.testimonialsTitleEnabled !== false;
   const titleColorKey = (props?.testimonialsTitleColorKey ?? "")
     .toString()
     .trim();
   const titleColor = titleColorKey
     ? getColor(titleColorKey)
     : getColor("primary");
-  const nameColorKey = (props?.testimonialsNameColorKey ?? "").toString().trim();
+  const nameColorKey = (props?.testimonialsNameColorKey ?? "")
+    .toString()
+    .trim();
   const nameColor = nameColorKey ? getColor(nameColorKey) : getColor("primary");
-  const roleColorKey = (props?.testimonialsRoleColorKey ?? "").toString().trim();
+  const roleColorKey = (props?.testimonialsRoleColorKey ?? "")
+    .toString()
+    .trim();
   const roleColor = roleColorKey ? getColor(roleColorKey) : "rgba(0,0,0,0.55)";
   const ratingColorKey = (props?.testimonialsRatingColorKey ?? "")
     .toString()
@@ -369,7 +403,14 @@ export default function Testimonials(props) {
       );
     }, autoplaySpeed);
     return () => clearInterval(t);
-  }, [autoplay, autoplaySpeed, items.length, perViewClamped, maxIndex, infinite]);
+  }, [
+    autoplay,
+    autoplaySpeed,
+    items.length,
+    perViewClamped,
+    maxIndex,
+    infinite,
+  ]);
 
   const dragStartX = useRef(0);
   const handleDragStart = useCallback(
@@ -409,11 +450,13 @@ export default function Testimonials(props) {
   return (
     <FullWidthBackground className="blackBackground">
       <PageContainer>
-        <Row gutter={[16, 16]}>
-          <Col span={24} className=" text-center mb-4">
-            <MainTitle color={titleColor}>{title}</MainTitle>
-          </Col>
-        </Row>
+        {titleEnabled && (
+          <Row gutter={[16, 16]}>
+            <Col span={24} className=" text-center mb-4">
+              <MainTitle color={titleColor}>{title}</MainTitle>
+            </Col>
+          </Row>
+        )}
         <Viewport
           $draggable={draggable}
           onTouchStart={handleDragStart}
