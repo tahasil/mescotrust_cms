@@ -41,6 +41,38 @@ const FALLBACK_THEME_COLOR_KEYS = [
   "gradient",
 ];
 
+/** Parse "40, 24, 60, 24" (Top, Right, Bottom, Left) into [t, r, b, l]; invalid/empty become undefined. */
+function parsePaddingString(str) {
+  if (str == null || String(str).trim() === "") return [undefined, undefined, undefined, undefined];
+  const parts = String(str).split(",").map((s) => s.trim()).slice(0, 4);
+  return parts.map((p) => {
+    const n = Number(p);
+    return p === "" || Number.isNaN(n) || n < 0 ? undefined : n;
+  });
+}
+
+/** Format [t, r, b, l] to "40, 24, 60, 24"; ignores undefined. */
+function formatPaddingString(top, right, bottom, left) {
+  const arr = [top, right, bottom, left].filter((n) => n != null && n !== "");
+  return arr.length ? arr.join(", ") : "";
+}
+
+/** Parse "20, 40" (Top, Bottom) into [top, bottom]; invalid/empty become undefined. */
+function parseMarginTopBottomString(str) {
+  if (str == null || String(str).trim() === "") return [undefined, undefined];
+  const parts = String(str).split(",").map((s) => s.trim()).slice(0, 2);
+  return parts.map((p) => {
+    const n = Number(p);
+    return p === "" || Number.isNaN(n) || n < 0 ? undefined : n;
+  });
+}
+
+/** Format [top, bottom] to "20, 40"; ignores undefined. */
+function formatMarginTopBottomString(top, bottom) {
+  const arr = [top, bottom].filter((n) => n != null && n !== "");
+  return arr.length ? arr.join(", ") : "";
+}
+
 /**
  * When source === "page" (block added via Page Builder): all settings and items
  * are loaded from and saved to the page's block.props (pages collection). Each
@@ -70,6 +102,8 @@ function TestimonialsEditForm(
   const [saving, setSaving] = useState(false);
   const [themeColorOptions, setThemeColorOptions] = useState([]);
   const isPageBlock = source === "page";
+  const sectionBgType = Form.useWatch("testimonialsSectionBgType", form) || "default";
+  const pageContainerBgType = Form.useWatch("testimonialsPageContainerBgType", form) || "default";
 
   useEffect(() => {
     setLoading(true);
@@ -78,6 +112,48 @@ function TestimonialsEditForm(
         ? data.testimonialsItems.map(normalizeItem)
         : [];
       form.setFieldsValue({
+        testimonialsSectionBgType:
+          data?.testimonialsSectionBgType === "image" || data?.testimonialsSectionBgType === "color"
+            ? data.testimonialsSectionBgType
+            : "default",
+        testimonialsSectionBgImage:
+          data?.testimonialsSectionBgImage != null
+            ? String(data.testimonialsSectionBgImage).trim()
+            : "",
+        testimonialsSectionBgColorKey:
+          data?.testimonialsSectionBgColorKey != null
+            ? String(data.testimonialsSectionBgColorKey).trim()
+            : "",
+        testimonialsPageContainerBgType:
+          data?.testimonialsPageContainerBgType === "image" || data?.testimonialsPageContainerBgType === "color"
+            ? data.testimonialsPageContainerBgType
+            : "default",
+        testimonialsPageContainerBgImage:
+          data?.testimonialsPageContainerBgImage != null
+            ? String(data.testimonialsPageContainerBgImage).trim()
+            : "",
+        testimonialsPageContainerBgColorKey:
+          data?.testimonialsPageContainerBgColorKey != null
+            ? String(data.testimonialsPageContainerBgColorKey).trim()
+            : "",
+        testimonialsSectionPadding: formatMarginTopBottomString(
+          data?.testimonialsSectionPaddingTop,
+          data?.testimonialsSectionPaddingBottom,
+        ),
+        testimonialsPageContainerPadding: formatPaddingString(
+          data?.testimonialsPageContainerPaddingTop,
+          data?.testimonialsPageContainerPaddingRight,
+          data?.testimonialsPageContainerPaddingBottom,
+          data?.testimonialsPageContainerPaddingLeft,
+        ),
+        testimonialsSectionMargin: formatMarginTopBottomString(
+          data?.testimonialsSectionMarginTop,
+          data?.testimonialsSectionMarginBottom,
+        ),
+        testimonialsPageContainerMargin: formatMarginTopBottomString(
+          data?.testimonialsPageContainerMarginTop,
+          data?.testimonialsPageContainerMarginBottom,
+        ),
         testimonialsTitle:
           data?.testimonialsTitle != null
             ? String(data.testimonialsTitle).trim()
@@ -171,6 +247,50 @@ function TestimonialsEditForm(
       const rawItems = values.testimonialsItems ?? [];
       const items = Array.isArray(rawItems) ? rawItems.map(normalizeItem) : [];
       const payload = {
+        testimonialsSectionBgType:
+          values.testimonialsSectionBgType === "image" || values.testimonialsSectionBgType === "color"
+            ? values.testimonialsSectionBgType
+            : "default",
+        testimonialsSectionBgImage:
+          values.testimonialsSectionBgType === "image" && values.testimonialsSectionBgImage != null
+            ? String(values.testimonialsSectionBgImage).trim()
+            : "",
+        testimonialsSectionBgColorKey:
+          values.testimonialsSectionBgType === "color" && values.testimonialsSectionBgColorKey != null
+            ? String(values.testimonialsSectionBgColorKey).trim()
+            : "",
+        testimonialsPageContainerBgType:
+          values.testimonialsPageContainerBgType === "image" || values.testimonialsPageContainerBgType === "color"
+            ? values.testimonialsPageContainerBgType
+            : "default",
+        testimonialsPageContainerBgImage:
+          values.testimonialsPageContainerBgType === "image" && values.testimonialsPageContainerBgImage != null
+            ? String(values.testimonialsPageContainerBgImage).trim()
+            : "",
+        testimonialsPageContainerBgColorKey:
+          values.testimonialsPageContainerBgType === "color" && values.testimonialsPageContainerBgColorKey != null
+            ? String(values.testimonialsPageContainerBgColorKey).trim()
+            : "",
+        ...(() => {
+          const [sT, sB] = parseMarginTopBottomString(values.testimonialsSectionPadding);
+          const [cT, cR, cB, cL] = parsePaddingString(values.testimonialsPageContainerPadding);
+          const [sMT, sMB] = parseMarginTopBottomString(values.testimonialsSectionMargin);
+          const [cMT, cMB] = parseMarginTopBottomString(values.testimonialsPageContainerMargin);
+          return {
+            testimonialsSectionPaddingTop: sT,
+            testimonialsSectionPaddingRight: undefined,
+            testimonialsSectionPaddingBottom: sB,
+            testimonialsSectionPaddingLeft: undefined,
+            testimonialsPageContainerPaddingTop: cT,
+            testimonialsPageContainerPaddingRight: cR,
+            testimonialsPageContainerPaddingBottom: cB,
+            testimonialsPageContainerPaddingLeft: cL,
+            testimonialsSectionMarginTop: sMT,
+            testimonialsSectionMarginBottom: sMB,
+            testimonialsPageContainerMarginTop: cMT,
+            testimonialsPageContainerMarginBottom: cMB,
+          };
+        })(),
         testimonialsTitle:
           values.testimonialsTitle != null
             ? String(values.testimonialsTitle).trim()
@@ -260,6 +380,178 @@ function TestimonialsEditForm(
       <Collapse
         defaultActiveKey={[]}
         items={[
+          {
+            key: "section",
+            label: "Manage Section",
+            children: (
+              <Collapse
+                defaultActiveKey={[]}
+                size="small"
+                items={[
+                  {
+                    key: "fullWidth",
+                    label: "Fluid Container",
+                    children: (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        <Form.Item
+                          name="testimonialsSectionBgType"
+                          label="Section background"
+                          tooltip="Default uses the built-in dark background; Image uses a custom URL; Color uses a theme color."
+                          style={{ marginBottom: 12 }}
+                        >
+                          <Select
+                            size="large"
+                            options={[
+                              { label: "Default", value: "default" },
+                              { label: "Image", value: "image" },
+                              { label: "Color", value: "color" },
+                            ]}
+                            style={{ width: "100%" }}
+                          />
+                        </Form.Item>
+                        {sectionBgType === "image" && (
+                          <Form.Item
+                            name="testimonialsSectionBgImage"
+                            label="Image path / URL"
+                            tooltip="Enter the full URL or path to the background image."
+                            style={{ marginBottom: 12 }}
+                          >
+                            <Input
+                              placeholder="e.g. /images/section-bg.jpg"
+                              size="large"
+                              allowClear
+                            />
+                          </Form.Item>
+                        )}
+                        {sectionBgType === "color" && (
+                          <Form.Item
+                            name="testimonialsSectionBgColorKey"
+                            label="Theme color"
+                            tooltip="Select a color from Admin → Theme."
+                            style={{ marginBottom: 12 }}
+                          >
+                            <Select
+                              size="large"
+                              options={themeColorOptions}
+                              placeholder="Select theme color"
+                              style={{ width: "100%" }}
+                              allowClear
+                            />
+                          </Form.Item>
+                        )}
+                        <div style={{ paddingTop: 12, borderTop: "1px solid #f0f0f0", marginTop: 4 }}>
+                          <Form.Item
+                            name="testimonialsSectionPadding"
+                            label="Padding (Top, Bottom)"
+                            tooltip="Comma-separated values in px, e.g. 40, 60"
+                            style={{ marginBottom: 12 }}
+                          >
+                            <Input
+                              placeholder="e.g. 40, 60"
+                              size="large"
+                              allowClear
+                            />
+                          </Form.Item>
+                          <Form.Item
+                            name="testimonialsSectionMargin"
+                            label="Margin (Top, Bottom)"
+                            tooltip="Comma-separated values in px, e.g. 20, 40"
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Input
+                              placeholder="e.g. 20, 40"
+                              size="large"
+                              allowClear
+                            />
+                          </Form.Item>
+                        </div>
+                      </div>
+                    ),
+                  },
+                  {
+                    key: "pageContainer",
+                    label: "Box Container",
+                    children: (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        <Form.Item
+                          name="testimonialsPageContainerBgType"
+                          label="Container Background"
+                          tooltip="Background for the inner content container. Default is transparent."
+                          style={{ marginBottom: 12 }}
+                        >
+                          <Select
+                            size="large"
+                            options={[
+                              { label: "Default", value: "default" },
+                              { label: "Image", value: "image" },
+                              { label: "Color", value: "color" },
+                            ]}
+                            style={{ width: "100%" }}
+                          />
+                        </Form.Item>
+                        {pageContainerBgType === "image" && (
+                          <Form.Item
+                            name="testimonialsPageContainerBgImage"
+                            label="Image path / URL"
+                            tooltip="Background image for the inner container."
+                            style={{ marginBottom: 12 }}
+                          >
+                            <Input
+                              placeholder="e.g. /images/container-bg.jpg"
+                              size="large"
+                              allowClear
+                            />
+                          </Form.Item>
+                        )}
+                        {pageContainerBgType === "color" && (
+                          <Form.Item
+                            name="testimonialsPageContainerBgColorKey"
+                            label="Theme color"
+                            tooltip="Theme color for the inner container background."
+                            style={{ marginBottom: 12 }}
+                          >
+                            <Select
+                              size="large"
+                              options={themeColorOptions}
+                              placeholder="Select theme color"
+                              style={{ width: "100%" }}
+                              allowClear
+                            />
+                          </Form.Item>
+                        )}
+                        <div style={{ paddingTop: 12, borderTop: "1px solid #f0f0f0", marginTop: 4 }}>
+                          <Form.Item
+                            name="testimonialsPageContainerPadding"
+                            label="Padding (Top, Right, Bottom, Left)"
+                            tooltip="Comma-separated values in px, e.g. 40, 24, 60, 24"
+                            style={{ marginBottom: 12 }}
+                          >
+                            <Input
+                              placeholder="e.g. 40, 24, 60, 24"
+                              size="large"
+                              allowClear
+                            />
+                          </Form.Item>
+                          <Form.Item
+                            name="testimonialsPageContainerMargin"
+                            label="Margin (Top, Bottom)"
+                            tooltip="Comma-separated values in px, e.g. 20, 40"
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Input
+                              placeholder="e.g. 20, 40"
+                              size="large"
+                              allowClear
+                            />
+                          </Form.Item>
+                        </div>
+                      </div>
+                    ),
+                  },
+                ]}
+              />
+            ),
+          },
           {
             key: "title",
             label: "Title & Colors",

@@ -162,14 +162,11 @@ export const FullWidthBackground = styled.div`
   position: relative;
   background: transparent no-repeat top center;
   background-size: cover;
-  &.redBackground {
-    background: url("/images/about-card-bg.svg") no-repeat top center;
-    background-size: cover;
+  &.defaultBackground {
+    background-image: none;
+    background: none;
   }
-  &.blackBackground {
-    background: url("/images/about-card-bg-2.svg") no-repeat top center;
-    background-size: cover;
-  }
+
   .innerEventBox {
     position: relative;
     width: 80%;

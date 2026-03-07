@@ -46,12 +46,14 @@ const Slide = styled.div`
   padding: 0 8px;
   box-sizing: border-box;
   min-width: 0;
+  display: flex;
+  align-items: stretch;
   @media (max-width: 767px) {
     padding: 0 6px;
   }
 `;
 
-/** Card with L-shaped brackets in corners */
+/** Card with L-shaped brackets in corners; fills slide so all cards in a row match height */
 const Card = styled.div`
   background: #fff;
   border-radius: 12px;
@@ -59,11 +61,14 @@ const Card = styled.div`
   padding: 32px 24px 28px;
   text-align: center;
   min-height: 340px;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   position: relative;
+  flex: 1;
+  min-height: 340px;
   &::before,
   &::after {
     content: "";
@@ -345,6 +350,90 @@ export default function Testimonials(props) {
     ? getColor(ratingColorKey)
     : getColor("primary");
 
+  const sectionBgType = (
+    props?.testimonialsSectionBgType ?? "default"
+  ).toString();
+  const sectionBgImage = (props?.testimonialsSectionBgImage ?? "")
+    .toString()
+    .trim();
+  const sectionBgColorKey = (props?.testimonialsSectionBgColorKey ?? "")
+    .toString()
+    .trim();
+  const sectionBgClassName =
+    sectionBgType === "default" ? "defaultBackground" : undefined;
+  const sectionBgStyleBase =
+    sectionBgType === "image" && sectionBgImage
+      ? {
+          backgroundImage: `url(${sectionBgImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center center",
+          backgroundRepeat: "no-repeat",
+        }
+      : sectionBgType === "color" && sectionBgColorKey
+        ? {
+            backgroundColor: getColor(sectionBgColorKey),
+            backgroundImage: "none",
+          }
+        : undefined;
+  const sectionPaddingTop = props?.testimonialsSectionPaddingTop != null ? Number(props.testimonialsSectionPaddingTop) : null;
+  const sectionPaddingBottom = props?.testimonialsSectionPaddingBottom != null ? Number(props.testimonialsSectionPaddingBottom) : null;
+  const sectionMarginTop = props?.testimonialsSectionMarginTop != null ? Number(props.testimonialsSectionMarginTop) : null;
+  const sectionMarginBottom = props?.testimonialsSectionMarginBottom != null ? Number(props.testimonialsSectionMarginBottom) : null;
+  const sectionBgStyle =
+    sectionBgStyleBase || sectionPaddingTop != null || sectionPaddingBottom != null || sectionMarginTop != null || sectionMarginBottom != null
+      ? {
+          ...(sectionBgStyleBase || {}),
+          ...(sectionPaddingTop != null && sectionPaddingTop >= 0 ? { paddingTop: `${sectionPaddingTop}px` } : {}),
+          ...(sectionPaddingBottom != null && sectionPaddingBottom >= 0 ? { paddingBottom: `${sectionPaddingBottom}px` } : {}),
+          ...(sectionMarginTop != null && sectionMarginTop >= 0 ? { marginTop: `${sectionMarginTop}px` } : {}),
+          ...(sectionMarginBottom != null && sectionMarginBottom >= 0 ? { marginBottom: `${sectionMarginBottom}px` } : {}),
+        }
+      : undefined;
+
+  const pageContainerBgType = (
+    props?.testimonialsPageContainerBgType ?? "default"
+  ).toString();
+  const pageContainerBgImage = (props?.testimonialsPageContainerBgImage ?? "")
+    .toString()
+    .trim();
+  const pageContainerBgColorKey = (
+    props?.testimonialsPageContainerBgColorKey ?? ""
+  )
+    .toString()
+    .trim();
+  const pageContainerBgStyleBase =
+    pageContainerBgType === "image" && pageContainerBgImage
+      ? {
+          backgroundImage: `url(${pageContainerBgImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }
+      : pageContainerBgType === "color" && pageContainerBgColorKey
+        ? {
+            backgroundColor: getColor(pageContainerBgColorKey),
+            backgroundImage: "none",
+          }
+        : undefined;
+  const containerPaddingTop = props?.testimonialsPageContainerPaddingTop != null ? Number(props.testimonialsPageContainerPaddingTop) : null;
+  const containerPaddingRight = props?.testimonialsPageContainerPaddingRight != null ? Number(props.testimonialsPageContainerPaddingRight) : null;
+  const containerPaddingBottom = props?.testimonialsPageContainerPaddingBottom != null ? Number(props.testimonialsPageContainerPaddingBottom) : null;
+  const containerPaddingLeft = props?.testimonialsPageContainerPaddingLeft != null ? Number(props.testimonialsPageContainerPaddingLeft) : null;
+  const containerMarginTop = props?.testimonialsPageContainerMarginTop != null ? Number(props.testimonialsPageContainerMarginTop) : null;
+  const containerMarginBottom = props?.testimonialsPageContainerMarginBottom != null ? Number(props.testimonialsPageContainerMarginBottom) : null;
+  const pageContainerBgStyle =
+    pageContainerBgStyleBase || containerPaddingTop != null || containerPaddingRight != null || containerPaddingBottom != null || containerPaddingLeft != null || containerMarginTop != null || containerMarginBottom != null
+      ? {
+          ...(pageContainerBgStyleBase || {}),
+          ...(containerPaddingTop != null && containerPaddingTop >= 0 ? { paddingTop: `${containerPaddingTop}px` } : {}),
+          ...(containerPaddingRight != null && containerPaddingRight >= 0 ? { paddingRight: `${containerPaddingRight}px` } : {}),
+          ...(containerPaddingBottom != null && containerPaddingBottom >= 0 ? { paddingBottom: `${containerPaddingBottom}px` } : {}),
+          ...(containerPaddingLeft != null && containerPaddingLeft >= 0 ? { paddingLeft: `${containerPaddingLeft}px` } : {}),
+          ...(containerMarginTop != null && containerMarginTop >= 0 ? { marginTop: `${containerMarginTop}px` } : {}),
+          ...(containerMarginBottom != null && containerMarginBottom >= 0 ? { marginBottom: `${containerMarginBottom}px` } : {}),
+        }
+      : undefined;
+
   const autoplay = props?.testimonialsAutoplay === true;
   const autoplaySpeed = Math.max(
     1000,
@@ -448,8 +537,8 @@ export default function Testimonials(props) {
   );
 
   return (
-    <FullWidthBackground className="blackBackground">
-      <PageContainer>
+    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
+      <PageContainer style={pageContainerBgStyle}>
         {titleEnabled && (
           <Row gutter={[16, 16]}>
             <Col span={24} className=" text-center mb-4">
