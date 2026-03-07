@@ -203,6 +203,19 @@ export default function HomeHero(props) {
     "pageContainer";
   const isBgContained = backgroundContainer === "contained";
 
+  const autoplay =
+    props?.homeHeroAutoplay ?? theme?.homeHeroAutoplay ?? true;
+  const showArrows =
+    props?.homeHeroShowArrows ?? theme?.homeHeroShowArrows ?? true;
+  const showDots =
+    props?.homeHeroShowDots ?? theme?.homeHeroShowDots ?? true;
+  const autoplaySpeed =
+    props?.homeHeroAutoplaySpeed ??
+    theme?.homeHeroAutoplaySpeed ??
+    5000;
+  const speed =
+    props?.homeHeroSpeed ?? theme?.homeHeroSpeed ?? 500;
+
   const slideProps = {
     titleColor,
     descColor,
@@ -225,7 +238,14 @@ export default function HomeHero(props) {
         {...slideProps}
       />
     ) : (
-      <Carousel arrows autoplay effect="fade">
+      <Carousel
+        arrows={showArrows}
+        autoplay={autoplay}
+        autoplaySpeed={autoplaySpeed}
+        speed={speed}
+        dots={showDots}
+        effect="fade"
+      >
         {slides.map((slide, i) => (
           <SingleSlide
             key={i}

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, Select, Switch, Button, Row, Col, Collapse, message, Spin } from "antd";
-import { DeleteOutlined, PlusOutlined, ArrowUpOutlined, ArrowDownOutlined } from "@ant-design/icons";
+import { Form, Input, Select, Switch, Button, Row, Col, Collapse, List, InputNumber, Tooltip, message, Spin } from "antd";
+import { DeleteOutlined, PlusOutlined, ArrowUpOutlined, ArrowDownOutlined, QuestionCircleOutlined } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
@@ -45,6 +45,11 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
         homeHeroSliderDescColorKey: data?.homeHeroSliderDescColorKey != null ? String(data.homeHeroSliderDescColorKey).trim() : "",
         homeHeroSliderButtonBgColorKey: data?.homeHeroSliderButtonBgColorKey != null ? String(data.homeHeroSliderButtonBgColorKey).trim() : "",
         homeHeroSliderButtonTextColorKey: data?.homeHeroSliderButtonTextColorKey != null ? String(data.homeHeroSliderButtonTextColorKey).trim() : "",
+        homeHeroAutoplay: data?.homeHeroAutoplay ?? true,
+        homeHeroShowArrows: data?.homeHeroShowArrows ?? true,
+        homeHeroShowDots: data?.homeHeroShowDots ?? true,
+        homeHeroAutoplaySpeed: data?.homeHeroAutoplaySpeed != null ? Number(data.homeHeroAutoplaySpeed) : 5000,
+        homeHeroSpeed: data?.homeHeroSpeed != null ? Number(data.homeHeroSpeed) : 500,
         ...getManageSectionInitialValues("homeHero", data),
       });
       fetch("/api/theme", { cache: "no-store" })
@@ -85,6 +90,11 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
           homeHeroSliderDescColorKey: hero?.homeHeroSliderDescColorKey != null ? String(hero.homeHeroSliderDescColorKey).trim() : "",
           homeHeroSliderButtonBgColorKey: hero?.homeHeroSliderButtonBgColorKey != null ? String(hero.homeHeroSliderButtonBgColorKey).trim() : "",
           homeHeroSliderButtonTextColorKey: hero?.homeHeroSliderButtonTextColorKey != null ? String(hero.homeHeroSliderButtonTextColorKey).trim() : "",
+          homeHeroAutoplay: hero?.homeHeroAutoplay ?? true,
+          homeHeroShowArrows: hero?.homeHeroShowArrows ?? true,
+          homeHeroShowDots: hero?.homeHeroShowDots ?? true,
+          homeHeroAutoplaySpeed: hero?.homeHeroAutoplaySpeed != null ? Number(hero.homeHeroAutoplaySpeed) : 5000,
+          homeHeroSpeed: hero?.homeHeroSpeed != null ? Number(hero.homeHeroSpeed) : 500,
           ...getManageSectionInitialValues("homeHero", hero),
         });
       })
@@ -114,6 +124,11 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
         homeHeroSliderButtonTextColorKey: values.homeHeroSliderButtonTextColorKey != null ? String(values.homeHeroSliderButtonTextColorKey).trim() : "",
         homeHeroBackgroundContainer: "full",
         homeHeroContentContainer: "pageContainer",
+        homeHeroAutoplay: values.homeHeroAutoplay !== false,
+        homeHeroShowArrows: values.homeHeroShowArrows !== false,
+        homeHeroShowDots: values.homeHeroShowDots !== false,
+        homeHeroAutoplaySpeed: values.homeHeroAutoplaySpeed != null ? Math.max(1000, Number(values.homeHeroAutoplaySpeed)) : 5000,
+        homeHeroSpeed: values.homeHeroSpeed != null ? Math.max(200, Number(values.homeHeroSpeed)) : 500,
         ...getManageSectionPayload("homeHero", values),
       };
       if (isPageBlock && onSaveToPage) {
@@ -154,7 +169,7 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
     <>
       <Form form={form} layout="vertical">
         <Collapse
-          defaultActiveKey={[]}
+          defaultActiveKey={["slider"]}
           items={[
             {
               key: "section",
@@ -167,8 +182,91 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
               children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("HomeHero")} />,
             },
             {
+              key: "setting",
+              label: "Slide Setting",
+              children: (
+                <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                  {/* Behaviour: List with header like Ant Design - same format as Testimonials */}
+                  <List
+                    header={<span style={{ fontSize: 13, fontWeight: 600, color: "rgba(0,0,0,0.65)" }}>Behaviour</span>}
+                    size="small"
+                    bordered
+                    split
+                    dataSource={[
+                      { key: "autoplay", name: "homeHeroAutoplay", label: "Autoplay", tooltip: "Scroll to next slide automatically" },
+                      { key: "arrows", name: "homeHeroShowArrows", label: "Show arrows", tooltip: "Show prev/next navigation arrows" },
+                      { key: "dots", name: "homeHeroShowDots", label: "Show dots", tooltip: "Show dot indicators for current slide" },
+                    ]}
+                    renderItem={(item) => (
+                      <List.Item
+                        actions={[
+                          <Form.Item key="switch" name={item.name} valuePropName="checked" noStyle style={{ marginBottom: 0 }}>
+                            <Switch />
+                          </Form.Item>,
+                        ]}
+                      >
+                        <Tooltip title={item.tooltip}>
+                          <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4, color: "rgba(0,0,0,0.65)" }}>
+                            {item.label} <QuestionCircleOutlined style={{ fontSize: 12, color: "#999" }} />
+                          </span>
+                        </Tooltip>
+                      </List.Item>
+                    )}
+                  />
+                  {/* Speed: List with header like Ant Design - same format as Testimonials */}
+                  <List
+                    header={<span style={{ fontSize: 13, fontWeight: 600, color: "rgba(0,0,0,0.65)" }}>Speed</span>}
+                    size="small"
+                    bordered
+                    split
+                    dataSource={[
+                      {
+                        key: "autoplaySpeed",
+                        name: "homeHeroAutoplaySpeed",
+                        label: "Autoplay delay (ms)",
+                        tooltip: "Delay between each auto scroll (milliseconds)",
+                        min: 1000,
+                        max: 30000,
+                        step: 1000,
+                      },
+                      {
+                        key: "transition",
+                        name: "homeHeroSpeed",
+                        label: "Transition (ms)",
+                        tooltip: "Animation duration in milliseconds",
+                        min: 200,
+                        max: 2000,
+                        step: 100,
+                      },
+                    ]}
+                    renderItem={(item) => (
+                      <List.Item
+                        actions={[
+                          <Form.Item key="input" name={item.name} noStyle style={{ marginBottom: 0 }}>
+                            <InputNumber
+                              size="small"
+                              min={item.min}
+                              max={item.max}
+                              step={item.step}
+                              style={{ width: 100 }}
+                            />
+                          </Form.Item>,
+                        ]}
+                      >
+                        <Tooltip title={item.tooltip}>
+                          <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4, color: "rgba(0,0,0,0.65)" }}>
+                            {item.label} <QuestionCircleOutlined style={{ fontSize: 12, color: "#999" }} />
+                          </span>
+                        </Tooltip>
+                      </List.Item>
+                    )}
+                  />
+                </div>
+              ),
+            },
+            {
               key: "slider",
-              label: "Manage Slides",
+              label: "Manage Items",
               children: (
                 <Form.List name="homeHeroSlides">
                   {(fields, { add, remove, move }) => (

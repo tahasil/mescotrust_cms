@@ -140,12 +140,12 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
         initialValues={initialData}
         key="marquee-edit-form"
       >
-        <Collapse defaultActiveKey={[]} style={{ marginBottom: 16 }} items={[
+        <Collapse defaultActiveKey={["items"]} style={{ marginBottom: 16 }} items={[
           { key: "manage-section", label: "Manage Section", children: <ManageSectionFields prefix="marquee" form={form} themeColorOptions={themeColorOptions} /> },
           { key: "title", label: "Title & Colors", children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("Marquee")} /> },
           {
             key: "items",
-            label: "Marquee items",
+            label: "Manage Items",
             children: (
               <Form.List name="marqueeItems">
                 {(fields, { add, remove, move }) => (

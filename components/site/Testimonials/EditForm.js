@@ -265,7 +265,7 @@ function TestimonialsEditForm(
   return (
     <Form form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={[]}
+        defaultActiveKey={["items"]}
         items={[
           {
             key: "section",
@@ -452,7 +452,7 @@ function TestimonialsEditForm(
           },
           {
             key: "items",
-            label: "Testimonial items",
+            label: "Manage Items",
             children: (
               <Form.List name="testimonialsItems">
                 {(fields, { add, remove, move }) => (

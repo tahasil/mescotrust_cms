@@ -152,7 +152,7 @@ function LatestEvents1EditForm(
   return (
     <Form form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={[]}
+        defaultActiveKey={["items"]}
         items={[
           {
             key: "section",
@@ -166,7 +166,7 @@ function LatestEvents1EditForm(
           },
           {
             key: "items",
-            label: "News items",
+            label: "Manage Items",
             children: (
               <Form.List name="latestEvents1Items">
                 {(fields, { add, remove, move }) => (

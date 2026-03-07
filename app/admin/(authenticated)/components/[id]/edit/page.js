@@ -304,6 +304,11 @@ export default function AdminComponentEditPage() {
             theme.homeHeroSliderButtonTextColorKey != null
               ? String(theme.homeHeroSliderButtonTextColorKey).trim()
               : "",
+          homeHeroAutoplay: theme?.homeHeroAutoplay ?? true,
+          homeHeroShowArrows: theme?.homeHeroShowArrows ?? true,
+          homeHeroShowDots: theme?.homeHeroShowDots ?? true,
+          homeHeroAutoplaySpeed: theme?.homeHeroAutoplaySpeed != null ? Number(theme.homeHeroAutoplaySpeed) : 5000,
+          homeHeroSpeed: theme?.homeHeroSpeed != null ? Number(theme.homeHeroSpeed) : 500,
           ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.HomeHero, theme),
         });
       })
@@ -930,6 +935,11 @@ export default function AdminComponentEditPage() {
                       theme.homeHeroSliderButtonTextColorKey != null
                         ? String(theme.homeHeroSliderButtonTextColorKey).trim()
                         : "",
+                    homeHeroAutoplay: theme?.homeHeroAutoplay ?? true,
+                    homeHeroShowArrows: theme?.homeHeroShowArrows ?? true,
+                    homeHeroShowDots: theme?.homeHeroShowDots ?? true,
+                    homeHeroAutoplaySpeed: theme?.homeHeroAutoplaySpeed != null ? Number(theme.homeHeroAutoplaySpeed) : 5000,
+                    homeHeroSpeed: theme?.homeHeroSpeed != null ? Number(theme.homeHeroSpeed) : 500,
                     ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.HomeHero, theme),
                   });
                 } else if (cid === "Marquee") {
