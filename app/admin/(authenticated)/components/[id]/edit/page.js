@@ -406,6 +406,18 @@ export default function AdminComponentEditPage() {
             data?.testimonialsTitleColorKey != null
               ? String(data.testimonialsTitleColorKey).trim()
               : "",
+          testimonialsNameColorKey:
+            data?.testimonialsNameColorKey != null
+              ? String(data.testimonialsNameColorKey).trim()
+              : "",
+          testimonialsRoleColorKey:
+            data?.testimonialsRoleColorKey != null
+              ? String(data.testimonialsRoleColorKey).trim()
+              : "",
+          testimonialsRatingColorKey:
+            data?.testimonialsRatingColorKey != null
+              ? String(data.testimonialsRatingColorKey).trim()
+              : "",
           testimonialsAutoplay: data?.testimonialsAutoplay ?? false,
           testimonialsAutoplaySpeed:
             data?.testimonialsAutoplaySpeed != null
@@ -1000,6 +1012,18 @@ export default function AdminComponentEditPage() {
                     testimonialsTitleColorKey:
                       theme?.testimonialsTitleColorKey != null
                         ? String(theme.testimonialsTitleColorKey).trim()
+                        : "",
+                    testimonialsNameColorKey:
+                      theme?.testimonialsNameColorKey != null
+                        ? String(theme.testimonialsNameColorKey).trim()
+                        : "",
+                    testimonialsRoleColorKey:
+                      theme?.testimonialsRoleColorKey != null
+                        ? String(theme.testimonialsRoleColorKey).trim()
+                        : "",
+                    testimonialsRatingColorKey:
+                      theme?.testimonialsRatingColorKey != null
+                        ? String(theme.testimonialsRatingColorKey).trim()
                         : "",
                     testimonialsAutoplay: theme?.testimonialsAutoplay ?? false,
                     testimonialsAutoplaySpeed:

@@ -107,10 +107,19 @@ const Avatar = styled.div`
 const Name = styled.div`
   font-size: 18px;
   font-weight: 700;
-  color: ${() => getColor("primary")};
-  margin-bottom: 12px;
+  color: ${(p) => p.$color || getColor("primary")};
+  margin-bottom: ${(p) => (p.$hasRole ? 4 : 12)}px;
   @media (max-width: 768px) {
     font-size: 16px;
+  }
+`;
+
+const Role = styled.div`
+  font-size: 14px;
+  color: ${(p) => p.$color || "rgba(0,0,0,0.55)"};
+  margin-bottom: 12px;
+  @media (max-width: 768px) {
+    font-size: 13px;
   }
 `;
 
@@ -211,15 +220,16 @@ function normalizeItem(it) {
   };
 }
 
-function StarRating({ rating }) {
+function StarRating({ rating, starColor }) {
   const r = Math.min(5, Math.max(0, Number(rating) || 0));
+  const color = starColor || getColor("primary");
   return (
     <StarWrap>
       {[1, 2, 3, 4, 5].map((i) =>
         i <= r ? (
-          <StarFilled key={i} style={{ color: getColor("primary") }} />
+          <StarFilled key={i} style={{ color }} />
         ) : (
-          <StarOutlined key={i} style={{ color: getColor("primary") }} />
+          <StarOutlined key={i} style={{ color }} />
         ),
       )}
     </StarWrap>
@@ -289,6 +299,16 @@ export default function Testimonials(props) {
     .trim();
   const titleColor = titleColorKey
     ? getColor(titleColorKey)
+    : getColor("primary");
+  const nameColorKey = (props?.testimonialsNameColorKey ?? "").toString().trim();
+  const nameColor = nameColorKey ? getColor(nameColorKey) : getColor("primary");
+  const roleColorKey = (props?.testimonialsRoleColorKey ?? "").toString().trim();
+  const roleColor = roleColorKey ? getColor(roleColorKey) : "rgba(0,0,0,0.55)";
+  const ratingColorKey = (props?.testimonialsRatingColorKey ?? "")
+    .toString()
+    .trim();
+  const ratingColor = ratingColorKey
+    ? getColor(ratingColorKey)
     : getColor("primary");
 
   const autoplay = props?.testimonialsAutoplay === true;
@@ -406,9 +426,14 @@ export default function Testimonials(props) {
               <Slide key={i} $perView={perViewClamped}>
                 <Card>
                   <Avatar $src={item.imageUrl || undefined} />
-                  <Name>{item.name || "—"}</Name>
+                  <Name $color={nameColor} $hasRole={!!item.title}>
+                    {item.name || "—"}
+                  </Name>
+                  {item.title ? (
+                    <Role $color={roleColor}>{item.title}</Role>
+                  ) : null}
                   <QuoteText>{item.quote || "—"}</QuoteText>
-                  <StarRating rating={item.rating} />
+                  <StarRating rating={item.rating} starColor={ratingColor} />
                 </Card>
               </Slide>
             ))}

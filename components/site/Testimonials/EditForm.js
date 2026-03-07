@@ -71,6 +71,18 @@ function TestimonialsEditForm(
           data?.testimonialsTitleColorKey != null
             ? String(data.testimonialsTitleColorKey).trim()
             : "",
+        testimonialsNameColorKey:
+          data?.testimonialsNameColorKey != null
+            ? String(data.testimonialsNameColorKey).trim()
+            : "",
+        testimonialsRoleColorKey:
+          data?.testimonialsRoleColorKey != null
+            ? String(data.testimonialsRoleColorKey).trim()
+            : "",
+        testimonialsRatingColorKey:
+          data?.testimonialsRatingColorKey != null
+            ? String(data.testimonialsRatingColorKey).trim()
+            : "",
         testimonialsAutoplay: data?.testimonialsAutoplay ?? false,
         testimonialsAutoplaySpeed:
           data?.testimonialsAutoplaySpeed != null
@@ -152,6 +164,18 @@ function TestimonialsEditForm(
         testimonialsTitleColorKey:
           values.testimonialsTitleColorKey != null
             ? String(values.testimonialsTitleColorKey).trim()
+            : "",
+        testimonialsNameColorKey:
+          values.testimonialsNameColorKey != null
+            ? String(values.testimonialsNameColorKey).trim()
+            : "",
+        testimonialsRoleColorKey:
+          values.testimonialsRoleColorKey != null
+            ? String(values.testimonialsRoleColorKey).trim()
+            : "",
+        testimonialsRatingColorKey:
+          values.testimonialsRatingColorKey != null
+            ? String(values.testimonialsRatingColorKey).trim()
             : "",
         testimonialsAutoplay: values.testimonialsAutoplay === true,
         testimonialsAutoplaySpeed:
@@ -244,6 +268,51 @@ function TestimonialsEditForm(
                   <Form.Item
                     name="testimonialsTitleColorKey"
                     label="Section title color"
+                  >
+                    <Select
+                      size="large"
+                      options={themeColorOptions}
+                      placeholder="From theme (default)"
+                      style={{ width: "100%" }}
+                      allowClear
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={24}>
+                  <Form.Item
+                    name="testimonialsNameColorKey"
+                    label="Name color"
+                    tooltip="Theme color for testimonial name"
+                  >
+                    <Select
+                      size="large"
+                      options={themeColorOptions}
+                      placeholder="From theme (default)"
+                      style={{ width: "100%" }}
+                      allowClear
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={24}>
+                  <Form.Item
+                    name="testimonialsRoleColorKey"
+                    label="Role / Title color"
+                    tooltip="Theme color for role or title under name"
+                  >
+                    <Select
+                      size="large"
+                      options={themeColorOptions}
+                      placeholder="From theme (default)"
+                      style={{ width: "100%" }}
+                      allowClear
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={24}>
+                  <Form.Item
+                    name="testimonialsRatingColorKey"
+                    label="Rating (stars) color"
+                    tooltip="Theme color for star rating"
                   >
                     <Select
                       size="large"
