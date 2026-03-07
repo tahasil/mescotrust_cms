@@ -13,6 +13,8 @@ import {
   Spin,
 } from "antd";
 import { DeleteOutlined, PlusOutlined, ArrowUpOutlined, ArrowDownOutlined } from "@ant-design/icons";
+import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 
 const API_PATH = "/api/theme/LatestEvents1";
 
@@ -55,6 +57,7 @@ function LatestEvents1EditForm(
         latestEvents1SubTitleColorKey: data?.latestEvents1SubTitleColorKey != null ? String(data.latestEvents1SubTitleColorKey).trim() : "",
         latestEvents1MainTitleColorKey: data?.latestEvents1MainTitleColorKey != null ? String(data.latestEvents1MainTitleColorKey).trim() : "",
         latestEvents1ButtonColorKey: data?.latestEvents1ButtonColorKey != null ? String(data.latestEvents1ButtonColorKey).trim() : "",
+        ...getManageSectionInitialValues("latestEvents1", data),
       });
       fetch("/api/theme", { cache: "no-store" })
         .then((res) => (res.ok ? res.json() : {}))
@@ -86,6 +89,7 @@ function LatestEvents1EditForm(
           latestEvents1SubTitleColorKey: data?.latestEvents1SubTitleColorKey != null ? String(data.latestEvents1SubTitleColorKey).trim() : "",
           latestEvents1MainTitleColorKey: data?.latestEvents1MainTitleColorKey != null ? String(data.latestEvents1MainTitleColorKey).trim() : "",
           latestEvents1ButtonColorKey: data?.latestEvents1ButtonColorKey != null ? String(data.latestEvents1ButtonColorKey).trim() : "",
+          ...getManageSectionInitialValues("latestEvents1", data),
         });
       })
       .catch(() => message.error("Failed to load Latest Events"))
@@ -104,6 +108,7 @@ function LatestEvents1EditForm(
         latestEvents1SubTitleColorKey: values.latestEvents1SubTitleColorKey != null ? String(values.latestEvents1SubTitleColorKey).trim() : "",
         latestEvents1MainTitleColorKey: values.latestEvents1MainTitleColorKey != null ? String(values.latestEvents1MainTitleColorKey).trim() : "",
         latestEvents1ButtonColorKey: values.latestEvents1ButtonColorKey != null ? String(values.latestEvents1ButtonColorKey).trim() : "",
+        ...getManageSectionPayload("latestEvents1", values),
       };
       if (isPageBlock && onSaveToPage) {
         onSaveToPage(payload);
@@ -142,8 +147,13 @@ function LatestEvents1EditForm(
   return (
     <Form form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={["content", "items", "colors"]}
+        defaultActiveKey={[]}
         items={[
+          {
+            key: "section",
+            label: "Manage Section",
+            children: <ManageSectionFields prefix="latestEvents1" form={form} themeColorOptions={themeColorOptions} />,
+          },
           {
             key: "content",
             label: "Section headings",

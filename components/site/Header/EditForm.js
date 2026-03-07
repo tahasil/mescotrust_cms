@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import { Form, Select, Collapse, message } from "antd";
 import { renderSchemaField, enrichSchema } from "@/components/admin/schemaFormUtils";
+import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import {
   NAVBAR_SCHEMA,
   LOGO_LINK_SCHEMA,
@@ -73,7 +75,7 @@ function HeaderEditForm(
   useEffect(() => {
     setLoading(true);
     if (isPageBlock && initialData != null) {
-      form.setFieldsValue(initialData);
+      form.setFieldsValue({ ...initialData, ...getManageSectionInitialValues("header", initialData) });
       setLoading(false);
       return;
     }
@@ -102,6 +104,7 @@ function HeaderEditForm(
         if (theme?.headerDonateTextColorKey != null) flat.headerDonateTextColorKey = theme.headerDonateTextColorKey;
         if (theme?.menuName != null) flat.menuName = theme.menuName;
         if (theme?.navItems != null) flat.navItems = theme.navItems;
+        Object.assign(flat, getManageSectionInitialValues("header", theme));
         form.setFieldsValue(flat);
         const savedNavItems = Array.isArray(theme?.navItems) ? theme.navItems : [];
         lastLoadedNavItemsRef.current = savedNavItems.length ? JSON.parse(JSON.stringify(savedNavItems)) : null;
@@ -177,8 +180,9 @@ function HeaderEditForm(
                 })),
         };
       }
+      const payload = { ...values, ...getManageSectionPayload("header", values) };
       if (isPageBlock && onSaveToPage) {
-        onSaveToPage(values);
+        onSaveToPage(payload);
         message.success("Changes will be saved with the page");
         onSuccess?.();
         return;
@@ -187,7 +191,7 @@ function HeaderEditForm(
       fetch("/api/theme/header", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify(payload),
       })
         .then((r) => { if (!r.ok) return r.json().then((d) => Promise.reject(d)); })
         .then(() => { message.success("Header saved"); onSuccess?.(); })
@@ -219,6 +223,11 @@ function HeaderEditForm(
   const renderField = (field) => renderSchemaField(field, themeColorOptions);
 
   const headerItems = [
+    {
+      key: "manage-section",
+      label: "Manage Section",
+      children: <ManageSectionFields prefix="header" form={form} themeColorOptions={themeColorOptions} />,
+    },
     ...HEADER_FIELD_GROUPS.map((grp) => ({
       key: grp.label.replace(/\s+/g, "-").toLowerCase().replace(/&/g, "and"),
       label: grp.label,

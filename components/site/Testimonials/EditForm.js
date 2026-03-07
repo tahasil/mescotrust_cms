@@ -5,7 +5,6 @@ import {
   Form,
   Input,
   Button,
-  Card,
   Row,
   Col,
   Collapse,
@@ -24,6 +23,8 @@ import {
   ArrowDownOutlined,
   QuestionCircleOutlined,
 } from "@ant-design/icons";
+import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 
 const API_PATH = "/api/theme/Testimonials";
 
@@ -40,38 +41,6 @@ const FALLBACK_THEME_COLOR_KEYS = [
   "borderColor",
   "gradient",
 ];
-
-/** Parse "40, 24, 60, 24" (Top, Right, Bottom, Left) into [t, r, b, l]; invalid/empty become undefined. */
-function parsePaddingString(str) {
-  if (str == null || String(str).trim() === "") return [undefined, undefined, undefined, undefined];
-  const parts = String(str).split(",").map((s) => s.trim()).slice(0, 4);
-  return parts.map((p) => {
-    const n = Number(p);
-    return p === "" || Number.isNaN(n) || n < 0 ? undefined : n;
-  });
-}
-
-/** Format [t, r, b, l] to "40, 24, 60, 24"; ignores undefined. */
-function formatPaddingString(top, right, bottom, left) {
-  const arr = [top, right, bottom, left].filter((n) => n != null && n !== "");
-  return arr.length ? arr.join(", ") : "";
-}
-
-/** Parse "20, 40" (Top, Bottom) into [top, bottom]; invalid/empty become undefined. */
-function parseMarginTopBottomString(str) {
-  if (str == null || String(str).trim() === "") return [undefined, undefined];
-  const parts = String(str).split(",").map((s) => s.trim()).slice(0, 2);
-  return parts.map((p) => {
-    const n = Number(p);
-    return p === "" || Number.isNaN(n) || n < 0 ? undefined : n;
-  });
-}
-
-/** Format [top, bottom] to "20, 40"; ignores undefined. */
-function formatMarginTopBottomString(top, bottom) {
-  const arr = [top, bottom].filter((n) => n != null && n !== "");
-  return arr.length ? arr.join(", ") : "";
-}
 
 /**
  * When source === "page" (block added via Page Builder): all settings and items
@@ -102,9 +71,6 @@ function TestimonialsEditForm(
   const [saving, setSaving] = useState(false);
   const [themeColorOptions, setThemeColorOptions] = useState([]);
   const isPageBlock = source === "page";
-  const sectionBgType = Form.useWatch("testimonialsSectionBgType", form) || "default";
-  const pageContainerBgType = Form.useWatch("testimonialsPageContainerBgType", form) || "default";
-
   useEffect(() => {
     setLoading(true);
     const setFormAndColors = (data, theme) => {
@@ -112,48 +78,7 @@ function TestimonialsEditForm(
         ? data.testimonialsItems.map(normalizeItem)
         : [];
       form.setFieldsValue({
-        testimonialsSectionBgType:
-          data?.testimonialsSectionBgType === "image" || data?.testimonialsSectionBgType === "color"
-            ? data.testimonialsSectionBgType
-            : "default",
-        testimonialsSectionBgImage:
-          data?.testimonialsSectionBgImage != null
-            ? String(data.testimonialsSectionBgImage).trim()
-            : "",
-        testimonialsSectionBgColorKey:
-          data?.testimonialsSectionBgColorKey != null
-            ? String(data.testimonialsSectionBgColorKey).trim()
-            : "",
-        testimonialsPageContainerBgType:
-          data?.testimonialsPageContainerBgType === "image" || data?.testimonialsPageContainerBgType === "color"
-            ? data.testimonialsPageContainerBgType
-            : "default",
-        testimonialsPageContainerBgImage:
-          data?.testimonialsPageContainerBgImage != null
-            ? String(data.testimonialsPageContainerBgImage).trim()
-            : "",
-        testimonialsPageContainerBgColorKey:
-          data?.testimonialsPageContainerBgColorKey != null
-            ? String(data.testimonialsPageContainerBgColorKey).trim()
-            : "",
-        testimonialsSectionPadding: formatMarginTopBottomString(
-          data?.testimonialsSectionPaddingTop,
-          data?.testimonialsSectionPaddingBottom,
-        ),
-        testimonialsPageContainerPadding: formatPaddingString(
-          data?.testimonialsPageContainerPaddingTop,
-          data?.testimonialsPageContainerPaddingRight,
-          data?.testimonialsPageContainerPaddingBottom,
-          data?.testimonialsPageContainerPaddingLeft,
-        ),
-        testimonialsSectionMargin: formatMarginTopBottomString(
-          data?.testimonialsSectionMarginTop,
-          data?.testimonialsSectionMarginBottom,
-        ),
-        testimonialsPageContainerMargin: formatMarginTopBottomString(
-          data?.testimonialsPageContainerMarginTop,
-          data?.testimonialsPageContainerMarginBottom,
-        ),
+        ...getManageSectionInitialValues("testimonials", data),
         testimonialsTitle:
           data?.testimonialsTitle != null
             ? String(data.testimonialsTitle).trim()
@@ -247,50 +172,7 @@ function TestimonialsEditForm(
       const rawItems = values.testimonialsItems ?? [];
       const items = Array.isArray(rawItems) ? rawItems.map(normalizeItem) : [];
       const payload = {
-        testimonialsSectionBgType:
-          values.testimonialsSectionBgType === "image" || values.testimonialsSectionBgType === "color"
-            ? values.testimonialsSectionBgType
-            : "default",
-        testimonialsSectionBgImage:
-          values.testimonialsSectionBgType === "image" && values.testimonialsSectionBgImage != null
-            ? String(values.testimonialsSectionBgImage).trim()
-            : "",
-        testimonialsSectionBgColorKey:
-          values.testimonialsSectionBgType === "color" && values.testimonialsSectionBgColorKey != null
-            ? String(values.testimonialsSectionBgColorKey).trim()
-            : "",
-        testimonialsPageContainerBgType:
-          values.testimonialsPageContainerBgType === "image" || values.testimonialsPageContainerBgType === "color"
-            ? values.testimonialsPageContainerBgType
-            : "default",
-        testimonialsPageContainerBgImage:
-          values.testimonialsPageContainerBgType === "image" && values.testimonialsPageContainerBgImage != null
-            ? String(values.testimonialsPageContainerBgImage).trim()
-            : "",
-        testimonialsPageContainerBgColorKey:
-          values.testimonialsPageContainerBgType === "color" && values.testimonialsPageContainerBgColorKey != null
-            ? String(values.testimonialsPageContainerBgColorKey).trim()
-            : "",
-        ...(() => {
-          const [sT, sB] = parseMarginTopBottomString(values.testimonialsSectionPadding);
-          const [cT, cR, cB, cL] = parsePaddingString(values.testimonialsPageContainerPadding);
-          const [sMT, sMB] = parseMarginTopBottomString(values.testimonialsSectionMargin);
-          const [cMT, cMB] = parseMarginTopBottomString(values.testimonialsPageContainerMargin);
-          return {
-            testimonialsSectionPaddingTop: sT,
-            testimonialsSectionPaddingRight: undefined,
-            testimonialsSectionPaddingBottom: sB,
-            testimonialsSectionPaddingLeft: undefined,
-            testimonialsPageContainerPaddingTop: cT,
-            testimonialsPageContainerPaddingRight: cR,
-            testimonialsPageContainerPaddingBottom: cB,
-            testimonialsPageContainerPaddingLeft: cL,
-            testimonialsSectionMarginTop: sMT,
-            testimonialsSectionMarginBottom: sMB,
-            testimonialsPageContainerMarginTop: cMT,
-            testimonialsPageContainerMarginBottom: cMB,
-          };
-        })(),
+        ...getManageSectionPayload("testimonials", values),
         testimonialsTitle:
           values.testimonialsTitle != null
             ? String(values.testimonialsTitle).trim()
@@ -383,209 +265,50 @@ function TestimonialsEditForm(
           {
             key: "section",
             label: "Manage Section",
-            children: (
-              <Collapse
-                defaultActiveKey={[]}
-                size="small"
-                items={[
-                  {
-                    key: "fullWidth",
-                    label: "Fluid Container",
-                    children: (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                        <Form.Item
-                          name="testimonialsSectionBgType"
-                          label="Section background"
-                          tooltip="Default uses the built-in dark background; Image uses a custom URL; Color uses a theme color."
-                          style={{ marginBottom: 12 }}
-                        >
-                          <Select
-                            size="large"
-                            options={[
-                              { label: "Default", value: "default" },
-                              { label: "Image", value: "image" },
-                              { label: "Color", value: "color" },
-                            ]}
-                            style={{ width: "100%" }}
-                          />
-                        </Form.Item>
-                        {sectionBgType === "image" && (
-                          <Form.Item
-                            name="testimonialsSectionBgImage"
-                            label="Image path / URL"
-                            tooltip="Enter the full URL or path to the background image."
-                            style={{ marginBottom: 12 }}
-                          >
-                            <Input
-                              placeholder="e.g. /images/section-bg.jpg"
-                              size="large"
-                              allowClear
-                            />
-                          </Form.Item>
-                        )}
-                        {sectionBgType === "color" && (
-                          <Form.Item
-                            name="testimonialsSectionBgColorKey"
-                            label="Theme color"
-                            tooltip="Select a color from Admin → Theme."
-                            style={{ marginBottom: 12 }}
-                          >
-                            <Select
-                              size="large"
-                              options={themeColorOptions}
-                              placeholder="Select theme color"
-                              style={{ width: "100%" }}
-                              allowClear
-                            />
-                          </Form.Item>
-                        )}
-                        <div style={{ paddingTop: 12, borderTop: "1px solid #f0f0f0", marginTop: 4 }}>
-                          <Form.Item
-                            name="testimonialsSectionPadding"
-                            label="Padding (Top, Bottom)"
-                            tooltip="Comma-separated values in px, e.g. 40, 60"
-                            style={{ marginBottom: 12 }}
-                          >
-                            <Input
-                              placeholder="e.g. 40, 60"
-                              size="large"
-                              allowClear
-                            />
-                          </Form.Item>
-                          <Form.Item
-                            name="testimonialsSectionMargin"
-                            label="Margin (Top, Bottom)"
-                            tooltip="Comma-separated values in px, e.g. 20, 40"
-                            style={{ marginBottom: 0 }}
-                          >
-                            <Input
-                              placeholder="e.g. 20, 40"
-                              size="large"
-                              allowClear
-                            />
-                          </Form.Item>
-                        </div>
-                      </div>
-                    ),
-                  },
-                  {
-                    key: "pageContainer",
-                    label: "Box Container",
-                    children: (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                        <Form.Item
-                          name="testimonialsPageContainerBgType"
-                          label="Container Background"
-                          tooltip="Background for the inner content container. Default is transparent."
-                          style={{ marginBottom: 12 }}
-                        >
-                          <Select
-                            size="large"
-                            options={[
-                              { label: "Default", value: "default" },
-                              { label: "Image", value: "image" },
-                              { label: "Color", value: "color" },
-                            ]}
-                            style={{ width: "100%" }}
-                          />
-                        </Form.Item>
-                        {pageContainerBgType === "image" && (
-                          <Form.Item
-                            name="testimonialsPageContainerBgImage"
-                            label="Image path / URL"
-                            tooltip="Background image for the inner container."
-                            style={{ marginBottom: 12 }}
-                          >
-                            <Input
-                              placeholder="e.g. /images/container-bg.jpg"
-                              size="large"
-                              allowClear
-                            />
-                          </Form.Item>
-                        )}
-                        {pageContainerBgType === "color" && (
-                          <Form.Item
-                            name="testimonialsPageContainerBgColorKey"
-                            label="Theme color"
-                            tooltip="Theme color for the inner container background."
-                            style={{ marginBottom: 12 }}
-                          >
-                            <Select
-                              size="large"
-                              options={themeColorOptions}
-                              placeholder="Select theme color"
-                              style={{ width: "100%" }}
-                              allowClear
-                            />
-                          </Form.Item>
-                        )}
-                        <div style={{ paddingTop: 12, borderTop: "1px solid #f0f0f0", marginTop: 4 }}>
-                          <Form.Item
-                            name="testimonialsPageContainerPadding"
-                            label="Padding (Top, Right, Bottom, Left)"
-                            tooltip="Comma-separated values in px, e.g. 40, 24, 60, 24"
-                            style={{ marginBottom: 12 }}
-                          >
-                            <Input
-                              placeholder="e.g. 40, 24, 60, 24"
-                              size="large"
-                              allowClear
-                            />
-                          </Form.Item>
-                          <Form.Item
-                            name="testimonialsPageContainerMargin"
-                            label="Margin (Top, Bottom)"
-                            tooltip="Comma-separated values in px, e.g. 20, 40"
-                            style={{ marginBottom: 0 }}
-                          >
-                            <Input
-                              placeholder="e.g. 20, 40"
-                              size="large"
-                              allowClear
-                            />
-                          </Form.Item>
-                        </div>
-                      </div>
-                    ),
-                  },
-                ]}
-              />
-            ),
+            children: <ManageSectionFields prefix="testimonials" form={form} themeColorOptions={themeColorOptions} />,
           },
           {
             key: "title",
             label: "Title & Colors",
             children: (
               <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-                <div>
-                  <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-                    <Col span={24}>
-                      <Form.Item
-                        name="testimonialsTitle"
-                        label="Main Title"
-                        rules={[
-                          { required: true, message: "Main title is required" },
-                        ]}
-                      >
-                        <Input placeholder="e.g. Testimonials" size="large" />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-                  <List
-                    size="small"
-                    bordered
-                    split
-                    dataSource={[
-                      {
-                        key: "titleEnabled",
-                        name: "testimonialsTitleEnabled",
-                        label: "Enable",
-                        tooltip: "Show or hide the section title",
-                      },
-                    ]}
-                    renderItem={(item) => (
-                      <List.Item
-                        actions={[
+                {/* Main Title: list with title input + enable/disable */}
+                <List
+                  header={<span style={{ fontSize: 13, fontWeight: 600, color: "rgba(0,0,0,0.65)" }}>Main Title</span>}
+                  size="small"
+                  bordered
+                  split
+                  dataSource={[
+                    {
+                      key: "titleText",
+                      type: "input",
+                      name: "testimonialsTitle",
+                      label: "Title",
+                      tooltip: "Section heading text",
+                      rules: [{ required: true, message: "Main title is required" }],
+                    },
+                    {
+                      key: "titleEnabled",
+                      type: "switch",
+                      name: "testimonialsTitleEnabled",
+                      label: "Enable",
+                      tooltip: "Show or hide the section title",
+                    },
+                  ]}
+                  renderItem={(item) => (
+                    <List.Item
+                      actions={[
+                        item.type === "input" ? (
+                          <Form.Item
+                            key="input"
+                            name={item.name}
+                            noStyle
+                            style={{ marginBottom: 0, minWidth: 200 }}
+                            rules={item.rules}
+                          >
+                            <Input placeholder="e.g. Testimonials" size="small" style={{ width: "100%", minWidth: 200 }} />
+                          </Form.Item>
+                        ) : (
                           <Form.Item
                             key="switch"
                             name={item.name}
@@ -594,25 +317,26 @@ function TestimonialsEditForm(
                             style={{ marginBottom: 0 }}
                           >
                             <Switch />
-                          </Form.Item>,
-                        ]}
-                      >
-                        <Tooltip title={item.tooltip}>
-                          <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4, color: "rgba(0,0,0,0.65)" }}>
-                            {item.label}{" "}
-                            <QuestionCircleOutlined style={{ fontSize: 12, color: "#999" }} />
-                          </span>
-                        </Tooltip>
-                      </List.Item>
-                    )}
-                  />
-                </div>
-                <Card size="small" title="Colors">
-                  <List
-                    size="small"
-                    bordered
-                    split
-                    dataSource={[
+                          </Form.Item>
+                        ),
+                      ]}
+                    >
+                      <Tooltip title={item.tooltip}>
+                        <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4, color: "rgba(0,0,0,0.65)" }}>
+                          {item.label}{" "}
+                          <QuestionCircleOutlined style={{ fontSize: 12, color: "#999" }} />
+                        </span>
+                      </Tooltip>
+                    </List.Item>
+                  )}
+                />
+                {/* Colors: List with header like Ant Design */}
+                <List
+                  header={<span style={{ fontSize: 13, fontWeight: 600, color: "rgba(0,0,0,0.65)" }}>Colors</span>}
+                  size="small"
+                  bordered
+                  split
+                  dataSource={[
                       {
                         key: "title",
                         name: "testimonialsTitleColorKey",
@@ -660,8 +384,7 @@ function TestimonialsEditForm(
                         </Tooltip>
                       </List.Item>
                     )}
-                  />
-                </Card>
+                />
               </div>
             ),
           },
@@ -670,23 +393,13 @@ function TestimonialsEditForm(
             label: "Slide Setting",
             children: (
               <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-                {/* Behaviour: Ant Design List — title left, switch right */}
-                <div>
-                  <div
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: "rgba(0,0,0,0.65)",
-                      marginBottom: 12,
-                    }}
-                  >
-                    Behaviour
-                  </div>
-                  <List
-                    size="small"
-                    bordered
-                    split
-                    dataSource={[
+                {/* Behaviour: List with header like Ant Design */}
+                <List
+                  header={<span style={{ fontSize: 13, fontWeight: 600, color: "rgba(0,0,0,0.65)" }}>Behaviour</span>}
+                  size="small"
+                  bordered
+                  split
+                  dataSource={[
                       {
                         key: "autoplay",
                         name: "testimonialsAutoplay",
@@ -740,26 +453,15 @@ function TestimonialsEditForm(
                         </Tooltip>
                       </List.Item>
                     )}
-                  />
-                </div>
+                />
 
-                {/* Slides per view: List — label left, control right */}
-                <div>
-                  <div
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: "rgba(0,0,0,0.65)",
-                      marginBottom: 12,
-                    }}
-                  >
-                    Slides per view
-                  </div>
-                  <List
-                    size="small"
-                    bordered
-                    split
-                    dataSource={[
+                {/* Slides per view: List with header like Ant Design */}
+                <List
+                  header={<span style={{ fontSize: 13, fontWeight: 600, color: "rgba(0,0,0,0.65)" }}>Slides per view</span>}
+                  size="small"
+                  bordered
+                  split
+                  dataSource={[
                       {
                         key: "desktop",
                         name: "testimonialsSlidesDesktop",
@@ -805,26 +507,15 @@ function TestimonialsEditForm(
                         </Tooltip>
                       </List.Item>
                     )}
-                  />
-                </div>
+                />
 
-                {/* Speed: List — label left, control right */}
-                <div>
-                  <div
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: "rgba(0,0,0,0.65)",
-                      marginBottom: 12,
-                    }}
-                  >
-                    Speed
-                  </div>
-                  <List
-                    size="small"
-                    bordered
-                    split
-                    dataSource={[
+                {/* Speed: List with header like Ant Design */}
+                <List
+                  header={<span style={{ fontSize: 13, fontWeight: 600, color: "rgba(0,0,0,0.65)" }}>Speed</span>}
+                  size="small"
+                  bordered
+                  split
+                  dataSource={[
                       {
                         key: "autoplaySpeed",
                         name: "testimonialsAutoplaySpeed",
@@ -866,8 +557,7 @@ function TestimonialsEditForm(
                         </Tooltip>
                       </List.Item>
                     )}
-                  />
-                </div>
+                />
               </div>
             ),
           },

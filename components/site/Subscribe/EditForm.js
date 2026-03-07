@@ -2,6 +2,8 @@
 
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Form, Input, Row, Col, Collapse, Select, message, Spin } from "antd";
+import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 
 /**
  * Edit form for Subscribe — used in component edit page or page builder drawer.
@@ -28,6 +30,7 @@ function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage,
       subscribeTitleColorKey: data?.subscribeTitleColorKey != null ? String(data.subscribeTitleColorKey).trim() : "",
       subscribeButtonBgColorKey: data?.subscribeButtonBgColorKey != null ? String(data.subscribeButtonBgColorKey).trim() : "",
       subscribeButtonTextColorKey: data?.subscribeButtonTextColorKey != null ? String(data.subscribeButtonTextColorKey).trim() : "",
+      ...getManageSectionInitialValues("subscribe", data),
     });
 
     if (isPageBlock) {
@@ -83,6 +86,7 @@ function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage,
         subscribeTitleColorKey: String(values.subscribeTitleColorKey ?? "").trim(),
         subscribeButtonBgColorKey: String(values.subscribeButtonBgColorKey ?? "").trim(),
         subscribeButtonTextColorKey: String(values.subscribeButtonTextColorKey ?? "").trim(),
+        ...getManageSectionPayload("subscribe", values),
       };
       if (isPageBlock && onSaveToPage) {
         onSaveToPage(payload);
@@ -128,6 +132,11 @@ function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage,
       <Collapse
         defaultActiveKey={[]}
         items={[
+          {
+            key: "section",
+            label: "Manage Section",
+            children: <ManageSectionFields prefix="subscribe" form={form} themeColorOptions={themeColorOptions} />,
+          },
           {
             key: "content",
             label: "Content",

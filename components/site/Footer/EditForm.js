@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, Button, Row, Col, Select, message, Spin } from "antd";
+import { Form, Input, Button, Row, Col, Select, Collapse, message, Spin } from "antd";
 import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
+import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 
 /**
  * Edit form for Footer — used in page builder drawer or component edit.
@@ -35,6 +37,7 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
         footerBackgroundImageUrl: data.footerBackgroundImageUrl != null ? String(data.footerBackgroundImageUrl).trim() : "",
         footerTextColorKey: data.footerTextColorKey != null ? String(data.footerTextColorKey).trim() : "",
         footerCopyrightBarColorKey: data.footerCopyrightBarColorKey != null ? String(data.footerCopyrightBarColorKey).trim() : "",
+        ...getManageSectionInitialValues("footer", data),
       });
       fetch("/api/theme", { cache: "no-store" })
         .then((res) => (res.ok ? res.json() : {}))
@@ -68,6 +71,7 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
           footerBackgroundImageUrl: footer?.footerBackgroundImageUrl != null ? String(footer.footerBackgroundImageUrl).trim() : "",
           footerTextColorKey: footer?.footerTextColorKey != null ? String(footer.footerTextColorKey).trim() : "",
           footerCopyrightBarColorKey: footer?.footerCopyrightBarColorKey != null ? String(footer.footerCopyrightBarColorKey).trim() : "",
+          ...getManageSectionInitialValues("footer", footer),
         });
         const palette = theme?.themePalette || {};
         const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
@@ -101,6 +105,7 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
         footerCol1Links: col1,
         footerCol2Links: col2,
         footerCopyrightText: String(values.footerCopyrightText ?? "").trim(),
+        ...getManageSectionPayload("footer", values),
         footerBgColorKey: bgType === "color" ? String(values.footerBgColorKey ?? "").trim() : "",
         footerBackgroundImageUrl: bgType === "image" ? String(values.footerBackgroundImageUrl ?? "").trim() : "",
         footerTextColorKey: String(values.footerTextColorKey ?? "").trim(),
@@ -142,6 +147,7 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
 
   return (
     <Form form={form} layout="vertical">
+      <Collapse defaultActiveKey={[]} style={{ marginBottom: 16 }} items={[{ key: "manage-section", label: "Manage Section", children: <ManageSectionFields prefix="footer" form={form} themeColorOptions={themeColorOptions} /> }]} />
       <Form.Item name="footerLogoUrl" label="Footer logo image URL">
         <Input placeholder="/images/footer-logo.svg" />
       </Form.Item>

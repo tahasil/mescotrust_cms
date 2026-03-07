@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, Button, Row, Col, Card, message, Spin } from "antd";
+import { Form, Input, Button, Row, Col, Card, Collapse, message, Spin } from "antd";
 import { DeleteOutlined, PlusOutlined, ArrowUpOutlined, ArrowDownOutlined } from "@ant-design/icons";
+import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 
 /**
  * Edit form for Marquee — used in page builder drawer or component edit.
@@ -14,6 +16,7 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [initialData, setInitialData] = useState(null);
+  const [themeColorOptions, setThemeColorOptions] = useState([]);
   const isPageBlock = source === "page";
 
   useEffect(() => {
@@ -27,14 +30,25 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
             alt: it?.alt != null ? String(it.alt).trim() : "",
           }))
         : [];
-      setInitialData({ marqueeTitle: title, marqueeItems: items });
-      setLoading(false);
+      setInitialData({ marqueeTitle: title, marqueeItems: items, ...getManageSectionInitialValues("marquee", data) });
+      fetch("/api/theme", { cache: "no-store" })
+        .then((res) => (res.ok ? res.json() : {}))
+        .then((theme) => {
+          const palette = theme?.themePalette || {};
+          const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
+          const names = [...new Set([...Object.keys(palette), ...customColors.map((c) => c?.name).filter(Boolean)])].sort();
+          setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
+        })
+        .catch(() => {})
+        .finally(() => setLoading(false));
       return;
     }
     setInitialData(null);
-    fetch("/api/theme/marquee", { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : {}))
-      .then((data) => {
+    Promise.all([
+      fetch("/api/theme/marquee", { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
+      fetch("/api/theme", { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
+    ])
+      .then(([data, theme]) => {
         const title = data.marqueeTitle != null ? String(data.marqueeTitle).trim() : "Our CSR Partners | Awards & Recognition";
         const items = Array.isArray(data.marqueeItems)
           ? data.marqueeItems.map((it) => ({
@@ -42,7 +56,11 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
               alt: it?.alt != null ? String(it.alt).trim() : "",
             }))
           : [];
-        setInitialData({ marqueeTitle: title, marqueeItems: items });
+        setInitialData({ marqueeTitle: title, marqueeItems: items, ...getManageSectionInitialValues("marquee", data) });
+        const palette = theme?.themePalette || {};
+        const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
+        const names = [...new Set([...Object.keys(palette), ...customColors.map((c) => c?.name).filter(Boolean)])].sort();
+        setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
       })
       .catch(() => message.error("Failed to load Marquee"))
       .finally(() => setLoading(false));
@@ -59,7 +77,7 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
             alt: it?.alt != null ? String(it.alt).trim() : "",
           }))
         : [];
-      const payload = { marqueeTitle: title, marqueeItems: items };
+      const payload = { marqueeTitle: title, marqueeItems: items, ...getManageSectionPayload("marquee", values) };
       if (isPageBlock && onSaveToPage) {
         onSaveToPage(payload);
         message.success("Changes will be saved with the page");
@@ -102,6 +120,7 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
         initialValues={initialData}
         key="marquee-edit-form"
       >
+        <Collapse defaultActiveKey={[]} style={{ marginBottom: 16 }} items={[{ key: "manage-section", label: "Manage Section", children: <ManageSectionFields prefix="marquee" form={form} themeColorOptions={themeColorOptions} /> }]} />
         <Form.Item name="marqueeTitle" label="Section title" style={{ marginBottom: 16 }}>
           <Input placeholder="Our CSR Partners | Awards & Recognition" size="large" />
         </Form.Item>

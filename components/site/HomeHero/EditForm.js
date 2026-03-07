@@ -3,6 +3,8 @@
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Form, Input, Select, Switch, Button, Row, Col, Collapse, message, Spin } from "antd";
 import { DeleteOutlined, PlusOutlined, ArrowUpOutlined, ArrowDownOutlined } from "@ant-design/icons";
+import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 
 /**
  * Edit form for HomeHero — used in page builder drawer or component edit.
@@ -38,6 +40,7 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
         homeHeroSliderDescColorKey: data?.homeHeroSliderDescColorKey != null ? String(data.homeHeroSliderDescColorKey).trim() : "",
         homeHeroSliderButtonBgColorKey: data?.homeHeroSliderButtonBgColorKey != null ? String(data.homeHeroSliderButtonBgColorKey).trim() : "",
         homeHeroSliderButtonTextColorKey: data?.homeHeroSliderButtonTextColorKey != null ? String(data.homeHeroSliderButtonTextColorKey).trim() : "",
+        ...getManageSectionInitialValues("homeHero", data),
       });
       fetch("/api/theme", { cache: "no-store" })
         .then((res) => (res.ok ? res.json() : {}))
@@ -77,6 +80,7 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
           homeHeroSliderDescColorKey: hero?.homeHeroSliderDescColorKey != null ? String(hero.homeHeroSliderDescColorKey).trim() : "",
           homeHeroSliderButtonBgColorKey: hero?.homeHeroSliderButtonBgColorKey != null ? String(hero.homeHeroSliderButtonBgColorKey).trim() : "",
           homeHeroSliderButtonTextColorKey: hero?.homeHeroSliderButtonTextColorKey != null ? String(hero.homeHeroSliderButtonTextColorKey).trim() : "",
+          ...getManageSectionInitialValues("homeHero", hero),
         });
       })
       .catch(() => message.error("Failed to load Home Hero"))
@@ -105,6 +109,7 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
         homeHeroSliderButtonTextColorKey: values.homeHeroSliderButtonTextColorKey != null ? String(values.homeHeroSliderButtonTextColorKey).trim() : "",
         homeHeroBackgroundContainer: "full",
         homeHeroContentContainer: "pageContainer",
+        ...getManageSectionPayload("homeHero", values),
       };
       if (isPageBlock && onSaveToPage) {
         onSaveToPage(payload);
@@ -146,6 +151,11 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
         <Collapse
           defaultActiveKey={[]}
           items={[
+            {
+              key: "section",
+              label: "Manage Section",
+              children: <ManageSectionFields prefix="homeHero" form={form} themeColorOptions={themeColorOptions} />,
+            },
             {
               key: "slider",
               label: "Manage slides",

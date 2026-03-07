@@ -30,6 +30,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import * as SiteComponents from "@/components/site";
 import { EDITABLE_SITE_EDIT_FORMS } from "@/components/site";
+import { getManageSectionSnapshot, MANAGE_SECTION_PREFIX_BY_COMPONENT_ID } from "@/lib/manageSectionFields";
 
 const HeaderPreview = dynamic(() => import("@/components/site/Header"), {
   ssr: false,
@@ -150,6 +151,7 @@ export default function AdminComponentEditPage() {
           headerCtaTextColorKey: theme.headerCtaTextColorKey ?? "primary",
           headerDonateBgColorKey: theme.headerDonateBgColorKey ?? "gradient",
           headerDonateTextColorKey: theme.headerDonateTextColorKey ?? "white",
+          ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Header, theme),
         });
         const names = [
           ...new Set([
@@ -210,6 +212,7 @@ export default function AdminComponentEditPage() {
           footerBackgroundImageUrl: theme.footerBackgroundImageUrl ?? "",
           footerTextColorKey: theme.footerTextColorKey ?? "",
           footerCopyrightBarColorKey: theme.footerCopyrightBarColorKey ?? "",
+          ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Footer, theme),
         });
         const names = [
           ...new Set([
@@ -301,6 +304,7 @@ export default function AdminComponentEditPage() {
             theme.homeHeroSliderButtonTextColorKey != null
               ? String(theme.homeHeroSliderButtonTextColorKey).trim()
               : "",
+          ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.HomeHero, theme),
         });
       })
       .catch(() => message.error("Failed to load theme"))
@@ -324,7 +328,11 @@ export default function AdminComponentEditPage() {
               alt: it?.alt != null ? String(it.alt).trim() : "",
             }))
           : [];
-        setThemeMarqueeSnapshot({ marqueeTitle: title, marqueeItems: items });
+        setThemeMarqueeSnapshot({
+          marqueeTitle: title,
+          marqueeItems: items,
+          ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Marquee, theme),
+        });
         form.setFieldsValue({ marqueeTitle: title, marqueeItems: items });
       })
       .catch(() => message.error("Failed to load theme"))
@@ -375,6 +383,7 @@ export default function AdminComponentEditPage() {
             data?.latestEvents1ButtonColorKey != null
               ? String(data.latestEvents1ButtonColorKey).trim()
               : "",
+          ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.LatestEvents1, data),
         });
       })
       .catch(() => message.error("Failed to load Latest Events"))
@@ -398,42 +407,7 @@ export default function AdminComponentEditPage() {
             }))
           : [];
         setThemeTestimonialsSnapshot({
-          testimonialsSectionBgType:
-            data?.testimonialsSectionBgType === "image" || data?.testimonialsSectionBgType === "color"
-              ? data.testimonialsSectionBgType
-              : "default",
-          testimonialsSectionBgImage:
-            data?.testimonialsSectionBgImage != null
-              ? String(data.testimonialsSectionBgImage).trim()
-              : "",
-          testimonialsSectionBgColorKey:
-            data?.testimonialsSectionBgColorKey != null
-              ? String(data.testimonialsSectionBgColorKey).trim()
-              : "",
-          testimonialsPageContainerBgType:
-            data?.testimonialsPageContainerBgType === "image" || data?.testimonialsPageContainerBgType === "color"
-              ? data.testimonialsPageContainerBgType
-              : "default",
-          testimonialsPageContainerBgImage:
-            data?.testimonialsPageContainerBgImage != null
-              ? String(data.testimonialsPageContainerBgImage).trim()
-              : "",
-          testimonialsPageContainerBgColorKey:
-            data?.testimonialsPageContainerBgColorKey != null
-              ? String(data.testimonialsPageContainerBgColorKey).trim()
-              : "",
-          testimonialsSectionPaddingTop: data?.testimonialsSectionPaddingTop != null ? Number(data.testimonialsSectionPaddingTop) : undefined,
-          testimonialsSectionPaddingRight: data?.testimonialsSectionPaddingRight != null ? Number(data.testimonialsSectionPaddingRight) : undefined,
-          testimonialsSectionPaddingBottom: data?.testimonialsSectionPaddingBottom != null ? Number(data.testimonialsSectionPaddingBottom) : undefined,
-          testimonialsSectionPaddingLeft: data?.testimonialsSectionPaddingLeft != null ? Number(data.testimonialsSectionPaddingLeft) : undefined,
-          testimonialsPageContainerPaddingTop: data?.testimonialsPageContainerPaddingTop != null ? Number(data.testimonialsPageContainerPaddingTop) : undefined,
-          testimonialsPageContainerPaddingRight: data?.testimonialsPageContainerPaddingRight != null ? Number(data.testimonialsPageContainerPaddingRight) : undefined,
-          testimonialsPageContainerPaddingBottom: data?.testimonialsPageContainerPaddingBottom != null ? Number(data.testimonialsPageContainerPaddingBottom) : undefined,
-          testimonialsPageContainerPaddingLeft: data?.testimonialsPageContainerPaddingLeft != null ? Number(data.testimonialsPageContainerPaddingLeft) : undefined,
-          testimonialsSectionMarginTop: data?.testimonialsSectionMarginTop != null ? Number(data.testimonialsSectionMarginTop) : undefined,
-          testimonialsSectionMarginBottom: data?.testimonialsSectionMarginBottom != null ? Number(data.testimonialsSectionMarginBottom) : undefined,
-          testimonialsPageContainerMarginTop: data?.testimonialsPageContainerMarginTop != null ? Number(data.testimonialsPageContainerMarginTop) : undefined,
-          testimonialsPageContainerMarginBottom: data?.testimonialsPageContainerMarginBottom != null ? Number(data.testimonialsPageContainerMarginBottom) : undefined,
+          ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Testimonials, data),
           testimonialsTitle:
             data?.testimonialsTitle != null
               ? String(data.testimonialsTitle).trim()
@@ -890,6 +864,7 @@ export default function AdminComponentEditPage() {
                       theme.headerDonateBgColorKey ?? "gradient",
                     headerDonateTextColorKey:
                       theme.headerDonateTextColorKey ?? "white",
+                    ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Header, theme),
                   });
                 } else if (cid === "Footer") {
                   setThemeFooterSnapshot({
@@ -910,6 +885,7 @@ export default function AdminComponentEditPage() {
                     footerTextColorKey: theme.footerTextColorKey ?? "",
                     footerCopyrightBarColorKey:
                       theme.footerCopyrightBarColorKey ?? "",
+                    ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Footer, theme),
                   });
                 } else if (cid === "HomeHero") {
                   const slides = Array.isArray(theme?.homeHeroSlides)
@@ -952,6 +928,7 @@ export default function AdminComponentEditPage() {
                       theme.homeHeroSliderButtonTextColorKey != null
                         ? String(theme.homeHeroSliderButtonTextColorKey).trim()
                         : "",
+                    ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.HomeHero, theme),
                   });
                 } else if (cid === "Marquee") {
                   setThemeMarqueeSnapshot({
@@ -965,6 +942,7 @@ export default function AdminComponentEditPage() {
                           alt: it?.alt ?? "",
                         }))
                       : [],
+                    ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Marquee, theme),
                   });
                 } else if (cid === "Subscribe") {
                   setThemeSubscribeSnapshot({
@@ -980,6 +958,7 @@ export default function AdminComponentEditPage() {
                       theme.subscribeButtonBgColorKey ?? "",
                     subscribeButtonTextColorKey:
                       theme.subscribeButtonTextColorKey ?? "",
+                    ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Subscribe, theme),
                   });
                 } else if (cid === "LatestEvents1") {
                   const items = Array.isArray(theme?.latestEvents1Items)
@@ -1026,6 +1005,7 @@ export default function AdminComponentEditPage() {
                       theme?.latestEvents1ButtonColorKey != null
                         ? String(theme.latestEvents1ButtonColorKey).trim()
                         : "",
+                    ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.LatestEvents1, theme),
                   });
                 } else if (cid === "Testimonials") {
                   const items = Array.isArray(theme?.testimonialsItems)
@@ -1045,42 +1025,7 @@ export default function AdminComponentEditPage() {
                       }))
                     : [];
                   setThemeTestimonialsSnapshot({
-                    testimonialsSectionBgType:
-                      theme?.testimonialsSectionBgType === "image" || theme?.testimonialsSectionBgType === "color"
-                        ? theme.testimonialsSectionBgType
-                        : "default",
-                    testimonialsSectionBgImage:
-                      theme?.testimonialsSectionBgImage != null
-                        ? String(theme.testimonialsSectionBgImage).trim()
-                        : "",
-                    testimonialsSectionBgColorKey:
-                      theme?.testimonialsSectionBgColorKey != null
-                        ? String(theme.testimonialsSectionBgColorKey).trim()
-                        : "",
-                    testimonialsPageContainerBgType:
-                      theme?.testimonialsPageContainerBgType === "image" || theme?.testimonialsPageContainerBgType === "color"
-                        ? theme.testimonialsPageContainerBgType
-                        : "default",
-                    testimonialsPageContainerBgImage:
-                      theme?.testimonialsPageContainerBgImage != null
-                        ? String(theme.testimonialsPageContainerBgImage).trim()
-                        : "",
-                    testimonialsPageContainerBgColorKey:
-                      theme?.testimonialsPageContainerBgColorKey != null
-                        ? String(theme.testimonialsPageContainerBgColorKey).trim()
-                        : "",
-                    testimonialsSectionPaddingTop: theme?.testimonialsSectionPaddingTop != null ? Number(theme.testimonialsSectionPaddingTop) : undefined,
-                    testimonialsSectionPaddingRight: theme?.testimonialsSectionPaddingRight != null ? Number(theme.testimonialsSectionPaddingRight) : undefined,
-                    testimonialsSectionPaddingBottom: theme?.testimonialsSectionPaddingBottom != null ? Number(theme.testimonialsSectionPaddingBottom) : undefined,
-                    testimonialsSectionPaddingLeft: theme?.testimonialsSectionPaddingLeft != null ? Number(theme.testimonialsSectionPaddingLeft) : undefined,
-                    testimonialsPageContainerPaddingTop: theme?.testimonialsPageContainerPaddingTop != null ? Number(theme.testimonialsPageContainerPaddingTop) : undefined,
-                    testimonialsPageContainerPaddingRight: theme?.testimonialsPageContainerPaddingRight != null ? Number(theme.testimonialsPageContainerPaddingRight) : undefined,
-                    testimonialsPageContainerPaddingBottom: theme?.testimonialsPageContainerPaddingBottom != null ? Number(theme.testimonialsPageContainerPaddingBottom) : undefined,
-                    testimonialsPageContainerPaddingLeft: theme?.testimonialsPageContainerPaddingLeft != null ? Number(theme.testimonialsPageContainerPaddingLeft) : undefined,
-                    testimonialsSectionMarginTop: theme?.testimonialsSectionMarginTop != null ? Number(theme.testimonialsSectionMarginTop) : undefined,
-                    testimonialsSectionMarginBottom: theme?.testimonialsSectionMarginBottom != null ? Number(theme.testimonialsSectionMarginBottom) : undefined,
-                    testimonialsPageContainerMarginTop: theme?.testimonialsPageContainerMarginTop != null ? Number(theme.testimonialsPageContainerMarginTop) : undefined,
-                    testimonialsPageContainerMarginBottom: theme?.testimonialsPageContainerMarginBottom != null ? Number(theme.testimonialsPageContainerMarginBottom) : undefined,
+                    ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Testimonials, theme),
                     testimonialsTitle:
                       theme?.testimonialsTitle != null
                         ? String(theme.testimonialsTitle).trim()

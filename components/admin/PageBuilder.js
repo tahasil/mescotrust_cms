@@ -76,6 +76,7 @@ import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import * as SiteComponents from "@/components/site";
 import { EDITABLE_SITE_EDIT_FORMS } from "@/components/site";
 import { SITE_COMPONENT_IDS } from "@/lib/siteComponentRegistry";
+import { getDefaultManageSectionProps, MANAGE_SECTION_PREFIX_BY_COMPONENT_ID } from "@/lib/manageSectionFields";
 
 /** Site components that have full edit flow in page builder. Header/Footer excluded. */
 const EDITABLE_SITE_COMPONENTS = SITE_COMPONENT_IDS.filter(
@@ -2416,6 +2417,7 @@ export default function PageBuilder({
               }}
             >
               {filteredSiteComponents.map((item) => {
+                const prefix = MANAGE_SECTION_PREFIX_BY_COMPONENT_ID[item.componentId];
                 const comp = {
                   _id: item.componentId,
                   baseComponent: item.componentId,
@@ -2423,7 +2425,9 @@ export default function PageBuilder({
                   defaultProps:
                     item.componentId === "Testimonials"
                       ? TESTIMONIALS_DEFAULT_PROPS
-                      : {},
+                      : prefix
+                        ? getDefaultManageSectionProps(prefix)
+                        : {},
                 };
                 return (
                   <ComponentPaletteItem
