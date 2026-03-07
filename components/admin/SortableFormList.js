@@ -209,15 +209,16 @@ export default function SortableFormList({
           </div>
         </SortableContext>
       </DndContext>
-      <Button
-        type="dashed"
-        onClick={() => add(defaultAddPayload)}
-        block
-        icon={<PlusOutlined />}
-        size="small"
-      >
-        {addButtonText}
-      </Button>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+        <Button
+          type="primary"
+          shape="circle"
+          size="large"
+          icon={<PlusOutlined />}
+          onClick={() => add(defaultAddPayload)}
+          title="Add New"
+        />
+      </div>
     </>
   );
 }
