@@ -28,6 +28,7 @@ GET `/api/theme` still returns the full theme (from `themeconfigs`) and **merges
 
 - **Admin page edit**: When you open a page in PageBuilder (`/admin/pages/[id]`), the page (including `layout` and every block’s `props`) is loaded from the **pages** collection only via `GET /api/admin/pages/[id]`. Save updates the same page document (pages collection).
 - **Frontend**: Page body is loaded from the **pages** collection only. `app/(site)/page.js` and `app/(site)/[slug]/page.js` use `Page.findOne()`, then pass `page.layout` to `ComponentRenderer`. Each block’s content comes from `block.props` on the page document. HomeHero, Marquee, and Subscribe components prefer these page props (`homeHeroSlides`, `marqueeTitle`/`marqueeItems`, `subscribeSubtitle`/`subscribeTitle`, etc.); they only call theme APIs when the block has no such props (e.g. legacy or global usage).
+- **Testimonials (and other addable site components)**: When added to a page via Page Builder, **all** settings and items are stored in that block’s `props` on the page (pages collection). The EditForm loads and saves only from the page; no theme/component API is used for page blocks. Each page can have different Testimonials content.
 - **Global shell** (header, footer, global before/after): Still from theme + components collection via `getLayoutData()`.
 
 ## PageBuilder palette (dynamic from DB)

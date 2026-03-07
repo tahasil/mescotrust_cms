@@ -25,4 +25,5 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   Marquee: MarqueeEditForm,
   Subscribe: SubscribeEditForm,
   LatestEvents1: LatestEvents1EditForm,
+  Testimonials: TestimonialsEditForm,
 };

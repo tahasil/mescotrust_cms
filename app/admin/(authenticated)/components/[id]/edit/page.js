@@ -16,6 +16,7 @@ import {
   Col,
   Divider,
   Drawer,
+  Empty,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -65,9 +66,13 @@ export default function AdminComponentEditPage() {
   const [themeHomeHeroSnapshot, setThemeHomeHeroSnapshot] = useState(null);
   const [themeMarqueeSnapshot, setThemeMarqueeSnapshot] = useState(null);
   const [themeSubscribeSnapshot, setThemeSubscribeSnapshot] = useState(null);
-  const [themeLatestEvents1Snapshot, setThemeLatestEvents1Snapshot] = useState(null);
+  const [themeLatestEvents1Snapshot, setThemeLatestEvents1Snapshot] =
+    useState(null);
+  const [themeTestimonialsSnapshot, setThemeTestimonialsSnapshot] =
+    useState(null);
   const [componentDrawerOpen, setComponentDrawerOpen] = useState(false);
   const [drawerUpdateLoading, setDrawerUpdateLoading] = useState(false);
+  const [dynamicEditForm, setDynamicEditForm] = useState(null);
   const componentEditFormRef = useRef(null);
   const [form] = Form.useForm();
   const [editingDisplayName, setEditingDisplayName] = useState(false);
@@ -80,8 +85,10 @@ export default function AdminComponentEditPage() {
   const isMarquee = record?.componentId === "Marquee";
   const isSubscribe = record?.componentId === "Subscribe";
   const isLatestEvents1 = record?.componentId === "LatestEvents1";
-  const hasEditForm =
+  const isTestimonials = record?.componentId === "Testimonials";
+  const staticEditForm =
     record?.componentId && EDITABLE_SITE_EDIT_FORMS[record.componentId];
+  const hasEditForm = !!(staticEditForm || dynamicEditForm);
 
   useEffect(() => {
     if (!id) return;
@@ -336,23 +343,117 @@ export default function AdminComponentEditPage() {
               imageUrl: it?.imageUrl != null ? String(it.imageUrl).trim() : "",
               date: it?.date != null ? String(it.date).trim() : "",
               title: it?.title != null ? String(it.title).trim() : "",
-              description: it?.description != null ? String(it.description).trim() : "",
-              buttonText: it?.buttonText != null ? String(it.buttonText).trim() : "Read Post",
-              buttonLink: it?.buttonLink != null ? String(it.buttonLink).trim() : "/",
+              description:
+                it?.description != null ? String(it.description).trim() : "",
+              buttonText:
+                it?.buttonText != null
+                  ? String(it.buttonText).trim()
+                  : "Read Post",
+              buttonLink:
+                it?.buttonLink != null ? String(it.buttonLink).trim() : "/",
             }))
           : [];
         setThemeLatestEvents1Snapshot({
-          latestEvents1SubTitle: data?.latestEvents1SubTitle != null ? String(data.latestEvents1SubTitle).trim() : "Latest News",
-          latestEvents1MainTitle: data?.latestEvents1MainTitle != null ? String(data.latestEvents1MainTitle).trim() : "Stay Informed. Stay Ahead.",
+          latestEvents1SubTitle:
+            data?.latestEvents1SubTitle != null
+              ? String(data.latestEvents1SubTitle).trim()
+              : "Latest News",
+          latestEvents1MainTitle:
+            data?.latestEvents1MainTitle != null
+              ? String(data.latestEvents1MainTitle).trim()
+              : "Stay Informed. Stay Ahead.",
           latestEvents1Items: items,
-          latestEvents1SubTitleColorKey: data?.latestEvents1SubTitleColorKey != null ? String(data.latestEvents1SubTitleColorKey).trim() : "",
-          latestEvents1MainTitleColorKey: data?.latestEvents1MainTitleColorKey != null ? String(data.latestEvents1MainTitleColorKey).trim() : "",
-          latestEvents1ButtonColorKey: data?.latestEvents1ButtonColorKey != null ? String(data.latestEvents1ButtonColorKey).trim() : "",
+          latestEvents1SubTitleColorKey:
+            data?.latestEvents1SubTitleColorKey != null
+              ? String(data.latestEvents1SubTitleColorKey).trim()
+              : "",
+          latestEvents1MainTitleColorKey:
+            data?.latestEvents1MainTitleColorKey != null
+              ? String(data.latestEvents1MainTitleColorKey).trim()
+              : "",
+          latestEvents1ButtonColorKey:
+            data?.latestEvents1ButtonColorKey != null
+              ? String(data.latestEvents1ButtonColorKey).trim()
+              : "",
         });
       })
       .catch(() => message.error("Failed to load Latest Events"))
       .finally(() => setThemeLoading(false));
   }, [isLatestEvents1]);
+
+  // Testimonials: fetch component data for preview
+  useEffect(() => {
+    if (!isTestimonials) return;
+    setThemeLoading(true);
+    fetch("/api/theme/Testimonials", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : {}))
+      .then((data) => {
+        const items = Array.isArray(data?.testimonialsItems)
+          ? data.testimonialsItems.map((it) => ({
+              quote: it?.quote != null ? String(it.quote).trim() : "",
+              imageUrl: it?.imageUrl != null ? String(it.imageUrl).trim() : "",
+              name: it?.name != null ? String(it.name).trim() : "",
+              title: it?.title != null ? String(it.title).trim() : "",
+              rating: Math.min(5, Math.max(0, parseInt(it?.rating, 10) || 0)),
+            }))
+          : [];
+        setThemeTestimonialsSnapshot({
+          testimonialsTitle:
+            data?.testimonialsTitle != null
+              ? String(data.testimonialsTitle).trim()
+              : "Testimonials",
+          testimonialsTitleColorKey:
+            data?.testimonialsTitleColorKey != null
+              ? String(data.testimonialsTitleColorKey).trim()
+              : "",
+          testimonialsAutoplay: data?.testimonialsAutoplay ?? false,
+          testimonialsAutoplaySpeed:
+            data?.testimonialsAutoplaySpeed != null
+              ? Number(data.testimonialsAutoplaySpeed)
+              : 5000,
+          testimonialsShowArrows: data?.testimonialsShowArrows !== false,
+          testimonialsShowDots: data?.testimonialsShowDots !== false,
+          testimonialsSpeed:
+            data?.testimonialsSpeed != null
+              ? Number(data.testimonialsSpeed)
+              : 400,
+          testimonialsDraggable: data?.testimonialsDraggable ?? false,
+          testimonialsInfinite: data?.testimonialsInfinite !== false,
+          testimonialsSlidesDesktop:
+            data?.testimonialsSlidesDesktop != null
+              ? Number(data.testimonialsSlidesDesktop)
+              : 3,
+          testimonialsSlidesTablet:
+            data?.testimonialsSlidesTablet != null
+              ? Number(data.testimonialsSlidesTablet)
+              : 2,
+          testimonialsSlidesMobile:
+            data?.testimonialsSlidesMobile != null
+              ? Number(data.testimonialsSlidesMobile)
+              : 1,
+          testimonialsItems: items,
+        });
+      })
+      .catch(() => message.error("Failed to load Testimonials"))
+      .finally(() => setThemeLoading(false));
+  }, [isTestimonials]);
+
+  // Newly created components: load EditForm dynamically from component folder
+  useEffect(() => {
+    if (!record?.componentId || EDITABLE_SITE_EDIT_FORMS[record.componentId]) {
+      setDynamicEditForm(null);
+      return;
+    }
+    import(`@/components/site/${record.componentId}`)
+      .then((m) => {
+        const EditForm =
+          m[`${record.componentId}EditForm`] ||
+          m.EditForm ||
+          m.default?.EditForm;
+        setDynamicEditForm(() => EditForm);
+      })
+      .catch(() => setDynamicEditForm(null));
+  }, [record?.componentId]);
 
   const handleSubmit = async () => {
     if (!record?.componentId) return;
@@ -647,6 +748,29 @@ export default function AdminComponentEditPage() {
           </>
         )}
 
+        {isTestimonials && (
+          <>
+            {themeLoading ? (
+              <div style={{ padding: 48, textAlign: "center" }}>
+                <Spin />
+              </div>
+            ) : (
+              <>
+                <Divider />
+                {SiteComponents.Testimonials ? (
+                  <SiteComponents.Testimonials
+                    {...(themeTestimonialsSnapshot || {})}
+                  />
+                ) : (
+                  <div style={{ color: "#999" }}>
+                    Testimonials component not found.
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        )}
+
         {hasEditForm && (
           <Drawer
             title={`Edit ${record?.displayName || record?.componentId || ""}`}
@@ -679,8 +803,9 @@ export default function AdminComponentEditPage() {
           >
             {(() => {
               const EditFormComp =
-                record?.componentId &&
-                EDITABLE_SITE_EDIT_FORMS[record.componentId];
+                (record?.componentId &&
+                  EDITABLE_SITE_EDIT_FORMS[record.componentId]) ||
+                dynamicEditForm;
               if (!EditFormComp) return null;
               const refetchAndClose = async () => {
                 const cid = record?.componentId;
@@ -796,29 +921,113 @@ export default function AdminComponentEditPage() {
                     subscribePlaceholder: theme.subscribePlaceholder ?? "",
                     subscribeButtonText: theme.subscribeButtonText ?? "",
                     subscribeBgUrl: theme.subscribeBgUrl ?? "",
-                    subscribeSubtitleColorKey: theme.subscribeSubtitleColorKey ?? "",
+                    subscribeSubtitleColorKey:
+                      theme.subscribeSubtitleColorKey ?? "",
                     subscribeTitleColorKey: theme.subscribeTitleColorKey ?? "",
-                    subscribeButtonBgColorKey: theme.subscribeButtonBgColorKey ?? "",
-                    subscribeButtonTextColorKey: theme.subscribeButtonTextColorKey ?? "",
+                    subscribeButtonBgColorKey:
+                      theme.subscribeButtonBgColorKey ?? "",
+                    subscribeButtonTextColorKey:
+                      theme.subscribeButtonTextColorKey ?? "",
                   });
                 } else if (cid === "LatestEvents1") {
                   const items = Array.isArray(theme?.latestEvents1Items)
                     ? theme.latestEvents1Items.map((it) => ({
-                        imageUrl: it?.imageUrl != null ? String(it.imageUrl).trim() : "",
+                        imageUrl:
+                          it?.imageUrl != null
+                            ? String(it.imageUrl).trim()
+                            : "",
                         date: it?.date != null ? String(it.date).trim() : "",
                         title: it?.title != null ? String(it.title).trim() : "",
-                        description: it?.description != null ? String(it.description).trim() : "",
-                        buttonText: it?.buttonText != null ? String(it.buttonText).trim() : "Read Post",
-                        buttonLink: it?.buttonLink != null ? String(it.buttonLink).trim() : "/",
+                        description:
+                          it?.description != null
+                            ? String(it.description).trim()
+                            : "",
+                        buttonText:
+                          it?.buttonText != null
+                            ? String(it.buttonText).trim()
+                            : "Read Post",
+                        buttonLink:
+                          it?.buttonLink != null
+                            ? String(it.buttonLink).trim()
+                            : "/",
                       }))
                     : [];
                   setThemeLatestEvents1Snapshot({
-                    latestEvents1SubTitle: theme?.latestEvents1SubTitle != null ? String(theme.latestEvents1SubTitle).trim() : "Latest News",
-                    latestEvents1MainTitle: theme?.latestEvents1MainTitle != null ? String(theme.latestEvents1MainTitle).trim() : "Stay Informed. Stay Ahead.",
+                    latestEvents1SubTitle:
+                      theme?.latestEvents1SubTitle != null
+                        ? String(theme.latestEvents1SubTitle).trim()
+                        : "Latest News",
+                    latestEvents1MainTitle:
+                      theme?.latestEvents1MainTitle != null
+                        ? String(theme.latestEvents1MainTitle).trim()
+                        : "Stay Informed. Stay Ahead.",
                     latestEvents1Items: items,
-                    latestEvents1SubTitleColorKey: theme?.latestEvents1SubTitleColorKey != null ? String(theme.latestEvents1SubTitleColorKey).trim() : "",
-                    latestEvents1MainTitleColorKey: theme?.latestEvents1MainTitleColorKey != null ? String(theme.latestEvents1MainTitleColorKey).trim() : "",
-                    latestEvents1ButtonColorKey: theme?.latestEvents1ButtonColorKey != null ? String(theme.latestEvents1ButtonColorKey).trim() : "",
+                    latestEvents1SubTitleColorKey:
+                      theme?.latestEvents1SubTitleColorKey != null
+                        ? String(theme.latestEvents1SubTitleColorKey).trim()
+                        : "",
+                    latestEvents1MainTitleColorKey:
+                      theme?.latestEvents1MainTitleColorKey != null
+                        ? String(theme.latestEvents1MainTitleColorKey).trim()
+                        : "",
+                    latestEvents1ButtonColorKey:
+                      theme?.latestEvents1ButtonColorKey != null
+                        ? String(theme.latestEvents1ButtonColorKey).trim()
+                        : "",
+                  });
+                } else if (cid === "Testimonials") {
+                  const items = Array.isArray(theme?.testimonialsItems)
+                    ? theme.testimonialsItems.map((it) => ({
+                        quote:
+                          it?.quote != null ? String(it.quote).trim() : "",
+                        imageUrl:
+                          it?.imageUrl != null
+                            ? String(it.imageUrl).trim()
+                            : "",
+                        name: it?.name != null ? String(it.name).trim() : "",
+                        title: it?.title != null ? String(it.title).trim() : "",
+                        rating: Math.min(
+                          5,
+                          Math.max(0, parseInt(it?.rating, 10) || 0),
+                        ),
+                      }))
+                    : [];
+                  setThemeTestimonialsSnapshot({
+                    testimonialsTitle:
+                      theme?.testimonialsTitle != null
+                        ? String(theme.testimonialsTitle).trim()
+                        : "Testimonials",
+                    testimonialsTitleColorKey:
+                      theme?.testimonialsTitleColorKey != null
+                        ? String(theme.testimonialsTitleColorKey).trim()
+                        : "",
+                    testimonialsAutoplay: theme?.testimonialsAutoplay ?? false,
+                    testimonialsAutoplaySpeed:
+                      theme?.testimonialsAutoplaySpeed != null
+                        ? Number(theme.testimonialsAutoplaySpeed)
+                        : 5000,
+                    testimonialsShowArrows:
+                      theme?.testimonialsShowArrows !== false,
+                    testimonialsShowDots: theme?.testimonialsShowDots !== false,
+                    testimonialsSpeed:
+                      theme?.testimonialsSpeed != null
+                        ? Number(theme.testimonialsSpeed)
+                        : 400,
+                    testimonialsDraggable: theme?.testimonialsDraggable ?? false,
+                    testimonialsInfinite: theme?.testimonialsInfinite !== false,
+                    testimonialsSlidesDesktop:
+                      theme?.testimonialsSlidesDesktop != null
+                        ? Number(theme.testimonialsSlidesDesktop)
+                        : 3,
+                    testimonialsSlidesTablet:
+                      theme?.testimonialsSlidesTablet != null
+                        ? Number(theme.testimonialsSlidesTablet)
+                        : 2,
+                    testimonialsSlidesMobile:
+                      theme?.testimonialsSlidesMobile != null
+                        ? Number(theme.testimonialsSlidesMobile)
+                        : 1,
+                    testimonialsItems: items,
                   });
                 }
                 setComponentDrawerOpen(false);
@@ -842,43 +1051,24 @@ export default function AdminComponentEditPage() {
           !isMarquee &&
           !isSubscribe &&
           !isLatestEvents1 &&
+          !isTestimonials &&
           record?.componentId && (
             <>
               <Divider />
-              <div className="mt-5">
+              <>
                 {SiteComponents[record.componentId] ? (
-                  <div
-                    style={{
-                      border: "1px solid #e8e8e8",
-                      borderRadius: 8,
-                      overflow: "hidden",
-                      background: "#fff",
-                      padding: 24,
-                    }}
-                  >
+                  <>
                     {(() => {
                       const Comp = SiteComponents[record.componentId];
                       return Comp ? <Comp /> : null;
                     })()}
-                  </div>
+                  </>
                 ) : (
-                  <div
-                    style={{
-                      border: "1px solid #e8e8e8",
-                      borderRadius: 8,
-                      overflow: "hidden",
-                      background: "#fff",
-                      padding: 48,
-                      color: "#999",
-                      textAlign: "center",
-                      fontSize: 14,
-                    }}
-                  >
-                    File <code>components/site/{record.componentId}.js</code> me
-                    default export add karein; preview yahan dikhega.
+                  <div className="mt-5">
+                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
                   </div>
                 )}
-              </div>
+              </>
             </>
           )}
 

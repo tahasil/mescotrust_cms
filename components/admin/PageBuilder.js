@@ -82,6 +82,26 @@ const EDITABLE_SITE_COMPONENTS = SITE_COMPONENT_IDS.filter(
   (id) => id !== "Header" && id !== "Footer",
 );
 
+/** Default props for new Testimonials block; all settings/items stored in page (pages collection). */
+const TESTIMONIALS_DEFAULT_PROPS = {
+  testimonialsTitle: "Testimonials",
+  testimonialsTitleColorKey: "",
+  testimonialsAutoplay: false,
+  testimonialsAutoplaySpeed: 5000,
+  testimonialsShowArrows: true,
+  testimonialsShowDots: true,
+  testimonialsSpeed: 400,
+  testimonialsDraggable: false,
+  testimonialsInfinite: true,
+  testimonialsSlidesDesktop: 3,
+  testimonialsSlidesTablet: 2,
+  testimonialsSlidesMobile: 1,
+  testimonialsItems: [
+    { quote: "", imageUrl: "", name: "", title: "", rating: 5 },
+    { quote: "", imageUrl: "", name: "", title: "", rating: 5 },
+  ],
+};
+
 function generateId() {
   return "block_" + Math.random().toString(36).slice(2, 11);
 }
@@ -2382,7 +2402,10 @@ export default function PageBuilder({
                   _id: item.componentId,
                   baseComponent: item.componentId,
                   displayName: item.displayName || item.componentId,
-                  defaultProps: {},
+                  defaultProps:
+                    item.componentId === "Testimonials"
+                      ? TESTIMONIALS_DEFAULT_PROPS
+                      : {},
                 };
                 return (
                   <ComponentPaletteItem

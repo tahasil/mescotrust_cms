@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import styled from "styled-components";
 import {
   FullWidthBackground,
@@ -14,32 +14,41 @@ import { Col, Row } from "antd";
 
 /** Inner content wrapper (section + data-component come from ComponentRenderer) */
 const ContentWrap = styled.div`
-  padding: 0px;
+  padding: 40px 24px 60px;
   background: #fff;
-  .site-component-testimonials {
-    max-width: 1200px;
-    margin: 0 auto;
+  max-width: 1200px;
+  margin: 0 auto;
+  @media (max-width: 991px) {
+    padding: 32px 20px 48px;
   }
-  @media (max-width: 768px) {
-    padding: 40px 16px 60px;
+  @media (max-width: 767px) {
+    padding: 24px 16px 40px;
   }
 `;
 
 const Viewport = styled.div`
   width: 100%;
   overflow: hidden;
+  cursor: ${(p) => (p.$draggable ? "grab" : "default")};
+  &:active {
+    cursor: ${(p) => (p.$draggable ? "grabbing" : "default")};
+  }
 `;
 
 const Track = styled.div`
   display: flex;
-  transition: transform 0.4s ease;
+  transition: transform ${(p) => (p.$speedMs ?? 400) / 1000}s ease;
   transform: ${(p) => `translateX(-${p.$offsetPercent}%)`};
 `;
 
 const Slide = styled.div`
   flex: 0 0 ${(p) => 100 / p.$perView}%;
-  padding: 0 12px;
+  padding: 0 8px;
   box-sizing: border-box;
+  min-width: 0;
+  @media (max-width: 767px) {
+    padding: 0 6px;
+  }
 `;
 
 /** Card with L-shaped brackets in corners */
@@ -130,7 +139,11 @@ const NavWrap = styled.div`
   display: flex;
   justify-content: center;
   gap: 16px;
-  margin-top: 32px;
+  margin-top: 24px;
+  @media (max-width: 767px) {
+    gap: 12px;
+    margin-top: 20px;
+  }
 `;
 
 const NavBtn = styled.button`
@@ -154,6 +167,37 @@ const NavBtn = styled.button`
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+  @media (max-width: 767px) {
+    width: 40px;
+    height: 40px;
+    .anticon {
+      font-size: 16px;
+    }
+  }
+`;
+
+const DotsWrap = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+  @media (max-width: 767px) {
+    margin-top: 16px;
+  }
+`;
+
+const Dot = styled.button`
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  background: ${(p) => (p.$active ? getColor("primary") : "#d8d4de")};
+  transition: background 0.2s;
+  &:hover {
+    background: ${(p) => (p.$active ? getColor("primary") : "#c0b8c8")};
   }
 `;
 
@@ -210,12 +254,23 @@ const DEFAULT_ITEMS = [
   },
 ];
 
-const CARDS_PER_VIEW = 3;
+/** Breakpoints: mobile <768, tablet 768–991, desktop ≥992 */
+const BREAKPOINT_SM = 768;
+const BREAKPOINT_MD = 992;
+
+function getPerViewFromWidth(width, slidesMobile, slidesTablet, slidesDesktop) {
+  const m = Math.min(5, Math.max(1, Number(slidesMobile) || 1));
+  const t = Math.min(5, Math.max(1, Number(slidesTablet) || 2));
+  const d = Math.min(5, Math.max(1, Number(slidesDesktop) || 3));
+  if (width < BREAKPOINT_SM) return m;
+  if (width < BREAKPOINT_MD) return t;
+  return d;
+}
 
 /**
  * Site component: Testimonials.
- * Three full cards per view, title, L-brackets, avatar, name, quote, star rating, arrow nav.
- * Props: testimonialsTitle, testimonialsItems[] { quote, imageUrl, name, title, rating }.
+ * When used on a page (Page Builder), all props (settings + items) come from the page's block.props (pages collection).
+ * Like CodePen Owl Carousel: responsive slides per view; auto-slide advances one-by-one.
  */
 export default function Testimonials(props) {
   const raw = props?.testimonialsItems ?? props?.items;
@@ -229,23 +284,126 @@ export default function Testimonials(props) {
       .toString()
       .trim() || "Testimonials";
 
-  const maxPage = Math.max(0, Math.ceil(items.length / CARDS_PER_VIEW) - 1);
-  const [page, setPage] = useState(0);
-  const offsetPercent = page * 100;
-  const perView = Math.min(CARDS_PER_VIEW, items.length) || 1;
+  const titleColorKey = (props?.testimonialsTitleColorKey ?? "")
+    .toString()
+    .trim();
+  const titleColor = titleColorKey
+    ? getColor(titleColorKey)
+    : getColor("primary");
+
+  const autoplay = props?.testimonialsAutoplay === true;
+  const autoplaySpeed = Math.max(
+    1000,
+    parseInt(props?.testimonialsAutoplaySpeed, 10) || 5000,
+  );
+  const showArrows = props?.testimonialsShowArrows !== false;
+  const showDots = props?.testimonialsShowDots !== false;
+  const draggable = props?.testimonialsDraggable === true;
+  const infinite = props?.testimonialsInfinite !== false;
+  const speedMs = Math.max(200, parseInt(props?.testimonialsSpeed, 10) || 400);
+  const slidesDesktop = props?.testimonialsSlidesDesktop;
+  const slidesTablet = props?.testimonialsSlidesTablet;
+  const slidesMobile = props?.testimonialsSlidesMobile;
+
+  const [perView, setPerView] = useState(3);
+  useEffect(() => {
+    const update = () =>
+      setPerView(
+        getPerViewFromWidth(
+          window.innerWidth,
+          slidesMobile,
+          slidesTablet,
+          slidesDesktop,
+        ),
+      );
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, [slidesMobile, slidesTablet, slidesDesktop]);
+
+  const perViewClamped = Math.min(perView, items.length) || 1;
+  const maxIndex = Math.max(0, items.length - perViewClamped);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const offsetPercent = currentIndex * (100 / perViewClamped);
+
+  useEffect(() => {
+    setCurrentIndex((i) => Math.min(i, maxIndex));
+  }, [maxIndex]);
+
+  const goNext = useCallback(() => {
+    setCurrentIndex((i) =>
+      infinite && i >= maxIndex ? 0 : Math.min(maxIndex, i + 1),
+    );
+  }, [infinite, maxIndex]);
+  const goPrev = useCallback(() => {
+    setCurrentIndex((i) =>
+      infinite && i <= 0 ? maxIndex : Math.max(0, i - 1),
+    );
+  }, [infinite, maxIndex]);
+
+  useEffect(() => {
+    if (!autoplay || items.length <= perViewClamped) return;
+    const t = setInterval(() => {
+      setCurrentIndex((i) =>
+        infinite && i >= maxIndex ? 0 : Math.min(maxIndex, i + 1),
+      );
+    }, autoplaySpeed);
+    return () => clearInterval(t);
+  }, [autoplay, autoplaySpeed, items.length, perViewClamped, maxIndex, infinite]);
+
+  const dragStartX = useRef(0);
+  const handleDragStart = useCallback(
+    (e) => {
+      if (!draggable || items.length <= perViewClamped) return;
+      dragStartX.current = e.touches ? e.touches[0].clientX : e.clientX;
+    },
+    [draggable, items.length, perViewClamped],
+  );
+  const handleDragEnd = useCallback(
+    (e) => {
+      if (!draggable || items.length <= perViewClamped) return;
+      const endX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+      const delta = dragStartX.current - endX;
+      if (delta > 40) goNext();
+      else if (delta < -40) goPrev();
+    },
+    [draggable, items.length, perViewClamped, goNext, goPrev],
+  );
+  const handleMouseDown = useCallback(
+    (e) => {
+      if (!draggable || items.length <= perViewClamped) return;
+      dragStartX.current = e.clientX;
+    },
+    [draggable, items.length, perViewClamped],
+  );
+  const handleMouseUp = useCallback(
+    (e) => {
+      if (!draggable || items.length <= perViewClamped) return;
+      const delta = dragStartX.current - e.clientX;
+      if (delta > 40) goNext();
+      else if (delta < -40) goPrev();
+    },
+    [draggable, items.length, perViewClamped, goNext, goPrev],
+  );
 
   return (
     <FullWidthBackground className="blackBackground">
       <PageContainer>
         <Row gutter={[16, 16]}>
           <Col span={24} className=" text-center mb-4">
-            <MainTitle>{title}</MainTitle>
+            <MainTitle color={titleColor}>{title}</MainTitle>
           </Col>
         </Row>
-        <Viewport>
-          <Track $offsetPercent={offsetPercent}>
+        <Viewport
+          $draggable={draggable}
+          onTouchStart={handleDragStart}
+          onTouchEnd={handleDragEnd}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+        >
+          <Track $offsetPercent={offsetPercent} $speedMs={speedMs}>
             {items.map((item, i) => (
-              <Slide key={i} $perView={perView}>
+              <Slide key={i} $perView={perViewClamped}>
                 <Card>
                   <Avatar $src={item.imageUrl || undefined} />
                   <Name>{item.name || "—"}</Name>
@@ -256,25 +414,37 @@ export default function Testimonials(props) {
             ))}
           </Track>
         </Viewport>
-        {items.length > CARDS_PER_VIEW && (
+        {items.length > perViewClamped && showArrows && (
           <NavWrap>
             <NavBtn
               $primary={false}
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
-              disabled={page === 0}
+              onClick={goPrev}
+              disabled={!infinite && currentIndex === 0}
               aria-label="Previous testimonials"
             >
               <LeftOutlined />
             </NavBtn>
             <NavBtn
               $primary
-              onClick={() => setPage((p) => Math.min(maxPage, p + 1))}
-              disabled={page >= maxPage}
+              onClick={goNext}
+              disabled={!infinite && currentIndex >= maxIndex}
               aria-label="Next testimonials"
             >
               <RightOutlined />
             </NavBtn>
           </NavWrap>
+        )}
+        {items.length > perViewClamped && showDots && maxIndex >= 0 && (
+          <DotsWrap>
+            {Array.from({ length: maxIndex + 1 }, (_, i) => (
+              <Dot
+                key={i}
+                $active={i === currentIndex}
+                onClick={() => setCurrentIndex(i)}
+                aria-label={`Go to slide ${i + 1}`}
+              />
+            ))}
+          </DotsWrap>
         )}
       </PageContainer>
     </FullWidthBackground>
