@@ -4,6 +4,7 @@ import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Form, Input, Select, Switch, Button, Row, Col, Collapse, message, Spin } from "antd";
 import { DeleteOutlined, PlusOutlined, ArrowUpOutlined, ArrowDownOutlined } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
@@ -19,6 +20,8 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [themeColorOptions, setThemeColorOptions] = useState([]);
+  const [reorderMovedIndex, setReorderMovedIndex] = useState(-1);
+  const [reorderDirection, setReorderDirection] = useState("up");
   const isPageBlock = source === "page";
 
   useEffect(() => {
@@ -169,63 +172,56 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
               children: (
                 <Form.List name="homeHeroSlides">
                   {(fields, { add, remove, move }) => (
-                    <>
-                      <Collapse
-                        accordion
-                        size="small"
-                        style={{ marginBottom: 12 }}
-                        items={fields.map(({ key, name, ...restField }) => ({
-                          key: String(name),
-                          label: (
-                            <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", paddingRight: 8, gap: 4 }}>
-                              <strong>Slide {name + 1}</strong>
-                              <span onClick={(e) => e.stopPropagation()} style={{ display: "flex", alignItems: "center", gap: 0 }}>
-                                <Button type="text" size="small" icon={<ArrowUpOutlined />} disabled={name === 0} onClick={() => move(name, name - 1)} title="Move up" />
-                                <Button type="text" size="small" icon={<ArrowDownOutlined />} disabled={name === fields.length - 1} onClick={() => move(name, name + 1)} title="Move down" />
-                                {fields.length > 1 && (
-                                  <Button type="text" danger size="small" icon={<DeleteOutlined />} onClick={() => remove(name)} />
-                                )}
-                              </span>
-                            </span>
-                          ),
-                          children: (
-                            <Row gutter={[16, 16]}>
-                              <Col span={24}>
-                                <Form.Item {...restField} name={[name, "bgImageUrl"]} label="Background image URL">
-                                  <Input placeholder="e.g. /images/slider.png" size="large" />
-                                </Form.Item>
-                              </Col>
-                              <Col span={24}>
-                                <Form.Item {...restField} name={[name, "title"]} label="Title">
-                                  <Input placeholder="Title" size="large" />
-                                </Form.Item>
-                              </Col>
-                              <Col span={24}>
-                                <Form.Item {...restField} name={[name, "description"]} label="Description">
-                                  <Input.TextArea rows={2} placeholder="Description" size="large" />
-                                </Form.Item>
-                              </Col>
-                              <Col span={24}>
-                                <Form.Item {...restField} name={[name, "buttonText"]} label="Button label">
-                                  <Input placeholder="e.g. Contact Us" size="large" />
-                                </Form.Item>
-                              </Col>
-                              <Col span={24}>
-                                <Form.Item {...restField} name={[name, "buttonLink"]} label="Button link">
-                                  <Input placeholder="/contact" size="large" />
-                                </Form.Item>
-                              </Col>
-                              <Col span={24}>
-                                <Form.Item {...restField} name={[name, "showButton"]} label="Show button" valuePropName="checked">
-                                  <Switch />
-                                </Form.Item>
-                              </Col>
-                            </Row>
-                          ),
-                        }))}
-                      />
-                      <Button type="dashed" onClick={() => add({ bgImageUrl: "", title: "", description: "", buttonText: "Contact Us", buttonLink: "/contact", showButton: true })} block icon={<PlusOutlined />} size="small">Add slide</Button>
-                    </>
+                    <SortableFormList
+                      fields={fields}
+                      add={add}
+                      remove={remove}
+                      move={move}
+                      itemLabel="Slide"
+                      addButtonText="Add slide"
+                      defaultAddPayload={{ bgImageUrl: "", title: "", description: "", buttonText: "Contact Us", buttonLink: "/contact", showButton: true }}
+                      reorderMovedIndex={reorderMovedIndex}
+                      reorderDirection={reorderDirection}
+                      onMoveWithTransition={(from, to) => {
+                        setReorderDirection(to < from ? "up" : "down");
+                        setReorderMovedIndex(to);
+                        setTimeout(() => setReorderMovedIndex(-1), 400);
+                      }}
+                      renderItemContent={(name, restField) => (
+                        <Row gutter={[16, 16]}>
+                          <Col span={24}>
+                            <Form.Item {...restField} name={[name, "bgImageUrl"]} label="Background image URL">
+                              <Input placeholder="e.g. /images/slider.png" size="large" />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}>
+                            <Form.Item {...restField} name={[name, "title"]} label="Title">
+                              <Input placeholder="Title" size="large" />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}>
+                            <Form.Item {...restField} name={[name, "description"]} label="Description">
+                              <Input.TextArea rows={2} placeholder="Description" size="large" />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}>
+                            <Form.Item {...restField} name={[name, "buttonText"]} label="Button label">
+                              <Input placeholder="e.g. Contact Us" size="large" />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}>
+                            <Form.Item {...restField} name={[name, "buttonLink"]} label="Button link">
+                              <Input placeholder="/contact" size="large" />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}>
+                            <Form.Item {...restField} name={[name, "showButton"]} label="Show button" valuePropName="checked">
+                              <Switch />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+                      )}
+                    />
                   )}
                 </Form.List>
               ),

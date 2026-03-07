@@ -24,6 +24,7 @@ import {
   QuestionCircleOutlined,
 } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
@@ -72,6 +73,8 @@ function TestimonialsEditForm(
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [themeColorOptions, setThemeColorOptions] = useState([]);
+  const [reorderMovedIndex, setReorderMovedIndex] = useState(-1);
+  const [reorderDirection, setReorderDirection] = useState("up");
   const isPageBlock = source === "page";
   useEffect(() => {
     setLoading(true);
@@ -453,159 +456,82 @@ function TestimonialsEditForm(
             children: (
               <Form.List name="testimonialsItems">
                 {(fields, { add, remove, move }) => (
-                  <>
-                    <Collapse
-                      accordion
-                      size="small"
-                      style={{ marginBottom: 12 }}
-                      items={fields.map(({ key, name, ...restField }) => ({
-                        key: String(name),
-                        label: (
-                          <span
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                              width: "100%",
-                              paddingRight: 8,
-                              gap: 4,
-                            }}
+                  <SortableFormList
+                    fields={fields}
+                    add={add}
+                    remove={remove}
+                    move={move}
+                    itemLabel="Item"
+                    addButtonText="Add testimonial"
+                    defaultAddPayload={{
+                      quote: "",
+                      imageUrl: "",
+                      name: "",
+                      title: "",
+                      rating: 5,
+                    }}
+                    reorderMovedIndex={reorderMovedIndex}
+                    reorderDirection={reorderDirection}
+                    onMoveWithTransition={(from, to) => {
+                      setReorderDirection(to < from ? "up" : "down");
+                      setReorderMovedIndex(to);
+                      setTimeout(() => setReorderMovedIndex(-1), 400);
+                    }}
+                    renderItemContent={(name, restField) => (
+                      <Row gutter={[16, 16]}>
+                        <Col span={24}>
+                          <Form.Item
+                            {...restField}
+                            name={[name, "quote"]}
+                            label="Quote"
+                            rules={[{ required: true, message: "Quote is required" }]}
                           >
-                            <strong>Item {name + 1}</strong>
-                            <span
-                              onClick={(e) => e.stopPropagation()}
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 0,
-                              }}
-                            >
-                              <Button
-                                type="text"
-                                size="small"
-                                icon={<ArrowUpOutlined />}
-                                disabled={name === 0}
-                                onClick={() => move(name, name - 1)}
-                                title="Move up"
-                              />
-                              <Button
-                                type="text"
-                                size="small"
-                                icon={<ArrowDownOutlined />}
-                                disabled={name === fields.length - 1}
-                                onClick={() => move(name, name + 1)}
-                                title="Move down"
-                              />
-                              {fields.length > 1 && (
-                                <Button
-                                  type="text"
-                                  danger
-                                  size="small"
-                                  icon={<DeleteOutlined />}
-                                  onClick={() => remove(name)}
-                                />
-                              )}
-                            </span>
-                          </span>
-                        ),
-                        children: (
-                          <Row gutter={[16, 16]}>
-                            <Col span={24}>
-                              <Form.Item
-                                {...restField}
-                                name={[name, "quote"]}
-                                label="Quote"
-                                rules={[
-                                  { required: true, message: "Quote is required" },
-                                ]}
-                              >
-                                <Input.TextArea
-                                  rows={4}
-                                  placeholder="Testimonial text"
-                                  size="large"
-                                />
-                              </Form.Item>
-                            </Col>
-                            <Col span={24}>
-                              <Form.Item
-                                {...restField}
-                                name={[name, "imageUrl"]}
-                                label="Photo URL"
-                              >
-                                <Input placeholder="https://..." size="large" />
-                              </Form.Item>
-                            </Col>
-                            <Col span={24}>
-                              <Form.Item
-                                {...restField}
-                                name={[name, "name"]}
-                                label="Name"
-                                rules={[
-                                  { required: true, message: "Name is required" },
-                                ]}
-                              >
-                                <Input placeholder="Full name" size="large" />
-                              </Form.Item>
-                            </Col>
-                            <Col span={24}>
-                              <Form.Item
-                                {...restField}
-                                name={[name, "title"]}
-                                label="Title / Role"
-                              >
-                                <Input
-                                  placeholder="e.g. Customer Contact Specialist"
-                                  size="large"
-                                />
-                              </Form.Item>
-                            </Col>
-                            <Col span={24}>
-                              <Form.Item
-                                {...restField}
-                                name={[name, "rating"]}
-                                label="Rating (1-5)"
-                                initialValue={5}
-                              >
-                                <Select
-                                  options={[
-                                    { label: "1", value: 1 },
-                                    { label: "1.5", value: 1.5 },
-                                    { label: "2", value: 2 },
-                                    { label: "2.5", value: 2.5 },
-                                    { label: "3", value: 3 },
-                                    { label: "3.5", value: 3.5 },
-                                    { label: "4", value: 4 },
-                                    { label: "4.5", value: 4.5 },
-                                    { label: "5", value: 5 },
-                                  ]}
-                                  placeholder="Select rating"
-                                  style={{ width: "100%" }}
-                                  size="large"
-                                />
-                              </Form.Item>
-                            </Col>
-                          </Row>
-                        ),
-                      }))}
-                    />
-                    <Button
-                      type="dashed"
-                      onClick={() =>
-                        add({
-                          quote: "",
-                          imageUrl: "",
-                          name: "",
-                          title: "",
-                          rating: 5,
-                        })
-                      }
-                      block
-                      icon={<PlusOutlined />}
-                      size="small"
-                    >
-                      Add testimonial
-                    </Button>
-                  </>
+                            <Input.TextArea rows={4} placeholder="Testimonial text" size="large" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "imageUrl"]} label="Photo URL">
+                            <Input placeholder="https://..." size="large" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item
+                            {...restField}
+                            name={[name, "name"]}
+                            label="Name"
+                            rules={[{ required: true, message: "Name is required" }]}
+                          >
+                            <Input placeholder="Full name" size="large" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "title"]} label="Title / Role">
+                            <Input placeholder="e.g. Customer Contact Specialist" size="large" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "rating"]} label="Rating (1-5)" initialValue={5}>
+                            <Select
+                              options={[
+                                { label: "1", value: 1 },
+                                { label: "1.5", value: 1.5 },
+                                { label: "2", value: 2 },
+                                { label: "2.5", value: 2.5 },
+                                { label: "3", value: 3 },
+                                { label: "3.5", value: 3.5 },
+                                { label: "4", value: 4 },
+                                { label: "4.5", value: 4.5 },
+                                { label: "5", value: 5 },
+                              ]}
+                              placeholder="Select rating"
+                              style={{ width: "100%" }}
+                              size="large"
+                            />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                    )}
+                  />
                 )}
               </Form.List>
             ),

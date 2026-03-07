@@ -477,6 +477,44 @@ a {
   }
 }
 
+/* --- Admin: reorder transition for list items (Marquee, HomeHero, Testimonials, etc.) --- */
+.ant-collapse-item.admin-reorder-moved-up,
+.sortable-form-list > div.admin-reorder-moved-up {
+  animation: admin-reorder-slide-up 0.35s ease-out;
+}
+.ant-collapse-item.admin-reorder-moved-down,
+.sortable-form-list > div.admin-reorder-moved-down {
+  animation: admin-reorder-slide-down 0.35s ease-out;
+}
+@keyframes admin-reorder-slide-up {
+  0% {
+    transform: translateY(8px);
+    background-color: rgba(24, 144, 255, 0.08);
+  }
+  100% {
+    transform: translateY(0);
+    background-color: transparent;
+  }
+}
+@keyframes admin-reorder-slide-down {
+  0% {
+    transform: translateY(-8px);
+    background-color: rgba(24, 144, 255, 0.08);
+  }
+  100% {
+    transform: translateY(0);
+    background-color: transparent;
+  }
+}
+
+/* Sortable form list: spacing between drag-and-drop rows */
+.sortable-form-list > div {
+  margin-bottom: 4px;
+}
+.sortable-form-list > div:last-child {
+  margin-bottom: 0;
+}
+
 /* --- Content pages --- */
 .page-content {
   max-width: var(--layout-width);

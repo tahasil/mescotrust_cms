@@ -4,6 +4,7 @@ import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Form, Input, Button, Row, Col, Collapse, message, Spin } from "antd";
 import { DeleteOutlined, PlusOutlined, ArrowUpOutlined, ArrowDownOutlined } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
@@ -19,6 +20,8 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
   const [saving, setSaving] = useState(false);
   const [initialData, setInitialData] = useState(null);
   const [themeColorOptions, setThemeColorOptions] = useState([]);
+  const [reorderMovedIndex, setReorderMovedIndex] = useState(-1);
+  const [reorderDirection, setReorderDirection] = useState("up");
   const isPageBlock = source === "page";
 
   useEffect(() => {
@@ -146,43 +149,36 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
             children: (
               <Form.List name="marqueeItems">
                 {(fields, { add, remove, move }) => (
-                  <>
-                    <Collapse
-                      accordion
-                      size="small"
-                      style={{ marginBottom: 12 }}
-                      items={fields.map(({ key, name, ...restField }) => ({
-                        key: String(name),
-                        label: (
-                          <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", paddingRight: 8, gap: 4 }}>
-                            <strong>Item {name + 1}</strong>
-                            <span onClick={(e) => e.stopPropagation()} style={{ display: "flex", alignItems: "center", gap: 0 }}>
-                              <Button type="text" size="small" icon={<ArrowUpOutlined />} disabled={name === 0} onClick={() => move(name, name - 1)} title="Move up" />
-                              <Button type="text" size="small" icon={<ArrowDownOutlined />} disabled={name === fields.length - 1} onClick={() => move(name, name + 1)} title="Move down" />
-                              {fields.length > 1 && (
-                                <Button type="text" danger size="small" icon={<DeleteOutlined />} onClick={() => remove(name)} />
-                              )}
-                            </span>
-                          </span>
-                        ),
-                        children: (
-                          <Row gutter={[16, 16]}>
-                            <Col span={14}>
-                              <Form.Item {...restField} name={[name, "url"]} label="Image URL" rules={[{ required: true, message: "Required" }]}>
-                                <Input placeholder="/images/partner-1.png" size="large" />
-                              </Form.Item>
-                            </Col>
-                            <Col span={10}>
-                              <Form.Item {...restField} name={[name, "alt"]} label="Alt text">
-                                <Input placeholder="Partner" size="large" />
-                              </Form.Item>
-                            </Col>
-                          </Row>
-                        ),
-                      }))}
-                    />
-                    <Button type="dashed" onClick={() => add({ url: "", alt: "" })} block icon={<PlusOutlined />} size="small">Add item</Button>
-                  </>
+                  <SortableFormList
+                    fields={fields}
+                    add={add}
+                    remove={remove}
+                    move={move}
+                    itemLabel="Item"
+                    addButtonText="Add item"
+                    defaultAddPayload={{ url: "", alt: "" }}
+                    reorderMovedIndex={reorderMovedIndex}
+                    reorderDirection={reorderDirection}
+                    onMoveWithTransition={(from, to) => {
+                      setReorderDirection(to < from ? "up" : "down");
+                      setReorderMovedIndex(to);
+                      setTimeout(() => setReorderMovedIndex(-1), 400);
+                    }}
+                    renderItemContent={(name, restField) => (
+                      <Row gutter={[16, 16]}>
+                        <Col span={14}>
+                          <Form.Item {...restField} name={[name, "url"]} label="Image URL" rules={[{ required: true, message: "Required" }]}>
+                            <Input placeholder="/images/partner-1.png" size="large" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={10}>
+                          <Form.Item {...restField} name={[name, "alt"]} label="Alt text">
+                            <Input placeholder="Partner" size="large" />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                    )}
+                  />
                 )}
               </Form.List>
             ),
