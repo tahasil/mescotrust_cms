@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import { Form, Select, Collapse, message } from "antd";
 import { renderSchemaField, enrichSchema } from "@/components/admin/schemaFormUtils";
-import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
@@ -107,6 +106,12 @@ function HeaderEditForm(
         if (theme?.menuName != null) flat.menuName = theme.menuName;
         if (theme?.navItems != null) flat.navItems = theme.navItems;
         Object.assign(flat, getManageSectionInitialValues("header", theme));
+        flat._sectionBg = theme?._sectionBg ?? "";
+        flat._sectionPadding = theme?._sectionPadding ?? "";
+        flat._sectionBorderSize = theme?._sectionBorderSize ?? "";
+        flat._sectionBorderStyle = theme?._sectionBorderStyle ?? "";
+        flat._sectionBorderColor = theme?._sectionBorderColor ?? "";
+        flat._sectionShadow = theme?._sectionShadow ?? "";
         form.setFieldsValue(flat);
         const savedNavItems = Array.isArray(theme?.navItems) ? theme.navItems : [];
         lastLoadedNavItemsRef.current = savedNavItems.length ? JSON.parse(JSON.stringify(savedNavItems)) : null;
@@ -208,6 +213,9 @@ function HeaderEditForm(
     return <div style={{ padding: 24, textAlign: "center", color: "#999" }}>Loading…</div>;
   }
 
+  /** Header Manage Section: only these 6 fields (no Fluid/Box containers). */
+  const HEADER_MANAGE_SECTION_KEYS = ["_sectionBg", "_sectionPadding", "_sectionBorderSize", "_sectionBorderStyle", "_sectionBorderColor", "_sectionShadow"];
+
   const compPropsSchema = Array.isArray(paletteComponent?.propsSchema) ? paletteComponent.propsSchema : [];
   const raw = [
     ...compPropsSchema,
@@ -215,6 +223,7 @@ function HeaderEditForm(
     ...LOGO_LINK_SCHEMA,
     ...MENU_SCHEMA,
     ...CUSTOM_BUTTONS_SCHEMA,
+    ...SECTION_SETTINGS_SCHEMA,
   ];
   const rawWithKeyOpts = raw.map((f) =>
     THEME_COLOR_KEY_FIELDS.includes(f.key) ? { ...f, options: themePaletteKeyOptions } : f,
@@ -228,7 +237,11 @@ function HeaderEditForm(
     {
       key: "manage-section",
       label: "Manage Section",
-      children: <ManageSectionFields prefix="header" form={form} themeColorOptions={themeColorOptions} />,
+      children: (
+        <>
+          {HEADER_MANAGE_SECTION_KEYS.map((k) => (byKey[k] ? renderField(byKey[k]) : null)).filter(Boolean)}
+        </>
+      ),
     },
     {
       key: "title",
@@ -255,11 +268,6 @@ function HeaderEditForm(
         </>
       ),
     })),
-    {
-      key: "section-settings",
-      label: "Section Settings",
-      children: <>{SECTION_SETTINGS_SCHEMA.map((f) => renderField(f))}</>,
-    },
   ];
 
   return (

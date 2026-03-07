@@ -151,6 +151,12 @@ export default function AdminComponentEditPage() {
           headerCtaTextColorKey: theme.headerCtaTextColorKey ?? "primary",
           headerDonateBgColorKey: theme.headerDonateBgColorKey ?? "gradient",
           headerDonateTextColorKey: theme.headerDonateTextColorKey ?? "white",
+          _sectionBg: theme._sectionBg ?? "",
+          _sectionPadding: theme._sectionPadding ?? "",
+          _sectionBorderSize: theme._sectionBorderSize ?? "",
+          _sectionBorderStyle: theme._sectionBorderStyle ?? "",
+          _sectionBorderColor: theme._sectionBorderColor ?? "",
+          _sectionShadow: theme._sectionShadow ?? "",
           ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Header, theme),
         });
         const names = [
@@ -871,6 +877,12 @@ export default function AdminComponentEditPage() {
                       theme.headerDonateBgColorKey ?? "gradient",
                     headerDonateTextColorKey:
                       theme.headerDonateTextColorKey ?? "white",
+                    _sectionBg: theme._sectionBg ?? "",
+                    _sectionPadding: theme._sectionPadding ?? "",
+                    _sectionBorderSize: theme._sectionBorderSize ?? "",
+                    _sectionBorderStyle: theme._sectionBorderStyle ?? "",
+                    _sectionBorderColor: theme._sectionBorderColor ?? "",
+                    _sectionShadow: theme._sectionShadow ?? "",
                     ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Header, theme),
                   });
                 } else if (cid === "Footer") {
@@ -1210,6 +1222,12 @@ function HeaderPreviewBlock({ form, themePaletteData, themeHeaderSnapshot }) {
     Form.useWatch("headerDonateTextColorKey", form) ||
     s?.headerDonateTextColorKey ||
     "white";
+  const sectionBg = s?._sectionBg ?? "";
+  const sectionPadding = s?._sectionPadding ?? "";
+  const sectionBorderSize = s?._sectionBorderSize ?? "";
+  const sectionBorderStyle = s?._sectionBorderStyle ?? "";
+  const sectionBorderColor = s?._sectionBorderColor ?? "";
+  const sectionShadow = s?._sectionShadow ?? "";
 
   return (
     <div
@@ -1253,6 +1271,12 @@ function HeaderPreviewBlock({ form, themePaletteData, themeHeaderSnapshot }) {
           themePaletteData,
           headerCtaTextColorKey,
         )}
+        sectionBg={sectionBg}
+        sectionPadding={sectionPadding}
+        sectionBorderSize={sectionBorderSize}
+        sectionBorderStyle={sectionBorderStyle}
+        sectionBorderColor={sectionBorderColor}
+        sectionShadow={sectionShadow}
         headerDonateBgValue={resolveThemeColorFromPalette(
           themePaletteData,
           headerDonateBgColorKey,

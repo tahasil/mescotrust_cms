@@ -64,6 +64,12 @@ export default async function SiteLayout({ children }) {
         headerCtaTextValue={resolveThemeColor(theme, headerCtaTextKey)}
         headerDonateBgValue={resolveThemeColor(theme, headerDonateBgKey)}
         headerDonateTextValue={resolveThemeColor(theme, headerDonateTextKey)}
+        headerSectionBg={theme._sectionBg ?? ""}
+        headerSectionPadding={theme._sectionPadding ?? ""}
+        headerSectionBorderSize={theme._sectionBorderSize ?? ""}
+        headerSectionBorderStyle={theme._sectionBorderStyle ?? ""}
+        headerSectionBorderColor={theme._sectionBorderColor ?? ""}
+        headerSectionShadow={theme._sectionShadow ?? ""}
         footerColumnsCount={theme.footerColumnsCount ?? 4}
         footerSocialIcons={theme.footerSocialIcons !== false}
         footerLayoutStyle={theme.footerLayoutStyle}

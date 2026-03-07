@@ -164,6 +164,12 @@ export default function Header({
   headerCtaTextValue = "",
   headerDonateBgValue = "",
   headerDonateTextValue = "",
+  sectionBg = "",
+  sectionPadding = "",
+  sectionBorderSize = "",
+  sectionBorderStyle = "",
+  sectionBorderColor = "",
+  sectionShadow = "",
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openAccordion, setOpenAccordion] = useState(null);
@@ -210,6 +216,12 @@ export default function Header({
     <>
       <HeaderWrapper
         $preview={preview}
+        $sectionBg={sectionBg}
+        $sectionPadding={sectionPadding}
+        $sectionBorderSize={sectionBorderSize}
+        $sectionBorderStyle={sectionBorderStyle}
+        $sectionBorderColor={sectionBorderColor}
+        $sectionShadow={sectionShadow}
         className={scrolled && !preview ? "is-scrolled" : ""}
       >
         <HeaderMainWrapper>

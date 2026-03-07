@@ -232,6 +232,17 @@ export function renderSchemaField(field, themeColorOptions) {
           <ThemeColorInput themeColorOptions={themeColorOptions} />
         </Form.Item>
       );
+    case "themeColorOnly":
+      return (
+        <Form.Item key={key} name={key} label={label}>
+          <Select
+            options={themeColorOptions || []}
+            placeholder="Select theme color"
+            allowClear
+            style={{ width: "100%" }}
+          />
+        </Form.Item>
+      );
     case "url":
     case "image":
       return (

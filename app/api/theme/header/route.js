@@ -31,6 +31,12 @@ const HEADER_KEYS = [
   "headerCtaTextColorKey",
   "headerDonateBgColorKey",
   "headerDonateTextColorKey",
+  "_sectionBg",
+  "_sectionPadding",
+  "_sectionBorderSize",
+  "_sectionBorderStyle",
+  "_sectionBorderColor",
+  "_sectionShadow",
 ];
 
 const HEADER_DEFAULTS = {
@@ -54,6 +60,12 @@ const HEADER_DEFAULTS = {
   headerCtaTextColorKey: "primary",
   headerDonateBgColorKey: "gradient",
   headerDonateTextColorKey: "white",
+  _sectionBg: "",
+  _sectionPadding: "",
+  _sectionBorderSize: "",
+  _sectionBorderStyle: "",
+  _sectionBorderColor: "",
+  _sectionShadow: "",
 };
 
 function toPayload(defaultProps) {

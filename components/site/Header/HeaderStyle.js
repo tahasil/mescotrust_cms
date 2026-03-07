@@ -27,20 +27,40 @@ export const HeaderWrapper = styled.header`
   left: 0;
   right: 0;
   width: 100%;
-  background: ${(props) =>
-    props.$preview ? "rgba(255, 255, 255, 0.98)" : "transparent"};
-  padding: 16px 0;
+  background: ${(props) => {
+    if (props.$sectionBg && String(props.$sectionBg).trim()) return props.$sectionBg;
+    return props.$preview ? "rgba(255, 255, 255, 0.98)" : "transparent";
+  }};
+  padding: ${(props) => (props.$sectionPadding && String(props.$sectionPadding).trim() ? props.$sectionPadding : "16px 0")};
   z-index: ${(props) => (props.$preview ? 0 : 1000)};
   transition:
     background 0.25s ease,
     box-shadow 0.25s ease;
+  ${(props) =>
+    props.$sectionBorderSize && String(props.$sectionBorderSize).trim()
+      ? `
+    border-width: ${props.$sectionBorderSize};
+    border-style: ${props.$sectionBorderStyle && String(props.$sectionBorderStyle).trim() ? props.$sectionBorderStyle : "solid"};
+    border-color: ${props.$sectionBorderColor && String(props.$sectionBorderColor).trim() ? props.$sectionBorderColor : "transparent"};
+  `
+      : ""}
+  ${(props) =>
+    props.$sectionShadow && String(props.$sectionShadow).trim()
+      ? `box-shadow: ${props.$sectionShadow};`
+      : ""}
   @media (max-width: ${BREAKPOINT}) {
-    padding: 12px 0;
+    padding: ${(props) => (props.$sectionPadding && String(props.$sectionPadding).trim() ? props.$sectionPadding : "12px 0")};
   }
   &.is-scrolled {
-    background: rgba(255, 255, 255, 0.8);
+    background: ${(props) =>
+      props.$sectionBg && String(props.$sectionBg).trim()
+        ? props.$sectionBg
+        : "rgba(255, 255, 255, 0.8)"};
     backdrop-filter: blur(8px);
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: ${(props) =>
+      props.$sectionShadow && String(props.$sectionShadow).trim()
+        ? props.$sectionShadow
+        : "0 2px 12px rgba(0, 0, 0, 0.08)"};
   }
 `;
 

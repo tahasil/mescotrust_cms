@@ -51,10 +51,10 @@ export const HEADER_FIELD_GROUPS = [
 
 export const SECTION_SETTINGS_SCHEMA = [
   { key: "_containerType", type: "select", label: "Container", options: [{ value: "container", label: "Container (max-width)" }, { value: "container-fluid", label: "Container fluid (full width)" }] },
-  { key: "_sectionBg", type: "color", label: "Background" },
+  { key: "_sectionBg", type: "themeColorOnly", label: "Background" },
   { key: "_sectionPadding", type: "text", label: "Padding (e.g. 2rem 1rem)" },
   { key: "_sectionBorderSize", type: "text", label: "Border size" },
   { key: "_sectionBorderStyle", type: "select", label: "Border type", options: [{ value: "solid", label: "Solid" }, { value: "dashed", label: "Dashed" }] },
-  { key: "_sectionBorderColor", type: "color", label: "Border color" },
+  { key: "_sectionBorderColor", type: "themeColorOnly", label: "Border color" },
   { key: "_sectionShadow", type: "text", label: "Box shadow (CSS)" },
 ];
