@@ -170,11 +170,18 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
       <Layout style={{ marginLeft: collapsed ? 0 : 200, minHeight: "100vh" }}>
         <Header
           style={{
+            position: "fixed",
+            top: 0,
+            left: collapsed ? 0 : 200,
+            right: 0,
+            zIndex: 99,
             padding: "0 16px",
             background: "#fff",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            borderBottom: "1px solid rgba(0, 0, 0, 0.06)",
+            boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.04)",
           }}
         >
           <Button
@@ -195,10 +202,12 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
         </Header>
         <Content
           style={{
-            margin: "24px 16px",
+            margin: "74px 10px 10px 10px",
             padding: 24,
+            paddingTop: 24,
             background: "#fff",
             minHeight: 280,
+            borderRadius: 0,
           }}
         >
           {children}
