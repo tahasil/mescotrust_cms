@@ -3,7 +3,17 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Layout, Menu, Button, Dropdown, Space, Input, Badge, Avatar } from "antd";
+import {
+  Layout,
+  Menu,
+  Button,
+  Dropdown,
+  Space,
+  Input,
+  Badge,
+  Avatar,
+  Card,
+} from "antd";
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -196,7 +206,11 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
           />
           <Input
             placeholder="Ctrl + K"
-            prefix={<SearchOutlined style={{ color: "rgba(0, 0, 0, 0.25)", fontSize: 16 }} />}
+            prefix={
+              <SearchOutlined
+                style={{ color: "rgba(0, 0, 0, 0.25)", fontSize: 16 }}
+              />
+            }
             allowClear
             style={{
               maxWidth: 240,
@@ -207,23 +221,41 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
             styles={{ input: { backgroundColor: "#fff" } }}
           />
           <Space size="middle" style={{ marginLeft: "auto" }}>
-            <Button type="text" icon={<GithubOutlined style={{ fontSize: 18, color: "rgba(0, 0, 0, 0.65)" }} />} />
+            <Button
+              type="text"
+              icon={
+                <GithubOutlined
+                  style={{ fontSize: 18, color: "rgba(0, 0, 0, 0.65)" }}
+                />
+              }
+            />
             <Badge count={2} size="small" offset={[-2, 2]}>
-              <Button type="text" icon={<BellOutlined style={{ fontSize: 18, color: "rgba(0, 0, 0, 0.65)" }} />} />
+              <Button
+                type="text"
+                icon={
+                  <BellOutlined
+                    style={{ fontSize: 18, color: "rgba(0, 0, 0, 0.65)" }}
+                  />
+                }
+              />
             </Badge>
             <Dropdown menu={userMenu} placement="bottomRight">
               <Avatar
                 size="default"
                 icon={<UserOutlined />}
-                style={{ backgroundColor: "rgba(0, 0, 0, 0.08)", color: "rgba(0, 0, 0, 0.65)", cursor: "pointer" }}
+                style={{
+                  backgroundColor: "rgba(0, 0, 0, 0.08)",
+                  color: "rgba(0, 0, 0, 0.65)",
+                  cursor: "pointer",
+                }}
               />
             </Dropdown>
           </Space>
         </Header>
-        <Content
+        <Card
+          title={<div>Header</div>}
           style={{
             margin: "74px 10px 10px 10px",
-            padding: 24,
             paddingTop: 24,
             background: "#fff",
             minHeight: 280,
@@ -231,7 +263,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
           }}
         >
           {children}
-        </Content>
+        </Card>
       </Layout>
     </Layout>
   );
