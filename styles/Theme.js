@@ -1,6 +1,7 @@
 import React from "react";
 import { Button, Card, Modal } from "antd";
 import styled, { createGlobalStyle } from "styled-components";
+import Sider from "antd/es/layout/Sider";
 
 /** Thin wrappers so styled() works with antd components (they receive className from styled-components) */
 const ButtonWrapper = (props) => <Button {...props} />;
@@ -390,6 +391,22 @@ export const ThemeModal = styled(ModalWrapper)`
     cursor: pointer;
     aspect-ratio: 4 / 3;
     filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+  }
+`;
+
+export const ThemeSider = styled(Sider)`
+  background: #001529;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.05);
+  height: 100vh;
+  overflow: auto;
+  height: 100vh;
+  position: sticky;
+  inset-inline-start: 0;
+  top: 0;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+  .ant-menu-dark {
+    background: #001529;
   }
 `;
 export default Theme;

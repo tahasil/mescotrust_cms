@@ -19,6 +19,7 @@ import {
   LogoutOutlined,
 } from "@ant-design/icons";
 import { signOut } from "next-auth/react";
+import { ThemeSider } from "@/styles/Theme";
 
 const { Header, Sider, Content } = Layout;
 
@@ -28,52 +29,92 @@ const menuItems = [
   {
     key: "/admin",
     icon: <DashboardOutlined />,
-    label: <Link href="/admin" style={linkStyle}>Dashboard</Link>,
+    label: (
+      <Link href="/admin" style={linkStyle}>
+        Dashboard
+      </Link>
+    ),
   },
   {
     key: "/admin/pages",
     icon: <FileTextOutlined />,
-    label: <Link href="/admin/pages" style={linkStyle}>Pages</Link>,
+    label: (
+      <Link href="/admin/pages" style={linkStyle}>
+        Pages
+      </Link>
+    ),
   },
   {
     key: "/admin/components",
     icon: <AppstoreOutlined />,
-    label: <Link href="/admin/components" style={linkStyle}>Components</Link>,
+    label: (
+      <Link href="/admin/components" style={linkStyle}>
+        Components
+      </Link>
+    ),
   },
   {
     key: "/admin/blogs",
     icon: <BookOutlined />,
-    label: <Link href="/admin/blogs" style={linkStyle}>Blogs</Link>,
+    label: (
+      <Link href="/admin/blogs" style={linkStyle}>
+        Blogs
+      </Link>
+    ),
   },
   {
     key: "/admin/blog-categories",
     icon: <BookOutlined />,
-    label: <Link href="/admin/blog-categories" style={linkStyle}>Categories</Link>,
+    label: (
+      <Link href="/admin/blog-categories" style={linkStyle}>
+        Categories
+      </Link>
+    ),
   },
   {
     key: "/admin/media",
     icon: <AppstoreOutlined />,
-    label: <Link href="/admin/media" style={linkStyle}>Media</Link>,
+    label: (
+      <Link href="/admin/media" style={linkStyle}>
+        Media
+      </Link>
+    ),
   },
   {
     key: "/admin/menus",
     icon: <MenuOutlined />,
-    label: <Link href="/admin/menus" style={linkStyle}>Menus</Link>,
+    label: (
+      <Link href="/admin/menus" style={linkStyle}>
+        Menus
+      </Link>
+    ),
   },
   {
     key: "/admin/theme",
     icon: <BgColorsOutlined />,
-    label: <Link href="/admin/theme" style={linkStyle}>Theme</Link>,
+    label: (
+      <Link href="/admin/theme" style={linkStyle}>
+        Theme
+      </Link>
+    ),
   },
   {
     key: "/admin/contacts",
     icon: <MailOutlined />,
-    label: <Link href="/admin/contacts" style={linkStyle}>Contacts</Link>,
+    label: (
+      <Link href="/admin/contacts" style={linkStyle}>
+        Contacts
+      </Link>
+    ),
   },
   {
     key: "/admin/users",
     icon: <TeamOutlined />,
-    label: <Link href="/admin/users" style={linkStyle}>Users</Link>,
+    label: (
+      <Link href="/admin/users" style={linkStyle}>
+        Users
+      </Link>
+    ),
   },
 ];
 
@@ -94,7 +135,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sider
+      <ThemeSider
         trigger={null}
         collapsible
         collapsed={collapsed}
@@ -120,7 +161,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
           items={menuItems}
           style={{ borderRight: 0 }}
         />
-      </Sider>
+      </ThemeSider>
       <Layout>
         <Header
           style={{
