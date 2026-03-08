@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Layout, Menu, Button, Dropdown, Space } from "antd";
+import { Layout, Menu, Button, Dropdown, Space, Input, Badge, Avatar } from "antd";
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -17,6 +17,9 @@ import {
   MailOutlined,
   UserOutlined,
   LogoutOutlined,
+  SearchOutlined,
+  BellOutlined,
+  GithubOutlined,
 } from "@ant-design/icons";
 import { signOut } from "next-auth/react";
 import { ThemeSider } from "@/styles/Theme";
@@ -175,11 +178,12 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
             left: collapsed ? 0 : 200,
             right: 0,
             zIndex: 99,
-            padding: "0 16px",
+            padding: "0 16px 0 8px",
             background: "#fff",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            gap: 16,
             borderBottom: "1px solid rgba(0, 0, 0, 0.06)",
             boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.04)",
           }}
@@ -188,17 +192,33 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
             onClick={() => setCollapsed(!collapsed)}
-            style={{ fontSize: 16 }}
+            style={{ fontSize: 18, color: "rgba(0, 0, 0, 0.65)" }}
           />
-          <Dropdown menu={userMenu} placement="bottomRight">
-            <Space style={{ cursor: "pointer" }}>
-              <UserOutlined />
-              <span>
-                {userName || "Admin"}
-                {userRole ? ` (${userRole})` : ""}
-              </span>
-            </Space>
-          </Dropdown>
+          <Input
+            placeholder="Ctrl + K"
+            prefix={<SearchOutlined style={{ color: "rgba(0, 0, 0, 0.25)", fontSize: 16 }} />}
+            allowClear
+            style={{
+              maxWidth: 240,
+              borderRadius: 8,
+              backgroundColor: "#fff",
+              border: "1px solid rgba(0, 0, 0, 0.06)",
+            }}
+            styles={{ input: { backgroundColor: "#fff" } }}
+          />
+          <Space size="middle" style={{ marginLeft: "auto" }}>
+            <Button type="text" icon={<GithubOutlined style={{ fontSize: 18, color: "rgba(0, 0, 0, 0.65)" }} />} />
+            <Badge count={2} size="small" offset={[-2, 2]}>
+              <Button type="text" icon={<BellOutlined style={{ fontSize: 18, color: "rgba(0, 0, 0, 0.65)" }} />} />
+            </Badge>
+            <Dropdown menu={userMenu} placement="bottomRight">
+              <Avatar
+                size="default"
+                icon={<UserOutlined />}
+                style={{ backgroundColor: "rgba(0, 0, 0, 0.08)", color: "rgba(0, 0, 0, 0.65)", cursor: "pointer" }}
+              />
+            </Dropdown>
+          </Space>
         </Header>
         <Content
           style={{
