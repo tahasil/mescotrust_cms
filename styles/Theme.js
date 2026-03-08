@@ -395,18 +395,19 @@ export const ThemeModal = styled(ModalWrapper)`
 `;
 
 export const ThemeSider = styled(Sider)`
-  background: #001529;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.05);
+  background: #fff;
+  box-shadow: 5px 0 15px rgba(0, 0, 0, 0.04);
   height: 100vh;
   overflow: auto;
-  height: 100vh;
-  position: sticky;
-  inset-inline-start: 0;
+  position: fixed !important;
+  left: 0;
   top: 0;
+  bottom: 0;
+  z-index: 100;
   scrollbar-width: thin;
-  scrollbar-gutter: stable;
-  .ant-menu-dark {
-    background: #001529;
+  scrollbar-gutter: auto;
+  .ant-menu-light {
+    background: transparent;
   }
 `;
 export default Theme;

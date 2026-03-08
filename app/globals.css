@@ -54,10 +54,20 @@ a {
   color: var(--link-color);
 }
 
-/* Admin sidebar: no underline on menu links */
+/* Admin sidebar: white background, black nav text, no underline */
 .ant-layout-sider .ant-menu-item a,
 .ant-layout-sider .ant-menu-item a:hover {
   text-decoration: none;
+  color: #000;
+}
+.ant-layout-sider .ant-menu-item-selected a {
+  color: #000;
+}
+.ant-layout-sider .ant-menu-item .anticon {
+  color: rgba(0, 0, 0, 0.85);
+}
+.ant-layout-sider .ant-menu-item-selected .anticon {
+  color: #000;
 }
 
 /* RTL-aware spacing: use logical properties */

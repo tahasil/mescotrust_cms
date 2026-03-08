@@ -21,7 +21,7 @@ import {
 import { signOut } from "next-auth/react";
 import { ThemeSider } from "@/styles/Theme";
 
-const { Header, Sider, Content } = Layout;
+const { Header, Content } = Layout;
 
 const linkStyle = { textDecoration: "none" };
 
@@ -141,20 +141,25 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
         collapsed={collapsed}
         breakpoint="lg"
         collapsedWidth={0}
+        width={200}
       >
         <div
           style={{
-            height: 32,
-            margin: 16,
-            color: "#fff",
+            height: 64,
+            color: "#000",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             fontSize: collapsed ? 14 : 16,
             overflow: "hidden",
+            borderBottom: "1px solid rgba(0, 0, 0, 0.06)",
+            marginBottom: 16,
           }}
         >
-          {collapsed ? "CMS" : "Mesco Trust CMS"}
+          {collapsed ? "CMS" : <img src="/images/logo.svg" alt="logo" />}
         </div>
         <Menu
-          theme="dark"
+          theme="light"
           mode="inline"
           selectedKeys={[pathname]}
           defaultOpenKeys={["/admin/blogs"]}
@@ -162,7 +167,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
           style={{ borderRight: 0 }}
         />
       </ThemeSider>
-      <Layout>
+      <Layout style={{ marginLeft: collapsed ? 0 : 200, minHeight: "100vh" }}>
         <Header
           style={{
             padding: "0 16px",
