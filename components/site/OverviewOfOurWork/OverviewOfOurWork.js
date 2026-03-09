@@ -59,6 +59,9 @@ const CardsWrapper = styled.div`
     position: relative;
     width: 100%;
     height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 320px;
     background: ${() => getColor("black")};
     border: 1px solid var(--card-border-color);
     border-radius: 16px;
@@ -81,7 +84,15 @@ const CardsWrapper = styled.div`
       line-height: 1.2;
       color: ${() => getColor("white")};
       text-align: center;
-      min-height: 60px;
+      min-height: 90px;
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .cardLinkWrap {
+      flex-shrink: 0;
+      margin-top: auto;
     }
     button,
     .ant-btn {
@@ -93,9 +104,10 @@ const CardsWrapper = styled.div`
     }
     @media (max-width: 768px) {
       padding: 32px 20px;
+      min-height: 280px;
       h1 {
         font-size: 20px;
-        min-height: 30px;
+        min-height: 72px;
       }
     }
     &:hover {
@@ -346,10 +358,10 @@ export default function OverviewOfOurWork(props) {
               No cards yet. Edit this component and add items under Content.
             </div>
           ) : (
-            <Row gutter={[16, 16]}>
+            <Row gutter={[16, 16]} style={{ alignItems: "stretch" }}>
               {cards.map((card, i) => (
-                <Col key={i} xs={24} sm={12} md={12} lg={6}>
-                  <div className="innerCardBox text-center">
+                <Col key={i} xs={24} sm={12} md={12} lg={6} style={{ display: "flex", flexDirection: "column" }}>
+                  <div className="innerCardBox text-center" style={{ width: "100%", flex: 1 }}>
                     <div className="cardBackground">
                       {card.bgImageUrl ? (
                         <img src={card.bgImageUrl} alt="" aria-hidden />
@@ -384,20 +396,22 @@ export default function OverviewOfOurWork(props) {
                     >
                       {card.title}
                     </h1>
-                    <Link
-                      href={card.link || "#"}
-                      style={{ textDecoration: "none" }}
-                    >
-                      <ThemeButton
-                        className="link"
-                        type="button"
-                        size="large"
-                        icon={<ArrowRightOutlined />}
-                        iconPosition="end"
+                    <div className="cardLinkWrap">
+                      <Link
+                        href={card.link || "#"}
+                        style={{ textDecoration: "none" }}
                       >
-                        {card.linkText}
-                      </ThemeButton>
-                    </Link>
+                        <ThemeButton
+                          className="link"
+                          type="button"
+                          size="large"
+                          icon={<ArrowRightOutlined />}
+                          iconPosition="end"
+                        >
+                          {card.linkText}
+                        </ThemeButton>
+                      </Link>
+                    </div>
                   </div>
                 </Col>
               ))}
