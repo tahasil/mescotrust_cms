@@ -27,9 +27,13 @@ export async function GET(req) {
     const list = allIds.map((id, index) => {
       const m = metaById[id];
       const defaultPosition = id === "Header" ? "before" : "after";
+      let displayName = m?.displayName ?? id;
+      if (id === "OverviewOfOurWork" && (!displayName || displayName === "Awards Recognition")) {
+        displayName = "Overview of Our Work";
+      }
       return {
         componentId: id,
-        displayName: m?.displayName ?? id,
+        displayName,
         global: m?.global ?? false,
         order: m?.order ?? index,
         position: m?.position ?? defaultPosition,

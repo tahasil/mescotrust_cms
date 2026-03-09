@@ -153,8 +153,8 @@ function getDefaultPropsForNewSiteComponent(componentId) {
       return { ...base, marqueeItems: [], marqueeTitle: "" };
     case "LatestEvents1":
       return { ...base, latestEvents1Items: [] };
-    case "AwardsRecognition":
-      return { ...base, awardsRecognitionItems: [] };
+    case "OverviewOfOurWork":
+      return { ...base, overviewOfOurWorkItems: [] };
     default:
       return base;
   }

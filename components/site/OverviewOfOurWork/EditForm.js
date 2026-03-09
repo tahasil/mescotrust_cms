@@ -8,8 +8,8 @@ import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
-const API_PATH = "/api/theme/AwardsRecognition";
-const PREFIX = "awardsRecognition";
+const API_PATH = "/api/theme/OverviewOfOurWork";
+const PREFIX = "overviewOfOurWork";
 
 function normalizeItem(it) {
   return {
@@ -23,10 +23,10 @@ function normalizeItem(it) {
 }
 
 /**
- * Edit form for AwardsRecognition. All content from DB (components collection or page block props).
+ * Edit form for Overview of Our Work (OverviewOfOurWork). All content from DB (components collection or page block props).
  * Manage Section + Title & Colors + Content (cards: add/edit/delete) — same drawer for component edit and Page Builder block edit.
  */
-function AwardsRecognitionEditForm(
+function OverviewOfOurWorkEditForm(
   { source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [] },
   ref
 ) {
@@ -60,10 +60,10 @@ function AwardsRecognitionEditForm(
 
   useEffect(() => {
     setLoading(true);
-    const titleColorsConfig = getTitleAndColorsConfig("AwardsRecognition");
+    const titleColorsConfig = getTitleAndColorsConfig("OverviewOfOurWork");
     const setFormAndColors = (data, theme) => {
-      const items = Array.isArray(data?.awardsRecognitionItems)
-        ? data.awardsRecognitionItems.map(normalizeItem)
+      const items = Array.isArray(data?.overviewOfOurWorkItems)
+        ? data.overviewOfOurWorkItems.map(normalizeItem)
         : Array.isArray(data?.items)
           ? data.items.map(normalizeItem)
           : [];
@@ -79,7 +79,7 @@ function AwardsRecognitionEditForm(
       form.setFieldsValue({
         ...getManageSectionInitialValues(PREFIX, data),
         ...titleColorValues,
-        awardsRecognitionItems: items.length > 0 ? items : [normalizeItem({})],
+        overviewOfOurWorkItems: items.length > 0 ? items : [normalizeItem({})],
       });
       if (theme) {
         const palette = theme?.themePalette || {};
@@ -110,16 +110,16 @@ function AwardsRecognitionEditForm(
       fetch("/api/theme", { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
     ])
       .then(([data, theme]) => setFormAndColors(data || {}, theme))
-      .catch(() => message.error("Failed to load Awards Recognition"))
+      .catch(() => message.error("Failed to load Overview of Our Work"))
       .finally(() => setLoading(false));
   }, [form, isPageBlock, initialDataProp]);
 
   const handleUpdate = () => {
     form.validateFields().then(() => {
       const values = form.getFieldsValue(true);
-      const rawItems = values.awardsRecognitionItems ?? [];
+      const rawItems = values.overviewOfOurWorkItems ?? [];
       const items = Array.isArray(rawItems) ? rawItems.map(normalizeItem) : [];
-      const titleColorsConfig = getTitleAndColorsConfig("AwardsRecognition");
+      const titleColorsConfig = getTitleAndColorsConfig("OverviewOfOurWork");
       const titleColorPayload = {};
       (titleColorsConfig.titleListItems || []).forEach((item) => {
         const v = values[item.name];
@@ -132,7 +132,7 @@ function AwardsRecognitionEditForm(
       const payload = {
         ...getManageSectionPayload(PREFIX, values),
         ...titleColorPayload,
-        awardsRecognitionItems: items,
+        overviewOfOurWorkItems: items,
       };
       if (isPageBlock && onSaveToPage) {
         onSaveToPage(payload);
@@ -150,7 +150,7 @@ function AwardsRecognitionEditForm(
           if (!res.ok) return res.json().then((d) => Promise.reject(d));
         })
         .then(() => {
-          message.success("Awards Recognition saved");
+          message.success("Overview of Our Work saved");
           onSuccess?.();
         })
         .catch((err) => message.error(err?.error || "Failed to save"))
@@ -185,7 +185,7 @@ function AwardsRecognitionEditForm(
               <TitleAndColorsSection
                 form={form}
                 themeColorOptions={themeColorOptions}
-                {...getTitleAndColorsConfig("AwardsRecognition")}
+                {...getTitleAndColorsConfig("OverviewOfOurWork")}
               />
             ),
           },
@@ -193,7 +193,7 @@ function AwardsRecognitionEditForm(
             key: "content",
             label: "Content",
             children: (
-              <Form.List name="awardsRecognitionItems">
+              <Form.List name="overviewOfOurWorkItems">
                 {(fields, { add, remove, move }) => (
                   <SortableFormList
                     fields={fields}
@@ -245,4 +245,4 @@ function AwardsRecognitionEditForm(
   );
 }
 
-export default forwardRef(AwardsRecognitionEditForm);
+export default forwardRef(OverviewOfOurWorkEditForm);

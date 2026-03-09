@@ -490,7 +490,7 @@ export default function AdminComponentEditPage() {
       "Testimonials",
     ].includes(record.componentId);
 
-  // Load theme for dynamic components (e.g. AwardsRecognition) so preview gets Manage Section props
+  // Load theme for dynamic components (e.g. OverviewOfOurWork) so preview gets Manage Section props
   useEffect(() => {
     if (!isDynamicComponent) return;
     setThemeLoading(true);

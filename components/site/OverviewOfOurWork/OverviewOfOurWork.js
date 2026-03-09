@@ -43,7 +43,7 @@ const CardsWrapper = styled.div`
       content: "";
       position: absolute;
       inset: 0;
-      background: var(--hover-overlay-color);
+      background: rgba(207, 55, 47, 0.5);
       pointer-events: none;
     }
   }
@@ -112,28 +112,28 @@ const CardsWrapper = styled.div`
 `;
 
 /**
- * Site component: AwardsRecognition (Awards Recognition).
+ * Site component: OverviewOfOurWork (Overview of Our Work).
  * Section comes from ComponentRenderer. Props from theme/Component defaultProps.
  * Manage Section (background/padding) and Title & Colors come from EditForm.
  * UI: 4-card grid (Educational Support, Medical Aid, Clinics & Dispensaries, Relief of Poverty).
  */
-export default function AwardsRecognition(props) {
+export default function OverviewOfOurWork(props) {
   const cardTitleColorKeyDefault = (
-    props?.awardsRecognitionCardTitleColorKey ?? ""
+    props?.overviewOfOurWorkCardTitleColorKey ?? ""
   )
     .toString()
     .trim();
-  const cardBorderColorKey = (props?.awardsRecognitionCardBorderColorKey ?? "")
+  const cardBorderColorKey = (props?.overviewOfOurWorkCardBorderColorKey ?? "")
     .toString()
     .trim();
-  const buttonColorKey = (props?.awardsRecognitionButtonColorKey ?? "")
+  const buttonColorKey = (props?.overviewOfOurWorkButtonColorKey ?? "")
     .toString()
     .trim();
-  const hoverColorKey = (props?.awardsRecognitionHoverColorKey ?? "")
+  const hoverColorKey = (props?.overviewOfOurWorkHoverColorKey ?? "")
     .toString()
     .trim();
 
-  const rawItems = props?.awardsRecognitionItems ?? props?.items;
+  const rawItems = props?.overviewOfOurWorkItems ?? props?.items;
   const cards = Array.isArray(rawItems)
     ? rawItems.map((it) => ({
         title: (it?.title ?? "").toString().trim() || "Card",
@@ -148,12 +148,12 @@ export default function AwardsRecognition(props) {
     : [];
 
   const sectionBgType = (
-    props?.awardsRecognitionSectionBgType ?? "default"
+    props?.overviewOfOurWorkSectionBgType ?? "default"
   ).toString();
-  const sectionBgImage = (props?.awardsRecognitionSectionBgImage ?? "")
+  const sectionBgImage = (props?.overviewOfOurWorkSectionBgImage ?? "")
     .toString()
     .trim();
-  const sectionBgColorKey = (props?.awardsRecognitionSectionBgColorKey ?? "")
+  const sectionBgColorKey = (props?.overviewOfOurWorkSectionBgColorKey ?? "")
     .toString()
     .trim();
   const sectionBgClassName =
@@ -173,20 +173,20 @@ export default function AwardsRecognition(props) {
           }
         : undefined;
   const sectionPaddingTop =
-    props?.awardsRecognitionSectionPaddingTop != null
-      ? Number(props.awardsRecognitionSectionPaddingTop)
+    props?.overviewOfOurWorkSectionPaddingTop != null
+      ? Number(props.overviewOfOurWorkSectionPaddingTop)
       : null;
   const sectionPaddingBottom =
-    props?.awardsRecognitionSectionPaddingBottom != null
-      ? Number(props.awardsRecognitionSectionPaddingBottom)
+    props?.overviewOfOurWorkSectionPaddingBottom != null
+      ? Number(props.overviewOfOurWorkSectionPaddingBottom)
       : null;
   const sectionMarginTop =
-    props?.awardsRecognitionSectionMarginTop != null
-      ? Number(props.awardsRecognitionSectionMarginTop)
+    props?.overviewOfOurWorkSectionMarginTop != null
+      ? Number(props.overviewOfOurWorkSectionMarginTop)
       : null;
   const sectionMarginBottom =
-    props?.awardsRecognitionSectionMarginBottom != null
-      ? Number(props.awardsRecognitionSectionMarginBottom)
+    props?.overviewOfOurWorkSectionMarginBottom != null
+      ? Number(props.overviewOfOurWorkSectionMarginBottom)
       : null;
   const sectionBgStyle =
     sectionBgStyleBase ||
@@ -212,15 +212,15 @@ export default function AwardsRecognition(props) {
       : undefined;
 
   const pageContainerBgType = (
-    props?.awardsRecognitionPageContainerBgType ?? "default"
+    props?.overviewOfOurWorkPageContainerBgType ?? "default"
   ).toString();
   const pageContainerBgImage = (
-    props?.awardsRecognitionPageContainerBgImage ?? ""
+    props?.overviewOfOurWorkPageContainerBgImage ?? ""
   )
     .toString()
     .trim();
   const pageContainerBgColorKey = (
-    props?.awardsRecognitionPageContainerBgColorKey ?? ""
+    props?.overviewOfOurWorkPageContainerBgColorKey ?? ""
   )
     .toString()
     .trim();
@@ -239,28 +239,28 @@ export default function AwardsRecognition(props) {
           }
         : undefined;
   const containerPaddingTop =
-    props?.awardsRecognitionPageContainerPaddingTop != null
-      ? Number(props.awardsRecognitionPageContainerPaddingTop)
+    props?.overviewOfOurWorkPageContainerPaddingTop != null
+      ? Number(props.overviewOfOurWorkPageContainerPaddingTop)
       : null;
   const containerPaddingRight =
-    props?.awardsRecognitionPageContainerPaddingRight != null
-      ? Number(props.awardsRecognitionPageContainerPaddingRight)
+    props?.overviewOfOurWorkPageContainerPaddingRight != null
+      ? Number(props.overviewOfOurWorkPageContainerPaddingRight)
       : null;
   const containerPaddingBottom =
-    props?.awardsRecognitionPageContainerPaddingBottom != null
-      ? Number(props.awardsRecognitionPageContainerPaddingBottom)
+    props?.overviewOfOurWorkPageContainerPaddingBottom != null
+      ? Number(props.overviewOfOurWorkPageContainerPaddingBottom)
       : null;
   const containerPaddingLeft =
-    props?.awardsRecognitionPageContainerPaddingLeft != null
-      ? Number(props.awardsRecognitionPageContainerPaddingLeft)
+    props?.overviewOfOurWorkPageContainerPaddingLeft != null
+      ? Number(props.overviewOfOurWorkPageContainerPaddingLeft)
       : null;
   const containerMarginTop =
-    props?.awardsRecognitionPageContainerMarginTop != null
-      ? Number(props.awardsRecognitionPageContainerMarginTop)
+    props?.overviewOfOurWorkPageContainerMarginTop != null
+      ? Number(props.overviewOfOurWorkPageContainerMarginTop)
       : null;
   const containerMarginBottom =
-    props?.awardsRecognitionPageContainerMarginBottom != null
-      ? Number(props.awardsRecognitionPageContainerMarginBottom)
+    props?.overviewOfOurWorkPageContainerMarginBottom != null
+      ? Number(props.overviewOfOurWorkPageContainerMarginBottom)
       : null;
   const pageContainerBgStyle =
     pageContainerBgStyleBase ||
