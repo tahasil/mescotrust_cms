@@ -392,10 +392,19 @@ export { default as ${componentId}EditForm } from "./EditForm";
           `$1\nimport ${componentId}EditForm from "./${componentId}/EditForm";`
         );
       }
-      siteIndexContent = siteIndexContent.replace(
-        "  Subscribe: SubscribeEditForm,\n};",
-        `  Subscribe: SubscribeEditForm,\n  ${componentId}: ${componentId}EditForm,\n};`
+      // Add to EDITABLE_SITE_EDIT_FORMS (last entry before "};") so Page Builder drawer uses same EditForm
+      const editFormsMatch = siteIndexContent.match(
+        /(EDITABLE_SITE_EDIT_FORMS\s*=\s*\{[\s\S]*)(  \w+: \w+EditForm,)(\n\s*)\};/
       );
+      if (editFormsMatch && !siteIndexContent.includes(`${componentId}: ${componentId}EditForm`)) {
+        siteIndexContent = siteIndexContent.replace(
+          editFormsMatch[0],
+          editFormsMatch[1] +
+            editFormsMatch[2] +
+            editFormsMatch[3] +
+            `  ${componentId}: ${componentId}EditForm,\n};`
+        );
+      }
       writeFileSync(siteIndexPath, siteIndexContent, "utf8");
     }
 

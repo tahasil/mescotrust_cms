@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import { Form, Input, Button, Row, Col, Collapse, message, Spin } from "antd";
 import { DeleteOutlined, PlusOutlined, ArrowUpOutlined, ArrowDownOutlined } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
@@ -22,6 +22,7 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
   const [themeColorOptions, setThemeColorOptions] = useState([]);
   const [reorderMovedIndex, setReorderMovedIndex] = useState(-1);
   const [reorderDirection, setReorderDirection] = useState("up");
+  const themeFetchedForColorsRef = useRef(false);
   const isPageBlock = source === "page";
 
   useEffect(() => {
@@ -41,16 +42,21 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
         marqueeTitleColorKey: data?.marqueeTitleColorKey != null ? String(data.marqueeTitleColorKey).trim() : "",
         ...getManageSectionInitialValues("marquee", data),
       });
-      fetch("/api/theme", { cache: "no-store" })
-        .then((res) => (res.ok ? res.json() : {}))
-        .then((theme) => {
-          const palette = theme?.themePalette || {};
-          const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
-          const names = [...new Set([...Object.keys(palette), ...customColors.map((c) => c?.name).filter(Boolean)])].sort();
-          setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
-        })
-        .catch(() => {})
-        .finally(() => setLoading(false));
+      if (!themeFetchedForColorsRef.current) {
+        themeFetchedForColorsRef.current = true;
+        fetch("/api/theme", { cache: "no-store" })
+          .then((res) => (res.ok ? res.json() : {}))
+          .then((theme) => {
+            const palette = theme?.themePalette || {};
+            const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
+            const names = [...new Set([...Object.keys(palette), ...customColors.map((c) => c?.name).filter(Boolean)])].sort();
+            setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
+          })
+          .catch(() => {})
+          .finally(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
       return;
     }
     setInitialData(null);

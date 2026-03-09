@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import { Form, Input, Row, Col, Collapse, Select, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
@@ -18,6 +18,7 @@ function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage,
   const [saving, setSaving] = useState(false);
   const [themeColorOptions, setThemeColorOptions] = useState([]);
   const [initialData, setInitialData] = useState(null);
+  const themeFetchedForColorsRef = useRef(false);
   const isPageBlock = source === "page";
 
   useEffect(() => {
@@ -40,16 +41,21 @@ function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage,
       const normalized = normalize(data);
       setInitialData(normalized);
       onDataLoad?.(normalized);
-      fetch("/api/theme", { cache: "no-store" })
-        .then((res) => (res.ok ? res.json() : {}))
-        .then((theme) => {
-          const palette = theme?.themePalette || {};
-          const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
-          const names = [...new Set([...Object.keys(palette), ...customColors.map((c) => c?.name).filter(Boolean)])].sort();
-          setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
-        })
-        .catch(() => {})
-        .finally(() => setLoading(false));
+      if (!themeFetchedForColorsRef.current) {
+        themeFetchedForColorsRef.current = true;
+        fetch("/api/theme", { cache: "no-store" })
+          .then((res) => (res.ok ? res.json() : {}))
+          .then((theme) => {
+            const palette = theme?.themePalette || {};
+            const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
+            const names = [...new Set([...Object.keys(palette), ...customColors.map((c) => c?.name).filter(Boolean)])].sort();
+            setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
+          })
+          .catch(() => {})
+          .finally(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
       return;
     }
 

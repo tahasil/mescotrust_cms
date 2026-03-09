@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import {
   Form,
   Input,
@@ -46,6 +46,7 @@ function LatestEvents1EditForm(
   const [themeColorOptions, setThemeColorOptions] = useState([]);
   const [reorderMovedIndex, setReorderMovedIndex] = useState(-1);
   const [reorderDirection, setReorderDirection] = useState("up");
+  const themeFetchedForColorsRef = useRef(false);
   const isPageBlock = source === "page";
 
   useEffect(() => {
@@ -64,15 +65,20 @@ function LatestEvents1EditForm(
         latestEvents1ButtonColorKey: data?.latestEvents1ButtonColorKey != null ? String(data.latestEvents1ButtonColorKey).trim() : "",
         ...getManageSectionInitialValues("latestEvents1", data),
       });
-      fetch("/api/theme", { cache: "no-store" })
-        .then((res) => (res.ok ? res.json() : {}))
-        .then((theme) => {
-          const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
-          const names = [...new Set(customColors.map((c) => c?.name).filter(Boolean))].sort();
-          setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
-        })
-        .catch(() => {})
-        .finally(() => setLoading(false));
+      if (!themeFetchedForColorsRef.current) {
+        themeFetchedForColorsRef.current = true;
+        fetch("/api/theme", { cache: "no-store" })
+          .then((res) => (res.ok ? res.json() : {}))
+          .then((theme) => {
+            const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
+            const names = [...new Set(customColors.map((c) => c?.name).filter(Boolean))].sort();
+            setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
+          })
+          .catch(() => {})
+          .finally(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
       return;
     }
     Promise.all([

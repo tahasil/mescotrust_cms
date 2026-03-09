@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import {
   Form,
   Input,
@@ -75,6 +75,7 @@ function TestimonialsEditForm(
   const [themeColorOptions, setThemeColorOptions] = useState([]);
   const [reorderMovedIndex, setReorderMovedIndex] = useState(-1);
   const [reorderDirection, setReorderDirection] = useState("up");
+  const themeFetchedForColorsRef = useRef(false);
   const isPageBlock = source === "page";
   useEffect(() => {
     setLoading(true);
@@ -149,11 +150,16 @@ function TestimonialsEditForm(
       // Page block: use only block props from page (pages collection). Fetch theme only for color dropdown options.
       const data = initialDataProp ?? {};
       setFormAndColors(data);
-      fetch("/api/theme", { cache: "no-store" })
-        .then((res) => (res.ok ? res.json() : {}))
-        .then((theme) => setFormAndColors(data, theme))
-        .catch(() => {})
-        .finally(() => setLoading(false));
+      if (!themeFetchedForColorsRef.current) {
+        themeFetchedForColorsRef.current = true;
+        fetch("/api/theme", { cache: "no-store" })
+          .then((res) => (res.ok ? res.json() : {}))
+          .then((theme) => setFormAndColors(data, theme))
+          .catch(() => {})
+          .finally(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
       return;
     }
     Promise.all([

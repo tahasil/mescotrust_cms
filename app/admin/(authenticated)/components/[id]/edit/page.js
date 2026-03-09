@@ -72,6 +72,7 @@ export default function AdminComponentEditPage() {
     useState(null);
   const [themeTestimonialsSnapshot, setThemeTestimonialsSnapshot] =
     useState(null);
+  const [themeSnapshotForDynamic, setThemeSnapshotForDynamic] = useState({});
   const [componentDrawerOpen, setComponentDrawerOpen] = useState(false);
   const [drawerUpdateLoading, setDrawerUpdateLoading] = useState(false);
   const [dynamicEditForm, setDynamicEditForm] = useState(null);
@@ -476,6 +477,29 @@ export default function AdminComponentEditPage() {
       .catch(() => message.error("Failed to load Testimonials"))
       .finally(() => setThemeLoading(false));
   }, [isTestimonials]);
+
+  const isDynamicComponent =
+    record?.componentId &&
+    ![
+      "Header",
+      "Footer",
+      "HomeHero",
+      "Marquee",
+      "Subscribe",
+      "LatestEvents1",
+      "Testimonials",
+    ].includes(record.componentId);
+
+  // Load theme for dynamic components (e.g. AwardsRecognition) so preview gets Manage Section props
+  useEffect(() => {
+    if (!isDynamicComponent) return;
+    setThemeLoading(true);
+    fetch("/api/theme", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : {}))
+      .then((theme) => setThemeSnapshotForDynamic(theme || {}))
+      .catch(() => setThemeSnapshotForDynamic({}))
+      .finally(() => setThemeLoading(false));
+  }, [isDynamicComponent, record?.componentId]);
 
   // Newly created components: load EditForm dynamically from component folder
   useEffect(() => {
@@ -1097,6 +1121,8 @@ export default function AdminComponentEditPage() {
                         : 1,
                     testimonialsItems: items,
                   });
+                } else {
+                  setThemeSnapshotForDynamic(theme || {});
                 }
                 setComponentDrawerOpen(false);
                 setDrawerUpdateLoading(false);
@@ -1128,7 +1154,7 @@ export default function AdminComponentEditPage() {
                   <>
                     {(() => {
                       const Comp = SiteComponents[record.componentId];
-                      return Comp ? <Comp /> : null;
+                      return Comp ? <Comp {...themeSnapshotForDynamic} /> : null;
                     })()}
                   </>
                 ) : (

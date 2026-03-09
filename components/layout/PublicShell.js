@@ -246,6 +246,7 @@ const footerThemeProps = (props) => ({
 });
 
 export default function PublicShell({
+  globalTheme = {},
   headerItems,
   footerItems,
   customHeaderLayout,
@@ -355,7 +356,7 @@ export default function PublicShell({
     if (!Comp) return null;
     if (id === "Header") return <Comp key={id} {...headerThemeProps(themeProps)} />;
     if (id === "Footer") return <Comp key={id} {...footerThemeProps(themeProps)} />;
-    return <Comp key={id} {...themeProps} />;
+    return <Comp key={id} {...globalTheme} />;
   };
 
   const useSiteHeaderForLayout =

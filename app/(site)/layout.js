@@ -35,6 +35,7 @@ export default async function SiteLayout({ children }) {
   return (
     <>
       <PublicShell
+        globalTheme={theme}
         headerItems={data?.headerItems || []}
         footerItems={data?.footerItems || []}
         customHeaderLayout={data?.customHeaderLayout || null}

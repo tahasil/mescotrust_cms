@@ -127,7 +127,11 @@ const TESTIMONIALS_DEFAULT_PROPS = {
 
 /** Full default props when creating a new site component block (Manage Section, Title & Colors, Manage Items, Slide Setting). */
 function getDefaultPropsForNewSiteComponent(componentId) {
-  const prefix = MANAGE_SECTION_PREFIX_BY_COMPONENT_ID[componentId];
+  const prefix =
+    MANAGE_SECTION_PREFIX_BY_COMPONENT_ID[componentId] ??
+    (componentId
+      ? componentId.charAt(0).toLowerCase() + componentId.slice(1)
+      : null);
   const base = prefix
     ? {
         ...getDefaultManageSectionProps(prefix),
@@ -149,6 +153,8 @@ function getDefaultPropsForNewSiteComponent(componentId) {
       return { ...base, marqueeItems: [], marqueeTitle: "" };
     case "LatestEvents1":
       return { ...base, latestEvents1Items: [] };
+    case "AwardsRecognition":
+      return { ...base, awardsRecognitionItems: [] };
     default:
       return base;
   }

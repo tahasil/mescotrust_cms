@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, message, Spin, Collapse } from "antd";
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
+import { Form, Input, message, Spin, Collapse, Row, Col } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
@@ -10,10 +11,20 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 const API_PATH = "/api/theme/AwardsRecognition";
 const PREFIX = "awardsRecognition";
 
+function normalizeItem(it) {
+  return {
+    title: (it?.title != null ? String(it.title).trim() : "") || "Card",
+    imageUrl: it?.imageUrl != null ? String(it.imageUrl).trim() : "",
+    bgImageUrl: it?.bgImageUrl != null ? String(it.bgImageUrl).trim() : "",
+    link: it?.link != null ? String(it.link).trim() : it?.url != null ? String(it.url).trim() : "",
+    titleColorKey: it?.titleColorKey != null ? String(it.titleColorKey).trim() : it?.cardTitleColorKey != null ? String(it.cardTitleColorKey).trim() : "",
+    icon: it?.icon != null ? String(it.icon).trim() : "",
+  };
+}
+
 /**
- * Edit form for AwardsRecognition — used in component edit drawer.
- * Includes Manage Section (background/padding) and Title & Colors by default.
- * Loads/saves via API_PATH (Component defaultProps).
+ * Edit form for AwardsRecognition. All content from DB (components collection or page block props).
+ * Manage Section + Title & Colors + Content (cards: add/edit/delete) — same drawer for component edit and Page Builder block edit.
  */
 function AwardsRecognitionEditForm(
   { source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [] },
@@ -23,59 +34,105 @@ function AwardsRecognitionEditForm(
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [themeColorOptions, setThemeColorOptions] = useState(themeColorOptionsProp);
+  const [reorderMovedIndex, setReorderMovedIndex] = useState(-1);
+  const [reorderDirection, setReorderDirection] = useState("up");
+  const themeFetchedForColorsRef = useRef(false);
   const isPageBlock = source === "page";
 
   useEffect(() => {
     if (themeColorOptionsProp?.length > 0) {
       setThemeColorOptions(themeColorOptionsProp);
-      return;
     }
+    if (themeColorOptionsProp?.length > 0 && isPageBlock) return;
+    if (themeFetchedForColorsRef.current && isPageBlock) return;
+    themeFetchedForColorsRef.current = true;
     fetch("/api/theme", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : {}))
       .then((theme) => {
+        if (themeColorOptionsProp?.length > 0) return;
         const palette = theme?.themePalette || {};
         const custom = Array.isArray(theme?.colors) ? theme.colors : [];
         const names = [...new Set([...Object.keys(palette), ...custom.map((c) => c?.name).filter(Boolean)])].sort();
         setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
       })
       .catch(() => {});
-  }, [themeColorOptionsProp]);
+  }, [themeColorOptionsProp, isPageBlock]);
 
   useEffect(() => {
     setLoading(true);
+    const titleColorsConfig = getTitleAndColorsConfig("AwardsRecognition");
+    const setFormAndColors = (data, theme) => {
+      const items = Array.isArray(data?.awardsRecognitionItems)
+        ? data.awardsRecognitionItems.map(normalizeItem)
+        : Array.isArray(data?.items)
+          ? data.items.map(normalizeItem)
+          : [];
+      const titleColorValues = {};
+      (titleColorsConfig.titleListItems || []).forEach((item) => {
+        const v = data?.[item.name];
+        titleColorValues[item.name] = v != null ? String(v).trim() : "";
+      });
+      (titleColorsConfig.colorListItems || []).forEach((item) => {
+        const v = data?.[item.name];
+        titleColorValues[item.name] = v != null ? String(v).trim() : "";
+      });
+      form.setFieldsValue({
+        ...getManageSectionInitialValues(PREFIX, data),
+        ...titleColorValues,
+        awardsRecognitionItems: items.length > 0 ? items : [normalizeItem({})],
+      });
+      if (theme) {
+        const palette = theme?.themePalette || {};
+        const custom = Array.isArray(theme?.colors) ? theme.colors : [];
+        const names = [...new Set([...Object.keys(palette), ...custom.map((c) => c?.name).filter(Boolean)])].sort();
+        setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
+      }
+    };
+
     if (isPageBlock) {
       const data = initialDataProp ?? {};
-      form.setFieldsValue({
-        mainTitle: data.mainTitle ?? "Section Title",
-        subTitle: data.subTitle ?? "Subtitle",
-        titleColorKey: data.titleColorKey ?? "",
-        ...getManageSectionInitialValues(PREFIX, data),
-        ...data,
-      });
-      setLoading(false);
+      setFormAndColors(data);
+      if (!themeFetchedForColorsRef.current) {
+        themeFetchedForColorsRef.current = true;
+        fetch("/api/theme", { cache: "no-store" })
+          .then((res) => (res.ok ? res.json() : {}))
+          .then((theme) => setFormAndColors(data, theme))
+          .catch(() => {})
+          .finally(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
       return;
     }
-    fetch(API_PATH, { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : {}))
-      .then((data) => {
-        form.setFieldsValue({
-          mainTitle: (data && data.mainTitle) ?? "Section Title",
-          subTitle: (data && data.subTitle) ?? "Subtitle",
-          titleColorKey: (data && data.titleColorKey) ?? "",
-          ...getManageSectionInitialValues(PREFIX, data),
-          ...(data && typeof data === "object" ? data : {}),
-        });
-      })
-      .catch(() => message.error("Failed to load AwardsRecognition"))
+
+    Promise.all([
+      fetch(API_PATH, { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
+      fetch("/api/theme", { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
+    ])
+      .then(([data, theme]) => setFormAndColors(data || {}, theme))
+      .catch(() => message.error("Failed to load Awards Recognition"))
       .finally(() => setLoading(false));
   }, [form, isPageBlock, initialDataProp]);
 
   const handleUpdate = () => {
     form.validateFields().then(() => {
       const values = form.getFieldsValue(true);
+      const rawItems = values.awardsRecognitionItems ?? [];
+      const items = Array.isArray(rawItems) ? rawItems.map(normalizeItem) : [];
+      const titleColorsConfig = getTitleAndColorsConfig("AwardsRecognition");
+      const titleColorPayload = {};
+      (titleColorsConfig.titleListItems || []).forEach((item) => {
+        const v = values[item.name];
+        titleColorPayload[item.name] = v != null ? String(v).trim() : "";
+      });
+      (titleColorsConfig.colorListItems || []).forEach((item) => {
+        const v = values[item.name];
+        titleColorPayload[item.name] = v != null ? String(v).trim() : "";
+      });
       const payload = {
-        ...values,
         ...getManageSectionPayload(PREFIX, values),
+        ...titleColorPayload,
+        awardsRecognitionItems: items,
       };
       if (isPageBlock && onSaveToPage) {
         onSaveToPage(payload);
@@ -136,15 +193,50 @@ function AwardsRecognitionEditForm(
             key: "content",
             label: "Content",
             children: (
-              <>
-                <Form.Item name="subTitle" label="Subtitle">
-                  <Input placeholder="Subtitle" />
-                </Form.Item>
-                <Form.Item name="mainTitle" label="Main title">
-                  <Input placeholder="Section Title" />
-                </Form.Item>
-                <p style={{ color: "#666", marginTop: 16 }}>Add more fields in EditForm.js as needed.</p>
-              </>
+              <Form.List name="awardsRecognitionItems">
+                {(fields, { add, remove, move }) => (
+                  <SortableFormList
+                    fields={fields}
+                    add={add}
+                    remove={remove}
+                    move={move}
+                    itemLabel="Card"
+                    addButtonText="Add card"
+                    defaultAddPayload={normalizeItem({})}
+                    reorderMovedIndex={reorderMovedIndex}
+                    reorderDirection={reorderDirection}
+                    onMoveWithTransition={(from, to) => {
+                      setReorderDirection(to < from ? "up" : "down");
+                      setReorderMovedIndex(to);
+                      setTimeout(() => setReorderMovedIndex(-1), 400);
+                    }}
+                    renderItemContent={(name, restField) => (
+                      <Row gutter={[12, 12]}>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "title"]} label="Card title" rules={[{ required: true, message: "Title required" }]}>
+                            <Input placeholder="e.g. Educational Support" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "bgImageUrl"]} label="Card background image URL">
+                            <Input placeholder="https://... or /images/..." />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "link"]} label="Link URL">
+                            <Input placeholder="/page or https://..." />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "icon"]} label="Icon (image URL)">
+                            <Input placeholder="/images/icon.svg or https://..." />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                    )}
+                  />
+                )}
+              </Form.List>
             ),
           },
         ]}

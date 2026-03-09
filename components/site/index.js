@@ -19,7 +19,7 @@ import TestimonialsEditForm from "./Testimonials/EditForm";
 import LatestEvents1EditForm from "./LatestEvents1/EditForm";
 import HeaderEditForm from "./Header/EditForm";
 import FooterEditForm from "./Footer/EditForm";
-/** componentId -> EditForm for drawer. Add new editable site components here. */
+/** componentId -> EditForm for drawer (Admin → Components and Page Builder use same form). Add new editable site components here. */
 export const EDITABLE_SITE_EDIT_FORMS = {
   Header: HeaderEditForm,
   Footer: FooterEditForm,
@@ -28,4 +28,5 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   Subscribe: SubscribeEditForm,
   LatestEvents1: LatestEvents1EditForm,
   Testimonials: TestimonialsEditForm,
+  AwardsRecognition: AwardsRecognitionEditForm,
 };
