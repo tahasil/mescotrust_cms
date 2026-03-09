@@ -520,16 +520,19 @@ export default function AdminComponentEditPage() {
       "Testimonials",
     ].includes(record.componentId);
 
-  // Load theme for dynamic components (e.g. OverviewOfOurWork) so preview gets Manage Section props — once per component
+  // Load component data for dynamic components so preview gets props — call only /api/theme/[componentId], not /api/theme
   const themeFetchedForDynamicRef = useRef(null);
   useEffect(() => {
     if (!isDynamicComponent || !record?.componentId) return;
     if (themeFetchedForDynamicRef.current === record.componentId) return;
     themeFetchedForDynamicRef.current = record.componentId;
     setThemeLoading(true);
-    fetch("/api/theme", { cache: "no-store" })
+    fetch(`/api/theme/${encodeURIComponent(record.componentId)}`, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : {}))
-      .then((theme) => setThemeSnapshotForDynamic(theme || {}))
+      .then((data) => {
+        const { themePalette: _p, colors: _c, ...props } = data || {};
+        setThemeSnapshotForDynamic(props || {});
+      })
       .catch(() => setThemeSnapshotForDynamic({}))
       .finally(() => setThemeLoading(false));
   }, [isDynamicComponent, record?.componentId]);
@@ -890,6 +893,28 @@ export default function AdminComponentEditPage() {
               if (!EditFormComp) return null;
               const refetchAndClose = async () => {
                 const cid = record?.componentId;
+                const isDynamicComp =
+                  cid &&
+                  ![
+                    "Header",
+                    "Footer",
+                    "HomeHero",
+                    "Marquee",
+                    "Subscribe",
+                    "LatestEvents1",
+                    "Testimonials",
+                  ].includes(cid);
+                if (isDynamicComp) {
+                  const res = await fetch(`/api/theme/${encodeURIComponent(cid)}`, { cache: "no-store" });
+                  if (!res.ok) return;
+                  const data = await res.json();
+                  const { themePalette: _p, colors: _c, ...props } = data || {};
+                  setThemeSnapshotForDynamic(props || {});
+                  setComponentDrawerOpen(false);
+                  setDrawerUpdateLoading(false);
+                  message.success(`${record?.displayName || cid} saved`);
+                  return;
+                }
                 const res = await fetch("/api/theme", { cache: "no-store" });
                 if (!res.ok) return;
                 const theme = await res.json();

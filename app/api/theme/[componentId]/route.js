@@ -1,18 +1,21 @@
 /**
  * Generic theme API for site components (Component model, baseComponent: componentId).
  * Used by dynamically created components (e.g. MySection) — same pattern as home-hero, marquee.
- * GET: public. PUT: admin only. Only allows componentIds from the site registry.
+ * GET: returns component defaultProps and themePalette/colors so the EditForm can use a single API call (no /api/theme).
+ * PUT: admin only. Only allows componentIds from the site registry.
  */
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { connectDB } from "@/lib/db";
 import Component from "@/models/Component";
+import ThemeConfig from "@/models/ThemeConfig";
 import { isAdmin } from "@/lib/permissions";
 import { getRegistryIdsFromDisk } from "@/lib/getRegistryIdsFromDisk";
 
 export const dynamic = "force-dynamic";
 
 const STATIC_ROUTES = ["header", "footer", "subscribe", "home-hero", "marquee"];
+const THEME_QUERY = { $or: [{ themeKey: "default" }, { themeKey: { $exists: false } }] };
 
 function isAllowed(componentId) {
   if (!componentId || typeof componentId !== "string") return false;
@@ -29,11 +32,23 @@ export async function GET(req, { params }) {
   }
   try {
     await connectDB();
-    const doc = await Component.findOne({ baseComponent: componentId }).lean();
-    const payload = (doc?.defaultProps && typeof doc.defaultProps === "object") ? doc.defaultProps : {};
-    return NextResponse.json(payload, {
-      headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
-    });
+    const [doc, themeDoc] = await Promise.all([
+      Component.findOne({ baseComponent: componentId }).lean(),
+      ThemeConfig.findOne(THEME_QUERY).sort({ updatedAt: -1 }).lean(),
+    ]);
+    const payload = (doc?.defaultProps && typeof doc.defaultProps === "object") ? { ...doc.defaultProps } : {};
+    const palette = themeDoc?.themePalette && typeof themeDoc.themePalette === "object" ? themeDoc.themePalette : {};
+    const colors = Array.isArray(themeDoc?.colors) ? themeDoc.colors : [];
+    return NextResponse.json(
+      {
+        ...payload,
+        themePalette: palette,
+        colors,
+      },
+      {
+        headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+      }
+    );
   } catch (err) {
     console.error("[Theme component API] GET error:", err);
     return NextResponse.json({}, { status: 200 });

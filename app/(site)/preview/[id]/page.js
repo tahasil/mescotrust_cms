@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 export const dynamic = "force-dynamic";
 import { connectDB } from "@/lib/db";
 import Page from "@/models/Page";
+import Component from "@/models/Component";
 import Blog from "@/models/Blog";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import SafeHtml from "@/components/cms/SafeHtml";
@@ -46,10 +47,21 @@ export default async function PreviewPage({ params, searchParams }) {
     const page = await Page.findById(id).populate("layout.componentId").lean();
     if (!page) notFound();
 
-    const layout = (page.layout || []).map((block) => ({
-      ...block,
-      baseComponent: block.baseComponent || (block.componentId?.baseComponent ?? "Paragraph"),
-    }));
+    const layoutBlocks = page.layout || [];
+    const baseComponents = [...new Set(layoutBlocks.map((b) => b.baseComponent || b.componentId?.baseComponent ?? "Paragraph"))].filter(Boolean);
+    const componentDocs = await Component.find({ baseComponent: { $in: baseComponents } }).lean();
+    const defaultPropsByBase = {};
+    for (const doc of componentDocs || []) {
+      if (doc.baseComponent && doc.defaultProps && typeof doc.defaultProps === "object") {
+        defaultPropsByBase[doc.baseComponent] = doc.defaultProps;
+      }
+    }
+    const layout = layoutBlocks.map((block) => {
+      const base = block.baseComponent || block.componentId?.baseComponent ?? "Paragraph";
+      const defaultProps = defaultPropsByBase[base] || {};
+      const mergedProps = { ...defaultProps, ...(block.props || {}) };
+      return { ...block, baseComponent: base, props: mergedProps };
+    });
 
     return (
       <main>

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, message, Spin, Collapse } from "antd";
+import { Form, Input, Button, message, Spin, Collapse } from "antd";
+import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
@@ -9,6 +10,9 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/HomeHero2";
 const PREFIX = "homeHero2";
+
+const DEFAULT_SUBTITLE =
+  "A community-powered initiative that brings donors, mentors, and resources together to help learners overcome barriers and continue their education—turning collective support into real opportunities.";
 
 /**
  * Edit form for HomeHero2 — used in component edit drawer.
@@ -20,35 +24,25 @@ function HomeHero2EditForm({ source, initialData: initialDataProp, onSaveToPage,
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [themeColorOptions, setThemeColorOptions] = useState(themeColorOptionsProp);
-  const themeFetchedForColorsRef = useRef(false);
   const isPageBlock = source === "page";
-
-  useEffect(() => {
-    if (themeColorOptionsProp?.length > 0) {
-      setThemeColorOptions(themeColorOptionsProp);
-      return;
-    }
-    if (themeFetchedForColorsRef.current) return;
-    themeFetchedForColorsRef.current = true;
-    fetch("/api/theme", { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : {}))
-      .then((theme) => {
-        const palette = theme?.themePalette || {};
-        const custom = Array.isArray(theme?.colors) ? theme.colors : [];
-        const names = [...new Set([...Object.keys(palette), ...custom.map((c) => c?.name).filter(Boolean)])].sort();
-        setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
-      })
-      .catch(() => {});
-  }, [themeColorOptionsProp]);
 
   useEffect(() => {
     setLoading(true);
     if (isPageBlock) {
       const data = initialDataProp ?? {};
+      const sliderItems = Array.isArray(data.homeHero2SliderImages) ? data.homeHero2SliderImages : [];
+      if (themeColorOptionsProp?.length > 0) setThemeColorOptions(themeColorOptionsProp);
       form.setFieldsValue({
-        mainTitle: data.mainTitle ?? "Section Title",
-        subTitle: data.subTitle ?? "Subtitle",
+        mainTitle: data.mainTitle ?? "Because Every Learner",
+        mainTitleHighlight: data.mainTitleHighlight ?? "Deserves Support",
+        subTitle: data.subTitle ?? DEFAULT_SUBTITLE,
         titleColorKey: data.titleColorKey ?? "",
+        homeHero2ButtonBgColorKey: data.homeHero2ButtonBgColorKey ?? "",
+        homeHero2ButtonTextColorKey: data.homeHero2ButtonTextColorKey ?? "",
+        buttonText: data.buttonText ?? "Contact Us",
+        buttonHref: data.buttonHref ?? "/",
+        heroIconUrl: data.heroIconUrl ?? "/images/hero-icon.svg",
+        homeHero2SliderImages: sliderItems.length > 0 ? sliderItems : [{ src: "", alt: "" }],
         ...getManageSectionInitialValues(PREFIX, data),
         ...data,
       });
@@ -58,23 +52,49 @@ function HomeHero2EditForm({ source, initialData: initialDataProp, onSaveToPage,
     fetch(API_PATH, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : {}))
       .then((data) => {
+        const palette = data?.themePalette && typeof data.themePalette === "object" ? data.themePalette : {};
+        const custom = Array.isArray(data?.colors) ? data.colors : [];
+        const names = [...new Set([...Object.keys(palette), ...custom.map((c) => c?.name).filter(Boolean)])].sort();
+        setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
+        const { themePalette: _p, colors: _c, ...formData } = data || {};
+        const sliderItems = Array.isArray(formData?.homeHero2SliderImages) ? formData.homeHero2SliderImages : [];
         form.setFieldsValue({
-          mainTitle: (data && data.mainTitle) ?? "Section Title",
-          subTitle: (data && data.subTitle) ?? "Subtitle",
-          titleColorKey: (data && data.titleColorKey) ?? "",
-          ...getManageSectionInitialValues(PREFIX, data),
-          ...(data && typeof data === "object" ? data : {}),
+          mainTitle: (formData && formData.mainTitle) ?? "Because Every Learner",
+          mainTitleHighlight: (formData && formData.mainTitleHighlight) ?? "Deserves Support",
+          subTitle: (formData && formData.subTitle) ?? DEFAULT_SUBTITLE,
+          titleColorKey: (formData && formData.titleColorKey) ?? "",
+          homeHero2ButtonBgColorKey: (formData && formData.homeHero2ButtonBgColorKey) ?? "",
+          homeHero2ButtonTextColorKey: (formData && formData.homeHero2ButtonTextColorKey) ?? "",
+          buttonText: (formData && formData.buttonText) ?? "Contact Us",
+          buttonHref: (formData && formData.buttonHref) ?? "/",
+          heroIconUrl: (formData && formData.heroIconUrl) ?? "/images/hero-icon.svg",
+          homeHero2SliderImages: sliderItems.length > 0 ? sliderItems : [{ src: "", alt: "" }],
+          ...getManageSectionInitialValues(PREFIX, formData),
+          ...(formData && typeof formData === "object" ? formData : {}),
         });
       })
       .catch(() => message.error("Failed to load HomeHero2"))
       .finally(() => setLoading(false));
-  }, [form, isPageBlock, initialDataProp]);
+  }, [form, isPageBlock, initialDataProp, themeColorOptionsProp]);
 
   const handleUpdate = () => {
     form.validateFields().then(() => {
       const values = form.getFieldsValue(true);
+      const sliderRaw = values.homeHero2SliderImages;
+      const homeHero2SliderImages = Array.isArray(sliderRaw)
+        ? sliderRaw
+            .filter((s) => s && (s.src || s.url))
+            .map((s) => ({ src: (s.src || s.url || "").trim(), alt: (s.alt != null ? String(s.alt) : "").trim() }))
+        : [];
       const payload = {
         ...values,
+        mainTitle: values.mainTitle != null ? String(values.mainTitle).trim() : "",
+        mainTitleHighlight: values.mainTitleHighlight != null ? String(values.mainTitleHighlight).trim() : "",
+        subTitle: values.subTitle != null ? String(values.subTitle).trim() : "",
+        titleColorKey: values.titleColorKey != null ? String(values.titleColorKey).trim() : "",
+        homeHero2ButtonBgColorKey: values.homeHero2ButtonBgColorKey != null ? String(values.homeHero2ButtonBgColorKey).trim() : "",
+        homeHero2ButtonTextColorKey: values.homeHero2ButtonTextColorKey != null ? String(values.homeHero2ButtonTextColorKey).trim() : "",
+        homeHero2SliderImages,
         ...getManageSectionPayload(PREFIX, values),
       };
       if (isPageBlock && onSaveToPage) {
@@ -128,17 +148,47 @@ function HomeHero2EditForm({ source, initialData: initialDataProp, onSaveToPage,
           },
           {
             key: "content",
-            label: "Content",
+            label: "Hero & Button",
             children: (
               <>
-                <Form.Item name="subTitle" label="Subtitle">
-                  <Input placeholder="Subtitle" />
+                <Form.Item name="heroIconUrl" label="Hero icon image URL">
+                  <Input placeholder="/images/hero-icon.svg" />
                 </Form.Item>
-                <Form.Item name="mainTitle" label="Main title">
-                  <Input placeholder="Section Title" />
+                <Form.Item name="buttonText" label="Button text">
+                  <Input placeholder="Contact Us" />
                 </Form.Item>
-                <p style={{ color: "#666", marginTop: 16 }}>Add more fields in EditForm.js as needed.</p>
+                <Form.Item name="buttonHref" label="Button link (URL or path)">
+                  <Input placeholder="/ or /contact" />
+                </Form.Item>
               </>
+            ),
+          },
+          {
+            key: "slider",
+            label: "Circular slider images",
+            children: (
+              <Form.List name="homeHero2SliderImages">
+                {(fields, { add, remove }) => (
+                  <>
+                    {fields.map(({ key, name, ...rest }) => (
+                      <div key={key} style={{ display: "flex", gap: 8, marginBottom: 8, alignItems: "flex-start" }}>
+                        <Form.Item {...rest} name={[name, "src"]} label="Image URL" style={{ flex: 1 }}>
+                          <Input placeholder="/images/slider-1.png" />
+                        </Form.Item>
+                        <Form.Item {...rest} name={[name, "alt"]} label="Alt" style={{ width: 120 }}>
+                          <Input placeholder="Alt text" />
+                        </Form.Item>
+                        <Button type="text" icon={<DeleteOutlined />} onClick={() => remove(name)} />
+                      </div>
+                    ))}
+                    <Form.Item>
+                      <Button type="dashed" onClick={() => add({ src: "", alt: "" })} block icon={<PlusOutlined />}>
+                        Add slider image
+                      </Button>
+                    </Form.Item>
+                  </>
+                )}
+              </Form.List>
             ),
           },
         ]}

@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { connectDB } from "@/lib/db";
 import Page from "@/models/Page";
+import Component from "@/models/Component";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
 
 export const dynamic = "force-dynamic";
@@ -45,13 +46,24 @@ async function HomeContent() {
   }
 
   if (page) {
-    const layout = (page.layout || []).map((block) => {
+    const layoutBlocks = page.layout || [];
+    const baseComponents = [...new Set(layoutBlocks.map((b) => b.baseComponent || (typeof b.componentId === "object" && b.componentId?.baseComponent) || (typeof b.componentId === "string" ? b.componentId : null) || "Paragraph"))].filter(Boolean);
+    const componentDocs = await Component.find({ baseComponent: { $in: baseComponents } }).lean();
+    const defaultPropsByBase = {};
+    for (const doc of componentDocs || []) {
+      if (doc.baseComponent && doc.defaultProps && typeof doc.defaultProps === "object") {
+        defaultPropsByBase[doc.baseComponent] = doc.defaultProps;
+      }
+    }
+    const layout = layoutBlocks.map((block) => {
       const base =
         block.baseComponent ||
         (typeof block.componentId === "object" && block.componentId?.baseComponent) ||
         (typeof block.componentId === "string" ? block.componentId : null) ||
         "Paragraph";
-      return { ...block, baseComponent: base };
+      const defaultProps = defaultPropsByBase[base] || {};
+      const mergedProps = { ...defaultProps, ...(block.props || {}) };
+      return { ...block, baseComponent: base, props: mergedProps };
     });
     return <ComponentRenderer layout={layout} />;
   }

@@ -1,109 +1,157 @@
 "use client";
 
+import styled from "styled-components";
+import { useRouter } from "next/navigation";
 import { Row, Col } from "antd";
-import {
-  FullWidthBackground,
-  getColor,
-  MainTitle,
-  PageContainer,
-  SubTitle,
-} from "@/styles/Theme";
+import { RightCircleFilled } from "@ant-design/icons";
+import { getColor, PageContainer, ThemeButton } from "@/styles/Theme";
+import CircularSlider from "@/components/site/CircularSlider";
 
 /**
- * Site component: HomeHero2 (Home Hero 2).
- * Section comes from ComponentRenderer. Props from theme/Component defaultProps.
- * Manage Section (background/padding) and Title & Colors come from EditForm.
+ * Hero section styling matching mescotrust home index (lines 50–84):
+ * background from Manage Section (image/color) or default image; h1 with icon + gradient span, paragraph, CTA button.
+ */
+const HomeContainer = styled.section`
+  width: 100%;
+  position: relative;
+  padding: 12% 0px 0% 0px;
+  ${(p) =>
+    p.$bgType === "color" && p.$bgColor
+      ? `background: ${p.$bgColor};`
+      : `background: transparent url(${p.$bgImage || "/images/hero_bg.png"}) no-repeat top center; background-size: contain;`}
+  h1 {
+    margin: 0px;
+    display: inline-block;
+    color: ${getColor("black")};
+    font-size: 48px;
+    line-height: 56px;
+    font-weight: 700;
+    @media (max-width: 768px) {
+      padding: 2% 0px 2% 0px;
+      font-size: 30px;
+      line-height: 40px;
+    }
+    @media (max-width: 576px) {
+      padding: 16% 0px 0% 0px;
+    }
+    em {
+      position: absolute;
+      margin-left: -36px;
+      margin-top: -10px;
+    }
+    span {
+      background: linear-gradient(90deg, #cf372f 0%, #691c18 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+  }
+  p {
+    color: ${getColor("black")};
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 400;
+    @media (max-width: 768px) {
+      font-size: 16px;
+      line-height: 24px;
+    }
+  }
+`;
+
+/**
+ * Site component: Home Hero 2.
+ * Matches mescotrust src/pages/index.js lines 50–84: hero title, subtitle, CTA button, CircularSlider.
+ * Props from theme/Component defaultProps; Manage Section and Title & Colors from EditForm.
  */
 export default function HomeHero2(props) {
-  const mainTitle = (props?.mainTitle ?? "Section Title").toString().trim();
-  const subTitle = (props?.subTitle ?? "Subtitle").toString().trim();
-  const titleColorKey = (props?.titleColorKey ?? "").toString().trim();
-  const titleColor = titleColorKey ? getColor(titleColorKey) : getColor("primary");
-
+  const mainTitle = (props?.mainTitle ?? "Because Every Learner")
+    .toString()
+    .trim();
+  const mainTitleHighlight = (props?.mainTitleHighlight ?? "Deserves Support")
+    .toString()
+    .trim();
+  const subTitle = (props?.subTitle ?? "").toString().trim();
+  const buttonText = (props?.buttonText ?? "Contact Us").toString().trim();
+  const buttonHref = (props?.buttonHref ?? "/").toString().trim();
+  const heroIconUrl = (props?.heroIconUrl ?? "/images/hero-icon.svg")
+    .toString()
+    .trim();
   const sectionBgType = (props?.homeHero2SectionBgType ?? "default").toString();
   const sectionBgImage = (props?.homeHero2SectionBgImage ?? "").toString().trim();
   const sectionBgColorKey = (props?.homeHero2SectionBgColorKey ?? "").toString().trim();
-  const sectionBgClassName = sectionBgType === "default" ? "defaultBackground" : undefined;
-  const sectionBgStyleBase =
+  const sectionBgColor = sectionBgType === "color" && sectionBgColorKey ? getColor(sectionBgColorKey) : undefined;
+  const heroBgImage =
     sectionBgType === "image" && sectionBgImage
+      ? sectionBgImage
+      : (props?.heroBgImageUrl ?? "/images/hero_bg.png").toString().trim();
+  const buttonBgColorKey = (props?.homeHero2ButtonBgColorKey ?? "").toString().trim();
+  const buttonTextColorKey = (props?.homeHero2ButtonTextColorKey ?? "").toString().trim();
+  const buttonStyle =
+    buttonBgColorKey || buttonTextColorKey
       ? {
-          backgroundImage: `url(${sectionBgImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center center",
-          backgroundRepeat: "no-repeat",
-        }
-      : sectionBgType === "color" && sectionBgColorKey
-        ? {
-            backgroundColor: getColor(sectionBgColorKey),
-            backgroundImage: "none",
-          }
-        : undefined;
-  const sectionPaddingTop = props?.homeHero2SectionPaddingTop != null ? Number(props.homeHero2SectionPaddingTop) : null;
-  const sectionPaddingBottom = props?.homeHero2SectionPaddingBottom != null ? Number(props.homeHero2SectionPaddingBottom) : null;
-  const sectionMarginTop = props?.homeHero2SectionMarginTop != null ? Number(props.homeHero2SectionMarginTop) : null;
-  const sectionMarginBottom = props?.homeHero2SectionMarginBottom != null ? Number(props.homeHero2SectionMarginBottom) : null;
-  const sectionBgStyle =
-    sectionBgStyleBase || sectionPaddingTop != null || sectionPaddingBottom != null || sectionMarginTop != null || sectionMarginBottom != null
-      ? {
-          ...(sectionBgStyleBase || {}),
-          ...(sectionPaddingTop != null && sectionPaddingTop >= 0 ? { paddingTop: `${sectionPaddingTop}px` } : {}),
-          ...(sectionPaddingBottom != null && sectionPaddingBottom >= 0 ? { paddingBottom: `${sectionPaddingBottom}px` } : {}),
-          ...(sectionMarginTop != null && sectionMarginTop >= 0 ? { marginTop: `${sectionMarginTop}px` } : {}),
-          ...(sectionMarginBottom != null && sectionMarginBottom >= 0 ? { marginBottom: `${sectionMarginBottom}px` } : {}),
+          ...(buttonBgColorKey ? { backgroundColor: getColor(buttonBgColorKey) } : {}),
+          ...(buttonTextColorKey ? { color: getColor(buttonTextColorKey) } : {}),
         }
       : undefined;
+  const sliderImages = Array.isArray(props?.homeHero2SliderImages)
+    ? props.homeHero2SliderImages.filter((s) => s && (s.src || s.url))
+    : [];
 
-  const pageContainerBgType = (props?.homeHero2PageContainerBgType ?? "default").toString();
-  const pageContainerBgImage = (props?.homeHero2PageContainerBgImage ?? "").toString().trim();
-  const pageContainerBgColorKey = (props?.homeHero2PageContainerBgColorKey ?? "").toString().trim();
-  const pageContainerBgStyleBase =
-    pageContainerBgType === "image" && pageContainerBgImage
-      ? {
-          backgroundImage: `url(${pageContainerBgImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }
-      : pageContainerBgType === "color" && pageContainerBgColorKey
-        ? {
-            backgroundColor: getColor(pageContainerBgColorKey),
-            backgroundImage: "none",
-          }
-        : undefined;
-  const containerPaddingTop = props?.homeHero2PageContainerPaddingTop != null ? Number(props.homeHero2PageContainerPaddingTop) : null;
-  const containerPaddingRight = props?.homeHero2PageContainerPaddingRight != null ? Number(props.homeHero2PageContainerPaddingRight) : null;
-  const containerPaddingBottom = props?.homeHero2PageContainerPaddingBottom != null ? Number(props.homeHero2PageContainerPaddingBottom) : null;
-  const containerPaddingLeft = props?.homeHero2PageContainerPaddingLeft != null ? Number(props.homeHero2PageContainerPaddingLeft) : null;
-  const containerMarginTop = props?.homeHero2PageContainerMarginTop != null ? Number(props.homeHero2PageContainerMarginTop) : null;
-  const containerMarginBottom = props?.homeHero2PageContainerMarginBottom != null ? Number(props.homeHero2PageContainerMarginBottom) : null;
-  const pageContainerBgStyle =
-    pageContainerBgStyleBase || containerPaddingTop != null || containerPaddingRight != null || containerPaddingBottom != null || containerPaddingLeft != null || containerMarginTop != null || containerMarginBottom != null
-      ? {
-          ...(pageContainerBgStyleBase || {}),
-          ...(containerPaddingTop != null && containerPaddingTop >= 0 ? { paddingTop: `${containerPaddingTop}px` } : {}),
-          ...(containerPaddingRight != null && containerPaddingRight >= 0 ? { paddingRight: `${containerPaddingRight}px` } : {}),
-          ...(containerPaddingBottom != null && containerPaddingBottom >= 0 ? { paddingBottom: `${containerPaddingBottom}px` } : {}),
-          ...(containerPaddingLeft != null && containerPaddingLeft >= 0 ? { paddingLeft: `${containerPaddingLeft}px` } : {}),
-          ...(containerMarginTop != null && containerMarginTop >= 0 ? { marginTop: `${containerMarginTop}px` } : {}),
-          ...(containerMarginBottom != null && containerMarginBottom >= 0 ? { marginBottom: `${containerMarginBottom}px` } : {}),
-        }
-      : undefined;
+  const router = useRouter();
+  const isExternal =
+    !buttonHref ||
+    buttonHref.startsWith("http") ||
+    buttonHref.startsWith("mailto:") ||
+    buttonHref.startsWith("tel:");
+  const onButtonClick = () => {
+    if (!buttonHref) return;
+    if (isExternal) window.location.href = buttonHref;
+    else router.push(buttonHref);
+  };
 
   return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-      <PageContainer style={pageContainerBgStyle}>
+    <HomeContainer
+      $bgType={sectionBgType}
+      $bgImage={sectionBgType === "image" ? heroBgImage : undefined}
+      $bgColor={sectionBgColor}
+    >
+      <PageContainer className="py-0">
         <Row gutter={[16, 16]}>
-          <Col span={24} className="mb-4">
-            <SubTitle>{subTitle}</SubTitle>
-            <MainTitle color={titleColor}>{mainTitle}</MainTitle>
+          <Col xs={24} className="text-center">
+            <h1>
+              <em>
+                <img
+                  src={heroIconUrl || "/images/hero-icon.svg"}
+                  alt="Hero Icon"
+                />
+              </em>
+              {mainTitle} <br /> <span>{mainTitleHighlight}</span>
+            </h1>
           </Col>
-        </Row>
-        <Row gutter={[16, 16]}>
-          <Col span={24}>
-            {/* Add your content here */}
+          <Col
+            xs={{ span: 24, offset: 0 }}
+            sm={{ span: 24, offset: 0 }}
+            md={{ span: 24, offset: 0 }}
+            lg={{ span: 12, offset: 6 }}
+            className="text-center"
+          >
+            {subTitle ? <p>{subTitle}</p> : null}
+          </Col>
+          <Col xs={24} className="text-center">
+            <ThemeButton type="button" size="large" onClick={onButtonClick} style={buttonStyle}>
+              {buttonText} <RightCircleFilled />
+            </ThemeButton>
           </Col>
         </Row>
       </PageContainer>
-    </FullWidthBackground>
+      {sliderImages.length > 0 ? (
+        <CircularSlider
+          images={sliderImages.map((s) => ({
+            src: s.src || s.url,
+            alt: s.alt != null ? String(s.alt) : "Slider",
+          }))}
+        />
+      ) : null}
+    </HomeContainer>
   );
 }

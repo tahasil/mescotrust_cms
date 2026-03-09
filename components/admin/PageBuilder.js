@@ -155,6 +155,26 @@ function getDefaultPropsForNewSiteComponent(componentId) {
       return { ...base, latestEvents1Items: [] };
     case "OverviewOfOurWork":
       return { ...base, overviewOfOurWorkItems: [] };
+    case "HomeHero2":
+      return {
+        ...base,
+        mainTitle: "Because Every Learner",
+        mainTitleHighlight: "Deserves Support",
+        subTitle:
+          "A community-powered initiative that brings donors, mentors, and resources together to help learners overcome barriers and continue their education—turning collective support into real opportunities.",
+        titleColorKey: "",
+        homeHero2ButtonBgColorKey: "",
+        homeHero2ButtonTextColorKey: "",
+        buttonText: "Contact Us",
+        buttonHref: "/",
+        heroIconUrl: "/images/hero-icon.svg",
+        homeHero2SliderImages: [
+          { src: "/images/slider-1.png", alt: "Slider Image 1" },
+          { src: "/images/slider-2.png", alt: "Slider Image 2" },
+          { src: "/images/slider-3.png", alt: "Slider Image 3" },
+          { src: "/images/slider-4.png", alt: "Slider Image 4" },
+        ],
+      };
     default:
       return base;
   }
