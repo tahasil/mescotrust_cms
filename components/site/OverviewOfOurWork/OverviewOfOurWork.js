@@ -23,6 +23,10 @@ const CardsWrapper = styled.div`
   --button-color: ${(p) => p.$buttonColor || getColor("white")};
   --hover-overlay-color: ${(p) =>
     p.$hoverOverlayColor || "rgba(207, 55, 47, 0.5)"};
+  --hover-overlay-opacity: ${(p) =>
+    typeof p.$hoverOverlayOpacity === "number" && p.$hoverOverlayOpacity >= 0 && p.$hoverOverlayOpacity <= 1
+      ? p.$hoverOverlayOpacity
+      : 0.5};
   .cardBackground {
     position: absolute;
     inset: 0;
@@ -43,7 +47,11 @@ const CardsWrapper = styled.div`
       content: "";
       position: absolute;
       inset: 0;
-      background: rgba(207, 55, 47, 0.5);
+      background: color-mix(
+        in srgb,
+        var(--hover-overlay-color) calc(var(--hover-overlay-opacity) * 100%),
+        transparent
+      );
       pointer-events: none;
     }
   }
@@ -91,7 +99,11 @@ const CardsWrapper = styled.div`
       }
     }
     &:hover {
-      border-color: var(--hover-overlay-color);
+      border-color: color-mix(
+        in srgb,
+        var(--hover-overlay-color) calc(var(--hover-overlay-opacity) * 100%),
+        transparent
+      );
       .cardBackground {
         opacity: 1;
       }
@@ -132,6 +144,10 @@ export default function OverviewOfOurWork(props) {
   const hoverColorKey = (props?.overviewOfOurWorkHoverColorKey ?? "")
     .toString()
     .trim();
+  const hoverOverlayOpacity =
+    props?.overviewOfOurWorkHoverOverlayOpacity != null
+      ? Math.min(1, Math.max(0, Number(props.overviewOfOurWorkHoverOverlayOpacity)))
+      : 0.5;
 
   const rawItems = props?.overviewOfOurWorkItems ?? props?.items;
   const cards = Array.isArray(rawItems)
@@ -140,6 +156,9 @@ export default function OverviewOfOurWork(props) {
         imageUrl: (it?.imageUrl ?? it?.image ?? "").toString().trim(),
         bgImageUrl: (it?.bgImageUrl ?? it?.bgImage ?? "").toString().trim(),
         link: (it?.link ?? it?.url ?? "/").toString().trim(),
+        linkText:
+          (it?.linkText ?? it?.buttonText ?? "").toString().trim() ||
+          "More Details",
         titleColorKey: (it?.titleColorKey ?? it?.cardTitleColorKey ?? "")
           .toString()
           .trim(),
@@ -314,6 +333,7 @@ export default function OverviewOfOurWork(props) {
           $cardBorderColor={cardBorderColor}
           $buttonColor={buttonColor}
           $hoverOverlayColor={hoverOverlayColor}
+          $hoverOverlayOpacity={hoverOverlayOpacity}
         >
           {cards.length === 0 ? (
             <div
@@ -375,7 +395,7 @@ export default function OverviewOfOurWork(props) {
                         icon={<ArrowRightOutlined />}
                         iconPosition="end"
                       >
-                        More Details
+                        {card.linkText}
                       </ThemeButton>
                     </Link>
                   </div>

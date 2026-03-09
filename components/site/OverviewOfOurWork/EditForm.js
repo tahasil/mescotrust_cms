@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, message, Spin, Collapse, Row, Col } from "antd";
+import { Form, Input, InputNumber, message, Spin, Collapse, Row, Col } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
@@ -17,6 +17,7 @@ function normalizeItem(it) {
     imageUrl: it?.imageUrl != null ? String(it.imageUrl).trim() : "",
     bgImageUrl: it?.bgImageUrl != null ? String(it.bgImageUrl).trim() : "",
     link: it?.link != null ? String(it.link).trim() : it?.url != null ? String(it.url).trim() : "",
+    linkText: (it?.linkText != null ? String(it.linkText).trim() : (it?.buttonText != null ? String(it.buttonText).trim() : "")) || "More Details",
     titleColorKey: it?.titleColorKey != null ? String(it.titleColorKey).trim() : it?.cardTitleColorKey != null ? String(it.cardTitleColorKey).trim() : "",
     icon: it?.icon != null ? String(it.icon).trim() : "",
   };
@@ -42,14 +43,13 @@ function OverviewOfOurWorkEditForm(
   useEffect(() => {
     if (themeColorOptionsProp?.length > 0) {
       setThemeColorOptions(themeColorOptionsProp);
+      return;
     }
-    if (themeColorOptionsProp?.length > 0 && isPageBlock) return;
-    if (themeFetchedForColorsRef.current && isPageBlock) return;
+    if (themeFetchedForColorsRef.current) return;
     themeFetchedForColorsRef.current = true;
     fetch("/api/theme", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : {}))
       .then((theme) => {
-        if (themeColorOptionsProp?.length > 0) return;
         const palette = theme?.themePalette || {};
         const custom = Array.isArray(theme?.colors) ? theme.colors : [];
         const names = [...new Set([...Object.keys(palette), ...custom.map((c) => c?.name).filter(Boolean)])].sort();
@@ -76,9 +76,14 @@ function OverviewOfOurWorkEditForm(
         const v = data?.[item.name];
         titleColorValues[item.name] = v != null ? String(v).trim() : "";
       });
+      const hoverOpacity =
+        data?.overviewOfOurWorkHoverOverlayOpacity != null
+          ? Math.min(1, Math.max(0, Number(data.overviewOfOurWorkHoverOverlayOpacity)))
+          : 0.5;
       form.setFieldsValue({
         ...getManageSectionInitialValues(PREFIX, data),
         ...titleColorValues,
+        overviewOfOurWorkHoverOverlayOpacity: hoverOpacity,
         overviewOfOurWorkItems: items.length > 0 ? items : [normalizeItem({})],
       });
       if (theme) {
@@ -129,9 +134,13 @@ function OverviewOfOurWorkEditForm(
         const v = values[item.name];
         titleColorPayload[item.name] = v != null ? String(v).trim() : "";
       });
+      const opacityVal = values.overviewOfOurWorkHoverOverlayOpacity;
+      const hoverOverlayOpacity =
+        opacityVal != null ? Math.min(1, Math.max(0, Number(opacityVal))) : 0.5;
       const payload = {
         ...getManageSectionPayload(PREFIX, values),
         ...titleColorPayload,
+        overviewOfOurWorkHoverOverlayOpacity: hoverOverlayOpacity,
         overviewOfOurWorkItems: items,
       };
       if (isPageBlock && onSaveToPage) {
@@ -182,11 +191,27 @@ function OverviewOfOurWorkEditForm(
             key: "title-colors",
             label: "Title & Colors",
             children: (
-              <TitleAndColorsSection
-                form={form}
-                themeColorOptions={themeColorOptions}
-                {...getTitleAndColorsConfig("OverviewOfOurWork")}
-              />
+              <>
+                <TitleAndColorsSection
+                  form={form}
+                  themeColorOptions={themeColorOptions}
+                  {...getTitleAndColorsConfig("OverviewOfOurWork")}
+                />
+                <Form.Item
+                  name="overviewOfOurWorkHoverOverlayOpacity"
+                  label="Hover overlay opacity"
+                  tooltip="Opacity for card hover overlay (0–1). Default 0.5."
+                  style={{ marginTop: 16 }}
+                >
+                  <InputNumber
+                    min={0}
+                    max={1}
+                    step={0.1}
+                    placeholder="0.5"
+                    style={{ width: "100%" }}
+                  />
+                </Form.Item>
+              </>
             ),
           },
           {
@@ -200,8 +225,8 @@ function OverviewOfOurWorkEditForm(
                     add={add}
                     remove={remove}
                     move={move}
-                    itemLabel="Card"
-                    addButtonText="Add card"
+                    itemLabel="Item"
+                    addButtonText="Add item"
                     defaultAddPayload={normalizeItem({})}
                     reorderMovedIndex={reorderMovedIndex}
                     reorderDirection={reorderDirection}
@@ -218,13 +243,18 @@ function OverviewOfOurWorkEditForm(
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "bgImageUrl"]} label="Card background image URL">
-                            <Input placeholder="https://... or /images/..." />
+                          <Form.Item {...restField} name={[name, "linkText"]} label="Link text">
+                            <Input placeholder="e.g. More Details, Learn More" />
                           </Form.Item>
                         </Col>
                         <Col span={24}>
                           <Form.Item {...restField} name={[name, "link"]} label="Link URL">
                             <Input placeholder="/page or https://..." />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "bgImageUrl"]} label="Background (Image URL)">
+                            <Input placeholder="https://... or /images/..." />
                           </Form.Item>
                         </Col>
                         <Col span={24}>
