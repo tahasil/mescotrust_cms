@@ -28,10 +28,14 @@ export const HeaderWrapper = styled.header`
   right: 0;
   width: 100%;
   background: ${(props) => {
-    if (props.$sectionBg && String(props.$sectionBg).trim()) return props.$sectionBg;
+    if (props.$sectionBg && String(props.$sectionBg).trim())
+      return props.$sectionBg;
     return props.$preview ? "rgba(255, 255, 255, 0.98)" : "transparent";
   }};
-  padding: ${(props) => (props.$sectionPadding && String(props.$sectionPadding).trim() ? props.$sectionPadding : "16px 0")};
+  padding: ${(props) =>
+    props.$sectionPadding && String(props.$sectionPadding).trim()
+      ? props.$sectionPadding
+      : "16px 0"};
   z-index: ${(props) => (props.$preview ? 0 : 1000)};
   transition:
     background 0.25s ease,
@@ -49,13 +53,13 @@ export const HeaderWrapper = styled.header`
       ? `box-shadow: ${props.$sectionShadow};`
       : ""}
   @media (max-width: ${BREAKPOINT}) {
-    padding: ${(props) => (props.$sectionPadding && String(props.$sectionPadding).trim() ? props.$sectionPadding : "12px 0")};
+    padding: ${(props) =>
+      props.$sectionPadding && String(props.$sectionPadding).trim()
+        ? props.$sectionPadding
+        : "12px 0"};
   }
   &.is-scrolled {
-    background: ${(props) =>
-      props.$sectionBg && String(props.$sectionBg).trim()
-        ? props.$sectionBg
-        : "rgba(255, 255, 255, 0.8)"};
+    background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(8px);
     box-shadow: ${(props) =>
       props.$sectionShadow && String(props.$sectionShadow).trim()

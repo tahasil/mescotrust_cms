@@ -7,6 +7,7 @@ import Sider from "antd/es/layout/Sider";
 const ButtonWrapper = (props) => <Button {...props} />;
 const CardWrapper = (props) => <Card {...props} />;
 const ModalWrapper = (props) => <Modal {...props} />;
+const SiderWrapper = (props) => <Sider {...props} />;
 export const BREAKPOINT = "992px";
 /** Space needed so content starts below the fixed header (desktop: top offset + bar height) */
 export const HEADER_OFFSET_DESKTOP = "88px";
@@ -394,7 +395,7 @@ export const ThemeModal = styled(ModalWrapper)`
   }
 `;
 
-export const ThemeSider = styled(Sider)`
+export const ThemeSider = styled(SiderWrapper)`
   background: #fff;
   box-shadow: 5px 0 15px rgba(0, 0, 0, 0.04);
   height: 100vh;
