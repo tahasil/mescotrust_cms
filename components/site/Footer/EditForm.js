@@ -20,6 +20,7 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
   const [themeColorOptions, setThemeColorOptions] = useState([]);
   const [initialData, setInitialData] = useState(null);
   const themeFetchedForColorsRef = useRef(false);
+  const componentDataLoadedRef = useRef(false);
   const isPageBlock = source === "page";
 
   useEffect(() => {
@@ -59,6 +60,11 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
       }
       return;
     }
+    if (componentDataLoadedRef.current) {
+      setLoading(false);
+      return;
+    }
+    componentDataLoadedRef.current = true;
     setInitialData(null);
     Promise.all([
       fetch("/api/theme/footer", { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),

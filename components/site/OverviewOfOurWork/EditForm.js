@@ -38,6 +38,7 @@ function OverviewOfOurWorkEditForm(
   const [reorderMovedIndex, setReorderMovedIndex] = useState(-1);
   const [reorderDirection, setReorderDirection] = useState("up");
   const themeFetchedForColorsRef = useRef(false);
+  const componentDataLoadedRef = useRef(false);
   const isPageBlock = source === "page";
 
   useEffect(() => {
@@ -110,6 +111,12 @@ function OverviewOfOurWorkEditForm(
       return;
     }
 
+    // Only fetch once per mount for component (non-page) path to avoid /api/theme loop
+    if (componentDataLoadedRef.current) {
+      setLoading(false);
+      return;
+    }
+    componentDataLoadedRef.current = true;
     Promise.all([
       fetch(API_PATH, { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
       fetch("/api/theme", { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),

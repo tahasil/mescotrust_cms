@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import { Form, Input, message, Spin, Collapse } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
@@ -20,6 +20,7 @@ function HomeHero2EditForm({ source, initialData: initialDataProp, onSaveToPage,
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [themeColorOptions, setThemeColorOptions] = useState(themeColorOptionsProp);
+  const themeFetchedForColorsRef = useRef(false);
   const isPageBlock = source === "page";
 
   useEffect(() => {
@@ -27,6 +28,8 @@ function HomeHero2EditForm({ source, initialData: initialDataProp, onSaveToPage,
       setThemeColorOptions(themeColorOptionsProp);
       return;
     }
+    if (themeFetchedForColorsRef.current) return;
+    themeFetchedForColorsRef.current = true;
     fetch("/api/theme", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : {}))
       .then((theme) => {

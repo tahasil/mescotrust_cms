@@ -62,6 +62,7 @@ function HeaderEditForm(
   const [themeColorOptions, setThemeColorOptions] = useState([]);
   const [themePaletteKeyOptions, setThemePaletteKeyOptions] = useState([]);
   const lastLoadedNavItemsRef = useRef(null);
+  const themeLoadedOnceRef = useRef(false);
   const isPageBlock = source === "page";
 
   const THEME_COLOR_KEY_FIELDS = ["headerCtaBgColorKey", "headerCtaTextColorKey", "headerDonateBgColorKey", "headerDonateTextColorKey"];
@@ -80,6 +81,11 @@ function HeaderEditForm(
       setLoading(false);
       return;
     }
+    if (themeLoadedOnceRef.current) {
+      setLoading(false);
+      return;
+    }
+    themeLoadedOnceRef.current = true;
     fetch("/api/theme")
       .then((r) => (r.ok ? r.json() : {}))
       .then((theme) => {

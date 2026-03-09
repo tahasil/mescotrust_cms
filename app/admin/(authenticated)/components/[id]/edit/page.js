@@ -520,9 +520,12 @@ export default function AdminComponentEditPage() {
       "Testimonials",
     ].includes(record.componentId);
 
-  // Load theme for dynamic components (e.g. OverviewOfOurWork) so preview gets Manage Section props
+  // Load theme for dynamic components (e.g. OverviewOfOurWork) so preview gets Manage Section props — once per component
+  const themeFetchedForDynamicRef = useRef(null);
   useEffect(() => {
-    if (!isDynamicComponent) return;
+    if (!isDynamicComponent || !record?.componentId) return;
+    if (themeFetchedForDynamicRef.current === record.componentId) return;
+    themeFetchedForDynamicRef.current = record.componentId;
     setThemeLoading(true);
     fetch("/api/theme", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : {}))
