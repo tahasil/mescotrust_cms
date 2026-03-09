@@ -24,7 +24,9 @@ const CardsWrapper = styled.div`
   --hover-overlay-color: ${(p) =>
     p.$hoverOverlayColor || "rgba(207, 55, 47, 0.5)"};
   --hover-overlay-opacity: ${(p) =>
-    typeof p.$hoverOverlayOpacity === "number" && p.$hoverOverlayOpacity >= 0 && p.$hoverOverlayOpacity <= 1
+    typeof p.$hoverOverlayOpacity === "number" &&
+    p.$hoverOverlayOpacity >= 0 &&
+    p.$hoverOverlayOpacity <= 1
       ? p.$hoverOverlayOpacity
       : 0.5};
   .cardBackground {
@@ -158,7 +160,10 @@ export default function OverviewOfOurWork(props) {
     .trim();
   const hoverOverlayOpacity =
     props?.overviewOfOurWorkHoverOverlayOpacity != null
-      ? Math.min(1, Math.max(0, Number(props.overviewOfOurWorkHoverOverlayOpacity)))
+      ? Math.min(
+          1,
+          Math.max(0, Number(props.overviewOfOurWorkHoverOverlayOpacity)),
+        )
       : 0.5;
 
   const rawItems = props?.overviewOfOurWorkItems ?? props?.items;
@@ -360,8 +365,18 @@ export default function OverviewOfOurWork(props) {
           ) : (
             <Row gutter={[16, 16]} style={{ alignItems: "stretch" }}>
               {cards.map((card, i) => (
-                <Col key={i} xs={24} sm={12} md={12} lg={6} style={{ display: "flex", flexDirection: "column" }}>
-                  <div className="innerCardBox text-center" style={{ width: "100%", flex: 1 }}>
+                <Col
+                  key={i}
+                  xs={24}
+                  sm={12}
+                  md={12}
+                  lg={6}
+                  style={{ display: "flex", flexDirection: "column" }}
+                >
+                  <div
+                    className="innerCardBox text-center"
+                    style={{ width: "100%", flex: 1 }}
+                  >
                     <div className="cardBackground">
                       {card.bgImageUrl ? (
                         <img src={card.bgImageUrl} alt="" aria-hidden />

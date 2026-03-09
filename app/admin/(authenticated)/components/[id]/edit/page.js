@@ -31,7 +31,10 @@ import { ThemeAdminCard } from "@/styles/Theme";
 import dynamic from "next/dynamic";
 import * as SiteComponents from "@/components/site";
 import { EDITABLE_SITE_EDIT_FORMS } from "@/components/site";
-import { getManageSectionSnapshot, MANAGE_SECTION_PREFIX_BY_COMPONENT_ID } from "@/lib/manageSectionFields";
+import {
+  getManageSectionSnapshot,
+  MANAGE_SECTION_PREFIX_BY_COMPONENT_ID,
+} from "@/lib/manageSectionFields";
 
 const HeaderPreview = dynamic(() => import("@/components/site/Header"), {
   ssr: false,
@@ -159,7 +162,10 @@ export default function AdminComponentEditPage() {
           _sectionBorderStyle: theme._sectionBorderStyle ?? "",
           _sectionBorderColor: theme._sectionBorderColor ?? "",
           _sectionShadow: theme._sectionShadow ?? "",
-          ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Header, theme),
+          ...getManageSectionSnapshot(
+            MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Header,
+            theme,
+          ),
         });
         const names = [
           ...new Set([
@@ -220,7 +226,10 @@ export default function AdminComponentEditPage() {
           footerBackgroundImageUrl: theme.footerBackgroundImageUrl ?? "",
           footerTextColorKey: theme.footerTextColorKey ?? "",
           footerCopyrightBarColorKey: theme.footerCopyrightBarColorKey ?? "",
-          ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Footer, theme),
+          ...getManageSectionSnapshot(
+            MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Footer,
+            theme,
+          ),
         });
         const names = [
           ...new Set([
@@ -315,9 +324,16 @@ export default function AdminComponentEditPage() {
           homeHeroAutoplay: theme?.homeHeroAutoplay ?? true,
           homeHeroShowArrows: theme?.homeHeroShowArrows ?? true,
           homeHeroShowDots: theme?.homeHeroShowDots ?? true,
-          homeHeroAutoplaySpeed: theme?.homeHeroAutoplaySpeed != null ? Number(theme.homeHeroAutoplaySpeed) : 5000,
-          homeHeroSpeed: theme?.homeHeroSpeed != null ? Number(theme.homeHeroSpeed) : 500,
-          ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.HomeHero, theme),
+          homeHeroAutoplaySpeed:
+            theme?.homeHeroAutoplaySpeed != null
+              ? Number(theme.homeHeroAutoplaySpeed)
+              : 5000,
+          homeHeroSpeed:
+            theme?.homeHeroSpeed != null ? Number(theme.homeHeroSpeed) : 500,
+          ...getManageSectionSnapshot(
+            MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.HomeHero,
+            theme,
+          ),
         });
       })
       .catch(() => message.error("Failed to load theme"))
@@ -344,8 +360,14 @@ export default function AdminComponentEditPage() {
         setThemeMarqueeSnapshot({
           marqueeTitle: title,
           marqueeItems: items,
-          marqueeTitleColorKey: theme?.marqueeTitleColorKey != null ? String(theme.marqueeTitleColorKey).trim() : "",
-          ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Marquee, theme),
+          marqueeTitleColorKey:
+            theme?.marqueeTitleColorKey != null
+              ? String(theme.marqueeTitleColorKey).trim()
+              : "",
+          ...getManageSectionSnapshot(
+            MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Marquee,
+            theme,
+          ),
         });
         form.setFieldsValue({ marqueeTitle: title, marqueeItems: items });
       })
@@ -397,7 +419,10 @@ export default function AdminComponentEditPage() {
             data?.latestEvents1ButtonColorKey != null
               ? String(data.latestEvents1ButtonColorKey).trim()
               : "",
-          ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.LatestEvents1, data),
+          ...getManageSectionSnapshot(
+            MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.LatestEvents1,
+            data,
+          ),
         });
       })
       .catch(() => message.error("Failed to load Latest Events"))
@@ -421,7 +446,10 @@ export default function AdminComponentEditPage() {
             }))
           : [];
         setThemeTestimonialsSnapshot({
-          ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Testimonials, data),
+          ...getManageSectionSnapshot(
+            MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Testimonials,
+            data,
+          ),
           testimonialsTitle:
             data?.testimonialsTitle != null
               ? String(data.testimonialsTitle).trim()
@@ -443,9 +471,12 @@ export default function AdminComponentEditPage() {
               ? String(data.testimonialsRatingColorKey).trim()
               : "",
           testimonialsTitleEnabled: data?.testimonialsTitleEnabled !== false,
-          testimonialsNameColorEnabled: data?.testimonialsNameColorEnabled === true,
-          testimonialsRoleColorEnabled: data?.testimonialsRoleColorEnabled === true,
-          testimonialsRatingColorEnabled: data?.testimonialsRatingColorEnabled === true,
+          testimonialsNameColorEnabled:
+            data?.testimonialsNameColorEnabled === true,
+          testimonialsRoleColorEnabled:
+            data?.testimonialsRoleColorEnabled === true,
+          testimonialsRatingColorEnabled:
+            data?.testimonialsRatingColorEnabled === true,
           testimonialsAutoplay: data?.testimonialsAutoplay ?? false,
           testimonialsAutoplaySpeed:
             data?.testimonialsAutoplaySpeed != null
@@ -634,9 +665,7 @@ export default function AdminComponentEditPage() {
             flexWrap: "wrap",
           }}
         >
-          <span style={{ fontSize: 14, color: "#666" }}>
-            Show on all pages
-          </span>
+          <span style={{ fontSize: 14, color: "#666" }}>Show on all pages</span>
           <Form.Item name="global" noStyle valuePropName="checked">
             <Switch />
           </Form.Item>
@@ -676,7 +705,6 @@ export default function AdminComponentEditPage() {
       }
     >
       <Form form={form} layout="vertical">
-
         {isHeader && (
           <>
             {themeLoading ? (
@@ -685,7 +713,6 @@ export default function AdminComponentEditPage() {
               </div>
             ) : (
               <>
-                <Divider />
                 <HeaderPreviewBlock
                   form={form}
                   themePaletteData={themePaletteData}
@@ -722,7 +749,6 @@ export default function AdminComponentEditPage() {
               </div>
             ) : (
               <>
-                <Divider />
                 <HomeHeroPreviewBlock
                   form={form}
                   slides={themeHomeHeroSnapshot?.homeHeroSlides ?? []}
@@ -742,7 +768,6 @@ export default function AdminComponentEditPage() {
               </div>
             ) : (
               <>
-                <Divider />
                 {SiteComponents.Marquee ? (
                   <SiteComponents.Marquee
                     {...themeMarqueeSnapshot}
@@ -767,7 +792,6 @@ export default function AdminComponentEditPage() {
               </div>
             ) : (
               <>
-                <Divider />
                 {SiteComponents.Subscribe ? (
                   <SiteComponents.Subscribe
                     {...(themeSubscribeSnapshot || {})}
@@ -790,7 +814,6 @@ export default function AdminComponentEditPage() {
               </div>
             ) : (
               <>
-                <Divider />
                 {SiteComponents.LatestEvents1 ? (
                   <SiteComponents.LatestEvents1
                     {...(themeLatestEvents1Snapshot || {})}
@@ -813,7 +836,6 @@ export default function AdminComponentEditPage() {
               </div>
             ) : (
               <>
-                <Divider />
                 {SiteComponents.Testimonials ? (
                   <SiteComponents.Testimonials
                     {...(themeTestimonialsSnapshot || {})}
@@ -901,7 +923,10 @@ export default function AdminComponentEditPage() {
                     _sectionBorderStyle: theme._sectionBorderStyle ?? "",
                     _sectionBorderColor: theme._sectionBorderColor ?? "",
                     _sectionShadow: theme._sectionShadow ?? "",
-                    ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Header, theme),
+                    ...getManageSectionSnapshot(
+                      MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Header,
+                      theme,
+                    ),
                   });
                 } else if (cid === "Footer") {
                   setThemeFooterSnapshot({
@@ -922,7 +947,10 @@ export default function AdminComponentEditPage() {
                     footerTextColorKey: theme.footerTextColorKey ?? "",
                     footerCopyrightBarColorKey:
                       theme.footerCopyrightBarColorKey ?? "",
-                    ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Footer, theme),
+                    ...getManageSectionSnapshot(
+                      MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Footer,
+                      theme,
+                    ),
                   });
                 } else if (cid === "HomeHero") {
                   const slides = Array.isArray(theme?.homeHeroSlides)
@@ -968,9 +996,18 @@ export default function AdminComponentEditPage() {
                     homeHeroAutoplay: theme?.homeHeroAutoplay ?? true,
                     homeHeroShowArrows: theme?.homeHeroShowArrows ?? true,
                     homeHeroShowDots: theme?.homeHeroShowDots ?? true,
-                    homeHeroAutoplaySpeed: theme?.homeHeroAutoplaySpeed != null ? Number(theme.homeHeroAutoplaySpeed) : 5000,
-                    homeHeroSpeed: theme?.homeHeroSpeed != null ? Number(theme.homeHeroSpeed) : 500,
-                    ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.HomeHero, theme),
+                    homeHeroAutoplaySpeed:
+                      theme?.homeHeroAutoplaySpeed != null
+                        ? Number(theme.homeHeroAutoplaySpeed)
+                        : 5000,
+                    homeHeroSpeed:
+                      theme?.homeHeroSpeed != null
+                        ? Number(theme.homeHeroSpeed)
+                        : 500,
+                    ...getManageSectionSnapshot(
+                      MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.HomeHero,
+                      theme,
+                    ),
                   });
                 } else if (cid === "Marquee") {
                   setThemeMarqueeSnapshot({
@@ -984,8 +1021,14 @@ export default function AdminComponentEditPage() {
                           alt: it?.alt ?? "",
                         }))
                       : [],
-                    marqueeTitleColorKey: theme?.marqueeTitleColorKey != null ? String(theme.marqueeTitleColorKey).trim() : "",
-                    ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Marquee, theme),
+                    marqueeTitleColorKey:
+                      theme?.marqueeTitleColorKey != null
+                        ? String(theme.marqueeTitleColorKey).trim()
+                        : "",
+                    ...getManageSectionSnapshot(
+                      MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Marquee,
+                      theme,
+                    ),
                   });
                 } else if (cid === "Subscribe") {
                   setThemeSubscribeSnapshot({
@@ -1001,7 +1044,10 @@ export default function AdminComponentEditPage() {
                       theme.subscribeButtonBgColorKey ?? "",
                     subscribeButtonTextColorKey:
                       theme.subscribeButtonTextColorKey ?? "",
-                    ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Subscribe, theme),
+                    ...getManageSectionSnapshot(
+                      MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Subscribe,
+                      theme,
+                    ),
                   });
                 } else if (cid === "LatestEvents1") {
                   const items = Array.isArray(theme?.latestEvents1Items)
@@ -1048,13 +1094,15 @@ export default function AdminComponentEditPage() {
                       theme?.latestEvents1ButtonColorKey != null
                         ? String(theme.latestEvents1ButtonColorKey).trim()
                         : "",
-                    ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.LatestEvents1, theme),
+                    ...getManageSectionSnapshot(
+                      MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.LatestEvents1,
+                      theme,
+                    ),
                   });
                 } else if (cid === "Testimonials") {
                   const items = Array.isArray(theme?.testimonialsItems)
                     ? theme.testimonialsItems.map((it) => ({
-                        quote:
-                          it?.quote != null ? String(it.quote).trim() : "",
+                        quote: it?.quote != null ? String(it.quote).trim() : "",
                         imageUrl:
                           it?.imageUrl != null
                             ? String(it.imageUrl).trim()
@@ -1068,7 +1116,10 @@ export default function AdminComponentEditPage() {
                       }))
                     : [];
                   setThemeTestimonialsSnapshot({
-                    ...getManageSectionSnapshot(MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Testimonials, theme),
+                    ...getManageSectionSnapshot(
+                      MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Testimonials,
+                      theme,
+                    ),
                     testimonialsTitle:
                       theme?.testimonialsTitle != null
                         ? String(theme.testimonialsTitle).trim()
@@ -1089,10 +1140,14 @@ export default function AdminComponentEditPage() {
                       theme?.testimonialsRatingColorKey != null
                         ? String(theme.testimonialsRatingColorKey).trim()
                         : "",
-                    testimonialsTitleEnabled: theme?.testimonialsTitleEnabled !== false,
-                    testimonialsNameColorEnabled: theme?.testimonialsNameColorEnabled === true,
-                    testimonialsRoleColorEnabled: theme?.testimonialsRoleColorEnabled === true,
-                    testimonialsRatingColorEnabled: theme?.testimonialsRatingColorEnabled === true,
+                    testimonialsTitleEnabled:
+                      theme?.testimonialsTitleEnabled !== false,
+                    testimonialsNameColorEnabled:
+                      theme?.testimonialsNameColorEnabled === true,
+                    testimonialsRoleColorEnabled:
+                      theme?.testimonialsRoleColorEnabled === true,
+                    testimonialsRatingColorEnabled:
+                      theme?.testimonialsRatingColorEnabled === true,
                     testimonialsAutoplay: theme?.testimonialsAutoplay ?? false,
                     testimonialsAutoplaySpeed:
                       theme?.testimonialsAutoplaySpeed != null
@@ -1105,7 +1160,8 @@ export default function AdminComponentEditPage() {
                       theme?.testimonialsSpeed != null
                         ? Number(theme.testimonialsSpeed)
                         : 400,
-                    testimonialsDraggable: theme?.testimonialsDraggable ?? false,
+                    testimonialsDraggable:
+                      theme?.testimonialsDraggable ?? false,
                     testimonialsInfinite: theme?.testimonialsInfinite !== false,
                     testimonialsSlidesDesktop:
                       theme?.testimonialsSlidesDesktop != null
@@ -1148,13 +1204,14 @@ export default function AdminComponentEditPage() {
           !isTestimonials &&
           record?.componentId && (
             <>
-              <Divider />
               <>
                 {SiteComponents[record.componentId] ? (
                   <>
                     {(() => {
                       const Comp = SiteComponents[record.componentId];
-                      return Comp ? <Comp {...themeSnapshotForDynamic} /> : null;
+                      return Comp ? (
+                        <Comp {...themeSnapshotForDynamic} />
+                      ) : null;
                     })()}
                   </>
                 ) : (

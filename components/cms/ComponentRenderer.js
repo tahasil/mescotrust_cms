@@ -107,6 +107,42 @@ const SECTION_PROPS = [
   "_sectionShadow",
 ];
 
+/** Legacy: AwardsRecognition was renamed to OverviewOfOurWork. Map old prop keys to new. */
+const AWARDS_TO_OVERVIEW_PROP_KEYS = {
+  awardsRecognitionItems: "overviewOfOurWorkItems",
+  awardsRecognitionSectionBgType: "overviewOfOurWorkSectionBgType",
+  awardsRecognitionSectionBgImage: "overviewOfOurWorkSectionBgImage",
+  awardsRecognitionSectionBgColorKey: "overviewOfOurWorkSectionBgColorKey",
+  awardsRecognitionSectionPaddingTop: "overviewOfOurWorkSectionPaddingTop",
+  awardsRecognitionSectionPaddingBottom: "overviewOfOurWorkSectionPaddingBottom",
+  awardsRecognitionSectionMarginTop: "overviewOfOurWorkSectionMarginTop",
+  awardsRecognitionSectionMarginBottom: "overviewOfOurWorkSectionMarginBottom",
+  awardsRecognitionPageContainerBgType: "overviewOfOurWorkPageContainerBgType",
+  awardsRecognitionPageContainerBgImage: "overviewOfOurWorkPageContainerBgImage",
+  awardsRecognitionPageContainerBgColorKey: "overviewOfOurWorkPageContainerBgColorKey",
+  awardsRecognitionPageContainerPaddingTop: "overviewOfOurWorkPageContainerPaddingTop",
+  awardsRecognitionPageContainerPaddingRight: "overviewOfOurWorkPageContainerPaddingRight",
+  awardsRecognitionPageContainerPaddingBottom: "overviewOfOurWorkPageContainerPaddingBottom",
+  awardsRecognitionPageContainerPaddingLeft: "overviewOfOurWorkPageContainerPaddingLeft",
+  awardsRecognitionPageContainerMarginTop: "overviewOfOurWorkPageContainerMarginTop",
+  awardsRecognitionPageContainerMarginBottom: "overviewOfOurWorkPageContainerMarginBottom",
+  awardsRecognitionCardTitleColorKey: "overviewOfOurWorkCardTitleColorKey",
+  awardsRecognitionCardBorderColorKey: "overviewOfOurWorkCardBorderColorKey",
+  awardsRecognitionButtonColorKey: "overviewOfOurWorkButtonColorKey",
+  awardsRecognitionHoverColorKey: "overviewOfOurWorkHoverColorKey",
+};
+
+function normalizePropsForOverviewOfOurWork(props) {
+  if (!props || typeof props !== "object") return props;
+  const out = { ...props };
+  for (const [oldK, newK] of Object.entries(AWARDS_TO_OVERVIEW_PROP_KEYS)) {
+    if (oldK in out && !(newK in out)) {
+      out[newK] = out[oldK];
+    }
+  }
+  return out;
+}
+
 /** Site components that must not be wrapped in PageContainer so their background can be full viewport width. */
 const FULL_BLEED_SITE_COMPONENTS = ["HomeHero", "Marquee", "Subscribe"];
 
@@ -160,14 +196,18 @@ export default function ComponentRenderer({
   const content = (
     <div className="cms-layout">
       {sorted.map((block) => {
-        const baseComponent =
+        let baseComponent =
           block.baseComponent ||
           (block.componentId &&
             typeof block.componentId === "object" &&
             block.componentId.baseComponent) ||
           "Paragraph";
+        let allProps = block.props || {};
+        if (baseComponent === "AwardsRecognition") {
+          baseComponent = "OverviewOfOurWork";
+          allProps = normalizePropsForOverviewOfOurWork(allProps);
+        }
         const Component = COMPONENT_MAP[baseComponent];
-        const allProps = block.props || {};
         const key =
           block.instanceId ||
           block._id?.toString() ||

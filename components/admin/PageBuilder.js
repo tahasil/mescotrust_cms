@@ -164,6 +164,39 @@ function generateId() {
   return "block_" + Math.random().toString(36).slice(2, 11);
 }
 
+/** Legacy: normalize AwardsRecognition block props so OverviewOfOurWork EditForm can read them. */
+const AWARDS_TO_OVERVIEW_KEYS = {
+  awardsRecognitionItems: "overviewOfOurWorkItems",
+  awardsRecognitionSectionBgType: "overviewOfOurWorkSectionBgType",
+  awardsRecognitionSectionBgImage: "overviewOfOurWorkSectionBgImage",
+  awardsRecognitionSectionBgColorKey: "overviewOfOurWorkSectionBgColorKey",
+  awardsRecognitionSectionPaddingTop: "overviewOfOurWorkSectionPaddingTop",
+  awardsRecognitionSectionPaddingBottom: "overviewOfOurWorkSectionPaddingBottom",
+  awardsRecognitionSectionMarginTop: "overviewOfOurWorkSectionMarginTop",
+  awardsRecognitionSectionMarginBottom: "overviewOfOurWorkSectionMarginBottom",
+  awardsRecognitionPageContainerBgType: "overviewOfOurWorkPageContainerBgType",
+  awardsRecognitionPageContainerBgImage: "overviewOfOurWorkPageContainerBgImage",
+  awardsRecognitionPageContainerBgColorKey: "overviewOfOurWorkPageContainerBgColorKey",
+  awardsRecognitionPageContainerPaddingTop: "overviewOfOurWorkPageContainerPaddingTop",
+  awardsRecognitionPageContainerPaddingRight: "overviewOfOurWorkPageContainerPaddingRight",
+  awardsRecognitionPageContainerPaddingBottom: "overviewOfOurWorkPageContainerPaddingBottom",
+  awardsRecognitionPageContainerPaddingLeft: "overviewOfOurWorkPageContainerPaddingLeft",
+  awardsRecognitionPageContainerMarginTop: "overviewOfOurWorkPageContainerMarginTop",
+  awardsRecognitionPageContainerMarginBottom: "overviewOfOurWorkPageContainerMarginBottom",
+  awardsRecognitionCardTitleColorKey: "overviewOfOurWorkCardTitleColorKey",
+  awardsRecognitionCardBorderColorKey: "overviewOfOurWorkCardBorderColorKey",
+  awardsRecognitionButtonColorKey: "overviewOfOurWorkButtonColorKey",
+  awardsRecognitionHoverColorKey: "overviewOfOurWorkHoverColorKey",
+};
+function normalizeAwardsBlockPropsToOverview(props) {
+  if (!props || typeof props !== "object") return props;
+  const out = { ...props };
+  for (const [oldK, newK] of Object.entries(AWARDS_TO_OVERVIEW_KEYS)) {
+    if (oldK in out && !(newK in out)) out[newK] = out[oldK];
+  }
+  return out;
+}
+
 // ─── Component Categories ───────────────────────────────────
 
 const CATEGORY_META = {
@@ -1345,7 +1378,7 @@ function AddBlockButton({ onClick, dropIndex, isOver }) {
 
 // ─── Component Palette Item (draggable onto canvas) ─────────────────────────────────
 
-function ComponentPaletteItem({ comp, onAdd, index }) {
+function ComponentPaletteItem({ comp, onAdd, index, loading = false }) {
   const icon = BLOCK_ICON_MAP[comp.baseComponent] || <AppstoreOutlined />;
   const catKey = comp.category || "content";
   const catMeta = CATEGORY_META[catKey] || CATEGORY_META.content;
@@ -1360,17 +1393,17 @@ function ComponentPaletteItem({ comp, onAdd, index }) {
       ref={setNodeRef}
       {...attributes}
       {...listeners}
-      onClick={() => onAdd(comp)}
+      onClick={() => !loading && onAdd(comp)}
       style={{
         display: "flex",
         alignItems: "center",
         gap: 10,
         padding: "10px 12px",
-        cursor: isDragging ? "grabbing" : "grab",
+        cursor: loading ? "wait" : isDragging ? "grabbing" : "grab",
         borderRadius: 8,
         transition: "background 0.15s, box-shadow 0.15s",
         border: "1px solid transparent",
-        opacity: isDragging ? 0.8 : 1,
+        opacity: loading ? 0.7 : isDragging ? 0.8 : 1,
         boxShadow: isDragging ? "0 4px 12px rgba(0,0,0,0.15)" : "none",
       }}
       onMouseEnter={(e) => {
@@ -1399,8 +1432,9 @@ function ComponentPaletteItem({ comp, onAdd, index }) {
         {icon}
       </div>
       <div style={{ minWidth: 0, flex: 1 }}>
-        <div style={{ fontSize: 13, fontWeight: 500, color: "#333" }}>
+        <div style={{ fontSize: 13, fontWeight: 500, color: "#333", display: "flex", alignItems: "center", gap: 6 }}>
           {comp.displayName || comp.baseComponent}
+          {loading && <Spin size="small" />}
         </div>
         {comp.description && (
           <div
@@ -1529,7 +1563,9 @@ function SortableLayerRow({
           whiteSpace: "nowrap",
         }}
       >
-        {comp?.displayName || block.baseComponent}
+        {block.baseComponent === "AwardsRecognition"
+          ? "Overview of Our Work"
+          : comp?.displayName || block.baseComponent}
       </span>
       <div
         style={{ display: "flex", alignItems: "center", gap: 2 }}
@@ -1703,6 +1739,7 @@ export default function PageBuilder({
   const [addToSectionBlockIndex, setAddToSectionBlockIndex] = useState(null);
   const [editingInnerBlock, setEditingInnerBlock] = useState(null);
   const [editingElement, setEditingElement] = useState(null);
+  const [addBlockLoading, setAddBlockLoading] = useState(null);
   const [form] = Form.useForm();
   const [adminMenusList, setAdminMenusList] = useState([]);
   /** Last nav items loaded from selected menu – used at save so all children are persisted (form may not keep them). */
@@ -1852,8 +1889,92 @@ export default function PageBuilder({
     );
   }, [siteComponentsList, searchQuery]);
 
-  /** Add a block from the palette (core/DB component or site component). */
+  /** Add a block from the palette. Site components: load defaults from Components (API) so page gets exact same UI as under Admin → Components. */
+  const applyAddBlock = useCallback(
+    (newBlock) => {
+      if (addToSectionBlockIndex !== null) {
+        const sectionBlock = sorted[addToSectionBlockIndex];
+        if (sectionBlock?.baseComponent === "Section") {
+          const innerLayout = Array.isArray(sectionBlock.props?.layout)
+            ? [...sectionBlock.props.layout]
+            : [];
+          innerLayout.push({ ...newBlock, order: innerLayout.length });
+          const updated = blocks.map((b) =>
+            b.instanceId === sectionBlock.instanceId
+              ? { ...b, props: { ...b.props, layout: innerLayout } }
+              : b,
+          );
+          triggerChange(updated);
+        }
+        setAddToSectionBlockIndex(null);
+        setAddDrawerOpen(false);
+        setSearchQuery("");
+        return;
+      }
+      let newLayout;
+      if (insertAtIndex !== null && insertAtIndex >= 0) {
+        const arr = [...sorted];
+        arr.splice(insertAtIndex, 0, newBlock);
+        newLayout = arr;
+      } else {
+        newLayout = [...sorted, newBlock];
+      }
+      triggerChange(newLayout.map((b, i) => ({ ...b, order: i })));
+      setAddDrawerOpen(false);
+      setSearchQuery("");
+      setInsertAtIndex(null);
+      setSelectedIndex(insertAtIndex !== null ? insertAtIndex : sorted.length);
+    },
+    [
+      addToSectionBlockIndex,
+      blocks,
+      insertAtIndex,
+      sorted,
+      triggerChange,
+    ],
+  );
+
   const handleAdd = (comp) => {
+    const isSiteComponent = SITE_COMPONENT_IDS.includes(comp.baseComponent);
+    if (isSiteComponent) {
+      setAddBlockLoading(comp.baseComponent);
+      fetch(`/api/theme/${comp.baseComponent}`, { cache: "no-store" })
+        .then((res) => (res.ok ? res.json() : {}))
+        .then((componentDefaults) => {
+          const baseDefaults =
+            comp.baseComponent === "Testimonials"
+              ? { ...TESTIMONIALS_DEFAULT_PROPS }
+              : getDefaultPropsForNewSiteComponent(comp.baseComponent);
+          const props =
+            componentDefaults && typeof componentDefaults === "object"
+              ? { ...baseDefaults, ...componentDefaults }
+              : baseDefaults;
+          const newBlock = {
+            instanceId: generateId(),
+            componentId: comp._id,
+            baseComponent: comp.baseComponent,
+            props,
+            order: 0,
+          };
+          applyAddBlock(newBlock);
+        })
+        .catch(() => {
+          const baseDefaults =
+            comp.baseComponent === "Testimonials"
+              ? { ...TESTIMONIALS_DEFAULT_PROPS }
+              : getDefaultPropsForNewSiteComponent(comp.baseComponent);
+          const newBlock = {
+            instanceId: generateId(),
+            componentId: comp._id,
+            baseComponent: comp.baseComponent,
+            props: { ...baseDefaults },
+            order: 0,
+          };
+          applyAddBlock(newBlock);
+        })
+        .finally(() => setAddBlockLoading(null));
+      return;
+    }
     const newBlock = {
       instanceId: generateId(),
       componentId: comp._id?.startsWith?.("core-") ? null : comp._id,
@@ -1861,40 +1982,7 @@ export default function PageBuilder({
       props: { ...(comp.defaultProps || {}) },
       order: 0,
     };
-
-    if (addToSectionBlockIndex !== null) {
-      const sectionBlock = sorted[addToSectionBlockIndex];
-      if (sectionBlock?.baseComponent === "Section") {
-        const innerLayout = Array.isArray(sectionBlock.props?.layout)
-          ? [...sectionBlock.props.layout]
-          : [];
-        innerLayout.push({ ...newBlock, order: innerLayout.length });
-        const updated = blocks.map((b) =>
-          b.instanceId === sectionBlock.instanceId
-            ? { ...b, props: { ...b.props, layout: innerLayout } }
-            : b,
-        );
-        triggerChange(updated);
-      }
-      setAddToSectionBlockIndex(null);
-      setAddDrawerOpen(false);
-      setSearchQuery("");
-      return;
-    }
-
-    let newLayout;
-    if (insertAtIndex !== null && insertAtIndex >= 0) {
-      const arr = [...sorted];
-      arr.splice(insertAtIndex, 0, newBlock);
-      newLayout = arr;
-    } else {
-      newLayout = [...sorted, newBlock];
-    }
-    triggerChange(newLayout.map((b, i) => ({ ...b, order: i })));
-    setAddDrawerOpen(false);
-    setSearchQuery("");
-    setInsertAtIndex(null);
-    setSelectedIndex(insertAtIndex !== null ? insertAtIndex : sorted.length);
+    applyAddBlock(newBlock);
   };
 
   const handleRemove = (index) => {
@@ -2519,6 +2607,7 @@ export default function PageBuilder({
                     comp={comp}
                     onAdd={handleAdd}
                     index={item.componentId}
+                    loading={addBlockLoading === item.componentId}
                   />
                 );
               })}
@@ -2559,11 +2648,13 @@ export default function PageBuilder({
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {BLOCK_ICON_MAP[editingBlock.baseComponent] || <EditOutlined />}
                 <span>
-                  {EDITABLE_SITE_COMPONENTS.includes(editingBlock.baseComponent)
-                    ? editingBlock.baseComponent
-                    : fullPalette.find(
-                        (c) => c.baseComponent === editingBlock?.baseComponent,
-                      )?.displayName || editingBlock?.baseComponent}
+                  {editingBlock.baseComponent === "AwardsRecognition"
+                    ? "Overview of Our Work"
+                    : EDITABLE_SITE_COMPONENTS.includes(editingBlock.baseComponent)
+                      ? editingBlock.baseComponent
+                      : fullPalette.find(
+                          (c) => c.baseComponent === editingBlock?.baseComponent,
+                        )?.displayName || editingBlock?.baseComponent}
                 </span>
               </div>
             ) : (
@@ -2649,31 +2740,46 @@ export default function PageBuilder({
             {editingInnerBlock === null &&
               editingElement === null &&
               editingBlock &&
-              EDITABLE_SITE_COMPONENTS.includes(editingBlock.baseComponent) &&
+              (EDITABLE_SITE_COMPONENTS.includes(editingBlock.baseComponent) ||
+                editingBlock.baseComponent === "AwardsRecognition") &&
               (() => {
+                const isLegacyAwards = editingBlock.baseComponent === "AwardsRecognition";
                 const EditFormComp =
-                  EDITABLE_SITE_EDIT_FORMS[editingBlock.baseComponent];
+                  EDITABLE_SITE_EDIT_FORMS[editingBlock.baseComponent] ??
+                  (isLegacyAwards ? EDITABLE_SITE_EDIT_FORMS["OverviewOfOurWork"] : null);
                 if (!EditFormComp) return null;
                 const isPageContext = !componentBase;
                 const handleSaveToPage = (payload) => {
                   if (editingIndex == null) return;
                   const block = sorted[editingIndex];
                   if (!block) return;
-                  const newProps = { ...(block.props || {}), ...payload };
-                  const newLayout = blocks.map((b) =>
-                    b.instanceId === block.instanceId
-                      ? { ...b, props: newProps }
-                      : b,
-                  );
-                  triggerChange(newLayout);
+                  if (block.baseComponent === "AwardsRecognition") {
+                    const newLayout = blocks.map((b) =>
+                      b.instanceId === block.instanceId
+                        ? { ...b, baseComponent: "OverviewOfOurWork", props: payload }
+                        : b,
+                    );
+                    triggerChange(newLayout);
+                  } else {
+                    const newProps = { ...(block.props || {}), ...payload };
+                    const newLayout = blocks.map((b) =>
+                      b.instanceId === block.instanceId
+                        ? { ...b, props: newProps }
+                        : b,
+                    );
+                    triggerChange(newLayout);
+                  }
                 };
+                const initialData = isPageContext
+                  ? isLegacyAwards
+                    ? normalizeAwardsBlockPropsToOverview(editingBlock?.props)
+                    : editingBlock?.props
+                  : undefined;
                 return (
                   <EditFormComp
                     ref={siteEditFormRef}
                     source={isPageContext ? "page" : undefined}
-                    initialData={
-                      isPageContext ? editingBlock?.props : undefined
-                    }
+                    initialData={initialData}
                     onSaveToPage={isPageContext ? handleSaveToPage : undefined}
                     onSuccess={() => {
                       setDrawerOpen(false);
