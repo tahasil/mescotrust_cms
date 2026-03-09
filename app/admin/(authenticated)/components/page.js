@@ -1,14 +1,34 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Table, Button, message } from "antd";
-import { EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Table, Button, message, Modal, Form, Input, Switch, Row, Col } from "antd";
+import { EditOutlined, PlusOutlined, SaveOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { ThemeAdminCard } from "@/styles/Theme";
 
+function deriveComponentId(displayName) {
+  if (!displayName || typeof displayName !== "string") return "";
+  let base = displayName.replace(/\s+/g, "").replace(/[^a-zA-Z0-9]/g, "");
+  if (!/^[a-zA-Z]/.test(base) && base.length) base = "C" + base;
+  return base;
+}
+
 export default function AdminComponentsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [newModalOpen, setNewModalOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form] = Form.useForm();
+
+  useEffect(() => {
+    if (searchParams.get("new") === "1") {
+      setNewModalOpen(true);
+      router.replace("/admin/components", { scroll: false });
+    }
+  }, [searchParams, router]);
 
   const fetchList = () => {
     setLoading(true);
@@ -22,6 +42,43 @@ export default function AdminComponentsPage() {
   useEffect(() => {
     fetchList();
   }, []);
+
+  const handleCreateSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+      setSaving(true);
+      const res = await fetch("/api/admin/site-components", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          displayName: values.displayName?.trim(),
+          global: values.global ?? false,
+          position: values.position || "before",
+          order: Number(values.order) ?? 0,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        message.error(data.error || "Create failed");
+        return;
+      }
+      const cid = data.componentId;
+      message.success(
+        `Component created. Add code in components/site/${cid}.js — then use it on any page via Add Component.`,
+        6,
+      );
+      setNewModalOpen(false);
+      form.resetFields();
+      form.setFieldsValue({ _derivedId: "", order: 0, global: false, position: "before" });
+      fetchList();
+      router.push(`/admin/components/${encodeURIComponent(cid)}/edit`);
+    } catch (e) {
+      if (e.errorFields) return;
+      message.error(e.message || "Error");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const columns = [
     {
@@ -75,24 +132,86 @@ export default function AdminComponentsPage() {
   ];
 
   return (
-    <ThemeAdminCard
-      title="Components"
-      extra={
-        <Link href="/admin/components/new">
-          <Button type="primary" icon={<PlusOutlined />}>
+    <>
+      <ThemeAdminCard
+        title="Components"
+        extra={
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setNewModalOpen(true)}>
             New component
           </Button>
-        </Link>
-      }
-    >
-      <Table
-        rowKey="componentId"
-        columns={columns}
-        dataSource={list}
-        loading={loading}
-        pagination={false}
-        size="middle"
-      />
-    </ThemeAdminCard>
+        }
+      >
+        <Table
+          rowKey="componentId"
+          columns={columns}
+          dataSource={list}
+          loading={loading}
+          pagination={false}
+          size="middle"
+        />
+      </ThemeAdminCard>
+
+      <Modal
+        title="New component"
+        open={newModalOpen}
+        onCancel={() => {
+          setNewModalOpen(false);
+          form.resetFields();
+          form.setFieldsValue({ _derivedId: "", order: 0, global: false, position: "before" });
+        }}
+        footer={null}
+        destroyOnClose
+        width={520}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={{
+            global: false,
+            position: "before",
+            order: 0,
+            _derivedId: "",
+          }}
+          onValuesChange={(_, all) =>
+            form.setFieldValue("_derivedId", deriveComponentId(all.displayName))
+          }
+        >
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="displayName"
+                label="Display name"
+                rules={[{ required: true, message: "Required" }]}
+              >
+                <Input placeholder="e.g. Hero Banner" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="_derivedId"
+                label="Component ID"
+                tooltip="Generated from display name (no spaces). Cannot be edited."
+              >
+                <Input disabled placeholder="Generated from display name" />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item name="global" label="Show on all pages (global)" valuePropName="checked">
+            <Switch />
+          </Form.Item>
+          <Form.Item name="position" hidden>
+            <Input />
+          </Form.Item>
+          <Form.Item name="order" hidden>
+            <Input type="number" />
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" icon={<SaveOutlined />} onClick={handleCreateSubmit} loading={saving}>
+              Create
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+    </>
   );
 }
