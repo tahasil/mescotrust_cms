@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Table, Button, Space, message, Modal, Form, Input, InputNumber, Tag } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { ThemeAdminCard } from "@/styles/Theme";
 
 export default function AdminBlogCategoriesPage() {
   const [list, setList] = useState([]);
@@ -102,11 +103,14 @@ export default function AdminBlogCategoriesPage() {
   ];
 
   return (
-    <>
-      <h1 style={{ marginBottom: 16 }}>Blog Categories</h1>
-      <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate} style={{ marginBottom: 16 }}>
-        Add category
-      </Button>
+    <ThemeAdminCard
+      title="Blog Categories"
+      extra={
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
+          Add category
+        </Button>
+      }
+    >
       <Table rowKey="_id" columns={columns} dataSource={list} loading={loading} pagination={false} />
 
       <Modal
@@ -131,6 +135,6 @@ export default function AdminBlogCategoriesPage() {
           </Form.Item>
         </Form>
       </Modal>
-    </>
+    </ThemeAdminCard>
   );
 }

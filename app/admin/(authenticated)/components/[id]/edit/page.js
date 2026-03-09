@@ -27,6 +27,7 @@ import {
   CheckOutlined,
 } from "@ant-design/icons";
 import Link from "next/link";
+import { ThemeAdminCard } from "@/styles/Theme";
 import dynamic from "next/dynamic";
 import * as SiteComponents from "@/components/site";
 import { EDITABLE_SITE_EDIT_FORMS } from "@/components/site";
@@ -539,125 +540,118 @@ export default function AdminComponentEditPage() {
   if (!record) return null;
 
   return (
-    <>
-      <Form form={form} layout="vertical">
+    <ThemeAdminCard
+      title={
+        <>
+          <Link href="/admin/components" style={{ marginRight: 8 }}>
+            <Button
+              type="text"
+              icon={<ArrowLeftOutlined />}
+              aria-label="Back to components"
+            />
+          </Link>
+          {editingDisplayName ? (
+            <Input
+              autoFocus
+              size="small"
+              value={
+                displayNameValue ??
+                record?.displayName ??
+                record?.componentId ??
+                ""
+              }
+              onChange={(e) =>
+                form.setFieldsValue({ displayName: e.target.value })
+              }
+              onBlur={() => setEditingDisplayName(false)}
+              onPressEnter={() => setEditingDisplayName(false)}
+              style={{ width: 220, fontSize: 18, fontWeight: 600 }}
+            />
+          ) : (
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => setEditingDisplayName(true)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ")
+                  setEditingDisplayName(true);
+              }}
+              onMouseEnter={() => setHoveringName(true)}
+              onMouseLeave={() => setHoveringName(false)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                cursor: "pointer",
+                fontSize: 18,
+                fontWeight: 600,
+              }}
+              title="Click to edit name"
+            >
+              <span>
+                {displayNameValue ||
+                  record?.displayName ||
+                  record?.componentId ||
+                  ""}
+              </span>
+              {hoveringName && (
+                <EditOutlined style={{ fontSize: 14, opacity: 0.7 }} />
+              )}
+            </div>
+          )}
+        </>
+      }
+      extra={
         <div
           style={{
-            marginBottom: 16,
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
+            gap: 16,
             flexWrap: "wrap",
-            gap: 12,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Link href="/admin/components">
-              <Button
-                type="text"
-                icon={<ArrowLeftOutlined />}
-                aria-label="Back to components"
-              />
-            </Link>
-            {editingDisplayName ? (
-              <Input
-                autoFocus
-                size="small"
-                value={
-                  displayNameValue ??
-                  record?.displayName ??
-                  record?.componentId ??
-                  ""
-                }
-                onChange={(e) =>
-                  form.setFieldsValue({ displayName: e.target.value })
-                }
-                onBlur={() => setEditingDisplayName(false)}
-                onPressEnter={() => setEditingDisplayName(false)}
-                style={{ width: 220, fontSize: 18, fontWeight: 600 }}
-              />
-            ) : (
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => setEditingDisplayName(true)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ")
-                    setEditingDisplayName(true);
-                }}
-                onMouseEnter={() => setHoveringName(true)}
-                onMouseLeave={() => setHoveringName(false)}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  cursor: "pointer",
-                  fontSize: 18,
-                  fontWeight: 600,
-                }}
-                title="Click to edit name"
+          <span style={{ fontSize: 14, color: "#666" }}>
+            Show on all pages
+          </span>
+          <Form.Item name="global" noStyle valuePropName="checked">
+            <Switch />
+          </Form.Item>
+          {globalOn &&
+            record?.componentId !== "Header" &&
+            record?.componentId !== "Footer" && (
+              <Form.Item
+                name="position"
+                label={null}
+                style={{ marginBottom: 0 }}
               >
-                <span>
-                  Edit{" "}
-                  {displayNameValue ||
-                    record?.displayName ||
-                    record?.componentId ||
-                    ""}
-                </span>
-                {hoveringName && (
-                  <EditOutlined style={{ fontSize: 14, opacity: 0.7 }} />
-                )}
-              </div>
+                <Select
+                  options={POSITION_OPTIONS}
+                  style={{ minWidth: 200 }}
+                  placeholder="Position (when global)"
+                />
+              </Form.Item>
             )}
-          </div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 16,
-              flexWrap: "wrap",
-            }}
-          >
-            <span style={{ fontSize: 14, color: "#666" }}>
-              Show on all pages
-            </span>
-            <Form.Item name="global" noStyle valuePropName="checked">
-              <Switch />
-            </Form.Item>
-            {globalOn &&
-              record?.componentId !== "Header" &&
-              record?.componentId !== "Footer" && (
-                <Form.Item
-                  name="position"
-                  label={null}
-                  style={{ marginBottom: 0 }}
-                >
-                  <Select
-                    options={POSITION_OPTIONS}
-                    style={{ minWidth: 200 }}
-                    placeholder="Position (when global)"
-                  />
-                </Form.Item>
-              )}
-            {hasEditForm && (
-              <Button
-                type="default"
-                icon={<EditOutlined />}
-                onClick={() => setComponentDrawerOpen(true)}
-              >
-                Edit
-              </Button>
-            )}
+          {hasEditForm && (
             <Button
-              type="primary"
-              icon={<SaveOutlined />}
-              onClick={handleSubmit}
-              loading={saving}
+              type="default"
+              icon={<EditOutlined />}
+              onClick={() => setComponentDrawerOpen(true)}
             >
-              Save
+              Edit
             </Button>
-          </div>
+          )}
+          <Button
+            type="primary"
+            icon={<SaveOutlined />}
+            onClick={handleSubmit}
+            loading={saving}
+          >
+            Save
+          </Button>
         </div>
+      }
+    >
+      <Form form={form} layout="vertical">
 
         {isHeader && (
           <>
@@ -1153,7 +1147,7 @@ export default function AdminComponentEditPage() {
           <Input type="hidden" />
         </Form.Item>
       </Form>
-    </>
+    </ThemeAdminCard>
   );
 }
 

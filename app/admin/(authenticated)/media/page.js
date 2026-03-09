@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, Button, Space, message, Modal, Upload, Input, Pagination, Empty, Spin } from "antd";
 import { UploadOutlined, DeleteOutlined, CopyOutlined } from "@ant-design/icons";
+import { ThemeAdminCard } from "@/styles/Theme";
 
 export default function AdminMediaPage() {
   const [items, setItems] = useState([]);
@@ -78,22 +79,24 @@ export default function AdminMediaPage() {
   };
 
   return (
-    <>
-      <h1 style={{ marginBottom: 16 }}>Media Library</h1>
+    <ThemeAdminCard
+      title="Media Library"
+      extra={
+        <Upload
+          beforeUpload={() => false}
+          onChange={handleUpload}
+          showUploadList={false}
+          accept=".png,.jpg,.jpeg,.webp,.gif,.svg"
+        >
+          <Button type="primary" icon={<UploadOutlined />} loading={uploading}>
+            Upload image
+          </Button>
+        </Upload>
+      }
+    >
       <p style={{ color: "#666", marginBottom: 16 }}>
         Upload and manage images. Allowed formats: .png, .jpg, .jpeg, .webp, .gif, .svg. Max size: 5MB.
       </p>
-
-      <Upload
-        beforeUpload={() => false}
-        onChange={handleUpload}
-        showUploadList={false}
-        accept=".png,.jpg,.jpeg,.webp,.gif,.svg"
-      >
-        <Button type="primary" icon={<UploadOutlined />} loading={uploading} style={{ marginBottom: 24 }}>
-          Upload image
-        </Button>
-      </Upload>
 
       {loading ? (
         <Spin size="large" />
@@ -135,6 +138,6 @@ export default function AdminMediaPage() {
           )}
         </>
       )}
-    </>
+    </ThemeAdminCard>
   );
 }

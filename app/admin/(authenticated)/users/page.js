@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Table, Tag, Button, Space, message, Modal, Form, Input, Select } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { ThemeAdminCard } from "@/styles/Theme";
 
 export default function AdminUsersPage() {
   const [list, setList] = useState([]);
@@ -142,34 +143,35 @@ export default function AdminUsersPage() {
 
   if (forbidden) {
     return (
-      <div>
-        <h1>Users</h1>
+      <ThemeAdminCard title="Users">
         <p style={{ color: "#c00" }}>Only Admins can access user management.</p>
-      </div>
+      </ThemeAdminCard>
     );
   }
 
   return (
-    <>
-      <h1 style={{ marginBottom: 16 }}>Users</h1>
-      <p style={{ color: "#666", marginBottom: 16 }}>
-        Admin and Editor accounts. Only Admins can manage users. Create initial admin via <code>npm run seed</code>.
-      </p>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16, alignItems: "center" }}>
+    <ThemeAdminCard
+      title="Users"
+      extra={
         <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
           Add user
         </Button>
-        <Input.Search
+      }
+    >
+      <p style={{ color: "#666", marginBottom: 16 }}>
+        Admin and Editor accounts. Only Admins can manage users. Create initial admin via <code>npm run seed</code>.
+      </p>
+      <Input.Search
           placeholder="Search name or email"
           allowClear
-          style={{ width: 220 }}
+          style={{ width: 220, marginBottom: 16 }}
           onSearch={setSearchText}
           onChange={(e) => { if (!e.target.value) setSearchText(""); }}
         />
         <Select
           placeholder="Role"
           allowClear
-          style={{ width: 130 }}
+          style={{ width: 130, marginLeft: 8, marginBottom: 16 }}
           value={filterRole}
           onChange={setFilterRole}
           options={[{ value: "Admin", label: "Admin" }, { value: "Editor", label: "Editor" }]}
@@ -177,12 +179,11 @@ export default function AdminUsersPage() {
         <Select
           placeholder="Status"
           allowClear
-          style={{ width: 130 }}
+          style={{ width: 130, marginLeft: 8, marginBottom: 16 }}
           value={filterStatus}
           onChange={setFilterStatus}
           options={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]}
         />
-      </div>
       <Table
         rowKey="_id"
         loading={loading}
@@ -258,6 +259,6 @@ export default function AdminUsersPage() {
           </Form.Item>
         </Form>
       </Modal>
-    </>
+    </ThemeAdminCard>
   );
 }

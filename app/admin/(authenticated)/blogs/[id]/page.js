@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Button, Form, Input, Select, Card, Space, message, Spin } from "antd";
+import { Button, Form, Input, Select, Space, message, Spin } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import RichTextEditor from "@/components/admin/RichTextEditor";
+import { ThemeAdminCard } from "@/styles/Theme";
 
 export default function AdminBlogEditPage() {
   const params = useParams();
@@ -82,14 +83,19 @@ export default function AdminBlogEditPage() {
   if (loading) return <Spin size="large" />;
 
   return (
-    <>
-      <Link href="/admin/blogs">
-        <Button icon={<ArrowLeftOutlined />} style={{ marginBottom: 16 }}>
-          Back to blogs
-        </Button>
-      </Link>
-      <Card title="Edit post">
-        <Form form={form} layout="vertical" onFinish={onFinish}>
+    <ThemeAdminCard
+      title={
+        <>
+          <Link href="/admin/blogs" style={{ marginRight: 8 }}>
+            <Button icon={<ArrowLeftOutlined />} type="text" aria-label="Back to blogs">
+              Back
+            </Button>
+          </Link>
+          <span>Edit post</span>
+        </>
+      }
+    >
+      <Form form={form} layout="vertical" onFinish={onFinish}>
           <Form.Item name="title" label="Title" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
@@ -138,7 +144,6 @@ export default function AdminBlogEditPage() {
             </Space>
           </Form.Item>
         </Form>
-      </Card>
-    </>
+    </ThemeAdminCard>
   );
 }

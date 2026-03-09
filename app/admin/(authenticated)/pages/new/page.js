@@ -6,6 +6,7 @@ import { Button, Form, Input, Select, Space, message, Drawer, Collapse } from "a
 import { ArrowLeftOutlined, SettingOutlined, SaveOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import PageBuilder from "@/components/admin/PageBuilder";
+import { ThemeAdminCard } from "@/styles/Theme";
 
 /** New page: same UI as edit page (Page Builder, Layers, drag-and-drop). Save creates the page via POST then redirects to edit. */
 export default function AdminPageNewPage() {
@@ -57,28 +58,16 @@ export default function AdminPageNewPage() {
   };
 
   return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 16,
-          flexWrap: "wrap",
-          gap: 8,
-        }}
-      >
-        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <Link href="/admin/pages" style={{ textDecoration: "none" }}>
-              <Button icon={<ArrowLeftOutlined />} type="text" />
-            </Link>
-            <h2 style={{ margin: 0, fontSize: 18, lineHeight: 1.3 }}>New Page</h2>
-          </div>
-          <span style={{ fontSize: 12, color: "#666", marginLeft: 40 }}>
-            Reorder: drag blocks on canvas or use the Layers panel (click Layers) → Save to create page.
-          </span>
-        </div>
+    <ThemeAdminCard
+      title={
+        <>
+          <Link href="/admin/pages" style={{ textDecoration: "none", marginRight: 8 }}>
+            <Button icon={<ArrowLeftOutlined />} type="text" aria-label="Back to pages" />
+          </Link>
+          <span>New Page</span>
+        </>
+      }
+      extra={
         <Space>
           <Button icon={<SettingOutlined />} onClick={() => setSettingsOpen(true)}>
             Page Settings
@@ -87,8 +76,11 @@ export default function AdminPageNewPage() {
             Save
           </Button>
         </Space>
-      </div>
-
+      }
+    >
+      <p style={{ fontSize: 12, color: "#666", marginBottom: 16 }}>
+        Reorder: drag blocks on canvas or use the Layers panel (click Layers) → Save to create page.
+      </p>
       <PageBuilder layout={layout} onChange={setLayoutAndRef} showLayers={true} />
 
       <Drawer
@@ -147,6 +139,6 @@ export default function AdminPageNewPage() {
           />
         </Form>
       </Drawer>
-    </div>
+    </ThemeAdminCard>
   );
 }

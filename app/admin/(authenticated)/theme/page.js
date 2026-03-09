@@ -30,6 +30,7 @@ import {
   BulbOutlined,
 } from "@ant-design/icons";
 import { LOCALE_OPTIONS } from "@/lib/localeOptions";
+import { ThemeAdminCard } from "@/styles/Theme";
 
 const POPULAR_GOOGLE_FONTS = [
   "Inter",
@@ -557,11 +558,7 @@ export default function AdminThemePage() {
   ];
 
   return (
-    <>
-      <Typography.Title level={3} style={{ marginBottom: 24 }}>
-        Theme Settings
-      </Typography.Title>
-      <Divider />
+    <ThemeAdminCard title="Theme Settings">
       <Form
         form={form}
         layout="vertical"
@@ -581,6 +578,6 @@ export default function AdminThemePage() {
           </Button>
         </Form.Item>
       </Form>
-    </>
+    </ThemeAdminCard>
   );
 }

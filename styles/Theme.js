@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { Button, Card, Modal } from "antd";
 import styled, { createGlobalStyle } from "styled-components";
@@ -409,6 +411,16 @@ export const ThemeSider = styled(SiderWrapper)`
   scrollbar-gutter: auto;
   .ant-menu-light {
     background: transparent;
+  }
+`;
+
+export const ThemeAdminCard = styled(Card)`
+  margin: 74px 10px 10px 10px;
+  background: #fff;
+  min-height: 280px;
+  border-radius: 16px;
+  .ant-card-body {
+    padding: 24px;
   }
 `;
 export default Theme;

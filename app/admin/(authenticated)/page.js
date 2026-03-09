@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/db";
 import Page from "@/models/Page";
 import Blog from "@/models/Blog";
 import ContactSubmission from "@/models/ContactSubmission";
+import AdminPageCard from "@/components/admin/AdminPageCard";
 
 async function getCounts() {
   try {
@@ -24,8 +25,7 @@ export default async function AdminDashboardPage() {
   const { pages, posts, contacts } = await getCounts();
 
   return (
-    <>
-      <h1 style={{ marginBottom: 24 }}>Dashboard</h1>
+    <AdminPageCard title="Dashboard">
       <Row gutter={16}>
         <Col xs={24} sm={8}>
           <Link href="/admin/pages">
@@ -49,6 +49,6 @@ export default async function AdminDashboardPage() {
           </Link>
         </Col>
       </Row>
-    </>
+    </AdminPageCard>
   );
 }

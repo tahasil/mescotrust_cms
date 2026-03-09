@@ -5,6 +5,7 @@ import { Table, Button, Space, message, Modal, Form, Input, Select, Tag } from "
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import RichTextEditor from "@/components/admin/RichTextEditor";
+import { ThemeAdminCard } from "@/styles/Theme";
 
 export default function AdminBlogsPage() {
   const [list, setList] = useState([]);
@@ -148,36 +149,39 @@ export default function AdminBlogsPage() {
   ];
 
   return (
-    <>
-      <h1 style={{ marginBottom: 16 }}>Blog posts</h1>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16, alignItems: "center" }}>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
-          Add post
-        </Button>
-        <Input.Search
-          placeholder="Search title or slug"
-          allowClear
-          style={{ width: 220 }}
-          onSearch={setSearchText}
-          onChange={(e) => { if (!e.target.value) setSearchText(""); }}
-        />
-        <Select
-          placeholder="Status"
-          allowClear
-          style={{ width: 140 }}
-          value={filterStatus}
-          onChange={setFilterStatus}
-          options={[{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }]}
-        />
-        <Select
-          placeholder="Category"
-          allowClear
-          style={{ width: 180 }}
-          value={filterCategory}
-          onChange={setFilterCategory}
-          options={categories.map((c) => ({ value: c._id, label: c.name }))}
-        />
-      </div>
+    <ThemeAdminCard
+      title="Blog posts"
+      extra={
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
+            Add post
+          </Button>
+          <Input.Search
+            placeholder="Search title or slug"
+            allowClear
+            style={{ width: 220 }}
+            onSearch={setSearchText}
+            onChange={(e) => { if (!e.target.value) setSearchText(""); }}
+          />
+          <Select
+            placeholder="Status"
+            allowClear
+            style={{ width: 140 }}
+            value={filterStatus}
+            onChange={setFilterStatus}
+            options={[{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }]}
+          />
+          <Select
+            placeholder="Category"
+            allowClear
+            style={{ width: 180 }}
+            value={filterCategory}
+            onChange={setFilterCategory}
+            options={categories.map((c) => ({ value: c._id, label: c.name }))}
+          />
+        </div>
+      }
+    >
       <Table rowKey="_id" columns={columns} dataSource={filtered} loading={loading} pagination={{ pageSize: 20 }} />
 
       <Modal
@@ -222,6 +226,6 @@ export default function AdminBlogsPage() {
           </Form.Item>
         </Form>
       </Modal>
-    </>
+    </ThemeAdminCard>
   );
 }

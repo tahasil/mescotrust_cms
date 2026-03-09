@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Table, Button, message } from "antd";
 import { EditOutlined, PlusOutlined } from "@ant-design/icons";
 import Link from "next/link";
+import { ThemeAdminCard } from "@/styles/Theme";
 
 export default function AdminComponentsPage() {
   const [list, setList] = useState([]);
@@ -29,27 +30,42 @@ export default function AdminComponentsPage() {
       width: 200,
       render: (_, record) => record.displayName || record.componentId,
     },
-    { title: "ID", dataIndex: "componentId", key: "componentId", width: 140, render: (id) => <code>{id}</code> },
+    {
+      title: "ID",
+      dataIndex: "componentId",
+      key: "componentId",
+      width: 140,
+      render: (id) => <code>{id}</code>,
+    },
     {
       title: "Show on all pages",
       key: "global",
       width: 140,
       render: (_, record) => (
-        <span style={{ fontWeight: record.global ? 600 : 400 }}>{record.global ? "Yes" : "No"}</span>
+        <span style={{ fontWeight: record.global ? 600 : 400 }}>
+          {record.global ? "Yes" : "No"}
+        </span>
       ),
     },
     {
       title: "Position (when global)",
       key: "position",
       width: 120,
-      render: (_, r) => (r.global ? (r.position === "after" ? "Below content" : "Above content") : "—"),
+      render: (_, r) =>
+        r.global
+          ? r.position === "after"
+            ? "Below content"
+            : "Above content"
+          : "—",
     },
     {
       title: "Actions",
       key: "actions",
       width: 100,
       render: (_, record) => (
-        <Link href={`/admin/components/${encodeURIComponent(record.componentId)}/edit`}>
+        <Link
+          href={`/admin/components/${encodeURIComponent(record.componentId)}/edit`}
+        >
           <Button type="link" size="small" icon={<EditOutlined />}>
             Edit
           </Button>
@@ -59,21 +75,16 @@ export default function AdminComponentsPage() {
   ];
 
   return (
-    <div>
-      <div style={{ marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
-        <div>
-          <h1 style={{ margin: "0 0 4px", fontSize: 22 }}>Components</h1>
-          <p style={{ margin: 0, color: "#666", fontSize: 13 }}>
-            Each component is a file in <code>components/site/</code>. Use Edit to open the edit page, or create a new one below.
-          </p>
-        </div>
+    <ThemeAdminCard
+      title="Components"
+      extra={
         <Link href="/admin/components/new">
           <Button type="primary" icon={<PlusOutlined />}>
             New component
           </Button>
         </Link>
-      </div>
-
+      }
+    >
       <Table
         rowKey="componentId"
         columns={columns}
@@ -82,6 +93,6 @@ export default function AdminComponentsPage() {
         pagination={false}
         size="middle"
       />
-    </div>
+    </ThemeAdminCard>
   );
 }

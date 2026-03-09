@@ -15,6 +15,7 @@ import {
 } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import Link from "next/link";
+import { ThemeAdminCard } from "@/styles/Theme";
 
 export default function AdminPagesPage() {
   const router = useRouter();
@@ -150,17 +151,16 @@ export default function AdminPagesPage() {
   ];
 
   return (
-    <>
-      <h1 style={{ marginBottom: 16 }}>Pages</h1>
-      <Link href="/admin/pages/new" style={{ textDecoration: "none" }}>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          style={{ marginBottom: 16 }}
-        >
-          Add page
-        </Button>
-      </Link>
+    <ThemeAdminCard
+      title="Pages"
+      extra={
+        <Link href="/admin/pages/new">
+          <Button type="primary" icon={<PlusOutlined />}>
+            Add page
+          </Button>
+        </Link>
+      }
+    >
       <Table
         rowKey="_id"
         columns={columns}
@@ -201,6 +201,6 @@ export default function AdminPagesPage() {
           </Form.Item>
         </Form>
       </Modal>
-    </>
+    </ThemeAdminCard>
   );
 }

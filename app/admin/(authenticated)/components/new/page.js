@@ -12,9 +12,11 @@ import {
   Divider,
   Row,
   Col,
+  Space,
 } from "antd";
 import { ArrowLeftOutlined, SaveOutlined } from "@ant-design/icons";
 import Link from "next/link";
+import { ThemeAdminCard } from "@/styles/Theme";
 
 export default function AdminComponentNewPage() {
   const router = useRouter();
@@ -51,7 +53,7 @@ export default function AdminComponentNewPage() {
       const cid = data.componentId;
       message.success(
         `Component created. Add code in components/site/${cid}.js — then use it on any page via Add Component.`,
-        6
+        6,
       );
       router.push(`/admin/components/${encodeURIComponent(cid)}/edit`);
     } catch (e) {
@@ -63,24 +65,33 @@ export default function AdminComponentNewPage() {
   };
 
   return (
-    <div>
-      <div style={{ marginBottom: 16 }}>
-        <Link href="/admin/components">
-          <Button
-            type="text"
-            icon={<ArrowLeftOutlined />}
-            aria-label="New component"
-          >
-            Back
-          </Button>
-        </Link>
-      </div>
-      <Divider />
+    <ThemeAdminCard
+      title={
+        <Space>
+          <Link href="/admin/components">
+            <Button
+              type="primary"
+              size="small"
+              icon={<ArrowLeftOutlined />}
+              aria-label="New component"
+            />
+          </Link>
+          <div className="title">New Component</div>
+        </Space>
+      }
+    >
       <Form
         form={form}
         layout="vertical"
-        initialValues={{ global: false, position: "before", order: 0, _derivedId: "" }}
-        onValuesChange={(_, all) => form.setFieldValue("_derivedId", deriveComponentId(all.displayName))}
+        initialValues={{
+          global: false,
+          position: "before",
+          order: 0,
+          _derivedId: "",
+        }}
+        onValuesChange={(_, all) =>
+          form.setFieldValue("_derivedId", deriveComponentId(all.displayName))
+        }
       >
         <Row gutter={16}>
           <Col xs={24} sm={12} md={8}>
@@ -122,6 +133,6 @@ export default function AdminComponentNewPage() {
           </Button>
         </Form.Item>
       </Form>
-    </div>
+    </ThemeAdminCard>
   );
 }

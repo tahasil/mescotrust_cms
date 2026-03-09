@@ -38,6 +38,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { ThemeAdminCard } from "@/styles/Theme";
 
 function generateId() {
   return "mi_" + Math.random().toString(36).slice(2, 11);
@@ -568,16 +569,15 @@ export default function AdminMenusPage() {
 
   if (structureView) {
     return (
-      <div style={{ maxWidth: 720 }}>
-        <Button
-          type="text"
-          icon={<ArrowLeftOutlined />}
-          onClick={handleBack}
-          style={{ marginBottom: 16 }}
-        >
-          Back to menus
-        </Button>
-        <h1 style={{ marginBottom: 8 }}>Menu structure</h1>
+      <ThemeAdminCard
+        title="Menu structure"
+        extra={
+          <Button type="text" icon={<ArrowLeftOutlined />} onClick={handleBack}>
+            Back to menus
+          </Button>
+        }
+      >
+        <div style={{ maxWidth: 720 }}>
         <Form.Item label="Menu Name" style={{ marginBottom: 8 }}>
           <Input
             value={menuName}
@@ -690,25 +690,24 @@ export default function AdminMenusPage() {
           <Button onClick={handleBack}>Cancel</Button>
         </div>
       </div>
+      </ThemeAdminCard>
     );
   }
 
   return (
-    <>
-      <h1 style={{ marginBottom: 16 }}>Menus</h1>
+    <ThemeAdminCard
+      title="Menus"
+      extra={
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
+          Add menu
+        </Button>
+      }
+    >
       <p style={{ color: "#666", marginBottom: 16 }}>
         Manage navigation menus (e.g. header, footer). Edit a menu to use the
         visual menu structure. Public API:{" "}
         <code>GET /api/public/menus?name=header</code>
       </p>
-      <Button
-        type="primary"
-        icon={<PlusOutlined />}
-        onClick={handleCreate}
-        style={{ marginBottom: 16 }}
-      >
-        Add menu
-      </Button>
       <Table
         rowKey="name"
         loading={loading}
@@ -757,7 +756,7 @@ export default function AdminMenusPage() {
           },
         ]}
       />
-    </>
+    </ThemeAdminCard>
   );
 }
 

@@ -6,6 +6,7 @@ import { Button, Form, Input, Select, Card, Space, message, Spin, Drawer, Collap
 import { ArrowLeftOutlined, SettingOutlined, SaveOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import PageBuilder from "@/components/admin/PageBuilder";
+import { ThemeAdminCard } from "@/styles/Theme";
 
 export default function AdminPageEditPage() {
   const params = useParams();
@@ -99,23 +100,16 @@ export default function AdminPageEditPage() {
   if (loading) return <Spin size="large" style={{ display: "block", margin: "100px auto" }} />;
 
   return (
-    <div>
-      {/* Top bar — Back + page title only (slug hidden) */}
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        marginBottom: 16, flexWrap: "wrap", gap: 8,
-      }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <Link href="/admin/pages" style={{ textDecoration: "none" }}>
-              <Button icon={<ArrowLeftOutlined />} type="text" />
-            </Link>
-            <h2 style={{ margin: 0, fontSize: 18, lineHeight: 1.3 }}>{page?.title || "Edit Page"}</h2>
-          </div>
-          <span style={{ fontSize: 12, color: "#666", marginLeft: 40 }}>
-            Reorder: drag blocks on canvas or use Move up/down in the Layers panel → Save to apply.
-          </span>
-        </div>
+    <ThemeAdminCard
+      title={
+        <>
+          <Link href="/admin/pages" style={{ textDecoration: "none", marginRight: 8 }}>
+            <Button icon={<ArrowLeftOutlined />} type="text" aria-label="Back to pages" />
+          </Link>
+          <span>{page?.title || "Edit Page"}</span>
+        </>
+      }
+      extra={
         <Space>
           <Button icon={<SettingOutlined />} onClick={() => setSettingsOpen(true)}>
             Page Settings
@@ -133,9 +127,11 @@ export default function AdminPageEditPage() {
             Save
           </Button>
         </Space>
-      </div>
-
-      {/* Visual builder: reorder blocks via Layers panel (Move up/down) or by dragging on canvas; Save persists order. */}
+      }
+    >
+      <p style={{ fontSize: 12, color: "#666", marginBottom: 16 }}>
+        Reorder: drag blocks on canvas or use Move up/down in the Layers panel → Save to apply.
+      </p>
       <PageBuilder layout={layout} onChange={setLayoutAndRef} showLayers={true} />
 
       {/* Page settings drawer — accordion style like components drawer */}
@@ -195,6 +191,6 @@ export default function AdminPageEditPage() {
           />
         </Form>
       </Drawer>
-    </div>
+    </ThemeAdminCard>
   );
 }

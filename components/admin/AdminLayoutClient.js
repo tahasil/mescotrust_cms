@@ -12,7 +12,6 @@ import {
   Input,
   Badge,
   Avatar,
-  Card,
 } from "antd";
 import {
   MenuFoldOutlined,
@@ -252,18 +251,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
             </Dropdown>
           </Space>
         </Header>
-        <Card
-          title={<div>Header</div>}
-          style={{
-            margin: "74px 10px 10px 10px",
-            paddingTop: 24,
-            background: "#fff",
-            minHeight: 280,
-            borderRadius: 0,
-          }}
-        >
-          {children}
-        </Card>
+        <Content>{children}</Content>
       </Layout>
     </Layout>
   );

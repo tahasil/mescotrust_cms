@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Table, Button, Space, Tag, message } from "antd";
 import { CheckOutlined, DeleteOutlined } from "@ant-design/icons";
+import { ThemeAdminCard } from "@/styles/Theme";
 
 export default function AdminContactsPage() {
   const [list, setList] = useState([]);
@@ -43,8 +44,7 @@ export default function AdminContactsPage() {
   };
 
   return (
-    <>
-      <h1 style={{ marginBottom: 16 }}>Contact submissions</h1>
+    <ThemeAdminCard title="Contact submissions">
       <Table
         rowKey="_id"
         loading={loading}
@@ -75,6 +75,6 @@ export default function AdminContactsPage() {
           },
         ]}
       />
-    </>
+    </ThemeAdminCard>
   );
 }

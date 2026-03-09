@@ -76,7 +76,10 @@ import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import * as SiteComponents from "@/components/site";
 import { EDITABLE_SITE_EDIT_FORMS } from "@/components/site";
 import { SITE_COMPONENT_IDS } from "@/lib/siteComponentRegistry";
-import { getDefaultManageSectionProps, MANAGE_SECTION_PREFIX_BY_COMPONENT_ID } from "@/lib/manageSectionFields";
+import {
+  getDefaultManageSectionProps,
+  MANAGE_SECTION_PREFIX_BY_COMPONENT_ID,
+} from "@/lib/manageSectionFields";
 import { getDefaultTitleAndColorsProps } from "@/lib/titleAndColorsConfig";
 
 /** Site components that have full edit flow in page builder. Header/Footer excluded. */
@@ -125,10 +128,12 @@ const TESTIMONIALS_DEFAULT_PROPS = {
 /** Full default props when creating a new site component block (Manage Section, Title & Colors, Manage Items, Slide Setting). */
 function getDefaultPropsForNewSiteComponent(componentId) {
   const prefix = MANAGE_SECTION_PREFIX_BY_COMPONENT_ID[componentId];
-  const base =
-    prefix
-      ? { ...getDefaultManageSectionProps(prefix), ...getDefaultTitleAndColorsProps(componentId) }
-      : {};
+  const base = prefix
+    ? {
+        ...getDefaultManageSectionProps(prefix),
+        ...getDefaultTitleAndColorsProps(componentId),
+      }
+    : {};
   switch (componentId) {
     case "HomeHero":
       return {
@@ -1463,7 +1468,9 @@ function SortableLayerRow({
     transition,
     isDragging,
   } = useSortable({ id: block.instanceId });
-  const comp = paletteComponents.find((c) => c.baseComponent === block.baseComponent);
+  const comp = paletteComponents.find(
+    (c) => c.baseComponent === block.baseComponent,
+  );
   const catKey = comp?.category || "content";
   const catMeta = CATEGORY_META[catKey] || CATEGORY_META.content;
   const isSelected = selectedIndex === index;
@@ -1485,19 +1492,27 @@ function SortableLayerRow({
         borderRadius: 6,
         cursor: "pointer",
         background: isSelected ? catMeta.color + "18" : "transparent",
-        borderLeft: isSelected ? `3px solid ${catMeta.color}` : "3px solid transparent",
+        borderLeft: isSelected
+          ? `3px solid ${catMeta.color}`
+          : "3px solid transparent",
       }}
       onClick={() => onSelect(index)}
     >
       <span
         {...attributes}
         {...listeners}
-        style={{ cursor: "grab", color: "#999", display: "flex", touchAction: "none" }}
+        style={{
+          cursor: "grab",
+          color: "#999",
+          display: "flex",
+          touchAction: "none",
+        }}
         title="Drag to reorder"
         onClick={(e) => e.stopPropagation()}
       >
         <HolderOutlined style={{ fontSize: 12 }} />
       </span>
+      <span style={{ color: "#999", fontSize: 12 }}>{index + 1}.</span>
       <span
         style={{
           flex: 1,
@@ -1510,15 +1525,34 @@ function SortableLayerRow({
       >
         {comp?.displayName || block.baseComponent}
       </span>
-      <div style={{ display: "flex", alignItems: "center", gap: 2 }} onClick={(e) => e.stopPropagation()}>
+      <div
+        style={{ display: "flex", alignItems: "center", gap: 2 }}
+        onClick={(e) => e.stopPropagation()}
+      >
         <Tooltip title="Edit">
-          <Button type="text" size="small" icon={<EditOutlined />} onClick={() => onEdit(index)} />
+          <Button
+            type="text"
+            size="small"
+            icon={<EditOutlined />}
+            onClick={() => onEdit(index)}
+          />
         </Tooltip>
         <Tooltip title="Duplicate">
-          <Button type="text" size="small" icon={<CopyOutlined />} onClick={() => onDuplicate(index)} />
+          <Button
+            type="text"
+            size="small"
+            icon={<CopyOutlined />}
+            onClick={() => onDuplicate(index)}
+          />
         </Tooltip>
         <Tooltip title="Delete">
-          <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={() => onRemove(index)} />
+          <Button
+            type="text"
+            size="small"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => onRemove(index)}
+          />
         </Tooltip>
       </div>
     </div>
@@ -1538,14 +1572,17 @@ function LayersPanel({
 }) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
   );
   const handleDragEnd = (event) => {
     const { active, over } = event;
     if (over == null || active.id === over.id) return;
     const oldIndex = sorted.findIndex((b) => b.instanceId === active.id);
     const newIndex = sorted.findIndex((b) => b.instanceId === over.id);
-    if (oldIndex !== -1 && newIndex !== -1 && onReorder) onReorder(oldIndex, newIndex);
+    if (oldIndex !== -1 && newIndex !== -1 && onReorder)
+      onReorder(oldIndex, newIndex);
   };
   return (
     <div
@@ -1568,19 +1605,40 @@ function LayersPanel({
           borderBottom: "1px solid #e8e8e8",
         }}
       >
-        <span style={{ fontWeight: 600, fontSize: 13, color: "#333" }}>Layers</span>
+        <span style={{ fontWeight: 600, fontSize: 13, color: "#333" }}>
+          Layers
+        </span>
         {onClose && (
-          <Button type="text" size="small" icon={<CloseOutlined />} onClick={onClose} />
+          <Button
+            type="text"
+            size="small"
+            icon={<CloseOutlined />}
+            onClick={onClose}
+          />
         )}
       </div>
       <div style={{ flex: 1, overflow: "auto", padding: "8px 0" }}>
         {sorted.length === 0 ? (
-          <div style={{ padding: 24, textAlign: "center", color: "#999", fontSize: 12 }}>
+          <div
+            style={{
+              padding: 24,
+              textAlign: "center",
+              color: "#999",
+              fontSize: 12,
+            }}
+          >
             No blocks yet. Add a block to see layers.
           </div>
         ) : (
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={sorted.map((b) => b.instanceId)} strategy={verticalListSortingStrategy}>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={sorted.map((b) => b.instanceId)}
+              strategy={verticalListSortingStrategy}
+            >
               {sorted.map((block, index) => (
                 <SortableLayerRow
                   key={block.instanceId}
