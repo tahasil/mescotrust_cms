@@ -24,6 +24,7 @@ function HomeHero2EditForm({ source, initialData: initialDataProp, onSaveToPage,
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [themeColorOptions, setThemeColorOptions] = useState(themeColorOptionsProp);
+  const dataLoadedRef = useRef(false);
   const isPageBlock = source === "page";
 
   useEffect(() => {
@@ -49,6 +50,11 @@ function HomeHero2EditForm({ source, initialData: initialDataProp, onSaveToPage,
       setLoading(false);
       return;
     }
+    if (dataLoadedRef.current) {
+      setLoading(false);
+      return;
+    }
+    dataLoadedRef.current = true;
     fetch(API_PATH, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : {}))
       .then((data) => {
@@ -75,7 +81,7 @@ function HomeHero2EditForm({ source, initialData: initialDataProp, onSaveToPage,
       })
       .catch(() => message.error("Failed to load HomeHero2"))
       .finally(() => setLoading(false));
-  }, [form, isPageBlock, initialDataProp, themeColorOptionsProp]);
+  }, [form, isPageBlock, initialDataProp]);
 
   const handleUpdate = () => {
     form.validateFields().then(() => {
