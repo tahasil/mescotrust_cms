@@ -174,6 +174,12 @@ function getDefaultPropsForNewSiteComponent(componentId) {
           { src: "/images/slider-3.png", alt: "Slider Image 3" },
           { src: "/images/slider-4.png", alt: "Slider Image 4" },
         ],
+        homeHero2SlideCount: 37,
+        homeHero2AutoInterval: 4000,
+        homeHero2StepDeg: 10,
+        homeHero2Duration: 0.6,
+        homeHero2Autoplay: true,
+        homeHero2Draggable: true,
       };
     default:
       return base;
@@ -191,18 +197,27 @@ const AWARDS_TO_OVERVIEW_KEYS = {
   awardsRecognitionSectionBgImage: "overviewOfOurWorkSectionBgImage",
   awardsRecognitionSectionBgColorKey: "overviewOfOurWorkSectionBgColorKey",
   awardsRecognitionSectionPaddingTop: "overviewOfOurWorkSectionPaddingTop",
-  awardsRecognitionSectionPaddingBottom: "overviewOfOurWorkSectionPaddingBottom",
+  awardsRecognitionSectionPaddingBottom:
+    "overviewOfOurWorkSectionPaddingBottom",
   awardsRecognitionSectionMarginTop: "overviewOfOurWorkSectionMarginTop",
   awardsRecognitionSectionMarginBottom: "overviewOfOurWorkSectionMarginBottom",
   awardsRecognitionPageContainerBgType: "overviewOfOurWorkPageContainerBgType",
-  awardsRecognitionPageContainerBgImage: "overviewOfOurWorkPageContainerBgImage",
-  awardsRecognitionPageContainerBgColorKey: "overviewOfOurWorkPageContainerBgColorKey",
-  awardsRecognitionPageContainerPaddingTop: "overviewOfOurWorkPageContainerPaddingTop",
-  awardsRecognitionPageContainerPaddingRight: "overviewOfOurWorkPageContainerPaddingRight",
-  awardsRecognitionPageContainerPaddingBottom: "overviewOfOurWorkPageContainerPaddingBottom",
-  awardsRecognitionPageContainerPaddingLeft: "overviewOfOurWorkPageContainerPaddingLeft",
-  awardsRecognitionPageContainerMarginTop: "overviewOfOurWorkPageContainerMarginTop",
-  awardsRecognitionPageContainerMarginBottom: "overviewOfOurWorkPageContainerMarginBottom",
+  awardsRecognitionPageContainerBgImage:
+    "overviewOfOurWorkPageContainerBgImage",
+  awardsRecognitionPageContainerBgColorKey:
+    "overviewOfOurWorkPageContainerBgColorKey",
+  awardsRecognitionPageContainerPaddingTop:
+    "overviewOfOurWorkPageContainerPaddingTop",
+  awardsRecognitionPageContainerPaddingRight:
+    "overviewOfOurWorkPageContainerPaddingRight",
+  awardsRecognitionPageContainerPaddingBottom:
+    "overviewOfOurWorkPageContainerPaddingBottom",
+  awardsRecognitionPageContainerPaddingLeft:
+    "overviewOfOurWorkPageContainerPaddingLeft",
+  awardsRecognitionPageContainerMarginTop:
+    "overviewOfOurWorkPageContainerMarginTop",
+  awardsRecognitionPageContainerMarginBottom:
+    "overviewOfOurWorkPageContainerMarginBottom",
   awardsRecognitionCardTitleColorKey: "overviewOfOurWorkCardTitleColorKey",
   awardsRecognitionCardBorderColorKey: "overviewOfOurWorkCardBorderColorKey",
   awardsRecognitionButtonColorKey: "overviewOfOurWorkButtonColorKey",
@@ -1452,7 +1467,16 @@ function ComponentPaletteItem({ comp, onAdd, index, loading = false }) {
         {icon}
       </div>
       <div style={{ minWidth: 0, flex: 1 }}>
-        <div style={{ fontSize: 13, fontWeight: 500, color: "#333", display: "flex", alignItems: "center", gap: 6 }}>
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 500,
+            color: "#333",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+          }}
+        >
           {comp.displayName || comp.baseComponent}
           {loading && <Spin size="small" />}
         </div>
@@ -1945,13 +1969,7 @@ export default function PageBuilder({
       setInsertAtIndex(null);
       setSelectedIndex(insertAtIndex !== null ? insertAtIndex : sorted.length);
     },
-    [
-      addToSectionBlockIndex,
-      blocks,
-      insertAtIndex,
-      sorted,
-      triggerChange,
-    ],
+    [addToSectionBlockIndex, blocks, insertAtIndex, sorted, triggerChange],
   );
 
   const handleAdd = (comp) => {
@@ -2670,10 +2688,13 @@ export default function PageBuilder({
                 <span>
                   {editingBlock.baseComponent === "AwardsRecognition"
                     ? "Overview of Our Work"
-                    : EDITABLE_SITE_COMPONENTS.includes(editingBlock.baseComponent)
+                    : EDITABLE_SITE_COMPONENTS.includes(
+                          editingBlock.baseComponent,
+                        )
                       ? editingBlock.baseComponent
                       : fullPalette.find(
-                          (c) => c.baseComponent === editingBlock?.baseComponent,
+                          (c) =>
+                            c.baseComponent === editingBlock?.baseComponent,
                         )?.displayName || editingBlock?.baseComponent}
                 </span>
               </div>
@@ -2763,10 +2784,13 @@ export default function PageBuilder({
               (EDITABLE_SITE_COMPONENTS.includes(editingBlock.baseComponent) ||
                 editingBlock.baseComponent === "AwardsRecognition") &&
               (() => {
-                const isLegacyAwards = editingBlock.baseComponent === "AwardsRecognition";
+                const isLegacyAwards =
+                  editingBlock.baseComponent === "AwardsRecognition";
                 const EditFormComp =
                   EDITABLE_SITE_EDIT_FORMS[editingBlock.baseComponent] ??
-                  (isLegacyAwards ? EDITABLE_SITE_EDIT_FORMS["OverviewOfOurWork"] : null);
+                  (isLegacyAwards
+                    ? EDITABLE_SITE_EDIT_FORMS["OverviewOfOurWork"]
+                    : null);
                 if (!EditFormComp) return null;
                 const isPageContext = !componentBase;
                 const handleSaveToPage = (payload) => {
@@ -2776,7 +2800,11 @@ export default function PageBuilder({
                   if (block.baseComponent === "AwardsRecognition") {
                     const newLayout = blocks.map((b) =>
                       b.instanceId === block.instanceId
-                        ? { ...b, baseComponent: "OverviewOfOurWork", props: payload }
+                        ? {
+                            ...b,
+                            baseComponent: "OverviewOfOurWork",
+                            props: payload,
+                          }
                         : b,
                     );
                     triggerChange(newLayout);
@@ -2874,7 +2902,7 @@ export default function PageBuilder({
                     },
                     {
                       key: "section-content",
-                      label: "Content – add elements inside this section",
+                      label: "Content - add elements inside this section",
                       children: (
                         <div style={{ marginBottom: 12 }}>
                           {(Array.isArray(editingBlock?.props?.layout)

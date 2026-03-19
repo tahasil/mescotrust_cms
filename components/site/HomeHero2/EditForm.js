@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, Button, message, Spin, Collapse } from "antd";
-import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
+import { Form, Input, InputNumber, Switch, Button, List, Tooltip, message, Spin, Collapse } from "antd";
+import { DeleteOutlined, PlusOutlined, QuestionCircleOutlined } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
@@ -14,47 +14,66 @@ const PREFIX = "homeHero2";
 const DEFAULT_SUBTITLE =
   "A community-powered initiative that brings donors, mentors, and resources together to help learners overcome barriers and continue their education—turning collective support into real opportunities.";
 
+function buildInitialData(data) {
+  const sliderItems = Array.isArray(data?.homeHero2SliderImages) ? data.homeHero2SliderImages : [];
+  return {
+    mainTitle: data?.mainTitle ?? "Because Every Learner",
+    mainTitleHighlight: data?.mainTitleHighlight ?? "Deserves Support",
+    subTitle: data?.subTitle ?? DEFAULT_SUBTITLE,
+    titleColorKey: data?.titleColorKey ?? "",
+    homeHero2ButtonBgColorKey: data?.homeHero2ButtonBgColorKey ?? "",
+    homeHero2ButtonTextColorKey: data?.homeHero2ButtonTextColorKey ?? "",
+    buttonText: data?.buttonText ?? "Contact Us",
+    buttonHref: data?.buttonHref ?? "/",
+    heroIconUrl: data?.heroIconUrl ?? "/images/hero-icon.svg",
+    homeHero2SliderImages: sliderItems.length > 0 ? sliderItems : [{ src: "", alt: "" }],
+    homeHero2SlideCount: data?.homeHero2SlideCount != null ? Number(data.homeHero2SlideCount) : 37,
+    homeHero2AutoInterval: data?.homeHero2AutoInterval != null ? Number(data.homeHero2AutoInterval) : 4000,
+    homeHero2StepDeg: data?.homeHero2StepDeg != null ? Number(data.homeHero2StepDeg) : 10,
+    homeHero2Duration: data?.homeHero2Duration != null ? Number(data.homeHero2Duration) : 0.6,
+    homeHero2Autoplay: data?.homeHero2Autoplay !== false,
+    homeHero2Draggable: data?.homeHero2Draggable !== false,
+    ...getManageSectionInitialValues(PREFIX, data || {}),
+  };
+}
+
 /**
- * Edit form for HomeHero2 — used in component edit drawer.
- * Includes Manage Section (background/padding) and Title & Colors by default.
- * Loads/saves via API_PATH (Component defaultProps).
+ * Edit form for HomeHero2 — used in component edit drawer and page builder.
+ * When source="page": data from block.props (pages collection); save updates layout only, not components collection.
+ * Exposes update() via ref for drawer header button.
  */
 function HomeHero2EditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [] }, ref) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [initialData, setInitialData] = useState(null);
   const [themeColorOptions, setThemeColorOptions] = useState(themeColorOptionsProp);
-  const dataLoadedRef = useRef(false);
+  const themeFetchedRef = useRef(false);
   const isPageBlock = source === "page";
 
   useEffect(() => {
     setLoading(true);
     if (isPageBlock) {
       const data = initialDataProp ?? {};
-      const sliderItems = Array.isArray(data.homeHero2SliderImages) ? data.homeHero2SliderImages : [];
-      if (themeColorOptionsProp?.length > 0) setThemeColorOptions(themeColorOptionsProp);
-      form.setFieldsValue({
-        mainTitle: data.mainTitle ?? "Because Every Learner",
-        mainTitleHighlight: data.mainTitleHighlight ?? "Deserves Support",
-        subTitle: data.subTitle ?? DEFAULT_SUBTITLE,
-        titleColorKey: data.titleColorKey ?? "",
-        homeHero2ButtonBgColorKey: data.homeHero2ButtonBgColorKey ?? "",
-        homeHero2ButtonTextColorKey: data.homeHero2ButtonTextColorKey ?? "",
-        buttonText: data.buttonText ?? "Contact Us",
-        buttonHref: data.buttonHref ?? "/",
-        heroIconUrl: data.heroIconUrl ?? "/images/hero-icon.svg",
-        homeHero2SliderImages: sliderItems.length > 0 ? sliderItems : [{ src: "", alt: "" }],
-        ...getManageSectionInitialValues(PREFIX, data),
-        ...data,
-      });
-      setLoading(false);
+      setInitialData(buildInitialData(data));
+      if (!themeFetchedRef.current) {
+        themeFetchedRef.current = true;
+        fetch("/api/theme", { cache: "no-store" })
+          .then((res) => (res.ok ? res.json() : {}))
+          .then((theme) => {
+            const palette = theme?.themePalette || {};
+            const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
+            const names = [...new Set([...Object.keys(palette), ...customColors.map((c) => c?.name).filter(Boolean)])].sort();
+            setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
+          })
+          .catch(() => {})
+          .finally(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
       return;
     }
-    if (dataLoadedRef.current) {
-      setLoading(false);
-      return;
-    }
-    dataLoadedRef.current = true;
+    setInitialData(null);
     fetch(API_PATH, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : {}))
       .then((data) => {
@@ -63,25 +82,11 @@ function HomeHero2EditForm({ source, initialData: initialDataProp, onSaveToPage,
         const names = [...new Set([...Object.keys(palette), ...custom.map((c) => c?.name).filter(Boolean)])].sort();
         setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
         const { themePalette: _p, colors: _c, ...formData } = data || {};
-        const sliderItems = Array.isArray(formData?.homeHero2SliderImages) ? formData.homeHero2SliderImages : [];
-        form.setFieldsValue({
-          mainTitle: (formData && formData.mainTitle) ?? "Because Every Learner",
-          mainTitleHighlight: (formData && formData.mainTitleHighlight) ?? "Deserves Support",
-          subTitle: (formData && formData.subTitle) ?? DEFAULT_SUBTITLE,
-          titleColorKey: (formData && formData.titleColorKey) ?? "",
-          homeHero2ButtonBgColorKey: (formData && formData.homeHero2ButtonBgColorKey) ?? "",
-          homeHero2ButtonTextColorKey: (formData && formData.homeHero2ButtonTextColorKey) ?? "",
-          buttonText: (formData && formData.buttonText) ?? "Contact Us",
-          buttonHref: (formData && formData.buttonHref) ?? "/",
-          heroIconUrl: (formData && formData.heroIconUrl) ?? "/images/hero-icon.svg",
-          homeHero2SliderImages: sliderItems.length > 0 ? sliderItems : [{ src: "", alt: "" }],
-          ...getManageSectionInitialValues(PREFIX, formData),
-          ...(formData && typeof formData === "object" ? formData : {}),
-        });
+        setInitialData(buildInitialData(formData));
       })
       .catch(() => message.error("Failed to load HomeHero2"))
       .finally(() => setLoading(false));
-  }, [form, isPageBlock, initialDataProp]);
+  }, [isPageBlock, initialDataProp]);
 
   const handleUpdate = () => {
     form.validateFields().then(() => {
@@ -101,6 +106,12 @@ function HomeHero2EditForm({ source, initialData: initialDataProp, onSaveToPage,
         homeHero2ButtonBgColorKey: values.homeHero2ButtonBgColorKey != null ? String(values.homeHero2ButtonBgColorKey).trim() : "",
         homeHero2ButtonTextColorKey: values.homeHero2ButtonTextColorKey != null ? String(values.homeHero2ButtonTextColorKey).trim() : "",
         homeHero2SliderImages,
+        homeHero2SlideCount: values.homeHero2SlideCount != null ? Math.max(1, Math.min(72, Number(values.homeHero2SlideCount))) : 37,
+        homeHero2AutoInterval: values.homeHero2AutoInterval != null ? Math.max(1000, Number(values.homeHero2AutoInterval)) : 4000,
+        homeHero2StepDeg: values.homeHero2StepDeg != null ? Math.max(1, Math.min(45, Number(values.homeHero2StepDeg))) : 10,
+        homeHero2Duration: values.homeHero2Duration != null ? Math.max(0.1, Number(values.homeHero2Duration)) : 0.6,
+        homeHero2Autoplay: values.homeHero2Autoplay !== false,
+        homeHero2Draggable: values.homeHero2Draggable !== false,
         ...getManageSectionPayload(PREFIX, values),
       };
       if (isPageBlock && onSaveToPage) {
@@ -127,9 +138,11 @@ function HomeHero2EditForm({ source, initialData: initialDataProp, onSaveToPage,
     }).catch(() => {});
   };
 
-  useImperativeHandle(ref, () => ({ update: handleUpdate }), []);
+  const handleUpdateRef = useRef(handleUpdate);
+  handleUpdateRef.current = handleUpdate;
+  useImperativeHandle(ref, () => ({ update: () => handleUpdateRef.current() }), []);
 
-  if (loading) {
+  if (loading || initialData === null) {
     return (
       <div style={{ padding: 48, textAlign: "center" }}>
         <Spin />
@@ -138,9 +151,9 @@ function HomeHero2EditForm({ source, initialData: initialDataProp, onSaveToPage,
   }
 
   return (
-    <Form form={form} layout="vertical">
+    <Form form={form} layout="vertical" initialValues={initialData} key="homehero2-edit-form">
       <Collapse
-        defaultActiveKey={["manage-section", "title-colors", "content"]}
+        defaultActiveKey={["manage-section", "title-colors", "content", "slider", "slider-setting"]}
         items={[
           {
             key: "manage-section",
@@ -171,7 +184,7 @@ function HomeHero2EditForm({ source, initialData: initialDataProp, onSaveToPage,
           },
           {
             key: "slider",
-            label: "Circular slider images",
+            label: "Circular Slider Images",
             children: (
               <Form.List name="homeHero2SliderImages">
                 {(fields, { add, remove }) => (
@@ -195,6 +208,154 @@ function HomeHero2EditForm({ source, initialData: initialDataProp, onSaveToPage,
                   </>
                 )}
               </Form.List>
+            ),
+          },
+          {
+            key: "slider-setting",
+            label: "Slider Settings",
+            children: (
+              <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                <List
+                  header={<span style={{ fontSize: 13, fontWeight: 600, color: "rgba(0,0,0,0.65)" }}>Behaviour</span>}
+                  size="small"
+                  bordered
+                  split
+                  dataSource={[
+                    {
+                      key: "autoplay",
+                      name: "homeHero2Autoplay",
+                      label: "Autoplay",
+                      tooltip: "Rotate slider automatically",
+                    },
+                    {
+                      key: "draggable",
+                      name: "homeHero2Draggable",
+                      label: "Draggable",
+                      tooltip: "Allow drag to rotate",
+                    },
+                  ]}
+                  renderItem={(item) => (
+                    <List.Item
+                      actions={[
+                        <Form.Item
+                          key="switch"
+                          name={item.name}
+                          valuePropName="checked"
+                          noStyle
+                          style={{ marginBottom: 0 }}
+                        >
+                          <Switch />
+                        </Form.Item>,
+                      ]}
+                    >
+                      <Tooltip title={item.tooltip}>
+                        <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4, color: "rgba(0,0,0,0.65)" }}>
+                          {item.label}{" "}
+                          <QuestionCircleOutlined style={{ fontSize: 12, color: "#999" }} />
+                        </span>
+                      </Tooltip>
+                    </List.Item>
+                  )}
+                />
+
+                <List
+                  header={<span style={{ fontSize: 13, fontWeight: 600, color: "rgba(0,0,0,0.65)" }}>Speed</span>}
+                  size="small"
+                  bordered
+                  split
+                  dataSource={[
+                    {
+                      key: "autoInterval",
+                      name: "homeHero2AutoInterval",
+                      label: "Auto-rotate interval (ms)",
+                      tooltip: "Delay between each auto rotation step (milliseconds)",
+                      min: 1000,
+                      max: 30000,
+                      step: 500,
+                    },
+                    {
+                      key: "duration",
+                      name: "homeHero2Duration",
+                      label: "Transition duration (s)",
+                      tooltip: "Animation duration for each rotation step in seconds",
+                      min: 0.1,
+                      max: 3,
+                      step: 0.1,
+                    },
+                  ]}
+                  renderItem={(item) => (
+                    <List.Item
+                      actions={[
+                        <Form.Item key="input" name={item.name} noStyle style={{ marginBottom: 0 }}>
+                          <InputNumber
+                            size="small"
+                            min={item.min}
+                            max={item.max}
+                            step={item.step}
+                            style={{ width: 90 }}
+                          />
+                        </Form.Item>,
+                      ]}
+                    >
+                      <Tooltip title={item.tooltip}>
+                        <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4, color: "rgba(0,0,0,0.65)" }}>
+                          {item.label}{" "}
+                          <QuestionCircleOutlined style={{ fontSize: 12, color: "#999" }} />
+                        </span>
+                      </Tooltip>
+                    </List.Item>
+                  )}
+                />
+
+                <List
+                  header={<span style={{ fontSize: 13, fontWeight: 600, color: "rgba(0,0,0,0.65)" }}>Layout</span>}
+                  size="small"
+                  bordered
+                  split
+                  dataSource={[
+                    {
+                      key: "slideCount",
+                      name: "homeHero2SlideCount",
+                      label: "Total slide slots",
+                      tooltip: "Total number of card slots around the circle (images repeat to fill). Higher = denser ring.",
+                      min: 4,
+                      max: 72,
+                      step: 1,
+                    },
+                    {
+                      key: "stepDeg",
+                      name: "homeHero2StepDeg",
+                      label: "Step angle (degrees)",
+                      tooltip: "Degrees to rotate per step. Lower = smoother, higher = faster jumps.",
+                      min: 1,
+                      max: 45,
+                      step: 1,
+                    },
+                  ]}
+                  renderItem={(item) => (
+                    <List.Item
+                      actions={[
+                        <Form.Item key="input" name={item.name} noStyle style={{ marginBottom: 0 }}>
+                          <InputNumber
+                            size="small"
+                            min={item.min}
+                            max={item.max}
+                            step={item.step}
+                            style={{ width: 90 }}
+                          />
+                        </Form.Item>,
+                      ]}
+                    >
+                      <Tooltip title={item.tooltip}>
+                        <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4, color: "rgba(0,0,0,0.65)" }}>
+                          {item.label}{" "}
+                          <QuestionCircleOutlined style={{ fontSize: 12, color: "#999" }} />
+                        </span>
+                      </Tooltip>
+                    </List.Item>
+                  )}
+                />
+              </div>
             ),
           },
         ]}

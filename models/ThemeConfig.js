@@ -277,7 +277,13 @@ const themeConfigSchema = new mongoose.Schema(
       default: "minimal",
     },
 
-    // ─── 11. Advanced ───────────────────────────────────────────
+    // ─── 11. Page Loader ────────────────────────────────────────
+    pageLoaderEnabled: { type: Boolean, default: true },
+    pageLoaderBgColor: { type: String, default: "#000000" },
+    pageLoaderBarColor: { type: String, default: "#CF372F" },
+    pageLoaderMinDuration: { type: Number, default: 400 },
+
+    // ─── 12. Advanced ───────────────────────────────────────────
     customCss: { type: String, default: "" },
     customJs: { type: String, default: "" },
     headScripts: { type: String, default: "" },

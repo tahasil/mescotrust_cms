@@ -28,6 +28,7 @@ import {
   PictureOutlined,
   CodeOutlined,
   BulbOutlined,
+  LoadingOutlined,
 } from "@ant-design/icons";
 import { LOCALE_OPTIONS } from "@/lib/localeOptions";
 import { ThemeAdminCard } from "@/styles/Theme";
@@ -216,6 +217,10 @@ const initialFormValues = {
   blogSidebarPosition: "right",
   blogFeaturedImageRatio: "16/9",
   blogMetaStyle: "minimal",
+  pageLoaderEnabled: true,
+  pageLoaderBgColor: "#000000",
+  pageLoaderBarColor: "#CF372F",
+  pageLoaderMinDuration: 400,
   customCss: "",
   customJs: "",
   headScripts: "",
@@ -512,6 +517,37 @@ export default function AdminThemePage() {
       ),
     },
     {
+      key: "page-loader",
+      label: (
+        <span>
+          <LoadingOutlined style={{ marginRight: 8 }} />
+          Page Loader
+        </span>
+      ),
+      children: (
+        <div style={{ paddingBlock: 8 }}>
+          <Form.Item name="pageLoaderEnabled" label="Enable page loader" valuePropName="checked">
+            <Switch />
+          </Form.Item>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item name="pageLoaderBgColor" label="Background color">
+                <Input type="color" style={{ width: 60, height: 36, padding: 2 }} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="pageLoaderBarColor" label="Bar color">
+                <Input type="color" style={{ width: 60, height: 36, padding: 2 }} />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item name="pageLoaderMinDuration" label="Minimum duration (ms)" tooltip="Minimum time the loader stays visible to avoid flickering">
+            <InputNumber min={0} max={3000} step={100} style={{ width: 160 }} />
+          </Form.Item>
+        </div>
+      ),
+    },
+    {
       key: "advanced",
       label: (
         <span>
@@ -566,7 +602,7 @@ export default function AdminThemePage() {
         initialValues={initialFormValues}
         loading={loading}
       >
-        <Collapse items={collapseItems} defaultActiveKey={[]} />
+        <Collapse items={collapseItems} defaultActiveKey={[]} destroyInactivePanel={false} />
         <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
           <Button
             type="primary"

@@ -89,13 +89,19 @@ export default function HomeHero2(props) {
   const buttonStyle =
     buttonBgColorKey || buttonTextColorKey
       ? {
-          ...(buttonBgColorKey ? { backgroundColor: getColor(buttonBgColorKey) } : {}),
+          ...(buttonBgColorKey ? { background: getColor(buttonBgColorKey) } : {}),
           ...(buttonTextColorKey ? { color: getColor(buttonTextColorKey) } : {}),
         }
       : undefined;
   const sliderImages = Array.isArray(props?.homeHero2SliderImages)
     ? props.homeHero2SliderImages.filter((s) => s && (s.src || s.url))
     : [];
+  const sliderSlideCount = props?.homeHero2SlideCount != null ? Number(props.homeHero2SlideCount) : undefined;
+  const sliderAutoInterval = props?.homeHero2AutoInterval != null ? Number(props.homeHero2AutoInterval) : undefined;
+  const sliderStepDeg = props?.homeHero2StepDeg != null ? Number(props.homeHero2StepDeg) : undefined;
+  const sliderDuration = props?.homeHero2Duration != null ? Number(props.homeHero2Duration) : undefined;
+  const sliderAutoplay = props?.homeHero2Autoplay !== false;
+  const sliderDraggable = props?.homeHero2Draggable !== false;
 
   const router = useRouter();
   const isExternal =
@@ -150,6 +156,11 @@ export default function HomeHero2(props) {
             src: s.src || s.url,
             alt: s.alt != null ? String(s.alt) : "Slider",
           }))}
+          slideCount={sliderSlideCount}
+          autoInterval={sliderAutoplay ? sliderAutoInterval : 0}
+          stepDeg={sliderStepDeg}
+          duration={sliderDuration}
+          draggable={sliderDraggable}
         />
       ) : null}
     </HomeContainer>

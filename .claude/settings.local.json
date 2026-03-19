@@ -5,7 +5,10 @@
       "Bash(xargs grep -l \"baseComponent.*Header\")",
       "Bash(xargs grep -l \"Header.*baseComponent\\\\|HeaderBlock\\\\|Header from.*blocks\")",
       "Bash(xargs grep -l \"renderComponent\\\\|baseComponent.*Header\")",
-      "Bash(xargs grep -l \"theme\")"
+      "Bash(xargs grep -l \"theme\")",
+      "Bash(node -e \":*)",
+      "Bash(curl -s http://localhost:3000/api/theme/HomeHero2)",
+      "Bash(curl -s http://localhost:3000/)"
     ]
   }
 }

@@ -144,7 +144,7 @@ function normalizePropsForOverviewOfOurWork(props) {
 }
 
 /** Site components that must not be wrapped in PageContainer so their background can be full viewport width. */
-const FULL_BLEED_SITE_COMPONENTS = ["HomeHero", "Marquee", "Subscribe"];
+const FULL_BLEED_SITE_COMPONENTS = ["HomeHero", "HomeHero2", "Marquee", "Subscribe"];
 
 function extractSectionProps(props) {
   const section = {};

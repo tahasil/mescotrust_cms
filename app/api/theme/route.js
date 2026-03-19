@@ -212,6 +212,10 @@ const DEFAULTS = {
   blogSidebarPosition: "right",
   blogFeaturedImageRatio: "16/9",
   blogMetaStyle: "minimal",
+  pageLoaderEnabled: true,
+  pageLoaderBgColor: "#000000",
+  pageLoaderBarColor: "#CF372F",
+  pageLoaderMinDuration: 400,
   customCss: "",
   customJs: "",
   headScripts: "",
@@ -249,6 +253,7 @@ const THEME_FIELDS = [
   "cardStyle", "alertStyle", "badgeStyle", "tableStyle", "formStyle", "inputStyle",
   "mobileFontSize", "mobileSectionSpacing", "hideSectionOnMobile",
   "blogLayout", "blogSidebarPosition", "blogFeaturedImageRatio", "blogMetaStyle",
+  "pageLoaderEnabled", "pageLoaderBgColor", "pageLoaderBarColor", "pageLoaderMinDuration",
   "customCss", "customJs", "headScripts", "footerScripts", "googleAnalyticsId",
   "layoutWidth", "defaultLocale", "direction",
 ];

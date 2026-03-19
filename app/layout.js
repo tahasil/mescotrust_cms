@@ -1,5 +1,6 @@
 import "./globals.css";
 import { headers } from "next/headers";
+import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { getSiteUrl } from "@/lib/env";
 import { getTheme, THEME_DEFAULTS } from "@/lib/layoutData";
 
@@ -121,6 +122,11 @@ export default async function RootLayout({ children }) {
     "--layout-width": `${theme.layoutWidth ?? 1200}px`,
   };
 
+  const loaderEnabled = !isAdmin && theme.pageLoaderEnabled !== false;
+  const loaderBg = theme.pageLoaderBgColor || "#000000";
+  const loaderBar = theme.pageLoaderBarColor || "#CF372F";
+  const loaderMinDuration = theme.pageLoaderMinDuration ?? 400;
+
   const siteName = theme.siteTitle || "Mesco Trust CMS";
   const orgJsonLd = !isAdmin
     ? {
@@ -132,7 +138,7 @@ export default async function RootLayout({ children }) {
     : null;
 
   return (
-    <html lang={theme.defaultLocale || "en"} dir={dir} style={cssVars} data-header-layout={theme.headerLayout} data-card-style={theme.cardStyle}>
+    <html lang={theme.defaultLocale || "en"} dir={dir} style={cssVars} data-header-layout={theme.headerLayout} data-card-style={theme.cardStyle} className={loaderEnabled ? "page-loading" : undefined}>
       <head>
         {theme.faviconUrl && <link rel="icon" href={theme.faviconUrl} />}
         {googleFontsUrl && <link rel="stylesheet" href={googleFontsUrl} />}
@@ -142,6 +148,21 @@ export default async function RootLayout({ children }) {
               __html: `@font-face { font-family: 'CustomUpload'; src: url('${theme.customFontUrl}'); font-display: swap; }`,
             }}
           />
+        )}
+        {loaderEnabled && (
+          <style dangerouslySetInnerHTML={{ __html: `
+html.page-loading,body.page-loading{overflow:hidden;margin:0;padding:0}
+#page-loader{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:${loaderBg};transition:opacity .5s ease-out,visibility .5s ease-out}
+#page-loader.page-loader-hidden{opacity:0;visibility:hidden;pointer-events:none}
+.page-loader-bars{display:flex;align-items:center;justify-content:center;gap:6px;height:50px}
+.page-loader-bar{width:6px;height:50px;background:${loaderBar};border-radius:3px;animation:page-loader-bounce 1.2s ease-in-out infinite both}
+.page-loader-bar:nth-child(1){animation-delay:-.4s}
+.page-loader-bar:nth-child(2){animation-delay:-.32s}
+.page-loader-bar:nth-child(3){animation-delay:-.24s}
+.page-loader-bar:nth-child(4){animation-delay:-.16s}
+.page-loader-bar:nth-child(5){animation-delay:-.08s}
+@keyframes page-loader-bounce{0%,80%,100%{transform:scaleY(.4)}40%{transform:scaleY(1)}}
+` }} />
         )}
         {theme.customCss && <style dangerouslySetInnerHTML={{ __html: theme.customCss }} />}
         {theme.headScripts && <script dangerouslySetInnerHTML={{ __html: theme.headScripts }} />}
@@ -155,8 +176,35 @@ export default async function RootLayout({ children }) {
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
         )}
       </head>
-      <body>
-        {children}
+      <body className={loaderEnabled ? "page-loading" : undefined}>
+        <AntdRegistry>{children}</AntdRegistry>
+        {loaderEnabled && (
+          <>
+            <div id="page-loader" aria-hidden="false" aria-label="Loading">
+              <div className="page-loader-bars">
+                <span className="page-loader-bar" />
+                <span className="page-loader-bar" />
+                <span className="page-loader-bar" />
+                <span className="page-loader-bar" />
+                <span className="page-loader-bar" />
+              </div>
+            </div>
+            <script dangerouslySetInnerHTML={{ __html: `
+(function(){
+  var d=${loaderMinDuration};
+  function hide(){
+    var el=document.getElementById("page-loader");
+    if(el){el.classList.add("page-loader-hidden");el.setAttribute("aria-hidden","true")}
+    document.documentElement.classList.remove("page-loading");
+    document.body.classList.remove("page-loading");
+  }
+  function ready(){setTimeout(hide,d)}
+  if(document.readyState==="complete"){ready()}
+  else{window.addEventListener("load",ready)}
+})();
+` }} />
+          </>
+        )}
       </body>
     </html>
   );

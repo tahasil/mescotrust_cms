@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useId } from "react";
+import Script from "next/script";
 import {
   SliderContainer,
   SliderCarousel,
@@ -21,11 +22,13 @@ export default function CircularSlider({
   autoInterval = DEFAULTS.autoInterval,
   stepDeg = DEFAULTS.stepDeg,
   duration = DEFAULTS.duration,
+  draggable = true,
 }) {
   const uid = useId().replace(/:/g, "");
   const className = `circular-slider-${uid}`;
   const carouselRef = useRef(null);
   const autoIntervalRef = useRef(null);
+  const scriptsReady = useRef(false);
 
   useEffect(() => {
     if (!images.length) return;
@@ -61,17 +64,20 @@ export default function CircularSlider({
         }
       };
 
-      const instances = Draggable.create(`.${className}`, {
-        type: "rotation",
-        inertia: true,
-        minimumMovement: 0,
-        snap: (endValue) => Math.round(endValue / stepDeg) * stepDeg,
-        onDragStart: stopAutoRotate,
-        onDragEnd: startAutoRotate,
-        onThrowComplete: startAutoRotate,
-      });
+      let instances = [];
+      if (draggable) {
+        instances = Draggable.create(`.${className}`, {
+          type: "rotation",
+          inertia: true,
+          minimumMovement: 0,
+          snap: (endValue) => Math.round(endValue / stepDeg) * stepDeg,
+          onDragStart: stopAutoRotate,
+          onDragEnd: () => { if (autoInterval > 0) startAutoRotate(); },
+          onThrowComplete: () => { if (autoInterval > 0) startAutoRotate(); },
+        });
+      }
 
-      startAutoRotate();
+      if (autoInterval > 0) startAutoRotate();
       cleanup = () => {
         stopAutoRotate();
         instances?.forEach((d) => d.kill());
@@ -88,28 +94,37 @@ export default function CircularSlider({
       clearInterval(id);
       cleanup();
     };
-  }, [images, autoInterval, stepDeg, duration, className]);
+  }, [images, autoInterval, stepDeg, duration, className, draggable, scriptsReady.current]);
 
   if (!images.length) return null;
 
+  const handleScriptsLoaded = () => {
+    scriptsReady.current = true;
+  };
+
   return (
-    <SliderContainer>
-      <SliderCarousel
-        ref={carouselRef}
-        className={className}
-        aria-label="Circular image carousel - drag to rotate"
-      >
-        {Array.from({ length: slideCount }, (_, i) => {
-          const slide = images[i % images.length];
-          return (
-            <SliderWrapper key={i} $rotation={i * stepDeg}>
-              <SliderSlide>
-                <img className="img-fluid" src={slide.src} alt={slide.alt} />
-              </SliderSlide>
-            </SliderWrapper>
-          );
-        })}
-      </SliderCarousel>
-    </SliderContainer>
+    <>
+      <Script src="/js/gsap.min.js" strategy="afterInteractive" onLoad={handleScriptsLoaded} />
+      <Script src="/js/Draggable.min.js" strategy="afterInteractive" onLoad={handleScriptsLoaded} />
+      <Script src="/js/InertiaPlugin.min.js" strategy="afterInteractive" onLoad={handleScriptsLoaded} />
+      <SliderContainer>
+        <SliderCarousel
+          ref={carouselRef}
+          className={className}
+          aria-label="Circular image carousel - drag to rotate"
+        >
+          {Array.from({ length: slideCount }, (_, i) => {
+            const slide = images[i % images.length];
+            return (
+              <SliderWrapper key={i} $rotation={i * stepDeg}>
+                <SliderSlide>
+                  <img className="img-fluid" src={slide.src} alt={slide.alt} />
+                </SliderSlide>
+              </SliderWrapper>
+            );
+          })}
+        </SliderCarousel>
+      </SliderContainer>
+    </>
   );
 }
