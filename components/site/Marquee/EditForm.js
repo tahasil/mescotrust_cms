@@ -14,16 +14,19 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
  * When source="page": data from block.props (pages collection); save updates layout only, not components collection.
  * Exposes update() via ref for drawer header button.
  */
-function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel }, ref) {
+function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [] }, ref) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [initialData, setInitialData] = useState(null);
-  const [themeColorOptions, setThemeColorOptions] = useState([]);
+  const [themeColorOptions, setThemeColorOptions] = useState(themeColorOptionsProp);
   const [reorderMovedIndex, setReorderMovedIndex] = useState(-1);
   const [reorderDirection, setReorderDirection] = useState("up");
   const themeFetchedForColorsRef = useRef(false);
   const isPageBlock = source === "page";
+  useEffect(() => {
+    if (themeColorOptionsProp?.length > 0) setThemeColorOptions(themeColorOptionsProp);
+  }, [themeColorOptionsProp]);
 
   useEffect(() => {
     setLoading(true);

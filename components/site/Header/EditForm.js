@@ -52,6 +52,7 @@ function HeaderEditForm(
     onSuccess,
     onCancel,
     paletteComponent = null,
+    themeColorOptions: themeColorOptionsProp = [],
   },
   ref,
 ) {
@@ -59,11 +60,14 @@ function HeaderEditForm(
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [menusList, setMenusList] = useState([]);
-  const [themeColorOptions, setThemeColorOptions] = useState([]);
+  const [themeColorOptions, setThemeColorOptions] = useState(themeColorOptionsProp);
   const [themePaletteKeyOptions, setThemePaletteKeyOptions] = useState([]);
   const lastLoadedNavItemsRef = useRef(null);
   const themeLoadedOnceRef = useRef(false);
   const isPageBlock = source === "page";
+  useEffect(() => {
+    if (themeColorOptionsProp?.length > 0) setThemeColorOptions(themeColorOptionsProp);
+  }, [themeColorOptionsProp]);
 
   const THEME_COLOR_KEY_FIELDS = ["headerCtaBgColorKey", "headerCtaTextColorKey", "headerDonateBgColorKey", "headerDonateTextColorKey"];
 
@@ -133,14 +137,14 @@ function HeaderEditForm(
             .catch(() => {});
         }
         const palette = theme?.themePalette && typeof theme.themePalette === "object" ? theme.themePalette : {};
-        const opts = Object.entries(palette)
-          .filter(([, v]) => v != null && String(v).trim() !== "")
-          .map(([k, v]) => ({ label: k, value: String(v).trim() }));
-        if (Array.isArray(theme?.colors))
-          theme.colors.forEach((c) => {
-            if (c?.name && c.value != null) opts.push({ label: c.name, value: String(c.value) });
-          });
-        setThemeColorOptions(opts);
+        const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
+        const names = [
+          ...new Set([
+            ...Object.keys(palette),
+            ...customColors.map((c) => c?.name).filter(Boolean),
+          ]),
+        ].sort();
+        setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
         // Only custom colors (admin/theme → Custom colors), not palette – dropdown stays in sync with Theme
         const keyOpts = (Array.isArray(theme?.colors) ? theme.colors : [])
           .filter((c) => c?.name && String(c.name).trim() !== "")

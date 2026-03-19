@@ -12,14 +12,17 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
  * When source="page": data from block.props (pages collection); save updates layout only.
  * Theme colors: same pattern as HomeHero — Select from theme palette.
  */
-function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onDataLoad }, ref) {
+function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onDataLoad, themeColorOptions: themeColorOptionsProp = [] }, ref) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [themeColorOptions, setThemeColorOptions] = useState([]);
+  const [themeColorOptions, setThemeColorOptions] = useState(themeColorOptionsProp);
   const [initialData, setInitialData] = useState(null);
   const themeFetchedForColorsRef = useRef(false);
   const isPageBlock = source === "page";
+  useEffect(() => {
+    if (themeColorOptionsProp?.length > 0) setThemeColorOptions(themeColorOptionsProp);
+  }, [themeColorOptionsProp]);
 
   useEffect(() => {
     setLoading(true);

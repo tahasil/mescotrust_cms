@@ -37,17 +37,20 @@ function normalizeItem(it) {
  * Loads/saves via /api/theme/LatestEvents1. Section titles + list of news items + theme color keys.
  */
 function LatestEvents1EditForm(
-  { source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel },
+  { source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [] },
   ref
 ) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [themeColorOptions, setThemeColorOptions] = useState([]);
+  const [themeColorOptions, setThemeColorOptions] = useState(themeColorOptionsProp);
   const [reorderMovedIndex, setReorderMovedIndex] = useState(-1);
   const [reorderDirection, setReorderDirection] = useState("up");
   const themeFetchedForColorsRef = useRef(false);
   const isPageBlock = source === "page";
+  useEffect(() => {
+    if (themeColorOptionsProp?.length > 0) setThemeColorOptions(themeColorOptionsProp);
+  }, [themeColorOptionsProp]);
 
   useEffect(() => {
     setLoading(true);
@@ -70,8 +73,9 @@ function LatestEvents1EditForm(
         fetch("/api/theme", { cache: "no-store" })
           .then((res) => (res.ok ? res.json() : {}))
           .then((theme) => {
+            const palette = theme?.themePalette || {};
             const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
-            const names = [...new Set(customColors.map((c) => c?.name).filter(Boolean))].sort();
+            const names = [...new Set([...Object.keys(palette), ...customColors.map((c) => c?.name).filter(Boolean)])].sort();
             setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
           })
           .catch(() => {})
@@ -86,8 +90,9 @@ function LatestEvents1EditForm(
       fetch("/api/theme", { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
     ])
       .then(([data, theme]) => {
+        const palette = theme?.themePalette || {};
         const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
-        const names = [...new Set(customColors.map((c) => c?.name).filter(Boolean))].sort();
+        const names = [...new Set([...Object.keys(palette), ...customColors.map((c) => c?.name).filter(Boolean)])].sort();
         setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
 
         const items = Array.isArray(data?.latestEvents1Items)

@@ -532,6 +532,17 @@ export default function AdminComponentEditPage() {
       .then((data) => {
         const { themePalette: _p, colors: _c, ...props } = data || {};
         setThemeSnapshotForDynamic(props || {});
+        const palette = _p && typeof _p === "object" ? _p : {};
+        const customColors = Array.isArray(_c) ? _c : [];
+        const names = [
+          ...new Set([
+            ...Object.keys(palette),
+            ...customColors.map((c) => c?.name).filter(Boolean),
+          ]),
+        ].sort();
+        setThemeColorOptions(
+          names.map((name) => ({ label: name, value: name })),
+        );
       })
       .catch(() => setThemeSnapshotForDynamic({}))
       .finally(() => setThemeLoading(false));
@@ -1214,6 +1225,7 @@ export default function AdminComponentEditPage() {
               return (
                 <EditFormComp
                   ref={componentEditFormRef}
+                  themeColorOptions={themeColorOptions}
                   onSuccess={refetchAndClose}
                   onCancel={() => setComponentDrawerOpen(false)}
                 />
@@ -1263,14 +1275,17 @@ export default function AdminComponentEditPage() {
 
 function resolveThemeColorFromPalette(paletteData, key) {
   if (!key) return "";
+  const k = String(key).trim();
   const palette = paletteData?.themePalette || {};
-  if (palette[key] != null && String(palette[key]).trim() !== "")
-    return String(palette[key]).trim();
+  if (palette[k] != null && String(palette[k]).trim() !== "")
+    return String(palette[k]).trim();
   const custom = paletteData?.colors || [];
-  const found = custom.find(
-    (c) => c && String(c.name).trim() === String(key).trim(),
-  );
-  return found && found.value != null ? String(found.value).trim() : "";
+  const found = custom.find((c) => c && String(c.name).trim() === k);
+  if (found && found.value != null) return String(found.value).trim();
+  const byValue = custom.find((c) => c && String(c.value).trim() === k);
+  if (byValue && byValue.value != null) return String(byValue.value).trim();
+  if (/^(#|rgb|rgba|hsl|hsla|linear-gradient|radial-gradient)/i.test(k)) return k;
+  return "";
 }
 
 function HeaderPreviewBlock({ form, themePaletteData, themeHeaderSnapshot }) {

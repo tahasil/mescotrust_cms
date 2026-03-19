@@ -1826,6 +1826,19 @@ export default function PageBuilder({
     return out;
   }, [theme]);
 
+  /** Color options for site component EditForms — uses color names as values (components store names, resolve via getColor). */
+  const siteEditFormColorOptions = useMemo(() => {
+    const palette = theme?.themePalette || {};
+    const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
+    const names = [
+      ...new Set([
+        ...Object.keys(palette),
+        ...customColors.map((c) => c?.name).filter(Boolean),
+      ]),
+    ].sort();
+    return names.map((name) => ({ label: name, value: name }));
+  }, [theme]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, {
@@ -2829,6 +2842,7 @@ export default function PageBuilder({
                     source={isPageContext ? "page" : undefined}
                     initialData={initialData}
                     onSaveToPage={isPageContext ? handleSaveToPage : undefined}
+                    themeColorOptions={siteEditFormColorOptions}
                     onSuccess={() => {
                       setDrawerOpen(false);
                       setEditingIndex(null);

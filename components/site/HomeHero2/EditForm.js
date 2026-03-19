@@ -52,6 +52,10 @@ function HomeHero2EditForm({ source, initialData: initialDataProp, onSaveToPage,
   const isPageBlock = source === "page";
 
   useEffect(() => {
+    if (themeColorOptionsProp?.length > 0) setThemeColorOptions(themeColorOptionsProp);
+  }, [themeColorOptionsProp]);
+
+  useEffect(() => {
     setLoading(true);
     if (isPageBlock) {
       const data = initialDataProp ?? {};

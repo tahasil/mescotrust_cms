@@ -13,15 +13,18 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
  * When source="page": data from block.props (pages collection); save updates layout only.
  * Otherwise: load/save via /api/theme/footer (components collection).
  */
-function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel }, ref) {
+function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [] }, ref) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [themeColorOptions, setThemeColorOptions] = useState([]);
+  const [themeColorOptions, setThemeColorOptions] = useState(themeColorOptionsProp);
   const [initialData, setInitialData] = useState(null);
   const themeFetchedForColorsRef = useRef(false);
   const componentDataLoadedRef = useRef(false);
   const isPageBlock = source === "page";
+  useEffect(() => {
+    if (themeColorOptionsProp?.length > 0) setThemeColorOptions(themeColorOptionsProp);
+  }, [themeColorOptionsProp]);
 
   useEffect(() => {
     setLoading(true);

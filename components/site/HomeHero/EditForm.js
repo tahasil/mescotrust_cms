@@ -15,15 +15,18 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
  * When used on component edit: loads/saves via /api/theme/home-hero (components collection).
  * Exposes update() via ref for drawer header button.
  */
-function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel }, ref) {
+function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [] }, ref) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [themeColorOptions, setThemeColorOptions] = useState([]);
+  const [themeColorOptions, setThemeColorOptions] = useState(themeColorOptionsProp);
   const [reorderMovedIndex, setReorderMovedIndex] = useState(-1);
   const [reorderDirection, setReorderDirection] = useState("up");
   const themeFetchedForColorsRef = useRef(false);
   const isPageBlock = source === "page";
+  useEffect(() => {
+    if (themeColorOptionsProp?.length > 0) setThemeColorOptions(themeColorOptionsProp);
+  }, [themeColorOptionsProp]);
 
   useEffect(() => {
     setLoading(true);

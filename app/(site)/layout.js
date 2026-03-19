@@ -8,11 +8,20 @@ export const revalidate = 0;
 
 function resolveThemeColor(theme, key) {
   if (!key) return "";
+  const k = String(key).trim();
+  // 1. Look up by name in palette
   const palette = theme.themePalette || {};
-  if (palette[key] != null && String(palette[key]).trim() !== "") return String(palette[key]).trim();
+  if (palette[k] != null && String(palette[k]).trim() !== "") return String(palette[k]).trim();
+  // 2. Look up by name in custom colors
   const custom = Array.isArray(theme.colors) ? theme.colors : [];
-  const found = custom.find((c) => c && String(c.name).trim() === String(key).trim());
-  return found && found.value != null ? String(found.value).trim() : "";
+  const found = custom.find((c) => c && String(c.name).trim() === k);
+  if (found && found.value != null) return String(found.value).trim();
+  // 3. Look up by value in custom colors (handles legacy stored hex/rgba values)
+  const byValue = custom.find((c) => c && String(c.value).trim() === k);
+  if (byValue && byValue.value != null) return String(byValue.value).trim();
+  // 4. If it looks like a raw color value (hex, rgb, rgba, gradient), use it directly
+  if (/^(#|rgb|rgba|hsl|hsla|linear-gradient|radial-gradient)/i.test(k)) return k;
+  return "";
 }
 
 export default async function SiteLayout({ children }) {
