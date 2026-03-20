@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import Script from "next/script";
 import { getLayoutData } from "@/lib/layoutData";
 import PublicShell from "@/components/layout/PublicShell";
+import SmoothScroll from "@/components/cms/SmoothScroll";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -43,6 +44,7 @@ export default async function SiteLayout({ children }) {
 
   return (
     <>
+      <SmoothScroll />
       <PublicShell
         globalTheme={theme}
         headerItems={data?.headerItems || []}
@@ -98,6 +100,10 @@ export default async function SiteLayout({ children }) {
       </PublicShell>
       <style dangerouslySetInnerHTML={{ __html: `:root {
         --layout-width: ${Number(theme.layoutWidth) > 0 ? Number(theme.layoutWidth) : 1200}px;
+        --smooth-scroll-enabled: ${theme.smoothScrollEnabled !== false ? "1" : "0"};
+        --smooth-scroll-duration: ${Number(theme.smoothScrollDuration) > 0 ? Number(theme.smoothScrollDuration) : 1.4};
+        --smooth-scroll-wheel: ${Number(theme.smoothScrollWheelMultiplier) > 0 ? Number(theme.smoothScrollWheelMultiplier) : 1};
+        --smooth-scroll-touch: ${Number(theme.smoothScrollTouchMultiplier) > 0 ? Number(theme.smoothScrollTouchMultiplier) : 1.2};
         --fade-enabled: ${theme.fadeAnimationEnabled !== false ? "1" : "0"};
         --fade-duration: ${Number(theme.fadeAnimationDuration) > 0 ? Number(theme.fadeAnimationDuration) : 1}s;
         --fade-distance: ${Number(theme.fadeAnimationDistance) > 0 ? Number(theme.fadeAnimationDistance) : 20}vh;

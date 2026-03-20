@@ -39,14 +39,15 @@ body {
 }
 
 /* Fade-in scroll animation — driven by CSS custom properties from theme settings */
+/* Mobile first: 60% of configured distance, shorter duration */
 .fadeEffects {
   opacity: 0;
-  transform: translateY(var(--fade-distance, 20vh));
+  transform: translateY(calc(var(--fade-distance, 20vh) * 0.6));
   visibility: hidden;
   transition:
-    opacity var(--fade-duration, 1s) ease-out,
-    transform var(--fade-duration, 1s) ease-out,
-    visibility 0s linear var(--fade-duration, 1s);
+    opacity calc(var(--fade-duration, 1s) * 0.85) ease-out,
+    transform calc(var(--fade-duration, 1s) * 0.85) ease-out,
+    visibility 0s linear calc(var(--fade-duration, 1s) * 0.85);
   will-change: opacity, transform;
 }
 .fadeEffects.is-visible {
@@ -54,9 +55,41 @@ body {
   transform: translateY(0);
   visibility: visible;
   transition:
-    opacity var(--fade-duration, 1s) ease-out,
-    transform var(--fade-duration, 1s) ease-out,
+    opacity calc(var(--fade-duration, 1s) * 0.85) ease-out,
+    transform calc(var(--fade-duration, 1s) * 0.85) ease-out,
     visibility 0s 0s;
+}
+/* Tablet: 75% of configured distance */
+@media (min-width: 768px) {
+  .fadeEffects {
+    transform: translateY(calc(var(--fade-distance, 20vh) * 0.75));
+    transition:
+      opacity calc(var(--fade-duration, 1s) * 0.92) ease-out,
+      transform calc(var(--fade-duration, 1s) * 0.92) ease-out,
+      visibility 0s linear calc(var(--fade-duration, 1s) * 0.92);
+  }
+  .fadeEffects.is-visible {
+    transition:
+      opacity calc(var(--fade-duration, 1s) * 0.92) ease-out,
+      transform calc(var(--fade-duration, 1s) * 0.92) ease-out,
+      visibility 0s 0s;
+  }
+}
+/* Desktop: full configured distance and duration */
+@media (min-width: 992px) {
+  .fadeEffects {
+    transform: translateY(var(--fade-distance, 20vh));
+    transition:
+      opacity var(--fade-duration, 1s) ease-out,
+      transform var(--fade-duration, 1s) ease-out,
+      visibility 0s linear var(--fade-duration, 1s);
+  }
+  .fadeEffects.is-visible {
+    transition:
+      opacity var(--fade-duration, 1s) ease-out,
+      transform var(--fade-duration, 1s) ease-out,
+      visibility 0s 0s;
+  }
 }
 /* When animation is globally disabled */
 .fadeEffects.fade-disabled {

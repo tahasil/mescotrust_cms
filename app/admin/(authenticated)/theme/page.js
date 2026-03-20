@@ -217,6 +217,10 @@ const initialFormValues = {
   blogSidebarPosition: "right",
   blogFeaturedImageRatio: "16/9",
   blogMetaStyle: "minimal",
+  smoothScrollEnabled: true,
+  smoothScrollDuration: 1.4,
+  smoothScrollWheelMultiplier: 1,
+  smoothScrollTouchMultiplier: 1.2,
   fadeAnimationEnabled: true,
   fadeAnimationDuration: 1,
   fadeAnimationDistance: 20,
@@ -400,6 +404,29 @@ export default function AdminThemePage() {
                     { value: "rtl", label: "RTL" },
                   ]}
                 />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Divider orientation="left" plain style={{ margin: "16px 0 12px" }}>Smooth Scroll (Lenis)</Divider>
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={12} md={6}>
+              <Form.Item name="smoothScrollEnabled" label="Enable smooth scroll" valuePropName="checked" tooltip="Smooth scroll effect using Lenis library">
+                <Switch />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Form.Item name="smoothScrollDuration" label="Duration" tooltip="Scroll animation duration (higher = slower, smoother)">
+                <InputNumber min={0.5} max={5} step={0.1} style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Form.Item name="smoothScrollWheelMultiplier" label="Wheel speed" tooltip="Mouse wheel scroll speed multiplier">
+                <InputNumber min={0.1} max={5} step={0.1} style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Form.Item name="smoothScrollTouchMultiplier" label="Touch speed" tooltip="Touch/swipe scroll speed multiplier (mobile)">
+                <InputNumber min={0.1} max={5} step={0.1} style={{ width: "100%" }} />
               </Form.Item>
             </Col>
           </Row>
