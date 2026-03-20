@@ -217,6 +217,10 @@ const initialFormValues = {
   blogSidebarPosition: "right",
   blogFeaturedImageRatio: "16/9",
   blogMetaStyle: "minimal",
+  fadeAnimationEnabled: true,
+  fadeAnimationDuration: 1,
+  fadeAnimationDistance: 20,
+  fadeAnimationThreshold: 0.1,
   pageLoaderEnabled: true,
   pageLoaderBgColor: "#000000",
   pageLoaderBarColor: "#CF372F",
@@ -369,17 +373,17 @@ export default function AdminThemePage() {
       children: (
         <div style={{ paddingBlock: 8 }}>
           <Row gutter={[16, 0]}>
-            <Col xs={24} sm={12} md={8}>
+            <Col xs={24} sm={12} md={6}>
               <Form.Item name="siteTitle" label="Site title">
                 <Input placeholder="Mesco Trust" />
               </Form.Item>
             </Col>
-            <Col xs={24} sm={12} md={8}>
+            <Col xs={24} sm={12} md={6}>
               <Form.Item name="layoutWidth" label="Container max-width (px)">
                 <InputNumber min={600} max={1920} style={{ width: "100%" }} />
               </Form.Item>
             </Col>
-            <Col xs={24} sm={12} md={8}>
+            <Col xs={24} sm={12} md={6}>
               <Form.Item name="defaultLocale" label="Default locale">
                 <Select
                   placeholder="Select locale"
@@ -388,7 +392,7 @@ export default function AdminThemePage() {
                 />
               </Form.Item>
             </Col>
-            <Col xs={24} sm={12} md={8}>
+            <Col xs={24} sm={12} md={6}>
               <Form.Item name="direction" label="Direction">
                 <Select
                   options={[
@@ -396,6 +400,29 @@ export default function AdminThemePage() {
                     { value: "rtl", label: "RTL" },
                   ]}
                 />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Divider orientation="left" plain style={{ margin: "16px 0 12px" }}>Scroll Animation</Divider>
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={12} md={6}>
+              <Form.Item name="fadeAnimationEnabled" label="Enable scroll animation" valuePropName="checked" tooltip="Fade-in effect when sections scroll into view">
+                <Switch />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Form.Item name="fadeAnimationDuration" label="Duration (seconds)" tooltip="How long the fade-in transition takes">
+                <InputNumber min={0.1} max={3} step={0.1} style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Form.Item name="fadeAnimationDistance" label="Distance (vh)" tooltip="How far the section slides up from (in viewport height units)">
+                <InputNumber min={0} max={50} step={1} style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Form.Item name="fadeAnimationThreshold" label="Trigger threshold" tooltip="How much of the section must be visible to trigger (0 = any part, 1 = fully visible)">
+                <InputNumber min={0} max={1} step={0.05} style={{ width: "100%" }} />
               </Form.Item>
             </Col>
           </Row>
@@ -532,12 +559,12 @@ export default function AdminThemePage() {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item name="pageLoaderBgColor" label="Background color">
-                <Input type="color" style={{ width: 60, height: 36, padding: 2 }} />
+                <ColorCodeInput placeholder="#000000 or rgba(0,0,0,0.8)" />
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item name="pageLoaderBarColor" label="Bar color">
-                <Input type="color" style={{ width: 60, height: 36, padding: 2 }} />
+                <ColorCodeInput placeholder="#CF372F or rgba(207,55,47,1)" />
               </Form.Item>
             </Col>
           </Row>

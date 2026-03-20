@@ -38,6 +38,34 @@ body {
   background-color: var(--bg-color);
 }
 
+/* Fade-in scroll animation — driven by CSS custom properties from theme settings */
+.fadeEffects {
+  opacity: 0;
+  transform: translateY(var(--fade-distance, 20vh));
+  visibility: hidden;
+  transition:
+    opacity var(--fade-duration, 1s) ease-out,
+    transform var(--fade-duration, 1s) ease-out,
+    visibility 0s linear var(--fade-duration, 1s);
+  will-change: opacity, transform;
+}
+.fadeEffects.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  transition:
+    opacity var(--fade-duration, 1s) ease-out,
+    transform var(--fade-duration, 1s) ease-out,
+    visibility 0s 0s;
+}
+/* When animation is globally disabled */
+.fadeEffects.fade-disabled {
+  opacity: 1;
+  transform: none;
+  visibility: visible;
+  transition: none;
+}
+
 h1,
 h2,
 h3,

@@ -96,6 +96,13 @@ export default async function SiteLayout({ children }) {
       >
         {children}
       </PublicShell>
+      <style dangerouslySetInnerHTML={{ __html: `:root {
+        --layout-width: ${Number(theme.layoutWidth) > 0 ? Number(theme.layoutWidth) : 1200}px;
+        --fade-enabled: ${theme.fadeAnimationEnabled !== false ? "1" : "0"};
+        --fade-duration: ${Number(theme.fadeAnimationDuration) > 0 ? Number(theme.fadeAnimationDuration) : 1}s;
+        --fade-distance: ${Number(theme.fadeAnimationDistance) > 0 ? Number(theme.fadeAnimationDistance) : 20}vh;
+        --fade-threshold: ${Number(theme.fadeAnimationThreshold) >= 0 ? Number(theme.fadeAnimationThreshold) : 0.1};
+      }` }} />
       {theme.footerScripts && <script dangerouslySetInnerHTML={{ __html: theme.footerScripts }} />}
       <Script
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"

@@ -44,6 +44,7 @@ import AntTypographyBlock from "@/components/cms/blocks/antd/AntTypography";
 import AntSpaceBlock from "@/components/cms/blocks/antd/AntSpace";
 import * as SiteComponents from "@/components/site";
 import { PageContainer } from "@/styles/Theme";
+import FadeInSection from "@/components/cms/FadeInSection";
 
 const COMPONENT_MAP = {
   Paragraph: ParagraphBlock,
@@ -145,6 +146,9 @@ function normalizePropsForOverviewOfOurWork(props) {
 
 /** Site components that must not be wrapped in PageContainer so their background can be full viewport width. */
 const FULL_BLEED_SITE_COMPONENTS = ["HomeHero", "HomeHero2", "Marquee", "Subscribe"];
+
+/** Components that should NOT get the FadeInSection scroll animation. */
+const NO_FADE_COMPONENTS = ["Header", "Footer", "HomeHero"];
 
 function extractSectionProps(props) {
   const section = {};
@@ -269,18 +273,20 @@ export default function ComponentRenderer({
           : {};
 
         const isFullBleed = FULL_BLEED_SITE_COMPONENTS.includes(baseComponent);
+        const useFade = !NO_FADE_COMPONENTS.includes(baseComponent) && allProps._disableFadeAnimation !== true;
 
         if (isFullBleed) {
-          return (
+          const inner = (
             <div key={key} className="cms-full-bleed" style={{ width: "100%" }}>
               <Component {...clean} {...elementClickProp} />
             </div>
           );
+          return useFade ? <FadeInSection key={key}>{inner}</FadeInSection> : inner;
         }
 
         // section (data-component) > PageContainer > component for every block
         const sectionClassName = `site-component-${String(baseComponent).toLowerCase()}`;
-        return (
+        const inner = (
           <section
             key={key}
             className={sectionClassName}
@@ -292,6 +298,7 @@ export default function ComponentRenderer({
             </>
           </section>
         );
+        return useFade ? <FadeInSection key={key}>{inner}</FadeInSection> : inner;
       })}
     </div>
   );

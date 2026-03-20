@@ -1,6 +1,7 @@
 "use client";
 
-import { Form, Input, Select, Collapse } from "antd";
+import { Form, Input, Select, Switch, Collapse, Tooltip } from "antd";
+import { QuestionCircleOutlined } from "@ant-design/icons";
 
 /**
  * Shared "Manage Section" UI: Fluid Container + Box Container (background, padding, margin).
@@ -11,6 +12,17 @@ export default function ManageSectionFields({ prefix, form, themeColorOptions = 
   const pageContainerBgType = (Form.useWatch(prefix + "PageContainerBgType", form) || "default");
 
   return (
+    <>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, padding: "8px 0" }}>
+        <Tooltip title="Turn off the fade-in scroll animation for this section">
+          <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4, color: "rgba(0,0,0,0.65)" }}>
+            Disable scroll animation <QuestionCircleOutlined style={{ fontSize: 12, color: "#999" }} />
+          </span>
+        </Tooltip>
+        <Form.Item name="_disableFadeAnimation" valuePropName="checked" noStyle style={{ marginBottom: 0 }}>
+          <Switch />
+        </Form.Item>
+      </div>
     <Collapse
       defaultActiveKey={[]}
       size="small"
@@ -153,5 +165,6 @@ export default function ManageSectionFields({ prefix, form, themeColorOptions = 
         },
       ]}
     />
+    </>
   );
 }
