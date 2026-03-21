@@ -418,7 +418,7 @@ export const ThemeSider = styled(SiderWrapper)`
 `;
 
 export const ThemeAdminCard = styled(Card)`
-  margin: 74px 10px 10px 10px;
+  margin: 0;
   background: #fff;
   min-height: 280px;
   border-radius: 16px;

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button, Form, Input, Select, Card, Space, message, Spin, Drawer, Collapse } from "antd";
-import { ArrowLeftOutlined, SettingOutlined, SaveOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, SettingOutlined, SaveOutlined, FolderOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import PageBuilder from "@/components/admin/PageBuilder";
 import { ThemeAdminCard } from "@/styles/Theme";
@@ -19,6 +19,15 @@ export default function AdminPageEditPage() {
   const [saving, setSaving] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [form] = Form.useForm();
+  const [parentFolders, setParentFolders] = useState([]);
+  const [selectedParent, setSelectedParent] = useState("");
+  const selectedParentRef = useRef("");
+  const watchedSlug = Form.useWatch("slug", form);
+
+  const updateSelectedParent = (val) => {
+    setSelectedParent(val);
+    selectedParentRef.current = val;
+  };
 
   const setLayoutAndRef = useCallback((next) => {
     const nextLayout = typeof next === "function" ? next(layoutRef.current) : next;
@@ -48,9 +57,16 @@ export default function AdminPageEditPage() {
         const initialLayout = Array.isArray(data.layout) ? data.layout : [];
         layoutRef.current = initialLayout;
         setLayout(initialLayout);
+        // Split slug into parent folder and page slug
+        const fullSlug = (data.slug || "").replace(/\/undefined$/,"");
+        const lastSlash = fullSlug.lastIndexOf("/");
+        const parent = lastSlash > 0 ? fullSlug.substring(0, lastSlash) : "";
+        const pageSlug = lastSlash > 0 ? fullSlug.substring(lastSlash + 1) : fullSlug;
+        if (parent) updateSelectedParent(parent);
         form.setFieldsValue({
           title: data.title,
-          slug: data.slug,
+          slug: pageSlug || "",
+          _parentFolder: parent || "",
           status: data.status,
           metaTitle: data.meta?.metaTitle,
           metaDescription: data.meta?.metaDescription,
@@ -63,17 +79,38 @@ export default function AdminPageEditPage() {
     })();
   }, [id, form, router]);
 
+  useEffect(() => {
+    fetch("/api/admin/pages")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((pages) => {
+        const folders = new Set();
+        (Array.isArray(pages) ? pages : []).forEach((p) => {
+          if (p.slug && p.slug.includes("/")) {
+            folders.add(p.slug.substring(0, p.slug.lastIndexOf("/")));
+          }
+        });
+        // Also include the current page's parent so it appears in the dropdown
+        if (selectedParent) folders.add(selectedParent);
+        setParentFolders([...folders].sort());
+      })
+      .catch(() => {});
+  }, [selectedParent]);
+
   const handleSave = async () => {
     try {
-      const values = await form.validateFields();
+      const values = await form.getFieldsValue(true);
+      await form.validateFields();
       setSaving(true);
       const layoutToSave = layoutRef.current;
+      const parentFolder = values._parentFolder || selectedParentRef.current || "";
+      const pageSlug = values.slug || "";
+      const fullSlug = parentFolder ? `${parentFolder}/${pageSlug}` : pageSlug;
       const res = await fetch(`/api/admin/pages/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: values.title,
-          slug: values.slug,
+          slug: fullSlug,
           status: values.status,
           layout: layoutToSave,
           meta: { metaTitle: values.metaTitle, metaDescription: values.metaDescription },
@@ -158,6 +195,42 @@ export default function AdminPageEditPage() {
                   <>
                     <Form.Item name="title" label="Title" rules={[{ required: true }]}>
                       <Input />
+                    </Form.Item>
+                    <Form.Item label="Parent folder (optional)">
+                      <Select
+                        showSearch
+                        allowClear
+                        placeholder="None (root level)"
+                        value={selectedParent || undefined}
+                        onChange={(val) => { updateSelectedParent(val || ""); form.setFieldValue("_parentFolder", val || ""); }}
+                        onSearch={() => {}}
+                        options={parentFolders.map((f) => ({ label: f, value: f }))}
+                        notFoundContent={<span style={{ color: "#999", fontSize: 12 }}>Type a folder name below and press Enter</span>}
+                        dropdownRender={(menu) => (
+                          <>
+                            {menu}
+                            <div style={{ padding: "4px 8px", borderTop: "1px solid #f0f0f0" }}>
+                              <Input
+                                size="small"
+                                placeholder="Type new folder (e.g. about-us) + Enter"
+                                onPressEnter={(e) => {
+                                  const val = e.target.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
+                                  if (val && !parentFolders.includes(val)) {
+                                    setParentFolders((prev) => [...prev, val].sort());
+                                  }
+                                  if (val) { updateSelectedParent(val); form.setFieldValue("_parentFolder", val); }
+                                  e.target.value = "";
+                                }}
+                              />
+                            </div>
+                          </>
+                        )}
+                      />
+                      {selectedParent && (
+                        <span style={{ fontSize: 12, color: "#999", marginTop: 4, display: "block" }}>
+                          URL: /{selectedParent}/{watchedSlug || "page-slug"}
+                        </span>
+                      )}
                     </Form.Item>
                     <Form.Item
                       name="slug"

@@ -13,7 +13,7 @@ import {
   Select,
   Tag,
 } from "antd";
-import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { PlusOutlined, EditOutlined, DeleteOutlined, FolderOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { ThemeAdminCard } from "@/styles/Theme";
 
@@ -24,6 +24,7 @@ export default function AdminPagesPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form] = Form.useForm();
+  const [folderFilter, setFolderFilter] = useState("all");
 
   const fetchPages = async () => {
     setLoading(true);
@@ -107,6 +108,19 @@ export default function AdminPagesPage() {
     }
   };
 
+  // Derive unique folders from page slugs
+  const folders = [...new Set(
+    list
+      .filter((p) => p.slug && p.slug.includes("/"))
+      .map((p) => p.slug.substring(0, p.slug.lastIndexOf("/")))
+  )].sort();
+
+  const filteredList = folderFilter === "all"
+    ? list
+    : folderFilter === "root"
+      ? list.filter((p) => !p.slug || !p.slug.includes("/"))
+      : list.filter((p) => p.slug && p.slug.startsWith(folderFilter + "/"));
+
   const columns = [
     {
       title: "Title",
@@ -114,7 +128,21 @@ export default function AdminPagesPage() {
       key: "title",
       render: (t, r) => <Link href={`/admin/pages/${r._id}`}>{t}</Link>,
     },
-    { title: "Slug", dataIndex: "slug", key: "slug" },
+    {
+      title: "Slug",
+      dataIndex: "slug",
+      key: "slug",
+      render: (slug) => {
+        if (!slug || !slug.includes("/")) return slug;
+        const lastSlash = slug.lastIndexOf("/");
+        return (
+          <>
+            <Tag color="blue" style={{ marginRight: 4 }}><FolderOutlined /> {slug.substring(0, lastSlash)}</Tag>
+            {slug.substring(lastSlash + 1)}
+          </>
+        );
+      },
+    },
     {
       title: "Status",
       dataIndex: "status",
@@ -161,10 +189,24 @@ export default function AdminPagesPage() {
         </Link>
       }
     >
+      {folders.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <Select
+            value={folderFilter}
+            onChange={setFolderFilter}
+            style={{ width: 240 }}
+            options={[
+              { label: "All pages", value: "all" },
+              { label: "Root level (no folder)", value: "root" },
+              ...folders.map((f) => ({ label: `📁 ${f}`, value: f })),
+            ]}
+          />
+        </div>
+      )}
       <Table
         rowKey="_id"
         columns={columns}
-        dataSource={list}
+        dataSource={filteredList}
         loading={loading}
         pagination={{ pageSize: 20 }}
       />

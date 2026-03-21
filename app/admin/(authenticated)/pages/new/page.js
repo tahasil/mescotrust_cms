@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Form, Input, Select, Space, message, Drawer, Collapse } from "antd";
-import { ArrowLeftOutlined, SettingOutlined, SaveOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, SettingOutlined, SaveOutlined, FolderOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import PageBuilder from "@/components/admin/PageBuilder";
 import { ThemeAdminCard } from "@/styles/Theme";
@@ -16,6 +16,24 @@ export default function AdminPageNewPage() {
   const [saving, setSaving] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [form] = Form.useForm();
+  const [parentFolders, setParentFolders] = useState([]);
+  const [selectedParent, setSelectedParent] = useState("");
+  const watchedSlug = Form.useWatch("slug", form);
+
+  useEffect(() => {
+    fetch("/api/admin/pages")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((pages) => {
+        const folders = new Set();
+        (Array.isArray(pages) ? pages : []).forEach((p) => {
+          if (p.slug && p.slug.includes("/")) {
+            folders.add(p.slug.split("/")[0]);
+          }
+        });
+        setParentFolders([...folders].sort());
+      })
+      .catch(() => {});
+  }, []);
 
   const setLayoutAndRef = useCallback((next) => {
     const nextLayout = typeof next === "function" ? next(layoutRef.current) : next;
@@ -33,7 +51,7 @@ export default function AdminPageNewPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: values.title || "Untitled",
-          slug: values.slug,
+          slug: selectedParent ? `${selectedParent}/${values.slug || ""}` : (values.slug || ""),
           status: values.status,
           layout: layoutToSave,
           meta: { metaTitle: values.metaTitle, metaDescription: values.metaDescription },
@@ -106,6 +124,42 @@ export default function AdminPageNewPage() {
                   <>
                     <Form.Item name="title" label="Title" rules={[{ required: true }]}>
                       <Input placeholder="Page title" />
+                    </Form.Item>
+                    <Form.Item label="Parent folder (optional)">
+                      <Select
+                        showSearch
+                        allowClear
+                        placeholder="None (root level)"
+                        value={selectedParent || undefined}
+                        onChange={(val) => setSelectedParent(val || "")}
+                        onSearch={() => {}}
+                        options={parentFolders.map((f) => ({ label: f, value: f }))}
+                        notFoundContent={<span style={{ color: "#999", fontSize: 12 }}>Type a folder name below and press Enter</span>}
+                        dropdownRender={(menu) => (
+                          <>
+                            {menu}
+                            <div style={{ padding: "4px 8px", borderTop: "1px solid #f0f0f0" }}>
+                              <Input
+                                size="small"
+                                placeholder="Type new folder (e.g. about-us) + Enter"
+                                onPressEnter={(e) => {
+                                  const val = e.target.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
+                                  if (val && !parentFolders.includes(val)) {
+                                    setParentFolders((prev) => [...prev, val].sort());
+                                  }
+                                  if (val) setSelectedParent(val);
+                                  e.target.value = "";
+                                }}
+                              />
+                            </div>
+                          </>
+                        )}
+                      />
+                      {selectedParent && (
+                        <span style={{ fontSize: 12, color: "#999", marginTop: 4, display: "block" }}>
+                          URL: /{selectedParent}/{watchedSlug || "page-slug"}
+                        </span>
+                      )}
                     </Form.Item>
                     <Form.Item
                       name="slug"

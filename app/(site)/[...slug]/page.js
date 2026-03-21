@@ -10,8 +10,8 @@ import ComponentRenderer from "@/components/cms/ComponentRenderer";
 const RESERVED = ["admin", "blog", "contact", "search", "api", "preview"];
 
 export async function generateMetadata({ params }) {
-  const slug = params.slug;
-  if (RESERVED.includes(slug)) return {};
+  const slug = Array.isArray(params.slug) ? params.slug.join("/") : params.slug;
+  if (RESERVED.includes(slug.split("/")[0])) return {};
   try {
     await connectDB();
     const page = await Page.findOne({ slug, status: "published" }).lean();
@@ -80,8 +80,8 @@ async function PageContent({ slug }) {
 }
 
 export default function DynamicPage({ params }) {
-  const slug = params.slug;
-  if (RESERVED.includes(slug)) notFound();
+  const slug = Array.isArray(params.slug) ? params.slug.join("/") : params.slug;
+  if (RESERVED.includes(slug.split("/")[0])) notFound();
 
   return (
     <main>
