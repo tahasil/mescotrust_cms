@@ -398,7 +398,10 @@ export const ThemeModal = styled(ModalWrapper)`
 `;
 
 export const ThemeSider = styled(SiderWrapper)`
-  background: #fff;
+  background: #fff !important;
+  .ant-layout-sider-children {
+    background: #fff;
+  }
   box-shadow: 5px 0 15px rgba(0, 0, 0, 0.04);
   height: 100vh;
   overflow: auto;

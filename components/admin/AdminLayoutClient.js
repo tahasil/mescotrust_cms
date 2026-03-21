@@ -251,7 +251,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
             </Dropdown>
           </Space>
         </Header>
-        <Content>{children}</Content>
+        <Content style={{ marginTop: 64, padding: 10 }}>{children}</Content>
       </Layout>
     </Layout>
   );
