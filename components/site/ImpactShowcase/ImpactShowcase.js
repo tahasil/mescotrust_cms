@@ -4,9 +4,7 @@ import { Row, Col, Space } from "antd";
 import {
   FullWidthBackground,
   getColor,
-  MainTitle,
   PageContainer,
-  SubTitle,
   ThemeButton,
 } from "@/styles/Theme";
 import { RightCircleFilled } from "@ant-design/icons";
@@ -18,13 +16,6 @@ import Link from "next/link";
  * Manage Section (background/padding) and Title & Colors come from EditForm.
  */
 export default function ImpactShowcase(props) {
-  const mainTitle = (props?.mainTitle ?? "Section Title").toString().trim();
-  const subTitle = (props?.subTitle ?? "Subtitle").toString().trim();
-  const titleColorKey = (props?.titleColorKey ?? "").toString().trim();
-  const titleColor = titleColorKey
-    ? getColor(titleColorKey)
-    : getColor("primary");
-
   const leftImage = (props?.impactShowcaseLeftImage ?? "/images/about-mesco-1.png").toString().trim();
   const rightImage = (props?.impactShowcaseRightImage ?? "/images/about-mesco-2.png").toString().trim();
   const button1Text = (props?.impactShowcaseButton1Text ?? "Contact Us").toString().trim();
@@ -211,7 +202,7 @@ export default function ImpactShowcase(props) {
               <img
                 className="img-fluid"
                 src={leftImage}
-                alt={mainTitle || "Impact"}
+                alt="Impact"
               />
             ) : (
               <div
@@ -257,7 +248,7 @@ export default function ImpactShowcase(props) {
               <img
                 className="img-fluid"
                 src={rightImage}
-                alt={mainTitle || "Impact"}
+                alt="Impact"
               />
             ) : (
               <div

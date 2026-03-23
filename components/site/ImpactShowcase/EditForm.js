@@ -29,9 +29,6 @@ function ImpactShowcaseEditForm({ source, initialData: initialDataProp, onSaveTo
 
   function applyFormValues(data) {
     form.setFieldsValue({
-      mainTitle: data?.mainTitle != null ? String(data.mainTitle).trim() : "Section Title",
-      subTitle: data?.subTitle != null ? String(data.subTitle).trim() : "Subtitle",
-      titleColorKey: data?.titleColorKey != null ? String(data.titleColorKey).trim() : "",
       impactShowcaseLeftImage: data?.impactShowcaseLeftImage != null ? String(data.impactShowcaseLeftImage).trim() : "/images/about-mesco-1.png",
       impactShowcaseRightImage: data?.impactShowcaseRightImage != null ? String(data.impactShowcaseRightImage).trim() : "/images/about-mesco-2.png",
       impactShowcaseButton1Text: data?.impactShowcaseButton1Text != null ? String(data.impactShowcaseButton1Text).trim() : "Contact Us",
@@ -89,9 +86,6 @@ function ImpactShowcaseEditForm({ source, initialData: initialDataProp, onSaveTo
     form.validateFields().then(() => {
       const values = form.getFieldsValue(true);
       const payload = {
-        mainTitle: values.mainTitle != null ? String(values.mainTitle).trim() : "Section Title",
-        subTitle: values.subTitle != null ? String(values.subTitle).trim() : "Subtitle",
-        titleColorKey: values.titleColorKey != null ? String(values.titleColorKey).trim() : "",
         impactShowcaseLeftImage: values.impactShowcaseLeftImage != null ? String(values.impactShowcaseLeftImage).trim() : "",
         impactShowcaseRightImage: values.impactShowcaseRightImage != null ? String(values.impactShowcaseRightImage).trim() : "",
         impactShowcaseButton1Text: values.impactShowcaseButton1Text != null ? String(values.impactShowcaseButton1Text).trim() : "",
