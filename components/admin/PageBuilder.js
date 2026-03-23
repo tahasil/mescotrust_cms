@@ -13,6 +13,7 @@ import {
   Empty,
   Badge,
   Tag,
+  Popover,
   Modal as AntModal,
   Segmented,
   ColorPicker,
@@ -1413,6 +1414,143 @@ function AddBlockButton({ onClick, dropIndex, isOver }) {
 
 // ─── Component Palette Item (draggable onto canvas) ─────────────────────────────────
 
+/** API path map for components that use static (kebab-case) theme routes.
+ *  Components not listed here use /api/theme/{componentId} (dynamic route). */
+const PREVIEW_API_PATH = {
+  Header: "/api/theme",
+  Footer: "/api/theme",
+  HomeHero: "/api/theme/home-hero",
+  Marquee: "/api/theme/marquee",
+  Subscribe: "/api/theme/subscribe",
+};
+
+/** Map global theme response to Header component props */
+function mapThemeToHeaderProps(theme) {
+  return {
+    siteTitle: theme.siteTitle ?? "",
+    logoType: theme.logoType ?? "text",
+    logoImageUrl: theme.logoLightUrl || theme.logoImageUrl || "",
+    logoLightUrl: theme.logoLightUrl || theme.logoImageUrl || "",
+    logoMobileUrl: theme.logoMobileUrl ?? "",
+    logoDarkUrl: theme.logoDarkUrl ?? "",
+    volunteerLabel: theme.headerVolunteerLabel ?? "",
+    volunteerHref: theme.headerVolunteerHref ?? "",
+    volunteerIconUrl: theme.headerVolunteerIconUrl ?? "",
+    volunteerIconUrlMobile: theme.headerVolunteerIconUrlMobile ?? "",
+    donateLabel: theme.headerDonateLabel ?? "",
+    donateHref: theme.headerDonateHref ?? "",
+    donateIconUrl: theme.headerDonateIconUrl ?? "",
+    donateIconUrlMobile: theme.headerDonateIconUrlMobile ?? "",
+    menuItems: Array.isArray(theme.menuItems) ? theme.menuItems : [],
+  };
+}
+
+/** Map global theme response to Footer component props */
+function mapThemeToFooterProps(theme) {
+  return {
+    siteTitle: theme.siteTitle ?? "",
+    footerLogoUrl: theme.footerLogoUrl ?? "",
+    footerAddress: theme.footerAddress ?? "",
+    footerEmail: theme.footerEmail ?? "",
+    footerPhone: theme.footerPhone ?? "",
+    footerCol1Links: Array.isArray(theme.footerCol1Links) ? theme.footerCol1Links : [],
+    footerCol2Links: Array.isArray(theme.footerCol2Links) ? theme.footerCol2Links : [],
+    footerCopyrightText: theme.footerCopyrightText ?? "",
+    footerBackgroundImageUrl: theme.footerBackgroundImageUrl ?? "",
+  };
+}
+
+/** Live mini-preview of a site component rendered at reduced scale.
+ *  Fetches saved theme data for the component so the preview shows real content. */
+const PREVIEW_SCALE = 0.25;
+function ComponentPreviewContent({ componentId, defaultProps }) {
+  const Comp = SiteComponents[componentId];
+  const innerRef = useRef(null);
+  const [scaledH, setScaledH] = useState(0);
+  const [themeProps, setThemeProps] = useState(null);
+  const [loadingPreview, setLoadingPreview] = useState(true);
+
+  // fetch saved component data from theme API
+  useEffect(() => {
+    if (!componentId) return;
+    setLoadingPreview(true);
+    const apiPath = PREVIEW_API_PATH[componentId] || `/api/theme/${encodeURIComponent(componentId)}`;
+    fetch(apiPath, { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && typeof data === "object") {
+          const { themePalette: _p, colors: _c, ...props } = data;
+          if (componentId === "Header") setThemeProps(mapThemeToHeaderProps(data));
+          else if (componentId === "Footer") setThemeProps(mapThemeToFooterProps(data));
+          else setThemeProps(props);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoadingPreview(false));
+  }, [componentId]);
+
+  // measure height after render
+  useEffect(() => {
+    if (loadingPreview || !innerRef.current) return;
+    const measure = () => {
+      if (!innerRef.current) return;
+      const h = innerRef.current.scrollHeight;
+      if (h > 0) setScaledH(h * PREVIEW_SCALE);
+    };
+    measure();
+    const t1 = setTimeout(measure, 200);
+    const t2 = setTimeout(measure, 600);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [componentId, loadingPreview, themeProps]);
+
+  if (!Comp) {
+    return (
+      <div style={{ padding: 24, textAlign: "center", color: "#999", fontSize: 13 }}>
+        Preview not available
+      </div>
+    );
+  }
+
+  if (loadingPreview) {
+    return (
+      <div style={{ width: 420, padding: 40, textAlign: "center", background: "#fff", borderRadius: 8 }}>
+        <Spin size="small" />
+      </div>
+    );
+  }
+
+  const mergedProps = { ...(defaultProps || {}), ...(themeProps || {}) };
+
+  return (
+    <div
+      style={{
+        width: 420,
+        height: scaledH || "auto",
+        maxHeight: "70vh",
+        overflow: "hidden",
+        borderRadius: 8,
+        background: "#fff",
+        position: "relative",
+      }}
+    >
+      <div
+        ref={innerRef}
+        style={{
+          transform: `scale(${PREVIEW_SCALE})`,
+          transformOrigin: "top left",
+          width: `${100 / PREVIEW_SCALE}%`,
+          pointerEvents: "none",
+          position: "absolute",
+          top: 0,
+          left: 0,
+        }}
+      >
+        <Comp {...mergedProps} />
+      </div>
+    </div>
+  );
+}
+
 function ComponentPaletteItem({ comp, onAdd, index, loading = false }) {
   const icon = BLOCK_ICON_MAP[comp.baseComponent] || <AppstoreOutlined />;
   const catKey = comp.category || "content";
@@ -1423,7 +1561,9 @@ function ComponentPaletteItem({ comp, onAdd, index, loading = false }) {
     data: { type: "palette", comp },
   });
 
-  return (
+  const hasSiteComponent = !!SiteComponents[comp.baseComponent];
+
+  const itemContent = (
     <div
       ref={setNodeRef}
       {...attributes}
@@ -1495,6 +1635,28 @@ function ComponentPaletteItem({ comp, onAdd, index, loading = false }) {
         )}
       </div>
     </div>
+  );
+
+  if (!hasSiteComponent) return itemContent;
+
+  return (
+    <Popover
+      trigger="hover"
+      placement="leftTop"
+      mouseEnterDelay={0.4}
+      mouseLeaveDelay={0.15}
+      overlayStyle={{ maxWidth: 500 }}
+      overlayInnerStyle={{ padding: 0, overflow: "hidden", borderRadius: 8 }}
+      getPopupContainer={() => document.body}
+      content={
+        <ComponentPreviewContent
+          componentId={comp.baseComponent}
+          defaultProps={comp.defaultProps}
+        />
+      }
+    >
+      {itemContent}
+    </Popover>
   );
 }
 
