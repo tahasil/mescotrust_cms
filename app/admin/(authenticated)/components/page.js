@@ -136,7 +136,7 @@ export default function AdminComponentsPage() {
       <ThemeAdminCard
         title="Components"
         extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setNewModalOpen(true)}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setNewModalOpen(true)} disabled={saving}>
             New component
           </Button>
         }
@@ -155,10 +155,13 @@ export default function AdminComponentsPage() {
         title="New component"
         open={newModalOpen}
         onCancel={() => {
+          if (saving) return;
           setNewModalOpen(false);
           form.resetFields();
           form.setFieldsValue({ _derivedId: "", order: 0, global: false, position: "before" });
         }}
+        closable={!saving}
+        maskClosable={!saving}
         footer={null}
         destroyOnClose
         width={520}

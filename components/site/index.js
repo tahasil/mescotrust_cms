@@ -8,6 +8,7 @@ export { default as Footer, FooterEditForm } from "./Footer/index";
 export { default as HomeHero, HomeHeroEditForm } from "./HomeHero/index";
 export { default as Marquee, MarqueeEditForm } from "./Marquee/index";
 export { default as Subscribe, SubscribeEditForm } from "./Subscribe/index";
+export { default as AimsObjectives, AimsObjectivesEditForm } from "./AimsObjectives/index";
 export { default as Registered, RegisteredEditForm } from "./Registered/index";
 export { default as Helpingpeople, HelpingpeopleEditForm } from "./Helpingpeople/index";
 export { default as AnimationsText, AnimationsTextEditForm } from "./AnimationsText/index";
@@ -24,6 +25,7 @@ export { default as LatestEvents1, LatestEvents1EditForm } from "./LatestEvents1
 import HomeHeroEditForm from "./HomeHero/EditForm";
 import MarqueeEditForm from "./Marquee/EditForm";
 import SubscribeEditForm from "./Subscribe/EditForm";
+import AimsObjectivesEditForm from "./AimsObjectives/EditForm";
 import RegisteredEditForm from "./Registered/EditForm";
 import HelpingpeopleEditForm from "./Helpingpeople/EditForm";
 import AnimationsTextEditForm from "./AnimationsText/EditForm";
@@ -59,4 +61,5 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   AnimationsText: AnimationsTextEditForm,
   Helpingpeople: HelpingpeopleEditForm,
   Registered: RegisteredEditForm,
+  AimsObjectives: AimsObjectivesEditForm,
 };
