@@ -8,6 +8,7 @@ export { default as Footer, FooterEditForm } from "./Footer/index";
 export { default as HomeHero, HomeHeroEditForm } from "./HomeHero/index";
 export { default as Marquee, MarqueeEditForm } from "./Marquee/index";
 export { default as Subscribe, SubscribeEditForm } from "./Subscribe/index";
+export { default as ImpactShowcase, ImpactShowcaseEditForm } from "./ImpactShowcase/index";
 export { default as InnerPageHero, InnerPageHeroEditForm } from "./InnerPageHero/index";
 export { default as HelpingEvents, HelpingEventsEditForm } from "./HelpingEvents/index";
 export { default as Notices, NoticesEditForm } from "./Notices/index";
@@ -20,6 +21,7 @@ export { default as LatestEvents1, LatestEvents1EditForm } from "./LatestEvents1
 import HomeHeroEditForm from "./HomeHero/EditForm";
 import MarqueeEditForm from "./Marquee/EditForm";
 import SubscribeEditForm from "./Subscribe/EditForm";
+import ImpactShowcaseEditForm from "./ImpactShowcase/EditForm";
 import InnerPageHeroEditForm from "./InnerPageHero/EditForm";
 import HelpingEventsEditForm from "./HelpingEvents/EditForm";
 import NoticesEditForm from "./Notices/EditForm";
@@ -47,4 +49,5 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   Notices: NoticesEditForm,
   HelpingEvents: HelpingEventsEditForm,
   InnerPageHero: InnerPageHeroEditForm,
+  ImpactShowcase: ImpactShowcaseEditForm,
 };
