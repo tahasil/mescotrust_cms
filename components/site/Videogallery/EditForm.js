@@ -1,0 +1,219 @@
+"use client";
+
+import { useState, useEffect, useRef, useMemo, forwardRef, useImperativeHandle } from "react";
+import { Form, Input, Row, Col, Collapse, Select, message, Spin } from "antd";
+import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import SortableFormList from "@/components/admin/SortableFormList";
+import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
+import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
+
+const API_PATH = "/api/theme/Videogallery";
+const PREFIX = "videogallery";
+
+function normalizeItem(it) {
+  const cats = Array.isArray(it?.categories) ? it.categories : (it?.category ? [String(it.category).trim()] : []);
+  return {
+    title: it?.title != null ? String(it.title).trim() : "",
+    videoId: it?.videoId != null ? String(it.videoId).trim() : "",
+    categories: cats.filter((c) => c !== "All"),
+  };
+}
+
+function applyFormValues(form, data) {
+  const items = Array.isArray(data?.videogalleryItems) && data.videogalleryItems.length > 0
+    ? data.videogalleryItems.map(normalizeItem)
+    : [normalizeItem({})];
+  const tabs = Array.isArray(data?.videogalleryTabs) && data.videogalleryTabs.length > 0
+    ? data.videogalleryTabs
+    : ["All", "Education", "Medical", "Events", "Community"];
+  form.setFieldsValue({
+    videogalleryAccentColorKey: data?.videogalleryAccentColorKey ?? "",
+    videogalleryTabBgColorKey: data?.videogalleryTabBgColorKey ?? "",
+    videogalleryTabTextColorKey: data?.videogalleryTabTextColorKey ?? "",
+    videogalleryTabBorderColorKey: data?.videogalleryTabBorderColorKey ?? "",
+    videogalleryTabInactiveTextColorKey: data?.videogalleryTabInactiveTextColorKey ?? "",
+    videogalleryTabHoverBorderColorKey: data?.videogalleryTabHoverBorderColorKey ?? "",
+    videogalleryTabHoverTextColorKey: data?.videogalleryTabHoverTextColorKey ?? "",
+    videogalleryTabs: tabs,
+    videogalleryItems: items,
+    ...getManageSectionInitialValues(PREFIX, data),
+  });
+}
+
+function VideogalleryEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [] }, ref) {
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [themeColorOptions, setThemeColorOptions] = useState(themeColorOptionsProp);
+  const themeFetchedForColorsRef = useRef(false);
+  const isPageBlock = source === "page";
+  const [reorderMovedIndex, setReorderMovedIndex] = useState(-1);
+  const [reorderDirection, setReorderDirection] = useState(null);
+  const watchedTabs = Form.useWatch("videogalleryTabs", form);
+  const categoryOptions = useMemo(() => {
+    const tabs = Array.isArray(watchedTabs) ? watchedTabs : [];
+    return tabs.filter((t) => t !== "All").map((t) => ({ label: t, value: t }));
+  }, [watchedTabs]);
+
+  useEffect(() => {
+    if (themeColorOptionsProp?.length > 0) setThemeColorOptions(themeColorOptionsProp);
+  }, [themeColorOptionsProp]);
+
+  useEffect(() => {
+    setLoading(true);
+    if (isPageBlock) {
+      applyFormValues(form, initialDataProp ?? {});
+      if (!themeFetchedForColorsRef.current) {
+        themeFetchedForColorsRef.current = true;
+        fetch("/api/theme", { cache: "no-store" })
+          .then((res) => (res.ok ? res.json() : {}))
+          .then((theme) => {
+            const palette = theme?.themePalette || {};
+            const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
+            const names = [...new Set([...Object.keys(palette), ...customColors.map((c) => c?.name).filter(Boolean)])].sort();
+            setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
+          })
+          .catch(() => {})
+          .finally(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
+      return;
+    }
+    Promise.all([
+      fetch(API_PATH, { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
+      fetch("/api/theme", { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
+    ])
+      .then(([data, theme]) => {
+        const palette = theme?.themePalette || {};
+        const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
+        const names = [...new Set([...Object.keys(palette), ...customColors.map((c) => c?.name).filter(Boolean)])].sort();
+        setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
+        applyFormValues(form, data);
+      })
+      .catch(() => message.error("Failed to load Video Gallery"))
+      .finally(() => setLoading(false));
+  }, [form, isPageBlock, initialDataProp]);
+
+  const handleUpdate = () => {
+    form.validateFields().then(() => {
+      const values = form.getFieldsValue(true);
+      const payload = {
+        videogalleryAccentColorKey: values.videogalleryAccentColorKey ?? "",
+        videogalleryTabBgColorKey: values.videogalleryTabBgColorKey ?? "",
+        videogalleryTabTextColorKey: values.videogalleryTabTextColorKey ?? "",
+        videogalleryTabBorderColorKey: values.videogalleryTabBorderColorKey ?? "",
+        videogalleryTabInactiveTextColorKey: values.videogalleryTabInactiveTextColorKey ?? "",
+        videogalleryTabHoverBorderColorKey: values.videogalleryTabHoverBorderColorKey ?? "",
+        videogalleryTabHoverTextColorKey: values.videogalleryTabHoverTextColorKey ?? "",
+        videogalleryTabs: values.videogalleryTabs || [],
+        videogalleryItems: (values.videogalleryItems || []).map(normalizeItem),
+        ...getManageSectionPayload(PREFIX, values),
+      };
+      if (isPageBlock && onSaveToPage) {
+        onSaveToPage(payload);
+        message.success("Changes will be saved with the page");
+        onSuccess?.();
+        return;
+      }
+      setSaving(true);
+      fetch(API_PATH, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+        .then((res) => { if (!res.ok) return res.json().then((d) => Promise.reject(d)); })
+        .then(() => { message.success("Video Gallery saved"); onSuccess?.(); })
+        .catch((err) => message.error(err?.error || "Failed to save"))
+        .finally(() => setSaving(false));
+    }).catch(() => {});
+  };
+
+  useImperativeHandle(ref, () => ({ update: handleUpdate }), []);
+
+  if (loading) {
+    return <div style={{ padding: 48, textAlign: "center" }}><Spin /></div>;
+  }
+
+  return (
+    <Form form={form} layout="vertical">
+      <Collapse
+        defaultActiveKey={["manage-section", "title-colors", "tabs", "items"]}
+        items={[
+          {
+            key: "manage-section",
+            label: "Manage Section",
+            children: <ManageSectionFields prefix={PREFIX} form={form} themeColorOptions={themeColorOptions} />,
+          },
+          {
+            key: "title-colors",
+            label: "Title & Colors",
+            children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("Videogallery")} />,
+          },
+          {
+            key: "tabs",
+            label: "Manage Tabs",
+            children: (
+              <Form.Item name="videogalleryTabs" label="Category Tabs">
+                <Select
+                  mode="tags"
+                  placeholder="Type tab name and press Enter"
+                  size="large"
+                  tokenSeparators={[","]}
+                />
+              </Form.Item>
+            ),
+          },
+          {
+            key: "items",
+            label: "Manage Videos",
+            children: (
+              <Form.List name="videogalleryItems">
+                {(fields, { add, remove, move }) => (
+                  <SortableFormList
+                    fields={fields}
+                    add={add}
+                    remove={remove}
+                    move={move}
+                    itemLabel="Video"
+                    addButtonText="Add video"
+                    defaultAddPayload={normalizeItem({})}
+                    reorderMovedIndex={reorderMovedIndex}
+                    reorderDirection={reorderDirection}
+                    onMoveWithTransition={(from, to) => {
+                      setReorderDirection(to < from ? "up" : "down");
+                      setReorderMovedIndex(to);
+                      setTimeout(() => setReorderMovedIndex(-1), 400);
+                    }}
+                    renderItemContent={(name, restField) => (
+                      <Row gutter={[16, 16]}>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "videoId"]} label="YouTube Video ID" rules={[{ required: true, message: "Video ID is required" }]}>
+                            <Input placeholder="e.g. Mny8ziStg4w" size="large" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "title"]} label="Title">
+                            <Input placeholder="Video title" size="large" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "categories"]} label="Categories">
+                            <Select mode="multiple" placeholder="Select categories" size="large" options={categoryOptions} />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                    )}
+                  />
+                )}
+              </Form.List>
+            ),
+          },
+        ]}
+      />
+    </Form>
+  );
+}
+
+export default forwardRef(VideogalleryEditForm);
