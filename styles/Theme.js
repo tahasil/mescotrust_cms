@@ -33,7 +33,18 @@ export const FALLBACK_COLORS = {
 };
 
 const Theme = {
-  colors: {},
+  colors: {
+    primary: "var(--theme-primary, rgba(207, 55, 47, 1))",
+    black: "var(--theme-black, #050505)",
+    blackLight: "var(--theme-black-light, rgba(5, 5, 5, 0.5))",
+    white: "var(--theme-white, #FFFFFF)",
+    primaryLight: "var(--theme-primary-light, rgba(207, 55, 47, 0.1))",
+    gradient: "var(--theme-gradient, linear-gradient(90deg, #CF372F 0%, #691C18 100%))",
+    border: "var(--theme-border, rgba(0, 0, 0, 0.1))",
+    imgWhite: "var(--theme-imgwhite, brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(3%) hue-rotate(51deg) brightness(115%) contrast(100%))",
+    imgTheme: "var(--theme-imgtheme, brightness(0) saturate(100%) invert(25%) sepia(76%) saturate(6383%) hue-rotate(354deg) brightness(93%) contrast(73%))",
+    transparent: "var(--theme-transparent, transparent)",
+  },
   fonts: {
     sans: "'Inter', sans-serif",
     heading: "'Inter', sans-serif",

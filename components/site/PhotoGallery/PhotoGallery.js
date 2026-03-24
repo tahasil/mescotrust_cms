@@ -31,20 +31,27 @@ const GalleryTab = styled.button`
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
+  /* border: 1px solid rgba(0, 0, 0, 0.12); */
   transition: all 0.25s ease;
   border: 1px solid
     ${(p) =>
       p.$active
-        ? p.$activeColor || getColor("primary")
-        : "rgba(0, 0, 0, 0.12)"};
+        ? p.$tabBgColor || p.$tabBorderColor || getColor("primary")
+        : p.$tabBorderColor || "rgba(0, 0, 0, 0.12)"};
   background: ${(p) =>
-    p.$active ? p.$activeGradient || getColor("gradient") : "transparent"};
-  color: ${(p) => (p.$active ? "#fff" : "#050505")};
+    p.$active ? p.$tabBgColor || getColor("gradient") : "transparent"};
+  color: ${(p) =>
+    p.$active
+      ? p.$tabTextColor || "#fff"
+      : p.$tabInactiveTextColor || "#050505"};
 
   &:hover {
-    border-color: ${(p) => p.$activeColor || getColor("primary")};
+    border-color: ${(p) =>
+      p.$tabHoverBorderColor || p.$tabBgColor || getColor("primary")};
     color: ${(p) =>
-      p.$active ? "#fff" : p.$activeColor || getColor("primary")};
+      p.$active
+        ? p.$tabTextColor || "#fff"
+        : p.$tabHoverTextColor || getColor("primary")};
   }
 `;
 
@@ -230,6 +237,35 @@ export default function PhotoGallery(props) {
   const accentColor = accentColorKey
     ? getColor(accentColorKey)
     : getColor("primary");
+
+  const tabBgKey = (props?.photoGalleryTabBgColorKey ?? "").toString().trim();
+  const tabBgColor = tabBgKey ? getColor(tabBgKey) : undefined;
+  const tabTextKey = (props?.photoGalleryTabTextColorKey ?? "")
+    .toString()
+    .trim();
+  const tabTextColor = tabTextKey ? getColor(tabTextKey) : undefined;
+  const tabBorderKey = (props?.photoGalleryTabBorderColorKey ?? "")
+    .toString()
+    .trim();
+  const tabBorderColor = tabBorderKey ? getColor(tabBorderKey) : undefined;
+  const tabInactiveTextKey = (props?.photoGalleryTabInactiveTextColorKey ?? "")
+    .toString()
+    .trim();
+  const tabInactiveTextColor = tabInactiveTextKey
+    ? getColor(tabInactiveTextKey)
+    : undefined;
+  const tabHoverBorderKey = (props?.photoGalleryTabHoverBorderColorKey ?? "")
+    .toString()
+    .trim();
+  const tabHoverBorderColor = tabHoverBorderKey
+    ? getColor(tabHoverBorderKey)
+    : undefined;
+  const tabHoverTextKey = (props?.photoGalleryTabHoverTextColorKey ?? "")
+    .toString()
+    .trim();
+  const tabHoverTextColor = tabHoverTextKey
+    ? getColor(tabHoverTextKey)
+    : undefined;
 
   const [activeTab, setActiveTab] = useState("All");
   const [modalOpen, setModalOpen] = useState(false);
@@ -417,8 +453,12 @@ export default function PhotoGallery(props) {
             <GalleryTab
               key={tab}
               $active={activeTab === tab}
-              $activeColor={accentColor}
-              $activeGradient={getColor("gradient")}
+              $tabBgColor={tabBgColor}
+              $tabTextColor={tabTextColor}
+              $tabBorderColor={tabBorderColor}
+              $tabInactiveTextColor={tabInactiveTextColor}
+              $tabHoverBorderColor={tabHoverBorderColor}
+              $tabHoverTextColor={tabHoverTextColor}
               onClick={() => setActiveTab(tab)}
             >
               {tab}

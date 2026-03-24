@@ -29,6 +29,12 @@ function applyFormValues(form, data) {
     : ["All", "Education", "Medical", "Events", "Community"];
   form.setFieldsValue({
     photoGalleryAccentColorKey: data?.photoGalleryAccentColorKey ?? "",
+    photoGalleryTabBgColorKey: data?.photoGalleryTabBgColorKey ?? "",
+    photoGalleryTabTextColorKey: data?.photoGalleryTabTextColorKey ?? "",
+    photoGalleryTabBorderColorKey: data?.photoGalleryTabBorderColorKey ?? "",
+    photoGalleryTabInactiveTextColorKey: data?.photoGalleryTabInactiveTextColorKey ?? "",
+    photoGalleryTabHoverBorderColorKey: data?.photoGalleryTabHoverBorderColorKey ?? "",
+    photoGalleryTabHoverTextColorKey: data?.photoGalleryTabHoverTextColorKey ?? "",
     photoGalleryTabs: tabs,
     photoGalleryItems: items,
     ...getManageSectionInitialValues(PREFIX, data),
@@ -95,6 +101,12 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
       const values = form.getFieldsValue(true);
       const payload = {
         photoGalleryAccentColorKey: values.photoGalleryAccentColorKey ?? "",
+        photoGalleryTabBgColorKey: values.photoGalleryTabBgColorKey ?? "",
+        photoGalleryTabTextColorKey: values.photoGalleryTabTextColorKey ?? "",
+        photoGalleryTabBorderColorKey: values.photoGalleryTabBorderColorKey ?? "",
+        photoGalleryTabInactiveTextColorKey: values.photoGalleryTabInactiveTextColorKey ?? "",
+        photoGalleryTabHoverBorderColorKey: values.photoGalleryTabHoverBorderColorKey ?? "",
+        photoGalleryTabHoverTextColorKey: values.photoGalleryTabHoverTextColorKey ?? "",
         photoGalleryTabs: values.photoGalleryTabs || [],
         photoGalleryItems: (values.photoGalleryItems || []).map(normalizeItem),
         ...getManageSectionPayload(PREFIX, values),
