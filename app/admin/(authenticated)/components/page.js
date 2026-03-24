@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Table, Button, message, Modal, Form, Input, Switch, Row, Col } from "antd";
-import { EditOutlined, PlusOutlined, SaveOutlined } from "@ant-design/icons";
+import { EditOutlined, PlusOutlined, SaveOutlined, SearchOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { ThemeAdminCard } from "@/styles/Theme";
 
@@ -22,6 +22,17 @@ export default function AdminComponentsPage() {
   const [newModalOpen, setNewModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredList = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return list;
+    return list.filter(
+      (c) =>
+        (c.displayName || "").toLowerCase().includes(q) ||
+        (c.componentId || "").toLowerCase().includes(q),
+    );
+  }, [list, searchQuery]);
 
   useEffect(() => {
     if (searchParams.get("new") === "1") {
@@ -135,17 +146,27 @@ export default function AdminComponentsPage() {
       <ThemeAdminCard
         title="Components"
         extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setNewModalOpen(true)} disabled={saving}>
-            New component
-          </Button>
+          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <Input
+              prefix={<SearchOutlined style={{ color: "#bbb" }} />}
+              placeholder="Search components..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              allowClear
+              style={{ width: 250 }}
+            />
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setNewModalOpen(true)} disabled={saving}>
+              New component
+            </Button>
+          </div>
         }
       >
         <Table
           rowKey="componentId"
           columns={columns}
-          dataSource={list}
+          dataSource={filteredList}
           loading={loading}
-          pagination={false}
+          pagination={{ pageSize: 10, showSizeChanger: true, pageSizeOptions: [10, 15, 25, 50], showTotal: (total) => `Total ${total} components` }}
           size="middle"
         />
       </ThemeAdminCard>
