@@ -1932,6 +1932,7 @@ export default function PageBuilder({
   const [components, setComponents] = useState([]);
   /** Site components from /admin/components – shown in Add Component drawer. */
   const [siteComponentsList, setSiteComponentsList] = useState([]);
+  const [siteComponentsLoading, setSiteComponentsLoading] = useState(false);
   const [theme, setTheme] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [editingIndex, setEditingIndex] = useState(null);
@@ -2048,10 +2049,12 @@ export default function PageBuilder({
   /** Load site components for Add Component drawer (from /admin/components). */
   useEffect(() => {
     if (!addDrawerOpen) return;
+    setSiteComponentsLoading(true);
     fetch("/api/admin/site-components")
       .then((res) => (res.ok ? res.json() : []))
       .then((list) => setSiteComponentsList(Array.isArray(list) ? list : []))
-      .catch(() => setSiteComponentsList([]));
+      .catch(() => setSiteComponentsList([]))
+      .finally(() => setSiteComponentsLoading(false));
   }, [addDrawerOpen]);
 
   const blocks = Array.isArray(layout) ? [...layout] : [];
@@ -2786,7 +2789,12 @@ export default function PageBuilder({
               size="large"
             />
           </div>
-          {filteredSiteComponents.length === 0 ? (
+          {siteComponentsLoading ? (
+            <div style={{ textAlign: "center", marginTop: 60 }}>
+              <Spin size="large" />
+              <div style={{ marginTop: 12, color: "#999", fontSize: 13 }}>Loading components...</div>
+            </div>
+          ) : filteredSiteComponents.length === 0 ? (
             <Empty
               description={
                 siteComponentsList.length === 0
