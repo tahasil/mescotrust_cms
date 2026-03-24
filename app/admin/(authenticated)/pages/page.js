@@ -49,13 +49,7 @@ export default function AdminPagesPage() {
   };
 
   const handleEdit = (record) => {
-    setEditingId(record._id);
-    form.setFieldsValue({
-      title: record.title,
-      slug: record.slug,
-      status: record.status,
-    });
-    setModalOpen(true);
+    router.push(`/admin/pages/${record._id}`);
   };
 
   const handleDelete = (record) => {
@@ -126,7 +120,7 @@ export default function AdminPagesPage() {
       title: "Title",
       dataIndex: "title",
       key: "title",
-      render: (t, r) => <Link href={`/admin/pages/${r._id}`}>{t}</Link>,
+      render: (t) => t,
     },
     {
       title: "Slug",

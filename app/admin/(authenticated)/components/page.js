@@ -75,7 +75,6 @@ export default function AdminComponentsPage() {
     } catch (e) {
       if (e.errorFields) return;
       message.error(e.message || "Error");
-    } finally {
       setSaving(false);
     }
   };
