@@ -8,6 +8,7 @@ export { default as Footer, FooterEditForm } from "./Footer/index";
 export { default as HomeHero, HomeHeroEditForm } from "./HomeHero/index";
 export { default as Marquee, MarqueeEditForm } from "./Marquee/index";
 export { default as Subscribe, SubscribeEditForm } from "./Subscribe/index";
+export { default as Mission, MissionEditForm } from "./Mission/index";
 export { default as Vision, VisionEditForm } from "./Vision/index";
 export { default as AimsObjectives, AimsObjectivesEditForm } from "./AimsObjectives/index";
 export { default as Registered, RegisteredEditForm } from "./Registered/index";
@@ -26,6 +27,7 @@ export { default as LatestEvents1, LatestEvents1EditForm } from "./LatestEvents1
 import HomeHeroEditForm from "./HomeHero/EditForm";
 import MarqueeEditForm from "./Marquee/EditForm";
 import SubscribeEditForm from "./Subscribe/EditForm";
+import MissionEditForm from "./Mission/EditForm";
 import VisionEditForm from "./Vision/EditForm";
 import AimsObjectivesEditForm from "./AimsObjectives/EditForm";
 import RegisteredEditForm from "./Registered/EditForm";
@@ -65,4 +67,5 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   Registered: RegisteredEditForm,
   AimsObjectives: AimsObjectivesEditForm,
   Vision: VisionEditForm,
+  Mission: MissionEditForm,
 };
