@@ -47,12 +47,23 @@ const Theme = {
 export const getColor = (key) => {
   if (key == null || String(key).trim() === "") return undefined;
   const k = String(key).trim();
+  // Direct match
   if (Theme.colors[k]) return Theme.colors[k];
+  // CamelCase match (e.g. "Black Light" → "blackLight")
+  const slug = k.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+  const camel = slug.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+  if (Theme.colors[camel]) return Theme.colors[camel];
+  // Case-insensitive match in Theme.colors
+  const colorsKey = Object.keys(Theme.colors).find(
+    (c) => c.toLowerCase() === k.toLowerCase() || c.toLowerCase() === camel.toLowerCase(),
+  );
+  if (colorsKey) return Theme.colors[colorsKey];
+  // Fallback colors
   const fallbackKey = Object.keys(FALLBACK_COLORS).find(
     (f) => f.toLowerCase() === k.toLowerCase(),
   );
   if (fallbackKey) return FALLBACK_COLORS[fallbackKey];
-  return `var(--theme-${k})`;
+  return `var(--theme-${slug})`;
 };
 
 export const GlobalStyle = createGlobalStyle`

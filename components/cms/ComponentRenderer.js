@@ -93,9 +93,10 @@ const COMPONENT_MAP = {
   AntSpace: AntSpaceBlock,
 };
 
-// Register site components (e.g. HeroBanner) so blocks added from Admin → Components render on the frontend
+// Register site components (e.g. HeroBanner) so blocks added from Admin → Components render on the frontend.
+// Site components take priority over CMS block components when names collide.
 Object.entries(SiteComponents || {}).forEach(([name, Comp]) => {
-  if (Comp && !COMPONENT_MAP[name]) COMPONENT_MAP[name] = Comp;
+  if (Comp) COMPONENT_MAP[name] = Comp;
 });
 
 const SECTION_PROPS = [

@@ -107,7 +107,10 @@ export default async function RootLayout({ children }) {
   const themeVars = buildThemeCssVars(theme);
   const palette = theme.themePalette || {};
   const themePaletteVars = Object.fromEntries(
-    Object.entries(palette).filter(([, v]) => v != null && String(v).trim() !== "").map(([k, v]) => [`--theme-${k}`, v])
+    Object.entries(palette).filter(([, v]) => v != null && String(v).trim() !== "").map(([k, v]) => {
+      const slug = k.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+      return [`--theme-${slug}`, v];
+    })
   );
   const cssVars = {
     ...themeVars,
