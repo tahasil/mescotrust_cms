@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, Row, Col, Collapse, Select, message, Spin } from "antd";
+import { Form, Input, InputNumber, Row, Col, Collapse, Select, Switch, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import SortableFormList from "@/components/admin/SortableFormList";
@@ -35,6 +35,10 @@ function applyFormValues(form, data) {
     videogalleryTabInactiveTextColorKey: data?.videogalleryTabInactiveTextColorKey ?? "",
     videogalleryTabHoverBorderColorKey: data?.videogalleryTabHoverBorderColorKey ?? "",
     videogalleryTabHoverTextColorKey: data?.videogalleryTabHoverTextColorKey ?? "",
+    videogalleryLimitEnabled: data?.videogalleryLimitEnabled ?? false,
+    videogalleryLimitCount: data?.videogalleryLimitCount ?? 6,
+    videogalleryViewMoreText: data?.videogalleryViewMoreText ?? "View More",
+    videogalleryViewMoreLink: data?.videogalleryViewMoreLink ?? "",
     videogalleryTabs: tabs,
     videogalleryItems: items,
     ...getManageSectionInitialValues(PREFIX, data),
@@ -107,6 +111,10 @@ function VideogalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
         videogalleryTabInactiveTextColorKey: values.videogalleryTabInactiveTextColorKey ?? "",
         videogalleryTabHoverBorderColorKey: values.videogalleryTabHoverBorderColorKey ?? "",
         videogalleryTabHoverTextColorKey: values.videogalleryTabHoverTextColorKey ?? "",
+        videogalleryLimitEnabled: values.videogalleryLimitEnabled ?? false,
+        videogalleryLimitCount: values.videogalleryLimitCount ?? 6,
+        videogalleryViewMoreText: values.videogalleryViewMoreText ?? "View More",
+        videogalleryViewMoreLink: values.videogalleryViewMoreLink ?? "",
         videogalleryTabs: values.videogalleryTabs || [],
         videogalleryItems: (values.videogalleryItems || []).map(normalizeItem),
         ...getManageSectionPayload(PREFIX, values),
@@ -150,6 +158,32 @@ function VideogalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
             key: "title-colors",
             label: "Title & Colors",
             children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("Videogallery")} />,
+          },
+          {
+            key: "view-more",
+            label: "View More Button",
+            children: (
+              <>
+                <Form.Item name="videogalleryLimitEnabled" label="Enable item limit" valuePropName="checked">
+                  <Switch />
+                </Form.Item>
+                <Form.Item noStyle dependencies={["videogalleryLimitEnabled"]}>
+                  {() => form.getFieldValue("videogalleryLimitEnabled") && (
+                    <>
+                      <Form.Item name="videogalleryLimitCount" label="Items to show">
+                        <InputNumber min={1} max={100} size="large" style={{ width: "100%" }} />
+                      </Form.Item>
+                      <Form.Item name="videogalleryViewMoreText" label="Button text">
+                        <Input placeholder="View More" size="large" />
+                      </Form.Item>
+                      <Form.Item name="videogalleryViewMoreLink" label="Button link" rules={[{ required: true, message: "Link is required when limit is enabled" }]}>
+                        <Input placeholder="/media/video-gallery" size="large" />
+                      </Form.Item>
+                    </>
+                  )}
+                </Form.Item>
+              </>
+            ),
           },
           {
             key: "tabs",
