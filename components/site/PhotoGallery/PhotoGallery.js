@@ -9,10 +9,12 @@ import {
   CloseOutlined,
 } from "@ant-design/icons";
 import styled from "styled-components";
+import Link from "next/link";
 import {
   FullWidthBackground,
   getColor,
   PageContainer,
+  ThemeButton,
   ThemeModal,
 } from "@/styles/Theme";
 
@@ -267,11 +269,25 @@ export default function PhotoGallery(props) {
     ? getColor(tabHoverTextKey)
     : undefined;
 
+  const limitEnabled =
+    props?.photoGalleryLimitEnabled === true ||
+    props?.photoGalleryLimitEnabled === "true";
+  const limitCount =
+    props?.photoGalleryLimitCount != null
+      ? Number(props.photoGalleryLimitCount)
+      : 6;
+  const viewMoreText = (props?.photoGalleryViewMoreText ?? "View More")
+    .toString()
+    .trim();
+  const viewMoreLink = (props?.photoGalleryViewMoreLink ?? "")
+    .toString()
+    .trim();
+
   const [activeTab, setActiveTab] = useState("All");
   const [modalOpen, setModalOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const filteredItems =
+  const allFilteredItems =
     activeTab === "All"
       ? items
       : items.filter(
@@ -279,6 +295,9 @@ export default function PhotoGallery(props) {
             Array.isArray(item.categories) &&
             item.categories.includes(activeTab),
         );
+  const filteredItems = limitEnabled
+    ? allFilteredItems.slice(0, limitCount)
+    : allFilteredItems;
 
   const openModal = (index) => {
     setCurrentIndex(index);
@@ -468,7 +487,7 @@ export default function PhotoGallery(props) {
 
         <Row gutter={[16, 16]}>
           {filteredItems.map((item, index) => (
-            <Col key={index} xs={24} sm={12} md={12} lg={8} xl={6}>
+            <Col key={index} xs={24} sm={12} md={12} lg={8}>
               <GalleryCard onClick={() => openModal(index)}>
                 <img src={item.image} alt={item.title} />
                 <GalleryCardTitle>{item.title}</GalleryCardTitle>
@@ -479,6 +498,18 @@ export default function PhotoGallery(props) {
             </Col>
           ))}
         </Row>
+
+        {limitEnabled &&
+          viewMoreLink &&
+          allFilteredItems.length > limitCount && (
+            <div style={{ textAlign: "center", marginTop: 32 }}>
+              <Link href={viewMoreLink}>
+                <ThemeButton type="button" size="large">
+                  {viewMoreText}
+                </ThemeButton>
+              </Link>
+            </div>
+          )}
       </PageContainer>
 
       <GalleryLightbox

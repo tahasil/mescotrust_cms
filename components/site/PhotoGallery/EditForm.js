@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle, useMemo } from "react";
-import { Form, Input, Row, Col, Collapse, Select, message, Spin } from "antd";
+import { Form, Input, InputNumber, Row, Col, Collapse, Select, Switch, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import SortableFormList from "@/components/admin/SortableFormList";
@@ -35,6 +35,10 @@ function applyFormValues(form, data) {
     photoGalleryTabInactiveTextColorKey: data?.photoGalleryTabInactiveTextColorKey ?? "",
     photoGalleryTabHoverBorderColorKey: data?.photoGalleryTabHoverBorderColorKey ?? "",
     photoGalleryTabHoverTextColorKey: data?.photoGalleryTabHoverTextColorKey ?? "",
+    photoGalleryLimitEnabled: data?.photoGalleryLimitEnabled ?? false,
+    photoGalleryLimitCount: data?.photoGalleryLimitCount ?? 6,
+    photoGalleryViewMoreText: data?.photoGalleryViewMoreText ?? "View More",
+    photoGalleryViewMoreLink: data?.photoGalleryViewMoreLink ?? "",
     photoGalleryTabs: tabs,
     photoGalleryItems: items,
     ...getManageSectionInitialValues(PREFIX, data),
@@ -107,6 +111,10 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
         photoGalleryTabInactiveTextColorKey: values.photoGalleryTabInactiveTextColorKey ?? "",
         photoGalleryTabHoverBorderColorKey: values.photoGalleryTabHoverBorderColorKey ?? "",
         photoGalleryTabHoverTextColorKey: values.photoGalleryTabHoverTextColorKey ?? "",
+        photoGalleryLimitEnabled: values.photoGalleryLimitEnabled ?? false,
+        photoGalleryLimitCount: values.photoGalleryLimitCount ?? 6,
+        photoGalleryViewMoreText: values.photoGalleryViewMoreText ?? "View More",
+        photoGalleryViewMoreLink: values.photoGalleryViewMoreLink ?? "",
         photoGalleryTabs: values.photoGalleryTabs || [],
         photoGalleryItems: (values.photoGalleryItems || []).map(normalizeItem),
         ...getManageSectionPayload(PREFIX, values),
@@ -150,6 +158,32 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
             key: "title-colors",
             label: "Title & Colors",
             children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("PhotoGallery")} />,
+          },
+          {
+            key: "view-more",
+            label: "View More Button",
+            children: (
+              <>
+                <Form.Item name="photoGalleryLimitEnabled" label="Enable item limit" valuePropName="checked">
+                  <Switch />
+                </Form.Item>
+                <Form.Item noStyle dependencies={["photoGalleryLimitEnabled"]}>
+                  {() => form.getFieldValue("photoGalleryLimitEnabled") && (
+                    <>
+                      <Form.Item name="photoGalleryLimitCount" label="Items to show">
+                        <InputNumber min={1} max={100} size="large" style={{ width: "100%" }} />
+                      </Form.Item>
+                      <Form.Item name="photoGalleryViewMoreText" label="Button text">
+                        <Input placeholder="View More" size="large" />
+                      </Form.Item>
+                      <Form.Item name="photoGalleryViewMoreLink" label="Button link" rules={[{ required: true, message: "Link is required when limit is enabled" }]}>
+                        <Input placeholder="/media/image-gallery" size="large" />
+                      </Form.Item>
+                    </>
+                  )}
+                </Form.Item>
+              </>
+            ),
           },
           {
             key: "tabs",
