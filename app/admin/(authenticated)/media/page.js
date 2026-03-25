@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Card, Button, Space, message, Modal, Upload, Input, Pagination, Empty, Spin } from "antd";
-import { UploadOutlined, DeleteOutlined, CopyOutlined } from "@ant-design/icons";
+import { UploadOutlined, DeleteOutlined, CopyOutlined, SearchOutlined } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 
 export default function AdminMediaPage() {
@@ -11,6 +11,16 @@ export default function AdminMediaPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredItems = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return items;
+    return items.filter((item) =>
+      (item.filename || "").toLowerCase().includes(q) ||
+      (item.url || "").toLowerCase().includes(q)
+    );
+  }, [items, searchQuery]);
 
   const fetchMedia = (p = page) => {
     setLoading(true);
@@ -80,32 +90,38 @@ export default function AdminMediaPage() {
 
   return (
     <ThemeAdminCard
-      title="Media Library"
+      title={<div><span>Media Library</span><div style={{ fontSize: 12, fontWeight: 400, color: "#999", marginTop: 2 }}>Upload and manage images. Allowed format: .webp only. Max size: 5MB.</div></div>}
       extra={
-        <Upload
-          beforeUpload={() => false}
-          onChange={handleUpload}
-          showUploadList={false}
-          accept=".png,.jpg,.jpeg,.webp,.gif,.svg"
-        >
-          <Button type="primary" icon={<UploadOutlined />} loading={uploading}>
-            Upload image
-          </Button>
-        </Upload>
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <Input
+            prefix={<SearchOutlined style={{ color: "#bbb" }} />}
+            placeholder="Search images..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            allowClear
+            style={{ width: 220 }}
+          />
+          <Upload
+            beforeUpload={() => false}
+            onChange={handleUpload}
+            showUploadList={false}
+            accept=".webp"
+          >
+            <Button type="primary" icon={<UploadOutlined />} loading={uploading}>
+              Upload image
+            </Button>
+          </Upload>
+        </div>
       }
     >
-      <p style={{ color: "#666", marginBottom: 16 }}>
-        Upload and manage images. Allowed formats: .png, .jpg, .jpeg, .webp, .gif, .svg. Max size: 5MB.
-      </p>
-
       {loading ? (
         <Spin size="large" />
-      ) : items.length === 0 ? (
+      ) : filteredItems.length === 0 ? (
         <Empty description="No media uploaded yet" />
       ) : (
         <>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 16 }}>
-            {items.map((item) => (
+            {filteredItems.map((item) => (
               <Card
                 key={item._id}
                 size="small"
