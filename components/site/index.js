@@ -29,6 +29,7 @@ export { default as HomeHero2, HomeHero2EditForm } from "./HomeHero2/index";
 export { default as OverviewOfOurWork, OverviewOfOurWorkEditForm } from "./OverviewOfOurWork/index";
 export { default as Testimonials, TestimonialsEditForm } from "./Testimonials/index";
 export { default as LatestEvents1, LatestEvents1EditForm } from "./LatestEvents1/index";
+export { default as ImageSlider, ImageSliderEditForm } from "./ImageSlider/index";
 import HomeHeroEditForm from "./HomeHero/EditForm";
 import MarqueeEditForm from "./Marquee/EditForm";
 import SubscribeEditForm from "./Subscribe/EditForm";
@@ -53,6 +54,7 @@ import HomeHero2EditForm from "./HomeHero2/EditForm";
 import OverviewOfOurWorkEditForm from "./OverviewOfOurWork/EditForm";
 import TestimonialsEditForm from "./Testimonials/EditForm";
 import LatestEvents1EditForm from "./LatestEvents1/EditForm";
+import ImageSliderEditForm from "./ImageSlider/EditForm";
 import HeaderEditForm from "./Header/EditForm";
 import FooterEditForm from "./Footer/EditForm";
 /** componentId -> EditForm for drawer (Admin → Components and Page Builder use same form). Add new editable site components here. */
@@ -83,4 +85,5 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   Accordion: AccordionEditForm,
   PhotoGallery: PhotoGalleryEditForm,
   Videogallery: VideogalleryEditForm,
+  ImageSlider: ImageSliderEditForm,
 };
