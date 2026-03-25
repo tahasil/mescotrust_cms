@@ -213,7 +213,12 @@ export default function Helpingpeople(props) {
                   wordWrap: "break-word",
                   ...(textColor ? { color: textColor } : {}),
                 }}
-                dangerouslySetInnerHTML={{ __html: paragraph.replace(/<span[^>]*>/gi, "").replace(/<\/span>/gi, "").replace(/&nbsp;/gi, " ") }}
+                dangerouslySetInnerHTML={{
+                  __html: paragraph
+                    .replace(/<span[^>]*>/gi, "")
+                    .replace(/<\/span>/gi, "")
+                    .replace(/&nbsp;/gi, " "),
+                }}
               />
             )}
           </Col>
@@ -225,7 +230,7 @@ export default function Helpingpeople(props) {
             className="text-center"
           >
             {imageUrl ? (
-              <img className="img-fluid" src={imageUrl} alt={imageAlt} />
+              <img className="m-auto img-fluid" src={imageUrl} alt={imageAlt} />
             ) : (
               <div
                 style={{

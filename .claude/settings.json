@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la \"/d/tahasil-projects/mescotrust_cms/app/\\(site\\)/\")",
+      "Bash(ls -la /d/tahasil-projects/mescotrust_cms/app/\\\\\\(site\\\\\\)/)",
+      "Bash(grep -E \"\\\\.\\(js|jsx|ts|tsx\\)$\")",
+      "Bash(ls -1 /d/tahasil-projects/mescotrust_cms/components/cms/blocks/*.js)"
+    ]
+  }
+}

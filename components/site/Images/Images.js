@@ -17,10 +17,24 @@ import {
 export default function Images(props) {
   const mainTitle = (props?.mainTitle ?? "Section Title").toString().trim();
   const subTitle = (props?.subTitle ?? "Subtitle").toString().trim();
+  const titleEnabled = props?.imagesTitleEnabled !== false;
+  const subTitleEnabled = props?.imagesSubTitleEnabled !== false;
   const titleColorKey = (props?.titleColorKey ?? "").toString().trim();
   const titleColor = titleColorKey
     ? getColor(titleColorKey)
     : getColor("primary");
+  const subTitleColorKey = (props?.imagesSubTitleColorKey ?? "")
+    .toString()
+    .trim();
+  const subTitleColor = subTitleColorKey
+    ? getColor(subTitleColorKey)
+    : undefined;
+  const imageUrl = (props?.imageUrl ?? "/images/clinics-dispensaries.png")
+    .toString()
+    .trim();
+  const imageAlt = (props?.imageAlt ?? "Clinics And Dispensaries")
+    .toString()
+    .trim();
 
   const sectionBgType = (props?.imagesSectionBgType ?? "default").toString();
   const sectionBgImage = (props?.imagesSectionBgImage ?? "").toString().trim();
@@ -163,19 +177,25 @@ export default function Images(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
-        <Row gutter={[16, 16]}>
-          <Col span={24} className="mb-4">
-            <SubTitle>{subTitle}</SubTitle>
-            <MainTitle color={titleColor}>{mainTitle}</MainTitle>
-          </Col>
-        </Row>
+        {(titleEnabled || subTitleEnabled) && (
+          <Row gutter={[16, 16]}>
+            <Col span={24} className="mb-4">
+              {subTitleEnabled && (
+                <SubTitle
+                  style={subTitleColor ? { color: subTitleColor } : undefined}
+                >
+                  {subTitle}
+                </SubTitle>
+              )}
+              {titleEnabled && (
+                <MainTitle color={titleColor}>{mainTitle}</MainTitle>
+              )}
+            </Col>
+          </Row>
+        )}
         <Row gutter={[16, 16]}>
           <Col span={24}>
-            <img
-              class="w-100"
-              src="/images/clinics-dispensaries.png"
-              alt="Clinics And Dispensaries"
-            />
+            <img className="w-100" src={imageUrl} alt={imageAlt} />
           </Col>
         </Row>
       </PageContainer>

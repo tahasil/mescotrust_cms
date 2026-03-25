@@ -46,6 +46,11 @@ function ImagesEditForm({ source, initialData: initialDataProp, onSaveToPage, on
         mainTitle: data.mainTitle ?? "Section Title",
         subTitle: data.subTitle ?? "Subtitle",
         titleColorKey: data.titleColorKey ?? "",
+        imagesTitleEnabled: data.imagesTitleEnabled !== false,
+        imagesSubTitleEnabled: data.imagesSubTitleEnabled !== false,
+        imagesSubTitleColorKey: data.imagesSubTitleColorKey ?? "",
+        imageUrl: data.imageUrl ?? "/images/clinics-dispensaries.png",
+        imageAlt: data.imageAlt ?? "Clinics And Dispensaries",
         ...getManageSectionInitialValues(PREFIX, data),
         ...data,
       });
@@ -59,6 +64,11 @@ function ImagesEditForm({ source, initialData: initialDataProp, onSaveToPage, on
           mainTitle: (data && data.mainTitle) ?? "Section Title",
           subTitle: (data && data.subTitle) ?? "Subtitle",
           titleColorKey: (data && data.titleColorKey) ?? "",
+          imagesTitleEnabled: data?.imagesTitleEnabled !== false,
+          imagesSubTitleEnabled: data?.imagesSubTitleEnabled !== false,
+          imagesSubTitleColorKey: data?.imagesSubTitleColorKey ?? "",
+          imageUrl: (data && data.imageUrl) ?? "/images/clinics-dispensaries.png",
+          imageAlt: (data && data.imageAlt) ?? "Clinics And Dispensaries",
           ...getManageSectionInitialValues(PREFIX, data),
           ...(data && typeof data === "object" ? data : {}),
         });
@@ -128,13 +138,12 @@ function ImagesEditForm({ source, initialData: initialDataProp, onSaveToPage, on
             label: "Content",
             children: (
               <>
-                <Form.Item name="subTitle" label="Subtitle">
-                  <Input placeholder="Subtitle" />
+                <Form.Item name="imageUrl" label="Image URL">
+                  <Input placeholder="e.g. /images/clinics-dispensaries.png" />
                 </Form.Item>
-                <Form.Item name="mainTitle" label="Main title">
-                  <Input placeholder="Section Title" />
+                <Form.Item name="imageAlt" label="Image Alt Text">
+                  <Input placeholder="e.g. Clinics And Dispensaries" />
                 </Form.Item>
-                <p style={{ color: "#666", marginTop: 16 }}>Add more fields in EditForm.js as needed.</p>
               </>
             ),
           },
