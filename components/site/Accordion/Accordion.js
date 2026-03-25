@@ -56,17 +56,25 @@ const StyledCollapse = styled(Collapse)`
     }
     .ant-collapse-content {
       border-top: 1px solid rgba(0, 0, 0, 0.1);
+      .ant-collapse-content-box {
+        p {
+          position: relative;
+          width: 100% !important;
+          margin: 0px 0px 10px 0px;
+          font-weight: 400;
+          strong {
+            font-weight: 500;
+          }
+        }
+      }
     }
     .ant-collapse-body {
       padding: 20px 24px !important;
       font-size: 16px;
       font-weight: 400;
-      line-height: 24px;
+      line-height: 26px;
       color: ${(p) => p.$contentColor || "#050505"};
       opacity: 0.8;
-      strong {
-        font-weight: 500;
-      }
       @media (max-width: 768px) {
         padding: 16px 20px !important;
         font-size: 14px;
@@ -130,7 +138,18 @@ export default function Accordion(props) {
 
   const items = normalizedItems.map((it) => ({
     ...it,
-    children: <div dangerouslySetInnerHTML={{ __html: it.children }} />,
+    children: (
+      <div
+        className="w-100"
+        dangerouslySetInnerHTML={{
+          __html: (it.children || "")
+            .replace(/\s*(color|background-color)\s*:\s*[^;"]+(;?)/gi, "")
+            .replace(/<span[^>]*>/gi, "")
+            .replace(/<\/span>/gi, "")
+            .replace(/&nbsp;/gi, " "),
+        }}
+      />
+    ),
   }));
 
   const PREFIX = "accordion";

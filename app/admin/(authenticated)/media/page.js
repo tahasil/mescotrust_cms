@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, Button, Space, message, Modal, Upload, Input, Pagination, Empty, Spin } from "antd";
 import { UploadOutlined, DeleteOutlined, CopyOutlined, SearchOutlined } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
@@ -13,18 +13,11 @@ export default function AdminMediaPage() {
   const [uploading, setUploading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredItems = useMemo(() => {
-    const q = searchQuery.toLowerCase().trim();
-    if (!q) return items;
-    return items.filter((item) =>
-      (item.filename || "").toLowerCase().includes(q) ||
-      (item.url || "").toLowerCase().includes(q)
-    );
-  }, [items, searchQuery]);
-
-  const fetchMedia = (p = page) => {
+  const fetchMedia = (p = page, q = searchQuery) => {
     setLoading(true);
-    fetch(`/api/admin/media?page=${p}&limit=20`)
+    const params = new URLSearchParams({ page: p, limit: 20 });
+    if (q && q.trim()) params.set("search", q.trim());
+    fetch(`/api/admin/media?${params}`)
       .then((res) => (res.ok ? res.json() : { items: [], total: 0 }))
       .then((data) => {
         setItems(data.items || []);
@@ -35,8 +28,13 @@ export default function AdminMediaPage() {
   };
 
   useEffect(() => {
-    fetchMedia(page);
+    fetchMedia(page, searchQuery);
   }, [page]);
+
+  useEffect(() => {
+    setPage(1);
+    fetchMedia(1, searchQuery);
+  }, [searchQuery]);
 
   const handleUpload = async (info) => {
     const file = info.file;
@@ -116,12 +114,12 @@ export default function AdminMediaPage() {
     >
       {loading ? (
         <Spin size="large" />
-      ) : filteredItems.length === 0 ? (
+      ) : items.length === 0 ? (
         <Empty description="No media uploaded yet" />
       ) : (
         <>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 16 }}>
-            {filteredItems.map((item) => (
+            {items.map((item) => (
               <Card
                 key={item._id}
                 size="small"

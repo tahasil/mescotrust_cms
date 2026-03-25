@@ -213,7 +213,7 @@ export default function Helpingpeople(props) {
                   wordWrap: "break-word",
                   ...(textColor ? { color: textColor } : {}),
                 }}
-                dangerouslySetInnerHTML={{ __html: paragraph }}
+                dangerouslySetInnerHTML={{ __html: paragraph.replace(/<span[^>]*>/gi, "").replace(/<\/span>/gi, "").replace(/&nbsp;/gi, " ") }}
               />
             )}
           </Col>
