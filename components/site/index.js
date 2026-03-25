@@ -8,6 +8,7 @@ export { default as Footer, FooterEditForm } from "./Footer/index";
 export { default as HomeHero, HomeHeroEditForm } from "./HomeHero/index";
 export { default as Marquee, MarqueeEditForm } from "./Marquee/index";
 export { default as Subscribe, SubscribeEditForm } from "./Subscribe/index";
+export { default as Images, ImagesEditForm } from "./Images/index";
 export { default as TitleParagraph, TitleParagraphEditForm } from "./TitleParagraph/index";
 export { default as Videogallery, VideogalleryEditForm } from "./Videogallery/index";
 export { default as PhotoGallery, PhotoGalleryEditForm } from "./PhotoGallery/index";
@@ -34,6 +35,7 @@ export { default as ImageSlider, ImageSliderEditForm } from "./ImageSlider/index
 import HomeHeroEditForm from "./HomeHero/EditForm";
 import MarqueeEditForm from "./Marquee/EditForm";
 import SubscribeEditForm from "./Subscribe/EditForm";
+import ImagesEditForm from "./Images/EditForm";
 import TitleParagraphEditForm from "./TitleParagraph/EditForm";
 import VideogalleryEditForm from "./Videogallery/EditForm";
 import PhotoGalleryEditForm from "./PhotoGallery/EditForm";
@@ -89,4 +91,5 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   Videogallery: VideogalleryEditForm,
   ImageSlider: ImageSliderEditForm,
   TitleParagraph: TitleParagraphEditForm,
+  Images: ImagesEditForm,
 };
