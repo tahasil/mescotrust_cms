@@ -6,7 +6,6 @@ import {
   getColor,
   MainTitle,
   PageContainer,
-  Paragraph,
 } from "@/styles/Theme";
 
 /**
@@ -100,15 +99,19 @@ export default function ManagingCommittee(props) {
               {mainTitle}
             </MainTitle>
             {paragraph && (
-              <Paragraph
+              <div
                 className={textColor ? "" : "text-white"}
-                opacity={0.8}
-                fontSize={16}
-                fontWeight={400}
-                style={textColor ? { color: textColor } : undefined}
-              >
-                {paragraph}
-              </Paragraph>
+                style={{
+                  opacity: 0.8,
+                  fontSize: 16,
+                  fontWeight: 400,
+                  lineHeight: 1.6,
+                  overflowWrap: "break-word",
+                  wordWrap: "break-word",
+                  ...(textColor ? { color: textColor } : {}),
+                }}
+                dangerouslySetInnerHTML={{ __html: paragraph }}
+              />
             )}
           </Col>
         </Row>

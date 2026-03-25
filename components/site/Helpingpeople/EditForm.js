@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import { Form, Input, Collapse, message, Spin } from "antd";
+import RichTextEditor from "@/components/admin/RichTextEditor";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
@@ -143,7 +144,7 @@ function HelpingpeopleEditForm({ source, initialData: initialDataProp, onSaveToP
             children: (
               <>
                 <Form.Item name="helpingpeopleParagraph" label="Paragraph">
-                  <Input.TextArea rows={6} placeholder="Enter paragraph text..." size="large" />
+                  <RichTextEditor placeholder="Enter paragraph text..." />
                 </Form.Item>
                 <Form.Item name="helpingpeopleImageUrl" label="Image URL">
                   <Input placeholder="/images/about-mesco-3.png" size="large" />

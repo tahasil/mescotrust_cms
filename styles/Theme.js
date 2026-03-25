@@ -186,6 +186,7 @@ export const ThemeButton = styled(ButtonWrapper)`
 export const FullWidthBackground = styled.div`
   width: 100%;
   position: relative;
+  overflow: hidden;
   background: transparent no-repeat top center;
   background-size: cover;
   &.defaultBackground {
@@ -266,6 +267,8 @@ export const Paragraph = styled.p`
   color: ${(props) => props.color || getColor("black")};
   opacity: ${(props) => props.opacity || 1};
   margin-bottom: 10px;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 `;
 export const InnerBanner = styled.section`
   width: 100%;

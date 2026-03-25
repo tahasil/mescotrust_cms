@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import { Form, Input, Collapse, message, Spin } from "antd";
+import RichTextEditor from "@/components/admin/RichTextEditor";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
@@ -128,7 +129,7 @@ function ManagingCommitteeEditForm({ source, initialData: initialDataProp, onSav
             children: (
               <>
                 <Form.Item name="managingCommitteeParagraph" label="Paragraph">
-                  <Input.TextArea rows={6} placeholder="Enter paragraph text..." size="large" />
+                  <RichTextEditor placeholder="Enter paragraph text..." />
                 </Form.Item>
                 <Form.Item name="managingCommitteeImageUrl" label="Image URL">
                   <Input placeholder="/images/good-governance-2.png" size="large" />
