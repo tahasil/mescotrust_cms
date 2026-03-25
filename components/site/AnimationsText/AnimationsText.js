@@ -51,10 +51,16 @@ export default function AnimationsText(props) {
   const lightColor = lightColorKey ? getColor(lightColorKey) : LIGHT_COLOR;
   const darkColor = darkColorKey ? getColor(darkColorKey) : DARK_COLOR;
 
+  const animationEnabled = props?.animationsTextEnabled !== false && props?.animationsTextEnabled !== "false";
+  const scrollStart = (props?.animationsTextScrollStart ?? "top 90%").toString().trim();
+  const scrollEnd = (props?.animationsTextScrollEnd ?? "bottom 50%").toString().trim();
+  const scrub = props?.animationsTextScrub != null ? Number(props.animationsTextScrub) : 1;
+
   const wrapRef = useRef(null);
   const textRefs = useRef([]);
 
   useEffect(() => {
+    if (!animationEnabled) return;
     const wrap = wrapRef.current;
     if (!wrap) return;
 
@@ -71,9 +77,9 @@ export default function AnimationsText(props) {
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: wrap,
-        start: "top 90%",
-        end: "bottom 50%",
-        scrub: 1,
+        start: scrollStart,
+        end: scrollEnd,
+        scrub: scrub,
       },
     });
 
@@ -83,7 +89,7 @@ export default function AnimationsText(props) {
     });
 
     return () => ScrollTrigger.getAll().forEach((t) => t.kill());
-  }, [paragraphs, lightColor, darkColor]);
+  }, [paragraphs, lightColor, darkColor, animationEnabled, scrollStart, scrollEnd, scrub]);
 
   // Section background
   const PREFIX = "animationsText";
@@ -165,7 +171,7 @@ export default function AnimationsText(props) {
                   >
                     {words.map((word, i) => (
                       <React.Fragment key={i}>
-                        <span data-word>{word}</span>
+                        <span data-word style={!animationEnabled ? { color: darkColor || DARK_COLOR } : undefined}>{word}</span>
                         {i < words.length - 1 ? " " : ""}
                       </React.Fragment>
                     ))}

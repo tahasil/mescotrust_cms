@@ -352,6 +352,8 @@ export const ScrolledText = styled.p`
   line-height: ${(props) => props.lineHeight || 24}px;
   opacity: ${(props) => props.opacity ?? 0.8};
   margin-bottom: 10px;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
   [data-word] {
     display: inline;
     transition: none;

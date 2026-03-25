@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, InputNumber, Row, Col, Collapse, message, Spin } from "antd";
+import { Form, Input, InputNumber, Row, Col, Collapse, Select, Switch, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
@@ -49,6 +49,10 @@ function AnimationsTextEditForm({ source, initialData: initialDataProp, onSaveTo
       animationsTextLightColorKey: data?.animationsTextLightColorKey != null ? String(data.animationsTextLightColorKey).trim() : "",
       animationsTextDarkColorKey: data?.animationsTextDarkColorKey != null ? String(data.animationsTextDarkColorKey).trim() : "",
       animationsTextParagraphs: paragraphs,
+      animationsTextEnabled: data?.animationsTextEnabled !== false,
+      animationsTextScrollStart: data?.animationsTextScrollStart ?? "top 90%",
+      animationsTextScrollEnd: data?.animationsTextScrollEnd ?? "bottom 50%",
+      animationsTextScrub: data?.animationsTextScrub != null ? Number(data.animationsTextScrub) : 1,
       ...getManageSectionInitialValues(PREFIX, data),
     });
   }
@@ -103,6 +107,10 @@ function AnimationsTextEditForm({ source, initialData: initialDataProp, onSaveTo
         animationsTextLightColorKey: values.animationsTextLightColorKey != null ? String(values.animationsTextLightColorKey).trim() : "",
         animationsTextDarkColorKey: values.animationsTextDarkColorKey != null ? String(values.animationsTextDarkColorKey).trim() : "",
         animationsTextParagraphs: paragraphs,
+        animationsTextEnabled: values.animationsTextEnabled !== false,
+        animationsTextScrollStart: values.animationsTextScrollStart ?? "top 90%",
+        animationsTextScrollEnd: values.animationsTextScrollEnd ?? "bottom 50%",
+        animationsTextScrub: values.animationsTextScrub != null ? Number(values.animationsTextScrub) : 1,
         ...getManageSectionPayload(PREFIX, values),
       };
       if (isPageBlock && onSaveToPage) {
@@ -153,6 +161,53 @@ function AnimationsTextEditForm({ source, initialData: initialDataProp, onSaveTo
             key: "title-colors",
             label: "Title & Colors",
             children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("AnimationsText")} />,
+          },
+          {
+            key: "animation",
+            label: "Animation Settings",
+            children: (
+              <>
+                <Form.Item name="animationsTextEnabled" label="Enable scroll animation" valuePropName="checked">
+                  <Switch />
+                </Form.Item>
+                <Form.Item noStyle dependencies={["animationsTextEnabled"]}>
+                  {() => form.getFieldValue("animationsTextEnabled") !== false && (
+                    <Row gutter={[16, 16]}>
+                      <Col span={12}>
+                        <Form.Item name="animationsTextScrollStart" label="Scroll start" tooltip="When animation begins. e.g. 'top 90%' means when element top reaches 90% of viewport">
+                          <Select size="large" options={[
+                            { label: "top 100% (very early)", value: "top 100%" },
+                            { label: "top 90% (default)", value: "top 90%" },
+                            { label: "top 80%", value: "top 80%" },
+                            { label: "top 70%", value: "top 70%" },
+                            { label: "top 60%", value: "top 60%" },
+                            { label: "top 50% (center)", value: "top 50%" },
+                          ]} />
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item name="animationsTextScrollEnd" label="Scroll end" tooltip="When animation completes. e.g. 'bottom 50%' means when element bottom reaches 50% of viewport">
+                          <Select size="large" options={[
+                            { label: "bottom 70%", value: "bottom 70%" },
+                            { label: "bottom 60%", value: "bottom 60%" },
+                            { label: "bottom 50% (default)", value: "bottom 50%" },
+                            { label: "bottom 40%", value: "bottom 40%" },
+                            { label: "bottom 30%", value: "bottom 30%" },
+                            { label: "bottom 20%", value: "bottom 20%" },
+                            { label: "bottom 10%", value: "bottom 10%" },
+                          ]} />
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item name="animationsTextScrub" label="Scrub smoothness" tooltip="Delay between scroll and animation. 0 = instant, 1 = smooth (default), 3 = very smooth">
+                          <InputNumber min={0} max={10} step={0.5} size="large" style={{ width: "100%" }} />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  )}
+                </Form.Item>
+              </>
+            ),
           },
           {
             key: "content",
