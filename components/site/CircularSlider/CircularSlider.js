@@ -72,8 +72,12 @@ export default function CircularSlider({
           minimumMovement: 0,
           snap: (endValue) => Math.round(endValue / stepDeg) * stepDeg,
           onDragStart: stopAutoRotate,
-          onDragEnd: () => { if (autoInterval > 0) startAutoRotate(); },
-          onThrowComplete: () => { if (autoInterval > 0) startAutoRotate(); },
+          onDragEnd: () => {
+            if (autoInterval > 0) startAutoRotate();
+          },
+          onThrowComplete: () => {
+            if (autoInterval > 0) startAutoRotate();
+          },
         });
       }
 
@@ -94,7 +98,15 @@ export default function CircularSlider({
       clearInterval(id);
       cleanup();
     };
-  }, [images, autoInterval, stepDeg, duration, className, draggable, scriptsReady.current]);
+  }, [
+    images,
+    autoInterval,
+    stepDeg,
+    duration,
+    className,
+    draggable,
+    scriptsReady.current,
+  ]);
 
   if (!images.length) return null;
 
@@ -104,9 +116,21 @@ export default function CircularSlider({
 
   return (
     <>
-      <Script src="/js/gsap.min.js" strategy="afterInteractive" onLoad={handleScriptsLoaded} />
-      <Script src="/js/Draggable.min.js" strategy="afterInteractive" onLoad={handleScriptsLoaded} />
-      <Script src="/js/InertiaPlugin.min.js" strategy="afterInteractive" onLoad={handleScriptsLoaded} />
+      <Script
+        src="/js/gsap.min.js"
+        strategy="afterInteractive"
+        onLoad={handleScriptsLoaded}
+      />
+      <Script
+        src="/js/Draggable.min.js"
+        strategy="afterInteractive"
+        onLoad={handleScriptsLoaded}
+      />
+      <Script
+        src="/js/InertiaPlugin.min.js"
+        strategy="afterInteractive"
+        onLoad={handleScriptsLoaded}
+      />
       <SliderContainer>
         <SliderCarousel
           ref={carouselRef}
