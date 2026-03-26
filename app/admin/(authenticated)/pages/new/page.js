@@ -21,14 +21,26 @@ export default function AdminPageNewPage() {
   const watchedSlug = Form.useWatch("slug", form);
 
   useEffect(() => {
-    fetch("/api/admin/pages")
-      .then((res) => (res.ok ? res.json() : []))
-      .then((pages) => {
+    Promise.all([
+      fetch("/api/admin/pages").then((res) => (res.ok ? res.json() : [])),
+      fetch("/api/admin/menus").then((res) => (res.ok ? res.json() : [])),
+    ])
+      .then(([pages, menus]) => {
         const folders = new Set();
+        // From existing page slugs
         (Array.isArray(pages) ? pages : []).forEach((p) => {
           if (p.slug && p.slug.includes("/")) {
             folders.add(p.slug.split("/")[0]);
           }
+        });
+        // From menu items that have children (act as parent groups)
+        (Array.isArray(menus) ? menus : []).forEach((menu) => {
+          (Array.isArray(menu.items) ? menu.items : []).forEach((item) => {
+            if (Array.isArray(item.children) && item.children.length > 0) {
+              const slug = (item.label || "").trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+              if (slug) folders.add(slug);
+            }
+          });
         });
         setParentFolders([...folders].sort());
       })
@@ -125,7 +137,7 @@ export default function AdminPageNewPage() {
                     <Form.Item name="title" label="Title" rules={[{ required: true }]}>
                       <Input placeholder="Page title" />
                     </Form.Item>
-                    <Form.Item label="Parent folder (optional)">
+                    <Form.Item label="Parent Menu">
                       <Select
                         showSearch
                         allowClear
@@ -134,26 +146,6 @@ export default function AdminPageNewPage() {
                         onChange={(val) => setSelectedParent(val || "")}
                         onSearch={() => {}}
                         options={parentFolders.map((f) => ({ label: f, value: f }))}
-                        notFoundContent={<span style={{ color: "#999", fontSize: 12 }}>Type a folder name below and press Enter</span>}
-                        dropdownRender={(menu) => (
-                          <>
-                            {menu}
-                            <div style={{ padding: "4px 8px", borderTop: "1px solid #f0f0f0" }}>
-                              <Input
-                                size="small"
-                                placeholder="Type new folder (e.g. about-us) + Enter"
-                                onPressEnter={(e) => {
-                                  const val = e.target.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
-                                  if (val && !parentFolders.includes(val)) {
-                                    setParentFolders((prev) => [...prev, val].sort());
-                                  }
-                                  if (val) setSelectedParent(val);
-                                  e.target.value = "";
-                                }}
-                              />
-                            </div>
-                          </>
-                        )}
                       />
                       {selectedParent && (
                         <span style={{ fontSize: 12, color: "#999", marginTop: 4, display: "block" }}>

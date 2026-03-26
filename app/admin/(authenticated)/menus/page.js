@@ -430,6 +430,7 @@ export default function AdminMenusPage() {
           setSaving(false);
           return;
         }
+        const createData = await createRes.json().catch(() => ({}));
         const delRes = await fetch(
           `/api/admin/menus/${encodeURIComponent(editingName)}`,
           { method: "DELETE" },
@@ -438,6 +439,9 @@ export default function AdminMenusPage() {
           message.error("Renamed but could not remove old menu");
         }
         message.success(`Menu saved as "${name}"`);
+        if (Array.isArray(createData._slugConflicts)) {
+          createData._slugConflicts.forEach((c) => message.warning(c, 6));
+        }
       } else {
         const url = editingName
           ? `/api/admin/menus/${encodeURIComponent(editingName)}`
@@ -455,7 +459,11 @@ export default function AdminMenusPage() {
           setSaving(false);
           return;
         }
+        const data = await res.json().catch(() => ({}));
         message.success("Menu saved");
+        if (Array.isArray(data._slugConflicts)) {
+          data._slugConflicts.forEach((c) => message.warning(c, 6));
+        }
       }
       setStructureView(false);
       setEditingName(null);
