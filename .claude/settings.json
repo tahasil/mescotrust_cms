@@ -4,7 +4,11 @@
       "Bash(ls -la \"/d/tahasil-projects/mescotrust_cms/app/\\(site\\)/\")",
       "Bash(ls -la /d/tahasil-projects/mescotrust_cms/app/\\\\\\(site\\\\\\)/)",
       "Bash(grep -E \"\\\\.\\(js|jsx|ts|tsx\\)$\")",
-      "Bash(ls -1 /d/tahasil-projects/mescotrust_cms/components/cms/blocks/*.js)"
+      "Bash(ls -1 /d/tahasil-projects/mescotrust_cms/components/cms/blocks/*.js)",
+      "Read(//d/tahasil-projects/mescotrust/src/pages/media/in-media/**)",
+      "Read(//d/tahasil-projects/mescotrust/src/styles/pages/**)",
+      "Bash(npx next:*)",
+      "Bash(node -e \":*)"
     ]
   }
 }
