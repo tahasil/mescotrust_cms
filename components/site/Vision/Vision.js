@@ -28,28 +28,6 @@ export default function Vision(props) {
     .toString()
     .trim();
 
-  /* ── Font settings ── */
-  const subTitleFontSize =
-    props?.visionSubTitleFontSize != null
-      ? Number(props.visionSubTitleFontSize)
-      : undefined;
-  const subTitleFontWeight =
-    props?.visionSubTitleFontWeight != null
-      ? Number(props.visionSubTitleFontWeight)
-      : undefined;
-  const mainTitleFontSize =
-    props?.visionMainTitleFontSize != null
-      ? Number(props.visionMainTitleFontSize)
-      : undefined;
-  const mainTitleFontWeight =
-    props?.visionMainTitleFontWeight != null
-      ? Number(props.visionMainTitleFontWeight)
-      : 400;
-  const mainTitleLineHeight =
-    props?.visionMainTitleLineHeight != null
-      ? Number(props.visionMainTitleLineHeight)
-      : 50;
-
   /* ── Colors ── */
   const subTitleColorKey = (props?.visionSubTitleColorKey ?? "")
     .toString()
@@ -230,24 +208,13 @@ export default function Vision(props) {
             >
               <SubTitle
                 className="mb-2"
-                style={{
-                  ...(subTitleColor ? { color: subTitleColor } : {}),
-                  ...(subTitleFontSize ? { fontSize: subTitleFontSize } : {}),
-                  ...(subTitleFontWeight
-                    ? { fontWeight: subTitleFontWeight }
-                    : {}),
-                }}
+                style={subTitleColor ? { color: subTitleColor } : undefined}
               >
                 {visionSubTitle}
               </SubTitle>
               <MainTitle
-                fontWeight={mainTitleFontWeight}
-                lineHeight={mainTitleLineHeight}
                 opacity={1}
-                style={{
-                  ...(mainTitleColor ? { color: mainTitleColor } : {}),
-                  ...(mainTitleFontSize ? { fontSize: mainTitleFontSize } : {}),
-                }}
+                style={mainTitleColor ? { color: mainTitleColor } : undefined}
               >
                 {visionTitle}
               </MainTitle>

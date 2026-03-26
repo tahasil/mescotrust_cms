@@ -28,28 +28,6 @@ export default function Mission(props) {
     .toString()
     .trim();
 
-  /* ── Font settings ── */
-  const subTitleFontSize =
-    props?.missionSubTitleFontSize != null
-      ? Number(props.missionSubTitleFontSize)
-      : undefined;
-  const subTitleFontWeight =
-    props?.missionSubTitleFontWeight != null
-      ? Number(props.missionSubTitleFontWeight)
-      : undefined;
-  const mainTitleFontSize =
-    props?.missionMainTitleFontSize != null
-      ? Number(props.missionMainTitleFontSize)
-      : undefined;
-  const mainTitleFontWeight =
-    props?.missionMainTitleFontWeight != null
-      ? Number(props.missionMainTitleFontWeight)
-      : 400;
-  const mainTitleLineHeight =
-    props?.missionMainTitleLineHeight != null
-      ? Number(props.missionMainTitleLineHeight)
-      : 50;
-
   /* ── Colors ── */
   const subTitleColorKey = (props?.missionSubTitleColorKey ?? "")
     .toString()
@@ -233,24 +211,13 @@ export default function Mission(props) {
             <Col xs={24} sm={24} md={12} lg={12}>
               <SubTitle
                 className="mb-2"
-                style={{
-                  ...(subTitleColor ? { color: subTitleColor } : {}),
-                  ...(subTitleFontSize ? { fontSize: subTitleFontSize } : {}),
-                  ...(subTitleFontWeight
-                    ? { fontWeight: subTitleFontWeight }
-                    : {}),
-                }}
+                style={subTitleColor ? { color: subTitleColor } : undefined}
               >
                 {missionSubTitle}
               </SubTitle>
               <MainTitle
-                fontWeight={mainTitleFontWeight}
-                lineHeight={mainTitleLineHeight}
                 opacity={1}
-                style={{
-                  ...(mainTitleColor ? { color: mainTitleColor } : {}),
-                  ...(mainTitleFontSize ? { fontSize: mainTitleFontSize } : {}),
-                }}
+                style={mainTitleColor ? { color: mainTitleColor } : undefined}
               >
                 {missionTitle}
               </MainTitle>

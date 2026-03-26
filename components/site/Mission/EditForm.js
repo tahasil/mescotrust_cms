@@ -12,8 +12,6 @@ const PREFIX = "mission";
 
 const CONTENT_FIELDS = [
   "missionSubTitle", "missionTitle", "missionImage",
-  "missionSubTitleFontSize", "missionSubTitleFontWeight",
-  "missionMainTitleFontSize", "missionMainTitleFontWeight", "missionMainTitleLineHeight",
   "missionCardRadius", "missionCardPadding",
   "missionSubTitleColorKey", "missionMainTitleColorKey",
 ];
@@ -23,11 +21,6 @@ function applyFormValues(form, data) {
     missionSubTitle: data?.missionSubTitle ?? "Mission",
     missionTitle: data?.missionTitle ?? "Strive to improve the quality of life of the financially disadvantaged by promoting meaningful education & health.",
     missionImage: data?.missionImage ?? "/images/mission.png",
-    missionSubTitleFontSize: data?.missionSubTitleFontSize ?? "",
-    missionSubTitleFontWeight: data?.missionSubTitleFontWeight ?? "",
-    missionMainTitleFontSize: data?.missionMainTitleFontSize ?? "",
-    missionMainTitleFontWeight: data?.missionMainTitleFontWeight ?? 400,
-    missionMainTitleLineHeight: data?.missionMainTitleLineHeight ?? 50,
     missionCardRadius: data?.missionCardRadius ?? 40,
     missionCardPadding: data?.missionCardPadding ?? 40,
     missionSubTitleColorKey: data?.missionSubTitleColorKey ?? "",
@@ -121,7 +114,7 @@ function MissionEditForm({ source, initialData: initialDataProp, onSaveToPage, o
   return (
     <Form form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={["manage-section", "title-colors", "content", "font-settings"]}
+        defaultActiveKey={["manage-section", "title-colors", "content", "card-settings"]}
         items={[
           {
             key: "manage-section",
@@ -151,28 +144,10 @@ function MissionEditForm({ source, initialData: initialDataProp, onSaveToPage, o
             ),
           },
           {
-            key: "font-settings",
-            label: "Font Settings",
+            key: "card-settings",
+            label: "Card Settings",
             children: (
               <>
-                <p style={{ fontWeight: 600, marginBottom: 12, color: "rgba(0,0,0,0.65)" }}>Subtitle Font</p>
-                <Form.Item name="missionSubTitleFontSize" label="Font size (px)">
-                  <InputNumber placeholder="Default" min={10} max={100} style={{ width: "100%" }} />
-                </Form.Item>
-                <Form.Item name="missionSubTitleFontWeight" label="Font weight">
-                  <InputNumber placeholder="Default" min={100} max={900} step={100} style={{ width: "100%" }} />
-                </Form.Item>
-                <p style={{ fontWeight: 600, marginBottom: 12, marginTop: 16, color: "rgba(0,0,0,0.65)" }}>Main Title Font</p>
-                <Form.Item name="missionMainTitleFontSize" label="Font size (px)">
-                  <InputNumber placeholder="Default" min={10} max={100} style={{ width: "100%" }} />
-                </Form.Item>
-                <Form.Item name="missionMainTitleFontWeight" label="Font weight">
-                  <InputNumber placeholder="400" min={100} max={900} step={100} style={{ width: "100%" }} />
-                </Form.Item>
-                <Form.Item name="missionMainTitleLineHeight" label="Line height (px)">
-                  <InputNumber placeholder="50" min={10} max={200} style={{ width: "100%" }} />
-                </Form.Item>
-                <p style={{ fontWeight: 600, marginBottom: 12, marginTop: 16, color: "rgba(0,0,0,0.65)" }}>Card</p>
                 <Form.Item name="missionCardRadius" label="Border radius (px)">
                   <InputNumber placeholder="40" min={0} max={100} style={{ width: "100%" }} />
                 </Form.Item>

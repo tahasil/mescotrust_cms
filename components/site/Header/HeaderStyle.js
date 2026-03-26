@@ -336,7 +336,7 @@ export const MobileOverlay = styled.div`
   display: none;
   position: ${(props) => (props.$preview ? "absolute" : "fixed")};
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   z-index: ${(props) => (props.$preview ? 1 : 1002)};
   opacity: ${(props) => (props.$open ? 1 : 0)};
   visibility: ${(props) => (props.$open ? "visible" : "hidden")};
@@ -366,7 +366,7 @@ export const MobileMenu = styled.div`
   @media (max-width: ${BREAKPOINT}) {
     display: block;
     padding: 20px;
-    background: ${(props) => props.$headerBgValue || "transparent"};
+    background: #fff;
   }
 `;
 

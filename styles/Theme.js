@@ -39,10 +39,13 @@ const Theme = {
     blackLight: "var(--theme-black-light, rgba(5, 5, 5, 0.5))",
     white: "var(--theme-white, #FFFFFF)",
     primaryLight: "var(--theme-primary-light, rgba(207, 55, 47, 0.1))",
-    gradient: "var(--theme-gradient, linear-gradient(90deg, #CF372F 0%, #691C18 100%))",
+    gradient:
+      "var(--theme-gradient, linear-gradient(90deg, #CF372F 0%, #691C18 100%))",
     border: "var(--theme-border, rgba(0, 0, 0, 0.1))",
-    imgWhite: "var(--theme-imgwhite, brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(3%) hue-rotate(51deg) brightness(115%) contrast(100%))",
-    imgTheme: "var(--theme-imgtheme, brightness(0) saturate(100%) invert(25%) sepia(76%) saturate(6383%) hue-rotate(354deg) brightness(93%) contrast(73%))",
+    imgWhite:
+      "var(--theme-imgwhite, brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(3%) hue-rotate(51deg) brightness(115%) contrast(100%))",
+    imgTheme:
+      "var(--theme-imgtheme, brightness(0) saturate(100%) invert(25%) sepia(76%) saturate(6383%) hue-rotate(354deg) brightness(93%) contrast(73%))",
     transparent: "var(--theme-transparent, transparent)",
   },
   fonts: {
@@ -61,12 +64,17 @@ export const getColor = (key) => {
   // Direct match
   if (Theme.colors[k]) return Theme.colors[k];
   // CamelCase match (e.g. "Black Light" → "blackLight")
-  const slug = k.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+  const slug = k
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
   const camel = slug.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
   if (Theme.colors[camel]) return Theme.colors[camel];
   // Case-insensitive match in Theme.colors
   const colorsKey = Object.keys(Theme.colors).find(
-    (c) => c.toLowerCase() === k.toLowerCase() || c.toLowerCase() === camel.toLowerCase(),
+    (c) =>
+      c.toLowerCase() === k.toLowerCase() ||
+      c.toLowerCase() === camel.toLowerCase(),
   );
   if (colorsKey) return Theme.colors[colorsKey];
   // Fallback colors
@@ -192,6 +200,10 @@ export const FullWidthBackground = styled.div`
   &.defaultBackground {
     background-image: none;
     background: none;
+    @media (max-width: 768px) {
+      padding-left: 16px;
+      padding-right: 16px;
+    }
   }
 
   .innerEventBox {

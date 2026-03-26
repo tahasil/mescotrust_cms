@@ -12,8 +12,6 @@ const PREFIX = "vision";
 
 const CONTENT_FIELDS = [
   "visionSubTitle", "visionTitle", "visionImage",
-  "visionSubTitleFontSize", "visionSubTitleFontWeight",
-  "visionMainTitleFontSize", "visionMainTitleFontWeight", "visionMainTitleLineHeight",
   "visionCardRadius", "visionCardPadding",
   "visionSubTitleColorKey", "visionMainTitleColorKey",
 ];
@@ -23,11 +21,6 @@ function applyFormValues(form, data) {
     visionSubTitle: data?.visionSubTitle ?? "Vision",
     visionTitle: data?.visionTitle ?? "To help the underprivileged and marginalized live a better tomorrow through various interventions.",
     visionImage: data?.visionImage ?? "/images/vision.png",
-    visionSubTitleFontSize: data?.visionSubTitleFontSize ?? "",
-    visionSubTitleFontWeight: data?.visionSubTitleFontWeight ?? "",
-    visionMainTitleFontSize: data?.visionMainTitleFontSize ?? "",
-    visionMainTitleFontWeight: data?.visionMainTitleFontWeight ?? 400,
-    visionMainTitleLineHeight: data?.visionMainTitleLineHeight ?? 50,
     visionCardRadius: data?.visionCardRadius ?? 40,
     visionCardPadding: data?.visionCardPadding ?? 40,
     visionSubTitleColorKey: data?.visionSubTitleColorKey ?? "",
@@ -121,7 +114,7 @@ function VisionEditForm({ source, initialData: initialDataProp, onSaveToPage, on
   return (
     <Form form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={["manage-section", "title-colors", "vision", "mission", "font-settings"]}
+        defaultActiveKey={["manage-section", "title-colors", "content", "card-settings"]}
         items={[
           {
             key: "manage-section",
@@ -151,28 +144,10 @@ function VisionEditForm({ source, initialData: initialDataProp, onSaveToPage, on
             ),
           },
           {
-            key: "font-settings",
-            label: "Font Settings",
+            key: "card-settings",
+            label: "Card Settings",
             children: (
               <>
-                <p style={{ fontWeight: 600, marginBottom: 12, color: "rgba(0,0,0,0.65)" }}>Subtitle Font</p>
-                <Form.Item name="visionSubTitleFontSize" label="Font size (px)">
-                  <InputNumber placeholder="Default" min={10} max={100} style={{ width: "100%" }} />
-                </Form.Item>
-                <Form.Item name="visionSubTitleFontWeight" label="Font weight">
-                  <InputNumber placeholder="Default" min={100} max={900} step={100} style={{ width: "100%" }} />
-                </Form.Item>
-                <p style={{ fontWeight: 600, marginBottom: 12, marginTop: 16, color: "rgba(0,0,0,0.65)" }}>Main Title Font</p>
-                <Form.Item name="visionMainTitleFontSize" label="Font size (px)">
-                  <InputNumber placeholder="Default" min={10} max={100} style={{ width: "100%" }} />
-                </Form.Item>
-                <Form.Item name="visionMainTitleFontWeight" label="Font weight">
-                  <InputNumber placeholder="400" min={100} max={900} step={100} style={{ width: "100%" }} />
-                </Form.Item>
-                <Form.Item name="visionMainTitleLineHeight" label="Line height (px)">
-                  <InputNumber placeholder="50" min={10} max={200} style={{ width: "100%" }} />
-                </Form.Item>
-                <p style={{ fontWeight: 600, marginBottom: 12, marginTop: 16, color: "rgba(0,0,0,0.65)" }}>Card</p>
                 <Form.Item name="visionCardRadius" label="Border radius (px)">
                   <InputNumber placeholder="40" min={0} max={100} style={{ width: "100%" }} />
                 </Form.Item>
