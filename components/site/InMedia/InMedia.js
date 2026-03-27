@@ -75,13 +75,21 @@ const MediaCard = styled.div`
   overflow: hidden;
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   background: #fff;
+  padding: 24px;
   .card-wrapper:hover & {
     border-color: rgba(0, 0, 0, 0.12);
+  }
+  .imageWrapper {
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+    border-radius: 24px;
+    object-fit: cover;
   }
 `;
 
 const CardBody = styled.div`
-  padding: 24px 20px;
+  padding-top: 24px;
   text-align: start;
   display: block;
   .name {
@@ -368,12 +376,14 @@ export default function InMedia(props) {
                   <CardWrapper className="card-wrapper">
                     <MediaCard>
                       {image && (
-                        <img
-                          className="w-100"
-                          src={image}
-                          alt={name}
-                          style={{ display: "block" }}
-                        />
+                        <div className="imageWrapper">
+                          <img
+                            className="w-100"
+                            src={image}
+                            alt={name}
+                            style={{ display: "block" }}
+                          />
+                        </div>
                       )}
                       <CardBody>
                         {name && (
