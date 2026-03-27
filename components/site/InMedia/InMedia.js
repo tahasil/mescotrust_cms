@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Row, Col, Modal, Space } from "antd";
+import { useState, useEffect } from "react";
+import { Row, Col, Space } from "antd";
 import styled from "styled-components";
 import {
   FullWidthBackground,
@@ -10,8 +10,48 @@ import {
   PageContainer,
   SubTitle,
 } from "@/styles/Theme";
+import { ThemeModal } from "@/styles/Theme";
 
 /* ── Styled Components ── */
+const ThemeScrollModal = styled(ThemeModal)`
+  .ant-modal-body {
+    max-height: 80vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    &::-webkit-scrollbar {
+      width: 2px; /* Width of the vertical scrollbar */
+    }
+
+    /* The background of the scrollbar */
+    &::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+    }
+
+    /* The actual draggable handle */
+    &::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+    }
+
+    /* Hover effect on the handle */
+    &::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 0, 0, 0.3);
+    }
+  }
+  .ant-modal-close {
+    background: #dbdbdb !important;
+    top: 6px !important;
+    right: 6px !important;
+    border-radius: 50% !important;
+    z-index: 99 !important;
+    svg {
+      font-size: 14px !important;
+      color: ${getColor("black")} !important;
+      opacity: 0.7 !important;
+    }
+  }
+`;
 const CardWrapper = styled.div`
   position: relative;
   width: 100%;
@@ -117,30 +157,6 @@ const ViewBtn = styled.button`
   &:hover {
     background: #fff;
     color: var(--primary-color, #1677ff);
-  }
-`;
-
-const ModalContent = styled.div`
-  padding: 8px 0;
-  .media-scroll-area {
-    max-height: 70vh;
-    overflow-y: auto;
-    &::-webkit-scrollbar {
-      width: 6px;
-    }
-    &::-webkit-scrollbar-track {
-      background: rgba(0, 0, 0, 0.05);
-    }
-    &::-webkit-scrollbar-thumb {
-      background: rgba(0, 0, 0, 0.15);
-      border-radius: 3px;
-    }
-    &::-webkit-scrollbar-thumb:hover {
-      background: rgba(0, 0, 0, 0.25);
-    }
-    img {
-      display: block;
-    }
   }
 `;
 
@@ -318,111 +334,115 @@ export default function InMedia(props) {
       : undefined;
 
   return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-      <PageContainer style={pageContainerBgStyle}>
-        {(titleEnabled || subTitleEnabled) && (
-          <Row gutter={[16, 16]}>
-            <Col span={24} className="mb-4">
-              {subTitleEnabled && subTitle && (
-                <SubTitle
-                  style={subTitleColor ? { color: subTitleColor } : undefined}
-                >
-                  {subTitle}
-                </SubTitle>
-              )}
-              {titleEnabled && (
-                <MainTitle color={titleColor}>{mainTitle}</MainTitle>
-              )}
-            </Col>
-          </Row>
-        )}
-        <Row gutter={[16, 16]}>
-          {items.map((item, idx) => {
-            const name = (item?.name ?? "").toString().trim();
-            const date = (item?.date ?? "").toString().trim();
-            const source = (item?.source ?? "").toString().trim();
-            const image = (item?.image ?? "").toString().trim();
-            const mediaImg = (item?.mediaImg ?? "").toString().trim();
-            return (
-              <Col key={idx} xs={24} sm={12} md={12} lg={8}>
-                <CardWrapper className="card-wrapper">
-                  <MediaCard>
-                    {image && (
-                      <img
-                        className="w-100"
-                        src={image}
-                        alt={name}
-                        style={{ display: "block" }}
-                      />
-                    )}
-                    <CardBody>
-                      {name && (
-                        <div
-                          className="name"
-                          style={nameColor ? { color: nameColor } : undefined}
-                        >
-                          {name}
-                        </div>
-                      )}
-                      <div className="d-block text-start text-muted">
-                        <Space size={8}>
-                          {date && (
-                            <div
-                              className="date"
-                              style={
-                                dateColor ? { color: dateColor } : undefined
-                              }
-                            >
-                              {date}
-                            </div>
-                          )}
-                          {source && <div className="source">{source}</div>}
-                        </Space>
-                      </div>
-                    </CardBody>
-                  </MediaCard>
-                  {mediaImg && (
-                    <ProfileOverlay>
-                      <ViewBtn
-                        onClick={() => {
-                          setSelectedItem(item);
-                          setModalOpen(true);
-                        }}
-                      >
-                        View
-                      </ViewBtn>
-                    </ProfileOverlay>
-                  )}
-                </CardWrapper>
+    <>
+      <FullWidthBackground
+        className={sectionBgClassName}
+        style={sectionBgStyle}
+      >
+        <PageContainer style={pageContainerBgStyle}>
+          {(titleEnabled || subTitleEnabled) && (
+            <Row gutter={[16, 16]}>
+              <Col span={24} className="mb-4">
+                {subTitleEnabled && subTitle && (
+                  <SubTitle
+                    style={subTitleColor ? { color: subTitleColor } : undefined}
+                  >
+                    {subTitle}
+                  </SubTitle>
+                )}
+                {titleEnabled && (
+                  <MainTitle color={titleColor}>{mainTitle}</MainTitle>
+                )}
               </Col>
-            );
-          })}
-        </Row>
-      </PageContainer>
+            </Row>
+          )}
+          <Row gutter={[16, 16]}>
+            {items.map((item, idx) => {
+              const name = (item?.name ?? "").toString().trim();
+              const date = (item?.date ?? "").toString().trim();
+              const source = (item?.source ?? "").toString().trim();
+              const image = (item?.image ?? "").toString().trim();
+              const mediaImg = (item?.mediaImg ?? "").toString().trim();
+              return (
+                <Col key={idx} xs={24} sm={12} md={12} lg={8}>
+                  <CardWrapper className="card-wrapper">
+                    <MediaCard>
+                      {image && (
+                        <img
+                          className="w-100"
+                          src={image}
+                          alt={name}
+                          style={{ display: "block" }}
+                        />
+                      )}
+                      <CardBody>
+                        {name && (
+                          <div
+                            className="name"
+                            style={nameColor ? { color: nameColor } : undefined}
+                          >
+                            {name}
+                          </div>
+                        )}
+                        <div className="d-block text-start text-muted">
+                          <Space size={8}>
+                            {date && (
+                              <div
+                                className="date"
+                                style={
+                                  dateColor ? { color: dateColor } : undefined
+                                }
+                              >
+                                {date}
+                              </div>
+                            )}
+                            {source && <div className="source">{source}</div>}
+                          </Space>
+                        </div>
+                      </CardBody>
+                    </MediaCard>
+                    {mediaImg && (
+                      <ProfileOverlay>
+                        <ViewBtn
+                          onClick={() => {
+                            setSelectedItem(item);
+                            setModalOpen(true);
+                          }}
+                        >
+                          View
+                        </ViewBtn>
+                      </ProfileOverlay>
+                    )}
+                  </CardWrapper>
+                </Col>
+              );
+            })}
+          </Row>
+        </PageContainer>
+      </FullWidthBackground>
 
-      <Modal
+      <ThemeScrollModal
         open={modalOpen}
         onCancel={() => {
           setModalOpen(false);
           setSelectedItem(null);
         }}
+        centered
         footer={null}
         width={800}
-        centered
         destroyOnClose
+        data-lenis-prevent
       >
         {selectedItem && selectedItem.mediaImg && (
-          <ModalContent className="pt-4">
-            <div className="media-scroll-area">
-              <img
-                className="w-100"
-                src={selectedItem.mediaImg}
-                alt={selectedItem.name || "Media"}
-              />
-            </div>
-          </ModalContent>
+          <div data-lenis-prevent>
+            <img
+              src={selectedItem.mediaImg}
+              alt={selectedItem.name || "Media"}
+              style={{ display: "block", width: "100%", height: "auto" }}
+            />
+          </div>
         )}
-      </Modal>
-    </FullWidthBackground>
+      </ThemeScrollModal>
+    </>
   );
 }
