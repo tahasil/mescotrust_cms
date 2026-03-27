@@ -81,7 +81,7 @@ const MediaCard = styled.div`
   }
   .imageWrapper {
     width: 100%;
-    height: 220px;
+    height: 200px;
     overflow: hidden;
     border-radius: 24px;
     object-fit: cover;
@@ -370,7 +370,6 @@ export default function InMedia(props) {
               const date = (item?.date ?? "").toString().trim();
               const source = (item?.source ?? "").toString().trim();
               const image = (item?.image ?? "").toString().trim();
-              const mediaImg = (item?.mediaImg ?? "").toString().trim();
               return (
                 <Col key={idx} xs={24} sm={12} md={12} lg={8}>
                   <CardWrapper className="card-wrapper">
@@ -411,7 +410,7 @@ export default function InMedia(props) {
                         </div>
                       </CardBody>
                     </MediaCard>
-                    {mediaImg && (
+                    {image && (
                       <ProfileOverlay>
                         <ViewBtn
                           onClick={() => {
@@ -443,10 +442,10 @@ export default function InMedia(props) {
         destroyOnClose
         data-lenis-prevent
       >
-        {selectedItem && selectedItem.mediaImg && (
+        {selectedItem && selectedItem.image && (
           <div data-lenis-prevent>
             <img
-              src={selectedItem.mediaImg}
+              src={selectedItem.image}
               alt={selectedItem.name || "Media"}
               style={{ display: "block", width: "100%", height: "auto" }}
             />

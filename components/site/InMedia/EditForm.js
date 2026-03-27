@@ -16,21 +16,18 @@ const DEFAULT_ITEMS = [
     name: "Lorem Ipsum has been the industry's standard dummy text",
     date: "14 Apr, 2023",
     image: "/images/media-1.png",
-    mediaImg: "/images/media-large-1.jpg",
     source: "Inquilab",
   },
   {
     name: "NGO uses zakat fund to educate poor and raise agents of change",
     date: "26 Mar, 2023",
     image: "/images/media-2.png",
-    mediaImg: "/images/media-large-2.jpg",
     source: "Mumbai Mirror",
   },
   {
     name: "Our Doctors making an impact on society",
     date: "12 Jul, 2022",
     image: "/images/media-3.png",
-    mediaImg: "/images/media-large-3.jpg",
     source: "Bombay Times",
   },
 ];
@@ -40,7 +37,6 @@ function normalizeItem(it) {
     name: it?.name != null ? String(it.name).trim() : "",
     date: it?.date != null ? String(it.date).trim() : "",
     image: it?.image != null ? String(it.image).trim() : "",
-    mediaImg: it?.mediaImg != null ? String(it.mediaImg).trim() : "",
     source: it?.source != null ? String(it.source).trim() : "",
   };
 }
@@ -183,7 +179,6 @@ function InMediaEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                       name: "",
                       date: "",
                       image: "",
-                      mediaImg: "",
                       source: "",
                     }}
                     reorderMovedIndex={reorderMovedIndex}
@@ -216,13 +211,8 @@ function InMediaEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "image"]} label="Thumbnail Image URL">
-                            <Input placeholder="/images/media-1.png" size="large" />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "mediaImg"]} label="Full Image URL (shown in modal)">
-                            <Input placeholder="/images/media-large-1.jpg" size="large" />
+                          <Form.Item {...restField} name={[name, "image"]} label="Image URL">
+                            <Input placeholder="/uploads/media-1.webp" size="large" />
                           </Form.Item>
                         </Col>
                       </Row>
