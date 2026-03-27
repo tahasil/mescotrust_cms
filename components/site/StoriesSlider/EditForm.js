@@ -33,6 +33,7 @@ function normalizeItem(it) {
     name: it?.name != null ? String(it.name).trim() : "",
     role: it?.role != null ? String(it.role).trim() : "",
     image: it?.image != null ? String(it.image).trim() : "",
+    mobileImage: it?.mobileImage != null ? String(it.mobileImage).trim() : "",
   };
 }
 
@@ -253,6 +254,7 @@ function StoriesSliderEditForm({ source, initialData: initialDataProp, onSaveToP
                       name: "",
                       role: "",
                       image: "",
+                      mobileImage: "",
                     }}
                     reorderMovedIndex={reorderMovedIndex}
                     reorderDirection={reorderDirection}
@@ -289,8 +291,13 @@ function StoriesSliderEditForm({ source, initialData: initialDataProp, onSaveToP
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "image"]} label="Image URL">
-                            <Input placeholder="/uploads/story-person.webp" size="large" />
+                          <Form.Item {...restField} name={[name, "image"]} label="Desktop Image URL" extra="Recommended: 960px x 800px">
+                            <Input placeholder="/uploads/story-desktop.webp" size="large" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "mobileImage"]} label="Mobile Image URL" extra="Recommended: 800px x 450px (landscape)">
+                            <Input placeholder="/uploads/story-mobile.webp" size="large" />
                           </Form.Item>
                         </Col>
                       </Row>

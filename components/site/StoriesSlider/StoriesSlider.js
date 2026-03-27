@@ -20,33 +20,42 @@ const SliderWrapper = styled.div`
     overflow: hidden;
     background: #fff;
     padding: 40px;
-    @media (max-width: 768px) {
-      padding: 24px;
+    @media (max-width: 991px) {
+      padding: 32px;
+      border-radius: 20px;
+    }
+    @media (max-width: 576px) {
+      padding: 20px;
+      border-radius: 16px;
     }
   }
 
   .slide-image {
     width: 100%;
-    height: 100%;
-    min-height: 300px;
+    height: 400px;
     background: rgba(0, 0, 0, 0.04);
     border-radius: 16px;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
+    picture {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
     img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
-      min-height: 300px;
     }
-    @media (max-width: 768px) {
-      min-height: 200px;
-      img {
-        min-height: 200px;
-      }
+    @media (max-width: 991px) {
+      height: 300px;
+      border-radius: 12px;
+    }
+    @media (max-width: 576px) {
+      height: 220px;
     }
   }
 
@@ -55,6 +64,9 @@ const SliderWrapper = styled.div`
     flex-direction: column;
     justify-content: center;
     height: 100%;
+    @media (max-width: 991px) {
+      margin-top: 16px;
+    }
   }
 
   .slide-quote {
@@ -62,9 +74,14 @@ const SliderWrapper = styled.div`
     line-height: 1.7;
     color: rgba(0, 0, 0, 0.75);
     margin-bottom: 24px;
-    @media (max-width: 768px) {
+    @media (max-width: 991px) {
       font-size: 14px;
-      margin-top: 20px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 576px) {
+      font-size: 13px;
+      line-height: 1.6;
+      margin-bottom: 12px;
     }
   }
 
@@ -72,6 +89,9 @@ const SliderWrapper = styled.div`
     border: none;
     border-top: 2px dashed rgba(0, 0, 0, 0.12);
     margin: 0 0 16px 0;
+    @media (max-width: 576px) {
+      margin: 0 0 12px 0;
+    }
   }
 
   .slide-name {
@@ -79,12 +99,18 @@ const SliderWrapper = styled.div`
     font-weight: 700;
     line-height: 1.4;
     margin-bottom: 4px;
+    @media (max-width: 576px) {
+      font-size: 16px;
+    }
   }
 
   .slide-role {
     font-size: 14px;
     color: rgba(0, 0, 0, 0.55);
     line-height: 1.4;
+    @media (max-width: 576px) {
+      font-size: 13px;
+    }
   }
 
   .slider-nav {
@@ -93,6 +119,10 @@ const SliderWrapper = styled.div`
     justify-content: center;
     gap: 12px;
     margin-top: 32px;
+    @media (max-width: 576px) {
+      margin-top: 20px;
+      gap: 8px;
+    }
   }
 
   .nav-btn {
@@ -395,14 +425,27 @@ export default function StoriesSlider(props) {
                 const name = (item?.name ?? "").toString().trim();
                 const role = (item?.role ?? "").toString().trim();
                 const image = (item?.image ?? "").toString().trim();
+                const mobileImage = (item?.mobileImage ?? "").toString().trim();
+                const hasImage = image || mobileImage;
                 return (
                   <div key={idx}>
                     <div className="slide-card">
                       <Row gutter={[32, 24]} align="stretch">
-                        <Col xs={24} md={10}>
+                        <Col xs={24} md={24} lg={10}>
                           <div className="slide-image">
-                            {image ? (
-                              <img src={image} alt={name || "Story"} />
+                            {hasImage ? (
+                              <picture>
+                                {mobileImage && (
+                                  <source
+                                    media="(max-width: 992px)"
+                                    srcSet={mobileImage}
+                                  />
+                                )}
+                                <img
+                                  src={image || mobileImage}
+                                  alt={name || "Story"}
+                                />
+                              </picture>
                             ) : (
                               <span
                                 style={{
@@ -416,7 +459,7 @@ export default function StoriesSlider(props) {
                             )}
                           </div>
                         </Col>
-                        <Col xs={24} md={14}>
+                        <Col xs={24} md={24} lg={14}>
                           <div className="slide-content">
                             {quote && (
                               <div
