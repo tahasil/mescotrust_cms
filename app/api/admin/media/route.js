@@ -5,9 +5,9 @@ import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Media from "@/models/Media";
 
-const ALLOWED_TYPES = ["image/webp"];
-const ALLOWED_EXTENSIONS = [".webp"];
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_TYPES = ["image/webp", "application/pdf"];
+const ALLOWED_EXTENSIONS = [".webp", ".pdf"];
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const MAX_DIMENSION = 8192; // 8192px max width or height
 
 function getImageDimensions(buffer, mimeType) {
@@ -115,8 +115,9 @@ export async function POST(req) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const dims = file.type === "image/svg+xml" ? { width: 0, height: 0 } : getImageDimensions(buffer, file.type);
-    if (dims.width > MAX_DIMENSION || dims.height > MAX_DIMENSION) {
+    const isImage = file.type.startsWith("image/");
+    const dims = !isImage ? { width: 0, height: 0 } : getImageDimensions(buffer, file.type);
+    if (isImage && (dims.width > MAX_DIMENSION || dims.height > MAX_DIMENSION)) {
       return NextResponse.json(
         { error: `Image too large: ${dims.width}x${dims.height}px. Max ${MAX_DIMENSION}x${MAX_DIMENSION}px.` },
         { status: 400 }
@@ -124,7 +125,12 @@ export async function POST(req) {
     }
 
     const timestamp = Date.now();
-    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const safeName = file.name
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9._-]/g, "")
+      .replace(/-+/g, "-");
     const filename = `${timestamp}_${safeName}`;
 
     const uploadDir = path.join(process.cwd(), "public", "uploads");

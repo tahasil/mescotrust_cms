@@ -1,8 +1,25 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Card, Button, Space, message, Modal, Upload, Input, Pagination, Empty, Spin } from "antd";
-import { UploadOutlined, DeleteOutlined, CopyOutlined, SearchOutlined } from "@ant-design/icons";
+import {
+  Card,
+  Button,
+  Space,
+  message,
+  Modal,
+  Upload,
+  Input,
+  Pagination,
+  Empty,
+  Spin,
+} from "antd";
+import {
+  UploadOutlined,
+  DeleteOutlined,
+  CopyOutlined,
+  SearchOutlined,
+  FilePdfOutlined,
+} from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 
 export default function AdminMediaPage() {
@@ -40,12 +57,21 @@ export default function AdminMediaPage() {
     const file = info.file;
     if (!file) return;
 
+    const maxSize = 50 * 1024 * 1024;
+    if (file.size > maxSize) {
+      message.error(`File too large. Max size: ${maxSize / 1024 / 1024}MB`);
+      return;
+    }
+
     setUploading(true);
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      const res = await fetch("/api/admin/media", { method: "POST", body: formData });
+      const res = await fetch("/api/admin/media", {
+        method: "POST",
+        body: formData,
+      });
       const data = await res.json();
       if (!res.ok) {
         message.error(data.error || "Upload failed");
@@ -68,7 +94,9 @@ export default function AdminMediaPage() {
       okText: "Delete",
       okType: "danger",
       onOk: async () => {
-        const res = await fetch(`/api/admin/media/${item._id}`, { method: "DELETE" });
+        const res = await fetch(`/api/admin/media/${item._id}`, {
+          method: "DELETE",
+        });
         if (!res.ok) {
           message.error("Delete failed");
           return;
@@ -82,13 +110,27 @@ export default function AdminMediaPage() {
   const handleCopyUrl = (url) => {
     navigator.clipboard.writeText(url).then(
       () => message.success("URL copied"),
-      () => message.error("Failed to copy")
+      () => message.error("Failed to copy"),
     );
   };
 
   return (
     <ThemeAdminCard
-      title={<div><span>Media Library</span><div style={{ fontSize: 12, fontWeight: 400, color: "#999", marginTop: 2 }}>Upload and manage images. Allowed format: .webp only. Max size: 5MB.</div></div>}
+      title={
+        <div>
+          <span>Media Library</span>
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: 400,
+              color: "#999",
+              marginTop: 2,
+            }}
+          >
+            Upload and manage files. Allowed formats: .webp, .pdf (max 50MB).
+          </div>
+        </div>
+      }
       extra={
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           <Input
@@ -103,10 +145,14 @@ export default function AdminMediaPage() {
             beforeUpload={() => false}
             onChange={handleUpload}
             showUploadList={false}
-            accept=".webp"
+            accept=".webp,.pdf"
           >
-            <Button type="primary" icon={<UploadOutlined />} loading={uploading}>
-              Upload image
+            <Button
+              type="primary"
+              icon={<UploadOutlined />}
+              loading={uploading}
+            >
+              Upload file
             </Button>
           </Upload>
         </div>
@@ -118,28 +164,66 @@ export default function AdminMediaPage() {
         <Empty description="No media uploaded yet" />
       ) : (
         <>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 16 }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+              gap: 16,
+            }}
+          >
             {items.map((item) => (
               <Card
                 key={item._id}
                 size="small"
                 cover={
-                  <div style={{ height: 140, overflow: "hidden", background: "#fafafa", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <img
-                      src={item.url}
-                      alt={item.alt || item.originalName}
-                      style={{ maxWidth: "100%", maxHeight: 140, objectFit: "contain" }}
-                    />
+                  <div
+                    style={{
+                      height: 140,
+                      overflow: "hidden",
+                      background: "#fafafa",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {item.mimeType === "application/pdf" ? (
+                      <FilePdfOutlined
+                        style={{ fontSize: 48, color: "#ff4d4f" }}
+                      />
+                    ) : (
+                      <img
+                        src={item.url}
+                        alt={item.alt || item.originalName}
+                        style={{
+                          maxWidth: "100%",
+                          maxHeight: 140,
+                          objectFit: "contain",
+                        }}
+                      />
+                    )}
                   </div>
                 }
                 actions={[
-                  <CopyOutlined key="copy" onClick={() => handleCopyUrl(item.url)} />,
-                  <DeleteOutlined key="delete" onClick={() => handleDelete(item)} style={{ color: "#ff4d4f" }} />,
+                  <CopyOutlined
+                    key="copy"
+                    onClick={() => handleCopyUrl(item.url)}
+                  />,
+                  <DeleteOutlined
+                    key="delete"
+                    onClick={() => handleDelete(item)}
+                    style={{ color: "#ff4d4f" }}
+                  />,
                 ]}
               >
                 <Card.Meta
-                  title={<span style={{ fontSize: 12 }}>{item.originalName}</span>}
-                  description={<span style={{ fontSize: 11, color: "#999" }}>{(item.size / 1024).toFixed(1)} KB</span>}
+                  title={
+                    <span style={{ fontSize: 12 }}>{item.originalName}</span>
+                  }
+                  description={
+                    <span style={{ fontSize: 11, color: "#999" }}>
+                      {(item.size / 1024).toFixed(1)} KB
+                    </span>
+                  }
                 />
               </Card>
             ))}
@@ -147,7 +231,13 @@ export default function AdminMediaPage() {
 
           {total > 20 && (
             <div style={{ marginTop: 24, textAlign: "center" }}>
-              <Pagination current={page} total={total} pageSize={20} onChange={setPage} showSizeChanger={false} />
+              <Pagination
+                current={page}
+                total={total}
+                pageSize={20}
+                onChange={setPage}
+                showSizeChanger={false}
+              />
             </div>
           )}
         </>
