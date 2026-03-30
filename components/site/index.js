@@ -8,6 +8,7 @@ export { default as Footer, FooterEditForm } from "./Footer/index";
 export { default as HomeHero, HomeHeroEditForm } from "./HomeHero/index";
 export { default as Marquee, MarqueeEditForm } from "./Marquee/index";
 export { default as Subscribe, SubscribeEditForm } from "./Subscribe/index";
+export { default as ContactUs, ContactUsEditForm } from "./ContactUs/index";
 export { default as Careers, CareersEditForm } from "./Careers/index";
 export { default as Alerts, AlertsEditForm } from "./Alerts/index";
 export { default as Newsletters, NewslettersEditForm } from "./Newsletters/index";
@@ -44,6 +45,7 @@ import HomeHeroEditForm from "./HomeHero/EditForm";
 import MarqueeEditForm from "./Marquee/EditForm";
 import SubscribeEditForm from "./Subscribe/EditForm";
 import CareersEditForm from "./Careers/EditForm";
+import ContactUsEditForm from "./ContactUs/EditForm";
 import AlertsEditForm from "./Alerts/EditForm";
 import NewslettersEditForm from "./Newsletters/EditForm";
 import DonorTestimonialsEditForm from "./DonorTestimonials/EditForm";
@@ -116,4 +118,5 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   Newsletters: NewslettersEditForm,
   Alerts: AlertsEditForm,
   Careers: CareersEditForm,
+  ContactUs: ContactUsEditForm,
 };

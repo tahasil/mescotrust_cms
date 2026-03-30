@@ -20,12 +20,14 @@ export async function submitContact(prevState, formData) {
 
   const name = (formData.get("name") || "").trim();
   const email = (formData.get("email") || "").trim();
+  const phone = (formData.get("phone") || "").trim();
+  const subject = (formData.get("subject") || "").trim();
   const message = (formData.get("message") || "").trim();
   const page = (formData.get("page") || "").trim();
   const source = (formData.get("source") || "").trim();
 
-  if (!name || !email || !message) {
-    return { error: "Name, email, and message are required" };
+  if (!name || !email || !phone || !subject || !message) {
+    return { error: "All fields are required" };
   }
   if (!EMAIL_REGEX.test(email)) {
     return { error: "Invalid email address" };
@@ -34,7 +36,7 @@ export async function submitContact(prevState, formData) {
   try {
     await connectDB();
     const submission = await ContactSubmission.create({
-      payload: { name, email, message },
+      payload: { name, email, phone, subject, message },
       page,
       source,
     });
