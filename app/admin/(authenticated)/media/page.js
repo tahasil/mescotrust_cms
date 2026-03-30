@@ -53,37 +53,56 @@ export default function AdminMediaPage() {
     fetchMedia(1, searchQuery);
   }, [searchQuery]);
 
-  const handleUpload = async (info) => {
-    const file = info.file;
-    if (!file) return;
+  const uploadQueue = useRef([]);
+  const isProcessing = useRef(false);
 
-    const maxSize = 50 * 1024 * 1024;
-    if (file.size > maxSize) {
-      message.error(`File too large. Max size: ${maxSize / 1024 / 1024}MB`);
-      return;
+  const processQueue = async () => {
+    if (isProcessing.current || uploadQueue.current.length === 0) return;
+    isProcessing.current = true;
+    setUploading(true);
+
+    let successCount = 0;
+    let failCount = 0;
+
+    while (uploadQueue.current.length > 0) {
+      const file = uploadQueue.current.shift();
+      const isPdf = file.type === "application/pdf";
+      const maxSize = isPdf ? 50 * 1024 * 1024 : 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        message.error(`"${file.name}" too large. Max: ${maxSize / 1024 / 1024}MB`);
+        failCount++;
+        continue;
+      }
+      const formData = new FormData();
+      formData.append("file", file);
+      try {
+        const res = await fetch("/api/admin/media", { method: "POST", body: formData });
+        const data = await res.json();
+        if (!res.ok) {
+          message.error(data.error || `"${file.name}" upload failed`);
+          failCount++;
+        } else {
+          successCount++;
+        }
+      } catch (e) {
+        message.error(`"${file.name}" upload failed`);
+        failCount++;
+      }
     }
 
-    setUploading(true);
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const res = await fetch("/api/admin/media", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        message.error(data.error || "Upload failed");
-        return;
-      }
-      message.success("File uploaded");
+    if (successCount > 0) {
+      message.success(`${successCount} file${successCount > 1 ? "s" : ""} uploaded`);
       fetchMedia(1);
       setPage(1);
-    } catch (e) {
-      message.error("Upload failed");
-    } finally {
-      setUploading(false);
+    }
+    setUploading(false);
+    isProcessing.current = false;
+  };
+
+  const handleUpload = (info) => {
+    if (info.file) {
+      uploadQueue.current.push(info.file);
+      processQueue();
     }
   };
 
@@ -142,6 +161,7 @@ export default function AdminMediaPage() {
             style={{ width: 220 }}
           />
           <Upload
+            multiple
             beforeUpload={() => false}
             onChange={handleUpload}
             showUploadList={false}
