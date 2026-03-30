@@ -40,6 +40,10 @@ export default function ContactUs(props) {
     : [];
 
   /* ── Colors ── */
+  const formHeadingColorKey = (props?.contactUsFormHeadingColorKey ?? "").toString().trim();
+  const formHeadingColor = formHeadingColorKey ? getColor(formHeadingColorKey) : undefined;
+  const formDescColorKey = (props?.contactUsFormDescColorKey ?? "").toString().trim();
+  const formDescColor = formDescColorKey ? getColor(formDescColorKey) : undefined;
   const btnBgColorKey = (props?.contactUsBtnBgColorKey ?? "").toString().trim();
   const btnBgColor = btnBgColorKey ? getColor(btnBgColorKey) : undefined;
   const btnTextColorKey = (props?.contactUsBtnTextColorKey ?? "").toString().trim();
@@ -128,6 +132,8 @@ export default function ContactUs(props) {
           btnBgColor={btnBgColor}
           btnTextColor={btnTextColor}
           iconColor={iconColor}
+          formHeadingColor={formHeadingColor}
+          formDescColor={formDescColor}
           mapEmbedUrl={mapEmbedUrl}
         />
       </PageContainer>

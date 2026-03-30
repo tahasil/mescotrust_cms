@@ -104,7 +104,7 @@ const InfoItem = styled.div`
   }
   .info-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
     margin-bottom: 6px;
   }
@@ -112,6 +112,7 @@ const InfoItem = styled.div`
     width: 20px;
     height: 20px;
     flex-shrink: 0;
+    margin-top: 2px;
   }
   .info-title {
     font-size: 16px;
@@ -122,6 +123,7 @@ const InfoItem = styled.div`
     color: rgba(0, 0, 0, 0.6);
     line-height: 1.6;
     margin: 0;
+    padding-left: 30px;
   }
 `;
 
@@ -164,6 +166,8 @@ export default function ContactForm({
   btnBgColor,
   btnTextColor,
   iconColor,
+  formHeadingColor,
+  formDescColor,
   mapEmbedUrl,
 }) {
   const [state, formAction] = useFormState(submitContact, null);
@@ -200,8 +204,8 @@ export default function ContactForm({
     <FormWrapper>
       <Row gutter={[48, 32]}>
         <Col xs={24} md={12}>
-          <div className="form-heading">Send Us a Message</div>
-          <p className="form-description">
+          <div className="form-heading" style={formHeadingColor ? { color: formHeadingColor } : undefined}>Send Us a Message</div>
+          <p className="form-description" style={formDescColor ? { color: formDescColor } : undefined}>
             Have a question or want to get involved? Fill out the form and we'll
             get back to you shortly.
           </p>
@@ -289,8 +293,8 @@ export default function ContactForm({
         </Col>
 
         <Col xs={24} md={12}>
-          <div className="form-heading">Get in Touch</div>
-          <p className="form-description">
+          <div className="form-heading" style={formHeadingColor ? { color: formHeadingColor } : undefined}>Get in Touch</div>
+          <p className="form-description" style={formDescColor ? { color: formDescColor } : undefined}>
             Visit us or reach out through any of the channels below.
           </p>
           <InfoCard>
