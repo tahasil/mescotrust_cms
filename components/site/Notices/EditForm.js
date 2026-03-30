@@ -70,6 +70,7 @@ function NoticesEditForm(
         ...getManageSectionInitialValues(PREFIX, data),
         mainTitle:
           data?.mainTitle != null ? String(data.mainTitle).trim() : "Important Notices",
+        noticesTitleEnabled: data?.noticesTitleEnabled !== false,
         titleColorKey:
           data?.titleColorKey != null ? String(data.titleColorKey).trim() : "",
         noticesItems:
@@ -122,6 +123,7 @@ function NoticesEditForm(
         ...getManageSectionPayload(PREFIX, values),
         mainTitle:
           values.mainTitle != null ? String(values.mainTitle).trim() : "Important Notices",
+        noticesTitleEnabled: values.noticesTitleEnabled !== false,
         titleColorKey:
           values.titleColorKey != null ? String(values.titleColorKey).trim() : "",
         noticesItems: items,
@@ -215,7 +217,7 @@ function NoticesEditForm(
                           <Form.Item
                             {...restField}
                             name={[name, "link"]}
-                            label="Link URL"
+                            label="PDF Path"
                           >
                             <Input placeholder="e.g. /documents/form5a.pdf" size="large" />
                           </Form.Item>
