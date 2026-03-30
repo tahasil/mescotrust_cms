@@ -8,6 +8,7 @@ export { default as Footer, FooterEditForm } from "./Footer/index";
 export { default as HomeHero, HomeHeroEditForm } from "./HomeHero/index";
 export { default as Marquee, MarqueeEditForm } from "./Marquee/index";
 export { default as Subscribe, SubscribeEditForm } from "./Subscribe/index";
+export { default as Alerts, AlertsEditForm } from "./Alerts/index";
 export { default as Newsletters, NewslettersEditForm } from "./Newsletters/index";
 export { default as DonorTestimonials, DonorTestimonialsEditForm } from "./DonorTestimonials/index";
 export { default as StoriesSlider, StoriesSliderEditForm } from "./StoriesSlider/index";
@@ -41,6 +42,7 @@ export { default as ImageSlider, ImageSliderEditForm } from "./ImageSlider/index
 import HomeHeroEditForm from "./HomeHero/EditForm";
 import MarqueeEditForm from "./Marquee/EditForm";
 import SubscribeEditForm from "./Subscribe/EditForm";
+import AlertsEditForm from "./Alerts/EditForm";
 import NewslettersEditForm from "./Newsletters/EditForm";
 import DonorTestimonialsEditForm from "./DonorTestimonials/EditForm";
 import StoriesSliderEditForm from "./StoriesSlider/EditForm";
@@ -110,4 +112,5 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   StoriesSlider: StoriesSliderEditForm,
   DonorTestimonials: DonorTestimonialsEditForm,
   Newsletters: NewslettersEditForm,
+  Alerts: AlertsEditForm,
 };
