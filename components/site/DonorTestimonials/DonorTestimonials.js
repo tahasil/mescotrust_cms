@@ -41,7 +41,7 @@ const QuoteIcon = styled.div`
 `;
 
 const QuoteText = styled.p`
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.7;
   color: rgba(0, 0, 0, 0.7);
   margin-bottom: 20px;
@@ -51,8 +51,8 @@ const QuoteText = styled.p`
 `;
 
 const PersonName = styled.div`
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 600;
   line-height: 1.4;
   margin-bottom: 2px;
   padding-top: 16px;
@@ -63,7 +63,8 @@ const PersonName = styled.div`
 `;
 
 const PersonRole = styled.div`
-  font-size: 13px;
+  font-size: 16px;
+  font-weight: 500;
   line-height: 1.4;
   color: rgba(0, 0, 0, 0.5);
 `;
