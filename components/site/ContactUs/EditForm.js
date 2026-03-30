@@ -41,6 +41,7 @@ function ContactUsEditForm({ source, initialData: initialDataProp, onSaveToPage,
         contactUsEmail: data?.contactUsEmail ?? "mescotrust@mescotrust.org",
         contactUsPhone: data?.contactUsPhone ?? "(+9122) 24441442, (+9122) 24448637",
         contactUsSubjects: data?.contactUsSubjects ?? "General Inquiry, Volunteering, Donation, Partnership, Other",
+        contactUsMapEmbedUrl: data?.contactUsMapEmbedUrl ?? "",
       });
       if (theme) {
         const palette = theme?.themePalette || {};
@@ -93,6 +94,7 @@ function ContactUsEditForm({ source, initialData: initialDataProp, onSaveToPage,
         contactUsEmail: values.contactUsEmail != null ? String(values.contactUsEmail).trim() : "",
         contactUsPhone: values.contactUsPhone != null ? String(values.contactUsPhone).trim() : "",
         contactUsSubjects: values.contactUsSubjects != null ? String(values.contactUsSubjects).trim() : "",
+        contactUsMapEmbedUrl: values.contactUsMapEmbedUrl != null ? String(values.contactUsMapEmbedUrl).trim() : "",
       };
       if (isPageBlock && onSaveToPage) {
         onSaveToPage(payload);
@@ -153,6 +155,9 @@ function ContactUsEditForm({ source, initialData: initialDataProp, onSaveToPage,
                 </Form.Item>
                 <Form.Item name="contactUsSubjects" label="Subject Options" extra="Comma-separated list of subjects for the dropdown">
                   <Input placeholder="General Inquiry, Volunteering, Donation, Partnership, Other" />
+                </Form.Item>
+                <Form.Item name="contactUsMapEmbedUrl" label="Google Map Embed URL" extra="Go to Google Maps → Share → Embed a map → copy the src URL">
+                  <Input.TextArea rows={2} placeholder="https://www.google.com/maps/embed?pb=..." />
                 </Form.Item>
               </>
             ),

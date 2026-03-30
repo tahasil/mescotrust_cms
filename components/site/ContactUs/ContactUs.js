@@ -47,6 +47,9 @@ export default function ContactUs(props) {
   const iconColorKey = (props?.contactUsIconColorKey ?? "").toString().trim();
   const iconColor = iconColorKey ? getColor(iconColorKey) : undefined;
 
+  /* ── Map ── */
+  const mapEmbedUrl = (props?.contactUsMapEmbedUrl ?? "").toString().trim();
+
   /* ── Section bg ── */
   const PREFIX = "contactUs";
   const sectionBgType = (props?.[PREFIX + "SectionBgType"] ?? "default").toString();
@@ -125,6 +128,7 @@ export default function ContactUs(props) {
           btnBgColor={btnBgColor}
           btnTextColor={btnTextColor}
           iconColor={iconColor}
+          mapEmbedUrl={mapEmbedUrl}
         />
       </PageContainer>
     </FullWidthBackground>

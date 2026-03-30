@@ -27,7 +27,7 @@ const nextConfig = {
               "font-src 'self' https://fonts.gstatic.com data:",
               "img-src 'self' data: blob: https:",
               "connect-src 'self' https://api.resend.com",
-              "frame-src 'self' https://www.youtube.com https://youtube.com",
+              "frame-src 'self' https://www.youtube.com https://youtube.com https://www.google.com https://maps.google.com",
               "frame-ancestors 'none'",
             ].join("; "),
           },

@@ -138,6 +138,24 @@ function SubmitButton({ btnBgColor, btnTextColor }) {
   );
 }
 
+const MapWrapper = styled.div`
+  margin-top: 40px;
+  border-radius: 16px;
+  overflow: hidden;
+  width: 100%;
+  height: 400px;
+  @media (max-width: 768px) {
+    height: 280px;
+    margin-top: 32px;
+  }
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+`;
+
 export default function ContactForm({
   page,
   source,
@@ -146,6 +164,7 @@ export default function ContactForm({
   btnBgColor,
   btnTextColor,
   iconColor,
+  mapEmbedUrl,
 }) {
   const [state, formAction] = useFormState(submitContact, null);
   const formRef = useRef(null);
@@ -355,6 +374,17 @@ export default function ContactForm({
           </InfoCard>
         </Col>
       </Row>
+      {mapEmbedUrl && (
+        <MapWrapper>
+          <iframe
+            src={mapEmbedUrl}
+            allowFullScreen
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            title="Office Location"
+          />
+        </MapWrapper>
+      )}
     </FormWrapper>
   );
 }
