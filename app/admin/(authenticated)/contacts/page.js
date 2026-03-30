@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Table, Button, Space, Tag, message } from "antd";
-import { CheckOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Table, Button, Space, Tag, Modal, Descriptions, message } from "antd";
+import { CheckOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 
 export default function AdminContactsPage() {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [viewItem, setViewItem] = useState(null);
 
   const fetchList = () => {
     setLoading(true);
@@ -68,13 +69,36 @@ export default function AdminContactsPage() {
             title: "Actions",
             key: "actions",
             render: (_, record) => (
-              <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record._id)}>
-                Delete
-              </Button>
+              <Space>
+                <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => setViewItem(record)} />
+                <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record._id)} />
+              </Space>
             ),
           },
         ]}
       />
+
+      <Modal
+        open={!!viewItem}
+        onCancel={() => setViewItem(null)}
+        footer={null}
+        title="Submission Details"
+        width={600}
+      >
+        {viewItem && (
+          <Descriptions column={1} bordered size="small">
+            <Descriptions.Item label="Name">{viewItem.payload?.name}</Descriptions.Item>
+            <Descriptions.Item label="Email">{viewItem.payload?.email}</Descriptions.Item>
+            <Descriptions.Item label="Phone">{viewItem.payload?.phone || "—"}</Descriptions.Item>
+            <Descriptions.Item label="Subject">{viewItem.payload?.subject || "—"}</Descriptions.Item>
+            <Descriptions.Item label="Message">{viewItem.payload?.message}</Descriptions.Item>
+            <Descriptions.Item label="Page">{viewItem.page || "—"}</Descriptions.Item>
+            <Descriptions.Item label="Source">{viewItem.source || "—"}</Descriptions.Item>
+            <Descriptions.Item label="Status">{viewItem.isRead ? "Read" : "Unread"}</Descriptions.Item>
+            <Descriptions.Item label="Submitted">{viewItem.createdAt ? new Date(viewItem.createdAt).toLocaleString() : "—"}</Descriptions.Item>
+          </Descriptions>
+        )}
+      </Modal>
     </ThemeAdminCard>
   );
 }
