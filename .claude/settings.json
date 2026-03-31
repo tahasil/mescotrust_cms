@@ -13,7 +13,12 @@
       "Read(//d/tahasil-projects/mescotrust/src/**)",
       "WebFetch(domain:www.mescotrust.org)",
       "WebFetch(domain:localhost)",
-      "Bash(ls -la /d/tahasil-projects/mescotrust_cms/app/\\\\\\(site\\\\\\)/contact/)"
+      "Bash(ls -la /d/tahasil-projects/mescotrust_cms/app/\\\\\\(site\\\\\\)/contact/)",
+      "WebFetch(domain:donation.mescotrust.org)",
+      "WebSearch"
+    ],
+    "additionalDirectories": [
+      "d:\\tahasil-projects\\mescotrust_cms\\app\\api\\admin\\donations"
     ]
   }
 }

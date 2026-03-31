@@ -29,6 +29,7 @@ import {
   SearchOutlined,
   BellOutlined,
   GithubOutlined,
+  HeartOutlined,
 } from "@ant-design/icons";
 import { signOut } from "next-auth/react";
 import { ThemeSider } from "@/styles/Theme";
@@ -116,6 +117,15 @@ const menuItems = [
     label: (
       <Link href="/admin/contacts" style={linkStyle}>
         Contacts
+      </Link>
+    ),
+  },
+  {
+    key: "/admin/donations",
+    icon: <HeartOutlined />,
+    label: (
+      <Link href="/admin/donations" style={linkStyle}>
+        Donations
       </Link>
     ),
   },

@@ -217,17 +217,65 @@ Metadata for site-level components (Header, Footer, HomeHero, etc.). Component I
 
 ### 2.9 ContactSubmission
 
-**File:** `models/ContactSubmission.js`  
+**File:** `models/ContactSubmission.js`
 **Collection:** `contactsubmissions`
 
 | Field     | Type   | Required | Description |
 |----------|--------|----------|-------------|
-| payload  | Object | yes      | `name`, `email`, `message` (all required strings) |
+| payload  | Object | yes      | `name` (req), `email` (req), `phone`, `subject`, `message` (req) |
 | page     | String | no       | Source page |
 | source   | String | no       | Source identifier |
 | isRead   | Boolean| no       | Default false (admin read state) |
 | createdAt| Date   | auto     | Timestamps |
 | updatedAt| Date   | auto     | Timestamps |
+
+---
+
+### 2.11 Donation
+
+**File:** `models/Donation.js`
+**Collection:** `donations`
+
+| Field          | Type   | Required | Description |
+|---------------|--------|----------|-------------|
+| orderId       | String | yes      | Unique order ID (generated: `DON_<timestamp>_<random>`) |
+| amount        | Number | yes      | Donation amount in INR |
+| currency      | String | no       | Default `"INR"` |
+| purpose       | String | no       | Purpose of donation (from dropdown) |
+| zakat         | String | no       | `"Yes"` \| `"No"` |
+| note          | String | no       | Donor's note |
+| donor         | Object | yes      | Donor details (see below) |
+| payment       | Object | no       | Payment gateway response (see below) |
+| status        | String | no       | `"pending"` \| `"success"` \| `"failed"` \| `"aborted"` (default: `"pending"`) |
+| createdAt     | Date   | auto     | Timestamps |
+| updatedAt     | Date   | auto     | Timestamps |
+
+**donor (embedded):**
+
+| Field    | Type   | Required | Description |
+|---------|--------|----------|-------------|
+| name    | String | yes      | Full name |
+| email   | String | yes      | Email address |
+| mobile  | String | yes      | Mobile number |
+| pan     | String | no       | PAN number |
+| address | String | no       | Address |
+| city    | String | no       | City |
+| state   | String | no       | State |
+| country | String | no       | Country |
+| pincode | String | no       | Pincode |
+
+**payment (embedded):**
+
+| Field       | Type   | Description |
+|------------|--------|-------------|
+| trackingId | String | CCAvenue tracking ID |
+| bankRefNo  | String | Bank reference number |
+| paymentMode| String | Card/NetBanking/Wallet/UPI |
+| cardName   | String | Card type (VISA/MC etc.) |
+| statusCode | String | CCAvenue status code |
+| statusMsg  | String | CCAvenue status message |
+
+**Indexes:** `{ orderId: 1 }`, `{ status: 1 }`, `{ "donor.email": 1 }`, `{ createdAt: -1 }`
 
 ---
 
@@ -282,6 +330,9 @@ Base URL: `/api`. Auth: public (no auth), admin (JWT via NextAuth + `requireAuth
 | GET | `/api/theme/home-hero` | Theme home-hero slice |
 | GET | `/api/theme/marquee` | Theme marquee slice |
 | POST | `/api/contact` | Submit contact form (rate-limited) |
+| POST | `/api/payment/initiate` | Create donation order, encrypt & return CCAvenue form data |
+| POST | `/api/payment/callback` | CCAvenue posts encrypted response here after payment |
+| GET | `/api/payment/donor-lookup` | Auto-fill: lookup previous donor by email or mobile |
 | GET | `/api/health` | Health check (DB) |
 
 ### 3.2 Admin (auth required)
@@ -307,6 +358,8 @@ Base URL: `/api`. Auth: public (no auth), admin (JWT via NextAuth + `requireAuth
 | GET, PUT, DELETE | `/api/admin/menus/[name]` | Get, update, delete menu by name |
 | GET | `/api/admin/contacts` | List contact submissions |
 | PATCH, DELETE | `/api/admin/contacts/[id]` | Mark read/update, delete submission |
+| GET | `/api/admin/donations` | List donations (paginated, filterable by status) |
+| GET | `/api/admin/donations/[id]` | Get single donation details |
 | GET, POST | `/api/admin/users` | List, create users (Admin only) |
 | GET, PUT, DELETE | `/api/admin/users/[id]` | Get, update, delete user (Admin only) |
 | GET, POST, DELETE | `/api/admin/fonts` | List, upload, delete custom fonts |
@@ -325,7 +378,92 @@ Base URL: `/api`. Auth: public (no auth), admin (JWT via NextAuth + `requireAuth
 
 ---
 
-## 4. Key Conventions
+## 4. CCAvenue Donation Payment Flow
+
+### 4.1 Environment Variables
+
+```bash
+CCAVENUE_MERCHANT_ID=        # From CCAvenue M.A.R.S → Settings → API Keys
+CCAVENUE_ACCESS_CODE=        # Uppercase alphanumeric
+CCAVENUE_WORKING_KEY=        # Uppercase alphanumeric (for AES encryption)
+CCAVENUE_GATEWAY_URL=https://test.ccavenue.com/transaction/transaction.do  # Test
+# CCAVENUE_GATEWAY_URL=https://secure.ccavenue.com/transaction/transaction.do  # Production
+```
+
+### 4.2 Payment Flow
+
+```
+1. USER FILLS FORM (DonateNow site component)
+   ├─ Selects donation package OR enters custom amount
+   ├─ Fills donor details (name, email, mobile, PAN, address, etc.)
+   ├─ Selects Zakat (Yes/No) and Purpose of Donation
+   └─ Clicks "Donate Now"
+
+2. INITIATE (POST /api/payment/initiate)
+   ├─ Validates required fields (amount, name, email, mobile)
+   ├─ Generates unique orderId: DON_<timestamp>_<random>
+   ├─ Saves Donation to DB with status: "pending"
+   ├─ Builds CCAvenue request string (key=value pairs joined by &)
+   ├─ Encrypts request using AES-128-CBC with MD5(working_key) as key
+   └─ Returns { encRequest, accessCode, gatewayUrl } to frontend
+
+3. REDIRECT TO CCAVENUE (Frontend)
+   ├─ Creates hidden <form> with encRequest + access_code
+   ├─ form.action = CCAVENUE_GATEWAY_URL (command=initiateTransaction)
+   ├─ Auto-submits form → user lands on CCAvenue payment page
+   └─ User completes payment (card/netbanking/wallet/UPI)
+
+4. CALLBACK (POST /api/payment/callback)
+   ├─ CCAvenue POSTs encrypted response (encResp)
+   ├─ Decrypt response using AES-128-CBC with same working_key
+   ├─ Parse key=value pairs from decrypted string
+   ├─ Extract: order_id, order_status, tracking_id, bank_ref_no, payment_mode
+   ├─ Find Donation by orderId, update:
+   │   ├─ status: "success" | "failed" | "aborted"
+   │   └─ payment: { trackingId, bankRefNo, paymentMode, cardName, statusCode, statusMsg }
+   └─ Redirect user to /donation/success or /donation/failed
+
+5. QR CODE OPTION ("Donate Now with QR")
+   ├─ Shows UPI QR code image (uploaded via Media Library, URL in drawer)
+   └─ User scans QR → pays via UPI app (manual reconciliation)
+```
+
+### 4.3 Encryption / Decryption
+
+CCAvenue uses **AES-128-CBC** encryption:
+- **Key**: MD5 hash of `CCAVENUE_WORKING_KEY` (produces 16 bytes)
+- **IV**: First 16 bytes of the key (or provided by CCAvenue)
+- **Encrypt**: `crypto.createCipheriv('aes-128-cbc', md5Key, iv)` → hex output
+- **Decrypt**: `crypto.createDecipheriv('aes-128-cbc', md5Key, iv)` → plaintext
+
+Utility file: `lib/ccavenue.js` — exports `encrypt(data, workingKey)` and `decrypt(data, workingKey)`.
+
+### 4.4 Auto-fill Donor Lookup
+
+`GET /api/payment/donor-lookup?q=<email_or_mobile>`
+- Searches `donations` collection for latest successful donation matching email or mobile
+- Returns donor details (name, email, mobile, PAN, address, city, state, country, pincode)
+- Used by the "Email / Mobile No." field at top of form to pre-fill fields
+
+### 4.5 Site Component: DonateNow
+
+Managed from Page Builder drawer (same pattern as ContactUs):
+- **Manage Section** — backgrounds, padding, margins
+- **Title & Colors** — section title, subtitle, colors for headings, button bg/text
+- **Donation Packages** — sortable list of { amount, description } items (left panel)
+- **Form Settings** — Purpose of Donation options (comma-separated), QR code image URL
+- **Contact/Address** — optional info displayed alongside form
+
+### 4.6 Admin: /admin/donations
+
+- Table view of all donations: orderId, donor name, email, amount, status, date
+- Filter by status (pending/success/failed/aborted)
+- Search by name/email
+- View button → modal with full donation + payment details
+
+---
+
+## 5. Key Conventions
 
 - **Layout:** Pages use a **flat** array of blocks; no nested layout tree. Section blocks can store a `props.layout` array for inner blocks; structure is defined in the Component’s schema and validated on save.
 - **componentId in layout:** Can be a MongoDB ObjectId (reference to `Component`) or a string site component ID (e.g. `"Header"`, `"HomeHero"`). Resolved at read time for `baseComponent` and props.
@@ -335,7 +473,7 @@ Base URL: `/api`. Auth: public (no auth), admin (JWT via NextAuth + `requireAuth
 
 ---
 
-## 5. Maintaining this document
+## 6. Maintaining this document
 
 Keep this doc in sync when you change low-level behaviour:
 
@@ -353,7 +491,7 @@ After editing, bump the *Last updated* line at the end of the file.
 
 ---
 
-## 6. Related Docs
+## 7. Related Docs
 
 - [API.md](./API.md) — Path convention, auth, public vs admin, props schema format, layout contract, schema change handling, versioning.
 - [SITE_COMPONENTS_STORAGE.md](./SITE_COMPONENTS_STORAGE.md) — Site components storage and registry.
@@ -363,4 +501,4 @@ After editing, bump the *Last updated* line at the end of the file.
 
 ---
 
-*Last updated: 2025-03-06 — models, `app/api/**` routes, `lib/db.js`, `lib/siteComponentRegistry.js`. Update this line when you change the doc.*
+*Last updated: 2026-03-30 — added Donation model (§2.11), CCAvenue payment flow (§4), payment API endpoints (§3), updated ContactSubmission payload fields (§2.9). Update this line when you change the doc.*
