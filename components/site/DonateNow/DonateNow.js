@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Row, Col, message } from "antd";
+import { Row, Col, Select, message } from "antd";
 import styled from "styled-components";
 import {
   FullWidthBackground,
@@ -20,6 +20,30 @@ const PackageList = styled.div`
     font-size: 22px;
     font-weight: 700;
     margin-bottom: 16px;
+  }
+  .pkg-cards {
+    @media (max-width: 767px) {
+      display: none;
+    }
+  }
+  .pkg-dropdown {
+    display: none;
+    @media (max-width: 767px) {
+      display: block;
+    }
+    .ant-select {
+      width: 100%;
+    }
+    .ant-select-selection-item {
+      white-space: normal !important;
+      line-height: 1.4 !important;
+      padding: 4px 0 !important;
+    }
+    .ant-select-item-option-content {
+      white-space: normal !important;
+      line-height: 1.4;
+      padding: 4px 0;
+    }
   }
 `;
 
@@ -478,33 +502,66 @@ export default function DonateNow(props) {
               >
                 Donate
               </div>
-              {packages.map((pkg, idx) => {
-                const amt = (pkg?.amount ?? "").toString().trim();
-                const desc = (pkg?.description ?? "").toString().trim();
-                const isActive = selectedPkg === idx;
-                return (
-                  <PackageCard
-                    key={idx}
-                    type="button"
-                    className={isActive ? "active" : ""}
-                    style={
-                      isActive ? { background: pkgActiveColor } : undefined
-                    }
-                    onClick={() => {
-                      setSelectedPkg(idx);
-                      if (formRef.current && amt) {
-                        formRef.current.querySelector('[name="amount"]').value =
-                          amt.replace(/[^0-9.]/g, "");
+              {/* Desktop: card list */}
+              <div className="pkg-cards">
+                {packages.map((pkg, idx) => {
+                  const amt = (pkg?.amount ?? "").toString().trim();
+                  const desc = (pkg?.description ?? "").toString().trim();
+                  const isActive = selectedPkg === idx;
+                  return (
+                    <PackageCard
+                      key={idx}
+                      type="button"
+                      className={isActive ? "active" : ""}
+                      style={
+                        isActive ? { background: pkgActiveColor } : undefined
                       }
-                    }}
-                  >
-                    <div className="pkg-amount">
-                      {amt.startsWith("₹") ? amt : `₹${amt}/-`}
-                    </div>
-                    {desc && <div className="pkg-desc">{desc}</div>}
-                  </PackageCard>
-                );
-              })}
+                      onClick={() => {
+                        setSelectedPkg(idx);
+                        if (formRef.current && amt) {
+                          formRef.current.querySelector('[name="amount"]').value =
+                            amt.replace(/[^0-9.]/g, "");
+                        }
+                      }}
+                    >
+                      <div className="pkg-amount">
+                        {amt.startsWith("₹") ? amt : `₹${amt}/-`}
+                      </div>
+                      {desc && <div className="pkg-desc">{desc}</div>}
+                    </PackageCard>
+                  );
+                })}
+              </div>
+              {/* Mobile: dropdown */}
+              <div className="pkg-dropdown">
+                <Select
+                  placeholder="Select a package"
+                  size="large"
+                  value={selectedPkg}
+                  onChange={(idx) => {
+                    setSelectedPkg(idx);
+                    if (idx !== null && idx !== undefined && formRef.current) {
+                      const amt = (packages[idx]?.amount ?? "").toString().trim();
+                      if (amt) {
+                        formRef.current.querySelector('[name="amount"]').value = amt.replace(/[^0-9.]/g, "");
+                      }
+                    }
+                  }}
+                  popupMatchSelectWidth={true}
+                  optionLabelProp="selectedLabel"
+                >
+                  {packages.map((pkg, idx) => {
+                    const amt = (pkg?.amount ?? "").toString().trim();
+                    const desc = (pkg?.description ?? "").toString().trim();
+                    const label = amt.startsWith("₹") ? amt : `₹${amt}/-`;
+                    return (
+                      <Select.Option key={idx} value={idx} selectedLabel={label}>
+                        {desc ? `${label} — ${desc}` : label}
+                      </Select.Option>
+                    );
+                  })}
+                </Select>
+              </div>
             </PackageList>
           </Col>
 
