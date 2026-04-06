@@ -11,6 +11,7 @@ import {
   LOGO_LINK_SCHEMA,
   MENU_SCHEMA,
   CUSTOM_BUTTONS_SCHEMA,
+  VOLUNTEER_MODAL_SCHEMA,
   HEADER_FIELD_GROUPS,
   SECTION_SETTINGS_SCHEMA,
 } from "./headerDrawerSchemas";
@@ -113,6 +114,10 @@ function HeaderEditForm(
         if (theme?.headerCtaTextColorKey != null) flat.headerCtaTextColorKey = theme.headerCtaTextColorKey;
         if (theme?.headerDonateBgColorKey != null) flat.headerDonateBgColorKey = theme.headerDonateBgColorKey;
         if (theme?.headerDonateTextColorKey != null) flat.headerDonateTextColorKey = theme.headerDonateTextColorKey;
+        if (theme?.volunteerModalTitle != null) flat.volunteerModalTitle = theme.volunteerModalTitle;
+        if (theme?.volunteerModalBtnBg != null) flat.volunteerModalBtnBg = theme.volunteerModalBtnBg;
+        if (theme?.volunteerModalBtnText != null) flat.volunteerModalBtnText = theme.volunteerModalBtnText;
+        if (theme?.volunteerModalCancelColor != null) flat.volunteerModalCancelColor = theme.volunteerModalCancelColor;
         if (theme?.menuName != null) flat.menuName = theme.menuName;
         if (theme?.navItems != null) flat.navItems = theme.navItems;
         Object.assign(flat, getManageSectionInitialValues("header", theme));
@@ -233,6 +238,7 @@ function HeaderEditForm(
     ...LOGO_LINK_SCHEMA,
     ...MENU_SCHEMA,
     ...CUSTOM_BUTTONS_SCHEMA,
+    ...VOLUNTEER_MODAL_SCHEMA,
     ...SECTION_SETTINGS_SCHEMA,
   ];
   const rawWithKeyOpts = raw.map((f) =>

@@ -1,16 +1,15 @@
 import ContactForm from "@/components/forms/ContactForm";
+import { getPageSeoMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "Contact",
-  description: "Get in touch",
-  alternates: { canonical: "/contact" },
-  openGraph: {
-    title: "Contact",
-    description: "Get in touch",
-    url: "/contact",
-    type: "website",
-  },
-};
+export async function generateMetadata() {
+  return getPageSeoMetadata({
+    slug: "contact",
+    fallbackTitle: "Contact",
+    fallbackDescription: "Get in touch",
+    fallbackCanonical: "/contact",
+    fallbackOpenGraphUrl: "/contact",
+  });
+}
 
 export default function ContactPage() {
   return (

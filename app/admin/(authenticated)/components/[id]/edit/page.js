@@ -681,10 +681,14 @@ export default function AdminComponentEditPage() {
             flexWrap: "wrap",
           }}
         >
-          <span style={{ fontSize: 14, color: "#666" }}>Show on all pages</span>
-          <Form.Item name="global" noStyle valuePropName="checked">
-            <Switch />
-          </Form.Item>
+          {record?.componentId !== "Header" && record?.componentId !== "Footer" && (
+            <>
+              <span style={{ fontSize: 14, color: "#666" }}>Show on all pages</span>
+              <Form.Item name="global" noStyle valuePropName="checked">
+                <Switch />
+              </Form.Item>
+            </>
+          )}
           {globalOn &&
             record?.componentId !== "Header" &&
             record?.componentId !== "Footer" && (

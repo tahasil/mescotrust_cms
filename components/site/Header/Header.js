@@ -1,6 +1,11 @@
 "use client";
 
-import { useState, useEffect, Fragment } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
+import { Row, Col, message as antMessage } from "antd";
+import styled from "styled-components";
+import { useFormState, useFormStatus } from "react-dom";
+import { submitContact } from "@/app/actions/contact";
+import { getColor } from "@/styles/Theme";
 import {
   HeaderWrapper,
   HeaderMainWrapper,
@@ -139,6 +144,141 @@ const ChevronDown = () => (
   </svg>
 );
 
+/* ── Modal Styled Components ── */
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: ${(p) => (p.$open ? 1 : 0)};
+  pointer-events: ${(p) => (p.$open ? "auto" : "none")};
+  transition: opacity 0.25s ease;
+`;
+const ModalCard = styled.div`
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  width: 100%;
+  max-width: 600px;
+  position: relative;
+  transform: ${(p) => (p.$open ? "translateY(0)" : "translateY(20px)")};
+  transition: transform 0.25s ease;
+  @media (max-width: 576px) {
+    padding: 24px;
+  }
+`;
+const ModalCloseBtn = styled.button`
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s;
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+`;
+const ModalTitle = styled.h2`
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 24px 0;
+  padding-right: 40px;
+`;
+const ModalFormGroup = styled.div`
+  margin-bottom: 16px;
+  .mlabel {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .mreq {
+    color: #cf372f;
+  }
+  .mfield {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    background: #fff;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+    &:focus {
+      border-color: rgba(0, 0, 0, 0.3);
+    }
+    &::placeholder {
+      color: rgba(0, 0, 0, 0.3);
+    }
+  }
+  textarea.mfield {
+    resize: vertical;
+    min-height: 100px;
+  }
+`;
+const ModalBtnRow = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+`;
+const ModalCancelBtn = styled.button`
+  padding: 10px 28px;
+  border: 1px solid;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  background: transparent;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  &:hover {
+    opacity: 0.7;
+  }
+`;
+const ModalSendBtn = styled.button`
+  padding: 10px 28px;
+  border: none;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  &:hover {
+    opacity: 0.85;
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
+function ModalSubmitButton({ bgColor, textColor }) {
+  const { pending } = useFormStatus();
+  return (
+    <ModalSendBtn
+      type="submit"
+      disabled={pending}
+      style={{ background: bgColor || "#8b1a1a", color: textColor || "#fff" }}
+    >
+      {pending ? "Sending..." : "Send Message"}
+    </ModalSendBtn>
+  );
+}
+
 export default function Header({
   menuItems = [],
   siteTitle = "",
@@ -170,9 +310,64 @@ export default function Header({
   sectionBorderStyle = "",
   sectionBorderColor = "",
   sectionShadow = "",
+  /* Modal props */
+  volunteerModalTitle = "Leave us a message",
+  volunteerModalBtnBg = "",
+  volunteerModalBtnText = "",
+  volunteerModalCancelColor = "",
 }) {
+  /* Resolve modal color keys to actual CSS color values */
+  const resolvedModalBtnBg = volunteerModalBtnBg ? (getColor(volunteerModalBtnBg) || volunteerModalBtnBg) : "#8b1a1a";
+  const resolvedModalBtnText = volunteerModalBtnText ? (getColor(volunteerModalBtnText) || volunteerModalBtnText) : "#fff";
+  const resolvedModalCancelColor = volunteerModalCancelColor ? (getColor(volunteerModalCancelColor) || volunteerModalCancelColor) : "#8b1a1a";
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openAccordion, setOpenAccordion] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const modalFormRef = useRef(null);
+  const [modalState, modalFormAction] = useFormState(submitContact, null);
+
+  /* Listen for global event so other buttons can open this modal */
+  useEffect(() => {
+    const handleOpen = () => setModalOpen(true);
+    window.addEventListener("open-volunteer-modal", handleOpen);
+    const handleHash = () => {
+      if (window.location.hash === "#volunteer-modal") {
+        setModalOpen(true);
+        history.replaceState(
+          null,
+          "",
+          window.location.pathname + window.location.search,
+        );
+      }
+    };
+    window.addEventListener("hashchange", handleHash);
+    handleHash();
+    return () => {
+      window.removeEventListener("open-volunteer-modal", handleOpen);
+      window.removeEventListener("hashchange", handleHash);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!modalState) return;
+    if (modalState.success) {
+      antMessage.success("Message sent successfully!");
+      modalFormRef.current?.reset();
+      setModalOpen(false);
+    } else if (modalState.error) {
+      antMessage.error(modalState.error);
+    }
+  }, [modalState]);
+
+  useEffect(() => {
+    if (modalOpen) {
+      document.documentElement.style.overflow = "hidden";
+      return () => {
+        document.documentElement.style.overflow = "";
+      };
+    }
+  }, [modalOpen]);
   const [scrolled, setScrolled] = useState(false);
 
   const items = cmsMenuToHeaderItems(menuItems);
@@ -307,9 +502,15 @@ export default function Header({
           <Actions>
             {(volunteerLabel || volunteerHref) && (
               <BtnVolunteer
-                href={volunteerHref || "#"}
+                as="button"
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setModalOpen(true);
+                }}
                 $headerCtaBgValue={headerCtaBgValue}
                 $headerCtaTextValue={headerCtaTextValue}
+                style={{ cursor: "pointer" }}
               >
                 {volunteerLabel}
                 <IconWrap>
@@ -443,10 +644,15 @@ export default function Header({
         <MobileActions>
           {(volunteerLabel || volunteerHref) && (
             <MobileBtnVolunteer
-              href={volunteerHref || "#"}
-              onClick={closeMobile}
+              as="button"
+              type="button"
+              onClick={() => {
+                closeMobile();
+                setModalOpen(true);
+              }}
               $headerCtaBgValue={headerCtaBgValue}
               $headerCtaTextValue={headerCtaTextValue}
+              style={{ cursor: "pointer" }}
             >
               <IconWrap>
                 {volunteerIconMobile ? (
@@ -473,6 +679,88 @@ export default function Header({
           )}
         </MobileActions>
       </MobileMenu>
+      {/* Volunteer Modal */}
+      <ModalOverlay $open={modalOpen} onClick={() => setModalOpen(false)}>
+        <ModalCard $open={modalOpen} onClick={(e) => e.stopPropagation()}>
+          <ModalCloseBtn onClick={() => setModalOpen(false)}>
+            &#x2715;
+          </ModalCloseBtn>
+          <ModalTitle>{volunteerModalTitle}</ModalTitle>
+          <form ref={modalFormRef} action={modalFormAction}>
+            <input type="hidden" name="page" value="volunteer-modal" />
+            <input type="hidden" name="source" value="header-volunteer" />
+            <input type="hidden" name="phone" value="" />
+            <Row gutter={[16, 0]}>
+              <Col xs={24} sm={12}>
+                <ModalFormGroup>
+                  <label className="mlabel">
+                    Full Name <span className="mreq">*</span>
+                  </label>
+                  <input
+                    name="name"
+                    required
+                    className="mfield"
+                    placeholder="Your name"
+                  />
+                </ModalFormGroup>
+              </Col>
+              <Col xs={24} sm={12}>
+                <ModalFormGroup>
+                  <label className="mlabel">
+                    Email <span className="mreq">*</span>
+                  </label>
+                  <input
+                    name="email"
+                    type="email"
+                    required
+                    className="mfield"
+                    placeholder="Your email address"
+                  />
+                </ModalFormGroup>
+              </Col>
+            </Row>
+            <ModalFormGroup>
+              <label className="mlabel">
+                Subject <span className="mreq">*</span>
+              </label>
+              <input
+                name="subject"
+                required
+                className="mfield"
+                placeholder="Subject of message"
+              />
+            </ModalFormGroup>
+            <ModalFormGroup>
+              <label className="mlabel">
+                Message <span className="mreq">*</span>
+              </label>
+              <textarea
+                name="message"
+                required
+                className="mfield"
+                placeholder="Message text"
+                rows={4}
+              />
+            </ModalFormGroup>
+            <ModalBtnRow>
+              <ModalCancelBtn
+                type="button"
+                style={{
+                  color: volunteerModalCancelColor || "#8b1a1a",
+                  borderColor: volunteerModalCancelColor || "#8b1a1a",
+                }}
+                onClick={() => setModalOpen(false)}
+              >
+                Cancel
+              </ModalCancelBtn>
+              <ModalSubmitButton
+                bgColor={volunteerModalBtnBg}
+                textColor={volunteerModalBtnText}
+              />
+            </ModalBtnRow>
+          </form>
+        </ModalCard>
+      </ModalOverlay>
     </>
   );
 }

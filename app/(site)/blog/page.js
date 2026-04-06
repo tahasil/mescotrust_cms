@@ -3,20 +3,19 @@ import Image from "next/image";
 import { connectDB } from "@/lib/db";
 import Blog from "@/models/Blog";
 import BlogCategory from "@/models/BlogCategory";
+import { getPageSeoMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
-  title: "Blog",
-  description: "Latest blog posts",
-  alternates: { canonical: "/blog" },
-  openGraph: {
-    title: "Blog",
-    description: "Latest blog posts",
-    url: "/blog",
-    type: "website",
-  },
-};
+export async function generateMetadata() {
+  return getPageSeoMetadata({
+    slug: "blog",
+    fallbackTitle: "Blog",
+    fallbackDescription: "Latest blog posts",
+    fallbackCanonical: "/blog",
+    fallbackOpenGraphUrl: "/blog",
+  });
+}
 
 const PAGE_SIZE = 12;
 

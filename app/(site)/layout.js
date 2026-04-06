@@ -76,6 +76,10 @@ export default async function SiteLayout({ children }) {
         headerCtaTextValue={resolveThemeColor(theme, headerCtaTextKey)}
         headerDonateBgValue={resolveThemeColor(theme, headerDonateBgKey)}
         headerDonateTextValue={resolveThemeColor(theme, headerDonateTextKey)}
+        volunteerModalTitle={theme.volunteerModalTitle || "Leave us a message"}
+        volunteerModalBtnBg={resolveThemeColor(theme, theme.volunteerModalBtnBg)}
+        volunteerModalBtnText={resolveThemeColor(theme, theme.volunteerModalBtnText)}
+        volunteerModalCancelColor={resolveThemeColor(theme, theme.volunteerModalCancelColor)}
         headerSectionBg={theme._sectionBg ?? ""}
         headerSectionPadding={theme._sectionPadding ?? ""}
         headerSectionBorderSize={theme._sectionBorderSize ?? ""}

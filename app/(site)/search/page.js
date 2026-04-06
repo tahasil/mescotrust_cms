@@ -1,9 +1,15 @@
 import SearchClient from "@/components/search/SearchClient";
+import { getPageSeoMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "Search",
-  description: "Search pages and posts",
-};
+export async function generateMetadata() {
+  return getPageSeoMetadata({
+    slug: "search",
+    fallbackTitle: "Search",
+    fallbackDescription: "Search pages and posts",
+    fallbackCanonical: "/search",
+    fallbackOpenGraphUrl: "/search",
+  });
+}
 
 export default function SearchPage() {
   return (

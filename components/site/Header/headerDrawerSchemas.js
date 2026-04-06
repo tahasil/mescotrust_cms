@@ -22,12 +22,12 @@ export const LOGO_LINK_SCHEMA = [
 
 export const MENU_SCHEMA = [
   { key: "menuPosition", type: "select", label: "Menu position (desktop)", options: [{ value: "left", label: "Left" }, { value: "center", label: "Center" }, { value: "right", label: "Right" }] },
-  { key: "navColor", type: "color", label: "Nav link color" },
+  { key: "navColor", type: "themeColorOnly", label: "Nav link color" },
   { key: "navFontSize", type: "number", label: "Nav font size (px)" },
   { key: "navFontWeight", type: "select", label: "Nav font weight", options: [{ value: "400", label: "400 (Normal)" }, { value: "500", label: "500 (Medium)" }, { value: "600", label: "600 (Semi-bold)" }, { value: "700", label: "700 (Bold)" }] },
-  { key: "navHoverColor", type: "color", label: "Nav hover color" },
-  { key: "navItemBackground", type: "color", label: "Nav item background" },
-  { key: "navItemHoverBackground", type: "color", label: "Nav item hover background" },
+  { key: "navHoverColor", type: "themeColorOnly", label: "Nav hover color" },
+  { key: "navItemBackground", type: "themeColorOnly", label: "Nav item background" },
+  { key: "navItemHoverBackground", type: "themeColorOnly", label: "Nav item hover background" },
 ];
 
 /** Volunteer & Donate button labels, links, icons and styles – editable in Header drawer. */
@@ -42,11 +42,20 @@ export const CUSTOM_BUTTONS_SCHEMA = [
   { key: "headerDonateIconUrlMobile", type: "image", label: "Donate icon URL (mobile)" },
 ];
 
+/** Volunteer modal – form that opens when clicking Volunteer button. */
+export const VOLUNTEER_MODAL_SCHEMA = [
+  { key: "volunteerModalTitle", type: "text", label: "Modal title" },
+  { key: "volunteerModalBtnBg", type: "themeColorOnly", label: "Send button background" },
+  { key: "volunteerModalBtnText", type: "themeColorOnly", label: "Send button text color" },
+  { key: "volunteerModalCancelColor", type: "themeColorOnly", label: "Cancel button color" },
+];
+
 export const HEADER_FIELD_GROUPS = [
   { label: "Logo and link", keys: ["logoType", "logoLightUrl", "logoMobileUrl", "logoDarkUrl", "logoTitle", "logoTagline", "logoUrl", "logoColor", "logoFontSize", "taglineFontSize", "sectionsOrder"] },
   { label: "Menu", keys: ["menuPosition", "navColor", "navFontSize", "navFontWeight", "navHoverColor", "navItemBackground", "navItemHoverBackground"] },
   { label: "Navbar (Bootstrap)", keys: ["navbarExpand", "navbarFixed", "navbarSticky", "collapseOnSelect", "navbarMobileMenu", "navbarOffcanvasPlacement"] },
   { label: "Custom buttons", keys: ["headerVolunteerLabel", "headerVolunteerHref", "headerVolunteerIconUrl", "headerVolunteerIconUrlMobile", "headerDonateLabel", "headerDonateHref", "headerDonateIconUrl", "headerDonateIconUrlMobile"] },
+  { label: "Volunteer modal", keys: ["volunteerModalTitle", "volunteerModalBtnBg", "volunteerModalBtnText", "volunteerModalCancelColor"] },
 ];
 
 export const SECTION_SETTINGS_SCHEMA = [
