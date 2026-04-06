@@ -283,7 +283,7 @@ export default function Alerts(props) {
             <AlertCard key={idx}>
               <IconWrap>
                 {itemIconUrl ? (
-                  <img src={itemIconUrl} alt="" />
+                  <img loading="lazy" src={itemIconUrl} alt="" />
                 ) : (
                   <svg
                     width="32"

@@ -116,7 +116,7 @@ export default function Marquee(props) {
             key={`${i}-${typeof src === "string" ? src : src?.url}`}
             className="marquee-item"
           >
-            <img
+            <img loading="lazy"
               className="img-fluid"
               src={typeof src === "string" ? src : (src?.url ?? src)}
               alt={typeof src === "object" && src?.alt ? src.alt : "Partner"}

@@ -57,7 +57,7 @@ export default function Footer({
             <Link href="/">
               <FooterLogo as="span">
                 {hasLogo ? (
-                  <img
+                  <img loading="lazy"
                     src={footerLogoUrl}
                     alt={title || "Logo"}
                     className="img-fluid"

@@ -481,7 +481,7 @@ export default function Videogallery(props) {
           {filteredItems.map((item, index) => (
             <Col key={index} xs={24} sm={12} md={12} lg={8}>
               <GalleryCard onClick={() => openModal(index)}>
-                <img
+                <img loading="lazy"
                   src={`https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg`}
                   alt={item.title}
                 />

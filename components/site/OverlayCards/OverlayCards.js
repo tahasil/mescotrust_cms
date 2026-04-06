@@ -307,7 +307,7 @@ export default function OverlayCards(props) {
                   <div className="innerCardBox text-center">
                     {bgImage && (
                       <div className="cardBackground">
-                        <img src={bgImage} alt={title} />
+                        <img loading="lazy" src={bgImage} alt={title} />
                       </div>
                     )}
                     {title && <h3 className="my-4">{title}</h3>}

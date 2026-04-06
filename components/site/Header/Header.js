@@ -422,7 +422,7 @@ export default function Header({
         <HeaderMainWrapper>
           <Logo href="/" onClick={closeMobile}>
             {logoType === "image" && logoUrl ? (
-              <img src={logoUrl} alt={title} className="img-fluid" />
+              <img loading="lazy" src={logoUrl} alt={title} className="img-fluid" />
             ) : (
               <span>{title}</span>
             )}
@@ -515,7 +515,7 @@ export default function Header({
                 {volunteerLabel}
                 <IconWrap>
                   {volunteerIconUrl ? (
-                    <img src={volunteerIconUrl} alt={volunteerLabel} />
+                    <img loading="lazy" src={volunteerIconUrl} alt={volunteerLabel} />
                   ) : null}
                 </IconWrap>
               </BtnVolunteer>
@@ -529,7 +529,7 @@ export default function Header({
                 {donateLabel}
                 <IconWrap>
                   {donateIconUrl ? (
-                    <img src={donateIconUrl} alt={donateLabel} />
+                    <img loading="lazy" src={donateIconUrl} alt={donateLabel} />
                   ) : null}
                 </IconWrap>
               </BtnDonate>
@@ -561,7 +561,7 @@ export default function Header({
         <MobileMenuHeader>
           <MobileMenuLogo href="/" onClick={closeMobile}>
             {logoType === "image" && logoUrlMobile ? (
-              <img src={logoUrlMobile} alt={title} />
+              <img loading="lazy" src={logoUrlMobile} alt={title} />
             ) : (
               <span>{title}</span>
             )}
@@ -656,7 +656,7 @@ export default function Header({
             >
               <IconWrap>
                 {volunteerIconMobile ? (
-                  <img src={volunteerIconMobile} alt={volunteerLabel} />
+                  <img loading="lazy" src={volunteerIconMobile} alt={volunteerLabel} />
                 ) : null}
               </IconWrap>
               {volunteerLabel}
@@ -671,7 +671,7 @@ export default function Header({
             >
               <IconWrap>
                 {donateIconMobile ? (
-                  <img src={donateIconMobile} alt={donateLabel} />
+                  <img loading="lazy" src={donateIconMobile} alt={donateLabel} />
                 ) : null}
               </IconWrap>
               {donateLabel}

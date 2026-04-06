@@ -230,7 +230,7 @@ export default function Helpingpeople(props) {
             className="text-center"
           >
             {imageUrl ? (
-              <img className="m-auto img-fluid" src={imageUrl} alt={imageAlt} />
+              <img loading="lazy" className="m-auto img-fluid" src={imageUrl} alt={imageAlt} />
             ) : (
               <div
                 style={{

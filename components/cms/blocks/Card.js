@@ -30,7 +30,7 @@ export default function CardBlock({
     <div style={cardStyle}>
       {image && (
         <div style={{ position: "relative", width: "100%", aspectRatio: "16/9" }}>
-          <NextImage
+          <NextImage loading="lazy"
             src={image}
             alt={imageAlt}
             fill

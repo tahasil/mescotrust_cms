@@ -115,7 +115,7 @@ export default function HelpingEvents(props) {
         <div className="innerEventBox">
           <Row gutter={[16, 16]} align="middle">
             <Col xs={24} sm={24} md={12} lg={10}>
-              <img
+              <img loading="lazy"
                 className="img-fluid"
                 src={eventImage}
                 alt={eventImageAlt}

@@ -84,7 +84,7 @@ export default function ManagingCommittee(props) {
         <Row gutter={[32, 32]} align="middle">
           <Col xs={24} sm={24} md={12} lg={10}>
             {imageUrl ? (
-              <img className="img-fluid" src={imageUrl} alt={imageAlt} />
+              <img loading="lazy" className="img-fluid" src={imageUrl} alt={imageAlt} />
             ) : (
               <div style={{ minHeight: 200, background: "rgba(255,255,255,0.1)", borderRadius: 8 }} />
             )}

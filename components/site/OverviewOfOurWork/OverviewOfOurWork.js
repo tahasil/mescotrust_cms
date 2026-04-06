@@ -379,13 +379,13 @@ export default function OverviewOfOurWork(props) {
                   >
                     <div className="cardBackground">
                       {card.bgImageUrl ? (
-                        <img src={card.bgImageUrl} alt="" aria-hidden />
+                        <img loading="lazy" src={card.bgImageUrl} alt="" aria-hidden />
                       ) : null}
                     </div>
                     {card.icon &&
                     (card.icon.startsWith("http") ||
                       card.icon.startsWith("/")) ? (
-                      <img
+                      <img loading="lazy"
                         src={card.icon}
                         alt=""
                         style={{
@@ -398,7 +398,7 @@ export default function OverviewOfOurWork(props) {
                       />
                     ) : null}
                     {card.imageUrl ? (
-                      <img
+                      <img loading="lazy"
                         className="m-auto"
                         src={card.imageUrl}
                         alt={card.title}

@@ -195,7 +195,7 @@ export default function Images(props) {
         )}
         <Row gutter={[16, 16]}>
           <Col span={24}>
-            <img className="w-100" src={imageUrl} alt={imageAlt} />
+            <img loading="lazy" className="w-100" src={imageUrl} alt={imageAlt} />
           </Col>
         </Row>
       </PageContainer>

@@ -104,7 +104,7 @@ async function PostContent({ slug }) {
             height={450}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 800px"
             style={{ width: "100%", height: "auto", borderRadius: 8 }}
-            priority
+            loading="lazy"
           />
         </figure>
       )}

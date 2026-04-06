@@ -259,7 +259,7 @@ export default function HeaderBlock({
       {responsiveLogoCss && (
         <style dangerouslySetInnerHTML={{ __html: responsiveLogoCss }} />
       )}
-      <NextImage
+      <NextImage loading="lazy"
         src={logoImage}
         alt={logoTitle}
         width={dW}
@@ -409,7 +409,7 @@ export default function HeaderBlock({
       objectFit: "contain",
     };
     const imgEl = imageUrl ? (
-      <img
+      <img loading="lazy"
         src={imageUrl}
         alt=""
         style={imgStyle}

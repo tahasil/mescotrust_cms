@@ -225,7 +225,7 @@ export default function Vision(props) {
               md={{ span: 12, order: 2 }}
               lg={{ span: 12, order: 2 }}
             >
-              <img
+              <img loading="lazy"
                 className="img-fluid"
                 style={{ display: "block", margin: "0 auto" }}
                 src={visionImage}

@@ -67,7 +67,7 @@ export default function FooterBlock({
       {logoUrl ? (
         <Link href={logoUrl} style={{ display: "inline-block", textDecoration: "none", color: "inherit" }}>
           {logoImage ? (
-            <NextImage src={logoImage} alt={logoTitle} width={120} height={40} style={{ objectFit: "contain" }} />
+            <NextImage loading="lazy" src={logoImage} alt={logoTitle} width={120} height={40} style={{ objectFit: "contain" }} />
           ) : (
             <>
               <div style={{ fontWeight: 700, fontSize: "1.25rem", letterSpacing: "0.05em", color: linkColor }}>{logoTitle || "Logo"}</div>
@@ -78,7 +78,7 @@ export default function FooterBlock({
       ) : (
         <>
           {logoImage ? (
-            <NextImage src={logoImage} alt={logoTitle} width={120} height={40} style={{ objectFit: "contain" }} />
+            <NextImage loading="lazy" src={logoImage} alt={logoTitle} width={120} height={40} style={{ objectFit: "contain" }} />
           ) : (
             <>
               <div style={{ fontWeight: 700, fontSize: "1.25rem", letterSpacing: "0.05em", color: linkColor }}>{logoTitle || "Logo"}</div>

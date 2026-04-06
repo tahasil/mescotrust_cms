@@ -115,7 +115,7 @@ export default function HeroBlock({
               fill
               sizes="100vw"
               style={{ objectFit: "cover" }}
-              priority
+              loading="lazy"
             />
           )}
           <div style={{ position: "absolute", inset: 0, background: overlayColor }} />

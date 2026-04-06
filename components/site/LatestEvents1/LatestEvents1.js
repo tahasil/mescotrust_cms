@@ -148,7 +148,7 @@ export default function LatestEvents1(props) {
               <Row gutter={[16, 16]} align="middle">
                 <Col span={24} sm={8} md={8} lg={10}>
                   {item.imageUrl ? (
-                    <img
+                    <img loading="lazy"
                       className="img-fluid"
                       src={item.imageUrl}
                       alt={item.title || `News ${index + 1}`}

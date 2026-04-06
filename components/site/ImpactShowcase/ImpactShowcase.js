@@ -199,7 +199,7 @@ export default function ImpactShowcase(props) {
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={24} md={24} lg={14}>
             {leftImage ? (
-              <img
+              <img loading="lazy"
                 className="img-fluid"
                 src={leftImage}
                 alt="Impact"
@@ -221,7 +221,7 @@ export default function ImpactShowcase(props) {
                   <ThemeButton
                     type="button"
                     size="large"
-                    icon={button1IconUrl ? <img alt="" src={button1IconUrl} /> : <RightCircleFilled />}
+                    icon={button1IconUrl ? <img loading="lazy" alt="" src={button1IconUrl} /> : <RightCircleFilled />}
                     iconPosition="end"
                     style={btn1Style}
                   >
@@ -235,7 +235,7 @@ export default function ImpactShowcase(props) {
                     className="volunteer"
                     type="button"
                     size="large"
-                    icon={button2IconUrl ? <img alt="" src={button2IconUrl} /> : <RightCircleFilled />}
+                    icon={button2IconUrl ? <img loading="lazy" alt="" src={button2IconUrl} /> : <RightCircleFilled />}
                     iconPosition="end"
                     style={btn2Style}
                   >
@@ -245,7 +245,7 @@ export default function ImpactShowcase(props) {
               )}
             </Space>
             {rightImage ? (
-              <img
+              <img loading="lazy"
                 className="img-fluid"
                 src={rightImage}
                 alt="Impact"

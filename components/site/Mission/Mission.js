@@ -201,7 +201,7 @@ export default function Mission(props) {
         >
           <Row gutter={[16, 16]} align="middle">
             <Col xs={24} sm={24} md={12} lg={12}>
-              <img
+              <img loading="lazy"
                 className="img-fluid"
                 style={{ display: "block", margin: "0 auto" }}
                 src={missionImage}

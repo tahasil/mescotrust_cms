@@ -345,7 +345,7 @@ export default function WelcometoMESCO(props) {
               md={{ span: 24, order: 1 }}
               lg={{ span: 12, order: 2 }}
             >
-              <img className="w-100" src={imageUrl} alt={imageAlt} />
+              <img loading="lazy" className="w-100" src={imageUrl} alt={imageAlt} />
             </Col>
           </Row>
         </HomeHelping>
@@ -362,7 +362,7 @@ export default function WelcometoMESCO(props) {
                   }
                 >
                   {stat.iconImage && (
-                    <img src={stat.iconImage} alt={stat.label} width={30} height={30} style={{ objectFit: "contain" }} />
+                    <img loading="lazy" src={stat.iconImage} alt={stat.label} width={30} height={30} style={{ objectFit: "contain" }} />
                   )}
                   <h2>{stat.number}</h2>
                   <p>{stat.label}</p>

@@ -169,7 +169,7 @@ export default function VideoPlaying(props) {
                 />
               ) : (
                 <>
-                  <img src={coverImage} alt={coverAlt} />
+                  <img loading="lazy" src={coverImage} alt={coverAlt} />
                   <VideoCover
                     onClick={() => setVideoPlaying(true)}
                     role="button"

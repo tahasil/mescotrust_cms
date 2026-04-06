@@ -142,7 +142,7 @@ export default function CircularSlider({
             return (
               <SliderWrapper key={i} $rotation={i * stepDeg}>
                 <SliderSlide>
-                  <img className="img-fluid" src={slide.src} alt={slide.alt} />
+                  <img loading="lazy" className="img-fluid" src={slide.src} alt={slide.alt} />
                 </SliderSlide>
               </SliderWrapper>
             );

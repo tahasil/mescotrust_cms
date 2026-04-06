@@ -141,7 +141,7 @@ function PublicHeader({ menuItems, siteTitle, logoType, logoImageUrl, logoLightU
       <div className="public-header-inner">
         <Link href="/" className="public-logo" aria-label={title}>
           {logoType === "image" && logoUrl ? (
-            <img src={logoUrl} alt={title} />
+            <img loading="lazy" src={logoUrl} alt={title} />
           ) : (
             title
           )}

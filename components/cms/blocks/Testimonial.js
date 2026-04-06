@@ -31,7 +31,7 @@ export default function TestimonialBlock({ items = [], columns = 1 }) {
           </blockquote>
           <figcaption style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
             {t.avatar && (
-              <NextImage
+              <NextImage loading="lazy"
                 src={t.avatar}
                 alt={t.name || ""}
                 width={48}

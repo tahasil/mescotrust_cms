@@ -489,7 +489,7 @@ export default function PhotoGallery(props) {
           {filteredItems.map((item, index) => (
             <Col key={index} xs={24} sm={12} md={12} lg={8}>
               <GalleryCard onClick={() => openModal(index)}>
-                <img src={item.image} alt={item.title} />
+                <img loading="lazy" src={item.image} alt={item.title} />
                 <GalleryCardTitle>{item.title}</GalleryCardTitle>
                 <GalleryCardArrow $color={accentColor}>
                   <ArrowRightOutlined />
@@ -536,7 +536,7 @@ export default function PhotoGallery(props) {
               <LeftOutlined />
             </ModalNavButton>
             <ModalImageWrapper>
-              <img src={currentItem.image} alt={currentItem.title} />
+              <img loading="lazy" src={currentItem.image} alt={currentItem.title} />
               <ModalImageTitle>{currentItem.title}</ModalImageTitle>
             </ModalImageWrapper>
             <ModalNavButton

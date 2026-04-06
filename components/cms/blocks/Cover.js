@@ -29,7 +29,7 @@ export default function CoverBlock({
         fill
         sizes="100vw"
         style={{ objectFit: "cover" }}
-        priority={false}
+        loading="lazy"
       />
       <div
         style={{

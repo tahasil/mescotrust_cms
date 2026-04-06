@@ -376,7 +376,7 @@ export default function InMedia(props) {
                     <MediaCard>
                       {image && (
                         <div className="imageWrapper">
-                          <img
+                          <img loading="lazy"
                             className="w-100"
                             src={image}
                             alt={name}
@@ -444,7 +444,7 @@ export default function InMedia(props) {
       >
         {selectedItem && selectedItem.image && (
           <div data-lenis-prevent>
-            <img
+            <img loading="lazy"
               src={selectedItem.image}
               alt={selectedItem.name || "Media"}
               style={{ display: "block", width: "100%", height: "auto" }}

@@ -441,7 +441,7 @@ export default function StoriesSlider(props) {
                                     srcSet={mobileImage}
                                   />
                                 )}
-                                <img
+                                <img loading="lazy"
                                   src={image || mobileImage}
                                   alt={name || "Story"}
                                 />

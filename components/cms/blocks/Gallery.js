@@ -23,7 +23,7 @@ export default function GalleryBlock({ images = [], columns = 3, gap = 8 }) {
         if (!src) return null;
         return (
           <figure key={i} style={{ margin: 0 }}>
-            <NextImage
+            <NextImage loading="lazy"
               src={src}
               alt={alt}
               width={400}

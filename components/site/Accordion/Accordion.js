@@ -311,7 +311,7 @@ export default function Accordion(props) {
               accordion
               expandIcon={({ isActive }) =>
                 customIconUrl ? (
-                  <img
+                  <img loading="lazy"
                     src={customIconUrl}
                     alt=""
                     style={{

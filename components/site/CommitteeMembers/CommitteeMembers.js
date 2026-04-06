@@ -458,7 +458,7 @@ export default function CommitteeMembers(props) {
                 <CommitteeCard
                   cover={
                     member.image ? (
-                      <img src={member.image} alt={member.name} />
+                      <img loading="lazy" src={member.image} alt={member.name} />
                     ) : undefined
                   }
                 >
@@ -508,7 +508,7 @@ export default function CommitteeMembers(props) {
             <div className="profile-detail-header">
               {selectedMember.image && (
                 <div className="profile-detail-image">
-                  <img src={selectedMember.image} alt={selectedMember.name} />
+                  <img loading="lazy" src={selectedMember.image} alt={selectedMember.name} />
                 </div>
               )}
               <div className="profile-detail-meta">

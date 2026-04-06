@@ -94,7 +94,7 @@ export default async function BlogListPage({ searchParams }) {
           <li key={post._id} style={{ marginBottom: "1.5rem", paddingBottom: "1rem", borderBottom: "1px solid #eee", display: "flex", gap: "1rem" }}>
             {post.featuredImage && (
               <Link href={`/blog/${post.slug}`} style={{ flexShrink: 0 }}>
-                <Image
+                <Image loading="lazy"
                   src={post.featuredImage}
                   alt={post.title}
                   width={160}

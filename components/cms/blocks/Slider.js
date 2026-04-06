@@ -69,7 +69,7 @@ export default function SliderBlock({
           }}
         >
           {slide.image && (
-            <NextImage
+            <NextImage loading="lazy"
               src={slide.image}
               alt={slide.alt || ""}
               fill

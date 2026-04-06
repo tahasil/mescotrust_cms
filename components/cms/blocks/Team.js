@@ -26,7 +26,7 @@ export default function TeamBlock({ members = [], columns = 3 }) {
           }}
         >
           {member.avatar && (
-            <NextImage
+            <NextImage loading="lazy"
               src={member.avatar}
               alt={member.name || ""}
               width={120}

@@ -11,7 +11,7 @@ export default function ImageBlock({ src, alt, width, height }) {
 
   return (
     <figure style={{ margin: "1em 0" }}>
-      <NextImage
+      <NextImage loading="lazy"
         src={src}
         alt={alt || ""}
         width={w}

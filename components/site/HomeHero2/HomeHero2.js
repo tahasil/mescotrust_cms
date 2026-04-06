@@ -126,7 +126,7 @@ export default function HomeHero2(props) {
           <Col xs={24} className="text-center">
             <h1>
               <em>
-                <img
+                <img loading="lazy"
                   src={heroIconUrl || "/images/hero-icon.svg"}
                   alt="Hero Icon"
                 />

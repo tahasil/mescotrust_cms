@@ -323,7 +323,7 @@ export default function Reports(props) {
                   <ReportCard>
                     {image ? (
                       <div className="imageWrapper">
-                        <img
+                        <img loading="lazy"
                           className="w-100"
                           src={image}
                           alt={name}
