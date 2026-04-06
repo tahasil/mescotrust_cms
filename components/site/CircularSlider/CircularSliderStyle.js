@@ -10,7 +10,7 @@ const SLIDER_BP = {
 export const SliderContainer = styled.section`
   width: 100%;
   position: relative;
-  margin-top: -60px;
+  /* margin-top: -60px; */
   overflow: hidden;
   min-height: calc(100vh + 100px);
   @media (max-width: 576px) {
@@ -21,7 +21,7 @@ export const SliderContainer = styled.section`
     min-height: calc(76vh + 100px);
   }
   @media (min-width: 992px) {
-    margin-top: -80px;
+    /* margin-top: -80px; */
     min-height: calc(100vh + 60px);
   }
 `;
