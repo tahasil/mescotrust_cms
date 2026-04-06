@@ -26,7 +26,8 @@ export async function submitContact(prevState, formData) {
   const page = (formData.get("page") || "").trim();
   const source = (formData.get("source") || "").trim();
 
-  if (!name || !email || !phone || !subject || !message) {
+  // Phone is optional (header volunteer modal does not include it).
+  if (!name || !email || !subject || !message) {
     return { error: "All fields are required" };
   }
   if (!EMAIL_REGEX.test(email)) {

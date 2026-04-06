@@ -746,16 +746,16 @@ export default function Header({
               <ModalCancelBtn
                 type="button"
                 style={{
-                  color: volunteerModalCancelColor || "#8b1a1a",
-                  borderColor: volunteerModalCancelColor || "#8b1a1a",
+                  color: resolvedModalCancelColor,
+                  borderColor: resolvedModalCancelColor,
                 }}
                 onClick={() => setModalOpen(false)}
               >
                 Cancel
               </ModalCancelBtn>
               <ModalSubmitButton
-                bgColor={volunteerModalBtnBg}
-                textColor={volunteerModalBtnText}
+                bgColor={resolvedModalBtnBg}
+                textColor={resolvedModalBtnText}
               />
             </ModalBtnRow>
           </form>
