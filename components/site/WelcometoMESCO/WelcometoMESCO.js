@@ -75,9 +75,21 @@ const HomeHelpingBottom = styled.div`
 `;
 
 const DEFAULT_STATS = [
-  { number: "89052", label: "Educational Scholarships Students", iconImage: "" },
-  { number: "12199", label: "Educational Scholarships Students", iconImage: "" },
-  { number: "833000", label: "Educational Scholarships Students", iconImage: "" },
+  {
+    number: "89052",
+    label: "Educational Scholarships Students",
+    iconImage: "",
+  },
+  {
+    number: "12199",
+    label: "Educational Scholarships Students",
+    iconImage: "",
+  },
+  {
+    number: "833000",
+    label: "Educational Scholarships Students",
+    iconImage: "",
+  },
   { number: "2509", label: "Educational Scholarships Students", iconImage: "" },
 ];
 
@@ -345,7 +357,12 @@ export default function WelcometoMESCO(props) {
               md={{ span: 24, order: 1 }}
               lg={{ span: 12, order: 2 }}
             >
-              <img loading="lazy" className="w-100" src={imageUrl} alt={imageAlt} />
+              <img
+                loading="lazy"
+                className="w-100"
+                src={imageUrl}
+                alt={imageAlt}
+              />
             </Col>
           </Row>
         </HomeHelping>
@@ -362,7 +379,14 @@ export default function WelcometoMESCO(props) {
                   }
                 >
                   {stat.iconImage && (
-                    <img loading="lazy" src={stat.iconImage} alt={stat.label} width={30} height={30} style={{ objectFit: "contain" }} />
+                    <img
+                      loading="lazy"
+                      src={stat.iconImage}
+                      alt={stat.label}
+                      width={30}
+                      height={30}
+                      style={{ objectFit: "contain" }}
+                    />
                   )}
                   <h2>{stat.number}</h2>
                   <p>{stat.label}</p>

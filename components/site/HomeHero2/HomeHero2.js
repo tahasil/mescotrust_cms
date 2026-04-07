@@ -77,29 +77,56 @@ export default function HomeHero2(props) {
     .toString()
     .trim();
   const sectionBgType = (props?.homeHero2SectionBgType ?? "default").toString();
-  const sectionBgImage = (props?.homeHero2SectionBgImage ?? "").toString().trim();
-  const sectionBgColorKey = (props?.homeHero2SectionBgColorKey ?? "").toString().trim();
-  const sectionBgColor = sectionBgType === "color" && sectionBgColorKey ? getColor(sectionBgColorKey) : undefined;
+  const sectionBgImage = (props?.homeHero2SectionBgImage ?? "")
+    .toString()
+    .trim();
+  const sectionBgColorKey = (props?.homeHero2SectionBgColorKey ?? "")
+    .toString()
+    .trim();
+  const sectionBgColor =
+    sectionBgType === "color" && sectionBgColorKey
+      ? getColor(sectionBgColorKey)
+      : undefined;
   const heroBgImage =
     sectionBgType === "image" && sectionBgImage
       ? sectionBgImage
       : (props?.heroBgImageUrl ?? "/images/hero_bg.png").toString().trim();
-  const buttonBgColorKey = (props?.homeHero2ButtonBgColorKey ?? "").toString().trim();
-  const buttonTextColorKey = (props?.homeHero2ButtonTextColorKey ?? "").toString().trim();
+  const buttonBgColorKey = (props?.homeHero2ButtonBgColorKey ?? "")
+    .toString()
+    .trim();
+  const buttonTextColorKey = (props?.homeHero2ButtonTextColorKey ?? "")
+    .toString()
+    .trim();
   const buttonStyle =
     buttonBgColorKey || buttonTextColorKey
       ? {
-          ...(buttonBgColorKey ? { background: getColor(buttonBgColorKey) } : {}),
-          ...(buttonTextColorKey ? { color: getColor(buttonTextColorKey) } : {}),
+          ...(buttonBgColorKey
+            ? { background: getColor(buttonBgColorKey) }
+            : {}),
+          ...(buttonTextColorKey
+            ? { color: getColor(buttonTextColorKey) }
+            : {}),
         }
       : undefined;
   const sliderImages = Array.isArray(props?.homeHero2SliderImages)
     ? props.homeHero2SliderImages.filter((s) => s && (s.src || s.url))
     : [];
-  const sliderSlideCount = props?.homeHero2SlideCount != null ? Number(props.homeHero2SlideCount) : undefined;
-  const sliderAutoInterval = props?.homeHero2AutoInterval != null ? Number(props.homeHero2AutoInterval) : undefined;
-  const sliderStepDeg = props?.homeHero2StepDeg != null ? Number(props.homeHero2StepDeg) : undefined;
-  const sliderDuration = props?.homeHero2Duration != null ? Number(props.homeHero2Duration) : undefined;
+  const sliderSlideCount =
+    props?.homeHero2SlideCount != null
+      ? Number(props.homeHero2SlideCount)
+      : undefined;
+  const sliderAutoInterval =
+    props?.homeHero2AutoInterval != null
+      ? Number(props.homeHero2AutoInterval)
+      : undefined;
+  const sliderStepDeg =
+    props?.homeHero2StepDeg != null
+      ? Number(props.homeHero2StepDeg)
+      : undefined;
+  const sliderDuration =
+    props?.homeHero2Duration != null
+      ? Number(props.homeHero2Duration)
+      : undefined;
   const sliderAutoplay = props?.homeHero2Autoplay !== false;
   const sliderDraggable = props?.homeHero2Draggable !== false;
 
@@ -126,7 +153,8 @@ export default function HomeHero2(props) {
           <Col xs={24} className="text-center">
             <h1>
               <em>
-                <img loading="lazy"
+                <img
+                  loading="lazy"
                   src={heroIconUrl || "/images/hero-icon.svg"}
                   alt="Hero Icon"
                 />
@@ -144,7 +172,12 @@ export default function HomeHero2(props) {
             {subTitle ? <p>{subTitle}</p> : null}
           </Col>
           <Col xs={24} className="text-center">
-            <ThemeButton type="button" size="large" onClick={onButtonClick} style={buttonStyle}>
+            <ThemeButton
+              type="button"
+              size="large"
+              onClick={onButtonClick}
+              style={buttonStyle}
+            >
               {buttonText} <RightCircleFilled />
             </ThemeButton>
           </Col>

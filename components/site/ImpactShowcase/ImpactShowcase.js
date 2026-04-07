@@ -16,19 +16,49 @@ import Link from "next/link";
  * Manage Section (background/padding) and Title & Colors come from EditForm.
  */
 export default function ImpactShowcase(props) {
-  const leftImage = (props?.impactShowcaseLeftImage ?? "/images/about-mesco-1.png").toString().trim();
-  const rightImage = (props?.impactShowcaseRightImage ?? "/images/about-mesco-2.png").toString().trim();
-  const button1Text = (props?.impactShowcaseButton1Text ?? "Contact Us").toString().trim();
-  const button1Link = (props?.impactShowcaseButton1Link ?? "/").toString().trim();
-  const button1IconUrl = (props?.impactShowcaseButton1IconUrl ?? "").toString().trim();
-  const button2Text = (props?.impactShowcaseButton2Text ?? "Volunteer").toString().trim();
-  const button2Link = (props?.impactShowcaseButton2Link ?? "/").toString().trim();
-  const button2IconUrl = (props?.impactShowcaseButton2IconUrl ?? "/images/volunteer-icon.svg").toString().trim();
+  const leftImage = (
+    props?.impactShowcaseLeftImage ?? "/images/about-mesco-1.png"
+  )
+    .toString()
+    .trim();
+  const rightImage = (
+    props?.impactShowcaseRightImage ?? "/images/about-mesco-2.png"
+  )
+    .toString()
+    .trim();
+  const button1Text = (props?.impactShowcaseButton1Text ?? "Contact Us")
+    .toString()
+    .trim();
+  const button1Link = (props?.impactShowcaseButton1Link ?? "/")
+    .toString()
+    .trim();
+  const button1IconUrl = (props?.impactShowcaseButton1IconUrl ?? "")
+    .toString()
+    .trim();
+  const button2Text = (props?.impactShowcaseButton2Text ?? "Volunteer")
+    .toString()
+    .trim();
+  const button2Link = (props?.impactShowcaseButton2Link ?? "/")
+    .toString()
+    .trim();
+  const button2IconUrl = (
+    props?.impactShowcaseButton2IconUrl ?? "/images/volunteer-icon.svg"
+  )
+    .toString()
+    .trim();
 
-  const btn1BgKey = (props?.impactShowcaseButton1BgColorKey ?? "").toString().trim();
-  const btn1TextKey = (props?.impactShowcaseButton1TextColorKey ?? "").toString().trim();
-  const btn2BgKey = (props?.impactShowcaseButton2BgColorKey ?? "").toString().trim();
-  const btn2TextKey = (props?.impactShowcaseButton2TextColorKey ?? "").toString().trim();
+  const btn1BgKey = (props?.impactShowcaseButton1BgColorKey ?? "")
+    .toString()
+    .trim();
+  const btn1TextKey = (props?.impactShowcaseButton1TextColorKey ?? "")
+    .toString()
+    .trim();
+  const btn2BgKey = (props?.impactShowcaseButton2BgColorKey ?? "")
+    .toString()
+    .trim();
+  const btn2TextKey = (props?.impactShowcaseButton2TextColorKey ?? "")
+    .toString()
+    .trim();
   const btn1BgColor = btn1BgKey ? getColor(btn1BgKey) : undefined;
   const btn1TextColor = btn1TextKey ? getColor(btn1TextKey) : undefined;
   const btn2BgColor = btn2BgKey ? getColor(btn2BgKey) : undefined;
@@ -199,7 +229,8 @@ export default function ImpactShowcase(props) {
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={24} md={24} lg={14}>
             {leftImage ? (
-              <img loading="lazy"
+              <img
+                loading="lazy"
                 className="img-fluid"
                 src={leftImage}
                 alt="Impact"
@@ -221,7 +252,13 @@ export default function ImpactShowcase(props) {
                   <ThemeButton
                     type="button"
                     size="large"
-                    icon={button1IconUrl ? <img loading="lazy" alt="" src={button1IconUrl} /> : <RightCircleFilled />}
+                    icon={
+                      button1IconUrl ? (
+                        <img loading="lazy" alt="" src={button1IconUrl} />
+                      ) : (
+                        <RightCircleFilled />
+                      )
+                    }
                     iconPosition="end"
                     style={btn1Style}
                   >
@@ -235,7 +272,13 @@ export default function ImpactShowcase(props) {
                     className="volunteer"
                     type="button"
                     size="large"
-                    icon={button2IconUrl ? <img loading="lazy" alt="" src={button2IconUrl} /> : <RightCircleFilled />}
+                    icon={
+                      button2IconUrl ? (
+                        <img loading="lazy" alt="" src={button2IconUrl} />
+                      ) : (
+                        <RightCircleFilled />
+                      )
+                    }
                     iconPosition="end"
                     style={btn2Style}
                   >
@@ -245,7 +288,8 @@ export default function ImpactShowcase(props) {
               )}
             </Space>
             {rightImage ? (
-              <img loading="lazy"
+              <img
+                loading="lazy"
                 className="img-fluid"
                 src={rightImage}
                 alt="Impact"

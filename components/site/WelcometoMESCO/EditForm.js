@@ -1,20 +1,20 @@
 "use client";
 
-import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import {
-  Form,
-  Input,
-  Button,
-  Row,
-  Col,
-  Collapse,
-  message,
-  Spin,
-} from "antd";
+  useState,
+  useEffect,
+  useRef,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
+import { Form, Input, Button, Row, Col, Collapse, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
-import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
+import {
+  getManageSectionInitialValues,
+  getManageSectionPayload,
+} from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/WelcometoMESCO";
@@ -46,20 +46,30 @@ function normalizeStatItem(it) {
  * welcome label, main title, highlight text, descriptions, button, image, and stat items.
  */
 function WelcometoMESCOEditForm(
-  { source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [] },
-  ref
+  {
+    source,
+    initialData: initialDataProp,
+    onSaveToPage,
+    onSuccess,
+    onCancel,
+    themeColorOptions: themeColorOptionsProp = [],
+  },
+  ref,
 ) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [themeColorOptions, setThemeColorOptions] = useState(themeColorOptionsProp);
+  const [themeColorOptions, setThemeColorOptions] = useState(
+    themeColorOptionsProp,
+  );
   const [reorderMovedIndex, setReorderMovedIndex] = useState(-1);
   const [reorderDirection, setReorderDirection] = useState("up");
   const themeFetchedForColorsRef = useRef(false);
   const isPageBlock = source === "page";
 
   useEffect(() => {
-    if (themeColorOptionsProp?.length > 0) setThemeColorOptions(themeColorOptionsProp);
+    if (themeColorOptionsProp?.length > 0)
+      setThemeColorOptions(themeColorOptionsProp);
   }, [themeColorOptionsProp]);
 
   useEffect(() => {
@@ -71,33 +81,56 @@ function WelcometoMESCOEditForm(
       form.setFieldsValue({
         ...getManageSectionInitialValues(PREFIX, data),
         welcomeLabel:
-          data?.welcomeLabel != null ? String(data.welcomeLabel).trim() : "Welcome to MESCO",
+          data?.welcomeLabel != null
+            ? String(data.welcomeLabel).trim()
+            : "Welcome to MESCO",
         mainTitle:
-          data?.mainTitle != null ? String(data.mainTitle).trim() : "Helping people live better tomorrow",
+          data?.mainTitle != null
+            ? String(data.mainTitle).trim()
+            : "Helping people live better tomorrow",
         highlightText:
-          data?.highlightText != null ? String(data.highlightText).trim() : "We are the largest crowdfunding",
+          data?.highlightText != null
+            ? String(data.highlightText).trim()
+            : "We are the largest crowdfunding",
         description:
           data?.description != null ? String(data.description).trim() : "",
         secondaryText:
           data?.secondaryText != null ? String(data.secondaryText).trim() : "",
         buttonText:
-          data?.buttonText != null ? String(data.buttonText).trim() : "Zakat Appeal",
+          data?.buttonText != null
+            ? String(data.buttonText).trim()
+            : "Zakat Appeal",
         buttonLink:
           data?.buttonLink != null ? String(data.buttonLink).trim() : "/",
         imageUrl:
-          data?.imageUrl != null ? String(data.imageUrl).trim() : "/images/helping.png",
+          data?.imageUrl != null
+            ? String(data.imageUrl).trim()
+            : "/images/helping.png",
         imageAlt:
           data?.imageAlt != null ? String(data.imageAlt).trim() : "Helping",
         titleColorKey:
           data?.titleColorKey != null ? String(data.titleColorKey).trim() : "",
         welcometoMESCOHighlightColorKey:
-          data?.welcometoMESCOHighlightColorKey != null ? String(data.welcometoMESCOHighlightColorKey).trim() : "",
+          data?.welcometoMESCOHighlightColorKey != null
+            ? String(data.welcometoMESCOHighlightColorKey).trim()
+            : "",
         welcometoMESCOButtonBgColorKey:
-          data?.welcometoMESCOButtonBgColorKey != null ? String(data.welcometoMESCOButtonBgColorKey).trim() : "",
+          data?.welcometoMESCOButtonBgColorKey != null
+            ? String(data.welcometoMESCOButtonBgColorKey).trim()
+            : "",
         welcometoMESCOButtonTextColorKey:
-          data?.welcometoMESCOButtonTextColorKey != null ? String(data.welcometoMESCOButtonTextColorKey).trim() : "",
+          data?.welcometoMESCOButtonTextColorKey != null
+            ? String(data.welcometoMESCOButtonTextColorKey).trim()
+            : "",
         welcometoMESCOStats:
-          stats.length > 0 ? stats : [normalizeStatItem({}), normalizeStatItem({}), normalizeStatItem({}), normalizeStatItem({})],
+          stats.length > 0
+            ? stats
+            : [
+                normalizeStatItem({}),
+                normalizeStatItem({}),
+                normalizeStatItem({}),
+                normalizeStatItem({}),
+              ],
       });
       const palette = theme?.themePalette || {};
       const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
@@ -127,8 +160,12 @@ function WelcometoMESCOEditForm(
       return;
     }
     Promise.all([
-      fetch(API_PATH, { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
-      fetch("/api/theme", { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
+      fetch(API_PATH, { cache: "no-store" }).then((res) =>
+        res.ok ? res.json() : {},
+      ),
+      fetch("/api/theme", { cache: "no-store" }).then((res) =>
+        res.ok ? res.json() : {},
+      ),
     ])
       .then(([data, theme]) => {
         setFormAndColors(data, theme);
@@ -138,62 +175,89 @@ function WelcometoMESCOEditForm(
   }, [form, isPageBlock, initialDataProp]);
 
   const handleUpdate = () => {
-    form.validateFields().then(() => {
-      const values = form.getFieldsValue(true);
-      const rawStats = values.welcometoMESCOStats ?? [];
-      const stats = Array.isArray(rawStats) ? rawStats.map(normalizeStatItem) : [];
-      const payload = {
-        ...getManageSectionPayload(PREFIX, values),
-        welcomeLabel:
-          values.welcomeLabel != null ? String(values.welcomeLabel).trim() : "Welcome to MESCO",
-        mainTitle:
-          values.mainTitle != null ? String(values.mainTitle).trim() : "Helping people live better tomorrow",
-        highlightText:
-          values.highlightText != null ? String(values.highlightText).trim() : "We are the largest crowdfunding",
-        description:
-          values.description != null ? String(values.description).trim() : "",
-        secondaryText:
-          values.secondaryText != null ? String(values.secondaryText).trim() : "",
-        buttonText:
-          values.buttonText != null ? String(values.buttonText).trim() : "Zakat Appeal",
-        buttonLink:
-          values.buttonLink != null ? String(values.buttonLink).trim() : "/",
-        imageUrl:
-          values.imageUrl != null ? String(values.imageUrl).trim() : "/images/helping.png",
-        imageAlt:
-          values.imageAlt != null ? String(values.imageAlt).trim() : "Helping",
-        titleColorKey:
-          values.titleColorKey != null ? String(values.titleColorKey).trim() : "",
-        welcometoMESCOHighlightColorKey:
-          values.welcometoMESCOHighlightColorKey != null ? String(values.welcometoMESCOHighlightColorKey).trim() : "",
-        welcometoMESCOButtonBgColorKey:
-          values.welcometoMESCOButtonBgColorKey != null ? String(values.welcometoMESCOButtonBgColorKey).trim() : "",
-        welcometoMESCOButtonTextColorKey:
-          values.welcometoMESCOButtonTextColorKey != null ? String(values.welcometoMESCOButtonTextColorKey).trim() : "",
-        welcometoMESCOStats: stats,
-      };
-      if (isPageBlock && onSaveToPage) {
-        onSaveToPage(payload);
-        message.success("Changes will be saved with the page");
-        onSuccess?.();
-        return;
-      }
-      setSaving(true);
-      fetch(API_PATH, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      })
-        .then((res) => {
-          if (!res.ok) return res.json().then((d) => Promise.reject(d));
-        })
-        .then(() => {
-          message.success("Welcome to MESCO saved");
+    form
+      .validateFields()
+      .then(() => {
+        const values = form.getFieldsValue(true);
+        const rawStats = values.welcometoMESCOStats ?? [];
+        const stats = Array.isArray(rawStats)
+          ? rawStats.map(normalizeStatItem)
+          : [];
+        const payload = {
+          ...getManageSectionPayload(PREFIX, values),
+          welcomeLabel:
+            values.welcomeLabel != null
+              ? String(values.welcomeLabel).trim()
+              : "Welcome to MESCO",
+          mainTitle:
+            values.mainTitle != null
+              ? String(values.mainTitle).trim()
+              : "Helping people live better tomorrow",
+          highlightText:
+            values.highlightText != null
+              ? String(values.highlightText).trim()
+              : "We are the largest crowdfunding",
+          description:
+            values.description != null ? String(values.description).trim() : "",
+          secondaryText:
+            values.secondaryText != null
+              ? String(values.secondaryText).trim()
+              : "",
+          buttonText:
+            values.buttonText != null
+              ? String(values.buttonText).trim()
+              : "Zakat Appeal",
+          buttonLink:
+            values.buttonLink != null ? String(values.buttonLink).trim() : "/",
+          imageUrl:
+            values.imageUrl != null
+              ? String(values.imageUrl).trim()
+              : "/images/helping.png",
+          imageAlt:
+            values.imageAlt != null
+              ? String(values.imageAlt).trim()
+              : "Helping",
+          titleColorKey:
+            values.titleColorKey != null
+              ? String(values.titleColorKey).trim()
+              : "",
+          welcometoMESCOHighlightColorKey:
+            values.welcometoMESCOHighlightColorKey != null
+              ? String(values.welcometoMESCOHighlightColorKey).trim()
+              : "",
+          welcometoMESCOButtonBgColorKey:
+            values.welcometoMESCOButtonBgColorKey != null
+              ? String(values.welcometoMESCOButtonBgColorKey).trim()
+              : "",
+          welcometoMESCOButtonTextColorKey:
+            values.welcometoMESCOButtonTextColorKey != null
+              ? String(values.welcometoMESCOButtonTextColorKey).trim()
+              : "",
+          welcometoMESCOStats: stats,
+        };
+        if (isPageBlock && onSaveToPage) {
+          onSaveToPage(payload);
+          message.success("Changes will be saved with the page");
           onSuccess?.();
+          return;
+        }
+        setSaving(true);
+        fetch(API_PATH, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
         })
-        .catch((err) => message.error(err?.error || "Failed to save"))
-        .finally(() => setSaving(false));
-    }).catch(() => {});
+          .then((res) => {
+            if (!res.ok) return res.json().then((d) => Promise.reject(d));
+          })
+          .then(() => {
+            message.success("Welcome to MESCO saved");
+            onSuccess?.();
+          })
+          .catch((err) => message.error(err?.error || "Failed to save"))
+          .finally(() => setSaving(false));
+      })
+      .catch(() => {});
   };
 
   useImperativeHandle(ref, () => ({ update: handleUpdate }), []);
@@ -214,12 +278,24 @@ function WelcometoMESCOEditForm(
           {
             key: "section",
             label: "Manage Section",
-            children: <ManageSectionFields prefix={PREFIX} form={form} themeColorOptions={themeColorOptions} />,
+            children: (
+              <ManageSectionFields
+                prefix={PREFIX}
+                form={form}
+                themeColorOptions={themeColorOptions}
+              />
+            ),
           },
           {
             key: "title",
             label: "Title & Colors",
-            children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("WelcometoMESCO")} />,
+            children: (
+              <TitleAndColorsSection
+                form={form}
+                themeColorOptions={themeColorOptions}
+                {...getTitleAndColorsConfig("WelcometoMESCO")}
+              />
+            ),
           },
           {
             key: "content",
@@ -230,7 +306,9 @@ function WelcometoMESCOEditForm(
                   <Form.Item
                     name="welcomeLabel"
                     label="Welcome Label"
-                    rules={[{ required: true, message: "Welcome label is required" }]}
+                    rules={[
+                      { required: true, message: "Welcome label is required" },
+                    ]}
                   >
                     <Input placeholder="e.g. Welcome to MESCO" size="large" />
                   </Form.Item>
@@ -239,24 +317,46 @@ function WelcometoMESCOEditForm(
                   <Form.Item
                     name="mainTitle"
                     label="Main Title"
-                    rules={[{ required: true, message: "Main title is required" }]}
+                    rules={[
+                      { required: true, message: "Main title is required" },
+                    ]}
                   >
-                    <Input placeholder="e.g. Helping people live better tomorrow" size="large" />
+                    <Input
+                      placeholder="e.g. Helping people live better tomorrow"
+                      size="large"
+                    />
                   </Form.Item>
                 </Col>
                 <Col span={24}>
-                  <Form.Item name="highlightText" label="Highlight Text (colored subtitle)">
-                    <Input placeholder="e.g. We are the largest crowdfunding" size="large" />
+                  <Form.Item
+                    name="highlightText"
+                    label="Highlight Text (colored subtitle)"
+                  >
+                    <Input
+                      placeholder="e.g. We are the largest crowdfunding"
+                      size="large"
+                    />
                   </Form.Item>
                 </Col>
                 <Col span={24}>
                   <Form.Item name="description" label="Main Description">
-                    <Input.TextArea rows={6} placeholder="Main paragraph text" size="large" />
+                    <Input.TextArea
+                      rows={6}
+                      placeholder="Main paragraph text"
+                      size="large"
+                    />
                   </Form.Item>
                 </Col>
                 <Col span={24}>
-                  <Form.Item name="secondaryText" label="Secondary Text (faded)">
-                    <Input.TextArea rows={3} placeholder="Secondary paragraph text (shown at 50% opacity)" size="large" />
+                  <Form.Item
+                    name="secondaryText"
+                    label="Secondary Text (faded)"
+                  >
+                    <Input.TextArea
+                      rows={3}
+                      placeholder="Secondary paragraph text (shown at 50% opacity)"
+                      size="large"
+                    />
                   </Form.Item>
                 </Col>
               </Row>
@@ -287,7 +387,10 @@ function WelcometoMESCOEditForm(
               <Row gutter={[16, 16]}>
                 <Col span={24}>
                   <Form.Item name="imageUrl" label="Image URL">
-                    <Input placeholder="e.g. /images/helping.png" size="large" />
+                    <Input
+                      placeholder="e.g. /images/helping.png"
+                      size="large"
+                    />
                   </Form.Item>
                 </Col>
                 <Col span={24}>
@@ -330,7 +433,9 @@ function WelcometoMESCOEditForm(
                             {...restField}
                             name={[name, "number"]}
                             label="Number / Value"
-                            rules={[{ required: true, message: "Number is required" }]}
+                            rules={[
+                              { required: true, message: "Number is required" },
+                            ]}
                           >
                             <Input placeholder="e.g. 89052" size="large" />
                           </Form.Item>
@@ -340,9 +445,14 @@ function WelcometoMESCOEditForm(
                             {...restField}
                             name={[name, "label"]}
                             label="Label"
-                            rules={[{ required: true, message: "Label is required" }]}
+                            rules={[
+                              { required: true, message: "Label is required" },
+                            ]}
                           >
-                            <Input placeholder="e.g. Educational Scholarships Students" size="large" />
+                            <Input
+                              placeholder="e.g. Educational Scholarships Students"
+                              size="large"
+                            />
                           </Form.Item>
                         </Col>
                         <Col span={24}>
@@ -351,7 +461,10 @@ function WelcometoMESCOEditForm(
                             name={[name, "iconImage"]}
                             label="Icon Image URL"
                           >
-                            <Input placeholder="e.g. /images/icon-education.png" size="large" />
+                            <Input
+                              placeholder="e.g. /images/icon-education.png"
+                              size="large"
+                            />
                           </Form.Item>
                         </Col>
                       </Row>

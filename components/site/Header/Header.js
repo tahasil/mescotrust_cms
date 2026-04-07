@@ -317,9 +317,15 @@ export default function Header({
   volunteerModalCancelColor = "",
 }) {
   /* Resolve modal color keys to actual CSS color values */
-  const resolvedModalBtnBg = volunteerModalBtnBg ? (getColor(volunteerModalBtnBg) || volunteerModalBtnBg) : "#8b1a1a";
-  const resolvedModalBtnText = volunteerModalBtnText ? (getColor(volunteerModalBtnText) || volunteerModalBtnText) : "#fff";
-  const resolvedModalCancelColor = volunteerModalCancelColor ? (getColor(volunteerModalCancelColor) || volunteerModalCancelColor) : "#8b1a1a";
+  const resolvedModalBtnBg = volunteerModalBtnBg
+    ? getColor(volunteerModalBtnBg) || volunteerModalBtnBg
+    : "#8b1a1a";
+  const resolvedModalBtnText = volunteerModalBtnText
+    ? getColor(volunteerModalBtnText) || volunteerModalBtnText
+    : "#fff";
+  const resolvedModalCancelColor = volunteerModalCancelColor
+    ? getColor(volunteerModalCancelColor) || volunteerModalCancelColor
+    : "#8b1a1a";
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openAccordion, setOpenAccordion] = useState(null);
@@ -422,7 +428,12 @@ export default function Header({
         <HeaderMainWrapper>
           <Logo href="/" onClick={closeMobile}>
             {logoType === "image" && logoUrl ? (
-              <img loading="lazy" src={logoUrl} alt={title} className="img-fluid" />
+              <img
+                loading="lazy"
+                src={logoUrl}
+                alt={title}
+                className="img-fluid"
+              />
             ) : (
               <span>{title}</span>
             )}
@@ -515,7 +526,11 @@ export default function Header({
                 {volunteerLabel}
                 <IconWrap>
                   {volunteerIconUrl ? (
-                    <img loading="lazy" src={volunteerIconUrl} alt={volunteerLabel} />
+                    <img
+                      loading="lazy"
+                      src={volunteerIconUrl}
+                      alt={volunteerLabel}
+                    />
                   ) : null}
                 </IconWrap>
               </BtnVolunteer>
@@ -656,7 +671,11 @@ export default function Header({
             >
               <IconWrap>
                 {volunteerIconMobile ? (
-                  <img loading="lazy" src={volunteerIconMobile} alt={volunteerLabel} />
+                  <img
+                    loading="lazy"
+                    src={volunteerIconMobile}
+                    alt={volunteerLabel}
+                  />
                 ) : null}
               </IconWrap>
               {volunteerLabel}
@@ -671,7 +690,11 @@ export default function Header({
             >
               <IconWrap>
                 {donateIconMobile ? (
-                  <img loading="lazy" src={donateIconMobile} alt={donateLabel} />
+                  <img
+                    loading="lazy"
+                    src={donateIconMobile}
+                    alt={donateLabel}
+                  />
                 ) : null}
               </IconWrap>
               {donateLabel}
