@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -12,6 +12,10 @@ import {
   Input,
   Badge,
   Avatar,
+  Popover,
+  List,
+  Typography,
+  Divider,
 } from "antd";
 import {
   MenuFoldOutlined,
@@ -30,6 +34,9 @@ import {
   BellOutlined,
   GithubOutlined,
   HeartOutlined,
+  ClockCircleOutlined,
+  MessageOutlined,
+  DollarOutlined,
 } from "@ant-design/icons";
 import { signOut } from "next-auth/react";
 import { ThemeSider } from "@/styles/Theme";
@@ -144,6 +151,114 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
 
+  const [notifications, setNotifications] = useState([]);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [bellShake, setBellShake] = useState(false);
+  const prevCountRef = useRef(0);
+
+  const fetchNotifications = useCallback(() => {
+    Promise.all([
+      fetch("/api/admin/contacts?limit=20").then((r) => (r.ok ? r.json() : { items: [] })),
+      fetch("/api/admin/donations?limit=20").then((r) => (r.ok ? r.json() : { items: [] })),
+    ]).then(([contacts, donations]) => {
+      const notifs = [];
+      (contacts.items || []).forEach((c) => {
+        if (!c.isRead) {
+          notifs.push({
+            id: c._id,
+            type: "contact",
+            icon: <MessageOutlined style={{ color: "#1677ff" }} />,
+            title: `New message from ${c.payload?.name || "Unknown"}`,
+            time: c.createdAt,
+            link: "/admin/contacts",
+          });
+        }
+      });
+      (donations.items || []).forEach((d) => {
+        if (d.status === "success") {
+          notifs.push({
+            id: d._id,
+            type: "donation",
+            icon: <DollarOutlined style={{ color: "#52c41a" }} />,
+            title: `₹${Number(d.amount).toLocaleString("en-IN")} donation from ${d.donor?.name || "Unknown"}`,
+            time: d.createdAt,
+            link: "/admin/donations",
+          });
+        }
+      });
+      notifs.sort((a, b) => new Date(b.time) - new Date(a.time));
+      const sliced = notifs.slice(0, 10);
+      if (sliced.length > prevCountRef.current && prevCountRef.current !== 0) {
+        setBellShake(true);
+        setTimeout(() => setBellShake(false), 1500);
+      }
+      prevCountRef.current = sliced.length;
+      setNotifications(sliced);
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 5000);
+    /* Listen for instant notification refresh from form submissions */
+    const handleNewSubmission = () => setTimeout(fetchNotifications, 500);
+    window.addEventListener("new-contact-submission", handleNewSubmission);
+    window.addEventListener("new-donation", handleNewSubmission);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("new-contact-submission", handleNewSubmission);
+      window.removeEventListener("new-donation", handleNewSubmission);
+    };
+  }, [fetchNotifications]);
+
+  const timeAgo = (dateStr) => {
+    if (!dateStr) return "";
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins} min ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs} hrs ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days} day${days > 1 ? "s" : ""} ago`;
+  };
+
+  const notificationContent = (
+    <div style={{ width: 320 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px" }}>
+        <Typography.Text strong>{notifications.length} New Notifications</Typography.Text>
+        <Typography.Link onClick={() => { setNotifications([]); setNotifOpen(false); }} style={{ fontSize: 13 }}>Clear all</Typography.Link>
+      </div>
+      <Divider style={{ margin: 0 }} />
+      <List
+        dataSource={notifications}
+        locale={{ emptyText: "No new notifications" }}
+        renderItem={(item) => (
+          <List.Item
+            style={{ padding: "10px 16px", cursor: "pointer", transition: "background 0.2s" }}
+            onClick={() => { setNotifOpen(false); window.location.href = item.link; }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(0,0,0,0.02)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
+            <List.Item.Meta
+              avatar={<Avatar size={36} icon={item.icon} style={{ background: "rgba(0,0,0,0.04)" }} />}
+              title={<span style={{ fontSize: 13, fontWeight: 500 }}>{item.title}</span>}
+              description={<span style={{ fontSize: 12, color: "#999", display: "flex", alignItems: "center", gap: 4 }}><ClockCircleOutlined style={{ fontSize: 11 }} /> {timeAgo(item.time)}</span>}
+            />
+          </List.Item>
+        )}
+      />
+      {notifications.length > 0 && (
+        <>
+          <Divider style={{ margin: 0 }} />
+          <div style={{ textAlign: "center", padding: "10px 16px" }}>
+            <Typography.Link onClick={() => setNotifOpen(false)} href="/admin/contacts" style={{ fontSize: 13 }}>View all</Typography.Link>
+          </div>
+        </>
+      )}
+    </div>
+  );
+
   const userMenu = {
     items: [
       {
@@ -157,6 +272,35 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
+      <style>{`
+        @keyframes bellShake {
+          0% { transform: rotate(0); }
+          10% { transform: rotate(14deg); }
+          20% { transform: rotate(-14deg); }
+          30% { transform: rotate(10deg); }
+          40% { transform: rotate(-10deg); }
+          50% { transform: rotate(6deg); }
+          60% { transform: rotate(-6deg); }
+          70% { transform: rotate(2deg); }
+          80% { transform: rotate(-2deg); }
+          90% { transform: rotate(0); }
+          100% { transform: rotate(0); }
+        }
+        @keyframes badgePulse {
+          0% { box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.7); }
+          70% { box-shadow: 0 0 0 8px rgba(255, 77, 79, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(255, 77, 79, 0); }
+        }
+        .bell-shake .anticon-bell {
+          display: inline-block;
+          animation: bellShake 0.8s ease-in-out;
+          transform-origin: top center;
+        }
+        .bell-shake + .ant-badge-count,
+        .ant-badge .ant-badge-count {
+          animation: badgePulse 1.5s infinite;
+        }
+      `}</style>
       <ThemeSider
         trigger={null}
         collapsible
@@ -238,16 +382,27 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
                 />
               }
             />
-            <Badge count={2} size="small" offset={[-2, 2]}>
-              <Button
-                type="text"
-                icon={
-                  <BellOutlined
-                    style={{ fontSize: 18, color: "rgba(0, 0, 0, 0.65)" }}
-                  />
-                }
-              />
-            </Badge>
+            <Popover
+              content={notificationContent}
+              trigger="click"
+              open={notifOpen}
+              onOpenChange={setNotifOpen}
+              placement="bottomRight"
+              arrow={false}
+              overlayInnerStyle={{ padding: 0, borderRadius: 12, overflow: "hidden" }}
+            >
+              <Badge count={notifications.length} size="small" offset={[-2, 2]}>
+                <Button
+                  type="text"
+                  className={bellShake ? "bell-shake" : ""}
+                  icon={
+                    <BellOutlined
+                      style={{ fontSize: 18, color: "rgba(0, 0, 0, 0.65)" }}
+                    />
+                  }
+                />
+              </Badge>
+            </Popover>
             <Dropdown menu={userMenu} placement="bottomRight">
               <Avatar
                 size="default"

@@ -361,6 +361,7 @@ export default function Header({
       antMessage.success("Message sent successfully!");
       modalFormRef.current?.reset();
       setModalOpen(false);
+      window.dispatchEvent(new Event("new-contact-submission"));
     } else if (modalState.error) {
       antMessage.error(modalState.error);
     }

@@ -195,6 +195,7 @@ export default function ContactForm({
     if (state.success) {
       message.success("Message sent. We will get back to you soon.");
       formRef.current?.reset();
+      window.dispatchEvent(new Event("new-contact-submission"));
     } else if (state.error) {
       message.error(state.error);
     }
