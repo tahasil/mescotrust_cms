@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { message } from "antd";
 import {
   SubscribeWrapper,
   SubscribeCard,
@@ -37,11 +38,29 @@ export default function Subscribe(props) {
       .catch(() => setTheme(null));
   }, [props?.subscribeSubtitle, props?.subscribeTitle]);
 
-  const handleSubmit = (e) => {
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (email.trim()) {
-      // TODO: wire to your newsletter API
-      console.log("Subscribe:", email);
+    if (!email.trim()) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), source: "subscribe-section" }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        message.success(data.message || "Successfully subscribed!");
+        setEmail("");
+      } else {
+        message.error(data.error || "Failed to subscribe");
+      }
+    } catch {
+      message.error("Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
 

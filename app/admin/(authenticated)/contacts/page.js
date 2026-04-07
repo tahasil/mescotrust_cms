@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Table, Button, Space, Tag, Modal, Descriptions, message } from "antd";
 import { CheckOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons";
+import { formatDateTime } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
 
 export default function AdminContactsPage() {
@@ -95,7 +96,7 @@ export default function AdminContactsPage() {
             <Descriptions.Item label="Page">{viewItem.page || "—"}</Descriptions.Item>
             <Descriptions.Item label="Source">{viewItem.source || "—"}</Descriptions.Item>
             <Descriptions.Item label="Status">{viewItem.isRead ? "Read" : "Unread"}</Descriptions.Item>
-            <Descriptions.Item label="Submitted">{viewItem.createdAt ? new Date(viewItem.createdAt).toLocaleString() : "—"}</Descriptions.Item>
+            <Descriptions.Item label="Submitted">{formatDateTime(viewItem.createdAt)}</Descriptions.Item>
           </Descriptions>
         )}
       </Modal>

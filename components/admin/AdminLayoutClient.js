@@ -137,6 +137,15 @@ const menuItems = [
     ),
   },
   {
+    key: "/admin/subscribers",
+    icon: <MailOutlined />,
+    label: (
+      <Link href="/admin/subscribers" style={linkStyle}>
+        Subscribers
+      </Link>
+    ),
+  },
+  {
     key: "/admin/users",
     icon: <TeamOutlined />,
     label: (
@@ -160,7 +169,8 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
     Promise.all([
       fetch("/api/admin/contacts?limit=20").then((r) => (r.ok ? r.json() : { items: [] })),
       fetch("/api/admin/donations?limit=20").then((r) => (r.ok ? r.json() : { items: [] })),
-    ]).then(([contacts, donations]) => {
+      fetch("/api/admin/subscribers?limit=10").then((r) => (r.ok ? r.json() : { items: [] })),
+    ]).then(([contacts, donations, subscribers]) => {
       const notifs = [];
       (contacts.items || []).forEach((c) => {
         if (!c.isRead) {
@@ -183,6 +193,20 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
             title: `₹${Number(d.amount).toLocaleString("en-IN")} donation from ${d.donor?.name || "Unknown"}`,
             time: d.createdAt,
             link: "/admin/donations",
+          });
+        }
+      });
+      /* Show recent subscribers (last 24 hours) */
+      const oneDayAgo = Date.now() - 86400000;
+      (subscribers.items || []).forEach((s) => {
+        if (s.status === "active" && new Date(s.createdAt).getTime() > oneDayAgo) {
+          notifs.push({
+            id: s._id,
+            type: "subscriber",
+            icon: <MailOutlined style={{ color: "#722ed1" }} />,
+            title: `New subscriber: ${s.email}`,
+            time: s.createdAt,
+            link: "/admin/subscribers",
           });
         }
       });

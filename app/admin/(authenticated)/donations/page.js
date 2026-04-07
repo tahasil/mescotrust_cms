@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Table, Button, Space, Tag, Input, Select, Modal, Descriptions, message } from "antd";
 import { EyeOutlined, SearchOutlined } from "@ant-design/icons";
+import { formatDate, formatDateTime } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
 
 const STATUS_COLORS = {
@@ -125,7 +126,7 @@ export default function AdminDonationsPage() {
             dataIndex: "createdAt",
             key: "date",
             width: 140,
-            render: (d) => d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—",
+            render: (d) => formatDate(d),
           },
           {
             title: "",
@@ -174,7 +175,7 @@ export default function AdminDonationsPage() {
             )}
 
             <Descriptions.Item label="Submitted" span={2}>
-              {viewItem.createdAt ? new Date(viewItem.createdAt).toLocaleString() : "—"}
+              {formatDateTime(viewItem.createdAt)}
             </Descriptions.Item>
           </Descriptions>
         )}
