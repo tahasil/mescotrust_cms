@@ -13,7 +13,7 @@ import {
   Select,
   Tag,
 } from "antd";
-import { PlusOutlined, EditOutlined, DeleteOutlined, FolderOutlined } from "@ant-design/icons";
+import { PlusOutlined, EditOutlined, DeleteOutlined, FolderOutlined, SearchOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { ThemeAdminCard } from "@/styles/Theme";
 
@@ -25,6 +25,7 @@ export default function AdminPagesPage() {
   const [editingId, setEditingId] = useState(null);
   const [form] = Form.useForm();
   const [folderFilter, setFolderFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchPages = async () => {
     setLoading(true);
@@ -109,11 +110,17 @@ export default function AdminPagesPage() {
       .map((p) => p.slug.substring(0, p.slug.lastIndexOf("/")))
   )].sort();
 
-  const filteredList = folderFilter === "all"
-    ? list
-    : folderFilter === "root"
-      ? list.filter((p) => !p.slug || !p.slug.includes("/"))
-      : list.filter((p) => p.slug && p.slug.startsWith(folderFilter + "/"));
+  const filteredList = list.filter((p) => {
+    const matchesFolder = folderFilter === "all"
+      ? true
+      : folderFilter === "root"
+        ? !p.slug || !p.slug.includes("/")
+        : p.slug && p.slug.startsWith(folderFilter + "/");
+    const matchesSearch = !searchQuery
+      || (p.title && p.title.toLowerCase().includes(searchQuery.toLowerCase()))
+      || (p.slug && p.slug.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesFolder && matchesSearch;
+  });
 
   const columns = [
     {
@@ -176,11 +183,21 @@ export default function AdminPagesPage() {
     <ThemeAdminCard
       title="Pages"
       extra={
-        <Link href="/admin/pages/new">
-          <Button type="primary" icon={<PlusOutlined />}>
-            Add page
-          </Button>
-        </Link>
+        <Space>
+          <Input
+            prefix={<SearchOutlined />}
+            placeholder="Search pages..."
+            allowClear
+            style={{ width: 220 }}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <Link href="/admin/pages/new">
+            <Button type="primary" icon={<PlusOutlined />}>
+              Add page
+            </Button>
+          </Link>
+        </Space>
       }
     >
       {folders.length > 0 && (
