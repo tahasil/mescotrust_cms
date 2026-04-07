@@ -24,6 +24,7 @@
     "gsap": "^3.14.2",
     "isomorphic-dompurify": "^2.36.0",
     "lenis": "^1.3.19",
+    "lightgallery": "^2.9.0",
     "mongoose": "^8.8.0",
     "next": "14.2.18",
     "next-auth": "^4.24.10",

@@ -1,22 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Row, Col } from "antd";
-import {
-  ArrowRightOutlined,
-  LeftOutlined,
-  RightOutlined,
-} from "@ant-design/icons";
+import { ArrowRightOutlined } from "@ant-design/icons";
 import styled from "styled-components";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
   FullWidthBackground,
   getColor,
   PageContainer,
   ThemeButton,
-  ThemeModal,
 } from "@/styles/Theme";
 
+/* ── lightGallery (dynamic import to avoid SSR issues) ── */
+import LightGallery from "lightgallery/react";
+import lgThumbnail from "lightgallery/plugins/thumbnail";
+import lgZoom from "lightgallery/plugins/zoom";
+import lgFullscreen from "lightgallery/plugins/fullscreen";
+import "lightgallery/css/lightgallery.css";
+import "lightgallery/css/lg-thumbnail.css";
+import "lightgallery/css/lg-zoom.css";
+import "lightgallery/css/lg-fullscreen.css";
+
+/* ── Styled Components ── */
 const GalleryTabs = styled.div`
   display: flex;
   align-items: center;
@@ -44,7 +51,6 @@ const GalleryTab = styled.button`
     p.$active
       ? p.$tabTextColor || "#fff"
       : p.$tabInactiveTextColor || "#050505"};
-
   &:hover {
     border-color: ${(p) =>
       p.$tabHoverBorderColor || p.$tabBgColor || getColor("primary")};
@@ -135,89 +141,9 @@ const GalleryCardArrow = styled.span`
   }
 `;
 
-const ModalNavButton = styled.button`
-  position: absolute;
-  top: 50%;
-  ${(p) => (p.$position === "left" ? "left: -50px;" : "right: -50px;")}
-  transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: none;
-  background: ${(p) => p.$color || getColor("primary")};
-  color: #fff;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 10;
-  transition: opacity 0.2s ease;
-  &:hover {
-    opacity: 0.85;
-  }
-  @media (max-width: 992px) {
-    ${(p) => (p.$position === "left" ? "left: 10px;" : "right: 10px;")}
-    background: rgba(0, 0, 0, 0.6);
-  }
-`;
-
-const ModalImageWrapper = styled.div`
-  width: 100%;
-  border-radius: 16px;
-  overflow: hidden;
-  position: relative;
-  img {
-    width: 100%;
-    display: block;
-    object-fit: cover;
-    max-height: 80vh;
-  }
-`;
-
-const GalleryLightbox = styled(ThemeModal)`
-  .ant-modal-content {
-    aspect-ratio: unset !important;
-    filter: none !important;
-    overflow: visible !important;
-    padding: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-  }
-  .ant-modal-body {
-    position: relative;
-  }
-  .ant-modal-close {
-    display: none !important;
-  }
-`;
-
-const ModalImageTitle = styled.div`
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 24px 20px;
-  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
-  color: #fff;
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1.3;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  @media (max-width: 768px) {
-    font-size: 14px;
-    padding: 16px 14px;
-  }
-`;
-
-const ModalCounter = styled.span`
-  font-size: 13px;
-  font-weight: 400;
-  opacity: 0.8;
-  white-space: nowrap;
-  margin-left: 16px;
+/* Hidden container for lightGallery items */
+const HiddenGallery = styled.div`
+  display: none;
 `;
 
 function normalizeItem(it) {
@@ -226,8 +152,9 @@ function normalizeItem(it) {
     : it?.category
       ? [String(it.category).trim()]
       : [];
-  // Support both old (single image) and new (album) format
-  const images = Array.isArray(it?.images) ? it.images.map((img) => (typeof img === "string" ? img : img?.url || "").trim()).filter(Boolean) : [];
+  const images = Array.isArray(it?.images)
+    ? it.images.map((img) => (typeof img === "string" ? img : img?.url || "").trim()).filter(Boolean)
+    : [];
   const cover = it?.image != null ? String(it.image).trim() : "";
   return {
     title: it?.title != null ? String(it.title).trim() : "",
@@ -254,7 +181,6 @@ export default function PhotoGallery(props) {
 
   const accentColorKey = (props?.photoGalleryAccentColorKey ?? "").toString().trim();
   const accentColor = accentColorKey ? getColor(accentColorKey) : getColor("primary");
-
   const tabBgKey = (props?.photoGalleryTabBgColorKey ?? "").toString().trim();
   const tabBgColor = tabBgKey ? getColor(tabBgKey) : undefined;
   const tabTextKey = (props?.photoGalleryTabTextColorKey ?? "").toString().trim();
@@ -274,9 +200,9 @@ export default function PhotoGallery(props) {
   const viewMoreLink = (props?.photoGalleryViewMoreLink ?? "").toString().trim();
 
   const [activeTab, setActiveTab] = useState("All");
-  const [modalOpen, setModalOpen] = useState(false);
-  const [activeAlbumIndex, setActiveAlbumIndex] = useState(0);
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  /* Store lightGallery instances per album */
+  const lgInstances = useRef({});
 
   const allFilteredItems = activeTab === "All"
     ? items
@@ -284,23 +210,10 @@ export default function PhotoGallery(props) {
   const filteredItems = limitEnabled ? allFilteredItems.slice(0, limitCount) : allFilteredItems;
 
   const openAlbum = (albumIndex) => {
-    setActiveAlbumIndex(albumIndex);
-    setActiveImageIndex(0);
-    setModalOpen(true);
-  };
-
-  const currentAlbum = filteredItems[activeAlbumIndex];
-  const currentImages = currentAlbum?.images || [];
-  const currentImage = currentImages[activeImageIndex] || currentAlbum?.image || "";
-
-  const goToPrev = () => {
-    if (currentImages.length <= 1) return;
-    setActiveImageIndex((prev) => (prev === 0 ? currentImages.length - 1 : prev - 1));
-  };
-
-  const goToNext = () => {
-    if (currentImages.length <= 1) return;
-    setActiveImageIndex((prev) => (prev === currentImages.length - 1 ? 0 : prev + 1));
+    const lgInstance = lgInstances.current[albumIndex];
+    if (lgInstance) {
+      lgInstance.openGallery(0);
+    }
   };
 
   const PREFIX = "photoGallery";
@@ -407,44 +320,31 @@ export default function PhotoGallery(props) {
         )}
       </PageContainer>
 
-      <GalleryLightbox
-        open={modalOpen}
-        onCancel={() => setModalOpen(false)}
-        footer={null}
-        centered
-        width={900}
-        closable={false}
-        styles={{
-          mask: {
-            backdropFilter: "blur(3px)",
-            background: "rgba(0, 0, 0, 0.5)",
-          },
-        }}
-      >
-        {currentAlbum && (
-          <>
-            {currentImages.length > 1 && (
-              <ModalNavButton $position="left" $color={accentColor} onClick={goToPrev}>
-                <LeftOutlined />
-              </ModalNavButton>
-            )}
-            <ModalImageWrapper>
-              <img loading="lazy" src={currentImage} alt={currentAlbum.title} />
-              <ModalImageTitle>
-                <span>{currentAlbum.title}</span>
-                {currentImages.length > 1 && (
-                  <ModalCounter>{activeImageIndex + 1} / {currentImages.length}</ModalCounter>
-                )}
-              </ModalImageTitle>
-            </ModalImageWrapper>
-            {currentImages.length > 1 && (
-              <ModalNavButton $position="right" $color={accentColor} onClick={goToNext}>
-                <RightOutlined />
-              </ModalNavButton>
-            )}
-          </>
-        )}
-      </GalleryLightbox>
+      {/* Hidden lightGallery instances — one per album */}
+      {filteredItems.map((item, index) => (
+        <HiddenGallery key={`lg-${index}`}>
+          <LightGallery
+            onInit={(ref) => { lgInstances.current[index] = ref.instance; }}
+            speed={500}
+            plugins={[lgThumbnail, lgZoom, lgFullscreen]}
+            download={false}
+            counter={true}
+            thumbnail={true}
+            exThumbImage="data-thumb"
+          >
+            {item.images.map((img, imgIdx) => (
+              <a
+                key={imgIdx}
+                href={img}
+                data-thumb={img}
+                data-sub-html={`<h4>${item.title}</h4>${item.images.length > 1 ? `<p>${imgIdx + 1} / ${item.images.length}</p>` : ""}`}
+              >
+                <img src={img} alt={item.title} />
+              </a>
+            ))}
+          </LightGallery>
+        </HiddenGallery>
+      ))}
     </FullWidthBackground>
   );
 }
