@@ -6,7 +6,6 @@ import {
   ArrowRightOutlined,
   LeftOutlined,
   RightOutlined,
-  CloseOutlined,
 } from "@ant-design/icons";
 import styled from "styled-components";
 import Link from "next/link";
@@ -33,7 +32,6 @@ const GalleryTab = styled.button`
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  /* border: 1px solid rgba(0, 0, 0, 0.12); */
   transition: all 0.25s ease;
   border: 1px solid
     ${(p) =>
@@ -72,11 +70,9 @@ const GalleryCard = styled.div`
     display: block;
     transition: transform 0.4s ease;
   }
-
   &:hover img {
     transform: scale(1.05);
   }
-
   &::after {
     content: "";
     position: absolute;
@@ -103,6 +99,19 @@ const GalleryCardTitle = styled.div`
   }
 `;
 
+const GalleryCardCount = styled.span`
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+  z-index: 1;
+`;
+
 const GalleryCardArrow = styled.span`
   position: absolute;
   bottom: 28px;
@@ -120,7 +129,6 @@ const GalleryCardArrow = styled.span`
   opacity: 0;
   transform: translateY(8px);
   transition: all 0.3s ease;
-
   ${GalleryCard}:hover & {
     opacity: 1;
     transform: translateY(0);
@@ -145,11 +153,9 @@ const ModalNavButton = styled.button`
   cursor: pointer;
   z-index: 10;
   transition: opacity 0.2s ease;
-
   &:hover {
     opacity: 0.85;
   }
-
   @media (max-width: 992px) {
     ${(p) => (p.$position === "left" ? "left: 10px;" : "right: 10px;")}
     background: rgba(0, 0, 0, 0.6);
@@ -161,7 +167,6 @@ const ModalImageWrapper = styled.div`
   border-radius: 16px;
   overflow: hidden;
   position: relative;
-
   img {
     width: 100%;
     display: block;
@@ -198,22 +203,37 @@ const ModalImageTitle = styled.div`
   font-size: 18px;
   font-weight: 600;
   line-height: 1.3;
-
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
   @media (max-width: 768px) {
     font-size: 14px;
     padding: 16px 14px;
   }
 `;
 
+const ModalCounter = styled.span`
+  font-size: 13px;
+  font-weight: 400;
+  opacity: 0.8;
+  white-space: nowrap;
+  margin-left: 16px;
+`;
+
 function normalizeItem(it) {
+  const cats = Array.isArray(it?.categories)
+    ? it.categories
+    : it?.category
+      ? [String(it.category).trim()]
+      : [];
+  // Support both old (single image) and new (album) format
+  const images = Array.isArray(it?.images) ? it.images.map((img) => (typeof img === "string" ? img : img?.url || "").trim()).filter(Boolean) : [];
+  const cover = it?.image != null ? String(it.image).trim() : "";
   return {
     title: it?.title != null ? String(it.title).trim() : "",
-    image: it?.image != null ? String(it.image).trim() : "",
-    categories: Array.isArray(it?.categories)
-      ? it.categories
-      : it?.category
-        ? [String(it.category).trim()]
-        : [],
+    image: cover,
+    images: images.length > 0 ? images : (cover ? [cover] : []),
+    categories: cats.filter((c) => c !== "All"),
   };
 }
 
@@ -221,8 +241,7 @@ const DEFAULT_TABS = ["All", "Education", "Medical", "Events", "Community"];
 
 export default function PhotoGallery(props) {
   const rawItems =
-    Array.isArray(props?.photoGalleryItems) &&
-    props.photoGalleryItems.length > 0
+    Array.isArray(props?.photoGalleryItems) && props.photoGalleryItems.length > 0
       ? props.photoGalleryItems
       : [];
   const items = rawItems.map(normalizeItem).filter((it) => it.image);
@@ -233,234 +252,109 @@ export default function PhotoGallery(props) {
           .filter(Boolean)
       : DEFAULT_TABS;
 
-  const accentColorKey = (props?.photoGalleryAccentColorKey ?? "")
-    .toString()
-    .trim();
-  const accentColor = accentColorKey
-    ? getColor(accentColorKey)
-    : getColor("primary");
+  const accentColorKey = (props?.photoGalleryAccentColorKey ?? "").toString().trim();
+  const accentColor = accentColorKey ? getColor(accentColorKey) : getColor("primary");
 
   const tabBgKey = (props?.photoGalleryTabBgColorKey ?? "").toString().trim();
   const tabBgColor = tabBgKey ? getColor(tabBgKey) : undefined;
-  const tabTextKey = (props?.photoGalleryTabTextColorKey ?? "")
-    .toString()
-    .trim();
+  const tabTextKey = (props?.photoGalleryTabTextColorKey ?? "").toString().trim();
   const tabTextColor = tabTextKey ? getColor(tabTextKey) : undefined;
-  const tabBorderKey = (props?.photoGalleryTabBorderColorKey ?? "")
-    .toString()
-    .trim();
+  const tabBorderKey = (props?.photoGalleryTabBorderColorKey ?? "").toString().trim();
   const tabBorderColor = tabBorderKey ? getColor(tabBorderKey) : undefined;
-  const tabInactiveTextKey = (props?.photoGalleryTabInactiveTextColorKey ?? "")
-    .toString()
-    .trim();
-  const tabInactiveTextColor = tabInactiveTextKey
-    ? getColor(tabInactiveTextKey)
-    : undefined;
-  const tabHoverBorderKey = (props?.photoGalleryTabHoverBorderColorKey ?? "")
-    .toString()
-    .trim();
-  const tabHoverBorderColor = tabHoverBorderKey
-    ? getColor(tabHoverBorderKey)
-    : undefined;
-  const tabHoverTextKey = (props?.photoGalleryTabHoverTextColorKey ?? "")
-    .toString()
-    .trim();
-  const tabHoverTextColor = tabHoverTextKey
-    ? getColor(tabHoverTextKey)
-    : undefined;
+  const tabInactiveTextKey = (props?.photoGalleryTabInactiveTextColorKey ?? "").toString().trim();
+  const tabInactiveTextColor = tabInactiveTextKey ? getColor(tabInactiveTextKey) : undefined;
+  const tabHoverBorderKey = (props?.photoGalleryTabHoverBorderColorKey ?? "").toString().trim();
+  const tabHoverBorderColor = tabHoverBorderKey ? getColor(tabHoverBorderKey) : undefined;
+  const tabHoverTextKey = (props?.photoGalleryTabHoverTextColorKey ?? "").toString().trim();
+  const tabHoverTextColor = tabHoverTextKey ? getColor(tabHoverTextKey) : undefined;
 
-  const limitEnabled =
-    props?.photoGalleryLimitEnabled === true ||
-    props?.photoGalleryLimitEnabled === "true";
-  const limitCount =
-    props?.photoGalleryLimitCount != null
-      ? Number(props.photoGalleryLimitCount)
-      : 6;
-  const viewMoreText = (props?.photoGalleryViewMoreText ?? "View More")
-    .toString()
-    .trim();
-  const viewMoreLink = (props?.photoGalleryViewMoreLink ?? "")
-    .toString()
-    .trim();
+  const limitEnabled = props?.photoGalleryLimitEnabled === true || props?.photoGalleryLimitEnabled === "true";
+  const limitCount = props?.photoGalleryLimitCount != null ? Number(props.photoGalleryLimitCount) : 6;
+  const viewMoreText = (props?.photoGalleryViewMoreText ?? "View More").toString().trim();
+  const viewMoreLink = (props?.photoGalleryViewMoreLink ?? "").toString().trim();
 
   const [activeTab, setActiveTab] = useState("All");
   const [modalOpen, setModalOpen] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [activeAlbumIndex, setActiveAlbumIndex] = useState(0);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
-  const allFilteredItems =
-    activeTab === "All"
-      ? items
-      : items.filter(
-          (item) =>
-            Array.isArray(item.categories) &&
-            item.categories.includes(activeTab),
-        );
-  const filteredItems = limitEnabled
-    ? allFilteredItems.slice(0, limitCount)
-    : allFilteredItems;
+  const allFilteredItems = activeTab === "All"
+    ? items
+    : items.filter((item) => Array.isArray(item.categories) && item.categories.includes(activeTab));
+  const filteredItems = limitEnabled ? allFilteredItems.slice(0, limitCount) : allFilteredItems;
 
-  const openModal = (index) => {
-    setCurrentIndex(index);
+  const openAlbum = (albumIndex) => {
+    setActiveAlbumIndex(albumIndex);
+    setActiveImageIndex(0);
     setModalOpen(true);
   };
 
+  const currentAlbum = filteredItems[activeAlbumIndex];
+  const currentImages = currentAlbum?.images || [];
+  const currentImage = currentImages[activeImageIndex] || currentAlbum?.image || "";
+
   const goToPrev = () => {
-    setCurrentIndex((prev) =>
-      prev === 0 ? filteredItems.length - 1 : prev - 1,
-    );
+    if (currentImages.length <= 1) return;
+    setActiveImageIndex((prev) => (prev === 0 ? currentImages.length - 1 : prev - 1));
   };
 
   const goToNext = () => {
-    setCurrentIndex((prev) =>
-      prev === filteredItems.length - 1 ? 0 : prev + 1,
-    );
+    if (currentImages.length <= 1) return;
+    setActiveImageIndex((prev) => (prev === currentImages.length - 1 ? 0 : prev + 1));
   };
-
-  const currentItem = filteredItems[currentIndex];
 
   const PREFIX = "photoGallery";
 
-  const sectionBgType = (
-    props?.[PREFIX + "SectionBgType"] ?? "default"
-  ).toString();
-  const sectionBgImage = (props?.[PREFIX + "SectionBgImage"] ?? "")
-    .toString()
-    .trim();
-  const sectionBgColorKey = (props?.[PREFIX + "SectionBgColorKey"] ?? "")
-    .toString()
-    .trim();
-  const sectionBgClassName =
-    sectionBgType === "default" ? "defaultBackground" : undefined;
+  const sectionBgType = (props?.[PREFIX + "SectionBgType"] ?? "default").toString();
+  const sectionBgImage = (props?.[PREFIX + "SectionBgImage"] ?? "").toString().trim();
+  const sectionBgColorKey = (props?.[PREFIX + "SectionBgColorKey"] ?? "").toString().trim();
+  const sectionBgClassName = sectionBgType === "default" ? "defaultBackground" : undefined;
   const sectionBgStyleBase =
     sectionBgType === "image" && sectionBgImage
-      ? {
-          backgroundImage: `url(${sectionBgImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center center",
-          backgroundRepeat: "no-repeat",
-        }
+      ? { backgroundImage: `url(${sectionBgImage})`, backgroundSize: "cover", backgroundPosition: "center center", backgroundRepeat: "no-repeat" }
       : sectionBgType === "color" && sectionBgColorKey
-        ? {
-            backgroundColor: getColor(sectionBgColorKey),
-            backgroundImage: "none",
-          }
+        ? { backgroundColor: getColor(sectionBgColorKey), backgroundImage: "none" }
         : undefined;
-  const sectionPaddingTop =
-    props?.[PREFIX + "SectionPaddingTop"] != null
-      ? Number(props[PREFIX + "SectionPaddingTop"])
-      : null;
-  const sectionPaddingBottom =
-    props?.[PREFIX + "SectionPaddingBottom"] != null
-      ? Number(props[PREFIX + "SectionPaddingBottom"])
-      : null;
-  const sectionMarginTop =
-    props?.[PREFIX + "SectionMarginTop"] != null
-      ? Number(props[PREFIX + "SectionMarginTop"])
-      : null;
-  const sectionMarginBottom =
-    props?.[PREFIX + "SectionMarginBottom"] != null
-      ? Number(props[PREFIX + "SectionMarginBottom"])
-      : null;
+  const sectionPaddingTop = props?.[PREFIX + "SectionPaddingTop"] != null ? Number(props[PREFIX + "SectionPaddingTop"]) : null;
+  const sectionPaddingBottom = props?.[PREFIX + "SectionPaddingBottom"] != null ? Number(props[PREFIX + "SectionPaddingBottom"]) : null;
+  const sectionMarginTop = props?.[PREFIX + "SectionMarginTop"] != null ? Number(props[PREFIX + "SectionMarginTop"]) : null;
+  const sectionMarginBottom = props?.[PREFIX + "SectionMarginBottom"] != null ? Number(props[PREFIX + "SectionMarginBottom"]) : null;
   const sectionBgStyle =
-    sectionBgStyleBase ||
-    sectionPaddingTop != null ||
-    sectionPaddingBottom != null ||
-    sectionMarginTop != null ||
-    sectionMarginBottom != null
+    sectionBgStyleBase || sectionPaddingTop != null || sectionPaddingBottom != null || sectionMarginTop != null || sectionMarginBottom != null
       ? {
           ...(sectionBgStyleBase || {}),
-          ...(sectionPaddingTop != null && sectionPaddingTop >= 0
-            ? { paddingTop: `${sectionPaddingTop}px` }
-            : {}),
-          ...(sectionPaddingBottom != null && sectionPaddingBottom >= 0
-            ? { paddingBottom: `${sectionPaddingBottom}px` }
-            : {}),
-          ...(sectionMarginTop != null && sectionMarginTop >= 0
-            ? { marginTop: `${sectionMarginTop}px` }
-            : {}),
-          ...(sectionMarginBottom != null && sectionMarginBottom >= 0
-            ? { marginBottom: `${sectionMarginBottom}px` }
-            : {}),
+          ...(sectionPaddingTop != null && sectionPaddingTop >= 0 ? { paddingTop: `${sectionPaddingTop}px` } : {}),
+          ...(sectionPaddingBottom != null && sectionPaddingBottom >= 0 ? { paddingBottom: `${sectionPaddingBottom}px` } : {}),
+          ...(sectionMarginTop != null && sectionMarginTop >= 0 ? { marginTop: `${sectionMarginTop}px` } : {}),
+          ...(sectionMarginBottom != null && sectionMarginBottom >= 0 ? { marginBottom: `${sectionMarginBottom}px` } : {}),
         }
       : undefined;
 
-  const pageContainerBgType = (
-    props?.[PREFIX + "PageContainerBgType"] ?? "default"
-  ).toString();
-  const pageContainerBgImage = (props?.[PREFIX + "PageContainerBgImage"] ?? "")
-    .toString()
-    .trim();
-  const pageContainerBgColorKey = (
-    props?.[PREFIX + "PageContainerBgColorKey"] ?? ""
-  )
-    .toString()
-    .trim();
+  const pageContainerBgType = (props?.[PREFIX + "PageContainerBgType"] ?? "default").toString();
+  const pageContainerBgImage = (props?.[PREFIX + "PageContainerBgImage"] ?? "").toString().trim();
+  const pageContainerBgColorKey = (props?.[PREFIX + "PageContainerBgColorKey"] ?? "").toString().trim();
   const pageContainerBgStyleBase =
     pageContainerBgType === "image" && pageContainerBgImage
-      ? {
-          backgroundImage: `url(${pageContainerBgImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }
+      ? { backgroundImage: `url(${pageContainerBgImage})`, backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" }
       : pageContainerBgType === "color" && pageContainerBgColorKey
-        ? {
-            backgroundColor: getColor(pageContainerBgColorKey),
-            backgroundImage: "none",
-          }
+        ? { backgroundColor: getColor(pageContainerBgColorKey), backgroundImage: "none" }
         : undefined;
-  const containerPaddingTop =
-    props?.[PREFIX + "PageContainerPaddingTop"] != null
-      ? Number(props[PREFIX + "PageContainerPaddingTop"])
-      : null;
-  const containerPaddingRight =
-    props?.[PREFIX + "PageContainerPaddingRight"] != null
-      ? Number(props[PREFIX + "PageContainerPaddingRight"])
-      : null;
-  const containerPaddingBottom =
-    props?.[PREFIX + "PageContainerPaddingBottom"] != null
-      ? Number(props[PREFIX + "PageContainerPaddingBottom"])
-      : null;
-  const containerPaddingLeft =
-    props?.[PREFIX + "PageContainerPaddingLeft"] != null
-      ? Number(props[PREFIX + "PageContainerPaddingLeft"])
-      : null;
-  const containerMarginTop =
-    props?.[PREFIX + "PageContainerMarginTop"] != null
-      ? Number(props[PREFIX + "PageContainerMarginTop"])
-      : null;
-  const containerMarginBottom =
-    props?.[PREFIX + "PageContainerMarginBottom"] != null
-      ? Number(props[PREFIX + "PageContainerMarginBottom"])
-      : null;
+  const containerPaddingTop = props?.[PREFIX + "PageContainerPaddingTop"] != null ? Number(props[PREFIX + "PageContainerPaddingTop"]) : null;
+  const containerPaddingRight = props?.[PREFIX + "PageContainerPaddingRight"] != null ? Number(props[PREFIX + "PageContainerPaddingRight"]) : null;
+  const containerPaddingBottom = props?.[PREFIX + "PageContainerPaddingBottom"] != null ? Number(props[PREFIX + "PageContainerPaddingBottom"]) : null;
+  const containerPaddingLeft = props?.[PREFIX + "PageContainerPaddingLeft"] != null ? Number(props[PREFIX + "PageContainerPaddingLeft"]) : null;
+  const containerMarginTop = props?.[PREFIX + "PageContainerMarginTop"] != null ? Number(props[PREFIX + "PageContainerMarginTop"]) : null;
+  const containerMarginBottom = props?.[PREFIX + "PageContainerMarginBottom"] != null ? Number(props[PREFIX + "PageContainerMarginBottom"]) : null;
   const pageContainerBgStyle =
-    pageContainerBgStyleBase ||
-    containerPaddingTop != null ||
-    containerPaddingRight != null ||
-    containerPaddingBottom != null ||
-    containerPaddingLeft != null ||
-    containerMarginTop != null ||
-    containerMarginBottom != null
+    pageContainerBgStyleBase || containerPaddingTop != null || containerPaddingRight != null || containerPaddingBottom != null || containerPaddingLeft != null || containerMarginTop != null || containerMarginBottom != null
       ? {
           ...(pageContainerBgStyleBase || {}),
-          ...(containerPaddingTop != null && containerPaddingTop >= 0
-            ? { paddingTop: `${containerPaddingTop}px` }
-            : {}),
-          ...(containerPaddingRight != null && containerPaddingRight >= 0
-            ? { paddingRight: `${containerPaddingRight}px` }
-            : {}),
-          ...(containerPaddingBottom != null && containerPaddingBottom >= 0
-            ? { paddingBottom: `${containerPaddingBottom}px` }
-            : {}),
-          ...(containerPaddingLeft != null && containerPaddingLeft >= 0
-            ? { paddingLeft: `${containerPaddingLeft}px` }
-            : {}),
-          ...(containerMarginTop != null && containerMarginTop >= 0
-            ? { marginTop: `${containerMarginTop}px` }
-            : {}),
-          ...(containerMarginBottom != null && containerMarginBottom >= 0
-            ? { marginBottom: `${containerMarginBottom}px` }
-            : {}),
+          ...(containerPaddingTop != null && containerPaddingTop >= 0 ? { paddingTop: `${containerPaddingTop}px` } : {}),
+          ...(containerPaddingRight != null && containerPaddingRight >= 0 ? { paddingRight: `${containerPaddingRight}px` } : {}),
+          ...(containerPaddingBottom != null && containerPaddingBottom >= 0 ? { paddingBottom: `${containerPaddingBottom}px` } : {}),
+          ...(containerPaddingLeft != null && containerPaddingLeft >= 0 ? { paddingLeft: `${containerPaddingLeft}px` } : {}),
+          ...(containerMarginTop != null && containerMarginTop >= 0 ? { marginTop: `${containerMarginTop}px` } : {}),
+          ...(containerMarginBottom != null && containerMarginBottom >= 0 ? { marginBottom: `${containerMarginBottom}px` } : {}),
         }
       : undefined;
 
@@ -488,9 +382,12 @@ export default function PhotoGallery(props) {
         <Row gutter={[16, 16]}>
           {filteredItems.map((item, index) => (
             <Col key={index} xs={24} sm={12} md={12} lg={8}>
-              <GalleryCard onClick={() => openModal(index)}>
+              <GalleryCard onClick={() => openAlbum(index)}>
                 <img loading="lazy" src={item.image} alt={item.title} />
                 <GalleryCardTitle>{item.title}</GalleryCardTitle>
+                {item.images.length > 1 && (
+                  <GalleryCardCount>{item.images.length} photos</GalleryCardCount>
+                )}
                 <GalleryCardArrow $color={accentColor}>
                   <ArrowRightOutlined />
                 </GalleryCardArrow>
@@ -499,17 +396,15 @@ export default function PhotoGallery(props) {
           ))}
         </Row>
 
-        {limitEnabled &&
-          viewMoreLink &&
-          allFilteredItems.length > limitCount && (
-            <div style={{ textAlign: "center", marginTop: 32 }}>
-              <Link href={viewMoreLink}>
-                <ThemeButton type="button" size="large">
-                  {viewMoreText}
-                </ThemeButton>
-              </Link>
-            </div>
-          )}
+        {limitEnabled && viewMoreLink && allFilteredItems.length > limitCount && (
+          <div style={{ textAlign: "center", marginTop: 32 }}>
+            <Link href={viewMoreLink}>
+              <ThemeButton type="button" size="large">
+                {viewMoreText}
+              </ThemeButton>
+            </Link>
+          </div>
+        )}
       </PageContainer>
 
       <GalleryLightbox
@@ -526,26 +421,27 @@ export default function PhotoGallery(props) {
           },
         }}
       >
-        {currentItem && (
+        {currentAlbum && (
           <>
-            <ModalNavButton
-              $position="left"
-              $color={accentColor}
-              onClick={goToPrev}
-            >
-              <LeftOutlined />
-            </ModalNavButton>
+            {currentImages.length > 1 && (
+              <ModalNavButton $position="left" $color={accentColor} onClick={goToPrev}>
+                <LeftOutlined />
+              </ModalNavButton>
+            )}
             <ModalImageWrapper>
-              <img loading="lazy" src={currentItem.image} alt={currentItem.title} />
-              <ModalImageTitle>{currentItem.title}</ModalImageTitle>
+              <img loading="lazy" src={currentImage} alt={currentAlbum.title} />
+              <ModalImageTitle>
+                <span>{currentAlbum.title}</span>
+                {currentImages.length > 1 && (
+                  <ModalCounter>{activeImageIndex + 1} / {currentImages.length}</ModalCounter>
+                )}
+              </ModalImageTitle>
             </ModalImageWrapper>
-            <ModalNavButton
-              $position="right"
-              $color={accentColor}
-              onClick={goToNext}
-            >
-              <RightOutlined />
-            </ModalNavButton>
+            {currentImages.length > 1 && (
+              <ModalNavButton $position="right" $color={accentColor} onClick={goToNext}>
+                <RightOutlined />
+              </ModalNavButton>
+            )}
           </>
         )}
       </GalleryLightbox>

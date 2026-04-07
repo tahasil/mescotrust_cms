@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle, useMemo } from "react";
-import { Form, Input, InputNumber, Row, Col, Collapse, Select, Switch, message, Spin } from "antd";
+import { Form, Input, InputNumber, Row, Col, Collapse, Select, Switch, Button, message, Spin } from "antd";
+import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import SortableFormList from "@/components/admin/SortableFormList";
@@ -13,9 +14,12 @@ const PREFIX = "photoGallery";
 
 function normalizeItem(it) {
   const cats = Array.isArray(it?.categories) ? it.categories : (it?.category ? [String(it.category).trim()] : []);
+  const images = Array.isArray(it?.images) ? it.images.map((img) => (typeof img === "string" ? img : img?.url || "").trim()).filter(Boolean) : [];
+  const cover = it?.image != null ? String(it.image).trim() : "";
   return {
     title: it?.title != null ? String(it.title).trim() : "",
-    image: it?.image != null ? String(it.image).trim() : "",
+    image: cover,
+    images: images,
     categories: cats.filter((c) => c !== "All"),
   };
 }
@@ -147,7 +151,7 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
   return (
     <Form form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={["manage-section", "title-colors", "tabs", "items"]}
+        defaultActiveKey={["items"]}
         items={[
           {
             key: "manage-section",
@@ -201,7 +205,7 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
           },
           {
             key: "items",
-            label: "Manage Gallery Items",
+            label: "Manage Albums",
             children: (
               <Form.List name="photoGalleryItems">
                 {(fields, { add, remove, move }) => (
@@ -210,8 +214,8 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                     add={add}
                     remove={remove}
                     move={move}
-                    itemLabel="Image"
-                    addButtonText="Add image"
+                    itemLabel="Album"
+                    addButtonText="Add album"
                     defaultAddPayload={normalizeItem({})}
                     reorderMovedIndex={reorderMovedIndex}
                     reorderDirection={reorderDirection}
@@ -223,18 +227,49 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                     renderItemContent={(name, restField) => (
                       <Row gutter={[16, 16]}>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "image"]} label="Image URL" rules={[{ required: true, message: "Image is required" }]}>
-                            <Input placeholder="/images/gallery-1.png" size="large" />
+                          <Form.Item {...restField} name={[name, "title"]} label="Album Title">
+                            <Input placeholder="e.g. Annual Function 2024" size="large" />
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "title"]} label="Title">
-                            <Input placeholder="Image title" size="large" />
+                          <Form.Item {...restField} name={[name, "image"]} label="Cover Image URL" rules={[{ required: true, message: "Cover image is required" }]}>
+                            <Input placeholder="/uploads/album-cover.webp" size="large" />
                           </Form.Item>
                         </Col>
                         <Col span={24}>
                           <Form.Item {...restField} name={[name, "categories"]} label="Categories">
                             <Select mode="multiple" placeholder="Select categories" size="large" options={categoryOptions} />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item label="Album Images" extra="Add all images for this album. First image is used if no cover is set.">
+                            <Form.List name={[name, "images"]}>
+                              {(imgFields, { add: addImg, remove: removeImg }) => (
+                                <>
+                                  {imgFields.map(({ key, name: imgName, ...imgRest }) => (
+                                    <div key={key} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                                      <Form.Item {...imgRest} name={[imgName]} noStyle>
+                                        <Input placeholder="/uploads/photo.webp" size="large" style={{ flex: 1 }} />
+                                      </Form.Item>
+                                      <Button
+                                        type="text"
+                                        danger
+                                        icon={<DeleteOutlined />}
+                                        onClick={() => removeImg(imgName)}
+                                      />
+                                    </div>
+                                  ))}
+                                  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 4 }}>
+                                    <Button
+                                      type="primary"
+                                      shape="circle"
+                                      icon={<PlusOutlined />}
+                                      onClick={() => addImg("")}
+                                    />
+                                  </div>
+                                </>
+                              )}
+                            </Form.List>
                           </Form.Item>
                         </Col>
                       </Row>

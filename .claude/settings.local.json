@@ -8,7 +8,8 @@
       "Bash(xargs grep -l \"theme\")",
       "Bash(node -e \":*)",
       "Bash(curl -s http://localhost:3000/api/theme/HomeHero2)",
-      "Bash(curl -s http://localhost:3000/)"
+      "Bash(curl -s http://localhost:3000/)",
+      "Bash(xargs grep:*)"
     ]
   }
 }
