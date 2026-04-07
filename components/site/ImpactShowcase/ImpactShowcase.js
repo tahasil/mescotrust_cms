@@ -267,7 +267,26 @@ export default function ImpactShowcase(props) {
                 </Link>
               )}
               {button2Text && (
-                <Link href={button2Link || "/"}>
+                button2Link && button2Link !== "/" && button2Link !== "#" && button2Link !== "#volunteer-modal" ? (
+                  <Link href={button2Link}>
+                    <ThemeButton
+                      className="volunteer"
+                      type="button"
+                      size="large"
+                      icon={
+                        button2IconUrl ? (
+                          <img loading="lazy" alt="" src={button2IconUrl} />
+                        ) : (
+                          <RightCircleFilled />
+                        )
+                      }
+                      iconPosition="end"
+                      style={btn2Style}
+                    >
+                      {button2Text}
+                    </ThemeButton>
+                  </Link>
+                ) : (
                   <ThemeButton
                     className="volunteer"
                     type="button"
@@ -281,10 +300,11 @@ export default function ImpactShowcase(props) {
                     }
                     iconPosition="end"
                     style={btn2Style}
+                    onClick={() => window.dispatchEvent(new Event("open-volunteer-modal"))}
                   >
                     {button2Text}
                   </ThemeButton>
-                </Link>
+                )
               )}
             </Space>
             {rightImage ? (
