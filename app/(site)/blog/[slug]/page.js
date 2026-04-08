@@ -9,9 +9,7 @@ import Blog from "@/models/Blog";
 import SafeHtml from "@/components/cms/SafeHtml";
 import { FullWidthBackground, PageContainer } from "@/styles/Theme";
 
-const BlogSidebar = nextDynamic(() => import("@/components/blog/BlogSidebar"), {
-  ssr: false,
-});
+const BlogSidebarFull = nextDynamic(() => import("@/components/blog/BlogSidebarFull"), { ssr: false });
 const BlogComments = nextDynamic(
   () => import("@/components/blog/BlogComments"),
   { ssr: false },
@@ -125,14 +123,13 @@ function PostSkeleton() {
   );
 }
 
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
 function formatDate(dateStr) {
   if (!dateStr) return "";
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return "";
-  const month = d.toLocaleString("en-US", { month: "long" });
-  const day = d.getDate();
-  const year = d.getFullYear();
-  return `${month} ${day}, ${year}`;
+  return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
 }
 
 async function PostContent({ slug }) {
@@ -266,6 +263,10 @@ async function PostContent({ slug }) {
                   fontSize: 16,
                   lineHeight: 1.8,
                   color: "rgba(0,0,0,0.75)",
+                  overflowWrap: "break-word",
+                  wordBreak: "break-word",
+                  maxWidth: "100%",
+                  overflow: "hidden",
                 }}
               >
                 <SafeHtml html={post.content} />
@@ -307,7 +308,7 @@ async function PostContent({ slug }) {
               style={{ width: 320, flexShrink: 0 }}
               className="blog-detail-sidebar-desktop"
             >
-              <BlogSidebar currentSlug={slug} />
+              <BlogSidebarFull currentSlug={slug} />
             </div>
           </div>
 
@@ -316,7 +317,7 @@ async function PostContent({ slug }) {
             className="blog-detail-sidebar-mobile"
             style={{ display: "none" }}
           >
-            <BlogSidebar currentSlug={slug} />
+            <BlogSidebarFull currentSlug={slug} />
           </div>
         </PageContainer>
       </FullWidthBackground>

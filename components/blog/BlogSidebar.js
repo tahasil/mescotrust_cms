@@ -74,14 +74,13 @@ const RecentPostItem = styled.div`
   }
 `;
 
+const MONTHS = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+
 function formatDate(dateStr) {
   if (!dateStr) return "";
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return "";
-  const month = d.toLocaleString("en-US", { month: "long" });
-  const day = d.getDate();
-  const year = d.getFullYear();
-  return `${month.toUpperCase()} ${day}, ${year}`;
+  return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
 }
 
 /**

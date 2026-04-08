@@ -6,9 +6,7 @@ import BlogCategory from "@/models/BlogCategory";
 import { getPageSeoMetadata } from "@/lib/seo";
 import { FullWidthBackground, PageContainer } from "@/styles/Theme";
 
-const BlogSidebar = nextDynamic(() => import("@/components/blog/BlogSidebar"), {
-  ssr: false,
-});
+const BlogSidebarFull = nextDynamic(() => import("@/components/blog/BlogSidebarFull"), { ssr: false });
 
 export const dynamic = "force-dynamic";
 
@@ -24,19 +22,19 @@ export async function generateMetadata() {
 
 const PAGE_SIZE = 6;
 
+const MONTHS = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+
 function formatDate(dateStr) {
   if (!dateStr) return "";
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return "";
-  const month = d.toLocaleString("en-US", { month: "long" });
-  const day = d.getDate();
-  const year = d.getFullYear();
-  return `${month.toUpperCase()} ${day}, ${year}`;
+  return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
 }
 
 export default async function BlogListPage({ searchParams }) {
   const page = Math.max(1, Number(searchParams?.page) || 1);
   const categorySlug = searchParams?.category || "";
+  const searchQuery = (searchParams?.q || "").trim();
 
   let items = [];
   let categories = [];
@@ -49,6 +47,12 @@ export default async function BlogListPage({ searchParams }) {
     if (categorySlug) {
       const cat = categories.find((c) => c.slug === categorySlug);
       if (cat) filter.category = cat._id;
+    }
+    if (searchQuery) {
+      filter.$or = [
+        { title: { $regex: searchQuery, $options: "i" } },
+        { excerpt: { $regex: searchQuery, $options: "i" } },
+      ];
     }
     total = await Blog.countDocuments(filter);
     items = await Blog.find(filter)
@@ -146,22 +150,25 @@ export default async function BlogListPage({ searchParams }) {
                   display: "flex",
                   alignItems: "stretch",
                   gap: 32,
-                  marginBottom: 20,
-                  paddingBottom: 20,
-                  borderBottom: "1px solid rgba(0,0,0,0.08)",
+                  marginBottom: 24,
+                  padding: 24,
+                  border: "1px solid rgba(0,0,0,0.08)",
+                  borderRadius: 12,
+                  background: "#fff",
                 }}
               >
-                {post.featuredImage && (
-                  <Link
-                    href={`/blog/${post.slug}`}
-                    style={{
-                      flexShrink: 0,
-                      width: 380,
-                      borderRadius: 10,
-                      overflow: "hidden",
-                      display: "block",
-                    }}
-                  >
+                <Link
+                  href={`/blog/${post.slug}`}
+                  style={{
+                    flexShrink: 0,
+                    width: 380,
+                    borderRadius: 10,
+                    overflow: "hidden",
+                    display: "block",
+                    background: post.featuredImage ? "none" : "rgba(0,0,0,0.04)",
+                  }}
+                >
+                  {post.featuredImage ? (
                     <img
                       loading="lazy"
                       src={post.featuredImage}
@@ -174,8 +181,12 @@ export default async function BlogListPage({ searchParams }) {
                         display: "block",
                       }}
                     />
-                  </Link>
-                )}
+                  ) : (
+                    <div style={{ width: "100%", minHeight: 240, display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(0,0,0,0.15)", fontSize: 14 }}>
+                      No Image
+                    </div>
+                  )}
+                </Link>
                 <div
                   style={{
                     flex: 1,
@@ -323,17 +334,14 @@ export default async function BlogListPage({ searchParams }) {
           </div>
 
           {/* Right: Sidebar */}
-          <div
-            style={{ width: 320, flexShrink: 0 }}
-            className="blog-sidebar-desktop"
-          >
-            <BlogSidebar />
+          <div style={{ width: 320, flexShrink: 0 }} className="blog-sidebar-desktop">
+            <BlogSidebarFull searchQuery={searchQuery} categorySlug={categorySlug} categories={JSON.parse(JSON.stringify(categories))} />
           </div>
         </div>
 
         {/* Mobile sidebar (below content) */}
         <div className="blog-sidebar-mobile" style={{ display: "none" }}>
-          <BlogSidebar />
+          <BlogSidebarFull searchQuery={searchQuery} categorySlug={categorySlug} categories={JSON.parse(JSON.stringify(categories))} />
         </div>
 
         <style>{`

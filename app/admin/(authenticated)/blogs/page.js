@@ -1,11 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Table, Button, Space, message, Modal, Form, Input, Select, Tag } from "antd";
-import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Table, Button, Space, message, Modal, Form, Input, Select, Tag, Drawer } from "antd";
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import { ThemeAdminCard } from "@/styles/Theme";
+
+function slugify(text) {
+  return (text || "").toString().toLowerCase().trim()
+    .replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "").replace(/-+/g, "-").replace(/^-|-$/g, "");
+}
 
 export default function AdminBlogsPage() {
   const [list, setList] = useState([]);
@@ -60,6 +65,7 @@ export default function AdminBlogsPage() {
       slug: record.slug,
       content: record.content,
       excerpt: record.excerpt,
+      featuredImage: record.featuredImage,
       status: record.status,
       category: record.category?._id || undefined,
       tags: Array.isArray(record.tags) ? record.tags : [],
@@ -96,6 +102,7 @@ export default function AdminBlogsPage() {
         slug: values.slug,
         content: values.content,
         excerpt: values.excerpt,
+        featuredImage: values.featuredImage || "",
         status: values.status,
         category: values.category || null,
         tags: Array.isArray(values.tags) ? values.tags : [],
@@ -152,21 +159,19 @@ export default function AdminBlogsPage() {
     <ThemeAdminCard
       title="Blog posts"
       extra={
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
-            Add post
-          </Button>
-          <Input.Search
+        <Space>
+          <Input
+            prefix={<SearchOutlined />}
             placeholder="Search title or slug"
             allowClear
             style={{ width: 220 }}
-            onSearch={setSearchText}
-            onChange={(e) => { if (!e.target.value) setSearchText(""); }}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
           />
           <Select
             placeholder="Status"
             allowClear
-            style={{ width: 140 }}
+            style={{ width: 120 }}
             value={filterStatus}
             onChange={setFilterStatus}
             options={[{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }]}
@@ -174,43 +179,52 @@ export default function AdminBlogsPage() {
           <Select
             placeholder="Category"
             allowClear
-            style={{ width: 180 }}
+            style={{ width: 160 }}
             value={filterCategory}
             onChange={setFilterCategory}
             options={categories.map((c) => ({ value: c._id, label: c.name }))}
           />
-        </div>
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
+            Add post
+          </Button>
+        </Space>
       }
     >
       <Table rowKey="_id" columns={columns} dataSource={filtered} loading={loading} pagination={{ pageSize: 20 }} />
 
-      <Modal
+      <Drawer
         title={editingId ? "Edit post" : "New post"}
         open={modalOpen}
-        onOk={handleSubmit}
-        onCancel={() => setModalOpen(false)}
-        width={640}
-        okText="Save"
+        onClose={() => setModalOpen(false)}
+        width={520}
+        extra={
+          <Button type="primary" onClick={handleSubmit}>
+            {editingId ? "Update" : "Save"}
+          </Button>
+        }
       >
         <Form form={form} layout="vertical">
           <Form.Item name="title" label="Title" rules={[{ required: true }]}>
-            <Input />
+            <Input placeholder="Post title" onChange={(e) => {
+              if (!editingId) {
+                form.setFieldValue("slug", slugify(e.target.value));
+              }
+            }} />
           </Form.Item>
-          <Form.Item name="slug" label="Slug" rules={[{ required: true }]}>
-            <Input />
+          <Form.Item name="slug" label="Slug" rules={[{ required: true }]} extra="Auto-generated from title.">
+            <Input placeholder="post-slug" />
           </Form.Item>
           <Form.Item name="excerpt" label="Excerpt">
-            <Input.TextArea rows={2} />
+            <Input.TextArea rows={2} placeholder="Short summary" />
+          </Form.Item>
+          <Form.Item name="featuredImage" label="Featured Image URL">
+            <Input placeholder="/uploads/featured.webp" />
           </Form.Item>
           <Form.Item name="content" label="Content">
             <RichTextEditor />
           </Form.Item>
           <Form.Item name="category" label="Category">
-            <Select
-              allowClear
-              placeholder="Select category"
-              options={categories.map((c) => ({ value: c._id, label: c.name }))}
-            />
+            <Select allowClear placeholder="Select category" options={categories.map((c) => ({ value: c._id, label: c.name }))} />
           </Form.Item>
           <Form.Item name="tags" label="Tags" extra="Press Enter after each tag">
             <Select mode="tags" placeholder="Add tags" tokenSeparators={[","]} />
@@ -219,13 +233,13 @@ export default function AdminBlogsPage() {
             <Select options={[{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }]} />
           </Form.Item>
           <Form.Item name="metaTitle" label="Meta title">
-            <Input />
+            <Input placeholder="SEO title" />
           </Form.Item>
           <Form.Item name="metaDescription" label="Meta description">
-            <Input.TextArea rows={2} />
+            <Input.TextArea rows={2} placeholder="SEO description" />
           </Form.Item>
         </Form>
-      </Modal>
+      </Drawer>
     </ThemeAdminCard>
   );
 }
