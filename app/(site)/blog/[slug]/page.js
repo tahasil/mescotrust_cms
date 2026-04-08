@@ -235,12 +235,17 @@ async function PostContent({ slug }) {
                     overflow: "hidden",
                   }}
                 >
-                  <img
-                    src={post.featuredImage}
-                    alt={post.title}
-                    style={{ width: "100%", height: "auto", display: "block" }}
-                    loading="lazy"
-                  />
+                  <picture>
+                    {post.featuredImageMobile && (
+                      <source media="(max-width: 768px)" srcSet={post.featuredImageMobile} />
+                    )}
+                    <img
+                      src={post.featuredImage}
+                      alt={post.title}
+                      style={{ width: "100%", height: "auto", display: "block" }}
+                      loading="lazy"
+                    />
+                  </picture>
                 </figure>
               )}
 
@@ -326,7 +331,15 @@ async function PostContent({ slug }) {
         @media (max-width: 992px) {
           .blog-detail-sidebar-desktop { display: none !important; }
           .blog-detail-sidebar-mobile { display: block !important; margin-top: 40px; }
-          h1 { font-size: 24px !important; }
+        }
+        @media (max-width: 768px) {
+          article h1 { font-size: 22px !important; }
+          article figure { margin-bottom: 20px !important; }
+          article figure img { border-radius: 8px !important; }
+        }
+        @media (max-width: 480px) {
+          article h1 { font-size: 20px !important; }
+          article > div { font-size: 15px !important; }
         }
       `}</style>
     </>

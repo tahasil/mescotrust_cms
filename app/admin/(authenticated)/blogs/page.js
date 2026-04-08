@@ -19,6 +19,7 @@ export default function AdminBlogsPage() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [saving, setSaving] = useState(false);
   const [filterStatus, setFilterStatus] = useState(null);
   const [filterCategory, setFilterCategory] = useState(null);
   const [searchText, setSearchText] = useState("");
@@ -66,6 +67,7 @@ export default function AdminBlogsPage() {
       content: record.content,
       excerpt: record.excerpt,
       featuredImage: record.featuredImage,
+      featuredImageMobile: record.featuredImageMobile,
       status: record.status,
       category: record.category?._id || undefined,
       tags: Array.isArray(record.tags) ? record.tags : [],
@@ -97,12 +99,14 @@ export default function AdminBlogsPage() {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
+      setSaving(true);
       const payload = {
         title: values.title,
         slug: values.slug,
         content: values.content,
         excerpt: values.excerpt,
         featuredImage: values.featuredImage || "",
+        featuredImageMobile: values.featuredImageMobile || "",
         status: values.status,
         category: values.category || null,
         tags: Array.isArray(values.tags) ? values.tags : [],
@@ -124,8 +128,10 @@ export default function AdminBlogsPage() {
       setModalOpen(false);
       fetchBlogs();
     } catch (e) {
-      if (e.errorFields) return;
+      if (e.errorFields) { setSaving(false); return; }
       message.error(e.message || "Error");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -198,7 +204,7 @@ export default function AdminBlogsPage() {
         onClose={() => setModalOpen(false)}
         width={520}
         extra={
-          <Button type="primary" onClick={handleSubmit}>
+          <Button type="primary" onClick={handleSubmit} loading={saving}>
             {editingId ? "Update" : "Save"}
           </Button>
         }
@@ -217,8 +223,11 @@ export default function AdminBlogsPage() {
           <Form.Item name="excerpt" label="Excerpt">
             <Input.TextArea rows={2} placeholder="Short summary" />
           </Form.Item>
-          <Form.Item name="featuredImage" label="Featured Image URL">
-            <Input placeholder="/uploads/featured.webp" />
+          <Form.Item name="featuredImage" label="Featured Image URL (Desktop)">
+            <Input placeholder="/uploads/featured-desktop.webp" />
+          </Form.Item>
+          <Form.Item name="featuredImageMobile" label="Featured Image URL (Mobile)" extra="Optional. If empty, desktop image is used.">
+            <Input placeholder="/uploads/featured-mobile.webp" />
           </Form.Item>
           <Form.Item name="content" label="Content">
             <RichTextEditor />

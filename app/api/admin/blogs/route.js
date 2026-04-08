@@ -31,7 +31,7 @@ export async function POST(req) {
 
   try {
     const body = await req.json();
-    const { title, slug: rawSlug, content, excerpt, featuredImage, author, status, publishedAt, category, tags, meta, locale } = body;
+    const { title, slug: rawSlug, content, excerpt, featuredImage, featuredImageMobile, author, status, publishedAt, category, tags, meta, locale } = body;
 
     const result = normalizeSlug(rawSlug || title);
     if (!result.valid) {
@@ -51,6 +51,7 @@ export async function POST(req) {
       content: content || "",
       excerpt: excerpt || "",
       featuredImage: featuredImage || "",
+      featuredImageMobile: featuredImageMobile || "",
       author: author || "",
       status: status || "draft",
       publishedAt: status === "published" ? new Date() : null,

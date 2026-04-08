@@ -164,25 +164,31 @@ export default async function BlogListPage({ searchParams }) {
                     width: 380,
                     borderRadius: 10,
                     overflow: "hidden",
-                    display: "block",
-                    background: post.featuredImage ? "none" : "rgba(0,0,0,0.04)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: post.featuredImage ? "rgba(0,0,0,0.02)" : "rgba(0,0,0,0.04)",
                   }}
                 >
                   {post.featuredImage ? (
-                    <img
-                      loading="lazy"
-                      src={post.featuredImage}
-                      alt={post.title}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        minHeight: 240,
-                        objectFit: "cover",
-                        display: "block",
-                      }}
-                    />
+                    <picture>
+                      {post.featuredImageMobile && (
+                        <source media="(max-width: 768px)" srcSet={post.featuredImageMobile} />
+                      )}
+                      <img
+                        loading="lazy"
+                        src={post.featuredImage}
+                        alt={post.title}
+                        style={{
+                          width: "100%",
+                          height: "auto",
+                          objectFit: "contain",
+                          display: "block",
+                        }}
+                      />
+                    </picture>
                   ) : (
-                    <div style={{ width: "100%", minHeight: 240, display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(0,0,0,0.15)", fontSize: 14 }}>
+                    <div style={{ width: "100%", minHeight: 200, display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(0,0,0,0.15)", fontSize: 14 }}>
                       No Image
                     </div>
                   )}
@@ -348,10 +354,18 @@ export default async function BlogListPage({ searchParams }) {
         @media (max-width: 992px) {
           .blog-sidebar-desktop { display: none !important; }
           .blog-sidebar-mobile { display: block !important; margin-top: 40px; }
-          article { flex-direction: column !important; gap: 20px !important; padding: 24px 0 !important; }
-          article > a:first-child { width: 100% !important; }
-          article img { min-height: 200px !important; max-height: 260px !important; }
-          h2 { font-size: 20px !important; }
+        }
+        @media (max-width: 768px) {
+          article { flex-direction: column !important; gap: 16px !important; padding: 16px !important; }
+          article > a { width: 100% !important; }
+          article img { min-height: 180px !important; max-height: 220px !important; }
+          article h2 { font-size: 18px !important; }
+          article p { font-size: 14px !important; }
+        }
+        @media (max-width: 480px) {
+          article { padding: 12px !important; margin-bottom: 16px !important; }
+          article img { min-height: 150px !important; max-height: 180px !important; }
+          article h2 { font-size: 16px !important; margin-bottom: 8px !important; }
         }
       `}</style>
       </PageContainer>

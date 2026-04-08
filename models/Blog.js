@@ -7,6 +7,7 @@ const blogSchema = new mongoose.Schema(
     content: { type: String, default: "" },
     excerpt: { type: String, default: "" },
     featuredImage: { type: String, default: "" },
+    featuredImageMobile: { type: String, default: "" },
     author: { type: String, default: "" },
     status: { type: String, enum: ["draft", "published"], default: "draft" },
     publishedAt: { type: Date, default: null },

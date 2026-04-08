@@ -33,7 +33,7 @@ export async function PUT(req, { params }) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
     const body = await req.json();
-    const { title, slug: rawSlug, content, excerpt, featuredImage, author, status, publishedAt, category, tags, meta, locale } = body;
+    const { title, slug: rawSlug, content, excerpt, featuredImage, featuredImageMobile, author, status, publishedAt, category, tags, meta, locale } = body;
 
     await connectDB();
     const blog = await Blog.findById(id);
@@ -54,6 +54,7 @@ export async function PUT(req, { params }) {
     if (content !== undefined) blog.content = content;
     if (excerpt !== undefined) blog.excerpt = excerpt;
     if (featuredImage !== undefined) blog.featuredImage = featuredImage;
+    if (featuredImageMobile !== undefined) blog.featuredImageMobile = featuredImageMobile;
     if (author !== undefined) blog.author = author;
     if (status !== undefined) {
       blog.status = status;
