@@ -1,12 +1,21 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import Image from "next/image";
+import nextDynamic from "next/dynamic";
 import { connectDB } from "@/lib/db";
 import { getSiteUrl } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 import Blog from "@/models/Blog";
 import SafeHtml from "@/components/cms/SafeHtml";
+import { FullWidthBackground, PageContainer } from "@/styles/Theme";
+
+const BlogSidebar = nextDynamic(() => import("@/components/blog/BlogSidebar"), {
+  ssr: false,
+});
+const BlogComments = nextDynamic(
+  () => import("@/components/blog/BlogComments"),
+  { ssr: false },
+);
 
 export async function generateMetadata({ params }) {
   const slug = params.slug;
@@ -21,7 +30,9 @@ export async function generateMetadata({ params }) {
       description,
       url: `/blog/${slug}`,
       type: "article",
-      ...(post.publishedAt && { publishedTime: new Date(post.publishedAt).toISOString() }),
+      ...(post.publishedAt && {
+        publishedTime: new Date(post.publishedAt).toISOString(),
+      }),
       ...(post.author && { authors: [post.author] }),
     };
     if (post.featuredImage) {
@@ -40,21 +51,97 @@ export async function generateMetadata({ params }) {
 
 function PostSkeleton() {
   return (
-    <div>
-      <div style={{ height: 36, width: "80%", background: "#f0f0f0", marginBottom: 16, borderRadius: 4 }} />
-      <div style={{ height: 14, width: "30%", background: "#f0f0f0", marginBottom: 24, borderRadius: 4 }} />
-      <div style={{ height: 16, width: "100%", background: "#f0f0f0", marginBottom: 10, borderRadius: 4 }} />
-      <div style={{ height: 16, width: "95%", background: "#f0f0f0", marginBottom: 10, borderRadius: 4 }} />
-      <div style={{ height: 16, width: "85%", background: "#f0f0f0", borderRadius: 4 }} />
+    <div
+      style={{
+        maxWidth: "var(--layout-width, 1400px)",
+        width: "90%",
+        margin: "0 auto",
+        padding: "40px 0",
+      }}
+    >
+      <div
+        style={{
+          height: 14,
+          width: "15%",
+          background: "#f0f0f0",
+          marginBottom: 12,
+          borderRadius: 4,
+        }}
+      />
+      <div
+        style={{
+          height: 36,
+          width: "70%",
+          background: "#f0f0f0",
+          marginBottom: 16,
+          borderRadius: 4,
+        }}
+      />
+      <div
+        style={{
+          height: 14,
+          width: "25%",
+          background: "#f0f0f0",
+          marginBottom: 28,
+          borderRadius: 4,
+        }}
+      />
+      <div
+        style={{
+          height: 300,
+          width: "100%",
+          background: "#f0f0f0",
+          marginBottom: 28,
+          borderRadius: 12,
+        }}
+      />
+      <div
+        style={{
+          height: 16,
+          width: "100%",
+          background: "#f0f0f0",
+          marginBottom: 10,
+          borderRadius: 4,
+        }}
+      />
+      <div
+        style={{
+          height: 16,
+          width: "95%",
+          background: "#f0f0f0",
+          marginBottom: 10,
+          borderRadius: 4,
+        }}
+      />
+      <div
+        style={{
+          height: 16,
+          width: "85%",
+          background: "#f0f0f0",
+          borderRadius: 4,
+        }}
+      />
     </div>
   );
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "";
+  const month = d.toLocaleString("en-US", { month: "long" });
+  const day = d.getDate();
+  const year = d.getFullYear();
+  return `${month} ${day}, ${year}`;
 }
 
 async function PostContent({ slug }) {
   let post;
   try {
     await connectDB();
-    post = await Blog.findOne({ slug, status: "published" }).populate("category").lean();
+    post = await Blog.findOne({ slug, status: "published" })
+      .populate("category")
+      .lean();
   } catch {
     return (
       <div style={{ textAlign: "center", padding: "2rem 0" }}>
@@ -73,54 +160,182 @@ async function PostContent({ slug }) {
     headline: post.title,
     ...(post.excerpt && { description: post.excerpt }),
     url: `${siteUrl}/blog/${slug}`,
-    ...(post.featuredImage && { image: post.featuredImage.startsWith("http") ? post.featuredImage : `${siteUrl}${post.featuredImage}` }),
-    ...(post.publishedAt && { datePublished: new Date(post.publishedAt).toISOString() }),
-    dateModified: new Date(post.updatedAt || post.publishedAt || Date.now()).toISOString(),
+    ...(post.featuredImage && {
+      image: post.featuredImage.startsWith("http")
+        ? post.featuredImage
+        : `${siteUrl}${post.featuredImage}`,
+    }),
+    ...(post.publishedAt && {
+      datePublished: new Date(post.publishedAt).toISOString(),
+    }),
+    dateModified: new Date(
+      post.updatedAt || post.publishedAt || Date.now(),
+    ).toISOString(),
     ...(post.author && { author: { "@type": "Person", name: post.author } }),
     ...(post.category?.name && { articleSection: post.category.name }),
   };
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <article>
-        <h1>{post.title}</h1>
-      {(post.category?.name || post.publishedAt) && (
-        <p style={{ color: "#666", marginBottom: "1rem" }}>
-          {post.category?.name && <span>{post.category.name}</span>}
-          {post.publishedAt && (
-            <span style={{ marginInlineStart: post.category?.name ? "1rem" : 0 }}>
-              {new Date(post.publishedAt).toLocaleDateString()}
-            </span>
-          )}
-        </p>
-      )}
-      {post.featuredImage && (
-        <figure style={{ margin: "0 0 1.5rem" }}>
-          <Image
-            src={post.featuredImage}
-            alt={post.title}
-            width={800}
-            height={450}
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 800px"
-            style={{ width: "100%", height: "auto", borderRadius: 8 }}
-            loading="lazy"
-          />
-        </figure>
-      )}
-      {post.excerpt && <p style={{ fontSize: "1.1em", color: "#444", marginBottom: "1.5rem" }}>{post.excerpt}</p>}
-      <SafeHtml html={post.content} />
-      </article>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
+      <FullWidthBackground className="customInnerHero">
+        <PageContainer className="pt-0">
+          <div style={{ display: "flex", gap: 40 }}>
+            {/* Left: Article */}
+            <article style={{ flex: 1, minWidth: 0 }}>
+              {post.category?.name && (
+                <div
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.5,
+                    marginBottom: 8,
+                    color: "var(--primary-color, #8b1a1a)",
+                  }}
+                >
+                  {post.category.name}
+                </div>
+              )}
+
+              <h1
+                style={{
+                  fontSize: 32,
+                  fontWeight: 700,
+                  lineHeight: 1.25,
+                  marginBottom: 16,
+                  marginTop: 0,
+                }}
+              >
+                {post.title}
+              </h1>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 16,
+                  marginBottom: 24,
+                  fontSize: 14,
+                  color: "rgba(0,0,0,0.45)",
+                }}
+              >
+                {post.publishedAt && (
+                  <span>📅 {formatDate(post.publishedAt)}</span>
+                )}
+                {post.author && <span>By {post.author}</span>}
+              </div>
+
+              {post.featuredImage && (
+                <figure
+                  style={{
+                    margin: "0 0 28px",
+                    borderRadius: 12,
+                    overflow: "hidden",
+                  }}
+                >
+                  <img
+                    src={post.featuredImage}
+                    alt={post.title}
+                    style={{ width: "100%", height: "auto", display: "block" }}
+                    loading="lazy"
+                  />
+                </figure>
+              )}
+
+              {post.excerpt && (
+                <p
+                  style={{
+                    fontSize: 18,
+                    lineHeight: 1.6,
+                    color: "rgba(0,0,0,0.6)",
+                    marginBottom: 24,
+                    fontStyle: "italic",
+                  }}
+                >
+                  {post.excerpt}
+                </p>
+              )}
+
+              <div
+                style={{
+                  fontSize: 16,
+                  lineHeight: 1.8,
+                  color: "rgba(0,0,0,0.75)",
+                }}
+              >
+                <SafeHtml html={post.content} />
+              </div>
+
+              {post.tags?.length > 0 && (
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 8,
+                    marginTop: 32,
+                    paddingTop: 20,
+                    borderTop: "1px solid rgba(0,0,0,0.06)",
+                  }}
+                >
+                  {post.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      style={{
+                        padding: "4px 14px",
+                        borderRadius: 20,
+                        background: "rgba(0,0,0,0.04)",
+                        fontSize: 13,
+                        color: "rgba(0,0,0,0.55)",
+                      }}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <BlogComments slug={slug} />
+            </article>
+
+            {/* Right: Sidebar (desktop) */}
+            <div
+              style={{ width: 320, flexShrink: 0 }}
+              className="blog-detail-sidebar-desktop"
+            >
+              <BlogSidebar currentSlug={slug} />
+            </div>
+          </div>
+
+          {/* Mobile sidebar */}
+          <div
+            className="blog-detail-sidebar-mobile"
+            style={{ display: "none" }}
+          >
+            <BlogSidebar currentSlug={slug} />
+          </div>
+        </PageContainer>
+      </FullWidthBackground>
+
+      <style>{`
+        @media (max-width: 992px) {
+          .blog-detail-sidebar-desktop { display: none !important; }
+          .blog-detail-sidebar-mobile { display: block !important; margin-top: 40px; }
+          h1 { font-size: 24px !important; }
+        }
+      `}</style>
     </>
   );
 }
 
 export default function BlogPostPage({ params }) {
   return (
-    <main>
-      <Suspense fallback={<PostSkeleton />}>
-        <PostContent slug={params.slug} />
-      </Suspense>
-    </main>
+    <Suspense fallback={<PostSkeleton />}>
+      <PostContent slug={params.slug} />
+    </Suspense>
   );
 }

@@ -76,20 +76,12 @@ const menuItems = [
   {
     key: "/admin/blogs",
     icon: <BookOutlined />,
-    label: (
-      <Link href="/admin/blogs" style={linkStyle}>
-        Blogs
-      </Link>
-    ),
-  },
-  {
-    key: "/admin/blog-categories",
-    icon: <BookOutlined />,
-    label: (
-      <Link href="/admin/blog-categories" style={linkStyle}>
-        Categories
-      </Link>
-    ),
+    label: "Blogs",
+    children: [
+      { key: "/admin/blogs", label: <Link href="/admin/blogs" style={linkStyle}>All Posts</Link> },
+      { key: "/admin/blog-categories", label: <Link href="/admin/blog-categories" style={linkStyle}>Categories</Link> },
+      { key: "/admin/blog-comments", label: <Link href="/admin/blog-comments" style={linkStyle}>Comments</Link> },
+    ],
   },
   {
     key: "/admin/media",
