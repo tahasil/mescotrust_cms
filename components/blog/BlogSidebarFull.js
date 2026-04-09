@@ -21,6 +21,10 @@ const titleStyle = {
   borderLeft: "3px solid var(--primary-color, #8b1a1a)",
 };
 
+const contentStyle = {
+  paddingLeft: 15,
+};
+
 /**
  * Full blog sidebar — Search + Categories + Recent Posts + Recent Comments + Archives.
  * Fully client-rendered to avoid hydration mismatches.
@@ -62,7 +66,7 @@ export default function BlogSidebarFull({ searchQuery, categorySlug, categories:
       {categories.length > 0 && (
         <div style={cardStyle}>
           <div style={titleStyle}>Categories</div>
-          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0, ...contentStyle }}>
             <li style={{ marginBottom: 10 }}>
               <Link href="/blog"
                 style={{ fontSize: 14, color: !categorySlug ? "var(--primary-color, #8b1a1a)" : "rgba(0,0,0,0.65)", textDecoration: "none", fontWeight: !categorySlug ? 600 : 400, display: "flex", alignItems: "center", gap: 8 }}>
@@ -91,13 +95,13 @@ export default function BlogSidebarFull({ searchQuery, categorySlug, categories:
       {/* Recent Comments */}
       <div style={cardStyle}>
         <div style={titleStyle}>Recent Comments</div>
-        <BlogRecentComments />
+        <div style={contentStyle}><BlogRecentComments /></div>
       </div>
 
       {/* Archives */}
       <div style={{ ...cardStyle, marginBottom: 0 }}>
         <div style={titleStyle}>Archives</div>
-        <BlogArchives />
+        <div style={contentStyle}><BlogArchives /></div>
       </div>
     </div>
   );

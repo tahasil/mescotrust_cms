@@ -9,7 +9,7 @@ import Blog from "@/models/Blog";
 import SafeHtml from "@/components/cms/SafeHtml";
 import { FullWidthBackground, PageContainer } from "@/styles/Theme";
 
-const BlogSidebarFull = nextDynamic(() => import("@/components/blog/BlogSidebarFull"), { ssr: false });
+import BlogSidebarFull from "@/components/blog/BlogSidebarFull";
 const BlogComments = nextDynamic(
   () => import("@/components/blog/BlogComments"),
   { ssr: false },
@@ -313,7 +313,9 @@ async function PostContent({ slug }) {
               style={{ width: 320, flexShrink: 0 }}
               className="blog-detail-sidebar-desktop"
             >
-              <BlogSidebarFull currentSlug={slug} />
+              <Suspense fallback={<div style={{ padding: "20px 0", color: "rgba(0,0,0,0.2)" }}>Loading...</div>}>
+                <BlogSidebarFull currentSlug={slug} />
+              </Suspense>
             </div>
           </div>
 
@@ -322,7 +324,9 @@ async function PostContent({ slug }) {
             className="blog-detail-sidebar-mobile"
             style={{ display: "none" }}
           >
-            <BlogSidebarFull currentSlug={slug} />
+            <Suspense fallback={<div style={{ padding: "20px 0", color: "rgba(0,0,0,0.2)" }}>Loading...</div>}>
+                <BlogSidebarFull currentSlug={slug} />
+              </Suspense>
           </div>
         </PageContainer>
       </FullWidthBackground>

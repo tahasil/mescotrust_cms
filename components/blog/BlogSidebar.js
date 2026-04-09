@@ -25,6 +25,7 @@ const RecentPostItem = styled.div`
   gap: 12px;
   margin-bottom: 16px;
   padding-bottom: 16px;
+  padding-left: 15px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.04);
   &:last-child {
     margin-bottom: 0;

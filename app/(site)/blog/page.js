@@ -1,12 +1,11 @@
+import { Suspense } from "react";
 import Link from "next/link";
-import nextDynamic from "next/dynamic";
 import { connectDB } from "@/lib/db";
 import Blog from "@/models/Blog";
 import BlogCategory from "@/models/BlogCategory";
 import { getPageSeoMetadata } from "@/lib/seo";
 import { FullWidthBackground, PageContainer } from "@/styles/Theme";
-
-const BlogSidebarFull = nextDynamic(() => import("@/components/blog/BlogSidebarFull"), { ssr: false });
+import BlogSidebarFull from "@/components/blog/BlogSidebarFull";
 
 export const dynamic = "force-dynamic";
 
@@ -341,7 +340,9 @@ export default async function BlogListPage({ searchParams }) {
 
           {/* Right: Sidebar */}
           <div style={{ width: 320, flexShrink: 0 }} className="blog-sidebar-desktop">
-            <BlogSidebarFull searchQuery={searchQuery} categorySlug={categorySlug} categories={JSON.parse(JSON.stringify(categories))} />
+            <Suspense fallback={<div style={{ padding: "20px 0", color: "rgba(0,0,0,0.2)" }}>Loading...</div>}>
+              <BlogSidebarFull searchQuery={searchQuery} categorySlug={categorySlug} categories={JSON.parse(JSON.stringify(categories))} />
+            </Suspense>
           </div>
         </div>
 
