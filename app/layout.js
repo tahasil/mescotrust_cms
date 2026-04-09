@@ -172,8 +172,15 @@ html.page-loading,body.page-loading{overflow:hidden;margin:0;padding:0}
         {theme.headScripts && <script dangerouslySetInnerHTML={{ __html: theme.headScripts }} />}
         {theme.googleAnalyticsId && (
           <>
+            {/* Google Consent Mode v2 — default-deny until the user accepts via the
+                cookie banner. The banner calls gtag('consent','update',...) on accept. */}
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}window.gtag=gtag;gtag('consent','default',{ad_storage:'denied',analytics_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',wait_for_update:500});try{var c=window.localStorage.getItem('mesco_cookie_consent');if(c==='accepted'){gtag('consent','update',{ad_storage:'granted',analytics_storage:'granted',ad_user_data:'granted',ad_personalization:'granted'});}}catch(e){}`,
+              }}
+            />
             <script async src={`https://www.googletagmanager.com/gtag/js?id=${theme.googleAnalyticsId}`} />
-            <script dangerouslySetInnerHTML={{ __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${theme.googleAnalyticsId}');` }} />
+            <script dangerouslySetInnerHTML={{ __html: `gtag('js',new Date());gtag('config','${theme.googleAnalyticsId}');` }} />
           </>
         )}
         {orgJsonLd && (

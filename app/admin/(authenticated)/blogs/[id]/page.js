@@ -39,6 +39,7 @@ export default function AdminBlogEditPage() {
           content: postData.content,
           excerpt: postData.excerpt,
           featuredImage: postData.featuredImage,
+          featuredImageMobile: postData.featuredImageMobile,
           status: postData.status,
           locale: postData.locale || "en",
           category: postData.category?._id || undefined,
@@ -63,6 +64,7 @@ export default function AdminBlogEditPage() {
         body: JSON.stringify({
           ...values,
           featuredImage: values.featuredImage || "",
+          featuredImageMobile: values.featuredImageMobile || "",
           category: values.category || null,
           tags: Array.isArray(values.tags) ? values.tags : [],
           meta: { metaTitle: values.metaTitle, metaDescription: values.metaDescription },
@@ -105,8 +107,11 @@ export default function AdminBlogEditPage() {
           <Form.Item name="excerpt" label="Excerpt">
             <Input.TextArea rows={2} />
           </Form.Item>
-          <Form.Item name="featuredImage" label="Featured image URL" extra="Paste an image URL or path from the media library (e.g. /uploads/photo.jpg)">
-            <Input placeholder="/uploads/image.jpg or https://..." />
+          <Form.Item name="featuredImage" label="Featured image URL (Desktop)" extra="Paste an image URL or path from the media library (e.g. /uploads/photo.webp)">
+            <Input placeholder="/uploads/featured-desktop.webp" />
+          </Form.Item>
+          <Form.Item name="featuredImageMobile" label="Featured image URL (Mobile)" extra="Optional. If empty, the desktop image is used on phones.">
+            <Input placeholder="/uploads/featured-mobile.webp" />
           </Form.Item>
           <Form.Item name="content" label="Content">
             <RichTextEditor />

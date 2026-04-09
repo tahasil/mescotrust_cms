@@ -1,0 +1,71 @@
+# Mesco Trust CMS — Admin User Guide
+
+Welcome! This guide explains how to operate the Mesco Trust CMS from the admin panel. It is written for **non-technical content managers** — no coding required.
+
+## How to log in
+
+1. Open `https://your-site.com/admin/login` (or `/admin/login` on your domain).
+2. Enter your **email** and **password** provided by your administrator.
+3. Click **Sign in**. You will land on the **Dashboard**.
+
+> If you forget your password, contact your system administrator. There is no self-serve password reset yet.
+
+---
+
+## Contents
+
+| # | Section | Use this when you need to… |
+|---|---|---|
+| 1 | [Overview of the Admin Panel](01-overview.md) | Understand the layout, sidebar, and notification bell |
+| 2 | [Manage Pages](02-pages.md) | Create or edit any page on the website (Home, About, Contact, etc.) |
+| 3 | [Manage Blogs](03-blogs.md) | Write and publish news articles or blog posts |
+| 4 | [Manage Comments](04-comments.md) | Approve, hide, or delete reader comments on blog posts |
+| 5 | [Theme Settings (Website & Admin)](05-theme.md) | Change colors, fonts, logos, header, footer, and admin look |
+| 6 | [Media Library](06-media.md) | Upload images, PDFs, and other files |
+| 7 | [Form Submissions (Contacts, Donations, Subscribers)](07-form-submissions.md) | View and act on messages received through the website |
+| 8 | [Key Settings](08-key-settings.md) | Configure menus, users, and other important options |
+| 9 | [Reusable Page Builder Components Reference](09-reusable-components.md) | Look up which block to use for testimonials, awards, team, events, reports, gallery, etc. |
+| 10 | [Event Registrations](10-event-registrations.md) | Set up the visitor registration form, wire it to your event listings, and manage the submission inbox |
+
+---
+
+## Quick reference — what lives where
+
+| To do this | Go to |
+|---|---|
+| Add a new page | **Pages → New Page** |
+| Edit the home page | **Pages → Home** |
+| Write a news article | **Blogs → All Posts → New Post** |
+| Approve a blog comment | **Blogs → Comments** |
+| Add a testimonial / award / team member | Open the relevant page in **Pages**, edit the existing block (Testimonials, CommitteeMembers, etc.), add or update the items |
+| Change the site logo | **Theme → Brand Identity** |
+| Upload an image | **Media → Upload** |
+| See contact form messages | **Contacts** |
+| See donation records | **Donations** |
+| See newsletter sign-ups | **Subscribers** |
+| See event registrations | **Event Registrations** |
+| Add a new admin user | **Users → New User** |
+| Edit the navigation menu | **Menus** |
+
+---
+
+## Roles in the system
+
+There are currently two user roles:
+
+| Role | Can do |
+|---|---|
+| **Admin** | Everything — including users, theme, donations, and deleting content |
+| **Editor** | Create and edit pages, blogs, media, menus, contacts, donations, subscribers. Cannot manage users or theme. |
+
+> If you need a new user added, contact your administrator and provide the person's name, email, and required role.
+
+---
+
+## Tips before you start
+
+- **Always click "Save" before navigating away** — unsaved changes are not preserved.
+- **Drafts vs Published**: pages and blogs can be saved as drafts. Drafts are not visible on the public site.
+- **Preview your work**: use the **Preview** button on Pages and Blogs to see how the change will look before publishing.
+- **Images should be uploaded in WebP format** for best performance. You can convert images at [squoosh.app](https://squoosh.app/) before uploading.
+- **Maximum file size**: 50 MB per upload.

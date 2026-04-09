@@ -13,7 +13,20 @@
       "Bash(npm install:*)",
       "Bash(grep -E \"\\\\.\\(js|jsx\\)$\")",
       "Bash(npm run:*)",
-      "Bash(grep -E \"\\\\.js$\")"
+      "Bash(grep -E \"\\\\.js$\")",
+      "Bash(ls -1d /d/tahasil-projects/mescotrust_cms/components/*/)",
+      "Bash(grep -l \"role\\\\|author\" /d/tahasil-projects/mescotrust_cms/models/*.js)",
+      "Bash(node -e \"const fs=require\\('fs'\\);const f=fs.readFileSync\\('lib/email.js','utf8'\\);try{new Function\\(f.replace\\(/export /g,''\\)\\);console.log\\('lib/email.js — syntax OK'\\);}catch\\(e\\){console.error\\('SYNTAX ERROR:',e.message\\);process.exit\\(1\\);}\")",
+      "Bash(node --input-type=module -e \"import\\('./lib/email.js'\\).then\\(m=>{console.log\\('Exports:',Object.keys\\(m\\)\\);}\\).catch\\(e=>{console.error\\('IMPORT ERROR:',e.message\\);process.exit\\(1\\);}\\)\")",
+      "Bash(node -e \"const fs=require\\('fs'\\);['app/layout.js','app/\\(site\\)/layout.js','app/api/payment/callback/route.js','components/site/CookieConsent/CookieConsent.js','components/site/CookieConsent/index.js'].forEach\\(f=>{try{const c=fs.readFileSync\\(f,'utf8'\\);console.log\\(f,'—',c.length,'chars OK'\\);}catch\\(e\\){console.error\\('MISSING:',f,e.message\\);process.exit\\(1\\);}}\\);\")",
+      "Bash(npx --no-install next lint --file app/layout.js --file \"app/\\(site\\)/layout.js\" --file app/api/payment/callback/route.js --file lib/email.js --file components/site/CookieConsent/CookieConsent.js)",
+      "Bash(node -e ':*)",
+      "Bash(node scripts/.check-balance.js)",
+      "Bash(node scripts/.parse-check.js)",
+      "Bash(node -e \"const b=require\\(require\\('path'\\).resolve\\('node_modules/next/dist/compiled/babel/bundle.js'\\)\\);console.log\\('keys:',Object.keys\\(b\\).filter\\(k=>typeof b[k]==='function'\\).slice\\(0,20\\)\\);\")",
+      "Bash(grep -l \"testimonialsItems\\\\|donorTestimonialsItems\\\\|careersItems\" ./components/site/*/EditForm.js)",
+      "Bash(node --input-type=module -e \"import\\('./lib/email.js'\\).then\\(m=>{console.log\\('Exports:',Object.keys\\(m\\).sort\\(\\)\\);}\\).catch\\(e=>{console.error\\('IMPORT ERROR:',e.message\\);process.exit\\(1\\);}\\)\")",
+      "Bash(grep -r \"Subscribe\" /d/tahasil-projects/mescotrust_cms/lib/*.js)"
     ]
   }
 }

@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Donation from "@/models/Donation";
+import ThemeConfig from "@/models/ThemeConfig";
 import { decrypt, parseResponse } from "@/lib/ccavenue";
+import { sendDonationReceipt } from "@/lib/email";
 
 /**
  * CCAvenue posts encrypted response here after payment.
@@ -55,6 +57,26 @@ export async function POST(req) {
         statusMsg,
       };
       await donation.save();
+
+      // Best-effort: send receipt email on success. Never blocks the redirect.
+      if (status === "success") {
+        try {
+          const theme = await ThemeConfig.findOne({}).lean();
+          const orgInfo = theme
+            ? {
+                siteTitle: theme.siteTitle,
+                footerEmail: theme.footerEmail,
+                footerPhone: theme.footerPhone,
+                footerAddress: theme.footerAddress,
+                logoLightUrl: theme.logoLightUrl,
+                logoImageUrl: theme.logoImageUrl,
+              }
+            : {};
+          await sendDonationReceipt(donation.toObject(), orgInfo);
+        } catch (mailErr) {
+          console.error("[PaymentCallback] Receipt email failed:", mailErr?.message || mailErr);
+        }
+      }
     }
 
     // Redirect user to success or failed page

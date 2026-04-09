@@ -124,6 +124,15 @@ const menuItems = [
     ),
   },
   {
+    key: "/admin/event-registrations",
+    icon: <ClockCircleOutlined />,
+    label: (
+      <Link href="/admin/event-registrations" style={linkStyle}>
+        Event Registrations
+      </Link>
+    ),
+  },
+  {
     key: "/admin/donations",
     icon: <HeartOutlined />,
     label: (
@@ -230,7 +239,8 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
       fetch("/api/admin/contacts?limit=20").then((r) => (r.ok ? r.json() : { items: [] })),
       fetch("/api/admin/donations?limit=20").then((r) => (r.ok ? r.json() : { items: [] })),
       fetch("/api/admin/subscribers?limit=10").then((r) => (r.ok ? r.json() : { items: [] })),
-    ]).then(([contacts, donations, subscribers]) => {
+      fetch("/api/admin/event-registrations?limit=20").then((r) => (r.ok ? r.json() : { items: [] })),
+    ]).then(([contacts, donations, subscribers, eventRegs]) => {
       const notifs = [];
       (contacts.items || []).forEach((c) => {
         if (!c.isRead) {
@@ -266,6 +276,18 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
             title: `New subscriber: ${s.email}`,
             time: s.createdAt,
             link: "/admin/subscribers",
+          });
+        }
+      });
+      (eventRegs.items || []).forEach((r) => {
+        if (!r.isRead) {
+          notifs.push({
+            id: r._id,
+            type: "event-registration",
+            icon: <ClockCircleOutlined style={{ color: "#fa8c16" }} />,
+            title: `New event registration: ${r.payload?.name || "Unknown"} → ${r.eventTitle || "Event"}`,
+            time: r.createdAt,
+            link: "/admin/event-registrations",
           });
         }
       });

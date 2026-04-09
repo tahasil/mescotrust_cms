@@ -12,6 +12,8 @@ import {
   Pagination,
   Empty,
   Spin,
+  Form,
+  Tooltip,
 } from "antd";
 import {
   UploadOutlined,
@@ -19,6 +21,7 @@ import {
   CopyOutlined,
   SearchOutlined,
   FilePdfOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 
@@ -29,6 +32,9 @@ export default function AdminMediaPage() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [editing, setEditing] = useState(null); // currently-edited media item
+  const [savingAlt, setSavingAlt] = useState(false);
+  const [altForm] = Form.useForm();
 
   const fetchMedia = (p = page, q = searchQuery) => {
     setLoading(true);
@@ -133,6 +139,42 @@ export default function AdminMediaPage() {
     );
   };
 
+  const handleOpenEdit = (item) => {
+    setEditing(item);
+    altForm.setFieldsValue({ alt: item.alt || "" });
+  };
+
+  const handleSaveAlt = async () => {
+    if (!editing) return;
+    try {
+      const values = await altForm.validateFields();
+      setSavingAlt(true);
+      const res = await fetch(`/api/admin/media/${editing._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ alt: values.alt || "" }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        message.error(data.error || "Save failed");
+        return;
+      }
+      message.success("Alt text saved");
+      // Update the item in-place so we don't need a full refetch
+      setItems((prev) =>
+        prev.map((it) =>
+          it._id === editing._id ? { ...it, alt: data.alt ?? values.alt ?? "" } : it,
+        ),
+      );
+      setEditing(null);
+    } catch (e) {
+      if (e?.errorFields) return; // form validation handled by AntD
+      message.error(e?.message || "Save failed");
+    } finally {
+      setSavingAlt(false);
+    }
+  };
+
   return (
     <ThemeAdminCard
       title={
@@ -224,15 +266,21 @@ export default function AdminMediaPage() {
                   </div>
                 }
                 actions={[
-                  <CopyOutlined
-                    key="copy"
-                    onClick={() => handleCopyUrl(item.url)}
-                  />,
-                  <DeleteOutlined
-                    key="delete"
-                    onClick={() => handleDelete(item)}
-                    style={{ color: "#ff4d4f" }}
-                  />,
+                  <Tooltip key="copy" title="Copy URL">
+                    <CopyOutlined onClick={() => handleCopyUrl(item.url)} />
+                  </Tooltip>,
+                  <Tooltip
+                    key="edit"
+                    title={item.mimeType === "application/pdf" ? "Edit details" : "Edit alt text"}
+                  >
+                    <EditOutlined onClick={() => handleOpenEdit(item)} />
+                  </Tooltip>,
+                  <Tooltip key="delete" title="Delete">
+                    <DeleteOutlined
+                      onClick={() => handleDelete(item)}
+                      style={{ color: "#ff4d4f" }}
+                    />
+                  </Tooltip>,
                 ]}
               >
                 <Card.Meta
@@ -262,6 +310,93 @@ export default function AdminMediaPage() {
           )}
         </>
       )}
+
+      <Modal
+        title="Edit alt text"
+        open={!!editing}
+        onCancel={() => setEditing(null)}
+        onOk={handleSaveAlt}
+        confirmLoading={savingAlt}
+        okText="Save"
+        destroyOnClose
+      >
+        {editing && (
+          <>
+            <div
+              style={{
+                display: "flex",
+                gap: 12,
+                alignItems: "flex-start",
+                marginBottom: 16,
+              }}
+            >
+              <div
+                style={{
+                  width: 96,
+                  height: 96,
+                  flexShrink: 0,
+                  background: "#fafafa",
+                  border: "1px solid #f0f0f0",
+                  borderRadius: 6,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  overflow: "hidden",
+                }}
+              >
+                {editing.mimeType === "application/pdf" ? (
+                  <FilePdfOutlined style={{ fontSize: 36, color: "#ff4d4f" }} />
+                ) : (
+                  <img
+                    src={editing.url}
+                    alt={editing.alt || editing.originalName}
+                    style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
+                  />
+                )}
+              </div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    wordBreak: "break-all",
+                    marginBottom: 2,
+                  }}
+                >
+                  {editing.originalName}
+                </div>
+                <div style={{ fontSize: 11, color: "#999" }}>
+                  {(editing.size / 1024).toFixed(1)} KB &middot; {editing.mimeType}
+                </div>
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: "#1677ff",
+                    marginTop: 4,
+                    wordBreak: "break-all",
+                  }}
+                >
+                  {editing.url}
+                </div>
+              </div>
+            </div>
+            <Form form={altForm} layout="vertical" preserve={false}>
+              <Form.Item
+                name="alt"
+                label="Alt text"
+                extra="Short description used by screen readers and search engines. Leave blank for purely decorative images."
+              >
+                <Input.TextArea
+                  rows={3}
+                  maxLength={300}
+                  showCount
+                  placeholder="e.g. Children at MESCO scholarship distribution event 2024"
+                />
+              </Form.Item>
+            </Form>
+          </>
+        )}
+      </Modal>
     </ThemeAdminCard>
   );
 }

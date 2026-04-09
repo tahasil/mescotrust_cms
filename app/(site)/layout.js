@@ -3,6 +3,7 @@ import Script from "next/script";
 import { getLayoutData } from "@/lib/layoutData";
 import PublicShell from "@/components/layout/PublicShell";
 import SmoothScroll from "@/components/cms/SmoothScroll";
+import CookieConsent from "@/components/site/CookieConsent";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -118,6 +119,7 @@ export default async function SiteLayout({ children }) {
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         strategy="afterInteractive"
       />
+      <CookieConsent />
     </>
   );
 }
