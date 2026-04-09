@@ -37,11 +37,15 @@ import {
   ClockCircleOutlined,
   MessageOutlined,
   DollarOutlined,
+  CloseOutlined,
 } from "@ant-design/icons";
 import { signOut } from "next-auth/react";
-import { ThemeSider } from "@/styles/Theme";
 
 const { Header, Content } = Layout;
+
+const SIDEBAR_WIDTH = 200;
+const HEADER_HEIGHT = 64;
+const MOBILE_BREAKPOINT = 992;
 
 const linkStyle = { textDecoration: "none" };
 
@@ -148,14 +152,78 @@ const menuItems = [
   },
 ];
 
+const DEFAULT_ADMIN_THEME = {
+  adminSiteName: "",
+  adminLogoUrl: "",
+  adminTextColor: "#333333",
+  adminBorderColor: "rgba(0,0,0,0.06)",
+  adminCtaBgColor: "#1677ff",
+  adminCtaTextColor: "#ffffff",
+  adminCtaHoverBgColor: "",
+  adminCtaHoverTextColor: "",
+  adminSidebarBg: "#ffffff",
+  adminSidebarText: "rgba(0,0,0,0.65)",
+  adminSidebarHoverBg: "rgba(0,0,0,0.04)",
+  adminSidebarHoverText: "#1677ff",
+  adminSidebarActiveBg: "#e6f4ff",
+  adminSidebarActiveText: "#1677ff",
+  adminLoaderColor: "#1677ff",
+};
+
 export default function AdminLayoutClient({ children, userName, userRole }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 
+  const [adminTheme, setAdminTheme] = useState(DEFAULT_ADMIN_THEME);
   const [notifications, setNotifications] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
   const [bellShake, setBellShake] = useState(false);
   const prevCountRef = useRef(0);
+
+  // Fetch admin theme settings
+  useEffect(() => {
+    fetch("/api/theme")
+      .then((res) => (res.ok ? res.json() : {}))
+      .then((data) => {
+        const t = { ...DEFAULT_ADMIN_THEME };
+        for (const key of Object.keys(DEFAULT_ADMIN_THEME)) {
+          if (data[key] !== undefined && data[key] !== "") t[key] = data[key];
+        }
+        setAdminTheme(t);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Responsive detection
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < MOBILE_BREAKPOINT;
+      setIsMobile(mobile);
+      if (mobile) setCollapsed(true);
+      else setMobileOpen(false);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    if (isMobile) setMobileOpen(false);
+  }, [pathname, isMobile]);
+
+  const toggleSidebar = () => {
+    if (isMobile) {
+      setMobileOpen(!mobileOpen);
+    } else {
+      setCollapsed(!collapsed);
+    }
+  };
+
+  const sidebarVisible = isMobile ? mobileOpen : !collapsed;
+  const contentMarginLeft = isMobile ? 0 : (collapsed ? 0 : SIDEBAR_WIDTH);
 
   const fetchNotifications = useCallback(() => {
     Promise.all([
@@ -188,7 +256,6 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
           });
         }
       });
-      /* Show recent subscribers (last 24 hours) */
       const oneDayAgo = Date.now() - 86400000;
       (subscribers.items || []).forEach((s) => {
         if (s.status === "active" && new Date(s.createdAt).getTime() > oneDayAgo) {
@@ -216,7 +283,6 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
   useEffect(() => {
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 5000);
-    /* Listen for instant notification refresh from form submissions */
     const handleNewSubmission = () => setTimeout(fetchNotifications, 500);
     window.addEventListener("new-contact-submission", handleNewSubmission);
     window.addEventListener("new-donation", handleNewSubmission);
@@ -240,7 +306,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
   };
 
   const notificationContent = (
-    <div style={{ width: 320 }}>
+    <div style={{ width: 320, maxWidth: "90vw" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px" }}>
         <Typography.Text strong>{notifications.length} New Notifications</Typography.Text>
         <Typography.Link onClick={() => { setNotifications([]); setNotifOpen(false); }} style={{ fontSize: 13 }}>Clear all</Typography.Link>
@@ -286,6 +352,11 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
     ],
   };
 
+  const at = adminTheme;
+  const logoDisplay = at.adminLogoUrl
+    ? <img src={at.adminLogoUrl} alt="logo" style={{ maxHeight: 36, maxWidth: 140, objectFit: "contain" }} />
+    : at.adminSiteName || "CMS";
+
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <style>{`
@@ -316,45 +387,210 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
         .ant-badge .ant-badge-count {
           animation: badgePulse 1.5s infinite;
         }
+
+        /* Admin sidebar overlay drawer */
+        .admin-sidebar-backdrop {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.45);
+          z-index: 199;
+          opacity: 0;
+          visibility: hidden;
+          transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .admin-sidebar-backdrop.visible {
+          opacity: 1;
+          visibility: visible;
+        }
+
+        .admin-sidebar {
+          position: fixed !important;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          z-index: 200;
+          height: 100vh;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          box-shadow: 5px 0 15px rgba(0, 0, 0, 0.04);
+          transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.2s ease;
+        }
+        .admin-sidebar-menu-wrap {
+          flex: 1;
+          overflow-y: auto;
+          overflow-x: hidden;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+        .admin-sidebar-menu-wrap::-webkit-scrollbar {
+          display: none;
+        }
+
+        .admin-sidebar .ant-menu-item:hover {
+          background: ${at.adminSidebarHoverBg} !important;
+          color: ${at.adminSidebarHoverText} !important;
+        }
+        .admin-sidebar .ant-menu-item:hover a {
+          color: ${at.adminSidebarHoverText} !important;
+        }
+        .admin-sidebar .ant-menu-item-selected {
+          background: ${at.adminSidebarActiveBg} !important;
+          color: ${at.adminSidebarActiveText} !important;
+        }
+        .admin-sidebar .ant-menu-item-selected a {
+          color: ${at.adminSidebarActiveText} !important;
+        }
+        .admin-sidebar .ant-menu-submenu-title:hover {
+          background: ${at.adminSidebarHoverBg} !important;
+          color: ${at.adminSidebarHoverText} !important;
+        }
+        .admin-sidebar .ant-menu-item a {
+          color: ${at.adminSidebarText};
+        }
+        .admin-sidebar .ant-menu-submenu-title {
+          color: ${at.adminSidebarText} !important;
+        }
+        .admin-sidebar .ant-menu-light {
+          background: transparent;
+        }
+
+        /* Inject admin loader color as CSS variable */
+        :root {
+          --admin-loader-color: ${at.adminLoaderColor};
+        }
+
+        /* Override Ant Design Spin color globally for admin */
+        .admin-content .ant-spin .ant-spin-dot-item,
+        .ant-drawer .ant-spin .ant-spin-dot-item,
+        .ant-modal-root .ant-spin .ant-spin-dot-item {
+          background-color: ${at.adminLoaderColor} !important;
+        }
+        .admin-content .ant-spin {
+          color: ${at.adminLoaderColor} !important;
+        }
+
+        /* Admin CTA button override — covers content, drawers, modals, popovers */
+        .admin-content .ant-btn-primary,
+        .ant-drawer .ant-btn-primary,
+        .ant-modal-root .ant-btn-primary,
+        .ant-popover .ant-btn-primary {
+          background: ${at.adminCtaBgColor} !important;
+          border-color: ${at.adminCtaBgColor} !important;
+          color: ${at.adminCtaTextColor} !important;
+        }
+        .admin-content .ant-btn-primary:hover,
+        .ant-drawer .ant-btn-primary:hover,
+        .ant-modal-root .ant-btn-primary:hover,
+        .ant-popover .ant-btn-primary:hover {
+          background: ${at.adminCtaHoverBgColor || at.adminCtaBgColor} !important;
+          border-color: ${at.adminCtaHoverBgColor || at.adminCtaBgColor} !important;
+          color: ${at.adminCtaHoverTextColor || at.adminCtaTextColor} !important;
+          opacity: ${at.adminCtaHoverBgColor ? 1 : 0.85};
+        }
+
+        /* Make all admin tables horizontally scrollable on small screens */
+        .admin-content .ant-table-wrapper .ant-table {
+          overflow-x: auto;
+        }
+
+        /* Responsive overrides */
+        @media (max-width: ${MOBILE_BREAKPOINT - 1}px) {
+          .admin-sidebar {
+            transform: translateX(-100%);
+          }
+          .admin-sidebar.mobile-open {
+            transform: translateX(0);
+          }
+          .admin-header {
+            left: 0 !important;
+            padding: 0 12px 0 4px !important;
+          }
+          .admin-header .admin-search-input {
+            display: none;
+          }
+        }
       `}</style>
-      <ThemeSider
-        trigger={null}
-        collapsible
-        collapsed={collapsed}
-        breakpoint="lg"
-        collapsedWidth={0}
-        width={200}
+
+      {/* Mobile backdrop */}
+      <div
+        className={`admin-sidebar-backdrop ${isMobile && mobileOpen ? "visible" : ""}`}
+        onClick={() => setMobileOpen(false)}
+      />
+
+      {/* Sidebar */}
+      <div
+        className={`admin-sidebar ${isMobile && mobileOpen ? "mobile-open" : ""}`}
+        style={{
+          width: sidebarVisible ? SIDEBAR_WIDTH : 0,
+          background: at.adminSidebarBg,
+          ...(isMobile ? { width: SIDEBAR_WIDTH } : {}),
+        }}
       >
         <div
           style={{
-            height: 64,
-            color: "#000",
+            height: HEADER_HEIGHT,
+            minHeight: HEADER_HEIGHT,
+            color: at.adminSidebarText,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: collapsed ? 14 : 16,
+            fontSize: 16,
+            fontWeight: 600,
             overflow: "hidden",
-            borderBottom: "1px solid rgba(0, 0, 0, 0.06)",
-            marginBottom: 16,
+            borderBottom: `1px solid ${at.adminBorderColor}`,
+            padding: "0 12px",
+            position: "relative",
+            flexShrink: 0,
           }}
         >
-          {collapsed ? "CMS" : <img src="/images/logo.svg" alt="logo" />}
+          {typeof logoDisplay === "string" ? (
+            <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{logoDisplay}</span>
+          ) : (
+            logoDisplay
+          )}
+          {isMobile && (
+            <Button
+              type="text"
+              icon={<CloseOutlined />}
+              onClick={() => setMobileOpen(false)}
+              style={{
+                position: "absolute",
+                right: 4,
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: at.adminSidebarText,
+                fontSize: 16,
+              }}
+            />
+          )}
         </div>
-        <Menu
-          theme="light"
-          mode="inline"
-          selectedKeys={[pathname]}
-          defaultOpenKeys={["/admin/blogs"]}
-          items={menuItems}
-          style={{ borderRight: 0 }}
-        />
-      </ThemeSider>
-      <Layout style={{ marginLeft: collapsed ? 0 : 200, minHeight: "100vh" }}>
+        <div className="admin-sidebar-menu-wrap">
+          <Menu
+            theme="light"
+            mode="inline"
+            selectedKeys={[pathname]}
+            defaultOpenKeys={["/admin/blogs"]}
+            items={menuItems}
+            style={{ borderRight: 0, color: at.adminSidebarText, paddingTop: 8 }}
+          />
+        </div>
+      </div>
+
+      <Layout
+        className="admin-content"
+        style={{
+          marginLeft: contentMarginLeft,
+          minHeight: "100vh",
+          transition: "margin-left 0.2s ease",
+        }}
+      >
         <Header
+          className="admin-header"
           style={{
             position: "fixed",
             top: 0,
-            left: collapsed ? 0 : 200,
+            left: contentMarginLeft,
             right: 0,
             zIndex: 99,
             padding: "0 16px 0 8px",
@@ -363,17 +599,24 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
             alignItems: "center",
             justifyContent: "space-between",
             gap: 16,
-            borderBottom: "1px solid rgba(0, 0, 0, 0.06)",
+            height: HEADER_HEIGHT,
+            borderBottom: `1px solid ${at.adminBorderColor}`,
             boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.04)",
+            transition: "left 0.2s ease",
           }}
         >
           <Button
             type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={() => setCollapsed(!collapsed)}
-            style={{ fontSize: 18, color: "rgba(0, 0, 0, 0.65)" }}
+            icon={
+              isMobile
+                ? (mobileOpen ? <CloseOutlined /> : <MenuUnfoldOutlined />)
+                : (collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />)
+            }
+            onClick={toggleSidebar}
+            style={{ fontSize: 18, color: at.adminTextColor }}
           />
           <Input
+            className="admin-search-input"
             placeholder="Ctrl + K"
             prefix={
               <SearchOutlined
@@ -385,7 +628,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
               maxWidth: 240,
               borderRadius: 8,
               backgroundColor: "#fff",
-              border: "1px solid rgba(0, 0, 0, 0.06)",
+              border: `1px solid ${at.adminBorderColor}`,
             }}
             styles={{ input: { backgroundColor: "#fff" } }}
           />
@@ -394,7 +637,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
               type="text"
               icon={
                 <GithubOutlined
-                  style={{ fontSize: 18, color: "rgba(0, 0, 0, 0.65)" }}
+                  style={{ fontSize: 18, color: at.adminTextColor }}
                 />
               }
             />
@@ -413,7 +656,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
                   className={bellShake ? "bell-shake" : ""}
                   icon={
                     <BellOutlined
-                      style={{ fontSize: 18, color: "rgba(0, 0, 0, 0.65)" }}
+                      style={{ fontSize: 18, color: at.adminTextColor }}
                     />
                   }
                 />
@@ -425,14 +668,16 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
                 icon={<UserOutlined />}
                 style={{
                   backgroundColor: "rgba(0, 0, 0, 0.08)",
-                  color: "rgba(0, 0, 0, 0.65)",
+                  color: at.adminTextColor,
                   cursor: "pointer",
                 }}
               />
             </Dropdown>
           </Space>
         </Header>
-        <Content style={{ marginTop: 64, padding: 10 }}>{children}</Content>
+        <Content style={{ marginTop: HEADER_HEIGHT, padding: isMobile ? 8 : 10 }}>
+          {children}
+        </Content>
       </Layout>
     </Layout>
   );

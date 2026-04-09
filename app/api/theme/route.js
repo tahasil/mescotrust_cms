@@ -224,6 +224,21 @@ const DEFAULTS = {
   layoutWidth: 1200,
   defaultLocale: "en",
   direction: "ltr",
+  adminSiteName: "",
+  adminLogoUrl: "",
+  adminTextColor: "#333333",
+  adminBorderColor: "rgba(0,0,0,0.06)",
+  adminCtaBgColor: "#1677ff",
+  adminCtaTextColor: "#ffffff",
+  adminCtaHoverBgColor: "",
+  adminCtaHoverTextColor: "",
+  adminSidebarBg: "#ffffff",
+  adminSidebarText: "rgba(0,0,0,0.65)",
+  adminSidebarHoverBg: "rgba(0,0,0,0.04)",
+  adminSidebarHoverText: "#1677ff",
+  adminSidebarActiveBg: "#e6f4ff",
+  adminSidebarActiveText: "#1677ff",
+  adminLoaderColor: "#1677ff",
 };
 
 const THEME_FIELDS = [
@@ -256,6 +271,10 @@ const THEME_FIELDS = [
   "pageLoaderEnabled", "pageLoaderBgColor", "pageLoaderBarColor", "pageLoaderMinDuration",
   "customCss", "customJs", "headScripts", "footerScripts", "googleAnalyticsId",
   "layoutWidth", "defaultLocale", "direction",
+  "adminSiteName", "adminLogoUrl", "adminTextColor", "adminBorderColor",
+  "adminCtaBgColor", "adminCtaTextColor", "adminCtaHoverBgColor", "adminCtaHoverTextColor",
+  "adminSidebarBg", "adminSidebarText", "adminSidebarHoverBg", "adminSidebarHoverText",
+  "adminSidebarActiveBg", "adminSidebarActiveText", "adminLoaderColor",
 ];
 
 function normalizeTheme(theme) {

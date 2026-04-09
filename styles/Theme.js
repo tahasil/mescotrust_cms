@@ -39,13 +39,10 @@ const Theme = {
     blackLight: "var(--theme-black-light, rgba(5, 5, 5, 0.5))",
     white: "var(--theme-white, #FFFFFF)",
     primaryLight: "var(--theme-primary-light, rgba(207, 55, 47, 0.1))",
-    gradient:
-      "var(--theme-gradient, linear-gradient(90deg, #CF372F 0%, #691C18 100%))",
+    gradient: "var(--theme-gradient, linear-gradient(90deg, #CF372F 0%, #691C18 100%))",
     border: "var(--theme-border, rgba(0, 0, 0, 0.1))",
-    imgWhite:
-      "var(--theme-imgwhite, brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(3%) hue-rotate(51deg) brightness(115%) contrast(100%))",
-    imgTheme:
-      "var(--theme-imgtheme, brightness(0) saturate(100%) invert(25%) sepia(76%) saturate(6383%) hue-rotate(354deg) brightness(93%) contrast(73%))",
+    imgwhite: "var(--theme-imgwhite, brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(3%) hue-rotate(51deg) brightness(115%) contrast(100%))",
+    imgcolor: "var(--theme-imgcolor, brightness(0) saturate(100%) invert(25%) sepia(76%) saturate(6383%) hue-rotate(354deg) brightness(93%) contrast(73%))",
     transparent: "var(--theme-transparent, transparent)",
   },
   fonts: {
@@ -468,6 +465,40 @@ export const ThemeAdminCard = styled(Card)`
   border-radius: 16px;
   .ant-card-body {
     padding: 24px;
+  }
+  @media (max-width: 768px) {
+    border-radius: 10px;
+    .ant-card-body {
+      padding: 14px;
+    }
+    .ant-card-head {
+      padding: 0 14px;
+    }
+    .ant-card-head-wrapper {
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 12px 0;
+    }
+    .ant-card-head-wrapper .ant-card-head-title {
+      flex: none;
+      width: 100%;
+      min-width: 0;
+      overflow: visible;
+    }
+    .ant-card-head-wrapper .ant-card-extra {
+      flex: none;
+      width: 100%;
+      margin: 0;
+    }
+    .ant-card-extra .ant-space {
+      flex-wrap: wrap;
+      width: 100%;
+      gap: 8px !important;
+    }
+    .ant-card-extra .ant-input-affix-wrapper,
+    .ant-card-extra .ant-select {
+      width: 100% !important;
+    }
   }
 `;
 export default Theme;

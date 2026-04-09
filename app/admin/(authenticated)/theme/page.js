@@ -29,6 +29,7 @@ import {
   CodeOutlined,
   BulbOutlined,
   LoadingOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import { LOCALE_OPTIONS } from "@/lib/localeOptions";
 import { ThemeAdminCard } from "@/styles/Theme";
@@ -237,6 +238,22 @@ const initialFormValues = {
   layoutWidth: 1200,
   defaultLocale: "en",
   direction: "ltr",
+  // Admin theme defaults
+  adminSiteName: "",
+  adminLogoUrl: "",
+  adminTextColor: "#333333",
+  adminBorderColor: "rgba(0,0,0,0.06)",
+  adminCtaBgColor: "#1677ff",
+  adminCtaTextColor: "#ffffff",
+  adminCtaHoverBgColor: "",
+  adminCtaHoverTextColor: "",
+  adminSidebarBg: "#ffffff",
+  adminSidebarText: "rgba(0,0,0,0.65)",
+  adminSidebarHoverBg: "rgba(0,0,0,0.04)",
+  adminSidebarHoverText: "#1677ff",
+  adminSidebarActiveBg: "#e6f4ff",
+  adminSidebarActiveText: "#1677ff",
+  adminLoaderColor: "#1677ff",
 };
 
 export default function AdminThemePage() {
@@ -247,6 +264,7 @@ export default function AdminThemePage() {
   const [newFont, setNewFont] = useState(null);
   const [uploadedFonts, setUploadedFonts] = useState([]);
   const [fontUploading, setFontUploading] = useState(false);
+  const [adminLogoUploading, setAdminLogoUploading] = useState(false);
 
   const fetchUploadedFonts = () => {
     fetch("/api/admin/fonts")
@@ -327,6 +345,29 @@ export default function AdminThemePage() {
     }
   };
 
+  const handleAdminLogoUpload = async (info) => {
+    const file = info.file;
+    if (!file) return;
+    setAdminLogoUploading(true);
+    const fd = new FormData();
+    fd.append("file", file);
+    try {
+      const res = await fetch("/api/admin/media", { method: "POST", body: fd });
+      const data = await res.json();
+      if (!res.ok) {
+        message.error(data.error || "Upload failed");
+        return;
+      }
+      const url = data.url || data.path || "";
+      form.setFieldsValue({ adminLogoUrl: url });
+      message.success("Admin logo uploaded");
+    } catch {
+      message.error("Logo upload failed");
+    } finally {
+      setAdminLogoUploading(false);
+    }
+  };
+
   const onFinish = async (values) => {
     setSaving(true);
     try {
@@ -365,7 +406,7 @@ export default function AdminThemePage() {
     }
   };
 
-  const collapseItems = [
+  const websiteCollapseItems = [
     {
       key: "layout",
       label: (
@@ -584,12 +625,12 @@ export default function AdminThemePage() {
             <Switch />
           </Form.Item>
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item name="pageLoaderBgColor" label="Background color">
                 <ColorCodeInput placeholder="#000000 or rgba(0,0,0,0.8)" />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item name="pageLoaderBarColor" label="Bar color">
                 <ColorCodeInput placeholder="#CF372F or rgba(207,55,47,1)" />
               </Form.Item>
@@ -647,27 +688,241 @@ export default function AdminThemePage() {
     },
   ];
 
+  const adminLogoUrl = Form.useWatch("adminLogoUrl", form);
+
+  const adminCollapseItems = [
+    {
+      key: "admin-identity",
+      label: (
+        <span>
+          <SettingOutlined style={{ marginRight: 8 }} />
+          Identity & Branding
+        </span>
+      ),
+      children: (
+        <div style={{ paddingBlock: 8 }}>
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={12}>
+              <Form.Item name="adminSiteName" label="Admin panel title" tooltip="Displayed in the sidebar header. Falls back to Site Title if empty.">
+                <Input placeholder="e.g. Mesco CMS" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item name="adminLogoUrl" label="Admin logo URL">
+                <Input placeholder="/images/admin-logo.svg" />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={[16, 0]} align="middle">
+            <Col xs={24} sm={12}>
+              <Upload
+                showUploadList={false}
+                accept="image/*"
+                customRequest={handleAdminLogoUpload}
+              >
+                <Button icon={adminLogoUploading ? <LoadingOutlined /> : <UploadOutlined />} loading={adminLogoUploading}>
+                  Upload admin logo
+                </Button>
+              </Upload>
+            </Col>
+            <Col xs={24} sm={12}>
+              {adminLogoUrl && (
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8 }}>
+                  <img
+                    src={adminLogoUrl}
+                    alt="Admin logo preview"
+                    style={{ maxHeight: 40, maxWidth: 160, objectFit: "contain", border: "1px solid #f0f0f0", borderRadius: 4, padding: 4 }}
+                  />
+                  <Button size="small" danger onClick={() => form.setFieldsValue({ adminLogoUrl: "" })}>
+                    Remove
+                  </Button>
+                </div>
+              )}
+            </Col>
+          </Row>
+        </div>
+      ),
+    },
+    {
+      key: "admin-colors",
+      label: (
+        <span>
+          <BgColorsOutlined style={{ marginRight: 8 }} />
+          Colors & Buttons
+        </span>
+      ),
+      children: (
+        <div style={{ paddingBlock: 8 }}>
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={12}>
+              <FormColor name="adminTextColor" label="Text color" placeholder="#333333" />
+            </Col>
+            <Col xs={24} sm={12}>
+              <FormColor name="adminBorderColor" label="Border color" placeholder="rgba(0,0,0,0.06)" />
+            </Col>
+          </Row>
+          <Divider orientation="left" plain style={{ margin: "8px 0 12px" }}>CTA Button</Divider>
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={12}>
+              <FormColor name="adminCtaBgColor" label="Button background" placeholder="#1677ff" />
+            </Col>
+            <Col xs={24} sm={12}>
+              <FormColor name="adminCtaTextColor" label="Button text color" placeholder="#ffffff" />
+            </Col>
+          </Row>
+          <Divider orientation="left" plain style={{ margin: "8px 0 12px" }}>CTA Hover</Divider>
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={12}>
+              <FormColor name="adminCtaHoverBgColor" label="Hover background" placeholder="Leave empty for auto" />
+            </Col>
+            <Col xs={24} sm={12}>
+              <FormColor name="adminCtaHoverTextColor" label="Hover text color" placeholder="Leave empty for auto" />
+            </Col>
+          </Row>
+        </div>
+      ),
+    },
+    {
+      key: "admin-sidebar",
+      label: (
+        <span>
+          <BulbOutlined style={{ marginRight: 8 }} />
+          Sidebar
+        </span>
+      ),
+      children: (
+        <div style={{ paddingBlock: 8 }}>
+          <Divider orientation="left" plain style={{ margin: "0 0 12px" }}>Default</Divider>
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={12}>
+              <FormColor name="adminSidebarBg" label="Background" placeholder="#ffffff" />
+            </Col>
+            <Col xs={24} sm={12}>
+              <FormColor name="adminSidebarText" label="Text color" placeholder="rgba(0,0,0,0.65)" />
+            </Col>
+          </Row>
+          <Divider orientation="left" plain style={{ margin: "8px 0 12px" }}>Hover</Divider>
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={12}>
+              <FormColor name="adminSidebarHoverBg" label="Hover background" placeholder="rgba(0,0,0,0.04)" />
+            </Col>
+            <Col xs={24} sm={12}>
+              <FormColor name="adminSidebarHoverText" label="Hover text" placeholder="#1677ff" />
+            </Col>
+          </Row>
+          <Divider orientation="left" plain style={{ margin: "8px 0 12px" }}>Active</Divider>
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={12}>
+              <FormColor name="adminSidebarActiveBg" label="Active background" placeholder="#e6f4ff" />
+            </Col>
+            <Col xs={24} sm={12}>
+              <FormColor name="adminSidebarActiveText" label="Active text" placeholder="#1677ff" />
+            </Col>
+          </Row>
+        </div>
+      ),
+    },
+    {
+      key: "admin-loader",
+      label: (
+        <span>
+          <LoadingOutlined style={{ marginRight: 8 }} />
+          Admin Loader
+        </span>
+      ),
+      children: (
+        <div style={{ paddingBlock: 8 }}>
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={12}>
+              <FormColor name="adminLoaderColor" label="Loader color" placeholder="#1677ff" />
+            </Col>
+          </Row>
+          <div style={{ marginTop: 12 }}>
+            <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+              Preview:
+            </Typography.Text>
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: 24, marginTop: 8, background: "#fafafa", borderRadius: 8 }}>
+              <AdminLoaderPreview form={form} />
+            </div>
+          </div>
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <ThemeAdminCard title="Theme Settings">
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={onFinish}
-        initialValues={initialFormValues}
-        loading={loading}
-      >
-        <Collapse items={collapseItems} defaultActiveKey={[]} destroyInactivePanel={false} />
-        <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
-          <Button
-            type="primary"
-            htmlType="submit"
-            size="large"
-            loading={saving}
+    <Form
+      form={form}
+      layout="vertical"
+      onFinish={onFinish}
+      initialValues={initialFormValues}
+      loading={loading}
+    >
+      <Row gutter={[16, 16]}>
+        {/* Website Theme Settings */}
+        <Col xs={24} xl={12}>
+          <ThemeAdminCard
+            title={
+              <span style={{ fontSize: 16, fontWeight: 600 }}>
+                <BgColorsOutlined style={{ marginRight: 8 }} />
+                Website Theme Settings
+              </span>
+            }
           >
-            Save theme
-          </Button>
-        </Form.Item>
-      </Form>
-    </ThemeAdminCard>
+            <Collapse items={websiteCollapseItems} defaultActiveKey={[]} destroyInactivePanel={false} />
+          </ThemeAdminCard>
+        </Col>
+
+        {/* Admin Theme Settings */}
+        <Col xs={24} xl={12}>
+          <ThemeAdminCard
+            title={
+              <span style={{ fontSize: 16, fontWeight: 600 }}>
+                <SettingOutlined style={{ marginRight: 8 }} />
+                Admin Theme Settings
+              </span>
+            }
+          >
+            <Collapse items={adminCollapseItems} defaultActiveKey={[]} destroyInactivePanel={false} />
+          </ThemeAdminCard>
+        </Col>
+      </Row>
+
+      <div style={{ marginTop: 24, display: "flex", justifyContent: "center" }}>
+        <Button
+          type="primary"
+          htmlType="submit"
+          size="large"
+          loading={saving}
+          style={{ minWidth: 200 }}
+        >
+          Save all settings
+        </Button>
+      </div>
+    </Form>
+  );
+}
+
+/** Live preview of the admin loader spinner */
+function AdminLoaderPreview({ form }) {
+  const loaderColor = Form.useWatch("adminLoaderColor", form) || "#1677ff";
+  return (
+    <div
+      style={{
+        width: 40,
+        height: 40,
+        border: `3px solid #f0f0f0`,
+        borderTop: `3px solid ${loaderColor}`,
+        borderRadius: "50%",
+        animation: "adminLoaderSpin 0.8s linear infinite",
+      }}
+    >
+      <style>{`
+        @keyframes adminLoaderSpin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
   );
 }

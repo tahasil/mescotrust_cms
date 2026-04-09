@@ -294,6 +294,23 @@ const themeConfigSchema = new mongoose.Schema(
     layoutWidth: { type: Number, default: 1200 },
     defaultLocale: { type: String, default: "en" },
     direction: { type: String, enum: ["ltr", "rtl"], default: "ltr" },
+
+    // ─── 13. Admin Panel Theme ─────────────────────────────────
+    adminSiteName: { type: String, default: "" },
+    adminLogoUrl: { type: String, default: "" },
+    adminTextColor: { type: String, default: "#333333" },
+    adminBorderColor: { type: String, default: "rgba(0,0,0,0.06)" },
+    adminCtaBgColor: { type: String, default: "#1677ff" },
+    adminCtaTextColor: { type: String, default: "#ffffff" },
+    adminCtaHoverBgColor: { type: String, default: "" },
+    adminCtaHoverTextColor: { type: String, default: "" },
+    adminSidebarBg: { type: String, default: "#ffffff" },
+    adminSidebarText: { type: String, default: "rgba(0,0,0,0.65)" },
+    adminSidebarHoverBg: { type: String, default: "rgba(0,0,0,0.04)" },
+    adminSidebarHoverText: { type: String, default: "#1677ff" },
+    adminSidebarActiveBg: { type: String, default: "#e6f4ff" },
+    adminSidebarActiveText: { type: String, default: "#1677ff" },
+    adminLoaderColor: { type: String, default: "#1677ff" },
   },
   { timestamps: true },
 );

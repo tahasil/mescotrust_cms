@@ -12,7 +12,8 @@
       "Bash(xargs grep:*)",
       "Bash(npm install:*)",
       "Bash(grep -E \"\\\\.\\(js|jsx\\)$\")",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(grep -E \"\\\\.js$\")"
     ]
   }
 }
