@@ -48,7 +48,7 @@ export default async function PreviewPage({ params, searchParams }) {
     if (!page) notFound();
 
     const layoutBlocks = page.layout || [];
-    const baseComponents = [...new Set(layoutBlocks.map((b) => b.baseComponent || b.componentId?.baseComponent ?? "Paragraph"))].filter(Boolean);
+    const baseComponents = [...new Set(layoutBlocks.map((b) => b.baseComponent || (b.componentId?.baseComponent ?? "Paragraph")))].filter(Boolean);
     const componentDocs = await Component.find({ baseComponent: { $in: baseComponents } }).lean();
     const defaultPropsByBase = {};
     for (const doc of componentDocs || []) {
@@ -57,7 +57,7 @@ export default async function PreviewPage({ params, searchParams }) {
       }
     }
     const layout = layoutBlocks.map((block) => {
-      const base = block.baseComponent || block.componentId?.baseComponent ?? "Paragraph";
+      const base = block.baseComponent || (block.componentId?.baseComponent ?? "Paragraph");
       const defaultProps = defaultPropsByBase[base] || {};
       const mergedProps = { ...defaultProps, ...(block.props || {}) };
       return { ...block, baseComponent: base, props: mergedProps };

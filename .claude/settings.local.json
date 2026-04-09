@@ -11,7 +11,8 @@
       "Bash(curl -s http://localhost:3000/)",
       "Bash(xargs grep:*)",
       "Bash(npm install:*)",
-      "Bash(grep -E \"\\\\.\\(js|jsx\\)$\")"
+      "Bash(grep -E \"\\\\.\\(js|jsx\\)$\")",
+      "Bash(npm run:*)"
     ]
   }
 }
