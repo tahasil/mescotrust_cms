@@ -154,17 +154,16 @@ export async function PUT(req, { params }) {
     // Auto-sync menus: update slug and move item if parent folder changed
     if (oldSlug && page.slug !== oldSlug) {
       try {
-        const menus = await Menu.find();
+        const menus = await Menu.find().lean();
         for (const menu of menus) {
-          // Convert to plain objects so splice/push work correctly
           const plainItems = JSON.parse(JSON.stringify(menu.items));
           if (syncMenuForSlugChange(plainItems, oldSlug, page.slug)) {
-            menu.items = plainItems;
-            menu.markModified("items");
-            await menu.save();
+            await Menu.updateOne({ _id: menu._id }, { $set: { items: plainItems } });
           }
         }
-      } catch (_) { /* menu sync is best-effort */ }
+      } catch (e) {
+        console.error("Menu sync after slug change failed:", e);
+      }
     }
 
     return NextResponse.json(page);

@@ -31,7 +31,7 @@ async function syncPageSlugsFromMenu(items, parentFolder = "", conflicts = []) {
               conflicts.push(`"${item.label}" could not be moved — slug "/${expectedSlug}" is already used by another page`);
             }
           }
-        } catch (_) { /* best-effort */ }
+        } catch (e) { console.error("syncPageSlugsFromMenu error:", e); }
       }
     }
     if (Array.isArray(item.children) && item.children.length > 0) {
