@@ -67,8 +67,8 @@ export default async function BlogListPage({ searchParams }) {
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
-    <FullWidthBackground className="customInnerHero">
-      <PageContainer className="pt-0">
+    <FullWidthBackground className="customInnerHero" suppressHydrationWarning>
+      <PageContainer className="pt-0" suppressHydrationWarning>
         {/* Category Tabs */}
         {/* {categories.length > 0 && (
           <nav

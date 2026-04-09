@@ -179,9 +179,9 @@ async function PostContent({ slug }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <FullWidthBackground className="customInnerHero">
-        <PageContainer className="pt-0">
-          <div style={{ display: "flex", gap: 40 }}>
+      <FullWidthBackground className="customInnerHero" suppressHydrationWarning>
+        <PageContainer className="pt-0" suppressHydrationWarning>
+          <div style={{ display: "flex", gap: 40 }} suppressHydrationWarning>
             {/* Left: Article */}
             <article style={{ flex: 1, minWidth: 0 }}>
               {post.category?.name && (
