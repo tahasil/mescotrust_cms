@@ -264,6 +264,7 @@ const themeConfigSchema = new mongoose.Schema(
     hideSectionOnMobile: { type: Boolean, default: false },
 
     // ─── 10. Blog Theme ────────────────────────────────────────
+    blogCommentsEnabled: { type: Boolean, default: true },
     blogLayout: { type: String, enum: ["grid", "list"], default: "grid" },
     blogSidebarPosition: {
       type: String,

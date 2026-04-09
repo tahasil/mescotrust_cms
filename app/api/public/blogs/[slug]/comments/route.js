@@ -2,14 +2,35 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Blog from "@/models/Blog";
 import BlogComment from "@/models/BlogComment";
+import ThemeConfig from "@/models/ThemeConfig";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const THEME_QUERY = {
+  $or: [{ themeKey: "default" }, { themeKey: { $exists: false } }],
+};
+
+async function commentsGloballyEnabled() {
+  try {
+    const themeDoc = await ThemeConfig.findOne(THEME_QUERY)
+      .sort({ updatedAt: -1 })
+      .select("blogCommentsEnabled")
+      .lean();
+    if (themeDoc && typeof themeDoc.blogCommentsEnabled === "boolean") {
+      return themeDoc.blogCommentsEnabled;
+    }
+    return true;
+  } catch {
+    return true;
+  }
+}
 
 /** GET — approved comments for a blog post */
 export async function GET(req, { params }) {
   try {
     const slug = params.slug;
     await connectDB();
+    if (!(await commentsGloballyEnabled())) return NextResponse.json([]);
     const blog = await Blog.findOne({ slug, status: "published" }).select("_id").lean();
     if (!blog) return NextResponse.json([]);
     const comments = await BlogComment.find({ blogId: blog._id, status: "approved" })
@@ -39,6 +60,9 @@ export async function POST(req, { params }) {
     }
 
     await connectDB();
+    if (!(await commentsGloballyEnabled())) {
+      return NextResponse.json({ error: "Comments are disabled" }, { status: 403 });
+    }
     const blog = await Blog.findOne({ slug, status: "published" }).select("_id").lean();
     if (!blog) return NextResponse.json({ error: "Blog not found" }, { status: 404 });
 

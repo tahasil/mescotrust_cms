@@ -3,6 +3,7 @@ import Link from "next/link";
 import { connectDB } from "@/lib/db";
 import Blog from "@/models/Blog";
 import BlogCategory from "@/models/BlogCategory";
+import ThemeConfig from "@/models/ThemeConfig";
 import { getPageSeoMetadata } from "@/lib/seo";
 import { FullWidthBackground, PageContainer } from "@/styles/Theme";
 import BlogSidebarFull from "@/components/blog/BlogSidebarFull";
@@ -38,9 +39,19 @@ export default async function BlogListPage({ searchParams }) {
   let items = [];
   let categories = [];
   let total = 0;
+  let commentsEnabled = true;
 
   try {
     await connectDB();
+    const themeDoc = await ThemeConfig.findOne({
+      $or: [{ themeKey: "default" }, { themeKey: { $exists: false } }],
+    })
+      .sort({ updatedAt: -1 })
+      .select("blogCommentsEnabled")
+      .lean();
+    if (themeDoc && typeof themeDoc.blogCommentsEnabled === "boolean") {
+      commentsEnabled = themeDoc.blogCommentsEnabled;
+    }
     categories = await BlogCategory.find().sort({ order: 1 }).lean();
     const filter = { status: "published" };
     if (categorySlug) {
@@ -251,7 +262,7 @@ export default async function BlogListPage({ searchParams }) {
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "space-between",
+                      justifyContent: commentsEnabled ? "space-between" : "flex-end",
                       fontSize: 13,
                       color: "rgba(0,0,0,0.35)",
                       marginTop: "auto",
@@ -259,18 +270,20 @@ export default async function BlogListPage({ searchParams }) {
                       paddingTop: 14,
                     }}
                   >
-                    <Link
-                      href={`/blog/${post.slug}#comments`}
-                      style={{
-                        color: "rgba(0,0,0,0.35)",
-                        textDecoration: "none",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
-                      }}
-                    >
-                      💬 Leave a Comment
-                    </Link>
+                    {commentsEnabled && (
+                      <Link
+                        href={`/blog/${post.slug}#comments`}
+                        style={{
+                          color: "rgba(0,0,0,0.35)",
+                          textDecoration: "none",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                        }}
+                      >
+                        💬 Leave a Comment
+                      </Link>
+                    )}
                     <span
                       style={{
                         textTransform: "uppercase",

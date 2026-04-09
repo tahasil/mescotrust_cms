@@ -6,6 +6,7 @@ import { getSiteUrl } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 import Blog from "@/models/Blog";
+import ThemeConfig from "@/models/ThemeConfig";
 import SafeHtml from "@/components/cms/SafeHtml";
 import { FullWidthBackground, PageContainer } from "@/styles/Theme";
 
@@ -134,11 +135,22 @@ function formatDate(dateStr) {
 
 async function PostContent({ slug }) {
   let post;
+  let commentsEnabled = true;
   try {
     await connectDB();
-    post = await Blog.findOne({ slug, status: "published" })
-      .populate("category")
-      .lean();
+    const [postDoc, themeDoc] = await Promise.all([
+      Blog.findOne({ slug, status: "published" }).populate("category").lean(),
+      ThemeConfig.findOne({
+        $or: [{ themeKey: "default" }, { themeKey: { $exists: false } }],
+      })
+        .sort({ updatedAt: -1 })
+        .select("blogCommentsEnabled")
+        .lean(),
+    ]);
+    post = postDoc;
+    if (themeDoc && typeof themeDoc.blogCommentsEnabled === "boolean") {
+      commentsEnabled = themeDoc.blogCommentsEnabled;
+    }
   } catch {
     return (
       <div style={{ textAlign: "center", padding: "2rem 0" }}>
@@ -305,7 +317,7 @@ async function PostContent({ slug }) {
                 </div>
               )}
 
-              <BlogComments slug={slug} />
+              {commentsEnabled && <BlogComments slug={slug} />}
             </article>
 
             {/* Right: Sidebar (desktop) */}

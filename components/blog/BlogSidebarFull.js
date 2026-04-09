@@ -35,6 +35,7 @@ const contentStyle = {
  */
 export default function BlogSidebarFull({ searchQuery, categorySlug, categories: categoriesProp, currentSlug }) {
   const [categories, setCategories] = useState(Array.isArray(categoriesProp) ? categoriesProp : []);
+  const [commentsEnabled, setCommentsEnabled] = useState(true);
 
   // If categories not passed (detail page), fetch them
   useEffect(() => {
@@ -44,6 +45,18 @@ export default function BlogSidebarFull({ searchQuery, categorySlug, categories:
       .then((data) => setCategories(Array.isArray(data) ? data : []))
       .catch(() => {});
   }, [categoriesProp]);
+
+  // Read global comments-enabled flag from theme
+  useEffect(() => {
+    fetch("/api/theme")
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((data) => {
+        if (typeof data.blogCommentsEnabled === "boolean") {
+          setCommentsEnabled(data.blogCommentsEnabled);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <div>
@@ -92,11 +105,13 @@ export default function BlogSidebarFull({ searchQuery, categorySlug, categories:
         <BlogSidebar currentSlug={currentSlug} />
       </div>
 
-      {/* Recent Comments */}
-      <div style={cardStyle}>
-        <div style={titleStyle}>Recent Comments</div>
-        <div style={contentStyle}><BlogRecentComments /></div>
-      </div>
+      {/* Recent Comments — hidden when global comments are disabled */}
+      {commentsEnabled && (
+        <div style={cardStyle}>
+          <div style={titleStyle}>Recent Comments</div>
+          <div style={contentStyle}><BlogRecentComments /></div>
+        </div>
+      )}
 
       {/* Archives */}
       <div style={{ ...cardStyle, marginBottom: 0 }}>

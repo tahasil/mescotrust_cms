@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Table, Button, Space, Tag, Select, Modal, Descriptions, message } from "antd";
+import { Table, Button, Space, Tag, Select, Modal, Descriptions, message, Switch, Typography, Tooltip } from "antd";
 import { CheckOutlined, CloseOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { formatDateTime } from "@/lib/formatDate";
@@ -13,6 +13,8 @@ export default function AdminBlogCommentsPage() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("");
   const [viewItem, setViewItem] = useState(null);
+  const [commentsEnabled, setCommentsEnabled] = useState(true);
+  const [togglingEnabled, setTogglingEnabled] = useState(false);
 
   const fetchComments = (p = page, st = statusFilter) => {
     setLoading(true);
@@ -26,6 +28,43 @@ export default function AdminBlogCommentsPage() {
   };
 
   useEffect(() => { fetchComments(1, statusFilter); setPage(1); }, [statusFilter]);
+
+  // Load global comments-enabled state from theme config
+  useEffect(() => {
+    fetch("/api/theme")
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((data) => {
+        if (typeof data.blogCommentsEnabled === "boolean") {
+          setCommentsEnabled(data.blogCommentsEnabled);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleToggleEnabled = async (checked) => {
+    setTogglingEnabled(true);
+    const prev = commentsEnabled;
+    setCommentsEnabled(checked);
+    try {
+      const res = await fetch("/api/theme", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blogCommentsEnabled: checked }),
+      });
+      if (!res.ok) {
+        setCommentsEnabled(prev);
+        const data = await res.json().catch(() => ({}));
+        message.error(data.error || "Failed to update");
+      } else {
+        message.success(checked ? "Comments enabled globally" : "Comments disabled globally");
+      }
+    } catch {
+      setCommentsEnabled(prev);
+      message.error("Failed to update");
+    } finally {
+      setTogglingEnabled(false);
+    }
+  };
 
   const handleStatus = async (id, status) => {
     const res = await fetch("/api/admin/blog-comments", {
@@ -58,18 +97,32 @@ export default function AdminBlogCommentsPage() {
     <ThemeAdminCard
       title="Blog Comments"
       extra={
-        <Select
-          placeholder="All status"
-          allowClear
-          style={{ width: 140 }}
-          value={statusFilter || undefined}
-          onChange={(v) => setStatusFilter(v || "")}
-          options={[
-            { value: "pending", label: "Pending" },
-            { value: "approved", label: "Approved" },
-            { value: "rejected", label: "Rejected" },
-          ]}
-        />
+        <Space wrap>
+          <Tooltip title={commentsEnabled ? "Disable comments globally on the website" : "Enable comments globally on the website"}>
+            <Space size={6}>
+              <Typography.Text style={{ fontSize: 13, color: "rgba(0,0,0,0.65)" }}>
+                Comments {commentsEnabled ? "enabled" : "disabled"}
+              </Typography.Text>
+              <Switch
+                checked={commentsEnabled}
+                loading={togglingEnabled}
+                onChange={handleToggleEnabled}
+              />
+            </Space>
+          </Tooltip>
+          <Select
+            placeholder="All status"
+            allowClear
+            style={{ width: 140 }}
+            value={statusFilter || undefined}
+            onChange={(v) => setStatusFilter(v || "")}
+            options={[
+              { value: "pending", label: "Pending" },
+              { value: "approved", label: "Approved" },
+              { value: "rejected", label: "Rejected" },
+            ]}
+          />
+        </Space>
       }
     >
       <Table
