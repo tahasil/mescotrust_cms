@@ -26,6 +26,7 @@ Welcome! This guide explains how to operate the Mesco Trust CMS from the admin p
 | 8 | [Key Settings](08-key-settings.md) | Configure menus, users, and other important options |
 | 9 | [Reusable Page Builder Components Reference](09-reusable-components.md) | Look up which block to use for testimonials, awards, team, events, reports, gallery, etc. |
 | 10 | [Event Registrations](10-event-registrations.md) | Set up the visitor registration form, wire it to your event listings, and manage the submission inbox |
+| 11 | [Social Media Wall](11-social-media-wall.md) | Embed Instagram, Facebook, YouTube, X feeds and display Follow Us links on any page |
 
 ---
 
@@ -44,6 +45,7 @@ Welcome! This guide explains how to operate the Mesco Trust CMS from the admin p
 | See donation records | **Donations** |
 | See newsletter sign-ups | **Subscribers** |
 | See event registrations | **Event Registrations** |
+| Add social media embeds | Open the relevant page in **Pages**, add a **SocialMediaWall** block |
 | Add a new admin user | **Users → New User** |
 | Edit the navigation menu | **Menus** |
 

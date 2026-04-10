@@ -12,8 +12,8 @@ const SliderSection = styled.section.attrs((p) => ({
   $bgImage: p.$bgImage || "",
 }))`
   width: 100%;
-  min-height: 420px;
-  padding: 10% 0 15% 0;
+  min-height: calc(100vh - 80px);
+  padding: 0;
   position: relative;
   background: ${(p) =>
     p.$bgImage
@@ -32,6 +32,10 @@ const SliderSection = styled.section.attrs((p) => ({
       transparent 100%
     );
     pointer-events: none;
+  }
+  @media (max-width: 768px) {
+    padding: 0px 24px;
+    min-height: calc(90vh - 80px);
   }
   .slider-title {
     margin: 0 0 1rem;
@@ -53,6 +57,13 @@ const SliderSection = styled.section.attrs((p) => ({
     @media (max-width: 768px) {
       font-size: 1rem;
     }
+  }
+`;
+const HomeFluidContainer = styled.div`
+  width: 100%;
+  position: relative;
+  padding-top: 80px;
+  @media (max-width: 768px) {
   }
 `;
 
@@ -203,18 +214,13 @@ export default function HomeHero(props) {
     "pageContainer";
   const isBgContained = backgroundContainer === "contained";
 
-  const autoplay =
-    props?.homeHeroAutoplay ?? theme?.homeHeroAutoplay ?? true;
+  const autoplay = props?.homeHeroAutoplay ?? theme?.homeHeroAutoplay ?? true;
   const showArrows =
     props?.homeHeroShowArrows ?? theme?.homeHeroShowArrows ?? true;
-  const showDots =
-    props?.homeHeroShowDots ?? theme?.homeHeroShowDots ?? true;
+  const showDots = props?.homeHeroShowDots ?? theme?.homeHeroShowDots ?? true;
   const autoplaySpeed =
-    props?.homeHeroAutoplaySpeed ??
-    theme?.homeHeroAutoplaySpeed ??
-    5000;
-  const speed =
-    props?.homeHeroSpeed ?? theme?.homeHeroSpeed ?? 500;
+    props?.homeHeroAutoplaySpeed ?? theme?.homeHeroAutoplaySpeed ?? 5000;
+  const speed = props?.homeHeroSpeed ?? theme?.homeHeroSpeed ?? 500;
 
   const slideProps = {
     titleColor,
@@ -262,9 +268,9 @@ export default function HomeHero(props) {
     );
 
   const inner = (
-    <div className="site-component-homehero" data-component="HomeHero">
+    <HomeFluidContainer data-component="HomeHero">
       {slideContent}
-    </div>
+    </HomeFluidContainer>
   );
 
   if (isBgContained) {

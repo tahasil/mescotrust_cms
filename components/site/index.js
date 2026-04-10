@@ -43,6 +43,7 @@ export { default as Testimonials, TestimonialsEditForm } from "./Testimonials/in
 export { default as LatestEvents1, LatestEvents1EditForm } from "./LatestEvents1/index";
 export { default as ImageSlider, ImageSliderEditForm } from "./ImageSlider/index";
 export { default as EventRegistrationForm, EventRegistrationFormEditForm } from "./EventRegistrationForm/index";
+export { default as SocialMediaWall, SocialMediaWallEditForm } from "./SocialMediaWall/index";
 import HomeHeroEditForm from "./HomeHero/EditForm";
 import MarqueeEditForm from "./Marquee/EditForm";
 import SubscribeEditForm from "./Subscribe/EditForm";
@@ -81,6 +82,7 @@ import TestimonialsEditForm from "./Testimonials/EditForm";
 import LatestEvents1EditForm from "./LatestEvents1/EditForm";
 import ImageSliderEditForm from "./ImageSlider/EditForm";
 import EventRegistrationFormEditForm from "./EventRegistrationForm/EditForm";
+import SocialMediaWallEditForm from "./SocialMediaWall/EditForm";
 import HeaderEditForm from "./Header/EditForm";
 import FooterEditForm from "./Footer/EditForm";
 /** componentId -> EditForm for drawer (Admin → Components and Page Builder use same form). Add new editable site components here. */
@@ -125,4 +127,5 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   ContactUs: ContactUsEditForm,
   DonateNow: DonateNowEditForm,
   EventRegistrationForm: EventRegistrationFormEditForm,
+  SocialMediaWall: SocialMediaWallEditForm,
 };

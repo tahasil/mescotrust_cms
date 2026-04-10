@@ -26,7 +26,10 @@
       "Bash(node -e \"const b=require\\(require\\('path'\\).resolve\\('node_modules/next/dist/compiled/babel/bundle.js'\\)\\);console.log\\('keys:',Object.keys\\(b\\).filter\\(k=>typeof b[k]==='function'\\).slice\\(0,20\\)\\);\")",
       "Bash(grep -l \"testimonialsItems\\\\|donorTestimonialsItems\\\\|careersItems\" ./components/site/*/EditForm.js)",
       "Bash(node --input-type=module -e \"import\\('./lib/email.js'\\).then\\(m=>{console.log\\('Exports:',Object.keys\\(m\\).sort\\(\\)\\);}\\).catch\\(e=>{console.error\\('IMPORT ERROR:',e.message\\);process.exit\\(1\\);}\\)\")",
-      "Bash(grep -r \"Subscribe\" /d/tahasil-projects/mescotrust_cms/lib/*.js)"
+      "Bash(grep -r \"Subscribe\" /d/tahasil-projects/mescotrust_cms/lib/*.js)",
+      "WebFetch(domain:onstipe.com)",
+      "Bash(ls d:/tahasil-projects/mescotrust_cms/.env*)",
+      "Bash(curl -s http://localhost:3000/api/public/social-wall)"
     ]
   }
 }
