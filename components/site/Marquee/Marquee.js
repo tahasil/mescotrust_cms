@@ -19,14 +19,14 @@ const PartnersSection = styled.section`
   position: relative;
   background: transparent;
   overflow: hidden;
-  padding: 40px 0px;
+  padding: 80px 0px;
   h2 {
     margin: 0px;
     font-size: 24px;
     font-weight: 600;
     color: ${getColor("black")};
     text-align: center;
-    margin-bottom: 18px;
+    margin-bottom: 24px;
     @media (max-width: 768px) {
       font-size: 20px;
     }
@@ -35,6 +35,7 @@ const PartnersSection = styled.section`
     flex-shrink: 0;
     white-space: nowrap;
     padding: 0px;
+    margin-right: 40px;
     @media (max-width: 992px) {
       width: 80px;
       margin-right: 20px;
@@ -46,7 +47,7 @@ const PartnersSection = styled.section`
   }
   .marquee-item img {
     max-width: 100%;
-    max-height: 80px;
+    max-height: 90px;
     height: auto;
     display: block;
   }
@@ -116,7 +117,8 @@ export default function Marquee(props) {
             key={`${i}-${typeof src === "string" ? src : src?.url}`}
             className="marquee-item"
           >
-            <img loading="lazy"
+            <img
+              loading="lazy"
               className="img-fluid"
               src={typeof src === "string" ? src : (src?.url ?? src)}
               alt={typeof src === "object" && src?.alt ? src.alt : "Partner"}
