@@ -87,7 +87,7 @@ export const Nav = styled.nav`
   justify-content: center;
   gap: 40px;
   flex: 1;
-  max-width: 560px;
+  max-width: 100%;
   margin: 0 auto;
   @media (max-width: ${BREAKPOINT}) {
     display: none;
