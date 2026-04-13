@@ -3,18 +3,20 @@
 import { useState, useEffect } from "react";
 import styled from "styled-components";
 import { Carousel } from "antd";
-import { RightCircleFilled } from "@ant-design/icons";
+import { RightCircleFilled, PlayCircleFilled } from "@ant-design/icons";
 import Link from "next/link";
 import { ThemeButton, getColor, PageContainer } from "@/styles/Theme";
 
 /** Full-width slider banner: background image + dark overlay + left-aligned text + CTA. No default image — from DB only. */
 const SliderSection = styled.section.attrs((p) => ({
   $bgImage: p.$bgImage || "",
+  $clickable: p.$clickable,
 }))`
   width: 100%;
   min-height: calc(100vh - 80px);
   padding: 0;
   position: relative;
+  cursor: ${(p) => (p.$clickable ? "pointer" : "default")};
   background: ${(p) =>
     p.$bgImage
       ? `url(${p.$bgImage}) center/cover no-repeat`
@@ -59,6 +61,25 @@ const SliderSection = styled.section.attrs((p) => ({
     }
   }
 `;
+
+const VideoBadge = styled.div`
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  pointer-events: none;
+  .anticon {
+    font-size: 28px;
+  }
+`;
 const HomeFluidContainer = styled.div`
   width: 100%;
   position: relative;
@@ -76,6 +97,17 @@ const ContentWrapper = ({ usePageContainer, children, style }) =>
     </div>
   );
 
+function normalizeExternalUrl(rawUrl) {
+  const value = rawUrl != null ? String(rawUrl).trim() : "";
+  if (!value) return "";
+  if (/^https?:\/\//i.test(value)) return value;
+  if (/^\/\//.test(value)) return `https:${value}`;
+  if (/^(www\.|m\.youtube\.com|youtube\.com|youtu\.be)/i.test(value)) {
+    return `https://${value}`;
+  }
+  return "";
+}
+
 function SingleSlide({
   bgImageUrl,
   title,
@@ -88,6 +120,8 @@ function SingleSlide({
   buttonBgColor,
   buttonTextColor,
   contentContainer,
+  mediaType,
+  videoUrl,
 }) {
   const titleStyle = titleColor ? { color: titleColor } : undefined;
   const descStyle = descColor ? { color: descColor } : undefined;
@@ -100,9 +134,31 @@ function SingleSlide({
       : undefined;
   const renderButton = showButton !== false;
   const usePageContainer = contentContainer !== "full";
+  const clickableVideoUrl = normalizeExternalUrl(videoUrl);
+  const isVideoSlide = mediaType === "video";
+
+  const handleSlideClick = () => {
+    if (!clickableVideoUrl) return;
+    window.open(clickableVideoUrl, "_blank", "noopener,noreferrer");
+  };
 
   return (
-    <SliderSection $bgImage={bgImageUrl}>
+    <SliderSection
+      $bgImage={bgImageUrl}
+      $clickable={!!clickableVideoUrl}
+      onClick={handleSlideClick}
+      role={clickableVideoUrl ? "button" : undefined}
+      tabIndex={clickableVideoUrl ? 0 : undefined}
+      onKeyDown={(e) => {
+        if (!clickableVideoUrl) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleSlideClick();
+        }
+      }}
+      aria-label={clickableVideoUrl ? "Open video in new tab" : undefined}
+    >
+      {isVideoSlide && <VideoBadge><PlayCircleFilled /></VideoBadge>}
       <ContentWrapper
         usePageContainer={usePageContainer}
         style={{ position: "relative", zIndex: 1 }}
@@ -116,6 +172,7 @@ function SingleSlide({
         {renderButton && (
           <Link
             href={buttonLink != null && buttonLink !== "" ? buttonLink : "#"}
+            onClick={(e) => e.stopPropagation()}
           >
             {buttonStyle ? (
               <ThemeButton type="button" size="large" style={buttonStyle}>
@@ -131,6 +188,26 @@ function SingleSlide({
       </ContentWrapper>
     </SliderSection>
   );
+}
+
+function normalizeSlide(slide) {
+  const mediaType = slide?.mediaType === "video" ? "video" : "image";
+  const youtubeUrl =
+    slide?.youtubeUrl != null ? String(slide.youtubeUrl).trim() : "";
+  const videoUrl = slide?.videoUrl != null ? String(slide.videoUrl).trim() : "";
+
+  return {
+    bgImageUrl: slide?.bgImageUrl != null ? String(slide.bgImageUrl).trim() : "",
+    title: slide?.title != null ? String(slide.title).trim() : "",
+    description:
+      slide?.description != null ? String(slide.description).trim() : "",
+    buttonText: slide?.buttonText != null ? String(slide.buttonText).trim() : "",
+    buttonLink: slide?.buttonLink != null ? String(slide.buttonLink).trim() : "",
+    showButton: slide?.showButton !== false,
+    mediaType,
+    youtubeUrl,
+    videoUrl,
+  };
 }
 
 function fetchHomeHero() {
@@ -168,6 +245,7 @@ export default function HomeHero(props) {
         : Array.isArray(theme?.homeHeroSlides)
           ? theme.homeHeroSlides
           : [];
+  const normalizedSlides = slides.map(normalizeSlide);
 
   const titleColor =
     props?.sliderTitleColor ??
@@ -230,17 +308,19 @@ export default function HomeHero(props) {
     contentContainer,
   };
 
-  if (slides.length === 0) return null;
+  if (normalizedSlides.length === 0) return null;
 
   const slideContent =
-    slides.length === 1 ? (
+    normalizedSlides.length === 1 ? (
       <SingleSlide
-        bgImageUrl={slides[0].bgImageUrl}
-        title={slides[0].title}
-        description={slides[0].description}
-        buttonText={slides[0].buttonText}
-        buttonLink={slides[0].buttonLink}
-        showButton={slides[0].showButton}
+        bgImageUrl={normalizedSlides[0].bgImageUrl}
+        title={normalizedSlides[0].title}
+        description={normalizedSlides[0].description}
+        buttonText={normalizedSlides[0].buttonText}
+        buttonLink={normalizedSlides[0].buttonLink}
+        showButton={normalizedSlides[0].showButton}
+        mediaType={normalizedSlides[0].mediaType}
+        videoUrl={normalizedSlides[0].youtubeUrl || normalizedSlides[0].videoUrl}
         {...slideProps}
       />
     ) : (
@@ -252,7 +332,7 @@ export default function HomeHero(props) {
         dots={showDots}
         effect="fade"
       >
-        {slides.map((slide, i) => (
+        {normalizedSlides.map((slide, i) => (
           <SingleSlide
             key={i}
             bgImageUrl={slide.bgImageUrl}
@@ -261,6 +341,8 @@ export default function HomeHero(props) {
             buttonText={slide.buttonText}
             buttonLink={slide.buttonLink}
             showButton={slide.showButton}
+            mediaType={slide.mediaType}
+            videoUrl={slide.youtubeUrl || slide.videoUrl}
             {...slideProps}
           />
         ))}

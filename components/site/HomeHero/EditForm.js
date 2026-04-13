@@ -36,6 +36,8 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
       const slides = Array.isArray(data?.homeHeroSlides)
         ? data.homeHeroSlides.map((s) => ({
             bgImageUrl: s?.bgImageUrl != null ? String(s.bgImageUrl).trim() : "",
+            mediaType: s?.mediaType === "video" ? "video" : "image",
+            youtubeUrl: s?.youtubeUrl != null ? String(s.youtubeUrl).trim() : (s?.videoUrl != null ? String(s.videoUrl).trim() : ""),
             title: s?.title != null ? String(s.title).trim() : "",
             description: s?.description != null ? String(s.description).trim() : "",
             buttonText: s?.buttonText != null ? String(s.buttonText).trim() : "",
@@ -86,6 +88,8 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
         const slides = Array.isArray(hero?.homeHeroSlides)
           ? hero.homeHeroSlides.map((s) => ({
               bgImageUrl: s?.bgImageUrl != null ? String(s.bgImageUrl).trim() : "",
+              mediaType: s?.mediaType === "video" ? "video" : "image",
+              youtubeUrl: s?.youtubeUrl != null ? String(s.youtubeUrl).trim() : (s?.videoUrl != null ? String(s.videoUrl).trim() : ""),
               title: s?.title != null ? String(s.title).trim() : "",
               description: s?.description != null ? String(s.description).trim() : "",
               buttonText: s?.buttonText != null ? String(s.buttonText).trim() : "",
@@ -118,6 +122,8 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
       const slides = Array.isArray(rawSlides)
         ? rawSlides.map((s) => ({
             bgImageUrl: s?.bgImageUrl != null ? String(s.bgImageUrl).trim() : "",
+            mediaType: s?.mediaType === "video" ? "video" : "image",
+            youtubeUrl: s?.youtubeUrl != null ? String(s.youtubeUrl).trim() : "",
             title: s?.title != null ? String(s.title).trim() : "",
             description: s?.description != null ? String(s.description).trim() : "",
             buttonText: s?.buttonText != null ? String(s.buttonText).trim() : "",
@@ -286,7 +292,7 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
                       move={move}
                       itemLabel="Slide"
                       addButtonText="Add slide"
-                      defaultAddPayload={{ bgImageUrl: "", title: "", description: "", buttonText: "Contact Us", buttonLink: "/contact", showButton: true }}
+                      defaultAddPayload={{ bgImageUrl: "", mediaType: "image", youtubeUrl: "", title: "", description: "", buttonText: "Contact Us", buttonLink: "/contact", showButton: true }}
                       reorderMovedIndex={reorderMovedIndex}
                       reorderDirection={reorderDirection}
                       onMoveWithTransition={(from, to) => {
@@ -301,6 +307,39 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
                               <Input placeholder="e.g. /images/slider.png" size="large" />
                             </Form.Item>
                           </Col>
+                          <Col span={24}>
+                            <Form.Item {...restField} name={[name, "mediaType"]} label="Slide type" initialValue="image">
+                              <Select
+                                size="large"
+                                options={[
+                                  { label: "Image", value: "image" },
+                                  { label: "Video thumbnail", value: "video" },
+                                ]}
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Form.Item noStyle shouldUpdate={(prev, curr) => prev?.homeHeroSlides?.[name]?.mediaType !== curr?.homeHeroSlides?.[name]?.mediaType}>
+                            {({ getFieldValue }) =>
+                              getFieldValue(["homeHeroSlides", name, "mediaType"]) === "video" ? (
+                                <Col span={24}>
+                                  <Form.Item
+                                    {...restField}
+                                    name={[name, "youtubeUrl"]}
+                                    label="YouTube URL"
+                                    rules={[
+                                      {
+                                        type: "url",
+                                        warningOnly: true,
+                                        message: "Please enter a valid URL",
+                                      },
+                                    ]}
+                                  >
+                                    <Input placeholder="https://www.youtube.com/watch?v=..." size="large" />
+                                  </Form.Item>
+                                </Col>
+                              ) : null
+                            }
+                          </Form.Item>
                           <Col span={24}>
                             <Form.Item {...restField} name={[name, "title"]} label="Title">
                               <Input placeholder="Title" size="large" />

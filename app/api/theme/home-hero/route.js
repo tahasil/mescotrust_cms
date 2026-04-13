@@ -31,6 +31,14 @@ const HOME_HERO_DEFAULTS = {
 };
 
 function normalizeSlide(s) {
+  const mediaType = s?.mediaType === "video" ? "video" : "image";
+  const youtubeUrl =
+    s?.youtubeUrl != null
+      ? String(s.youtubeUrl).trim()
+      : s?.videoUrl != null
+        ? String(s.videoUrl).trim()
+        : "";
+
   return {
     bgImageUrl: s?.bgImageUrl != null ? String(s.bgImageUrl).trim() : "",
     title: s?.title != null ? String(s.title).trim() : "",
@@ -38,6 +46,8 @@ function normalizeSlide(s) {
     buttonText: s?.buttonText != null ? String(s.buttonText).trim() : "",
     buttonLink: s?.buttonLink != null ? String(s.buttonLink).trim() : "",
     showButton: s?.showButton !== false,
+    mediaType,
+    youtubeUrl,
   };
 }
 
