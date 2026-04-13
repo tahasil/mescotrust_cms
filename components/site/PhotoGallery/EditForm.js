@@ -16,11 +16,17 @@ function normalizeItem(it) {
   const cats = Array.isArray(it?.categories) ? it.categories : (it?.category ? [String(it.category).trim()] : []);
   const images = Array.isArray(it?.images) ? it.images.map((img) => (typeof img === "string" ? img : img?.url || "").trim()).filter(Boolean) : [];
   const cover = it?.image != null ? String(it.image).trim() : "";
+  const type = it?.type === "link" ? "link" : "album";
+  const linkType = it?.linkType === "external" ? "external" : "internal";
+  const linkUrl = it?.linkUrl != null ? String(it.linkUrl).trim() : "";
   return {
     title: it?.title != null ? String(it.title).trim() : "",
     image: cover,
     images: images,
     categories: cats.filter((c) => c !== "All"),
+    type,
+    linkType,
+    linkUrl,
   };
 }
 
@@ -43,6 +49,8 @@ function applyFormValues(form, data) {
     photoGalleryLimitCount: data?.photoGalleryLimitCount ?? 6,
     photoGalleryViewMoreText: data?.photoGalleryViewMoreText ?? "View More",
     photoGalleryViewMoreLink: data?.photoGalleryViewMoreLink ?? "",
+    photoGalleryViewMoreButtonBgColorKey: data?.photoGalleryViewMoreButtonBgColorKey ?? "",
+    photoGalleryViewMoreButtonTextColorKey: data?.photoGalleryViewMoreButtonTextColorKey ?? "",
     photoGalleryTabs: tabs,
     photoGalleryItems: items,
     ...getManageSectionInitialValues(PREFIX, data),
@@ -119,6 +127,8 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
         photoGalleryLimitCount: values.photoGalleryLimitCount ?? 6,
         photoGalleryViewMoreText: values.photoGalleryViewMoreText ?? "View More",
         photoGalleryViewMoreLink: values.photoGalleryViewMoreLink ?? "",
+        photoGalleryViewMoreButtonBgColorKey: values.photoGalleryViewMoreButtonBgColorKey ?? "",
+        photoGalleryViewMoreButtonTextColorKey: values.photoGalleryViewMoreButtonTextColorKey ?? "",
         photoGalleryTabs: values.photoGalleryTabs || [],
         photoGalleryItems: (values.photoGalleryItems || []).map(normalizeItem),
         ...getManageSectionPayload(PREFIX, values),
@@ -183,6 +193,26 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                       <Form.Item name="photoGalleryViewMoreLink" label="Button link" rules={[{ required: true, message: "Link is required when limit is enabled" }]}>
                         <Input placeholder="/media/image-gallery" size="large" />
                       </Form.Item>
+                      <Form.Item name="photoGalleryViewMoreButtonBgColorKey" label="Button background color">
+                        <Select
+                          allowClear
+                          showSearch
+                          optionFilterProp="label"
+                          placeholder="Select color"
+                          size="large"
+                          options={themeColorOptions}
+                        />
+                      </Form.Item>
+                      <Form.Item name="photoGalleryViewMoreButtonTextColorKey" label="Button text color">
+                        <Select
+                          allowClear
+                          showSearch
+                          optionFilterProp="label"
+                          placeholder="Select color"
+                          size="large"
+                          options={themeColorOptions}
+                        />
+                      </Form.Item>
                     </>
                   )}
                 </Form.Item>
@@ -227,6 +257,17 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                     renderItemContent={(name, restField) => (
                       <Row gutter={[16, 16]}>
                         <Col span={24}>
+                          <Form.Item {...restField} name={[name, "type"]} label="Type" initialValue="album">
+                            <Select
+                              size="large"
+                              options={[
+                                { label: "Album", value: "album" },
+                                { label: "Link", value: "link" },
+                              ]}
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
                           <Form.Item {...restField} name={[name, "title"]} label="Album Title">
                             <Input placeholder="e.g. Annual Function 2024" size="large" />
                           </Form.Item>
@@ -241,37 +282,67 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                             <Select mode="multiple" placeholder="Select categories" size="large" options={categoryOptions} />
                           </Form.Item>
                         </Col>
-                        <Col span={24}>
-                          <Form.Item label="Album Images" extra="Add all images for this album. First image is used if no cover is set.">
-                            <Form.List name={[name, "images"]}>
-                              {(imgFields, { add: addImg, remove: removeImg }) => (
-                                <>
-                                  {imgFields.map(({ key, name: imgName, ...imgRest }) => (
-                                    <div key={key} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-                                      <Form.Item {...imgRest} name={[imgName]} noStyle>
-                                        <Input placeholder="/uploads/photo.webp" size="large" style={{ flex: 1 }} />
-                                      </Form.Item>
-                                      <Button
-                                        type="text"
-                                        danger
-                                        icon={<DeleteOutlined />}
-                                        onClick={() => removeImg(imgName)}
-                                      />
-                                    </div>
-                                  ))}
-                                  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 4 }}>
-                                    <Button
-                                      type="primary"
-                                      shape="circle"
-                                      icon={<PlusOutlined />}
-                                      onClick={() => addImg("")}
+                        <Form.Item noStyle shouldUpdate={(prev, curr) => prev?.photoGalleryItems?.[name]?.type !== curr?.photoGalleryItems?.[name]?.type}>
+                          {({ getFieldValue }) =>
+                            getFieldValue(["photoGalleryItems", name, "type"]) === "link" ? (
+                              <>
+                                <Col span={24}>
+                                  <Form.Item {...restField} name={[name, "linkType"]} label="Link Type" initialValue="internal">
+                                    <Select
+                                      size="large"
+                                      options={[
+                                        { label: "Internal", value: "internal" },
+                                        { label: "External", value: "external" },
+                                      ]}
                                     />
-                                  </div>
-                                </>
-                              )}
-                            </Form.List>
-                          </Form.Item>
-                        </Col>
+                                  </Form.Item>
+                                </Col>
+                                <Col span={24}>
+                                  <Form.Item
+                                    {...restField}
+                                    name={[name, "linkUrl"]}
+                                    label="URL / Route"
+                                    rules={[{ required: true, message: "Please provide a URL or route" }]}
+                                  >
+                                    <Input placeholder="/about or https://example.com" size="large" />
+                                  </Form.Item>
+                                </Col>
+                              </>
+                            ) : (
+                              <Col span={24}>
+                                <Form.Item label="Album Images" extra="Add all images for this album. First image is used if no cover is set.">
+                                  <Form.List name={[name, "images"]}>
+                                    {(imgFields, { add: addImg, remove: removeImg }) => (
+                                      <>
+                                        {imgFields.map(({ key, name: imgName, ...imgRest }) => (
+                                          <div key={key} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                                            <Form.Item {...imgRest} name={[imgName]} noStyle>
+                                              <Input placeholder="/uploads/photo.webp" size="large" style={{ flex: 1 }} />
+                                            </Form.Item>
+                                            <Button
+                                              type="text"
+                                              danger
+                                              icon={<DeleteOutlined />}
+                                              onClick={() => removeImg(imgName)}
+                                            />
+                                          </div>
+                                        ))}
+                                        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 4 }}>
+                                          <Button
+                                            type="primary"
+                                            shape="circle"
+                                            icon={<PlusOutlined />}
+                                            onClick={() => addImg("")}
+                                          />
+                                        </div>
+                                      </>
+                                    )}
+                                  </Form.List>
+                                </Form.Item>
+                              </Col>
+                            )
+                          }
+                        </Form.Item>
                       </Row>
                     )}
                   />

@@ -6,6 +6,7 @@ import { ArrowRightOutlined } from "@ant-design/icons";
 import styled from "styled-components";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import {
   FullWidthBackground,
   getColor,
@@ -156,17 +157,24 @@ function normalizeItem(it) {
     ? it.images.map((img) => (typeof img === "string" ? img : img?.url || "").trim()).filter(Boolean)
     : [];
   const cover = it?.image != null ? String(it.image).trim() : "";
+  const itemType = it?.type === "link" ? "link" : "album";
+  const linkType = it?.linkType === "external" ? "external" : "internal";
+  const linkUrl = it?.linkUrl != null ? String(it.linkUrl).trim() : "";
   return {
     title: it?.title != null ? String(it.title).trim() : "",
     image: cover,
     images: images.length > 0 ? images : (cover ? [cover] : []),
     categories: cats.filter((c) => c !== "All"),
+    type: itemType,
+    linkType,
+    linkUrl,
   };
 }
 
 const DEFAULT_TABS = ["All", "Education", "Medical", "Events", "Community"];
 
 export default function PhotoGallery(props) {
+  const router = useRouter();
   const rawItems =
     Array.isArray(props?.photoGalleryItems) && props.photoGalleryItems.length > 0
       ? props.photoGalleryItems
@@ -198,6 +206,15 @@ export default function PhotoGallery(props) {
   const limitCount = props?.photoGalleryLimitCount != null ? Number(props.photoGalleryLimitCount) : 6;
   const viewMoreText = (props?.photoGalleryViewMoreText ?? "View More").toString().trim();
   const viewMoreLink = (props?.photoGalleryViewMoreLink ?? "").toString().trim();
+  const viewMoreButtonBgKey = (props?.photoGalleryViewMoreButtonBgColorKey ?? "").toString().trim();
+  const viewMoreButtonTextKey = (props?.photoGalleryViewMoreButtonTextColorKey ?? "").toString().trim();
+  const viewMoreButtonStyle =
+    viewMoreButtonBgKey || viewMoreButtonTextKey
+      ? {
+          ...(viewMoreButtonBgKey ? { background: getColor(viewMoreButtonBgKey) } : {}),
+          ...(viewMoreButtonTextKey ? { color: getColor(viewMoreButtonTextKey) } : {}),
+        }
+      : undefined;
 
   const [activeTab, setActiveTab] = useState("All");
 
@@ -215,6 +232,24 @@ export default function PhotoGallery(props) {
       lgInstance.openGallery(0);
     }
   };
+
+  const handleItemClick = useCallback(
+    (item, itemIndex) => {
+      if (item?.type === "link") {
+        const href = item?.linkUrl != null ? String(item.linkUrl).trim() : "";
+        if (!href) return;
+        if (item.linkType === "external") {
+          const resolved = /^https?:\/\//i.test(href) ? href : `https://${href}`;
+          window.open(resolved, "_blank", "noopener,noreferrer");
+          return;
+        }
+        router.push(href);
+        return;
+      }
+      openAlbum(itemIndex);
+    },
+    [router],
+  );
 
   const PREFIX = "photoGallery";
 
@@ -295,10 +330,10 @@ export default function PhotoGallery(props) {
         <Row gutter={[16, 16]}>
           {filteredItems.map((item, index) => (
             <Col key={index} xs={24} sm={12} md={12} lg={8}>
-              <GalleryCard onClick={() => openAlbum(index)}>
+              <GalleryCard onClick={() => handleItemClick(item, index)}>
                 <img loading="lazy" src={item.image} alt={item.title} />
                 <GalleryCardTitle>{item.title}</GalleryCardTitle>
-                {item.images.length > 1 && (
+                {item.type === "album" && item.images.length > 1 && (
                   <GalleryCardCount>{item.images.length} photos</GalleryCardCount>
                 )}
                 <GalleryCardArrow $color={accentColor}>
@@ -312,9 +347,15 @@ export default function PhotoGallery(props) {
         {limitEnabled && viewMoreLink && allFilteredItems.length > limitCount && (
           <div style={{ textAlign: "center", marginTop: 32 }}>
             <Link href={viewMoreLink}>
-              <ThemeButton type="button" size="large">
-                {viewMoreText}
-              </ThemeButton>
+              {viewMoreButtonStyle ? (
+                <ThemeButton type="button" size="large" style={viewMoreButtonStyle}>
+                  {viewMoreText}
+                </ThemeButton>
+              ) : (
+                <ThemeButton type="button" size="large">
+                  {viewMoreText}
+                </ThemeButton>
+              )}
             </Link>
           </div>
         )}
@@ -323,26 +364,28 @@ export default function PhotoGallery(props) {
       {/* Hidden lightGallery instances — one per album */}
       {filteredItems.map((item, index) => (
         <HiddenGallery key={`lg-${index}`}>
-          <LightGallery
-            onInit={(ref) => { lgInstances.current[index] = ref.instance; }}
-            speed={500}
-            plugins={[lgThumbnail, lgZoom, lgFullscreen]}
-            download={false}
-            counter={true}
-            thumbnail={true}
-            exThumbImage="data-thumb"
-          >
-            {item.images.map((img, imgIdx) => (
-              <a
-                key={imgIdx}
-                href={img}
-                data-thumb={img}
-                data-sub-html={`<h4>${item.title}</h4>${item.images.length > 1 ? `<p>${imgIdx + 1} / ${item.images.length}</p>` : ""}`}
-              >
-                <img src={img} alt={item.title} />
-              </a>
-            ))}
-          </LightGallery>
+          {item.type === "album" && item.images.length > 0 ? (
+            <LightGallery
+              onInit={(ref) => { lgInstances.current[index] = ref.instance; }}
+              speed={500}
+              plugins={[lgThumbnail, lgZoom, lgFullscreen]}
+              download={false}
+              counter={true}
+              thumbnail={true}
+              exThumbImage="data-thumb"
+            >
+              {item.images.map((img, imgIdx) => (
+                <a
+                  key={imgIdx}
+                  href={img}
+                  data-thumb={img}
+                  data-sub-html={`<h4>${item.title}</h4>${item.images.length > 1 ? `<p>${imgIdx + 1} / ${item.images.length}</p>` : ""}`}
+                >
+                  <img src={img} alt={item.title} />
+                </a>
+              ))}
+            </LightGallery>
+          ) : null}
         </HiddenGallery>
       ))}
     </FullWidthBackground>
