@@ -39,6 +39,7 @@ const Track = styled.div`
   display: flex;
   transition: transform ${(p) => (p.$speedMs ?? 400) / 1000}s ease;
   transform: ${(p) => `translateX(-${p.$offsetPercent}%)`};
+  padding: 10px 0px;
 `;
 
 const Slide = styled.div`
@@ -55,98 +56,94 @@ const Slide = styled.div`
 
 /** Card with L-shaped brackets in corners; fills slide so all cards in a row match height */
 const Card = styled.div`
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  padding: 32px 24px 28px;
-  text-align: center;
-  min-height: 340px;
+  background: #ffffff;
+  border-radius: 44px;
+  box-shadow: 0px 2px 12px rgba(31, 45, 61, 0.1);
+  padding: 34px;
+  text-align: left;
+  min-height: 350px;
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   justify-content: flex-start;
   position: relative;
   flex: 1;
-  min-height: 340px;
-  &::before,
-  &::after {
-    content: "";
-    position: absolute;
-    width: 24px;
-    height: 24px;
-    border-color: ${() => getColor("primary")};
-    border-style: solid;
-    border-width: 0;
-  }
-  &::before {
-    top: 12px;
-    left: 12px;
-    border-left-width: 3px;
-    border-top-width: 3px;
-  }
-  &::after {
-    bottom: 12px;
-    right: 12px;
-    border-right-width: 3px;
-    border-bottom-width: 3px;
-  }
+  min-height: 300px;
   @media (max-width: 768px) {
+    border-radius: 24px;
     padding: 24px 20px 22px;
-    min-height: 300px;
+    min-height: 320px;
   }
 `;
 
 const Avatar = styled.div`
-  width: 80px;
-  height: 80px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
-  background: ${(p) =>
-    p.$src
-      ? `url(${p.$src}) center/cover`
-      : "linear-gradient(135deg, #d8d4de 0%, #8a7f94 100%)"};
-  margin-bottom: 16px;
+  background: #2f2a2a;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 `;
 
 const Name = styled.div`
   font-size: 18px;
-  font-weight: 700;
-  color: ${(p) => p.$color || getColor("primary")};
-  margin-bottom: ${(p) => (p.$hasRole ? 4 : 12)}px;
+  font-weight: 600;
+  line-height: 1.15;
+  color: ${(p) => p.$color || "#2F2A2A"};
+  margin-bottom: ${(p) => (p.$hasRole ? 4 : 0)}px;
   @media (max-width: 768px) {
-    font-size: 16px;
+    font-size: 17px;
   }
 `;
 
 const Role = styled.div`
-  font-size: 14px;
-  color: ${(p) => p.$color || "rgba(0,0,0,0.55)"};
-  margin-bottom: 12px;
+  font-size: 16px;
+  line-height: 1.2;
+  color: ${(p) => p.$color || "rgba(0,0,0,0.5)"};
   @media (max-width: 768px) {
-    font-size: 13px;
+    font-size: 15px;
   }
 `;
 
 const QuoteText = styled.p`
-  margin: 0 0 16px;
-  font-size: 15px;
-  line-height: 1.6;
-  color: #333;
+  margin: 18px 0px 26px;
+  font-size: 16px;
+  line-height: 1.45;
+  color: #2f2a2a;
   flex: 1;
   @media (max-width: 768px) {
-    font-size: 14px;
+    margin: 14px 0 20px;
+    font-size: 15px;
   }
 `;
 
 const StarWrap = styled.div`
   display: flex;
-  justify-content: center;
-  gap: 2px;
-  margin-top: auto;
+  justify-content: flex-start;
+  gap: 4px;
   .anticon {
-    font-size: 18px;
+    font-size: 22px;
   }
+`;
+
+const Footer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: auto;
+`;
+
+const AuthorInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 `;
 
 const NavWrap = styled.div`
@@ -225,6 +222,24 @@ function normalizeItem(it) {
   };
 }
 
+function getInitials(name) {
+  const source = (name || "").trim();
+  if (!source) return "T";
+  const parts = source.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return (parts[0][0] || "T").toUpperCase();
+  const first = parts[0][0] || "";
+  const last = parts[parts.length - 1][0] || "";
+  return `${first}${last}`.toUpperCase() || "T";
+}
+
+function getFirstLastName(name) {
+  const source = (name || "").trim();
+  if (!source) return "—";
+  const parts = source.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0];
+  return `${parts[0]} ${parts[parts.length - 1]}`;
+}
+
 function HalfStar({ color }) {
   return (
     <span
@@ -278,7 +293,7 @@ const DEFAULT_ITEMS = [
     imageUrl: "",
     name: "Tracye Lawyer",
     title: "",
-    rating: 2,
+    rating: 4,
   },
   {
     quote:
@@ -294,7 +309,7 @@ const DEFAULT_ITEMS = [
     imageUrl: "",
     name: "Tracye Lawyer",
     title: "",
-    rating: 3,
+    rating: 4,
   },
 ];
 
@@ -338,17 +353,15 @@ export default function Testimonials(props) {
   const nameColorKey = (props?.testimonialsNameColorKey ?? "")
     .toString()
     .trim();
-  const nameColor = nameColorKey ? getColor(nameColorKey) : getColor("primary");
+  const nameColor = nameColorKey ? getColor(nameColorKey) : "#1e1e1e";
   const roleColorKey = (props?.testimonialsRoleColorKey ?? "")
     .toString()
     .trim();
-  const roleColor = roleColorKey ? getColor(roleColorKey) : "rgba(0,0,0,0.55)";
+  const roleColor = roleColorKey ? getColor(roleColorKey) : "rgba(0,0,0,0.5)";
   const ratingColorKey = (props?.testimonialsRatingColorKey ?? "")
     .toString()
     .trim();
-  const ratingColor = ratingColorKey
-    ? getColor(ratingColorKey)
-    : getColor("primary");
+  const ratingColor = ratingColorKey ? getColor(ratingColorKey) : "#d63a33";
 
   const sectionBgType = (
     props?.testimonialsSectionBgType ?? "default"
@@ -375,18 +388,42 @@ export default function Testimonials(props) {
             backgroundImage: "none",
           }
         : undefined;
-  const sectionPaddingTop = props?.testimonialsSectionPaddingTop != null ? Number(props.testimonialsSectionPaddingTop) : null;
-  const sectionPaddingBottom = props?.testimonialsSectionPaddingBottom != null ? Number(props.testimonialsSectionPaddingBottom) : null;
-  const sectionMarginTop = props?.testimonialsSectionMarginTop != null ? Number(props.testimonialsSectionMarginTop) : null;
-  const sectionMarginBottom = props?.testimonialsSectionMarginBottom != null ? Number(props.testimonialsSectionMarginBottom) : null;
+  const sectionPaddingTop =
+    props?.testimonialsSectionPaddingTop != null
+      ? Number(props.testimonialsSectionPaddingTop)
+      : null;
+  const sectionPaddingBottom =
+    props?.testimonialsSectionPaddingBottom != null
+      ? Number(props.testimonialsSectionPaddingBottom)
+      : null;
+  const sectionMarginTop =
+    props?.testimonialsSectionMarginTop != null
+      ? Number(props.testimonialsSectionMarginTop)
+      : null;
+  const sectionMarginBottom =
+    props?.testimonialsSectionMarginBottom != null
+      ? Number(props.testimonialsSectionMarginBottom)
+      : null;
   const sectionBgStyle =
-    sectionBgStyleBase || sectionPaddingTop != null || sectionPaddingBottom != null || sectionMarginTop != null || sectionMarginBottom != null
+    sectionBgStyleBase ||
+    sectionPaddingTop != null ||
+    sectionPaddingBottom != null ||
+    sectionMarginTop != null ||
+    sectionMarginBottom != null
       ? {
           ...(sectionBgStyleBase || {}),
-          ...(sectionPaddingTop != null && sectionPaddingTop >= 0 ? { paddingTop: `${sectionPaddingTop}px` } : {}),
-          ...(sectionPaddingBottom != null && sectionPaddingBottom >= 0 ? { paddingBottom: `${sectionPaddingBottom}px` } : {}),
-          ...(sectionMarginTop != null && sectionMarginTop >= 0 ? { marginTop: `${sectionMarginTop}px` } : {}),
-          ...(sectionMarginBottom != null && sectionMarginBottom >= 0 ? { marginBottom: `${sectionMarginBottom}px` } : {}),
+          ...(sectionPaddingTop != null && sectionPaddingTop >= 0
+            ? { paddingTop: `${sectionPaddingTop}px` }
+            : {}),
+          ...(sectionPaddingBottom != null && sectionPaddingBottom >= 0
+            ? { paddingBottom: `${sectionPaddingBottom}px` }
+            : {}),
+          ...(sectionMarginTop != null && sectionMarginTop >= 0
+            ? { marginTop: `${sectionMarginTop}px` }
+            : {}),
+          ...(sectionMarginBottom != null && sectionMarginBottom >= 0
+            ? { marginBottom: `${sectionMarginBottom}px` }
+            : {}),
         }
       : undefined;
 
@@ -415,22 +452,58 @@ export default function Testimonials(props) {
             backgroundImage: "none",
           }
         : undefined;
-  const containerPaddingTop = props?.testimonialsPageContainerPaddingTop != null ? Number(props.testimonialsPageContainerPaddingTop) : null;
-  const containerPaddingRight = props?.testimonialsPageContainerPaddingRight != null ? Number(props.testimonialsPageContainerPaddingRight) : null;
-  const containerPaddingBottom = props?.testimonialsPageContainerPaddingBottom != null ? Number(props.testimonialsPageContainerPaddingBottom) : null;
-  const containerPaddingLeft = props?.testimonialsPageContainerPaddingLeft != null ? Number(props.testimonialsPageContainerPaddingLeft) : null;
-  const containerMarginTop = props?.testimonialsPageContainerMarginTop != null ? Number(props.testimonialsPageContainerMarginTop) : null;
-  const containerMarginBottom = props?.testimonialsPageContainerMarginBottom != null ? Number(props.testimonialsPageContainerMarginBottom) : null;
+  const containerPaddingTop =
+    props?.testimonialsPageContainerPaddingTop != null
+      ? Number(props.testimonialsPageContainerPaddingTop)
+      : null;
+  const containerPaddingRight =
+    props?.testimonialsPageContainerPaddingRight != null
+      ? Number(props.testimonialsPageContainerPaddingRight)
+      : null;
+  const containerPaddingBottom =
+    props?.testimonialsPageContainerPaddingBottom != null
+      ? Number(props.testimonialsPageContainerPaddingBottom)
+      : null;
+  const containerPaddingLeft =
+    props?.testimonialsPageContainerPaddingLeft != null
+      ? Number(props.testimonialsPageContainerPaddingLeft)
+      : null;
+  const containerMarginTop =
+    props?.testimonialsPageContainerMarginTop != null
+      ? Number(props.testimonialsPageContainerMarginTop)
+      : null;
+  const containerMarginBottom =
+    props?.testimonialsPageContainerMarginBottom != null
+      ? Number(props.testimonialsPageContainerMarginBottom)
+      : null;
   const pageContainerBgStyle =
-    pageContainerBgStyleBase || containerPaddingTop != null || containerPaddingRight != null || containerPaddingBottom != null || containerPaddingLeft != null || containerMarginTop != null || containerMarginBottom != null
+    pageContainerBgStyleBase ||
+    containerPaddingTop != null ||
+    containerPaddingRight != null ||
+    containerPaddingBottom != null ||
+    containerPaddingLeft != null ||
+    containerMarginTop != null ||
+    containerMarginBottom != null
       ? {
           ...(pageContainerBgStyleBase || {}),
-          ...(containerPaddingTop != null && containerPaddingTop >= 0 ? { paddingTop: `${containerPaddingTop}px` } : {}),
-          ...(containerPaddingRight != null && containerPaddingRight >= 0 ? { paddingRight: `${containerPaddingRight}px` } : {}),
-          ...(containerPaddingBottom != null && containerPaddingBottom >= 0 ? { paddingBottom: `${containerPaddingBottom}px` } : {}),
-          ...(containerPaddingLeft != null && containerPaddingLeft >= 0 ? { paddingLeft: `${containerPaddingLeft}px` } : {}),
-          ...(containerMarginTop != null && containerMarginTop >= 0 ? { marginTop: `${containerMarginTop}px` } : {}),
-          ...(containerMarginBottom != null && containerMarginBottom >= 0 ? { marginBottom: `${containerMarginBottom}px` } : {}),
+          ...(containerPaddingTop != null && containerPaddingTop >= 0
+            ? { paddingTop: `${containerPaddingTop}px` }
+            : {}),
+          ...(containerPaddingRight != null && containerPaddingRight >= 0
+            ? { paddingRight: `${containerPaddingRight}px` }
+            : {}),
+          ...(containerPaddingBottom != null && containerPaddingBottom >= 0
+            ? { paddingBottom: `${containerPaddingBottom}px` }
+            : {}),
+          ...(containerPaddingLeft != null && containerPaddingLeft >= 0
+            ? { paddingLeft: `${containerPaddingLeft}px` }
+            : {}),
+          ...(containerMarginTop != null && containerMarginTop >= 0
+            ? { marginTop: `${containerMarginTop}px` }
+            : {}),
+          ...(containerMarginBottom != null && containerMarginBottom >= 0
+            ? { marginBottom: `${containerMarginBottom}px` }
+            : {}),
         }
       : undefined;
 
@@ -557,15 +630,19 @@ export default function Testimonials(props) {
             {items.map((item, i) => (
               <Slide key={i} $perView={perViewClamped}>
                 <Card>
-                  <Avatar $src={item.imageUrl || undefined} />
-                  <Name $color={nameColor} $hasRole={!!item.title}>
-                    {item.name || "—"}
-                  </Name>
-                  {item.title ? (
-                    <Role $color={roleColor}>{item.title}</Role>
-                  ) : null}
-                  <QuoteText>{item.quote || "—"}</QuoteText>
                   <StarRating rating={item.rating} starColor={ratingColor} />
+                  <QuoteText>{item.quote || "—"}</QuoteText>
+                  <Footer>
+                    <Avatar>{getInitials(item.name)}</Avatar>
+                    <AuthorInfo>
+                      <Name $color={nameColor} $hasRole={!!item.title}>
+                        {getFirstLastName(item.name)}
+                      </Name>
+                      {item.title ? (
+                        <Role $color={roleColor}>{item.title}</Role>
+                      ) : null}
+                    </AuthorInfo>
+                  </Footer>
                 </Card>
               </Slide>
             ))}
