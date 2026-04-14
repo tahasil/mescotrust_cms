@@ -135,40 +135,23 @@ async function EventDetail({ slug }) {
       />
       <FullWidthBackground className="customInnerHero" suppressHydrationWarning>
         <PageContainer className="pt-0" suppressHydrationWarning>
-          <div style={{ display: "flex", gap: 40 }} suppressHydrationWarning>
-            <article style={{ flex: 1, minWidth: 0 }}>
-              {desktop ? (
-                <figure
-                  style={{
-                    margin: "0 0 28px",
-                    borderRadius: 12,
-                    overflow: "hidden",
-                  }}
-                >
-                  <picture>
-                    {mobile && mobile !== desktop ? (
-                      <source media="(max-width: 768px)" srcSet={mobile} />
-                    ) : null}
-                    <img
-                      src={desktop}
-                      alt={event.title}
-                      style={{
-                        width: "100%",
-                        height: "auto",
-                        display: "block",
-                      }}
-                      loading="eager"
-                    />
-                  </picture>
-                </figure>
-              ) : null}
-
+          <div
+            className="events-detail-layout"
+            style={{ display: "flex", gap: 40 }}
+            suppressHydrationWarning
+          >
+            <article
+              className="events-detail-article"
+              style={{ flex: 1, minWidth: 0 }}
+            >
               <h1
+                className="events-detail-title"
                 style={{
                   fontSize: 32,
-                  fontWeight: 800,
+                  fontWeight: 700,
                   lineHeight: 1.25,
-                  margin: "0 0 16px 0",
+                  marginBottom: 16,
+                  marginTop: 0,
                 }}
               >
                 {event.title}
@@ -176,8 +159,47 @@ async function EventDetail({ slug }) {
 
               <EventMeta
                 event={event}
-                style={{ marginBottom: 20, fontSize: 15 }}
+                showIcons
+                style={{
+                  marginBottom: 24,
+                  fontSize: 15,
+                  color: "rgba(0,0,0,0.45)",
+                }}
               />
+
+              {desktop ? (
+                <figure
+                  className="events-detail-banner"
+                  style={{
+                    margin: "0 0 28px",
+                    borderRadius: 12,
+                    overflow: "hidden",
+                    maxHeight: 400,
+                  }}
+                >
+                  <picture style={{ display: "block", textAlign: "left" }}>
+                    {mobile && mobile !== desktop ? (
+                      <source media="(max-width: 768px)" srcSet={mobile} />
+                    ) : null}
+                    <img
+                      className="events-detail-banner-img"
+                      src={desktop}
+                      alt={event.title}
+                      style={{
+                        width: "auto",
+                        maxWidth: "100%",
+                        height: "auto",
+                        maxHeight: 400,
+                        objectFit: "contain",
+                        objectPosition: "left top",
+                        display: "block",
+                        margin: 0,
+                      }}
+                      loading="eager"
+                    />
+                  </picture>
+                </figure>
+              ) : null}
 
               {regLink ? (
                 <p style={{ margin: "0 0 24px 0" }}>
@@ -188,9 +210,11 @@ async function EventDetail({ slug }) {
                       display: "inline-block",
                       padding: "12px 24px",
                       borderRadius: 999,
-                      background: "var(--primary-color, #8b1a1a)",
+                      background:
+                        "var(--gradient-color, linear-gradient(90deg, #CF372F 0%, #691C18 100%))",
                       color: "#fff",
-                      fontWeight: 700,
+                      fontWeight: 500,
+                      fontSize: 14,
                       textDecoration: "none",
                     }}
                   >
@@ -204,16 +228,29 @@ async function EventDetail({ slug }) {
                   style={{
                     fontSize: 18,
                     lineHeight: 1.6,
-                    color: "rgba(0,0,0,0.65)",
-                    marginBottom: 28,
+                    color: "rgba(0,0,0,0.6)",
+                    marginBottom: 24,
                     whiteSpace: "pre-line",
+                    fontStyle: "italic",
                   }}
                 >
                   {event.description.trim()}
                 </p>
               ) : null}
 
-              <EventContent html={event.content} />
+              <div
+                style={{
+                  fontSize: 16,
+                  lineHeight: 1.8,
+                  color: "rgba(0,0,0,0.75)",
+                  overflowWrap: "break-word",
+                  wordBreak: "break-word",
+                  maxWidth: "100%",
+                  overflow: "hidden",
+                }}
+              >
+                <EventContent html={event.content} />
+              </div>
 
               {event.tags?.length > 0 ? (
                 <div
@@ -252,7 +289,7 @@ async function EventDetail({ slug }) {
                     textDecoration: "none",
                   }}
                 >
-                  ← All events
+                  {"<-"} All events
                 </Link>
               </p>
             </article>
@@ -275,12 +312,29 @@ async function EventDetail({ slug }) {
       </FullWidthBackground>
 
       <style>{`
+        @media (max-width: 1200px) {
+          .events-detail-layout { gap: 28px !important; }
+        }
         @media (max-width: 992px) {
           .events-detail-sidebar-desktop { display: none !important; }
           .events-detail-sidebar-mobile { display: block !important; margin-top: 40px; }
+          .events-detail-layout { gap: 24px !important; }
         }
         @media (max-width: 768px) {
-          article h1 { font-size: 22px !important; }
+          .events-detail-title { font-size: 24px !important; line-height: 1.3 !important; }
+          .events-detail-banner { margin-bottom: 20px !important; max-height: none !important; border-radius: 10px !important; }
+          .events-detail-banner-img {
+            width: 100% !important;
+            max-width: 100% !important;
+            max-height: 320px !important;
+            object-fit: cover !important;
+            object-position: center center !important;
+          }
+          .events-detail-sidebar-mobile { margin-top: 28px !important; }
+        }
+        @media (max-width: 480px) {
+          .events-detail-title { font-size: 20px !important; }
+          .events-detail-article { font-size: 15px; }
         }
       `}</style>
     </>

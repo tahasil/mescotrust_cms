@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 import Blog from "@/models/Blog";
 import ThemeConfig from "@/models/ThemeConfig";
 import SafeHtml from "@/components/cms/SafeHtml";
-import { FullWidthBackground, PageContainer } from "@/styles/Theme";
+import { FullWidthBackground, MainTitle, PageContainer } from "@/styles/Theme";
 
 import BlogSidebarFull from "@/components/blog/BlogSidebarFull";
 const BlogComments = nextDynamic(
@@ -124,7 +124,20 @@ function PostSkeleton() {
   );
 }
 
-const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 function formatDate(dateStr) {
   if (!dateStr) return "";
@@ -193,9 +206,13 @@ async function PostContent({ slug }) {
 
       <FullWidthBackground className="customInnerHero" suppressHydrationWarning>
         <PageContainer className="pt-0" suppressHydrationWarning>
-          <div style={{ display: "flex", gap: 40 }} suppressHydrationWarning>
+          <div
+            className="blog-detail-layout"
+            style={{ display: "flex", gap: 40 }}
+            suppressHydrationWarning
+          >
             {/* Left: Article */}
-            <article style={{ flex: 1, minWidth: 0 }}>
+            <article className="blog-detail-article" style={{ flex: 1, minWidth: 0 }}>
               {post.category?.name && (
                 <div
                   style={{
@@ -211,17 +228,9 @@ async function PostContent({ slug }) {
                 </div>
               )}
 
-              <h1
-                style={{
-                  fontSize: 32,
-                  fontWeight: 700,
-                  lineHeight: 1.25,
-                  marginBottom: 16,
-                  marginTop: 0,
-                }}
-              >
+              <MainTitle className="blog-detail-title" fontSize={24} fontWeight={600} lineHeight={30}>
                 {post.title}
-              </h1>
+              </MainTitle>
 
               <div
                 style={{
@@ -241,20 +250,35 @@ async function PostContent({ slug }) {
 
               {post.featuredImage && (
                 <figure
+                  className="blog-detail-banner"
                   style={{
                     margin: "0 0 28px",
                     borderRadius: 12,
                     overflow: "hidden",
+                    maxHeight: 400,
                   }}
                 >
-                  <picture>
+                  <picture style={{ display: "block", textAlign: "left" }}>
                     {post.featuredImageMobile && (
-                      <source media="(max-width: 768px)" srcSet={post.featuredImageMobile} />
+                      <source
+                        media="(max-width: 768px)"
+                        srcSet={post.featuredImageMobile}
+                      />
                     )}
                     <img
+                      className="blog-detail-banner-img"
                       src={post.featuredImage}
                       alt={post.title}
-                      style={{ width: "100%", height: "auto", display: "block" }}
+                      style={{
+                        width: "auto",
+                        maxWidth: "100%",
+                        height: "auto",
+                        maxHeight: 400,
+                        objectFit: "contain",
+                        objectPosition: "left top",
+                        display: "block",
+                        margin: 0,
+                      }}
                       loading="lazy"
                     />
                   </picture>
@@ -325,7 +349,13 @@ async function PostContent({ slug }) {
               style={{ width: 320, flexShrink: 0 }}
               className="blog-detail-sidebar-desktop"
             >
-              <Suspense fallback={<div style={{ padding: "20px 0", color: "rgba(0,0,0,0.2)" }}>Loading...</div>}>
+              <Suspense
+                fallback={
+                  <div style={{ padding: "20px 0", color: "rgba(0,0,0,0.2)" }}>
+                    Loading...
+                  </div>
+                }
+              >
                 <BlogSidebarFull currentSlug={slug} />
               </Suspense>
             </div>
@@ -336,26 +366,44 @@ async function PostContent({ slug }) {
             className="blog-detail-sidebar-mobile"
             style={{ display: "none" }}
           >
-            <Suspense fallback={<div style={{ padding: "20px 0", color: "rgba(0,0,0,0.2)" }}>Loading...</div>}>
-                <BlogSidebarFull currentSlug={slug} />
-              </Suspense>
+            <Suspense
+              fallback={
+                <div style={{ padding: "20px 0", color: "rgba(0,0,0,0.2)" }}>
+                  Loading...
+                </div>
+              }
+            >
+              <BlogSidebarFull currentSlug={slug} />
+            </Suspense>
           </div>
         </PageContainer>
       </FullWidthBackground>
 
       <style>{`
+        @media (max-width: 1200px) {
+          .blog-detail-layout { gap: 28px !important; }
+        }
         @media (max-width: 992px) {
           .blog-detail-sidebar-desktop { display: none !important; }
           .blog-detail-sidebar-mobile { display: block !important; margin-top: 40px; }
+          .blog-detail-layout { gap: 24px !important; }
         }
         @media (max-width: 768px) {
-          article h1 { font-size: 22px !important; }
-          article figure { margin-bottom: 20px !important; }
-          article figure img { border-radius: 8px !important; }
+          .blog-detail-title { font-size: 24px !important; line-height: 1.3 !important; }
+          .blog-detail-banner { margin-bottom: 20px !important; max-height: none !important; border-radius: 10px !important; }
+          .blog-detail-banner-img {
+            width: 100% !important;
+            max-width: 100% !important;
+            max-height: 320px !important;
+            object-fit: cover !important;
+            object-position: center center !important;
+            border-radius: 8px !important;
+          }
+          .blog-detail-sidebar-mobile { margin-top: 28px !important; }
         }
         @media (max-width: 480px) {
-          article h1 { font-size: 20px !important; }
-          article > div { font-size: 15px !important; }
+          .blog-detail-title { font-size: 20px !important; }
+          .blog-detail-article { font-size: 15px; }
         }
       `}</style>
     </>

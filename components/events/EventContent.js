@@ -8,7 +8,7 @@ export default function EventContent({ html }) {
       style={{
         fontSize: 16,
         lineHeight: 1.8,
-        color: "rgba(0,0,0,0.75)",
+        color: "#262A2C",
         overflowWrap: "break-word",
         wordBreak: "break-word",
         maxWidth: "100%",

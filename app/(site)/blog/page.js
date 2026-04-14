@@ -5,7 +5,7 @@ import Blog from "@/models/Blog";
 import BlogCategory from "@/models/BlogCategory";
 import ThemeConfig from "@/models/ThemeConfig";
 import { getPageSeoMetadata } from "@/lib/seo";
-import { FullWidthBackground, PageContainer } from "@/styles/Theme";
+import { FullWidthBackground, MainTitle, PageContainer } from "@/styles/Theme";
 import BlogSidebarFull from "@/components/blog/BlogSidebarFull";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +22,20 @@ export async function generateMetadata() {
 
 const PAGE_SIZE = 6;
 
-const MONTHS = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+const MONTHS = [
+  "JANUARY",
+  "FEBRUARY",
+  "MARCH",
+  "APRIL",
+  "MAY",
+  "JUNE",
+  "JULY",
+  "AUGUST",
+  "SEPTEMBER",
+  "OCTOBER",
+  "NOVEMBER",
+  "DECEMBER",
+];
 
 function formatDate(dateStr) {
   if (!dateStr) return "";
@@ -177,13 +190,18 @@ export default async function BlogListPage({ searchParams }) {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    background: post.featuredImage ? "rgba(0,0,0,0.02)" : "rgba(0,0,0,0.04)",
+                    background: post.featuredImage
+                      ? "rgba(0,0,0,0.02)"
+                      : "rgba(0,0,0,0.04)",
                   }}
                 >
                   {post.featuredImage ? (
                     <picture>
                       {post.featuredImageMobile && (
-                        <source media="(max-width: 768px)" srcSet={post.featuredImageMobile} />
+                        <source
+                          media="(max-width: 768px)"
+                          srcSet={post.featuredImageMobile}
+                        />
                       )}
                       <img
                         loading="lazy"
@@ -198,7 +216,17 @@ export default async function BlogListPage({ searchParams }) {
                       />
                     </picture>
                   ) : (
-                    <div style={{ width: "100%", minHeight: 200, display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(0,0,0,0.15)", fontSize: 14 }}>
+                    <div
+                      style={{
+                        width: "100%",
+                        minHeight: 200,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "rgba(0,0,0,0.15)",
+                        fontSize: 14,
+                      }}
+                    >
                       No Image
                     </div>
                   )}
@@ -226,22 +254,21 @@ export default async function BlogListPage({ searchParams }) {
                       {post.category.name}
                     </div>
                   )}
-                  <h2
-                    style={{
-                      fontSize: 24,
-                      fontWeight: 700,
-                      lineHeight: 1.25,
-                      marginBottom: 14,
-                      margin: 0,
-                    }}
+
+                  <Link
+                    href={`/blog/${post.slug}`}
+                    style={{ color: "inherit", textDecoration: "none" }}
                   >
-                    <Link
-                      href={`/blog/${post.slug}`}
-                      style={{ color: "inherit", textDecoration: "none" }}
+                    <MainTitle
+                      fontSize={24}
+                      fontWeight={600}
+                      lineHeight={30}
+                      className="mb-3"
                     >
                       {post.title}
-                    </Link>
-                  </h2>
+                    </MainTitle>
+                  </Link>
+
                   {post.excerpt && (
                     <p
                       style={{
@@ -262,7 +289,9 @@ export default async function BlogListPage({ searchParams }) {
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: commentsEnabled ? "space-between" : "flex-end",
+                      justifyContent: commentsEnabled
+                        ? "space-between"
+                        : "flex-end",
                       fontSize: 13,
                       color: "rgba(0,0,0,0.35)",
                       marginTop: "auto",
@@ -352,16 +381,33 @@ export default async function BlogListPage({ searchParams }) {
           </div>
 
           {/* Right: Sidebar */}
-          <div style={{ width: 320, flexShrink: 0 }} className="blog-sidebar-desktop">
-            <Suspense fallback={<div style={{ padding: "20px 0", color: "rgba(0,0,0,0.2)" }}>Loading...</div>}>
-              <BlogSidebarFull searchQuery={searchQuery} categorySlug={categorySlug} categories={JSON.parse(JSON.stringify(categories))} />
+          <div
+            style={{ width: 320, flexShrink: 0 }}
+            className="blog-sidebar-desktop"
+          >
+            <Suspense
+              fallback={
+                <div style={{ padding: "20px 0", color: "rgba(0,0,0,0.2)" }}>
+                  Loading...
+                </div>
+              }
+            >
+              <BlogSidebarFull
+                searchQuery={searchQuery}
+                categorySlug={categorySlug}
+                categories={JSON.parse(JSON.stringify(categories))}
+              />
             </Suspense>
           </div>
         </div>
 
         {/* Mobile sidebar (below content) */}
         <div className="blog-sidebar-mobile" style={{ display: "none" }}>
-          <BlogSidebarFull searchQuery={searchQuery} categorySlug={categorySlug} categories={JSON.parse(JSON.stringify(categories))} />
+          <BlogSidebarFull
+            searchQuery={searchQuery}
+            categorySlug={categorySlug}
+            categories={JSON.parse(JSON.stringify(categories))}
+          />
         </div>
 
         <style>{`
