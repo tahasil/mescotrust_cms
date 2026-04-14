@@ -79,7 +79,10 @@ export default function EventCard({ event }) {
             margin: "0 0 10px 0",
           }}
         >
-          <Link href={href} style={{ color: "inherit", textDecoration: "none" }}>
+          <Link
+            href={href}
+            style={{ color: "inherit", textDecoration: "none" }}
+          >
             {event.title}
           </Link>
         </h2>
@@ -109,15 +112,16 @@ export default function EventCard({ event }) {
               gap: 10,
               padding: "10px 14px",
               borderRadius: 999,
-              background: "var(--primary-color, #8b1a1a)",
+              background:
+                "var(--gradient-color, linear-gradient(90deg, #CF372F 0%, #691C18 100%))",
               color: "#fff",
-              fontSize: 13,
-              fontWeight: 700,
+              fontSize: 14,
+              fontWeight: 500,
               textDecoration: "none",
               width: "fit-content",
             }}
           >
-            View Details <span aria-hidden>→</span>
+            View Details
           </Link>
         </div>
       </div>
