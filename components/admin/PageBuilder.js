@@ -154,6 +154,24 @@ function getDefaultPropsForNewSiteComponent(componentId) {
       return { ...base, marqueeItems: [], marqueeTitle: "" };
     case "LatestEvents1":
       return { ...base, latestEvents1Items: [] };
+    case "EventsSlider":
+      return {
+        ...base,
+        eventsSliderSubTitle: "Upcoming",
+        eventsSliderMainTitle: "Events",
+        eventsSliderTitleEnabled: true,
+        eventsSliderSubTitleEnabled: true,
+        eventsSliderLimit: 8,
+        eventsSliderSort: "upcoming",
+        eventsSliderAutoplay: false,
+        eventsSliderShowArrows: true,
+        eventsSliderShowDots: true,
+        eventsSliderInfinite: true,
+        eventsSliderAutoplaySpeed: 5000,
+        eventsSliderSpeed: 450,
+        eventsSliderButtonRadius: 999,
+        eventsSliderButtonSize: "md",
+      };
     case "OverviewOfOurWork":
       return { ...base, overviewOfOurWorkItems: [] };
     case "HomeHero2":

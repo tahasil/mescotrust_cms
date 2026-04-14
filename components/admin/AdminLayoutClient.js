@@ -88,6 +88,15 @@ const menuItems = [
     ],
   },
   {
+    key: "/admin/events",
+    icon: <ClockCircleOutlined />,
+    label: "Events",
+    children: [
+      { key: "/admin/events", label: <Link href="/admin/events" style={linkStyle}>All Events</Link> },
+      { key: "/admin/event-registrations", label: <Link href="/admin/event-registrations" style={linkStyle}>Event Registrations</Link> },
+    ],
+  },
+  {
     key: "/admin/media",
     icon: <AppstoreOutlined />,
     label: (

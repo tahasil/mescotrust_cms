@@ -7,6 +7,7 @@ import { connectDB } from "@/lib/db";
 import Page from "@/models/Page";
 import Component from "@/models/Component";
 import Blog from "@/models/Blog";
+import Event from "@/models/Event";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import SafeHtml from "@/components/cms/SafeHtml";
 
@@ -39,6 +40,28 @@ export default async function PreviewPage({ params, searchParams }) {
             <h1>{post.title}</h1>
             {post.excerpt && <p style={{ fontSize: "1.1em", color: "#444", marginBottom: "1.5rem" }}>{post.excerpt}</p>}
             <SafeHtml html={post.content} />
+          </article>
+        </main>
+      );
+    }
+
+    if (type === "event") {
+      const eventDoc = await Event.findById(id).lean();
+      if (!eventDoc) notFound();
+
+      return (
+        <main>
+          <div style={{ background: "#fff3cd", padding: "0.5rem 1rem", borderRadius: 4, marginBottom: "1.5rem", fontSize: "0.875rem" }}>
+            Draft preview — this content is not published.
+          </div>
+          <article>
+            <h1>{eventDoc.title}</h1>
+            {eventDoc.description ? (
+              <p style={{ fontSize: "1.05em", color: "#444", marginBottom: "1.5rem", whiteSpace: "pre-line" }}>
+                {eventDoc.description}
+              </p>
+            ) : null}
+            <SafeHtml html={eventDoc.content} />
           </article>
         </main>
       );

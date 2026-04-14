@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Page from "@/models/Page";
 import Blog from "@/models/Blog";
+import Event from "@/models/Event";
 import { createRateLimiter, getClientIp } from "@/lib/rateLimit";
 
 const checkRateLimit = createRateLimiter({ windowMs: 60_000, max: 30 });
@@ -21,13 +22,15 @@ export async function GET(req) {
   try {
     await connectDB();
     const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
-    const [pages, blogs] = await Promise.all([
+    const [pages, blogs, events] = await Promise.all([
       Page.find({ status: "published", $or: [{ title: regex }, { slug: regex }] }).select("title slug").lean(),
       Blog.find({ status: "published", $or: [{ title: regex }, { slug: regex }, { excerpt: regex }] }).select("title slug excerpt").lean(),
+      Event.find({ status: "published", $or: [{ title: regex }, { slug: regex }, { description: regex }] }).select("title slug description").lean(),
     ]);
     const items = [
       ...pages.map((p) => ({ type: "page", title: p.title, url: `/${p.slug}`, slug: p.slug })),
       ...blogs.map((b) => ({ type: "blog", title: b.title, url: `/blog/${b.slug}`, slug: b.slug, excerpt: b.excerpt })),
+      ...events.map((ev) => ({ type: "event", title: ev.title, url: `/events/${ev.slug}`, slug: ev.slug, excerpt: ev.description })),
     ];
     return NextResponse.json({ items });
   } catch (err) {

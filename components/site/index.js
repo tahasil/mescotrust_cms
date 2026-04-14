@@ -41,6 +41,7 @@ export { default as HomeHero2, HomeHero2EditForm } from "./HomeHero2/index";
 export { default as OverviewOfOurWork, OverviewOfOurWorkEditForm } from "./OverviewOfOurWork/index";
 export { default as Testimonials, TestimonialsEditForm } from "./Testimonials/index";
 export { default as LatestEvents1, LatestEvents1EditForm } from "./LatestEvents1/index";
+export { default as EventsSlider, EventsSliderEditForm } from "./EventsSlider/index";
 export { default as ImageSlider, ImageSliderEditForm } from "./ImageSlider/index";
 export { default as EventRegistrationForm, EventRegistrationFormEditForm } from "./EventRegistrationForm/index";
 export { default as SocialMediaWall, SocialMediaWallEditForm } from "./SocialMediaWall/index";
@@ -80,6 +81,7 @@ import HomeHero2EditForm from "./HomeHero2/EditForm";
 import OverviewOfOurWorkEditForm from "./OverviewOfOurWork/EditForm";
 import TestimonialsEditForm from "./Testimonials/EditForm";
 import LatestEvents1EditForm from "./LatestEvents1/EditForm";
+import EventsSliderEditForm from "./EventsSlider/EditForm";
 import ImageSliderEditForm from "./ImageSlider/EditForm";
 import EventRegistrationFormEditForm from "./EventRegistrationForm/EditForm";
 import SocialMediaWallEditForm from "./SocialMediaWall/EditForm";
@@ -93,6 +95,7 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   Marquee: MarqueeEditForm,
   Subscribe: SubscribeEditForm,
   LatestEvents1: LatestEvents1EditForm,
+  EventsSlider: EventsSliderEditForm,
   Testimonials: TestimonialsEditForm,
   OverviewOfOurWork: OverviewOfOurWorkEditForm,
   HomeHero2: HomeHero2EditForm,
