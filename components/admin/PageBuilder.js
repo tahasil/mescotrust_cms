@@ -126,6 +126,46 @@ const TESTIMONIALS_DEFAULT_PROPS = {
   ],
 };
 
+/** Default props for new Cards block in page builder (same behavior as mature site components). */
+const CARDS_DEFAULT_PROPS = {
+  mainTitle: "Section Title",
+  subTitle: "Subtitle",
+  cardsTitleEnabled: true,
+  cardsSubTitleEnabled: true,
+  cardsSubTitleColorKey: "",
+  cardsMainTitleColorKey: "",
+  cardsCardBgColorKey: "",
+  cardsCardTitleColorKey: "",
+  cardsCardBorderColorKey: "",
+  cardsColumnsDesktop: 3,
+  cardsColumnsTablet: 2,
+  cardsColumnsMobile: 1,
+  cardsColumnGap: 16,
+  cardsRowGap: 16,
+  cardsCardRadius: 14,
+  cardsCardBorderWidth: 1,
+  cardsCardImageAreaHeight: 160,
+  cardsCardImageMaxHeight: 110,
+  cardsCardContentPaddingY: 14,
+  cardsCardTitleFontSize: 14,
+  cardsCardTitleLineHeight: 1.35,
+  cardsItems: [
+    { image: "/images/logo.svg", title: "Accredited For Desirable Norms Credibility Alliance" },
+    { image: "/images/logo.svg", title: "Accredited For Desirable Norms Credibility Alliance" },
+    { image: "/images/logo.svg", title: "Accredited For Desirable Norms Credibility Alliance" },
+    { image: "/images/logo.svg", title: "Accredited For Desirable Norms Credibility Alliance" },
+    { image: "/images/logo.svg", title: "Accredited For Desirable Norms Credibility Alliance" },
+    { image: "/images/logo.svg", title: "Accredited For Desirable Norms Credibility Alliance" },
+  ],
+};
+
+function getDefaultPropsForNewSiteComponentBlock(componentId) {
+  const base = getDefaultPropsForNewSiteComponent(componentId);
+  if (componentId === "Testimonials") return { ...TESTIMONIALS_DEFAULT_PROPS };
+  if (componentId === "Cards") return { ...base, ...CARDS_DEFAULT_PROPS };
+  return base;
+}
+
 /** Full default props when creating a new site component block (Manage Section, Title & Colors, Manage Items, Slide Setting). */
 function getDefaultPropsForNewSiteComponent(componentId) {
   const prefix =
@@ -2175,10 +2215,9 @@ export default function PageBuilder({
       fetch(`/api/theme/${comp.baseComponent}`, { cache: "no-store" })
         .then((res) => (res.ok ? res.json() : {}))
         .then((componentDefaults) => {
-          const baseDefaults =
-            comp.baseComponent === "Testimonials"
-              ? { ...TESTIMONIALS_DEFAULT_PROPS }
-              : getDefaultPropsForNewSiteComponent(comp.baseComponent);
+          const baseDefaults = getDefaultPropsForNewSiteComponentBlock(
+            comp.baseComponent,
+          );
           const props =
             componentDefaults && typeof componentDefaults === "object"
               ? { ...baseDefaults, ...componentDefaults }
@@ -2193,10 +2232,9 @@ export default function PageBuilder({
           applyAddBlock(newBlock);
         })
         .catch(() => {
-          const baseDefaults =
-            comp.baseComponent === "Testimonials"
-              ? { ...TESTIMONIALS_DEFAULT_PROPS }
-              : getDefaultPropsForNewSiteComponent(comp.baseComponent);
+          const baseDefaults = getDefaultPropsForNewSiteComponentBlock(
+            comp.baseComponent,
+          );
           const newBlock = {
             instanceId: generateId(),
             componentId: comp._id,
