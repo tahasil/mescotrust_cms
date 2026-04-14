@@ -82,9 +82,30 @@ const menuItems = [
     icon: <BookOutlined />,
     label: "Blogs",
     children: [
-      { key: "/admin/blogs", label: <Link href="/admin/blogs" style={linkStyle}>All Posts</Link> },
-      { key: "/admin/blog-categories", label: <Link href="/admin/blog-categories" style={linkStyle}>Categories</Link> },
-      { key: "/admin/blog-comments", label: <Link href="/admin/blog-comments" style={linkStyle}>Comments</Link> },
+      {
+        key: "/admin/blogs",
+        label: (
+          <Link href="/admin/blogs" style={linkStyle}>
+            All Posts
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/blog-categories",
+        label: (
+          <Link href="/admin/blog-categories" style={linkStyle}>
+            Categories
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/blog-comments",
+        label: (
+          <Link href="/admin/blog-comments" style={linkStyle}>
+            Comments
+          </Link>
+        ),
+      },
     ],
   },
   {
@@ -92,8 +113,22 @@ const menuItems = [
     icon: <ClockCircleOutlined />,
     label: "Events",
     children: [
-      { key: "/admin/events", label: <Link href="/admin/events" style={linkStyle}>All Events</Link> },
-      { key: "/admin/event-registrations", label: <Link href="/admin/event-registrations" style={linkStyle}>Event Registrations</Link> },
+      {
+        key: "/admin/events",
+        label: (
+          <Link href="/admin/events" style={linkStyle}>
+            All Events
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/event-registrations",
+        label: (
+          <Link href="/admin/event-registrations" style={linkStyle}>
+            Registered
+          </Link>
+        ),
+      },
     ],
   },
   {
@@ -129,15 +164,6 @@ const menuItems = [
     label: (
       <Link href="/admin/contacts" style={linkStyle}>
         Contacts
-      </Link>
-    ),
-  },
-  {
-    key: "/admin/event-registrations",
-    icon: <ClockCircleOutlined />,
-    label: (
-      <Link href="/admin/event-registrations" style={linkStyle}>
-        Event Registrations
       </Link>
     ),
   },
@@ -241,74 +267,90 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
   };
 
   const sidebarVisible = isMobile ? mobileOpen : !collapsed;
-  const contentMarginLeft = isMobile ? 0 : (collapsed ? 0 : SIDEBAR_WIDTH);
+  const contentMarginLeft = isMobile ? 0 : collapsed ? 0 : SIDEBAR_WIDTH;
 
   const fetchNotifications = useCallback(() => {
     Promise.all([
-      fetch("/api/admin/contacts?limit=20").then((r) => (r.ok ? r.json() : { items: [] })),
-      fetch("/api/admin/donations?limit=20").then((r) => (r.ok ? r.json() : { items: [] })),
-      fetch("/api/admin/subscribers?limit=10").then((r) => (r.ok ? r.json() : { items: [] })),
-      fetch("/api/admin/event-registrations?limit=20").then((r) => (r.ok ? r.json() : { items: [] })),
-    ]).then(([contacts, donations, subscribers, eventRegs]) => {
-      const notifs = [];
-      (contacts.items || []).forEach((c) => {
-        if (!c.isRead) {
-          notifs.push({
-            id: c._id,
-            type: "contact",
-            icon: <MessageOutlined style={{ color: "#1677ff" }} />,
-            title: `New message from ${c.payload?.name || "Unknown"}`,
-            time: c.createdAt,
-            link: "/admin/contacts",
-          });
+      fetch("/api/admin/contacts?limit=20").then((r) =>
+        r.ok ? r.json() : { items: [] },
+      ),
+      fetch("/api/admin/donations?limit=20").then((r) =>
+        r.ok ? r.json() : { items: [] },
+      ),
+      fetch("/api/admin/subscribers?limit=10").then((r) =>
+        r.ok ? r.json() : { items: [] },
+      ),
+      fetch("/api/admin/event-registrations?limit=20").then((r) =>
+        r.ok ? r.json() : { items: [] },
+      ),
+    ])
+      .then(([contacts, donations, subscribers, eventRegs]) => {
+        const notifs = [];
+        (contacts.items || []).forEach((c) => {
+          if (!c.isRead) {
+            notifs.push({
+              id: c._id,
+              type: "contact",
+              icon: <MessageOutlined style={{ color: "#1677ff" }} />,
+              title: `New message from ${c.payload?.name || "Unknown"}`,
+              time: c.createdAt,
+              link: "/admin/contacts",
+            });
+          }
+        });
+        (donations.items || []).forEach((d) => {
+          if (d.status === "success") {
+            notifs.push({
+              id: d._id,
+              type: "donation",
+              icon: <DollarOutlined style={{ color: "#52c41a" }} />,
+              title: `₹${Number(d.amount).toLocaleString("en-IN")} donation from ${d.donor?.name || "Unknown"}`,
+              time: d.createdAt,
+              link: "/admin/donations",
+            });
+          }
+        });
+        const oneDayAgo = Date.now() - 86400000;
+        (subscribers.items || []).forEach((s) => {
+          if (
+            s.status === "active" &&
+            new Date(s.createdAt).getTime() > oneDayAgo
+          ) {
+            notifs.push({
+              id: s._id,
+              type: "subscriber",
+              icon: <MailOutlined style={{ color: "#722ed1" }} />,
+              title: `New subscriber: ${s.email}`,
+              time: s.createdAt,
+              link: "/admin/subscribers",
+            });
+          }
+        });
+        (eventRegs.items || []).forEach((r) => {
+          if (!r.isRead) {
+            notifs.push({
+              id: r._id,
+              type: "event-registration",
+              icon: <ClockCircleOutlined style={{ color: "#fa8c16" }} />,
+              title: `New event registration: ${r.payload?.name || "Unknown"} → ${r.eventTitle || "Event"}`,
+              time: r.createdAt,
+              link: "/admin/event-registrations",
+            });
+          }
+        });
+        notifs.sort((a, b) => new Date(b.time) - new Date(a.time));
+        const sliced = notifs.slice(0, 10);
+        if (
+          sliced.length > prevCountRef.current &&
+          prevCountRef.current !== 0
+        ) {
+          setBellShake(true);
+          setTimeout(() => setBellShake(false), 1500);
         }
-      });
-      (donations.items || []).forEach((d) => {
-        if (d.status === "success") {
-          notifs.push({
-            id: d._id,
-            type: "donation",
-            icon: <DollarOutlined style={{ color: "#52c41a" }} />,
-            title: `₹${Number(d.amount).toLocaleString("en-IN")} donation from ${d.donor?.name || "Unknown"}`,
-            time: d.createdAt,
-            link: "/admin/donations",
-          });
-        }
-      });
-      const oneDayAgo = Date.now() - 86400000;
-      (subscribers.items || []).forEach((s) => {
-        if (s.status === "active" && new Date(s.createdAt).getTime() > oneDayAgo) {
-          notifs.push({
-            id: s._id,
-            type: "subscriber",
-            icon: <MailOutlined style={{ color: "#722ed1" }} />,
-            title: `New subscriber: ${s.email}`,
-            time: s.createdAt,
-            link: "/admin/subscribers",
-          });
-        }
-      });
-      (eventRegs.items || []).forEach((r) => {
-        if (!r.isRead) {
-          notifs.push({
-            id: r._id,
-            type: "event-registration",
-            icon: <ClockCircleOutlined style={{ color: "#fa8c16" }} />,
-            title: `New event registration: ${r.payload?.name || "Unknown"} → ${r.eventTitle || "Event"}`,
-            time: r.createdAt,
-            link: "/admin/event-registrations",
-          });
-        }
-      });
-      notifs.sort((a, b) => new Date(b.time) - new Date(a.time));
-      const sliced = notifs.slice(0, 10);
-      if (sliced.length > prevCountRef.current && prevCountRef.current !== 0) {
-        setBellShake(true);
-        setTimeout(() => setBellShake(false), 1500);
-      }
-      prevCountRef.current = sliced.length;
-      setNotifications(sliced);
-    }).catch(() => {});
+        prevCountRef.current = sliced.length;
+        setNotifications(sliced);
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -338,9 +380,26 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
 
   const notificationContent = (
     <div style={{ width: 320, maxWidth: "90vw" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px" }}>
-        <Typography.Text strong>{notifications.length} New Notifications</Typography.Text>
-        <Typography.Link onClick={() => { setNotifications([]); setNotifOpen(false); }} style={{ fontSize: 13 }}>Clear all</Typography.Link>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "12px 16px",
+        }}
+      >
+        <Typography.Text strong>
+          {notifications.length} New Notifications
+        </Typography.Text>
+        <Typography.Link
+          onClick={() => {
+            setNotifications([]);
+            setNotifOpen(false);
+          }}
+          style={{ fontSize: 13 }}
+        >
+          Clear all
+        </Typography.Link>
       </div>
       <Divider style={{ margin: 0 }} />
       <List
@@ -348,15 +407,49 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
         locale={{ emptyText: "No new notifications" }}
         renderItem={(item) => (
           <List.Item
-            style={{ padding: "10px 16px", cursor: "pointer", transition: "background 0.2s" }}
-            onClick={() => { setNotifOpen(false); window.location.href = item.link; }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(0,0,0,0.02)")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+            style={{
+              padding: "10px 16px",
+              cursor: "pointer",
+              transition: "background 0.2s",
+            }}
+            onClick={() => {
+              setNotifOpen(false);
+              window.location.href = item.link;
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.background = "rgba(0,0,0,0.02)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.background = "transparent")
+            }
           >
             <List.Item.Meta
-              avatar={<Avatar size={36} icon={item.icon} style={{ background: "rgba(0,0,0,0.04)" }} />}
-              title={<span style={{ fontSize: 13, fontWeight: 500 }}>{item.title}</span>}
-              description={<span style={{ fontSize: 12, color: "#999", display: "flex", alignItems: "center", gap: 4 }}><ClockCircleOutlined style={{ fontSize: 11 }} /> {timeAgo(item.time)}</span>}
+              avatar={
+                <Avatar
+                  size={36}
+                  icon={item.icon}
+                  style={{ background: "rgba(0,0,0,0.04)" }}
+                />
+              }
+              title={
+                <span style={{ fontSize: 13, fontWeight: 500 }}>
+                  {item.title}
+                </span>
+              }
+              description={
+                <span
+                  style={{
+                    fontSize: 12,
+                    color: "#999",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                >
+                  <ClockCircleOutlined style={{ fontSize: 11 }} />{" "}
+                  {timeAgo(item.time)}
+                </span>
+              }
             />
           </List.Item>
         )}
@@ -365,7 +458,13 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
         <>
           <Divider style={{ margin: 0 }} />
           <div style={{ textAlign: "center", padding: "10px 16px" }}>
-            <Typography.Link onClick={() => setNotifOpen(false)} href="/admin/contacts" style={{ fontSize: 13 }}>View all</Typography.Link>
+            <Typography.Link
+              onClick={() => setNotifOpen(false)}
+              href="/admin/contacts"
+              style={{ fontSize: 13 }}
+            >
+              View all
+            </Typography.Link>
           </div>
         </>
       )}
@@ -384,9 +483,15 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
   };
 
   const at = adminTheme;
-  const logoDisplay = at.adminLogoUrl
-    ? <img src={at.adminLogoUrl} alt="logo" style={{ maxHeight: 36, maxWidth: 140, objectFit: "contain" }} />
-    : at.adminSiteName || "CMS";
+  const logoDisplay = at.adminLogoUrl ? (
+    <img
+      src={at.adminLogoUrl}
+      alt="logo"
+      style={{ maxHeight: 36, maxWidth: 140, objectFit: "contain" }}
+    />
+  ) : (
+    at.adminSiteName || "CMS"
+  );
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -576,7 +681,15 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
           }}
         >
           {typeof logoDisplay === "string" ? (
-            <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{logoDisplay}</span>
+            <span
+              style={{
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {logoDisplay}
+            </span>
           ) : (
             logoDisplay
           )}
@@ -601,9 +714,13 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
             theme="light"
             mode="inline"
             selectedKeys={[pathname]}
-            defaultOpenKeys={["/admin/blogs"]}
+            // defaultOpenKeys={["/admin/blogs"]}
             items={menuItems}
-            style={{ borderRight: 0, color: at.adminSidebarText, paddingTop: 8 }}
+            style={{
+              borderRight: 0,
+              color: at.adminSidebarText,
+              paddingTop: 8,
+            }}
           />
         </div>
       </div>
@@ -639,9 +756,17 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
           <Button
             type="text"
             icon={
-              isMobile
-                ? (mobileOpen ? <CloseOutlined /> : <MenuUnfoldOutlined />)
-                : (collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />)
+              isMobile ? (
+                mobileOpen ? (
+                  <CloseOutlined />
+                ) : (
+                  <MenuUnfoldOutlined />
+                )
+              ) : collapsed ? (
+                <MenuUnfoldOutlined />
+              ) : (
+                <MenuFoldOutlined />
+              )
             }
             onClick={toggleSidebar}
             style={{ fontSize: 18, color: at.adminTextColor }}
@@ -679,7 +804,11 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
               onOpenChange={setNotifOpen}
               placement="bottomRight"
               arrow={false}
-              overlayInnerStyle={{ padding: 0, borderRadius: 12, overflow: "hidden" }}
+              overlayInnerStyle={{
+                padding: 0,
+                borderRadius: 12,
+                overflow: "hidden",
+              }}
             >
               <Badge count={notifications.length} size="small" offset={[-2, 2]}>
                 <Button
@@ -706,7 +835,9 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
             </Dropdown>
           </Space>
         </Header>
-        <Content style={{ marginTop: HEADER_HEIGHT, padding: isMobile ? 8 : 10 }}>
+        <Content
+          style={{ marginTop: HEADER_HEIGHT, padding: isMobile ? 8 : 10 }}
+        >
           {children}
         </Content>
       </Layout>

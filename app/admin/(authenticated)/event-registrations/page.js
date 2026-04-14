@@ -71,7 +71,8 @@ export default function AdminEventRegistrationsPage() {
   const filtered = useMemo(() => {
     let result = list;
     if (statusFilter) result = result.filter((r) => r.status === statusFilter);
-    if (eventFilter) result = result.filter((r) => r.eventTitle === eventFilter);
+    if (eventFilter)
+      result = result.filter((r) => r.eventTitle === eventFilter);
     if (searchText.trim()) {
       const q = searchText.trim().toLowerCase();
       result = result.filter(
@@ -134,7 +135,7 @@ export default function AdminEventRegistrationsPage() {
 
   return (
     <ThemeAdminCard
-      title="Event registrations"
+      title="Registered Applicants"
       extra={
         <Space>
           <Input
