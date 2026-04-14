@@ -3,7 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Carousel, Col, Row, Spin } from "antd";
-import { LeftOutlined, RightOutlined } from "@ant-design/icons";
+import {
+  LeftOutlined,
+  RightCircleOutlined,
+  RightOutlined,
+} from "@ant-design/icons";
 import styled from "styled-components";
 import {
   FullWidthBackground,
@@ -385,9 +389,10 @@ export default function EventsSlider(props) {
       >
         <Row gutter={[16, 16]}>
           <Col
-            xs={{ span: 24, offset: 0 }}
+            span={{ span: 24, offset: 0 }}
             sm={{ span: 24, offset: 0 }}
-            md={{ span: 6, offset: 9 }}
+            md={{ span: 10, offset: 7 }}
+            lg={{ span: 10, offset: 7 }}
             className="mb-4 text-center"
           >
             {subTitleEnabled && subTitle ? (
@@ -412,107 +417,111 @@ export default function EventsSlider(props) {
               : {}),
           }}
         >
-          <Carousel
-            ref={carouselRef}
-            dots={false}
-            infinite={infinite && items.length > 1}
-            autoplay={autoplay}
-            autoplaySpeed={autoplaySpeed}
-            speed={speed}
-            afterChange={(idx) => setCurrentSlide(idx)}
-          >
-            {items.map((ev) => {
-              const { desktop, mobile } = getEventImageSources(ev);
-              const href = `/events/${ev.slug}`;
-              const dateLabel = formatEventDayDate(ev.startDate || ev.endDate);
-              const desc = (ev?.description ?? "").toString().trim();
-              return (
-                <div key={ev._id || ev.slug}>
-                  <div className="slide-card">
-                    <Row gutter={[32, 24]} align="stretch">
-                      <Col xs={24} md={24} lg={10}>
-                        <div className="slide-image">
-                          {desktop || mobile ? (
-                            <picture>
-                              {mobile ? (
-                                <source
-                                  media="(max-width: 992px)"
-                                  srcSet={mobile}
+          <div className="innerEventBox p-0 border-0">
+            <Carousel
+              ref={carouselRef}
+              dots={false}
+              infinite={infinite && items.length > 1}
+              autoplay={autoplay}
+              autoplaySpeed={autoplaySpeed}
+              speed={speed}
+              afterChange={(idx) => setCurrentSlide(idx)}
+            >
+              {items.map((ev) => {
+                const { desktop, mobile } = getEventImageSources(ev);
+                const href = `/events/${ev.slug}`;
+                const dateLabel = formatEventDayDate(
+                  ev.startDate || ev.endDate,
+                );
+                const desc = (ev?.description ?? "").toString().trim();
+                return (
+                  <div key={ev._id || ev.slug}>
+                    <div className="slide-card">
+                      <Row gutter={[32, 24]} align="stretch">
+                        <Col xs={24} md={24} lg={10}>
+                          <div className="slide-image">
+                            {desktop || mobile ? (
+                              <picture>
+                                {mobile ? (
+                                  <source
+                                    media="(max-width: 992px)"
+                                    srcSet={mobile}
+                                  />
+                                ) : null}
+                                <img
+                                  loading="lazy"
+                                  src={desktop || mobile}
+                                  alt={ev.title || "Event"}
                                 />
-                              ) : null}
-                              <img
-                                loading="lazy"
-                                src={desktop || mobile}
-                                alt={ev.title || "Event"}
-                              />
-                            </picture>
-                          ) : (
-                            <span
-                              style={{
-                                color: "rgba(0,0,0,0.25)",
-                                fontSize: 16,
-                                fontWeight: 600,
-                              }}
-                            >
-                              IMAGE PLACEHOLDER
-                            </span>
-                          )}
-                        </div>
-                      </Col>
-                      <Col xs={24} md={24} lg={14}>
-                        <div className="slide-content">
-                          {dateLabel ? (
-                            <div
-                              className="slide-date"
-                              style={
-                                dateColor ? { color: dateColor } : undefined
-                              }
-                            >
-                              {dateLabel}
-                            </div>
-                          ) : null}
-                          <h2 className="slide-title">
+                              </picture>
+                            ) : (
+                              <span
+                                style={{
+                                  color: "rgba(0,0,0,0.25)",
+                                  fontSize: 16,
+                                  fontWeight: 600,
+                                }}
+                              >
+                                IMAGE PLACEHOLDER
+                              </span>
+                            )}
+                          </div>
+                        </Col>
+                        <Col xs={24} md={24} lg={14}>
+                          <div className="slide-content">
+                            {dateLabel ? (
+                              <div
+                                className="slide-date"
+                                style={
+                                  dateColor ? { color: dateColor } : undefined
+                                }
+                              >
+                                {dateLabel}
+                              </div>
+                            ) : null}
+                            <h2 className="slide-title">
+                              <Link
+                                href={href}
+                                style={{
+                                  color: "inherit",
+                                  textDecoration: "none",
+                                }}
+                              >
+                                {ev.title}
+                              </Link>
+                            </h2>
+                            {desc ? (
+                              <p
+                                className="slide-desc"
+                                style={
+                                  descColor ? { color: descColor } : undefined
+                                }
+                              >
+                                {desc}
+                              </p>
+                            ) : null}
                             <Link
                               href={href}
+                              className="slide-cta"
                               style={{
-                                color: "inherit",
-                                textDecoration: "none",
+                                borderRadius: Number.isFinite(buttonRadius)
+                                  ? buttonRadius
+                                  : 999,
+                                padding: btnPadding,
+                                fontSize: btnFontSize,
                               }}
                             >
-                              {ev.title}
+                              View Details
                             </Link>
-                          </h2>
-                          {desc ? (
-                            <p
-                              className="slide-desc"
-                              style={
-                                descColor ? { color: descColor } : undefined
-                              }
-                            >
-                              {desc}
-                            </p>
-                          ) : null}
-                          <Link
-                            href={href}
-                            className="slide-cta"
-                            style={{
-                              borderRadius: Number.isFinite(buttonRadius)
-                                ? buttonRadius
-                                : 999,
-                              padding: btnPadding,
-                              fontSize: btnFontSize,
-                            }}
-                          >
-                            View Details <span aria-hidden>→</span>
-                          </Link>
-                        </div>
-                      </Col>
-                    </Row>
+                          </div>
+                        </Col>
+                      </Row>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </Carousel>
+                );
+              })}
+            </Carousel>
+          </div>
 
           {items.length > 1 && (showArrows || showDots) && (
             <div className="slider-nav">
