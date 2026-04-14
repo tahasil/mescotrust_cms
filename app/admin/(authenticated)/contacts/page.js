@@ -13,7 +13,7 @@ export default function AdminContactsPage() {
 
   const fetchList = () => {
     setLoading(true);
-    fetch("/api/admin/contacts")
+    fetch("/api/admin/contacts?submissionType=contact")
       .then((res) => (res.ok ? res.json() : { items: [] }))
       .then((data) => setList(Array.isArray(data) ? data : data.items || []))
       .catch(() => message.error("Failed to load"))
@@ -46,7 +46,7 @@ export default function AdminContactsPage() {
   };
 
   return (
-    <ThemeAdminCard title="Contact submissions">
+    <ThemeAdminCard title="Contact Us submissions">
       <Table
         rowKey="_id"
         loading={loading}

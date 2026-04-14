@@ -111,25 +111,11 @@ const menuItems = [
   {
     key: "/admin/events",
     icon: <ClockCircleOutlined />,
-    label: "Events",
-    children: [
-      {
-        key: "/admin/events",
-        label: (
-          <Link href="/admin/events" style={linkStyle}>
-            All Events
-          </Link>
-        ),
-      },
-      {
-        key: "/admin/event-registrations",
-        label: (
-          <Link href="/admin/event-registrations" style={linkStyle}>
-            Registered
-          </Link>
-        ),
-      },
-    ],
+    label: (
+      <Link href="/admin/events" style={linkStyle}>
+        Events
+      </Link>
+    ),
   },
   {
     key: "/admin/media",
@@ -159,31 +145,51 @@ const menuItems = [
     ),
   },
   {
-    key: "/admin/contacts",
+    key: "/admin/submissions",
     icon: <MailOutlined />,
-    label: (
-      <Link href="/admin/contacts" style={linkStyle}>
-        Contacts
-      </Link>
-    ),
-  },
-  {
-    key: "/admin/donations",
-    icon: <HeartOutlined />,
-    label: (
-      <Link href="/admin/donations" style={linkStyle}>
-        Donations
-      </Link>
-    ),
-  },
-  {
-    key: "/admin/subscribers",
-    icon: <MailOutlined />,
-    label: (
-      <Link href="/admin/subscribers" style={linkStyle}>
-        Subscribers
-      </Link>
-    ),
+    label: "Submissions",
+    children: [
+      {
+        key: "/admin/subscribers",
+        label: (
+          <Link href="/admin/subscribers" style={linkStyle}>
+            Subscribers
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/event-registrations",
+        label: (
+          <Link href="/admin/event-registrations" style={linkStyle}>
+            Event Register
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/donations",
+        label: (
+          <Link href="/admin/donations" style={linkStyle}>
+            Donate
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/volunteer-form",
+        label: (
+          <Link href="/admin/volunteer-form" style={linkStyle}>
+            Volunteer Form
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/contacts",
+        label: (
+          <Link href="/admin/contacts" style={linkStyle}>
+            Contact Us
+          </Link>
+        ),
+      },
+    ],
   },
   {
     key: "/admin/users",
