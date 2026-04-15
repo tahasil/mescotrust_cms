@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Row, Col, message } from "antd";
+import { useEffect, useRef, useState } from "react";
+import { Row, Col, notification } from "antd";
 import styled from "styled-components";
 import {
   FullWidthBackground,
@@ -192,7 +192,8 @@ export default function EventRegistrationForm(props = {}) {
 
   /* ── Defaults from props ── */
   const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState(false);
+  const [errors, setErrors] = useState({});
+  const formRef = useRef(null);
   const [eventTitle, setEventTitle] = useState(
     (props.defaultEventTitle || "").toString().trim(),
   );
@@ -237,14 +238,27 @@ export default function EventRegistrationForm(props = {}) {
       website: (data.get("website") || "").toString(), // honeypot
     };
 
-    if (!payload.eventTitle) {
-      message.error("Please specify the event you are registering for.");
+    const nextErrors = {};
+    if (!payload.eventTitle) nextErrors.eventTitleFallback = "Event name is required";
+    if (!payload.name) nextErrors.name = "Full name is required";
+    if (payload.name && !/^[A-Za-z][A-Za-z\s.'-]*$/.test(payload.name)) {
+      nextErrors.name = "Name should contain alphabets only";
+    }
+    if (!payload.email) nextErrors.email = "Email is required";
+    if (payload.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) {
+      nextErrors.email = "Please enter a valid email address";
+    }
+    if (payload.phone) {
+      const phoneDigits = payload.phone.replace(/\D/g, "");
+      if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+        nextErrors.phone = "Please enter a valid mobile number";
+      }
+    }
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
       return;
     }
-    if (!payload.name || !payload.email) {
-      message.error("Name and email are required.");
-      return;
-    }
+    setErrors({});
 
     setSubmitting(true);
     try {
@@ -255,12 +269,26 @@ export default function EventRegistrationForm(props = {}) {
       });
       const out = await res.json().catch(() => ({}));
       if (!res.ok) {
-        message.error(out?.error || "Submission failed. Please try again.");
+        notification.error({
+          message: "Submission failed",
+          description: out?.error || "Submission failed. Please try again.",
+          placement: "bottomRight",
+        });
         return;
       }
-      setDone(true);
+      notification.success({
+        message: "Success",
+        description: successMessage,
+        placement: "bottomRight",
+      });
+      formRef.current?.reset();
+      setErrors({});
     } catch {
-      message.error("Network error. Please try again.");
+      notification.error({
+        message: "Submission failed",
+        description: "Network error. Please try again.",
+        placement: "bottomRight",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -287,10 +315,7 @@ export default function EventRegistrationForm(props = {}) {
         <Row gutter={[16, 16]} justify="center">
           <Col xs={24} md={20} lg={16}>
             <FormCard $bg={cardBgColor}>
-              {done ? (
-                <SuccessBox>{successMessage}</SuccessBox>
-              ) : (
-                <>
+              <>
                   {eventTitle && (
                     <EventLine style={{ color: eventLineColor }}>
                       Registering for: <strong>{eventTitle}</strong>
@@ -299,7 +324,7 @@ export default function EventRegistrationForm(props = {}) {
                   )}
                   {intro && <Intro style={{ color: introColor }}>{intro}</Intro>}
 
-                  <form onSubmit={onSubmit} noValidate>
+                  <form ref={formRef} onSubmit={onSubmit} noValidate>
                     {/* Honeypot — hidden from real users; bots that fill it are silently rejected */}
                     <Honeypot
                       type="text"
@@ -321,7 +346,15 @@ export default function EventRegistrationForm(props = {}) {
                               placeholder="e.g. Eid Drive 2025"
                               required
                               $borderColor={inputBorderColor}
+                              onChange={() => {
+                                if (errors.eventTitleFallback) {
+                                  setErrors((prev) => ({ ...prev, eventTitleFallback: "" }));
+                                }
+                              }}
                             />
+                            {errors.eventTitleFallback ? (
+                              <ErrorText>{errors.eventTitleFallback}</ErrorText>
+                            ) : null}
                           </Field>
                         </Col>
                       </Row>
@@ -337,8 +370,14 @@ export default function EventRegistrationForm(props = {}) {
                             name="name"
                             required
                             placeholder="Your name"
-                            $borderColor={inputBorderColor}
+                            $borderColor={errors.name ? "#cf372f" : inputBorderColor}
+                            onChange={() => {
+                              if (errors.name) {
+                                setErrors((prev) => ({ ...prev, name: "" }));
+                              }
+                            }}
                           />
+                          {errors.name ? <ErrorText>{errors.name}</ErrorText> : null}
                         </Field>
                       </Col>
                       <Col xs={24} sm={12}>
@@ -351,8 +390,14 @@ export default function EventRegistrationForm(props = {}) {
                             type="email"
                             required
                             placeholder="you@example.com"
-                            $borderColor={inputBorderColor}
+                            $borderColor={errors.email ? "#cf372f" : inputBorderColor}
+                            onChange={() => {
+                              if (errors.email) {
+                                setErrors((prev) => ({ ...prev, email: "" }));
+                              }
+                            }}
                           />
+                          {errors.email ? <ErrorText>{errors.email}</ErrorText> : null}
                         </Field>
                       </Col>
                     </Row>
@@ -364,8 +409,14 @@ export default function EventRegistrationForm(props = {}) {
                           <Input
                             name="phone"
                             placeholder="+91 ..."
-                            $borderColor={inputBorderColor}
+                            $borderColor={errors.phone ? "#cf372f" : inputBorderColor}
+                            onChange={() => {
+                              if (errors.phone) {
+                                setErrors((prev) => ({ ...prev, phone: "" }));
+                              }
+                            }}
                           />
+                          {errors.phone ? <ErrorText>{errors.phone}</ErrorText> : null}
                         </Field>
                       </Col>
                     </Row>
@@ -427,8 +478,7 @@ export default function EventRegistrationForm(props = {}) {
                       </Col>
                     </Row>
                   </form>
-                </>
-              )}
+              </>
             </FormCard>
           </Col>
         </Row>
@@ -499,6 +549,13 @@ const Label = styled.label`
   @media (max-width: 640px) {
     font-size: 13px;
   }
+`;
+
+const ErrorText = styled.div`
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #cf372f;
 `;
 
 const Input = styled.input`
@@ -579,22 +636,6 @@ const SubmitBtn = styled.button`
     padding: 14px 20px;
     font-size: 16px;
     margin-top: 4px;
-  }
-`;
-
-const SuccessBox = styled.div`
-  padding: 28px 24px;
-  text-align: center;
-  background: rgba(82, 196, 26, 0.08);
-  border: 1px solid rgba(82, 196, 26, 0.3);
-  border-radius: 12px;
-  color: #389e0d;
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1.55;
-  @media (max-width: 640px) {
-    padding: 22px 18px;
-    font-size: 14px;
   }
 `;
 

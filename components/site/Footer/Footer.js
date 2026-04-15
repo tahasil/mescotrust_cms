@@ -29,7 +29,9 @@ const SOCIAL_ICONS = {
 };
 
 function getSocialIcon(platform) {
-  const key = String(platform || "").toLowerCase().trim();
+  const key = String(platform || "")
+    .toLowerCase()
+    .trim();
   return SOCIAL_ICONS[key] || GlobalOutlined;
 }
 
@@ -85,7 +87,8 @@ export default function Footer({
             <Link href="/">
               <FooterLogo as="span">
                 {hasLogo ? (
-                  <img loading="lazy"
+                  <img
+                    loading="lazy"
                     src={footerLogoUrl}
                     alt={title || "Logo"}
                     className="img-fluid"
@@ -104,7 +107,10 @@ export default function Footer({
                 </FooterParagraph>
               )}
               {hasEmail && (
-                <ul className="ps-0" style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                <ul
+                  className="ps-0"
+                  style={{ listStyle: "none", padding: 0, margin: 0 }}
+                >
                   <li>
                     <Link href={`mailto:${email}`}>{email}</Link>
                   </li>
@@ -146,8 +152,8 @@ export default function Footer({
             <Col xs={12} sm={12} md={12} lg={6}>
               <ul>
                 {col1.map((item, i) => (
-                  <li key={`col1-${i}-${(item.url || "")}-${(item.label || "")}`}>
-                    <Link href={item.url || "#"}>{item.label || ""}</Link>
+                  <li key={`col1-${i}-${item.url || ""}-${item.label || ""}`}>
+                    <a href={item.url || "#"}>{item.label || ""}</a>
                   </li>
                 ))}
               </ul>
@@ -157,8 +163,8 @@ export default function Footer({
             <Col xs={12} sm={12} md={12} lg={6}>
               <ul>
                 {col2.map((item, i) => (
-                  <li key={`col2-${i}-${(item.url || "")}-${(item.label || "")}`}>
-                    <Link href={item.url || "#"}>{item.label || ""}</Link>
+                  <li key={`col2-${i}-${item.url || ""}-${item.label || ""}`}>
+                    <a href={item.url || "#"}>{item.label || ""}</a>
                   </li>
                 ))}
               </ul>

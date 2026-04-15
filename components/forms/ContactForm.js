@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
-import { Row, Col, message } from "antd";
+import { Row, Col, notification } from "antd";
 import styled from "styled-components";
 import { submitContact } from "@/app/actions/contact";
 import { getColor } from "@/styles/Theme";
@@ -63,6 +63,12 @@ const FormWrapper = styled.div`
   }
   .form-group {
     margin-bottom: 20px;
+  }
+  .error-text {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #cf372f;
   }
 `;
 
@@ -172,6 +178,7 @@ export default function ContactForm({
 }) {
   const [state, formAction] = useFormState(submitContact, null);
   const formRef = useRef(null);
+  const [errors, setErrors] = useState({});
   const resolvedBtnBg = btnBgColor || "var(--primary-color, #cf372f)";
   const resolvedBtnText = btnTextColor || "#fff";
   const resolvedIconColor = iconColor || "#cf372f";
@@ -193,13 +200,53 @@ export default function ContactForm({
   useEffect(() => {
     if (!state) return;
     if (state.success) {
-      message.success("Message sent. We will get back to you soon.");
+      notification.success({
+        message: "Success",
+        description: "Message sent. We will get back to you soon.",
+        placement: "bottomRight",
+      });
       formRef.current?.reset();
       window.dispatchEvent(new Event("new-contact-submission"));
     } else if (state.error) {
-      message.error(state.error);
+      notification.error({
+        message: "Submission failed",
+        description: state.error,
+        placement: "bottomRight",
+      });
     }
   }, [state]);
+
+  const handleSubmit = (event) => {
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const nextErrors = {};
+    const name = String(formData.get("name") || "").trim();
+    const email = String(formData.get("email") || "").trim();
+    const phone = String(formData.get("phone") || "").trim();
+    const subject = String(formData.get("subject") || "").trim();
+    const msg = String(formData.get("message") || "").trim();
+
+    if (!name) nextErrors.name = "Full name is required";
+    if (name && !/^[A-Za-z][A-Za-z\s.'-]*$/.test(name)) nextErrors.name = "Name should contain alphabets only";
+    if (!email) nextErrors.email = "Email is required";
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) nextErrors.email = "Please enter a valid email address";
+    if (!phone) nextErrors.phone = "Phone is required";
+    if (phone) {
+      const digits = phone.replace(/\D/g, "");
+      if (digits.length < 10 || digits.length > 15) {
+        nextErrors.phone = "Please enter a valid mobile number";
+      }
+    }
+    if (!subject) nextErrors.subject = "Subject is required";
+    if (!msg) nextErrors.message = "Message is required";
+
+    if (Object.keys(nextErrors).length > 0) {
+      event.preventDefault();
+      setErrors(nextErrors);
+      return;
+    }
+    setErrors({});
+  };
 
   return (
     <FormWrapper>
@@ -210,7 +257,7 @@ export default function ContactForm({
             Have a question or want to get involved? Fill out the form and we'll
             get back to you shortly.
           </p>
-          <form ref={formRef} action={formAction}>
+          <form ref={formRef} action={formAction} onSubmit={handleSubmit} noValidate>
             <input type="hidden" name="page" value={page || ""} />
             <input type="hidden" name="source" value={source || ""} />
 
@@ -223,7 +270,10 @@ export default function ContactForm({
                 required
                 className="form-field"
                 placeholder="Your name"
+                onChange={() => errors.name && setErrors((prev) => ({ ...prev, name: "" }))}
+                style={errors.name ? { borderColor: "#cf372f" } : undefined}
               />
+              {errors.name ? <div className="error-text">{errors.name}</div> : null}
             </div>
 
             <div className="form-group">
@@ -236,7 +286,10 @@ export default function ContactForm({
                 required
                 className="form-field"
                 placeholder="your@email.com"
+                onChange={() => errors.email && setErrors((prev) => ({ ...prev, email: "" }))}
+                style={errors.email ? { borderColor: "#cf372f" } : undefined}
               />
+              {errors.email ? <div className="error-text">{errors.email}</div> : null}
             </div>
 
             <div className="form-group">
@@ -249,7 +302,10 @@ export default function ContactForm({
                 required
                 className="form-field"
                 placeholder="+91 00000 00000"
+                onChange={() => errors.phone && setErrors((prev) => ({ ...prev, phone: "" }))}
+                style={errors.phone ? { borderColor: "#cf372f" } : undefined}
               />
+              {errors.phone ? <div className="error-text">{errors.phone}</div> : null}
             </div>
 
             <div className="form-group">
@@ -261,6 +317,8 @@ export default function ContactForm({
                 required
                 className="form-field"
                 defaultValue=""
+                onChange={() => errors.subject && setErrors((prev) => ({ ...prev, subject: "" }))}
+                style={errors.subject ? { borderColor: "#cf372f" } : undefined}
               >
                 <option value="" disabled>
                   Select a subject
@@ -271,6 +329,7 @@ export default function ContactForm({
                   </option>
                 ))}
               </select>
+              {errors.subject ? <div className="error-text">{errors.subject}</div> : null}
             </div>
 
             <div className="form-group">
@@ -283,7 +342,10 @@ export default function ContactForm({
                 className="form-field"
                 placeholder="How can we help you?"
                 rows={5}
+                onChange={() => errors.message && setErrors((prev) => ({ ...prev, message: "" }))}
+                style={errors.message ? { borderColor: "#cf372f" } : undefined}
               />
+              {errors.message ? <div className="error-text">{errors.message}</div> : null}
             </div>
 
             <SubmitButton

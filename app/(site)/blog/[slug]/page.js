@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import nextDynamic from "next/dynamic";
 import { connectDB } from "@/lib/db";
@@ -46,82 +45,6 @@ export async function generateMetadata({ params }) {
   } catch {
     return {};
   }
-}
-
-function PostSkeleton() {
-  return (
-    <div
-      style={{
-        maxWidth: "var(--layout-width, 1400px)",
-        width: "90%",
-        margin: "0 auto",
-        padding: "40px 0",
-      }}
-    >
-      <div
-        style={{
-          height: 14,
-          width: "15%",
-          background: "#f0f0f0",
-          marginBottom: 12,
-          borderRadius: 4,
-        }}
-      />
-      <div
-        style={{
-          height: 36,
-          width: "70%",
-          background: "#f0f0f0",
-          marginBottom: 16,
-          borderRadius: 4,
-        }}
-      />
-      <div
-        style={{
-          height: 14,
-          width: "25%",
-          background: "#f0f0f0",
-          marginBottom: 28,
-          borderRadius: 4,
-        }}
-      />
-      <div
-        style={{
-          height: 300,
-          width: "100%",
-          background: "#f0f0f0",
-          marginBottom: 28,
-          borderRadius: 12,
-        }}
-      />
-      <div
-        style={{
-          height: 16,
-          width: "100%",
-          background: "#f0f0f0",
-          marginBottom: 10,
-          borderRadius: 4,
-        }}
-      />
-      <div
-        style={{
-          height: 16,
-          width: "95%",
-          background: "#f0f0f0",
-          marginBottom: 10,
-          borderRadius: 4,
-        }}
-      />
-      <div
-        style={{
-          height: 16,
-          width: "85%",
-          background: "#f0f0f0",
-          borderRadius: 4,
-        }}
-      />
-    </div>
-  );
 }
 
 const MONTHS = [
@@ -349,15 +272,7 @@ async function PostContent({ slug }) {
               style={{ width: 320, flexShrink: 0 }}
               className="blog-detail-sidebar-desktop"
             >
-              <Suspense
-                fallback={
-                  <div style={{ padding: "20px 0", color: "rgba(0,0,0,0.2)" }}>
-                    Loading...
-                  </div>
-                }
-              >
-                <BlogSidebarFull currentSlug={slug} />
-              </Suspense>
+              <BlogSidebarFull currentSlug={slug} />
             </div>
           </div>
 
@@ -366,15 +281,7 @@ async function PostContent({ slug }) {
             className="blog-detail-sidebar-mobile"
             style={{ display: "none" }}
           >
-            <Suspense
-              fallback={
-                <div style={{ padding: "20px 0", color: "rgba(0,0,0,0.2)" }}>
-                  Loading...
-                </div>
-              }
-            >
-              <BlogSidebarFull currentSlug={slug} />
-            </Suspense>
+            <BlogSidebarFull currentSlug={slug} />
           </div>
         </PageContainer>
       </FullWidthBackground>
@@ -411,9 +318,5 @@ async function PostContent({ slug }) {
 }
 
 export default function BlogPostPage({ params }) {
-  return (
-    <Suspense fallback={<PostSkeleton />}>
-      <PostContent slug={params.slug} />
-    </Suspense>
-  );
+  return <PostContent slug={params.slug} />;
 }

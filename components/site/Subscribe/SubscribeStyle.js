@@ -76,12 +76,15 @@ export const StyledMainTitle = styled.h1.attrs((p) => ({
 `;
 
 export const SubscribeForm = styled.form`
-  display: flex;
-  align-items: center;
-  gap: 10px;
   flex: 1 1 380px;
   min-width: 0;
   max-width: 520px;
+`;
+
+export const SubscribeFieldRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
   min-height: 60px;
   padding: 6px;
   padding-left: 20px;

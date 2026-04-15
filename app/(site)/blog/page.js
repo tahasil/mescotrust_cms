@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import Link from "next/link";
 import { connectDB } from "@/lib/db";
 import Blog from "@/models/Blog";
@@ -385,19 +384,11 @@ export default async function BlogListPage({ searchParams }) {
             style={{ width: 320, flexShrink: 0 }}
             className="blog-sidebar-desktop"
           >
-            <Suspense
-              fallback={
-                <div style={{ padding: "20px 0", color: "rgba(0,0,0,0.2)" }}>
-                  Loading...
-                </div>
-              }
-            >
-              <BlogSidebarFull
-                searchQuery={searchQuery}
-                categorySlug={categorySlug}
-                categories={JSON.parse(JSON.stringify(categories))}
-              />
-            </Suspense>
+            <BlogSidebarFull
+              searchQuery={searchQuery}
+              categorySlug={categorySlug}
+              categories={JSON.parse(JSON.stringify(categories))}
+            />
           </div>
         </div>
 

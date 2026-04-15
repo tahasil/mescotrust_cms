@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Row, Col, Select, message } from "antd";
+import { Row, Col, Select, notification } from "antd";
 import styled from "styled-components";
 import {
   FullWidthBackground,
@@ -170,6 +170,7 @@ export default function DonateNow(props) {
   const [selectedPkg, setSelectedPkg] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [encData, setEncData] = useState(null);
+  const [errors, setErrors] = useState({});
 
   /* ── Title ── */
   const mainTitle = (props?.mainTitle ?? "").toString().trim();
@@ -411,7 +412,11 @@ export default function DonateNow(props) {
           f.querySelector('[name="country"]').value = data.donor.country;
         if (data.donor.pincode)
           f.querySelector('[name="pincode"]').value = data.donor.pincode;
-        message.success("Previous details found and filled");
+        notification.success({
+          message: "Info",
+          description: "Previous details found and filled",
+          placement: "bottomRight",
+        });
       }
     } catch (_) {}
   };
@@ -421,15 +426,49 @@ export default function DonateNow(props) {
     const f = formRef.current;
     if (!f) return;
 
+    const lookup = f.querySelector('[name="lookup"]')?.value?.trim();
     const amount = f.querySelector('[name="amount"]')?.value?.trim();
+    const purpose = f.querySelector('[name="purpose"]')?.value?.trim();
     const name = f.querySelector('[name="name"]')?.value?.trim();
+    const pan = f.querySelector('[name="pan"]')?.value?.trim();
     const email = f.querySelector('[name="email"]')?.value?.trim();
     const mobile = f.querySelector('[name="mobile"]')?.value?.trim();
-
-    if (!amount || !name || !email || !mobile) {
-      message.error("Please fill all required fields");
+    const nextErrors = {};
+    if (!lookup) nextErrors.lookup = "Email / Mobile is required";
+    if (lookup) {
+      const isEmail = lookup.includes("@");
+      if (isEmail) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lookup)) {
+          nextErrors.lookup = "Please enter a valid email";
+        }
+      } else {
+        const lookupDigits = lookup.replace(/\D/g, "");
+        if (lookupDigits.length < 10 || lookupDigits.length > 15) {
+          nextErrors.lookup = "Please enter a valid mobile number";
+        }
+      }
+    }
+    if (!purpose) nextErrors.purpose = "Purpose is required";
+    if (!amount) nextErrors.amount = "Amount is required";
+    if (amount && (Number.isNaN(Number(amount)) || Number(amount) <= 0)) nextErrors.amount = "Please enter a valid amount";
+    if (!name) nextErrors.name = "Full name is required";
+    if (name && !/^[A-Za-z][A-Za-z\s.'-]*$/.test(name)) nextErrors.name = "Name should contain alphabets only";
+    if (!pan) nextErrors.pan = "PAN is required";
+    if (pan && !/^[A-Z]{5}[0-9]{4}[A-Z]$/i.test(pan)) nextErrors.pan = "Please enter a valid PAN";
+    if (!email) nextErrors.email = "Email is required";
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) nextErrors.email = "Please enter a valid email address";
+    if (!mobile) nextErrors.mobile = "Mobile number is required";
+    if (mobile) {
+      const mobileDigits = mobile.replace(/\D/g, "");
+      if (mobileDigits.length < 10 || mobileDigits.length > 15) {
+        nextErrors.mobile = "Please enter a valid mobile number";
+      }
+    }
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
       return;
     }
+    setErrors({});
 
     setSubmitting(true);
     try {
@@ -438,14 +477,14 @@ export default function DonateNow(props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount,
-          purpose: f.querySelector('[name="purpose"]')?.value || "",
+          purpose: purpose || "",
           zakat: f.querySelector('[name="zakat"]')?.value || "No",
           note: f.querySelector('[name="note"]')?.value || "",
           donor: {
             name,
             email,
             mobile,
-            pan: f.querySelector('[name="pan"]')?.value || "",
+            pan: pan || "",
             address: f.querySelector('[name="address"]')?.value || "",
             city: f.querySelector('[name="city"]')?.value || "",
             state: f.querySelector('[name="state"]')?.value || "",
@@ -456,17 +495,30 @@ export default function DonateNow(props) {
       });
       const data = await res.json();
       if (!res.ok) {
-        message.error(data.error || "Failed to initiate payment");
+        notification.error({
+          message: "Submission failed",
+          description: data.error || "Failed to initiate payment",
+          placement: "bottomRight",
+        });
         setSubmitting(false);
         return;
       }
+      notification.success({
+        message: "Success",
+        description: "Redirecting to payment gateway...",
+        placement: "bottomRight",
+      });
       // Set encrypted data and submit hidden form to CCAvenue
       setEncData(data);
       setTimeout(() => {
         gatewayFormRef.current?.submit();
       }, 100);
     } catch (err) {
-      message.error("Something went wrong");
+      notification.error({
+        message: "Submission failed",
+        description: "Something went wrong",
+        placement: "bottomRight",
+      });
       setSubmitting(false);
     }
   };
@@ -588,10 +640,21 @@ export default function DonateNow(props) {
                     Email / Mobile No. <span className="req">*</span>
                   </label>
                   <input
+                    name="lookup"
                     className="form-field"
                     placeholder="Enter email / Mobile to fill the data"
                     onBlur={(e) => handleLookup(e.target.value)}
+                    onChange={() =>
+                      errors.lookup &&
+                      setErrors((prev) => ({ ...prev, lookup: "" }))
+                    }
+                    style={errors.lookup ? { borderColor: "#cf372f" } : undefined}
                   />
+                  {errors.lookup ? (
+                    <div style={{ color: "#cf372f", fontSize: 12, marginTop: 6 }}>
+                      {errors.lookup}
+                    </div>
+                  ) : null}
                 </div>
 
                 <Row gutter={[16, 0]}>
@@ -620,6 +683,8 @@ export default function DonateNow(props) {
                         className="form-field"
                         defaultValue=""
                         required
+                        onChange={() => errors.purpose && setErrors((prev) => ({ ...prev, purpose: "" }))}
+                        style={errors.purpose ? { borderColor: "#cf372f" } : undefined}
                       >
                         <option value="" disabled>
                           Select
@@ -630,6 +695,9 @@ export default function DonateNow(props) {
                           </option>
                         ))}
                       </select>
+                      {errors.purpose ? (
+                        <div style={{ color: "#cf372f", fontSize: 12, marginTop: 6 }}>{errors.purpose}</div>
+                      ) : null}
                     </div>
                   </Col>
                   <Col xs={24} md={12}>
@@ -644,7 +712,12 @@ export default function DonateNow(props) {
                         placeholder="Enter amount"
                         required
                         min="1"
+                        onChange={() => errors.amount && setErrors((prev) => ({ ...prev, amount: "" }))}
+                        style={errors.amount ? { borderColor: "#cf372f" } : undefined}
                       />
+                      {errors.amount ? (
+                        <div style={{ color: "#cf372f", fontSize: 12, marginTop: 6 }}>{errors.amount}</div>
+                      ) : null}
                     </div>
                   </Col>
                   <Col xs={24} md={12}>
@@ -657,7 +730,12 @@ export default function DonateNow(props) {
                         className="form-field"
                         placeholder="Enter full name"
                         required
+                        onChange={() => errors.name && setErrors((prev) => ({ ...prev, name: "" }))}
+                        style={errors.name ? { borderColor: "#cf372f" } : undefined}
                       />
+                      {errors.name ? (
+                        <div style={{ color: "#cf372f", fontSize: 12, marginTop: 6 }}>{errors.name}</div>
+                      ) : null}
                     </div>
                   </Col>
                   <Col xs={24} md={12}>
@@ -669,7 +747,17 @@ export default function DonateNow(props) {
                         name="pan"
                         className="form-field"
                         placeholder="PAN No."
+                        required
+                        onChange={() =>
+                          errors.pan && setErrors((prev) => ({ ...prev, pan: "" }))
+                        }
+                        style={errors.pan ? { borderColor: "#cf372f" } : undefined}
                       />
+                      {errors.pan ? (
+                        <div style={{ color: "#cf372f", fontSize: 12, marginTop: 6 }}>
+                          {errors.pan}
+                        </div>
+                      ) : null}
                     </div>
                   </Col>
                   <Col xs={24} md={12}>
@@ -683,7 +771,12 @@ export default function DonateNow(props) {
                         className="form-field"
                         placeholder="Email ID"
                         required
+                        onChange={() => errors.email && setErrors((prev) => ({ ...prev, email: "" }))}
+                        style={errors.email ? { borderColor: "#cf372f" } : undefined}
                       />
+                      {errors.email ? (
+                        <div style={{ color: "#cf372f", fontSize: 12, marginTop: 6 }}>{errors.email}</div>
+                      ) : null}
                     </div>
                   </Col>
                   <Col xs={24} md={12}>
@@ -697,7 +790,12 @@ export default function DonateNow(props) {
                         className="form-field"
                         placeholder="Mobile No."
                         required
+                        onChange={() => errors.mobile && setErrors((prev) => ({ ...prev, mobile: "" }))}
+                        style={errors.mobile ? { borderColor: "#cf372f" } : undefined}
                       />
+                      {errors.mobile ? (
+                        <div style={{ color: "#cf372f", fontSize: 12, marginTop: 6 }}>{errors.mobile}</div>
+                      ) : null}
                     </div>
                   </Col>
                   <Col xs={24} md={12}>

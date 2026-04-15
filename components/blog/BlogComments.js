@@ -112,6 +112,12 @@ const CommentForm = styled.div`
   .req {
     color: #cf372f;
   }
+  .error-text {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #cf372f;
+  }
 `;
 
 const SubmitBtn = styled.button`
@@ -157,6 +163,7 @@ export default function BlogComments({ slug }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [comment, setComment] = useState("");
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     fetch(`/api/public/blogs/${slug}/comments`)
@@ -168,10 +175,16 @@ export default function BlogComments({ slug }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name.trim() || !email.trim() || !comment.trim()) {
-      message.error("All fields are required");
+    const nextErrors = {};
+    if (!name.trim()) nextErrors.name = "Name is required";
+    if (!email.trim()) nextErrors.email = "Email is required";
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) nextErrors.email = "Please enter a valid email address";
+    if (!comment.trim()) nextErrors.comment = "Comment is required";
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
       return;
     }
+    setErrors({});
     setSubmitting(true);
     try {
       const res = await fetch(`/api/public/blogs/${slug}/comments`, {
@@ -189,6 +202,7 @@ export default function BlogComments({ slug }) {
         setName("");
         setEmail("");
         setComment("");
+        setErrors({});
       } else {
         message.error(data.error || "Failed to submit");
       }
@@ -250,9 +264,14 @@ export default function BlogComments({ slug }) {
                   className="form-field"
                   placeholder="Your name"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (errors.name) setErrors((prev) => ({ ...prev, name: "" }));
+                  }}
                   required
+                  style={errors.name ? { borderColor: "#cf372f" } : undefined}
                 />
+                {errors.name ? <div className="error-text">{errors.name}</div> : null}
               </div>
             </Col>
             <Col xs={24} sm={12}>
@@ -265,9 +284,14 @@ export default function BlogComments({ slug }) {
                   type="email"
                   placeholder="Your email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
+                  }}
                   required
+                  style={errors.email ? { borderColor: "#cf372f" } : undefined}
                 />
+                {errors.email ? <div className="error-text">{errors.email}</div> : null}
               </div>
             </Col>
           </Row>
@@ -279,9 +303,14 @@ export default function BlogComments({ slug }) {
               className="form-field"
               placeholder="Write your comment..."
               value={comment}
-              onChange={(e) => setComment(e.target.value)}
+              onChange={(e) => {
+                setComment(e.target.value);
+                if (errors.comment) setErrors((prev) => ({ ...prev, comment: "" }));
+              }}
               required
+              style={errors.comment ? { borderColor: "#cf372f" } : undefined}
             />
+            {errors.comment ? <div className="error-text">{errors.comment}</div> : null}
           </div>
           <SubmitBtn type="submit" disabled={submitting}>
             {submitting ? "Submitting..." : "Post Comment"}

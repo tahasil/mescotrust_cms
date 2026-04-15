@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { connectDB } from "@/lib/db";
@@ -40,38 +39,6 @@ export async function generateMetadata({ params }) {
   } catch {
     return {};
   }
-}
-
-function DetailSkeleton() {
-  return (
-    <div style={{ maxWidth: 800, margin: "0 auto", padding: "40px 16px" }}>
-      <div
-        style={{
-          height: 280,
-          background: "#f0f0f0",
-          borderRadius: 12,
-          marginBottom: 24,
-        }}
-      />
-      <div
-        style={{
-          height: 36,
-          width: "75%",
-          background: "#f0f0f0",
-          borderRadius: 4,
-          marginBottom: 16,
-        }}
-      />
-      <div
-        style={{
-          height: 16,
-          width: "40%",
-          background: "#f0f0f0",
-          borderRadius: 4,
-        }}
-      />
-    </div>
-  );
 }
 
 async function EventDetail({ slug }) {
@@ -342,9 +309,5 @@ async function EventDetail({ slug }) {
 }
 
 export default function EventDetailPage({ params }) {
-  return (
-    <Suspense fallback={<DetailSkeleton />}>
-      <EventDetail slug={params.slug} />
-    </Suspense>
-  );
+  return <EventDetail slug={params.slug} />;
 }

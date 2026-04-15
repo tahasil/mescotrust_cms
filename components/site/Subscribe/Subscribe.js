@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { message } from "antd";
+import { notification } from "antd";
 import {
   SubscribeWrapper,
   SubscribeCard,
@@ -9,6 +9,7 @@ import {
   StyledSubTitle,
   StyledMainTitle,
   SubscribeForm,
+  SubscribeFieldRow,
   SubscribeInput,
   SubscribeButton,
 } from "./SubscribeStyle";
@@ -21,6 +22,7 @@ import { PageContainer } from "@/styles/Theme";
 export default function Subscribe(props) {
   const [email, setEmail] = useState("");
   const [theme, setTheme] = useState(null);
+  const [emailError, setEmailError] = useState("");
 
   // No page/block props → fetch from components collection (e.g. global Subscribe block)
   useEffect(() => {
@@ -42,23 +44,49 @@ export default function Subscribe(props) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email.trim()) return;
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      setEmailError("Email is required");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setEmailError("Please enter a valid email address");
+      return;
+    }
+    setEmailError("");
     setSubmitting(true);
     try {
       const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), source: "subscribe-section" }),
+        body: JSON.stringify({
+          email: trimmedEmail,
+          source: "subscribe-section",
+        }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        message.success(data.message || "Successfully subscribed!");
+        notification.success({
+          message: "Success",
+          description: data.message || "Successfully subscribed!",
+          placement: "bottomRight",
+        });
         setEmail("");
+        setEmailError("");
       } else {
-        message.error(data.error || "Failed to subscribe");
+        notification.error({
+          message: "Subscription failed",
+          description: data.error || "Failed to subscribe",
+          placement: "bottomRight",
+        });
       }
     } catch {
-      message.error("Something went wrong. Please try again.");
+      notification.error({
+        message: "Subscription failed",
+        description: "Something went wrong. Please try again.",
+        placement: "bottomRight",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -82,36 +110,59 @@ export default function Subscribe(props) {
     .toString()
     .trim();
   const bgUrl = (raw?.subscribeBgUrl ?? raw?.bgUrl ?? "").toString().trim();
-  const subtitleColorKey = (raw?.subscribeSubtitleColorKey ?? "").toString().trim();
+  const subtitleColorKey = (raw?.subscribeSubtitleColorKey ?? "")
+    .toString()
+    .trim();
   const titleColorKey = (raw?.subscribeTitleColorKey ?? "").toString().trim();
-  const buttonBgColorKey = (raw?.subscribeButtonBgColorKey ?? "").toString().trim();
-  const buttonTextColorKey = (raw?.subscribeButtonTextColorKey ?? "").toString().trim();
+  const buttonBgColorKey = (raw?.subscribeButtonBgColorKey ?? "")
+    .toString()
+    .trim();
+  const buttonTextColorKey = (raw?.subscribeButtonTextColorKey ?? "")
+    .toString()
+    .trim();
 
   return (
     <section className="site-component-subscribe" data-component="Subscribe">
       <SubscribeWrapper $bgUrl={bgUrl} />
       <SubscribeCard as={PageContainer}>
         <SubscribeContent>
-          <StyledSubTitle $subtitleColorKey={subtitleColorKey || undefined}>{subtitle}</StyledSubTitle>
-          <StyledMainTitle $titleColorKey={titleColorKey || undefined}>{title}</StyledMainTitle>
+          <StyledSubTitle $subtitleColorKey={subtitleColorKey || undefined}>
+            {subtitle}
+          </StyledSubTitle>
+          <StyledMainTitle $titleColorKey={titleColorKey || undefined}>
+            {title}
+          </StyledMainTitle>
         </SubscribeContent>
         <SubscribeForm onSubmit={handleSubmit}>
-          <SubscribeInput
-            type="email"
-            placeholder={placeholder}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            size="large"
-          />
-          <SubscribeButton
-            type="primary"
-            htmlType="submit"
-            size="large"
-            $buttonBgColorKey={buttonBgColorKey || undefined}
-            $buttonTextColorKey={buttonTextColorKey || undefined}
-          >
-            {buttonText}
-          </SubscribeButton>
+          <SubscribeFieldRow>
+            <SubscribeInput
+              type="email"
+              placeholder={placeholder}
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (emailError) setEmailError("");
+              }}
+              size="large"
+              status={emailError ? "error" : ""}
+            />
+            <SubscribeButton
+              type="primary"
+              htmlType="submit"
+              size="large"
+              loading={submitting}
+              disabled={submitting}
+              $buttonBgColorKey={buttonBgColorKey || undefined}
+              $buttonTextColorKey={buttonTextColorKey || undefined}
+            >
+              {buttonText}
+            </SubscribeButton>
+          </SubscribeFieldRow>
+          {emailError ? (
+            <div style={{ color: "#cf372f", fontSize: 12, marginTop: 6, paddingLeft: 12 }}>
+              {emailError}
+            </div>
+          ) : null}
         </SubscribeForm>
       </SubscribeCard>
     </section>

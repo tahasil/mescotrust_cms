@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
-import { Row, Col, Checkbox, ConfigProvider, message } from "antd";
+import { Row, Col, Checkbox, ConfigProvider, notification } from "antd";
 import styled from "styled-components";
 import { submitContact } from "@/app/actions/contact";
 import {
@@ -46,6 +46,12 @@ const Wrapper = styled.div`
     color: rgba(0, 0, 0, 0.85);
   }
   .required-star {
+    color: #cf372f;
+  }
+  .volunteer-error {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.4;
     color: #cf372f;
   }
   .volunteer-input {
@@ -182,6 +188,7 @@ function VolunteerSubmitButton({ label, background, textColor }) {
 export default function Volunteer(props) {
   const [state, formAction] = useFormState(submitContact, null);
   const formRef = useRef(null);
+  const [validationErrors, setValidationErrors] = useState({});
 
   const mainTitle = (props?.mainTitle ?? "Why Volunteer with MESCO")
     .toString()
@@ -238,27 +245,67 @@ export default function Volunteer(props) {
   useEffect(() => {
     if (!state) return;
     if (state.success) {
-      message.success("Volunteer request submitted successfully.");
+      notification.success({
+        message: "Success",
+        description: "Volunteer request submitted successfully.",
+        placement: "bottomRight",
+      });
       formRef.current?.reset();
+      setValidationErrors({});
       window.dispatchEvent(new Event("new-contact-submission"));
     } else if (state.error) {
-      message.error(state.error);
+      notification.error({
+        message: "Submission failed",
+        description: state.error,
+        placement: "bottomRight",
+      });
     }
   }, [state]);
 
   const handleSubmit = (event) => {
     const form = event.currentTarget;
     const formData = new FormData(form);
+    const name = String(formData.get("name") || "").trim();
+    const email = String(formData.get("email") || "").trim();
+    const phone = String(formData.get("phone") || "").trim();
+    const ageVal = String(formData.get("age") || "").trim();
+    const availabilityVal = String(formData.get("availability") || "").trim();
+    const motivationVal = String(formData.get("motivation") || "").trim();
+
+    const nextErrors = {};
+    if (!name) nextErrors.name = "Full name is required";
+    if (name && !/^[A-Za-z][A-Za-z\s.'-]*$/.test(name)) nextErrors.name = "Name should contain alphabets only";
+    if (!email) nextErrors.email = "Email is required";
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) nextErrors.email = "Please enter a valid email address";
+    if (!phone) nextErrors.phone = "Phone number is required";
+    if (phone) {
+      const phoneDigits = phone.replace(/\D/g, "");
+      if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+        nextErrors.phone = "Please enter a valid mobile number";
+      }
+    }
+    if (!ageVal) nextErrors.age = "Age is required";
+    if (ageVal && !/^\d{1,3}$/.test(ageVal)) nextErrors.age = "Please enter a valid age";
+    if (!availabilityVal) nextErrors.availability = "Availability is required";
+    if (availabilityVal && !/^\d{1,3}$/.test(availabilityVal)) nextErrors.availability = "Please enter valid hours";
+    if (!motivationVal) nextErrors.motivation = "This field is required";
+    if (Object.keys(nextErrors).length > 0) {
+      event.preventDefault();
+      setValidationErrors(nextErrors);
+      return;
+    }
+    setValidationErrors({});
+
     const interests = formData
       .getAll("interest")
       .map((item) => String(item || "").trim())
       .filter(Boolean);
     const education = String(formData.get("education") || "").trim();
     const occupation = String(formData.get("occupation") || "").trim();
-    const age = String(formData.get("age") || "").trim();
-    const availability = String(formData.get("availability") || "").trim();
+    const age = ageVal;
+    const availability = availabilityVal;
     const experience = String(formData.get("experience") || "").trim();
-    const motivation = String(formData.get("motivation") || "").trim();
+    const motivation = motivationVal;
 
     const details = [
       `Age: ${age || "-"}`,
@@ -610,7 +657,15 @@ export default function Volunteer(props) {
                           name="name"
                           required
                           placeholder="Enter your full name"
+                          onChange={() => {
+                            if (validationErrors.name) {
+                              setValidationErrors((prev) => ({ ...prev, name: "" }));
+                            }
+                          }}
                         />
+                        {validationErrors.name ? (
+                          <div className="volunteer-error">{validationErrors.name}</div>
+                        ) : null}
                       </div>
                     </Col>
                     <Col xs={24} md={12}>
@@ -633,7 +688,15 @@ export default function Volunteer(props) {
                           type="email"
                           required
                           placeholder="your@email.com"
+                          onChange={() => {
+                            if (validationErrors.email) {
+                              setValidationErrors((prev) => ({ ...prev, email: "" }));
+                            }
+                          }}
                         />
+                        {validationErrors.email ? (
+                          <div className="volunteer-error">{validationErrors.email}</div>
+                        ) : null}
                       </div>
                     </Col>
                     <Col xs={24} md={12}>
@@ -655,7 +718,15 @@ export default function Volunteer(props) {
                           name="phone"
                           required
                           placeholder="+91 98765 43210"
+                          onChange={() => {
+                            if (validationErrors.phone) {
+                              setValidationErrors((prev) => ({ ...prev, phone: "" }));
+                            }
+                          }}
                         />
+                        {validationErrors.phone ? (
+                          <div className="volunteer-error">{validationErrors.phone}</div>
+                        ) : null}
                       </div>
                     </Col>
                     <Col xs={24} md={12}>
@@ -677,7 +748,15 @@ export default function Volunteer(props) {
                           name="age"
                           required
                           placeholder="18"
+                          onChange={() => {
+                            if (validationErrors.age) {
+                              setValidationErrors((prev) => ({ ...prev, age: "" }));
+                            }
+                          }}
                         />
+                        {validationErrors.age ? (
+                          <div className="volunteer-error">{validationErrors.age}</div>
+                        ) : null}
                       </div>
                     </Col>
                     <Col xs={24} md={12}>
@@ -742,7 +821,15 @@ export default function Volunteer(props) {
                           name="availability"
                           required
                           placeholder="e.g. 12"
+                          onChange={() => {
+                            if (validationErrors.availability) {
+                              setValidationErrors((prev) => ({ ...prev, availability: "" }));
+                            }
+                          }}
                         />
+                        {validationErrors.availability ? (
+                          <div className="volunteer-error">{validationErrors.availability}</div>
+                        ) : null}
                       </div>
                     </Col>
                     <Col xs={24}>
@@ -818,7 +905,15 @@ export default function Volunteer(props) {
                           required
                           rows={4}
                           placeholder="Tell us what motivates you to join our mission..."
+                          onChange={() => {
+                            if (validationErrors.motivation) {
+                              setValidationErrors((prev) => ({ ...prev, motivation: "" }));
+                            }
+                          }}
                         />
+                        {validationErrors.motivation ? (
+                          <div className="volunteer-error">{validationErrors.motivation}</div>
+                        ) : null}
                       </div>
                     </Col>
                     <Col xs={24}>

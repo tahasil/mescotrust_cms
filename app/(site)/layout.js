@@ -4,6 +4,7 @@ import { getLayoutData } from "@/lib/layoutData";
 import PublicShell from "@/components/layout/PublicShell";
 import SmoothScroll from "@/components/cms/SmoothScroll";
 import CookieConsent from "@/components/site/CookieConsent";
+import PageTransitionLoader from "@/components/site/PageTransitionLoader";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -45,6 +46,10 @@ export default async function SiteLayout({ children }) {
 
   return (
     <>
+      <PageTransitionLoader
+        enabled={theme.pageLoaderEnabled !== false}
+        minDuration={theme.pageLoaderMinDuration ?? 400}
+      />
       <SmoothScroll />
       <PublicShell
         globalTheme={theme}
