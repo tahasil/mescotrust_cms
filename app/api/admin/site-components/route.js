@@ -385,35 +385,33 @@ export { default as ${componentId}EditForm } from "./EditForm";
     const siteIndexPath = path.join(root, "components", "site", "index.js");
     let siteIndexContent = readFileSync(siteIndexPath, "utf8");
     const exportLine = `export { default as ${componentId}, ${componentId}EditForm } from "./${componentId}/index";`;
-    if (!siteIndexContent.includes(`"./${componentId}/"`)) {
-      if (!siteIndexContent.includes(exportLine)) {
-        siteIndexContent = siteIndexContent.replace(
-          /(export \{ default as Subscribe, SubscribeEditForm \} from "\.\/Subscribe\/index";)/,
-          `$1\n${exportLine}`
-        );
-      }
-      const importEditForm = `import ${componentId}EditForm from "./${componentId}/EditForm";`;
-      if (!siteIndexContent.includes(importEditForm)) {
-        siteIndexContent = siteIndexContent.replace(
-          /(import SubscribeEditForm from "\.\/Subscribe\/EditForm";)/,
-          `$1\nimport ${componentId}EditForm from "./${componentId}/EditForm";`
-        );
-      }
-      // Add to EDITABLE_SITE_EDIT_FORMS (last entry before "};") so Page Builder drawer uses same EditForm
-      const editFormsMatch = siteIndexContent.match(
-        /(EDITABLE_SITE_EDIT_FORMS\s*=\s*\{[\s\S]*)(  \w+: \w+EditForm,)(\n\s*)\};/
+    if (!siteIndexContent.includes(exportLine)) {
+      siteIndexContent = siteIndexContent.replace(
+        /(export \{ default as Subscribe, SubscribeEditForm \} from "\.\/Subscribe\/index";)/,
+        `$1\n${exportLine}`
       );
-      if (editFormsMatch && !siteIndexContent.includes(`${componentId}: ${componentId}EditForm`)) {
-        siteIndexContent = siteIndexContent.replace(
-          editFormsMatch[0],
-          editFormsMatch[1] +
-            editFormsMatch[2] +
-            editFormsMatch[3] +
-            `  ${componentId}: ${componentId}EditForm,\n};`
-        );
-      }
-      writeFileSync(siteIndexPath, siteIndexContent, "utf8");
     }
+    const importEditForm = `import ${componentId}EditForm from "./${componentId}/EditForm";`;
+    if (!siteIndexContent.includes(importEditForm)) {
+      siteIndexContent = siteIndexContent.replace(
+        /(import SubscribeEditForm from "\.\/Subscribe\/EditForm";)/,
+        `$1\nimport ${componentId}EditForm from "./${componentId}/EditForm";`
+      );
+    }
+    // Add to EDITABLE_SITE_EDIT_FORMS (last entry before "};") so Page Builder drawer uses same EditForm
+    const editFormsMatch = siteIndexContent.match(
+      /(EDITABLE_SITE_EDIT_FORMS\s*=\s*\{[\s\S]*)(  \w+: \w+EditForm,)(\n\s*)\};/
+    );
+    if (editFormsMatch && !siteIndexContent.includes(`${componentId}: ${componentId}EditForm`)) {
+      siteIndexContent = siteIndexContent.replace(
+        editFormsMatch[0],
+        editFormsMatch[1] +
+          editFormsMatch[2] +
+          editFormsMatch[3] +
+          `  ${componentId}: ${componentId}EditForm,\n};`
+      );
+    }
+    writeFileSync(siteIndexPath, siteIndexContent, "utf8");
 
     const metaDoc = await SiteComponentMeta.create({
       componentId,
