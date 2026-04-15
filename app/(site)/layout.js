@@ -96,6 +96,7 @@ export default async function SiteLayout({ children }) {
         footerPhone={theme.footerPhone || ""}
         footerCol1Links={theme.footerCol1Links || []}
         footerCol2Links={theme.footerCol2Links || []}
+        footerSocialLinks={theme.footerSocialLinks || []}
         footerBgValue={resolveThemeColor(theme, footerBgKey)}
         footerBackgroundImageUrl={theme.footerBackgroundImageUrl || ""}
         footerTextValue={resolveThemeColor(theme, footerTextKey)}

@@ -4,16 +4,14 @@ import { getColor } from "@/styles/Theme";
 export const FooterContainer = styled.footer`
   width: 100%;
   position: relative;
-  background-color: ${(props) =>
-    props.$footerBgValue || getColor("black")};
+  background-color: ${(props) => props.$footerBgValue || getColor("black")};
   ${(props) => {
     const url = props.$footerBackgroundImageUrl;
     if (!url || typeof url !== "string" || !url.trim()) return "";
     const safe = url.trim().replace(/\\/g, "\\\\").replace(/"/g, '\\"');
     return `background-image: url("${safe}"); background-size: cover; background-position: center;`;
   }}
-  color: ${(props) =>
-    props.$footerTextValue || getColor("white")};
+  color: ${(props) => props.$footerTextValue || getColor("white")};
   ul {
     list-style: none;
     padding: 0 30px;
@@ -26,20 +24,17 @@ export const FooterContainer = styled.footer`
       font-size: 20px;
       font-weight: 400;
       line-height: 30px;
-      color: ${(props) =>
-        props.$footerTextValue || getColor("white")};
+      color: ${(props) => props.$footerTextValue || getColor("white")};
       opacity: 0.8;
       span {
         font-size: 14px;
         font-weight: 400;
         line-height: 20px !important;
-        color: ${(props) =>
-          props.$footerTextValue || getColor("white")};
+        color: ${(props) => props.$footerTextValue || getColor("white")};
       }
     }
     a {
-      color: ${(props) =>
-        props.$footerTextValue || getColor("white")};
+      color: ${(props) => props.$footerTextValue || getColor("white")};
       text-decoration: none;
       font-size: 14px;
       font-weight: 400;
@@ -47,6 +42,41 @@ export const FooterContainer = styled.footer`
       &:hover {
         color: ${getColor("primary")};
       }
+    }
+  }
+
+  .footer-socials {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-top: 12px;
+  }
+
+  a.footer-social-link {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    line-height: 1;
+    opacity: 1;
+    color: #000000 !important;
+    transition:
+      transform 0.2s ease,
+      opacity 0.2s ease;
+
+    .anticon {
+      font-size: 16px;
+      color: #000000 !important;
+    }
+
+    &:hover {
+      opacity: 1;
+      transform: translateY(-1px);
+      color: #000000 !important;
     }
   }
 `;
@@ -79,8 +109,7 @@ export const FooterParagraph = styled.p`
   line-height: 20px;
   opacity: 0.9;
   margin: 0 0 12px;
-  color: ${(props) =>
-    props.$footerTextValue || getColor("white")};
+  color: ${(props) => props.$footerTextValue || getColor("white")};
 `;
 
 export const CopyrightBar = styled.div`

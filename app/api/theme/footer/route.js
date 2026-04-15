@@ -17,6 +17,7 @@ const FOOTER_KEYS = [
   "footerPhone",
   "footerCol1Links",
   "footerCol2Links",
+  "footerSocialLinks",
   "footerCopyrightText",
   "footerBgColorKey",
   "footerBackgroundImageUrl",
@@ -31,6 +32,7 @@ const FOOTER_DEFAULTS = {
   footerPhone: "",
   footerCol1Links: [],
   footerCol2Links: [],
+  footerSocialLinks: [],
   footerCopyrightText: "",
   footerBgColorKey: "",
   footerBackgroundImageUrl: "",
@@ -42,12 +44,21 @@ function normalizeLink(it) {
   return { label: it?.label ?? "", url: it?.url ?? "" };
 }
 
+function normalizeSocial(it) {
+  return {
+    platform: it?.platform != null ? String(it.platform).trim() : "",
+    url: it?.url != null ? String(it.url).trim() : "",
+  };
+}
+
 function toPayload(defaultProps) {
   const out = { ...FOOTER_DEFAULTS };
   if (defaultProps && typeof defaultProps === "object") {
     for (const k of FOOTER_KEYS) {
       if (k === "footerCol1Links" || k === "footerCol2Links") {
         out[k] = Array.isArray(defaultProps[k]) ? defaultProps[k].map(normalizeLink) : [];
+      } else if (k === "footerSocialLinks") {
+        out[k] = Array.isArray(defaultProps[k]) ? defaultProps[k].map(normalizeSocial) : [];
       } else if (defaultProps[k] != null) {
         out[k] = typeof defaultProps[k] === "string" ? String(defaultProps[k]).trim() : defaultProps[k];
       }
@@ -82,6 +93,8 @@ export async function PUT(req) {
       if (body[k] === undefined) continue;
       if (k === "footerCol1Links" || k === "footerCol2Links") {
         defaultProps[k] = Array.isArray(body[k]) ? body[k].map(normalizeLink) : [];
+      } else if (k === "footerSocialLinks") {
+        defaultProps[k] = Array.isArray(body[k]) ? body[k].map(normalizeSocial) : [];
       } else {
         defaultProps[k] = typeof body[k] === "string" ? String(body[k]).trim() : body[k];
       }

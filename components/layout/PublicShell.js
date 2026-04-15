@@ -239,6 +239,7 @@ const footerThemeProps = (props) => ({
   footerPhone: props.footerPhone,
   footerCol1Links: props.footerCol1Links || [],
   footerCol2Links: props.footerCol2Links || [],
+  footerSocialLinks: props.footerSocialLinks || [],
   footerCopyrightText: props.footerCopyrightText,
   footerBgValue: props.footerBgValue ?? "",
   footerBackgroundImageUrl: props.footerBackgroundImageUrl ?? "",
@@ -301,6 +302,7 @@ export default function PublicShell({
   footerPhone,
   footerCol1Links,
   footerCol2Links,
+  footerSocialLinks,
   footerBgValue,
   footerBackgroundImageUrl,
   footerTextValue,
@@ -355,14 +357,15 @@ export default function PublicShell({
     footerLogoUrl,
     footerAddress,
     footerEmail,
-    footerPhone,
-  footerCol1Links,
-  footerCol2Links,
-  footerBgValue,
-  footerBackgroundImageUrl,
-  footerTextValue,
-  footerCopyrightBarValue,
-};
+  footerPhone,
+    footerCol1Links,
+    footerCol2Links,
+    footerSocialLinks,
+    footerBgValue,
+    footerBackgroundImageUrl,
+    footerTextValue,
+    footerCopyrightBarValue,
+  };
 
   const renderGlobalComponent = (id, position) => {
     const Comp = SiteComponents[id];

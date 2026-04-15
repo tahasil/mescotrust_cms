@@ -220,6 +220,9 @@ export default function AdminComponentEditPage() {
           footerCol2Links: Array.isArray(theme.footerCol2Links)
             ? theme.footerCol2Links
             : [],
+          footerSocialLinks: Array.isArray(theme.footerSocialLinks)
+            ? theme.footerSocialLinks
+            : [],
           footerCopyrightText: theme.footerCopyrightText ?? "",
           footerBgColorKey: theme.footerBgColorKey ?? "",
           footerBackgroundImageUrl: theme.footerBackgroundImageUrl ?? "",
@@ -249,6 +252,9 @@ export default function AdminComponentEditPage() {
             : [],
           footerCol2Links: Array.isArray(theme.footerCol2Links)
             ? theme.footerCol2Links
+            : [],
+          footerSocialLinks: Array.isArray(theme.footerSocialLinks)
+            ? theme.footerSocialLinks
             : [],
           footerCopyrightText: theme.footerCopyrightText ?? "",
           footerBgColorKey: theme.footerBgColorKey ?? "",
@@ -1428,6 +1434,8 @@ function FooterPreviewBlock({ form, themePaletteData, themeFooterSnapshot }) {
     Form.useWatch("footerCol1Links", form) || s?.footerCol1Links || [];
   const footerCol2Links =
     Form.useWatch("footerCol2Links", form) || s?.footerCol2Links || [];
+  const footerSocialLinks =
+    Form.useWatch("footerSocialLinks", form) || s?.footerSocialLinks || [];
   const footerCopyrightText =
     Form.useWatch("footerCopyrightText", form) || s?.footerCopyrightText || "";
   const footerBgColorKey =
@@ -1465,6 +1473,7 @@ function FooterPreviewBlock({ form, themePaletteData, themeFooterSnapshot }) {
         footerPhone={footerPhone}
         footerCol1Links={Array.isArray(footerCol1Links) ? footerCol1Links : []}
         footerCol2Links={Array.isArray(footerCol2Links) ? footerCol2Links : []}
+        footerSocialLinks={Array.isArray(footerSocialLinks) ? footerSocialLinks : []}
         footerCopyrightText={footerCopyrightText}
         footerBgValue={resolveThemeColorFromPalette(
           themePaletteData,

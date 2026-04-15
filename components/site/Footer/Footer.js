@@ -3,12 +3,35 @@
 import Link from "next/link";
 import { Row, Col } from "antd";
 import {
+  FacebookFilled,
+  InstagramFilled,
+  LinkedinFilled,
+  YoutubeFilled,
+  XOutlined,
+  GlobalOutlined,
+} from "@ant-design/icons";
+import {
   FooterContainer,
   FooterInner,
   FooterLogo,
   FooterParagraph,
   CopyrightBar,
 } from "./FooterStyle";
+
+const SOCIAL_ICONS = {
+  facebook: FacebookFilled,
+  instagram: InstagramFilled,
+  x: XOutlined,
+  twitter: XOutlined,
+  linkedin: LinkedinFilled,
+  youtube: YoutubeFilled,
+  website: GlobalOutlined,
+};
+
+function getSocialIcon(platform) {
+  const key = String(platform || "").toLowerCase().trim();
+  return SOCIAL_ICONS[key] || GlobalOutlined;
+}
 
 /**
  * Footer: 100% database-driven. Layout matches reference (Ant Design Row/Col).
@@ -22,6 +45,7 @@ export default function Footer({
   footerPhone = "",
   footerCol1Links = [],
   footerCol2Links = [],
+  footerSocialLinks = [],
   footerCopyrightText = "",
   footerBgValue = "",
   footerBackgroundImageUrl = "",
@@ -36,6 +60,9 @@ export default function Footer({
   const phone = footerPhone?.trim() || "";
   const col1 = Array.isArray(footerCol1Links) ? footerCol1Links : [];
   const col2 = Array.isArray(footerCol2Links) ? footerCol2Links : [];
+  const socials = Array.isArray(footerSocialLinks)
+    ? footerSocialLinks.filter((it) => it && String(it.url || "").trim())
+    : [];
 
   const hasLogo = !!footerLogoUrl?.trim();
   const hasAddress = !!address;
@@ -44,6 +71,7 @@ export default function Footer({
   const hasCol1 = col1.length > 0;
   const hasCol2 = col2.length > 0;
   const hasAddressOrEmail = hasAddress || hasEmail;
+  const hasContactOrSocial = hasAddressOrEmail || socials.length > 0;
 
   return (
     <FooterContainer
@@ -68,7 +96,7 @@ export default function Footer({
               </FooterLogo>
             </Link>
           </Col>
-          {hasAddressOrEmail && (
+          {hasContactOrSocial && (
             <Col xs={24} sm={12} md={12} lg={6}>
               {hasAddress && (
                 <FooterParagraph $footerTextValue={footerTextValue}>
@@ -81,6 +109,27 @@ export default function Footer({
                     <Link href={`mailto:${email}`}>{email}</Link>
                   </li>
                 </ul>
+              )}
+              {socials.length > 0 && (
+                <div className="footer-socials">
+                  {socials.map((item, i) => {
+                    const url = String(item?.url || "").trim();
+                    if (!url) return null;
+                    const Icon = getSocialIcon(item?.platform);
+                    return (
+                      <Link
+                        key={`social-${i}-${String(item?.platform || "")}-${url}`}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={String(item?.platform || "social")}
+                        className="footer-social-link"
+                      >
+                        <Icon />
+                      </Link>
+                    );
+                  })}
+                </div>
               )}
             </Col>
           )}
