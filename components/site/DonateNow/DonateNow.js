@@ -10,6 +10,14 @@ import {
   PageContainer,
   SubTitle,
 } from "@/styles/Theme";
+import {
+  isValidEmail,
+  isValidName,
+  isValidPan,
+  isValidPhone,
+  normalizeText,
+  toDigits,
+} from "@/lib/formValidation";
 
 /* ── Styled Components ── */
 const PackageList = styled.div`
@@ -426,23 +434,23 @@ export default function DonateNow(props) {
     const f = formRef.current;
     if (!f) return;
 
-    const lookup = f.querySelector('[name="lookup"]')?.value?.trim();
-    const amount = f.querySelector('[name="amount"]')?.value?.trim();
-    const purpose = f.querySelector('[name="purpose"]')?.value?.trim();
-    const name = f.querySelector('[name="name"]')?.value?.trim();
-    const pan = f.querySelector('[name="pan"]')?.value?.trim();
-    const email = f.querySelector('[name="email"]')?.value?.trim();
-    const mobile = f.querySelector('[name="mobile"]')?.value?.trim();
+    const lookup = normalizeText(f.querySelector('[name="lookup"]')?.value);
+    const amount = normalizeText(f.querySelector('[name="amount"]')?.value);
+    const purpose = normalizeText(f.querySelector('[name="purpose"]')?.value);
+    const name = normalizeText(f.querySelector('[name="name"]')?.value);
+    const pan = normalizeText(f.querySelector('[name="pan"]')?.value);
+    const email = normalizeText(f.querySelector('[name="email"]')?.value);
+    const mobile = normalizeText(f.querySelector('[name="mobile"]')?.value);
     const nextErrors = {};
     if (!lookup) nextErrors.lookup = "Email / Mobile is required";
     if (lookup) {
       const isEmail = lookup.includes("@");
       if (isEmail) {
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lookup)) {
+        if (!isValidEmail(lookup)) {
           nextErrors.lookup = "Please enter a valid email";
         }
       } else {
-        const lookupDigits = lookup.replace(/\D/g, "");
+        const lookupDigits = toDigits(lookup);
         if (lookupDigits.length < 10 || lookupDigits.length > 15) {
           nextErrors.lookup = "Please enter a valid mobile number";
         }
@@ -452,18 +460,13 @@ export default function DonateNow(props) {
     if (!amount) nextErrors.amount = "Amount is required";
     if (amount && (Number.isNaN(Number(amount)) || Number(amount) <= 0)) nextErrors.amount = "Please enter a valid amount";
     if (!name) nextErrors.name = "Full name is required";
-    if (name && !/^[A-Za-z][A-Za-z\s.'-]*$/.test(name)) nextErrors.name = "Name should contain alphabets only";
+    if (name && !isValidName(name)) nextErrors.name = "Name should contain alphabets only";
     if (!pan) nextErrors.pan = "PAN is required";
-    if (pan && !/^[A-Z]{5}[0-9]{4}[A-Z]$/i.test(pan)) nextErrors.pan = "Please enter a valid PAN";
+    if (pan && !isValidPan(pan)) nextErrors.pan = "Please enter a valid PAN";
     if (!email) nextErrors.email = "Email is required";
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) nextErrors.email = "Please enter a valid email address";
+    if (email && !isValidEmail(email)) nextErrors.email = "Please enter a valid email address";
     if (!mobile) nextErrors.mobile = "Mobile number is required";
-    if (mobile) {
-      const mobileDigits = mobile.replace(/\D/g, "");
-      if (mobileDigits.length < 10 || mobileDigits.length > 15) {
-        nextErrors.mobile = "Please enter a valid mobile number";
-      }
-    }
+    if (mobile && !isValidPhone(mobile)) nextErrors.mobile = "Please enter a valid mobile number";
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
       return;
@@ -641,6 +644,7 @@ export default function DonateNow(props) {
                   </label>
                   <input
                     name="lookup"
+                    inputMode="text"
                     className="form-field"
                     placeholder="Enter email / Mobile to fill the data"
                     onBlur={(e) => handleLookup(e.target.value)}
@@ -747,11 +751,12 @@ export default function DonateNow(props) {
                         name="pan"
                         className="form-field"
                         placeholder="PAN No."
+                        maxLength={10}
+                        style={errors.pan ? { borderColor: "#cf372f", textTransform: "uppercase" } : { textTransform: "uppercase" }}
                         required
                         onChange={() =>
                           errors.pan && setErrors((prev) => ({ ...prev, pan: "" }))
                         }
-                        style={errors.pan ? { borderColor: "#cf372f" } : undefined}
                       />
                       {errors.pan ? (
                         <div style={{ color: "#cf372f", fontSize: 12, marginTop: 6 }}>
@@ -787,6 +792,8 @@ export default function DonateNow(props) {
                       <input
                         name="mobile"
                         type="tel"
+                        inputMode="numeric"
+                        maxLength={15}
                         className="form-field"
                         placeholder="Mobile No."
                         required

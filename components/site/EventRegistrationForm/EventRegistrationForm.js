@@ -10,6 +10,7 @@ import {
   PageContainer,
   SubTitle,
 } from "@/styles/Theme";
+import { isValidEmail, isValidName, isValidPhone, normalizeText } from "@/lib/formValidation";
 
 /**
  * Site component: EventRegistrationForm.
@@ -224,15 +225,15 @@ export default function EventRegistrationForm(props = {}) {
     const payload = {
       eventTitle:
         eventTitle ||
-        (data.get("eventTitleFallback") || "").toString().trim(),
+        normalizeText(data.get("eventTitleFallback")),
       eventDate: eventDate || "",
       eventId: eventId || "",
-      name: (data.get("name") || "").toString().trim(),
-      email: (data.get("email") || "").toString().trim(),
-      phone: (data.get("phone") || "").toString().trim(),
-      school: (data.get("school") || "").toString().trim(),
-      classOrYear: (data.get("classOrYear") || "").toString().trim(),
-      message: (data.get("message") || "").toString().trim(),
+      name: normalizeText(data.get("name")),
+      email: normalizeText(data.get("email")),
+      phone: normalizeText(data.get("phone")),
+      school: normalizeText(data.get("school")),
+      classOrYear: normalizeText(data.get("classOrYear")),
+      message: normalizeText(data.get("message")),
       page: pageUrl,
       source: "EventRegistrationForm",
       website: (data.get("website") || "").toString(), // honeypot
@@ -241,19 +242,14 @@ export default function EventRegistrationForm(props = {}) {
     const nextErrors = {};
     if (!payload.eventTitle) nextErrors.eventTitleFallback = "Event name is required";
     if (!payload.name) nextErrors.name = "Full name is required";
-    if (payload.name && !/^[A-Za-z][A-Za-z\s.'-]*$/.test(payload.name)) {
+    if (payload.name && !isValidName(payload.name)) {
       nextErrors.name = "Name should contain alphabets only";
     }
     if (!payload.email) nextErrors.email = "Email is required";
-    if (payload.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) {
+    if (payload.email && !isValidEmail(payload.email)) {
       nextErrors.email = "Please enter a valid email address";
     }
-    if (payload.phone) {
-      const phoneDigits = payload.phone.replace(/\D/g, "");
-      if (phoneDigits.length < 10 || phoneDigits.length > 15) {
-        nextErrors.phone = "Please enter a valid mobile number";
-      }
-    }
+    if (payload.phone && !isValidPhone(payload.phone)) nextErrors.phone = "Please enter a valid mobile number";
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
       return;

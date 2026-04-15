@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { notification } from "antd";
+import { isValidEmail, normalizeText } from "@/lib/formValidation";
 import {
   SubscribeWrapper,
   SubscribeCard,
@@ -44,13 +45,12 @@ export default function Subscribe(props) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const trimmedEmail = email.trim();
+    const trimmedEmail = normalizeText(email);
     if (!trimmedEmail) {
       setEmailError("Email is required");
       return;
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(trimmedEmail)) {
+    if (!isValidEmail(trimmedEmail)) {
       setEmailError("Please enter a valid email address");
       return;
     }

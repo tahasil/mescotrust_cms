@@ -6,6 +6,13 @@ import { Row, Col, notification } from "antd";
 import styled from "styled-components";
 import { submitContact } from "@/app/actions/contact";
 import { getColor } from "@/styles/Theme";
+import {
+  hasMinText,
+  isValidEmail,
+  isValidName,
+  isValidPhone,
+  normalizeText,
+} from "@/lib/formValidation";
 
 const FormWrapper = styled.div`
   .form-heading {
@@ -220,25 +227,22 @@ export default function ContactForm({
     const form = event.currentTarget;
     const formData = new FormData(form);
     const nextErrors = {};
-    const name = String(formData.get("name") || "").trim();
-    const email = String(formData.get("email") || "").trim();
-    const phone = String(formData.get("phone") || "").trim();
-    const subject = String(formData.get("subject") || "").trim();
-    const msg = String(formData.get("message") || "").trim();
+    const name = normalizeText(formData.get("name"));
+    const email = normalizeText(formData.get("email"));
+    const phone = normalizeText(formData.get("phone"));
+    const subject = normalizeText(formData.get("subject"));
+    const msg = normalizeText(formData.get("message"));
 
     if (!name) nextErrors.name = "Full name is required";
-    if (name && !/^[A-Za-z][A-Za-z\s.'-]*$/.test(name)) nextErrors.name = "Name should contain alphabets only";
+    if (name && !isValidName(name)) nextErrors.name = "Name should contain alphabets only";
     if (!email) nextErrors.email = "Email is required";
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) nextErrors.email = "Please enter a valid email address";
+    if (email && !isValidEmail(email)) nextErrors.email = "Please enter a valid email address";
     if (!phone) nextErrors.phone = "Phone is required";
-    if (phone) {
-      const digits = phone.replace(/\D/g, "");
-      if (digits.length < 10 || digits.length > 15) {
-        nextErrors.phone = "Please enter a valid mobile number";
-      }
-    }
+    if (phone && !isValidPhone(phone)) nextErrors.phone = "Please enter a valid mobile number";
     if (!subject) nextErrors.subject = "Subject is required";
+    if (subject && !hasMinText(subject, 3)) nextErrors.subject = "Subject must be at least 3 characters";
     if (!msg) nextErrors.message = "Message is required";
+    if (msg && !hasMinText(msg, 5)) nextErrors.message = "Message must be at least 5 characters";
 
     if (Object.keys(nextErrors).length > 0) {
       event.preventDefault();

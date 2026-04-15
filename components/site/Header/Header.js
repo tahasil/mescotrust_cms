@@ -6,6 +6,7 @@ import styled from "styled-components";
 import { useFormState, useFormStatus } from "react-dom";
 import { submitContact } from "@/app/actions/contact";
 import { getColor } from "@/styles/Theme";
+import { hasMinText, isValidEmail, isValidName, normalizeText } from "@/lib/formValidation";
 import {
   HeaderWrapper,
   HeaderMainWrapper,
@@ -426,16 +427,23 @@ export default function Header({
 
   const handleModalSubmit = (event) => {
     const formData = new FormData(event.currentTarget);
-    const name = String(formData.get("name") || "").trim();
-    const email = String(formData.get("email") || "").trim();
-    const subject = String(formData.get("subject") || "").trim();
-    const body = String(formData.get("message") || "").trim();
+    const name = normalizeText(formData.get("name"));
+    const email = normalizeText(formData.get("email"));
+    const subject = normalizeText(formData.get("subject"));
+    const body = normalizeText(formData.get("message"));
     const nextErrors = {};
     if (!name) nextErrors.name = "Full name is required";
+    if (name && !isValidName(name))
+      nextErrors.name = "Name should contain alphabets only";
     if (!email) nextErrors.email = "Email is required";
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) nextErrors.email = "Please enter a valid email address";
+    if (email && !isValidEmail(email))
+      nextErrors.email = "Please enter a valid email address";
     if (!subject) nextErrors.subject = "Subject is required";
+    if (subject && !hasMinText(subject, 3))
+      nextErrors.subject = "Subject must be at least 3 characters";
     if (!body) nextErrors.message = "Message is required";
+    if (body && !hasMinText(body, 5))
+      nextErrors.message = "Message must be at least 5 characters";
     if (Object.keys(nextErrors).length > 0) {
       event.preventDefault();
       setModalErrors(nextErrors);

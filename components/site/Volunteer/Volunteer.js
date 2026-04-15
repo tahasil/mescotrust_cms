@@ -12,6 +12,14 @@ import {
   PageContainer,
   SubTitle,
 } from "@/styles/Theme";
+import {
+  hasMinText,
+  isValidAge,
+  isValidEmail,
+  isValidName,
+  isValidPhone,
+  normalizeText,
+} from "@/lib/formValidation";
 
 const Wrapper = styled.div`
   --volunteer-placeholder-color: rgba(0, 0, 0, 0.35);
@@ -265,30 +273,26 @@ export default function Volunteer(props) {
   const handleSubmit = (event) => {
     const form = event.currentTarget;
     const formData = new FormData(form);
-    const name = String(formData.get("name") || "").trim();
-    const email = String(formData.get("email") || "").trim();
-    const phone = String(formData.get("phone") || "").trim();
-    const ageVal = String(formData.get("age") || "").trim();
-    const availabilityVal = String(formData.get("availability") || "").trim();
-    const motivationVal = String(formData.get("motivation") || "").trim();
+    const name = normalizeText(formData.get("name"));
+    const email = normalizeText(formData.get("email"));
+    const phone = normalizeText(formData.get("phone"));
+    const ageVal = normalizeText(formData.get("age"));
+    const availabilityVal = normalizeText(formData.get("availability"));
+    const motivationVal = normalizeText(formData.get("motivation"));
 
     const nextErrors = {};
     if (!name) nextErrors.name = "Full name is required";
-    if (name && !/^[A-Za-z][A-Za-z\s.'-]*$/.test(name)) nextErrors.name = "Name should contain alphabets only";
+    if (name && !isValidName(name)) nextErrors.name = "Name should contain alphabets only";
     if (!email) nextErrors.email = "Email is required";
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) nextErrors.email = "Please enter a valid email address";
+    if (email && !isValidEmail(email)) nextErrors.email = "Please enter a valid email address";
     if (!phone) nextErrors.phone = "Phone number is required";
-    if (phone) {
-      const phoneDigits = phone.replace(/\D/g, "");
-      if (phoneDigits.length < 10 || phoneDigits.length > 15) {
-        nextErrors.phone = "Please enter a valid mobile number";
-      }
-    }
+    if (phone && !isValidPhone(phone)) nextErrors.phone = "Please enter a valid mobile number";
     if (!ageVal) nextErrors.age = "Age is required";
-    if (ageVal && !/^\d{1,3}$/.test(ageVal)) nextErrors.age = "Please enter a valid age";
+    if (ageVal && !isValidAge(ageVal)) nextErrors.age = "Please enter a valid age";
     if (!availabilityVal) nextErrors.availability = "Availability is required";
     if (availabilityVal && !/^\d{1,3}$/.test(availabilityVal)) nextErrors.availability = "Please enter valid hours";
     if (!motivationVal) nextErrors.motivation = "This field is required";
+    if (motivationVal && !hasMinText(motivationVal, 5)) nextErrors.motivation = "Minimum 5 characters required";
     if (Object.keys(nextErrors).length > 0) {
       event.preventDefault();
       setValidationErrors(nextErrors);
@@ -621,6 +625,7 @@ export default function Volunteer(props) {
                   action={formAction}
                   onSubmit={handleSubmit}
                   className="volunteer-form"
+                  noValidate
                 >
                   <input type="hidden" name="page" value={pageValue} readOnly />
                   <input
@@ -716,6 +721,7 @@ export default function Volunteer(props) {
                             borderRadius: inputRadius,
                           }}
                           name="phone"
+                          inputMode="numeric"
                           required
                           placeholder="+91 98765 43210"
                           onChange={() => {
@@ -746,6 +752,7 @@ export default function Volunteer(props) {
                             borderRadius: inputRadius,
                           }}
                           name="age"
+                          inputMode="numeric"
                           required
                           placeholder="18"
                           onChange={() => {
@@ -819,6 +826,7 @@ export default function Volunteer(props) {
                             borderRadius: inputRadius,
                           }}
                           name="availability"
+                          inputMode="numeric"
                           required
                           placeholder="e.g. 12"
                           onChange={() => {
