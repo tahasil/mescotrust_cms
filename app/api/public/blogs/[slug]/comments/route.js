@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import Blog from "@/models/Blog";
 import BlogComment from "@/models/BlogComment";
 import ThemeConfig from "@/models/ThemeConfig";
+import { unstable_cache } from "next/cache";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -10,7 +11,7 @@ const THEME_QUERY = {
   $or: [{ themeKey: "default" }, { themeKey: { $exists: false } }],
 };
 
-async function commentsGloballyEnabled() {
+const getCommentsEnabled = unstable_cache(async () => {
   try {
     const themeDoc = await ThemeConfig.findOne(THEME_QUERY)
       .sort({ updatedAt: -1 })
@@ -23,21 +24,25 @@ async function commentsGloballyEnabled() {
   } catch {
     return true;
   }
-}
+}, ["blog-comments-enabled-flag"], { revalidate: 60 });
 
 /** GET — approved comments for a blog post */
 export async function GET(req, { params }) {
   try {
     const slug = params.slug;
     await connectDB();
-    if (!(await commentsGloballyEnabled())) return NextResponse.json([]);
+    if (!(await getCommentsEnabled())) return NextResponse.json([]);
     const blog = await Blog.findOne({ slug, status: "published" }).select("_id").lean();
     if (!blog) return NextResponse.json([]);
     const comments = await BlogComment.find({ blogId: blog._id, status: "approved" })
       .sort({ createdAt: -1 })
       .select("name comment createdAt")
       .lean();
-    return NextResponse.json(comments);
+    return NextResponse.json(comments, {
+      headers: {
+        "Cache-Control": "public, max-age=30, stale-while-revalidate=30",
+      },
+    });
   } catch {
     return NextResponse.json([]);
   }
@@ -60,7 +65,7 @@ export async function POST(req, { params }) {
     }
 
     await connectDB();
-    if (!(await commentsGloballyEnabled())) {
+    if (!(await getCommentsEnabled())) {
       return NextResponse.json({ error: "Comments are disabled" }, { status: 403 });
     }
     const blog = await Blog.findOne({ slug, status: "published" }).select("_id").lean();

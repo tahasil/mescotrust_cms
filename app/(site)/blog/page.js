@@ -416,6 +416,7 @@ export default async function BlogListPage({ searchParams }) {
               searchQuery={searchQuery}
               categorySlug={categorySlug}
               categories={JSON.parse(JSON.stringify(categories))}
+              commentsEnabled={commentsEnabled}
             />
           </div>
         </div>

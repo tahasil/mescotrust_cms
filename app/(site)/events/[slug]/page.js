@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { cache } from "react";
 import { connectDB } from "@/lib/db";
 import Event from "@/models/Event";
 import { getSiteUrl } from "@/lib/env";
@@ -9,13 +10,17 @@ import EventContent from "@/components/events/EventContent";
 import { getEventImageSources } from "@/components/events/eventDisplay";
 import EventsSidebarFull from "@/components/events/EventsSidebarFull";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
+
+const getPublishedEventBySlug = cache(async (slug) => {
+  await connectDB();
+  return Event.findOne({ slug, status: "published" }).lean();
+});
 
 export async function generateMetadata({ params }) {
   const slug = params.slug;
   try {
-    await connectDB();
-    const event = await Event.findOne({ slug, status: "published" }).lean();
+    const event = await getPublishedEventBySlug(slug);
     if (!event) return {};
     const title = event.meta?.metaTitle || event.title;
     const description =
@@ -44,8 +49,7 @@ export async function generateMetadata({ params }) {
 async function EventDetail({ slug }) {
   let event;
   try {
-    await connectDB();
-    event = await Event.findOne({ slug, status: "published" }).lean();
+    event = await getPublishedEventBySlug(slug);
   } catch {
     return (
       <div style={{ textAlign: "center", padding: "2rem 0" }}>
@@ -261,19 +265,9 @@ async function EventDetail({ slug }) {
               </p>
             </article>
 
-            <div
-              style={{ width: 320, flexShrink: 0 }}
-              className="events-detail-sidebar-desktop"
-            >
+            <div style={{ width: 320, flexShrink: 0 }} className="events-detail-sidebar">
               <EventsSidebarFull currentSlug={slug} />
             </div>
-          </div>
-
-          <div
-            className="events-detail-sidebar-mobile"
-            style={{ display: "none" }}
-          >
-            <EventsSidebarFull currentSlug={slug} />
           </div>
         </PageContainer>
       </FullWidthBackground>
@@ -283,9 +277,8 @@ async function EventDetail({ slug }) {
           .events-detail-layout { gap: 28px !important; }
         }
         @media (max-width: 992px) {
-          .events-detail-sidebar-desktop { display: none !important; }
-          .events-detail-sidebar-mobile { display: block !important; margin-top: 40px; }
-          .events-detail-layout { gap: 24px !important; }
+          .events-detail-layout { gap: 24px !important; flex-direction: column !important; }
+          .events-detail-sidebar { width: 100% !important; margin-top: 40px; }
         }
         @media (max-width: 768px) {
           .events-detail-title { font-size: 24px !important; line-height: 1.3 !important; }
@@ -297,7 +290,7 @@ async function EventDetail({ slug }) {
             object-fit: cover !important;
             object-position: center center !important;
           }
-          .events-detail-sidebar-mobile { margin-top: 28px !important; }
+          .events-detail-sidebar { margin-top: 28px !important; }
         }
         @media (max-width: 480px) {
           .events-detail-title { font-size: 20px !important; }

@@ -131,7 +131,7 @@ export default function EventsSidebarFull({ searchQuery, currentSlug }) {
   const [recent, setRecent] = useState([]);
 
   useEffect(() => {
-    fetch("/api/events?limit=40&sort=upcoming")
+    fetch("/api/events?limit=40&sort=upcoming&fields=sidebar")
       .then((r) => (r.ok ? r.json() : { items: [] }))
       .then((data) => {
         const now = new Date();
@@ -150,7 +150,7 @@ export default function EventsSidebarFull({ searchQuery, currentSlug }) {
       })
       .catch(() => {});
 
-    fetch("/api/events?limit=5&sort=recent")
+    fetch("/api/events?limit=5&sort=recent&fields=sidebar")
       .then((r) => (r.ok ? r.json() : { items: [] }))
       .then((data) => {
         const items = Array.isArray(data.items) ? data.items.map(normalizeEvent) : [];

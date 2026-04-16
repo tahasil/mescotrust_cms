@@ -2,6 +2,14 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Event from "@/models/Event";
 
+function withCache(body, maxAge = 60) {
+  return NextResponse.json(body, {
+    headers: {
+      "Cache-Control": `public, max-age=${maxAge}, stale-while-revalidate=${maxAge}`,
+    },
+  });
+}
+
 /**
  * Public events API.
  * GET /api/events — paginated list (published only)
@@ -19,7 +27,7 @@ export async function GET(req) {
     if (slug) {
       const doc = await Event.findOne({ slug, status: "published" }).lean();
       if (!doc) return NextResponse.json({ error: "Not found" }, { status: 404 });
-      return NextResponse.json(doc);
+      return withCache(doc);
     }
 
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
@@ -27,6 +35,7 @@ export async function GET(req) {
     const search = searchParams.get("search")?.trim() || null;
     const sortMode = (searchParams.get("sort") || "upcoming").toLowerCase();
     const locale = searchParams.get("locale") || null;
+    const fieldsMode = (searchParams.get("fields") || "").toLowerCase();
 
     const filter = { status: "published" };
     if (locale) filter.locale = locale;
@@ -42,22 +51,28 @@ export async function GET(req) {
       sortMode === "recent"
         ? { updatedAt: -1, startDate: -1 }
         : { startDate: 1, updatedAt: -1 };
+    const select =
+      fieldsMode === "sidebar"
+        ? "slug title featuredImageDesktop featuredImageMobile startDate endDate updatedAt"
+        : null;
+    const includeTotal = fieldsMode !== "sidebar";
 
-    const [items, total] = await Promise.all([
-      Event.find(filter)
-        .sort(sort)
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .lean(),
-      Event.countDocuments(filter),
-    ]);
+    const findQuery = Event.find(filter)
+      .sort(sort)
+      .skip((page - 1) * limit)
+      .limit(limit);
+    if (select) findQuery.select(select);
 
-    return NextResponse.json({
+    const itemsPromise = findQuery.lean();
+    const totalPromise = includeTotal ? Event.countDocuments(filter) : Promise.resolve(null);
+    const [items, total] = await Promise.all([itemsPromise, totalPromise]);
+
+    return withCache({
       items,
-      total,
+      total: total ?? items.length,
       page,
       limit,
-      totalPages: Math.ceil(total / limit),
+      totalPages: includeTotal ? Math.ceil(total / limit) : 1,
     });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });

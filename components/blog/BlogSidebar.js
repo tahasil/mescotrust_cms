@@ -93,7 +93,7 @@ export default function BlogSidebar({ currentSlug, commentCounts }) {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    fetch("/api/public/blogs?limit=5")
+    fetch("/api/public/blogs?limit=6&fields=sidebar")
       .then((r) => (r.ok ? r.json() : { items: [] }))
       .then((data) => setPosts(data.items || []))
       .catch(() => {});

@@ -12,6 +12,7 @@ const blogCommentSchema = new mongoose.Schema(
 );
 
 blogCommentSchema.index({ blogId: 1, status: 1 });
+blogCommentSchema.index({ blogId: 1, status: 1, createdAt: -1 });
 blogCommentSchema.index({ createdAt: -1 });
 
 module.exports =

@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
 import nextDynamic from "next/dynamic";
+import { cache } from "react";
 import { connectDB } from "@/lib/db";
 import { getSiteUrl } from "@/lib/env";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 import Blog from "@/models/Blog";
 import ThemeConfig from "@/models/ThemeConfig";
 import SafeHtml from "@/components/cms/SafeHtml";
@@ -15,11 +16,15 @@ const BlogComments = nextDynamic(
   { ssr: false },
 );
 
+const getPublishedPostBySlug = cache(async (slug) => {
+  await connectDB();
+  return Blog.findOne({ slug, status: "published" }).populate("category").lean();
+});
+
 export async function generateMetadata({ params }) {
   const slug = params.slug;
   try {
-    await connectDB();
-    const post = await Blog.findOne({ slug, status: "published" }).lean();
+    const post = await getPublishedPostBySlug(slug);
     if (!post) return {};
     const title = post.meta?.metaTitle || post.title;
     const description = post.meta?.metaDescription || post.excerpt || undefined;
@@ -75,7 +80,7 @@ async function PostContent({ slug }) {
   try {
     await connectDB();
     const [postDoc, themeDoc] = await Promise.all([
-      Blog.findOne({ slug, status: "published" }).populate("category").lean(),
+      getPublishedPostBySlug(slug),
       ThemeConfig.findOne({
         $or: [{ themeKey: "default" }, { themeKey: { $exists: false } }],
       })
@@ -268,20 +273,9 @@ async function PostContent({ slug }) {
             </article>
 
             {/* Right: Sidebar (desktop) */}
-            <div
-              style={{ width: 320, flexShrink: 0 }}
-              className="blog-detail-sidebar-desktop"
-            >
-              <BlogSidebarFull currentSlug={slug} />
+            <div style={{ width: 320, flexShrink: 0 }} className="blog-detail-sidebar">
+              <BlogSidebarFull currentSlug={slug} commentsEnabled={commentsEnabled} />
             </div>
-          </div>
-
-          {/* Mobile sidebar */}
-          <div
-            className="blog-detail-sidebar-mobile"
-            style={{ display: "none" }}
-          >
-            <BlogSidebarFull currentSlug={slug} />
           </div>
         </PageContainer>
       </FullWidthBackground>
@@ -291,9 +285,8 @@ async function PostContent({ slug }) {
           .blog-detail-layout { gap: 28px !important; }
         }
         @media (max-width: 992px) {
-          .blog-detail-sidebar-desktop { display: none !important; }
-          .blog-detail-sidebar-mobile { display: block !important; margin-top: 40px; }
-          .blog-detail-layout { gap: 24px !important; }
+          .blog-detail-layout { gap: 24px !important; flex-direction: column !important; }
+          .blog-detail-sidebar { width: 100% !important; margin-top: 40px; }
         }
         @media (max-width: 768px) {
           .blog-detail-title { font-size: 24px !important; line-height: 1.3 !important; }
@@ -306,7 +299,7 @@ async function PostContent({ slug }) {
             object-position: center center !important;
             border-radius: 8px !important;
           }
-          .blog-detail-sidebar-mobile { margin-top: 28px !important; }
+          .blog-detail-sidebar { margin-top: 28px !important; }
         }
         @media (max-width: 480px) {
           .blog-detail-title { font-size: 20px !important; }

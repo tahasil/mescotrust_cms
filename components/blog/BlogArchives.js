@@ -9,7 +9,7 @@ export default function BlogArchives() {
   const [archives, setArchives] = useState([]);
 
   useEffect(() => {
-    fetch("/api/public/blogs?limit=100")
+    fetch("/api/public/blogs?limit=200&fields=archive")
       .then((r) => (r.ok ? r.json() : { items: [] }))
       .then((data) => {
         const items = data.items || [];

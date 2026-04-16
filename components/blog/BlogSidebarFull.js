@@ -40,11 +40,14 @@ export default function BlogSidebarFull({
   categorySlug,
   categories: categoriesProp,
   currentSlug,
+  commentsEnabled: commentsEnabledProp,
 }) {
   const [categories, setCategories] = useState(
     Array.isArray(categoriesProp) ? categoriesProp : [],
   );
-  const [commentsEnabled, setCommentsEnabled] = useState(true);
+  const [commentsEnabled, setCommentsEnabled] = useState(
+    typeof commentsEnabledProp === "boolean" ? commentsEnabledProp : true,
+  );
 
   // If categories not passed (detail page), fetch them
   useEffect(() => {
@@ -57,6 +60,10 @@ export default function BlogSidebarFull({
 
   // Read global comments-enabled flag from theme
   useEffect(() => {
+    if (typeof commentsEnabledProp === "boolean") {
+      setCommentsEnabled(commentsEnabledProp);
+      return;
+    }
     fetch("/api/theme")
       .then((r) => (r.ok ? r.json() : {}))
       .then((data) => {
@@ -65,7 +72,7 @@ export default function BlogSidebarFull({
         }
       })
       .catch(() => {});
-  }, []);
+  }, [commentsEnabledProp]);
 
   return (
     <div>
