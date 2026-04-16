@@ -9,7 +9,6 @@ import {
   Button,
   Dropdown,
   Space,
-  Input,
   Badge,
   Avatar,
   Popover,
@@ -30,9 +29,7 @@ import {
   MailOutlined,
   UserOutlined,
   LogoutOutlined,
-  SearchOutlined,
   BellOutlined,
-  GithubOutlined,
   HeartOutlined,
   ClockCircleOutlined,
   MessageOutlined,
@@ -777,32 +774,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
             onClick={toggleSidebar}
             style={{ fontSize: 18, color: at.adminTextColor }}
           />
-          <Input
-            className="admin-search-input"
-            placeholder="Ctrl + K"
-            prefix={
-              <SearchOutlined
-                style={{ color: "rgba(0, 0, 0, 0.25)", fontSize: 16 }}
-              />
-            }
-            allowClear
-            style={{
-              maxWidth: 240,
-              borderRadius: 8,
-              backgroundColor: "#fff",
-              border: `1px solid ${at.adminBorderColor}`,
-            }}
-            styles={{ input: { backgroundColor: "#fff" } }}
-          />
           <Space size="middle" style={{ marginLeft: "auto" }}>
-            <Button
-              type="text"
-              icon={
-                <GithubOutlined
-                  style={{ fontSize: 18, color: at.adminTextColor }}
-                />
-              }
-            />
             <Popover
               content={notificationContent}
               trigger="click"
