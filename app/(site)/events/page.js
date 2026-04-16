@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { unstable_cache } from "next/cache";
 import { connectDB } from "@/lib/db";
 import Event from "@/models/Event";
 import { getPageSeoMetadata } from "@/lib/seo";
@@ -9,6 +10,47 @@ import EventsSidebarFull from "@/components/events/EventsSidebarFull";
 export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 9;
+
+const getEventsListingData = unstable_cache(
+  async (page, sortMode, q) => {
+    await connectDB();
+    const filter = { status: "published" };
+    if (q) {
+      const query = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      filter.$or = [
+        {
+          title: {
+            $regex: query,
+            $options: "i",
+          },
+        },
+        {
+          description: {
+            $regex: query,
+            $options: "i",
+          },
+        },
+      ];
+    }
+    const sort =
+      sortMode === "recent"
+        ? { updatedAt: -1, startDate: -1 }
+        : { startDate: 1, updatedAt: -1 };
+
+    const [total, items] = await Promise.all([
+      Event.countDocuments(filter),
+      Event.find(filter)
+        .sort(sort)
+        .skip((page - 1) * PAGE_SIZE)
+        .limit(PAGE_SIZE)
+        .lean(),
+    ]);
+
+    return { total, items };
+  },
+  ["events-listing-page-data"],
+  { revalidate: 60 },
+);
 
 export async function generateMetadata() {
   return getPageSeoMetadata({
@@ -29,35 +71,9 @@ export default async function EventsListPage({ searchParams }) {
   let total = 0;
 
   try {
-    await connectDB();
-    const filter = { status: "published" };
-    if (q) {
-      filter.$or = [
-        {
-          title: {
-            $regex: q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-            $options: "i",
-          },
-        },
-        {
-          description: {
-            $regex: q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-            $options: "i",
-          },
-        },
-      ];
-    }
-    const sort =
-      sortMode === "recent"
-        ? { updatedAt: -1, startDate: -1 }
-        : { startDate: 1, updatedAt: -1 };
-
-    total = await Event.countDocuments(filter);
-    items = await Event.find(filter)
-      .sort(sort)
-      .skip((page - 1) * PAGE_SIZE)
-      .limit(PAGE_SIZE)
-      .lean();
+    const data = await getEventsListingData(page, sortMode, q);
+    items = data.items || [];
+    total = data.total || 0;
   } catch {
     // leave empty
   }
@@ -65,18 +81,10 @@ export default async function EventsListPage({ searchParams }) {
   const totalPages = Math.ceil(total / PAGE_SIZE);
   const list = JSON.parse(JSON.stringify(items));
 
-  const sortLink = (nextSort) => {
-    const params = new URLSearchParams();
-    if (nextSort !== "upcoming") params.set("sort", nextSort);
-    if (q) params.set("q", q);
-    const qs = params.toString();
-    return qs ? `/events?${qs}` : "/events";
-  };
-
   return (
     <FullWidthBackground className="customInnerHero" suppressHydrationWarning>
       <PageContainer className="pt-0" suppressHydrationWarning>
-        <div style={{ display: "flex", gap: 40 }}>
+        <div className="events-layout" style={{ display: "flex", gap: 40 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <EventList items={list} />
             {totalPages > 1 && (
@@ -134,22 +142,15 @@ export default async function EventsListPage({ searchParams }) {
             )}
           </div>
 
-          <div
-            style={{ width: 320, flexShrink: 0 }}
-            className="events-sidebar-desktop"
-          >
+          <div style={{ width: 320, flexShrink: 0 }} className="events-sidebar">
             <EventsSidebarFull searchQuery={q} />
           </div>
         </div>
 
-        <div className="events-sidebar-mobile" style={{ display: "none" }}>
-          <EventsSidebarFull searchQuery={q} />
-        </div>
-
         <style>{`
           @media (max-width: 992px) {
-            .events-sidebar-desktop { display: none !important; }
-            .events-sidebar-mobile { display: block !important; margin-top: 40px; }
+            .events-layout { flex-direction: column !important; gap: 0 !important; }
+            .events-sidebar { width: 100% !important; margin-top: 40px; }
           }
         `}</style>
       </PageContainer>

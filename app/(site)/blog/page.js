@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { unstable_cache } from "next/cache";
 import { connectDB } from "@/lib/db";
 import Blog from "@/models/Blog";
 import BlogCategory from "@/models/BlogCategory";
@@ -43,6 +44,60 @@ function formatDate(dateStr) {
   return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
 }
 
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+const getBlogListingData = unstable_cache(
+  async (page, categorySlug, searchQuery) => {
+    await connectDB();
+    const [themeDoc, categories] = await Promise.all([
+      ThemeConfig.findOne({
+        $or: [{ themeKey: "default" }, { themeKey: { $exists: false } }],
+      })
+        .sort({ updatedAt: -1 })
+        .select("blogCommentsEnabled")
+        .lean(),
+      BlogCategory.find().sort({ order: 1 }).lean(),
+    ]);
+
+    const filter = { status: "published" };
+    if (categorySlug) {
+      const cat = categories.find((c) => c.slug === categorySlug);
+      if (cat) filter.category = cat._id;
+    }
+    if (searchQuery) {
+      const q = escapeRegex(searchQuery);
+      filter.$or = [
+        { title: { $regex: q, $options: "i" } },
+        { excerpt: { $regex: q, $options: "i" } },
+      ];
+    }
+
+    const [total, items] = await Promise.all([
+      Blog.countDocuments(filter),
+      Blog.find(filter)
+        .populate("category")
+        .sort({ publishedAt: -1, updatedAt: -1 })
+        .skip((page - 1) * PAGE_SIZE)
+        .limit(PAGE_SIZE)
+        .lean(),
+    ]);
+
+    return {
+      items,
+      categories,
+      total,
+      commentsEnabled:
+        typeof themeDoc?.blogCommentsEnabled === "boolean"
+          ? themeDoc.blogCommentsEnabled
+          : true,
+    };
+  },
+  ["blog-listing-page-data"],
+  { revalidate: 60 },
+);
+
 export default async function BlogListPage({ searchParams }) {
   const page = Math.max(1, Number(searchParams?.page) || 1);
   const categorySlug = searchParams?.category || "";
@@ -54,35 +109,11 @@ export default async function BlogListPage({ searchParams }) {
   let commentsEnabled = true;
 
   try {
-    await connectDB();
-    const themeDoc = await ThemeConfig.findOne({
-      $or: [{ themeKey: "default" }, { themeKey: { $exists: false } }],
-    })
-      .sort({ updatedAt: -1 })
-      .select("blogCommentsEnabled")
-      .lean();
-    if (themeDoc && typeof themeDoc.blogCommentsEnabled === "boolean") {
-      commentsEnabled = themeDoc.blogCommentsEnabled;
-    }
-    categories = await BlogCategory.find().sort({ order: 1 }).lean();
-    const filter = { status: "published" };
-    if (categorySlug) {
-      const cat = categories.find((c) => c.slug === categorySlug);
-      if (cat) filter.category = cat._id;
-    }
-    if (searchQuery) {
-      filter.$or = [
-        { title: { $regex: searchQuery, $options: "i" } },
-        { excerpt: { $regex: searchQuery, $options: "i" } },
-      ];
-    }
-    total = await Blog.countDocuments(filter);
-    items = await Blog.find(filter)
-      .populate("category")
-      .sort({ publishedAt: -1, updatedAt: -1 })
-      .skip((page - 1) * PAGE_SIZE)
-      .limit(PAGE_SIZE)
-      .lean();
+    const data = await getBlogListingData(page, categorySlug, searchQuery);
+    items = data.items || [];
+    categories = data.categories || [];
+    total = data.total || 0;
+    commentsEnabled = data.commentsEnabled !== false;
   } catch {
     // leave items empty
   }
@@ -150,7 +181,7 @@ export default async function BlogListPage({ searchParams }) {
         )} */}
 
         {/* Two-column layout */}
-        <div style={{ display: "flex", gap: 40 }}>
+        <div className="blog-layout" style={{ display: "flex", gap: 40 }}>
           {/* Left: Blog Posts */}
           <div style={{ flex: 1, minWidth: 0 }}>
             {items.length === 0 && (
@@ -380,10 +411,7 @@ export default async function BlogListPage({ searchParams }) {
           </div>
 
           {/* Right: Sidebar */}
-          <div
-            style={{ width: 320, flexShrink: 0 }}
-            className="blog-sidebar-desktop"
-          >
+          <div style={{ width: 320, flexShrink: 0 }} className="blog-sidebar">
             <BlogSidebarFull
               searchQuery={searchQuery}
               categorySlug={categorySlug}
@@ -392,19 +420,10 @@ export default async function BlogListPage({ searchParams }) {
           </div>
         </div>
 
-        {/* Mobile sidebar (below content) */}
-        <div className="blog-sidebar-mobile" style={{ display: "none" }}>
-          <BlogSidebarFull
-            searchQuery={searchQuery}
-            categorySlug={categorySlug}
-            categories={JSON.parse(JSON.stringify(categories))}
-          />
-        </div>
-
         <style>{`
         @media (max-width: 992px) {
-          .blog-sidebar-desktop { display: none !important; }
-          .blog-sidebar-mobile { display: block !important; margin-top: 40px; }
+          .blog-layout { flex-direction: column !important; gap: 0 !important; }
+          .blog-sidebar { width: 100% !important; margin-top: 40px; }
         }
         @media (max-width: 768px) {
           article { flex-direction: column !important; gap: 16px !important; padding: 16px !important; }

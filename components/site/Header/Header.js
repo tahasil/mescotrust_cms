@@ -6,7 +6,12 @@ import styled from "styled-components";
 import { useFormState, useFormStatus } from "react-dom";
 import { submitContact } from "@/app/actions/contact";
 import { getColor } from "@/styles/Theme";
-import { hasMinText, isValidEmail, isValidName, normalizeText } from "@/lib/formValidation";
+import {
+  hasMinText,
+  isValidEmail,
+  isValidName,
+  normalizeText,
+} from "@/lib/formValidation";
 import {
   HeaderWrapper,
   HeaderMainWrapper,
@@ -561,6 +566,7 @@ export default function Header({
                 $headerCtaBgValue={headerCtaBgValue}
                 $headerCtaTextValue={headerCtaTextValue}
                 style={{ cursor: "pointer" }}
+                // href="#volunteer-modal"
               >
                 {volunteerLabel}
                 <IconWrap>
@@ -748,7 +754,12 @@ export default function Header({
             &#x2715;
           </ModalCloseBtn>
           <ModalTitle>{volunteerModalTitle}</ModalTitle>
-          <form ref={modalFormRef} action={modalFormAction} onSubmit={handleModalSubmit} noValidate>
+          <form
+            ref={modalFormRef}
+            action={modalFormAction}
+            onSubmit={handleModalSubmit}
+            noValidate
+          >
             <input type="hidden" name="page" value="volunteer-modal" />
             <input type="hidden" name="source" value="header-volunteer" />
             <input type="hidden" name="phone" value="" />
@@ -763,10 +774,21 @@ export default function Header({
                     required
                     className="mfield"
                     placeholder="Your name"
-                    onChange={() => modalErrors.name && setModalErrors((prev) => ({ ...prev, name: "" }))}
-                    style={modalErrors.name ? { borderColor: "#cf372f" } : undefined}
+                    onChange={() =>
+                      modalErrors.name &&
+                      setModalErrors((prev) => ({ ...prev, name: "" }))
+                    }
+                    style={
+                      modalErrors.name ? { borderColor: "#cf372f" } : undefined
+                    }
                   />
-                  {modalErrors.name ? <div style={{ marginTop: 6, fontSize: 12, color: "#cf372f" }}>{modalErrors.name}</div> : null}
+                  {modalErrors.name ? (
+                    <div
+                      style={{ marginTop: 6, fontSize: 12, color: "#cf372f" }}
+                    >
+                      {modalErrors.name}
+                    </div>
+                  ) : null}
                 </ModalFormGroup>
               </Col>
               <Col xs={24} sm={12}>
@@ -780,10 +802,21 @@ export default function Header({
                     required
                     className="mfield"
                     placeholder="Your email address"
-                    onChange={() => modalErrors.email && setModalErrors((prev) => ({ ...prev, email: "" }))}
-                    style={modalErrors.email ? { borderColor: "#cf372f" } : undefined}
+                    onChange={() =>
+                      modalErrors.email &&
+                      setModalErrors((prev) => ({ ...prev, email: "" }))
+                    }
+                    style={
+                      modalErrors.email ? { borderColor: "#cf372f" } : undefined
+                    }
                   />
-                  {modalErrors.email ? <div style={{ marginTop: 6, fontSize: 12, color: "#cf372f" }}>{modalErrors.email}</div> : null}
+                  {modalErrors.email ? (
+                    <div
+                      style={{ marginTop: 6, fontSize: 12, color: "#cf372f" }}
+                    >
+                      {modalErrors.email}
+                    </div>
+                  ) : null}
                 </ModalFormGroup>
               </Col>
             </Row>
@@ -796,10 +829,19 @@ export default function Header({
                 required
                 className="mfield"
                 placeholder="Subject of message"
-                onChange={() => modalErrors.subject && setModalErrors((prev) => ({ ...prev, subject: "" }))}
-                style={modalErrors.subject ? { borderColor: "#cf372f" } : undefined}
+                onChange={() =>
+                  modalErrors.subject &&
+                  setModalErrors((prev) => ({ ...prev, subject: "" }))
+                }
+                style={
+                  modalErrors.subject ? { borderColor: "#cf372f" } : undefined
+                }
               />
-              {modalErrors.subject ? <div style={{ marginTop: 6, fontSize: 12, color: "#cf372f" }}>{modalErrors.subject}</div> : null}
+              {modalErrors.subject ? (
+                <div style={{ marginTop: 6, fontSize: 12, color: "#cf372f" }}>
+                  {modalErrors.subject}
+                </div>
+              ) : null}
             </ModalFormGroup>
             <ModalFormGroup>
               <label className="mlabel">
@@ -811,10 +853,19 @@ export default function Header({
                 className="mfield"
                 placeholder="Message text"
                 rows={4}
-                onChange={() => modalErrors.message && setModalErrors((prev) => ({ ...prev, message: "" }))}
-                style={modalErrors.message ? { borderColor: "#cf372f" } : undefined}
+                onChange={() =>
+                  modalErrors.message &&
+                  setModalErrors((prev) => ({ ...prev, message: "" }))
+                }
+                style={
+                  modalErrors.message ? { borderColor: "#cf372f" } : undefined
+                }
               />
-              {modalErrors.message ? <div style={{ marginTop: 6, fontSize: 12, color: "#cf372f" }}>{modalErrors.message}</div> : null}
+              {modalErrors.message ? (
+                <div style={{ marginTop: 6, fontSize: 12, color: "#cf372f" }}>
+                  {modalErrors.message}
+                </div>
+              ) : null}
             </ModalFormGroup>
             <ModalBtnRow>
               <ModalCancelBtn
