@@ -10,21 +10,18 @@ export default function AdminBlogCommentsPage() {
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("");
   const [viewItem, setViewItem] = useState(null);
   const [commentsEnabled, setCommentsEnabled] = useState(true);
   const [togglingEnabled, setTogglingEnabled] = useState(false);
 
   const fetchComments = (p = page, st = statusFilter) => {
-    setLoading(true);
     const params = new URLSearchParams({ page: p, limit: 20 });
     if (st) params.set("status", st);
     fetch(`/api/admin/blog-comments?${params}`)
       .then((r) => (r.ok ? r.json() : { items: [] }))
       .then((data) => { setItems(data.items || []); setTotal(data.total || 0); })
-      .catch(() => message.error("Failed to load"))
-      .finally(() => setLoading(false));
+      .catch(() => message.error("Failed to load"));
   };
 
   useEffect(() => { fetchComments(1, statusFilter); setPage(1); }, [statusFilter]);
@@ -127,7 +124,6 @@ export default function AdminBlogCommentsPage() {
     >
       <Table
         rowKey="_id"
-        loading={loading}
         dataSource={items}
         pagination={{
           current: page, total, pageSize: 20,

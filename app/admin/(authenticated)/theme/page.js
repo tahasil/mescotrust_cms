@@ -254,6 +254,7 @@ const initialFormValues = {
   adminSidebarActiveBg: "#e6f4ff",
   adminSidebarActiveText: "#1677ff",
   adminLoaderColor: "#1677ff",
+  adminLoaderBgColor: "rgba(255,255,255,0.5)",
 };
 
 export default function AdminThemePage() {
@@ -836,6 +837,9 @@ export default function AdminThemePage() {
             <Col xs={24} sm={12}>
               <FormColor name="adminLoaderColor" label="Loader color" placeholder="#1677ff" />
             </Col>
+            <Col xs={24} sm={12}>
+              <FormColor name="adminLoaderBgColor" label="Overlay background" placeholder="rgba(255,255,255,0.5)" />
+            </Col>
           </Row>
           <div style={{ marginTop: 12 }}>
             <Typography.Text type="secondary" style={{ fontSize: 13 }}>
@@ -906,17 +910,45 @@ export default function AdminThemePage() {
 /** Live preview of the admin loader spinner */
 function AdminLoaderPreview({ form }) {
   const loaderColor = Form.useWatch("adminLoaderColor", form) || "#1677ff";
+  const loaderBgColor =
+    Form.useWatch("adminLoaderBgColor", form) || "rgba(255,255,255,0.5)";
   return (
     <div
       style={{
-        width: 40,
-        height: 40,
-        border: `3px solid #f0f0f0`,
-        borderTop: `3px solid ${loaderColor}`,
-        borderRadius: "50%",
-        animation: "adminLoaderSpin 0.8s linear infinite",
+        width: "100%",
+        maxWidth: 360,
+        height: 88,
+        borderRadius: 8,
+        border: "1px solid #f0f0f0",
+        backgroundImage:
+          "linear-gradient(45deg, #f5f5f5 25%, transparent 25%), linear-gradient(-45deg, #f5f5f5 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f5f5f5 75%), linear-gradient(-45deg, transparent 75%, #f5f5f5 75%)",
+        backgroundSize: "16px 16px",
+        backgroundPosition: "0 0, 0 8px, 8px -8px, -8px 0",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: loaderBgColor,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            width: 40,
+            height: 40,
+            border: `3px solid #f0f0f0`,
+            borderTop: `3px solid ${loaderColor}`,
+            borderRadius: "50%",
+            animation: "adminLoaderSpin 0.8s linear infinite",
+          }}
+        />
+      </div>
       <style>{`
         @keyframes adminLoaderSpin {
           0% { transform: rotate(0deg); }

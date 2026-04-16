@@ -43,6 +43,9 @@ const { Header, Content } = Layout;
 const SIDEBAR_WIDTH = 200;
 const HEADER_HEIGHT = 64;
 const MOBILE_BREAKPOINT = 992;
+const ADMIN_ROUTE_LOADER_DELAY_MS = 60;
+const ADMIN_ROUTE_LOADER_MIN_MS = 280;
+const ADMIN_ROUTE_LOADER_POST_PATHNAME_SETTLE_MS = 450;
 
 const linkStyle = { textDecoration: "none" };
 
@@ -215,6 +218,7 @@ const DEFAULT_ADMIN_THEME = {
   adminSidebarActiveBg: "#e6f4ff",
   adminSidebarActiveText: "#1677ff",
   adminLoaderColor: "#1677ff",
+  adminLoaderBgColor: "rgba(255,255,255,0.5)",
 };
 
 export default function AdminLayoutClient({ children, userName, userRole }) {
@@ -227,7 +231,68 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
   const [notifications, setNotifications] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
   const [bellShake, setBellShake] = useState(false);
+  const [routeLoading, setRouteLoading] = useState(false);
+  const routeLoadingRef = useRef(false);
+  const routeStartedAtRef = useRef(0);
+  const routeShowTimerRef = useRef(null);
+  const routeHideTimerRef = useRef(null);
+  const routeSettleTimerRef = useRef(null);
+  const routeChangedRef = useRef(false);
+  const navPendingFetchRef = useRef(0);
   const prevCountRef = useRef(0);
+
+  const clearRouteLoaderTimers = useCallback(() => {
+    if (routeShowTimerRef.current) {
+      window.clearTimeout(routeShowTimerRef.current);
+      routeShowTimerRef.current = null;
+    }
+    if (routeHideTimerRef.current) {
+      window.clearTimeout(routeHideTimerRef.current);
+      routeHideTimerRef.current = null;
+    }
+    if (routeSettleTimerRef.current) {
+      window.clearTimeout(routeSettleTimerRef.current);
+      routeSettleTimerRef.current = null;
+    }
+  }, []);
+
+  const startRouteLoader = useCallback(() => {
+    if (routeLoadingRef.current || routeShowTimerRef.current) return;
+    clearRouteLoaderTimers();
+    routeChangedRef.current = false;
+    navPendingFetchRef.current = 0;
+    routeShowTimerRef.current = window.setTimeout(() => {
+      routeStartedAtRef.current = Date.now();
+      routeLoadingRef.current = true;
+      setRouteLoading(true);
+      routeShowTimerRef.current = null;
+    }, ADMIN_ROUTE_LOADER_DELAY_MS);
+  }, [clearRouteLoaderTimers]);
+
+  const stopRouteLoader = useCallback(() => {
+    if (routeSettleTimerRef.current) {
+      window.clearTimeout(routeSettleTimerRef.current);
+      routeSettleTimerRef.current = null;
+    }
+    if (routeShowTimerRef.current) {
+      window.clearTimeout(routeShowTimerRef.current);
+      routeShowTimerRef.current = null;
+    }
+    if (!routeLoadingRef.current) return;
+    const elapsed = Date.now() - routeStartedAtRef.current;
+    const wait = Math.max(0, ADMIN_ROUTE_LOADER_MIN_MS - elapsed);
+    if (routeHideTimerRef.current) {
+      window.clearTimeout(routeHideTimerRef.current);
+      routeHideTimerRef.current = null;
+    }
+    routeHideTimerRef.current = window.setTimeout(() => {
+      routeLoadingRef.current = false;
+      setRouteLoading(false);
+      routeChangedRef.current = false;
+      navPendingFetchRef.current = 0;
+      routeHideTimerRef.current = null;
+    }, wait);
+  }, []);
 
   // Fetch admin theme settings
   useEffect(() => {
@@ -259,7 +324,141 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
   // Close mobile sidebar on route change
   useEffect(() => {
     if (isMobile) setMobileOpen(false);
+    routeChangedRef.current = true;
+    if (routeSettleTimerRef.current) {
+      window.clearTimeout(routeSettleTimerRef.current);
+      routeSettleTimerRef.current = null;
+    }
+    // Let the destination page mount and fire initial data fetches first.
+    // If no tracked fetch starts, close loader after a short settle window.
+    if (routeLoadingRef.current) {
+      routeSettleTimerRef.current = window.setTimeout(() => {
+        if (routeLoadingRef.current && navPendingFetchRef.current <= 0) {
+          stopRouteLoader();
+        }
+        routeSettleTimerRef.current = null;
+      }, ADMIN_ROUTE_LOADER_POST_PATHNAME_SETTLE_MS);
+    }
   }, [pathname, isMobile]);
+
+  // Single global admin route loader for sidebar/link/programmatic navigation.
+  useEffect(() => {
+    const isAdminHref = (href) =>
+      typeof href === "string" && href.startsWith("/admin");
+
+    const onClickCapture = (event) => {
+      if (event.defaultPrevented) return;
+      if (event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const anchor = event.target?.closest?.("a[href]");
+      if (!anchor) return;
+      if (anchor.hasAttribute("download")) return;
+      if ((anchor.getAttribute("target") || "").toLowerCase() === "_blank") return;
+      const raw = anchor.getAttribute("href") || "";
+      if (!raw || raw.startsWith("#") || raw.startsWith("mailto:") || raw.startsWith("tel:")) return;
+      let url;
+      try {
+        url = new URL(anchor.href, window.location.href);
+      } catch {
+        return;
+      }
+      if (url.origin !== window.location.origin) return;
+      if (!isAdminHref(url.pathname)) return;
+      const nextPath = `${url.pathname}${url.search}${url.hash}`;
+      const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+      if (nextPath === currentPath) return;
+      startRouteLoader();
+    };
+
+    const originalPushState = window.history.pushState;
+    const originalReplaceState = window.history.replaceState;
+    const originalFetch = window.fetch;
+    const handleHistoryTarget = (targetLike) => {
+      if (targetLike == null) return;
+      try {
+        const target = new URL(String(targetLike), window.location.href);
+        const current = new URL(window.location.href);
+        const nextPath = `${target.pathname}${target.search}${target.hash}`;
+        const currentPath = `${current.pathname}${current.search}${current.hash}`;
+        if (nextPath !== currentPath && isAdminHref(target.pathname)) startRouteLoader();
+      } catch {}
+    };
+
+    window.history.pushState = function patchedPushState(...args) {
+      handleHistoryTarget(args[2]);
+      return originalPushState.apply(window.history, args);
+    };
+    window.history.replaceState = function patchedReplaceState(...args) {
+      handleHistoryTarget(args[2]);
+      return originalReplaceState.apply(window.history, args);
+    };
+
+    window.fetch = function patchedFetch(input, init) {
+      let trackForRoute = false;
+      if (routeLoadingRef.current) {
+        try {
+          const url =
+            typeof input === "string"
+              ? new URL(input, window.location.href)
+              : new URL(input?.url || "", window.location.href);
+          if (
+            url.origin === window.location.origin &&
+            (url.pathname.startsWith("/api/admin") ||
+              url.pathname.startsWith("/api/theme") ||
+              url.pathname.startsWith("/api/public"))
+          ) {
+            trackForRoute = true;
+          }
+        } catch {}
+      }
+      if (trackForRoute) {
+        navPendingFetchRef.current += 1;
+      }
+
+      const done = () => {
+        if (trackForRoute) {
+          navPendingFetchRef.current = Math.max(0, navPendingFetchRef.current - 1);
+          if (
+            routeLoadingRef.current &&
+            routeChangedRef.current &&
+            navPendingFetchRef.current === 0
+          ) {
+            stopRouteLoader();
+          }
+        }
+      };
+
+      try {
+        const result = originalFetch.call(window, input, init);
+        return Promise.resolve(result).finally(done);
+      } catch (err) {
+        done();
+        throw err;
+      }
+    };
+
+    const onPopState = () => {
+      if (window.location.pathname.startsWith("/admin")) startRouteLoader();
+    };
+    const onWindowError = () => stopRouteLoader();
+    const onUnhandledRejection = () => stopRouteLoader();
+
+    document.addEventListener("click", onClickCapture, true);
+    window.addEventListener("popstate", onPopState);
+    window.addEventListener("error", onWindowError);
+    window.addEventListener("unhandledrejection", onUnhandledRejection);
+
+    return () => {
+      document.removeEventListener("click", onClickCapture, true);
+      window.removeEventListener("popstate", onPopState);
+      window.removeEventListener("error", onWindowError);
+      window.removeEventListener("unhandledrejection", onUnhandledRejection);
+      window.history.pushState = originalPushState;
+      window.history.replaceState = originalReplaceState;
+      window.fetch = originalFetch;
+      clearRouteLoaderTimers();
+    };
+  }, [clearRouteLoaderTimers, startRouteLoader, stopRouteLoader]);
 
   const toggleSidebar = () => {
     if (isMobile) {
@@ -526,6 +725,50 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
         .ant-badge .ant-badge-count {
           animation: badgePulse 1.5s infinite;
         }
+        .admin-route-loader {
+          position: absolute;
+          inset: 0;
+          z-index: 20;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: ${at.adminLoaderBgColor};
+          opacity: 0;
+          visibility: hidden;
+          pointer-events: none;
+          transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+        .admin-route-loader.visible {
+          opacity: 1;
+          visibility: visible;
+          pointer-events: auto;
+        }
+        .admin-content.admin-route-loading .ant-spin-nested-loading > .ant-spin {
+          opacity: 0 !important;
+          visibility: hidden !important;
+          pointer-events: none !important;
+        }
+        .admin-content.admin-route-loading .ant-spin {
+          opacity: 0 !important;
+          visibility: hidden !important;
+        }
+        .admin-route-loader-spinner {
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          border: 3px solid rgba(0, 0, 0, 0.12);
+          border-top-color: ${at.adminLoaderColor};
+          animation: adminRouteSpin 0.8s linear infinite;
+          background: transparent;
+        }
+        @keyframes adminRouteSpin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
 
         /* Admin sidebar overlay drawer */
         .admin-sidebar-backdrop {
@@ -729,7 +972,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
       </div>
 
       <Layout
-        className="admin-content"
+        className={`admin-content ${routeLoading ? "admin-route-loading" : ""}`}
         style={{
           marginLeft: contentMarginLeft,
           minHeight: "100vh",
@@ -813,11 +1056,20 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
             </Dropdown>
           </Space>
         </Header>
-        <Content
-          style={{ marginTop: HEADER_HEIGHT, padding: isMobile ? 8 : 10 }}
+        <div
+          style={{
+            marginTop: HEADER_HEIGHT,
+            minHeight: `calc(100vh - ${HEADER_HEIGHT}px)`,
+            position: "relative",
+          }}
         >
-          {children}
-        </Content>
+          <Content style={{ padding: isMobile ? 8 : 10 }}>
+            {children}
+          </Content>
+          <div className={`admin-route-loader ${routeLoading ? "visible" : ""}`}>
+            <div className="admin-route-loader-spinner" />
+          </div>
+        </div>
       </Layout>
     </Layout>
   );

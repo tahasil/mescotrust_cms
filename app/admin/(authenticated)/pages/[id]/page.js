@@ -91,13 +91,16 @@ export default function AdminPageEditPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/admin/pages").then((res) => (res.ok ? res.json() : [])),
+      fetch("/api/admin/pages?limit=200").then((res) =>
+        res.ok ? res.json() : { items: [] },
+      ),
       fetch("/api/admin/menus").then((res) => (res.ok ? res.json() : [])),
     ])
       .then(([pages, menus]) => {
         const folders = new Set();
+        const pageItems = Array.isArray(pages?.items) ? pages.items : [];
         // From existing page slugs
-        (Array.isArray(pages) ? pages : []).forEach((p) => {
+        pageItems.forEach((p) => {
           if (p.slug && p.slug.includes("/")) {
             folders.add(p.slug.substring(0, p.slug.lastIndexOf("/")));
           }

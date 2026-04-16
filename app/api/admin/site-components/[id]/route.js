@@ -29,6 +29,40 @@ function filterLayoutBlocks(layout, componentId) {
     });
 }
 
+/** GET: fetch one site component metadata by componentId */
+export async function GET(req, { params }) {
+  const session = await requireAuth(req);
+  if (session instanceof NextResponse) return session;
+
+  const id = (params?.id || "").trim();
+  if (!id) {
+    return NextResponse.json({ error: "Invalid component id" }, { status: 400 });
+  }
+
+  try {
+    await connectDB();
+    const doc = await SiteComponentMeta.findOne({ componentId: id }).lean();
+    const isInRegistry = SITE_COMPONENT_IDS.includes(id);
+    if (!doc && !isInRegistry) {
+      return NextResponse.json({ error: "Component not found" }, { status: 404 });
+    }
+
+    const defaultPosition = id === "Header" ? "before" : "after";
+    const defaultOrder = Math.max(0, SITE_COMPONENT_IDS.indexOf(id));
+    const payload = {
+      componentId: id,
+      displayName: doc?.displayName || id,
+      global: doc?.global ?? false,
+      order: doc?.order ?? defaultOrder,
+      position: doc?.position || defaultPosition,
+      enabled: doc?.enabled !== false,
+    };
+    return NextResponse.json(payload);
+  } catch (err) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
 /** PUT: update metadata for a site component (displayName, global, order, position) */
 export async function PUT(req, { params }) {
   const session = await requireAuth(req);

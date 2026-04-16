@@ -240,6 +240,7 @@ const DEFAULTS = {
   adminSidebarActiveBg: "#e6f4ff",
   adminSidebarActiveText: "#1677ff",
   adminLoaderColor: "#1677ff",
+  adminLoaderBgColor: "rgba(255,255,255,0.5)",
 };
 
 const THEME_FIELDS = [
@@ -275,7 +276,7 @@ const THEME_FIELDS = [
   "adminSiteName", "adminLogoUrl", "adminTextColor", "adminBorderColor",
   "adminCtaBgColor", "adminCtaTextColor", "adminCtaHoverBgColor", "adminCtaHoverTextColor",
   "adminSidebarBg", "adminSidebarText", "adminSidebarHoverBg", "adminSidebarHoverText",
-  "adminSidebarActiveBg", "adminSidebarActiveText", "adminLoaderColor",
+  "adminSidebarActiveBg", "adminSidebarActiveText", "adminLoaderColor", "adminLoaderBgColor",
 ];
 
 function normalizeTheme(theme) {
@@ -335,6 +336,16 @@ export async function GET() {
     }
     const plain = doc;
     const normalized = normalizeTheme(plain);
+    if (
+      (normalized.adminLoaderBgColor === undefined ||
+        normalized.adminLoaderBgColor === "") &&
+      ThemeConfig?.collection
+    ) {
+      const raw = await ThemeConfig.collection.findOne(THEME_QUERY);
+      if (raw?.adminLoaderBgColor !== undefined) {
+        normalized.adminLoaderBgColor = String(raw.adminLoaderBgColor);
+      }
+    }
     if (plain.footerBackgroundImageUrl != null) {
       normalized.footerBackgroundImageUrl = String(plain.footerBackgroundImageUrl).trim();
     }
@@ -426,10 +437,25 @@ export async function PUT(req) {
       if (body.footerBackgroundImageUrl !== undefined) initialUpdates.footerBackgroundImageUrl = typeof body.footerBackgroundImageUrl === "string" ? body.footerBackgroundImageUrl : String(body.footerBackgroundImageUrl || "");
       if (Object.keys(initialUpdates).length > 0 && theme._id) {
         initialUpdates.updatedAt = new Date();
-        await ThemeConfig.updateOne({ _id: theme._id }, { $set: initialUpdates });
+        await ThemeConfig.updateOne(
+          { _id: theme._id },
+          { $set: initialUpdates },
+          { strict: false },
+        );
         if (subscribeInBody > 0) {
           console.log("[Subscribe 5a] API PUT: new theme doc → updateOne (initialUpdates) → Subscribe saved to DB (themeconfigs)");
         }
+      }
+      if (body.adminLoaderBgColor !== undefined && theme._id && ThemeConfig?.collection) {
+        await ThemeConfig.collection.updateOne(
+          { _id: theme._id },
+          {
+            $set: {
+              adminLoaderBgColor: String(body.adminLoaderBgColor),
+              updatedAt: new Date(),
+            },
+          },
+        );
       }
     } else {
       // Force-write Subscribe fields using same query as GET so we always update the doc that GET returns
@@ -465,6 +491,10 @@ export async function PUT(req) {
       for (const f of THEME_FIELDS) {
         if (f === "marqueeTitle" || f === "marqueeItems" || SUBSCRIBE_KEYS.includes(f)) continue;
         if (body[f] !== undefined) theme[f] = body[f];
+      }
+      if (body.adminLoaderBgColor !== undefined) {
+        theme.set("adminLoaderBgColor", body.adminLoaderBgColor, { strict: false });
+        theme.markModified("adminLoaderBgColor");
       }
       if (body.footerLogoUrl !== undefined) {
         theme.footerLogoUrl = typeof body.footerLogoUrl === "string" ? body.footerLogoUrl : String(body.footerLogoUrl || "");
@@ -578,11 +608,27 @@ export async function PUT(req) {
       }
       if (Object.keys(directUpdates).length > 0 && theme._id) {
         directUpdates.updatedAt = new Date();
-        await ThemeConfig.updateOne({ _id: theme._id }, { $set: directUpdates });
+        await ThemeConfig.updateOne(
+          { _id: theme._id },
+          { $set: directUpdates },
+          { strict: false },
+        );
         if (subscribeInBody > 0 && SUBSCRIBE_KEYS.some((k) => directUpdates[k] !== undefined)) {
           console.log("[Subscribe 6] API PUT: updateOne (direct) done → Subscribe fields confirmed in DB", Object.keys(directUpdates).filter((k) => SUBSCRIBE_KEYS.includes(k)));
         }
       }
+    }
+
+    if (body.adminLoaderBgColor !== undefined && theme?._id && ThemeConfig?.collection) {
+      await ThemeConfig.collection.updateOne(
+        { _id: theme._id },
+        {
+          $set: {
+            adminLoaderBgColor: String(body.adminLoaderBgColor),
+            updatedAt: new Date(),
+          },
+        },
+      );
     }
 
     // Sync Theme.js from saved theme state so delete/rename persists
@@ -631,6 +677,9 @@ export async function PUT(req) {
     }
     for (const k of SUBSCRIBE_KEYS) {
       if (body[k] !== undefined && saved) saved[k] = typeof body[k] === "string" ? String(body[k]).trim() : body[k];
+    }
+    if (body.adminLoaderBgColor !== undefined && saved) {
+      saved.adminLoaderBgColor = String(body.adminLoaderBgColor);
     }
     const responseBody = normalizeTheme(saved);
     const headers = { "Cache-Control": "no-store, no-cache, must-revalidate" };

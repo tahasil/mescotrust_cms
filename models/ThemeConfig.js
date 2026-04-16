@@ -312,6 +312,7 @@ const themeConfigSchema = new mongoose.Schema(
     adminSidebarActiveBg: { type: String, default: "#e6f4ff" },
     adminSidebarActiveText: { type: String, default: "#1677ff" },
     adminLoaderColor: { type: String, default: "#1677ff" },
+    adminLoaderBgColor: { type: String, default: "rgba(255,255,255,0.5)" },
   },
   { timestamps: true },
 );

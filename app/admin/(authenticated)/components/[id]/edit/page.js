@@ -98,15 +98,21 @@ export default function AdminComponentEditPage() {
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    fetch("/api/admin/site-components")
-      .then((res) => (res.ok ? res.json() : []))
-      .then((list) => {
-        const found = list.find((c) => c.componentId === id);
-        if (!found) {
+    fetch(`/api/admin/site-components/${encodeURIComponent(id)}`)
+      .then(async (res) => {
+        if (res.status === 404) {
           message.error("Component not found");
           router.push("/admin/components");
-          return;
+          return null;
         }
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "Failed to load component");
+        }
+        return res.json();
+      })
+      .then((found) => {
+        if (!found) return;
         setRecord(found);
         const initialValues = {
           displayName: found.displayName || found.componentId,
@@ -120,8 +126,8 @@ export default function AdminComponentEditPage() {
         }
         form.setFieldsValue(initialValues);
       })
-      .catch(() => {
-        message.error("Failed to load component");
+      .catch((err) => {
+        message.error(err?.message || "Failed to load component");
         router.push("/admin/components");
       })
       .finally(() => setLoading(false));
