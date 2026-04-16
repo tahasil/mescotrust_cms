@@ -26,6 +26,7 @@ All API routes live under `/api/`. The convention is:
 | GET | `/api/public/menus?name=header` | Menu by name (e.g. header, footer) |
 | GET | `/api/public/search?q=term` | Search pages and posts by title/slug/excerpt |
 | GET | `/api/theme` | Active theme configuration |
+| GET | `/media/[id]?size=desktop&format=auto` | Stable media delivery endpoint (AVIF/WebP/fallback) |
 | GET | `/api/health` | Database connectivity check (200 or 503) |
 
 ## Admin APIs
@@ -45,6 +46,14 @@ All admin APIs require authentication via JWT (enforced by middleware and `requi
 | GET | `/api/admin/components/[id]/usage` | Admin, Editor | Count pages using component |
 | GET/POST | `/api/admin/media` | Admin, Editor | List/upload media |
 | GET/PUT/DELETE | `/api/admin/media/[id]` | Admin, Editor | Read/update/delete media |
+| POST | `/api/admin/media/[id]/replace` | Admin, Editor | Replace file in-place for same media record |
+| GET | `/api/admin/media/usage?mediaId=<id>` | Admin, Editor | Where-used references for media |
+| GET | `/api/admin/media/settings` | Admin, Editor | Read media optimization settings |
+| PUT | `/api/admin/media/settings` | Admin only | Update media optimization settings |
+| GET | `/api/admin/media/jobs` | Admin, Editor | List media optimization jobs |
+| POST | `/api/admin/media/jobs` | Admin only | Start media optimization job |
+| GET | `/api/admin/media/jobs/[jobId]` | Admin, Editor | Job progress/details |
+| POST | `/api/admin/media/jobs/[jobId]/cancel` | Admin only | Cancel running media job |
 | GET/POST | `/api/admin/menus` | Admin, Editor | List/create menus |
 | GET/PUT | `/api/admin/menus/[name]` | Admin, Editor | Read/update menu by name |
 | GET | `/api/admin/contacts` | Admin, Editor | List contact submissions |

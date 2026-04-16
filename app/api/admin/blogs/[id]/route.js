@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Blog from "@/models/Blog";
 import { normalizeSlug } from "@/lib/slug";
+import { clearUsageForRef, syncMediaUsageForBlog } from "@/lib/media/usageTracker";
 
 export async function GET(req, { params }) {
   const session = await requireAuth(req);
@@ -68,6 +69,7 @@ export async function PUT(req, { params }) {
     blog.updatedBy = session.email || "";
 
     await blog.save();
+    await syncMediaUsageForBlog(blog);
     return NextResponse.json(blog);
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -86,6 +88,7 @@ export async function DELETE(req, { params }) {
     await connectDB();
     const blog = await Blog.findByIdAndDelete(id);
     if (!blog) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    await clearUsageForRef("blog", id);
     return NextResponse.json({ deleted: true });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });

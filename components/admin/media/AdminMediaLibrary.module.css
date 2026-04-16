@@ -1,0 +1,191 @@
+.headerSubtitle {
+  font-size: 12px;
+  color: #8c8c8c;
+  font-weight: 400;
+}
+
+.toolbar {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.toolbarLeft {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.selectControl {
+  width: 190px;
+}
+
+.searchInput {
+  width: 260px;
+}
+
+.bulkBar {
+  background: #f6f9ff;
+  border: 1px solid #dce7ff;
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+}
+
+.centerArea {
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mediaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.mediaCard {
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+}
+
+.mediaCardSelected {
+  border-color: #1677ff;
+  box-shadow: 0 0 0 1px #1677ff;
+}
+
+.selectionCheckbox {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+}
+
+.thumbWrap {
+  height: 140px;
+  background: #fafafa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.thumbImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pdfIcon {
+  font-size: 44px;
+  color: #ff4d4f;
+}
+
+.cardMeta {
+  padding: 10px;
+}
+
+.cardName {
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardInfo {
+  font-size: 11px;
+  color: #8c8c8c;
+}
+
+.tablePreview {
+  width: 56px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #fafafa;
+  border-radius: 6px;
+}
+
+.paginationWrap {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+}
+
+.uploadHint {
+  margin-bottom: 10px;
+  color: #8c8c8c;
+  font-size: 12px;
+}
+
+.drawerPreview {
+  height: 230px;
+  border: 1px solid #f0f0f0;
+  border-radius: 10px;
+  background: #fafafa;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.drawerPreviewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.drawerPdfIcon {
+  font-size: 70px;
+  color: #ff4d4f;
+}
+
+.drawerActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sizeRow {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.sizeName {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.sizeMeta {
+  font-size: 11px;
+  color: #8c8c8c;
+}
+
+@media (max-width: 768px) {
+  .searchInput,
+  .selectControl {
+    width: 100%;
+  }
+
+  .toolbar,
+  .toolbarLeft {
+    width: 100%;
+  }
+}

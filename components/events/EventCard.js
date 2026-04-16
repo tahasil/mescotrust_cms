@@ -1,6 +1,7 @@
 import Link from "next/link";
 import EventMeta from "./EventMeta";
 import { getEventImageSources } from "./eventDisplay";
+import MediaImage from "@/components/shared/MediaImage";
 
 /**
  * Event card (screenshot-style): image on top + content below.
@@ -31,22 +32,22 @@ export default function EventCard({ event }) {
         className="event-card-image-wrap"
       >
         {desktop ? (
-          <picture style={{ width: "100%", display: "block" }}>
-            {mobile && mobile !== desktop ? (
-              <source media="(max-width: 768px)" srcSet={mobile} />
-            ) : null}
-            <img
-              loading="lazy"
-              src={desktop}
-              alt={event.title || "Event"}
-              style={{
-                width: "100%",
-                height: 220,
-                objectFit: "cover",
-                display: "block",
-              }}
-            />
-          </picture>
+          <MediaImage
+            src={desktop}
+            mobileSrc={mobile && mobile !== desktop ? mobile : ""}
+            variant="large"
+            mobileVariant="mobile"
+            alt={event.title || "Event"}
+            width={960}
+            height={540}
+            sizes="(max-width: 576px) 100vw, (max-width: 992px) 50vw, 33vw"
+            imgStyle={{
+              width: "100%",
+              height: 220,
+              objectFit: "cover",
+              display: "block",
+            }}
+          />
         ) : (
           <div
             style={{

@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import Page from "@/models/Page";
 import { normalizeSlug } from "@/lib/slug";
 import { validateLayoutProps } from "@/lib/validateLayout";
+import { syncMediaUsageForPage } from "@/lib/media/usageTracker";
 
 export async function GET(req) {
   const session = await requireAuth(req);
@@ -63,6 +64,7 @@ export async function POST(req) {
       createdBy: session.email || "",
       updatedBy: session.email || "",
     });
+    await syncMediaUsageForPage(page);
     return NextResponse.json(page);
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });

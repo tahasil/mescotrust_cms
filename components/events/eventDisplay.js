@@ -1,4 +1,17 @@
-const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+﻿const MONTHS_SHORT = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 export function getEventImageSources(event) {
   const desktop = (event?.featuredImageDesktop || "").trim();
@@ -17,14 +30,14 @@ export function formatEventDateRange(startDate, endDate) {
   const a = formatEventDayDate(startDate);
   const b = formatEventDayDate(endDate);
   if (!a && !b) return "";
-  if (a && b && a !== b) return `${a} – ${b}`;
+  if (a && b && a !== b) return `${a} - ${b}`;
   return a || b;
 }
 
 export function formatEventDateTimeLine(event) {
   const datePart = formatEventDateRange(event?.startDate, event?.endDate);
   const timePart = (event?.time || "").trim();
-  if (datePart && timePart) return `${datePart} · ${timePart}`;
+  if (datePart && timePart) return `${datePart} | ${timePart}`;
   return datePart || timePart;
 }
 

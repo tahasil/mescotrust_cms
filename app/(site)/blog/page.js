@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { unstable_cache } from "next/cache";
 import { connectDB } from "@/lib/db";
 import Blog from "@/models/Blog";
@@ -7,6 +7,7 @@ import ThemeConfig from "@/models/ThemeConfig";
 import { getPageSeoMetadata } from "@/lib/seo";
 import { FullWidthBackground, MainTitle, PageContainer } from "@/styles/Theme";
 import BlogSidebarFull from "@/components/blog/BlogSidebarFull";
+import MediaImage from "@/components/shared/MediaImage";
 
 export const dynamic = "force-dynamic";
 
@@ -226,25 +227,22 @@ export default async function BlogListPage({ searchParams }) {
                   }}
                 >
                   {post.featuredImage ? (
-                    <picture>
-                      {post.featuredImageMobile && (
-                        <source
-                          media="(max-width: 768px)"
-                          srcSet={post.featuredImageMobile}
-                        />
-                      )}
-                      <img
-                        loading="lazy"
-                        src={post.featuredImage}
-                        alt={post.title}
-                        style={{
-                          width: "100%",
-                          height: "auto",
-                          objectFit: "contain",
-                          display: "block",
-                        }}
-                      />
-                    </picture>
+                    <MediaImage
+                      src={post.featuredImage}
+                      mobileSrc={post.featuredImageMobile}
+                      variant="large"
+                      mobileVariant="mobile"
+                      alt={post.title}
+                      width={1200}
+                      height={675}
+                      sizes="(max-width: 768px) 100vw, 380px"
+                      imgStyle={{
+                        width: "100%",
+                        height: "auto",
+                        objectFit: "contain",
+                        display: "block",
+                      }}
+                    />
                   ) : (
                     <div
                       style={{
@@ -340,7 +338,7 @@ export default async function BlogListPage({ searchParams }) {
                           gap: 6,
                         }}
                       >
-                        💬 Leave a Comment
+                        Leave a Comment
                       </Link>
                     )}
                     <span
@@ -443,3 +441,4 @@ export default async function BlogListPage({ searchParams }) {
     </FullWidthBackground>
   );
 }
+

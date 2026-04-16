@@ -17,6 +17,7 @@ import {
   formatEventDayDate,
 } from "@/components/events/eventDisplay";
 import { parseMarginTopBottomString } from "@/lib/manageSectionFields";
+import MediaImage from "@/components/shared/MediaImage";
 
 const SliderWrapper = styled.div`
   .carousel-shell {
@@ -474,19 +475,22 @@ export default function EventsSlider(props) {
                           <Col xs={24} md={24} lg={10}>
                             <div className="slide-image">
                               {desktop || mobile ? (
-                                <picture>
-                                  {mobile ? (
-                                    <source
-                                      media="(max-width: 992px)"
-                                      srcSet={mobile}
-                                    />
-                                  ) : null}
-                                  <img
-                                    loading="lazy"
-                                    src={desktop || mobile}
-                                    alt={ev.title || "Event"}
-                                  />
-                                </picture>
+                                <MediaImage
+                                  src={desktop || mobile}
+                                  mobileSrc={mobile || ""}
+                                  variant="desktop"
+                                  mobileVariant="mobile"
+                                  alt={ev.title || "Event"}
+                                  width={1280}
+                                  height={720}
+                                  sizes="(max-width: 992px) 100vw, 45vw"
+                                  imgStyle={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                    display: "block",
+                                  }}
+                                />
                               ) : (
                                 <span
                                   style={{

@@ -1,0 +1,24 @@
+import { NextResponse } from "next/server";
+import mongoose from "mongoose";
+import { requireAuth } from "@/lib/apiAuth";
+import { connectDB } from "@/lib/db";
+import MediaJob from "@/models/MediaJob";
+
+export async function GET(req, { params }) {
+  const session = await requireAuth(req);
+  if (session instanceof NextResponse) return session;
+
+  const id = params.jobId;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return NextResponse.json({ error: "Invalid jobId" }, { status: 400 });
+  }
+
+  try {
+    await connectDB();
+    const job = await MediaJob.findById(id).lean();
+    if (!job) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json(job);
+  } catch (err) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}

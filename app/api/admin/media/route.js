@@ -1,55 +1,19 @@
-import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
+﻿import { NextResponse } from "next/server";
 import path from "path";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Media from "@/models/Media";
+import { ALLOWED_UPLOAD_MIME_TYPES } from "@/lib/media/constants";
+import { getMediaSettings } from "@/lib/media/settings";
+import { optimizeAndStoreUpload } from "@/lib/media/processor";
 
-const ALLOWED_TYPES = ["image/webp", "application/pdf"];
-const ALLOWED_EXTENSIONS = [".webp", ".pdf"];
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
-const MAX_DIMENSION = 8192; // 8192px max width or height
-
-function getImageDimensions(buffer, mimeType) {
-  try {
-    if (mimeType === "image/png" && buffer.length > 24) {
-      return { width: buffer.readUInt32BE(16), height: buffer.readUInt32BE(20) };
-    }
-    if ((mimeType === "image/jpeg" || mimeType === "image/jpg") && buffer.length > 2) {
-      let offset = 2;
-      while (offset < buffer.length - 1) {
-        if (buffer[offset] !== 0xff) break;
-        const marker = buffer[offset + 1];
-        if (marker === 0xc0 || marker === 0xc2) {
-          if (offset + 9 < buffer.length) {
-            return { height: buffer.readUInt16BE(offset + 5), width: buffer.readUInt16BE(offset + 7) };
-          }
-        }
-        if (marker === 0xd9 || marker === 0xda) break;
-        const len = buffer.readUInt16BE(offset + 2);
-        offset += 2 + len;
-      }
-    }
-    if (mimeType === "image/gif" && buffer.length > 10) {
-      return { width: buffer.readUInt16LE(6), height: buffer.readUInt16LE(8) };
-    }
-    if (mimeType === "image/webp" && buffer.length > 30) {
-      const riff = buffer.toString("ascii", 0, 4);
-      if (riff === "RIFF") {
-        const vp8 = buffer.toString("ascii", 12, 16);
-        if (vp8 === "VP8 " && buffer.length > 29) {
-          return { width: buffer.readUInt16LE(26) & 0x3fff, height: buffer.readUInt16LE(28) & 0x3fff };
-        }
-        if (vp8 === "VP8L" && buffer.length > 25) {
-          const bits = buffer.readUInt32LE(21);
-          return { width: (bits & 0x3fff) + 1, height: ((bits >> 14) & 0x3fff) + 1 };
-        }
-      }
-    }
-  } catch {
-    // parsing failed — return zeros
-  }
-  return { width: 0, height: 0 };
+function sanitizeName(name) {
+  return String(name || "upload")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9._-]/g, "")
+    .replace(/-+/g, "-");
 }
 
 export async function GET(req) {
@@ -62,16 +26,83 @@ export async function GET(req) {
     const page = Math.max(1, Number(searchParams.get("page")) || 1);
     const limit = Math.min(50, Math.max(1, Number(searchParams.get("limit")) || 20));
     const skip = (page - 1) * limit;
-    const search = (searchParams.get("search") || "").trim();
-    const filter = search
-      ? { filename: { $regex: search, $options: "i" } }
-      : {};
+    const q = (searchParams.get("q") || searchParams.get("search") || "").trim();
+    const status = (searchParams.get("status") || "").trim();
+    const type = (searchParams.get("type") || "").trim();
+    const month = (searchParams.get("month") || "").trim();
+    const includeFacets = String(searchParams.get("includeFacets") || "false") === "true";
 
-    const [items, total] = await Promise.all([
+    const filter = {};
+    if (q) {
+      filter.$or = [
+        { title: { $regex: q, $options: "i" } },
+        { fileName: { $regex: q, $options: "i" } },
+        { filename: { $regex: q, $options: "i" } },
+        { originalName: { $regex: q, $options: "i" } },
+        { altText: { $regex: q, $options: "i" } },
+      ];
+    }
+    if (status) filter.status = status;
+    if (type === "image") filter.mimeType = { $regex: "^image/" };
+    if (type === "document") filter.mimeType = { $not: /^image\// };
+    if (month) {
+      const match = month.match(/^(\d{4})-(\d{2})$/);
+      if (!match) {
+        return NextResponse.json(
+          { error: "Invalid month format. Expected YYYY-MM" },
+          { status: 400 },
+        );
+      }
+      const year = Number(match[1]);
+      const monthIndex = Number(match[2]) - 1;
+      if (monthIndex < 0 || monthIndex > 11) {
+        return NextResponse.json(
+          { error: "Invalid month format. Expected YYYY-MM" },
+          { status: 400 },
+        );
+      }
+      const from = new Date(Date.UTC(year, monthIndex, 1, 0, 0, 0, 0));
+      const to = new Date(Date.UTC(year, monthIndex + 1, 1, 0, 0, 0, 0));
+      filter.createdAt = { $gte: from, $lt: to };
+    }
+
+    const [items, total, monthBuckets] = await Promise.all([
       Media.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
       Media.countDocuments(filter),
+      includeFacets
+        ? Media.aggregate([
+            {
+              $project: {
+                ym: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+              },
+            },
+            { $group: { _id: "$ym", count: { $sum: 1 } } },
+            { $sort: { _id: -1 } },
+            { $limit: 48 },
+          ])
+        : Promise.resolve([]),
     ]);
-    return NextResponse.json({ items, total, page, totalPages: Math.ceil(total / limit) });
+
+    const facets = includeFacets
+      ? {
+          months: (monthBuckets || []).map((row) => ({
+            value: row._id,
+            count: row.count || 0,
+          })),
+        }
+      : undefined;
+
+    return NextResponse.json({
+      items: items.map((item) => ({
+        ...item,
+        alt: item.altText || item.alt || "",
+        url: item.url || item.originalUrl || "",
+      })),
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+      facets,
+    });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
@@ -82,80 +113,92 @@ export async function POST(req) {
   if (session instanceof NextResponse) return session;
 
   try {
+    await connectDB();
+    const settings = await getMediaSettings();
+
     const formData = await req.formData();
     const file = formData.get("file");
-    const alt = formData.get("alt") || "";
+    const altText = String(formData.get("altText") || formData.get("alt") || "");
+    const title = String(formData.get("title") || "");
 
     if (!file || typeof file === "string") {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    const ext = path.extname(file.name).toLowerCase();
-    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+    const mimeType = String(file.type || "").toLowerCase();
+    if (!ALLOWED_UPLOAD_MIME_TYPES.includes(mimeType)) {
       return NextResponse.json(
-        { error: `Invalid file type. Allowed: ${ALLOWED_EXTENSIONS.join(", ")}` },
-        { status: 400 }
+        { error: `Unsupported file type: ${mimeType}` },
+        { status: 400 },
       );
     }
 
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    const maxUploadBytes = Number(settings.maxUploadMB || 20) * 1024 * 1024;
+    if (file.size > maxUploadBytes) {
       return NextResponse.json(
-        { error: `Invalid MIME type "${file.type}". Allowed: ${ALLOWED_TYPES.join(", ")}` },
-        { status: 400 }
+        { error: `File too large. Max size: ${settings.maxUploadMB || 20}MB` },
+        { status: 400 },
       );
     }
 
-    if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json(
-        { error: `File too large. Max size: ${MAX_FILE_SIZE / 1024 / 1024}MB` },
-        { status: 400 }
-      );
-    }
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const ext = path.extname(String(file.name || "")).toLowerCase();
+    const safeName = sanitizeName(file.name) || `upload${ext || ".bin"}`;
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    const isImage = file.type.startsWith("image/");
-    const dims = !isImage ? { width: 0, height: 0 } : getImageDimensions(buffer, file.type);
-    if (isImage && (dims.width > MAX_DIMENSION || dims.height > MAX_DIMENSION)) {
-      return NextResponse.json(
-        { error: `Image too large: ${dims.width}x${dims.height}px. Max ${MAX_DIMENSION}x${MAX_DIMENSION}px.` },
-        { status: 400 }
-      );
-    }
-
-    const timestamp = Date.now();
-    const safeName = file.name
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, "-")
-      .replace(/[^a-z0-9._-]/g, "")
-      .replace(/-+/g, "-");
-    const filename = `${timestamp}_${safeName}`;
-
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadDir, { recursive: true });
-
-    const filePath = path.join(uploadDir, filename);
-    await writeFile(filePath, buffer);
-
-    const url = `/uploads/${filename}`;
-
-    await connectDB();
-    const media = await Media.create({
-      filename,
-      originalName: file.name,
-      mimeType: file.type,
-      size: file.size,
-      url,
-      alt,
-      width: dims.width,
-      height: dims.height,
+    const draft = await Media.create({
+      filename: `pending-${Date.now()}`,
+      fileName: `pending-${Date.now()}`,
+      originalName: file.name || safeName,
+      mimeType,
+      size: buffer.length,
+      url: "/uploads/pending",
+      originalUrl: "/uploads/pending",
+      status: "processing",
+      alt: altText,
+      altText,
+      title: title || safeName,
       uploadedBy: session.email || session.name || "",
+      createdBy: session.email || session.name || "",
+      updatedBy: session.email || session.name || "",
     });
 
-    return NextResponse.json(media, { status: 201 });
+    const storageProvider = process.env.MEDIA_STORAGE_PROVIDER || "local";
+    const optimized = await optimizeAndStoreUpload({
+      buffer,
+      mimeType,
+      originalName: safeName,
+      mediaId: String(draft._id),
+      settings,
+      storageProvider,
+    });
+
+    draft.filename = optimized.filename || draft.filename;
+    draft.fileName = optimized.fileName || draft.fileName || draft.filename;
+    draft.originalName = file.name || draft.originalName;
+    draft.mimeType = optimized.mimeType || mimeType;
+    draft.ext = optimized.ext || ext;
+    draft.storageProvider = optimized.storageProvider || storageProvider;
+    draft.storageKey = optimized.storageKey || draft.storageKey || "";
+    draft.publicUrl = optimized.publicUrl || `/media/${draft._id}`;
+    draft.url = optimized.url || draft.url;
+    draft.originalUrl = optimized.originalUrl || draft.originalUrl || draft.url;
+    draft.webpUrl = optimized.webpUrl || "";
+    draft.avifUrl = optimized.avifUrl || "";
+    draft.width = optimized.width || 0;
+    draft.height = optimized.height || 0;
+    draft.size = optimized.size || buffer.length;
+    draft.originalSize = optimized.originalSize || buffer.length;
+    draft.optimizedSize = optimized.optimizedSize || buffer.length;
+    draft.savingsPercentage = optimized.savingsPercentage || 0;
+    draft.generatedSizes = optimized.generatedSizes || {};
+    draft.status = optimized.status || "ready";
+    draft.errorMessage = optimized.errorMessage || "";
+    draft.updatedBy = session.email || session.name || "";
+    await draft.save();
+
+    return NextResponse.json(draft, { status: 201 });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+

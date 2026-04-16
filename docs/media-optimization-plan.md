@@ -459,42 +459,47 @@ models/
 
 ---
 
-## Current Implementation Status (As-Is Recheck)
+## Current Implementation Status (Rechecked 2026-04-16)
 
-### Completed Already
+### Implemented
 
-- Admin `Media` page exists (`/admin/media`) with:
-  - upload
-  - list/search/pagination
-  - edit alt text
-  - copy URL
-  - delete
-- Media APIs exist:
+- Extended `Media` schema with optimization metadata + backward compatibility fields.
+- Added `MediaSettings` and `MediaJob` models.
+- Added storage adapter layer (`local` active, `s3` stub).
+- Added Sharp-based processing pipeline with responsive variants and WebP/AVIF generation.
+- Added stable media delivery endpoint: `GET /media/[id]`.
+- Added/updated admin media APIs:
   - `GET/POST /api/admin/media`
   - `GET/PUT/DELETE /api/admin/media/[id]`
-- Basic `Media` model exists.
+  - `POST /api/admin/media/[id]/replace`
+  - `GET/PUT /api/admin/media/settings`
+  - `GET/POST /api/admin/media/jobs`
+  - `GET /api/admin/media/jobs/[jobId]`
+  - `POST /api/admin/media/jobs/[jobId]/cancel`
+  - `GET /api/admin/media/usage`
+- Added admin media pages:
+  - `/admin/media`
+  - `/admin/media/bulk-optimize`
+  - `/admin/media/settings`
+- Updated admin sidebar to show Media submenu structure.
+- Implemented safe delete block + force delete flow in library UI.
+- Implemented usage tracking sync hooks for:
+  - blogs
+  - events
+  - pages (layout scan)
+- Added shared `MediaImage` helper and integrated into core frontend surfaces:
+  - blog listing/detail/sidebar
+  - event cards/detail/sidebar
+  - events slider
+- Synced docs updates in:
+  - `docs/API.md`
+  - `docs/TECHNICAL_DESIGN.md`
 
-### Partially Done
+### Deferred / Next Iteration
 
-- Sidebar has top-level `Media` menu, but required sub-routes are not added yet.
-- Upload validation exists, but format support and optimization pipeline are not aligned with final architecture.
-
-### Not Started
-
-- Sharp-based optimization service.
-- Variant generation (thumbnail/medium/large/mobile/desktop).
-- `MediaSettings` and `MediaJobs` models.
-- Bulk optimize admin page + job progress APIs.
-- Stable media delivery endpoint `/media/[id]`.
-- Replace-by-media-id flow.
-- Usage tracking + safe delete block/force flow.
-- Shared `MediaImage` integration across blogs/events/page-builder.
-
-### Checklist Recheck Summary
-
-- Decision/Architecture checklist: approved where marked `[x]`.
-- Pre-implementation gate: pending (dev restart + branch check + final go-ahead).
-- Execution checkpoints: all pending (implementation not started yet).
+- Dedicated media picker drawer/modal for blog/event/page-builder forms (current flow supports copy/select via media library URL).
+- Full-page-builder-wide image rendering migration beyond currently integrated core blog/events surfaces.
+- Persistent distributed queue (current job runner is in-process queue).
 
 ---
 
@@ -502,50 +507,50 @@ models/
 
 ### Checkpoint 1: Foundation
 
-- [ ] Schemas created and validated.
-- [ ] Storage adapter wired (local default).
-- [ ] Sharp media service basic pipeline working.
-- [ ] Model docs updated (`docs/TECHNICAL_DESIGN.md` draft update prepared).
+- [x] Schemas created and validated.
+- [x] Storage adapter wired (local default).
+- [x] Sharp media service basic pipeline working.
+- [x] Model docs updated (`docs/TECHNICAL_DESIGN.md`).
 
 ### Checkpoint 2: Admin API
 
-- [ ] Upload/list/detail/update/delete APIs working.
-- [ ] Replace API keeps stable media URL.
-- [ ] Usage tracking API returns real references.
-- [ ] Each admin API route validated for `requireAuth(req)` + `connectDB()` usage.
-- [ ] Role restrictions validated (Admin vs Editor paths).
+- [x] Upload/list/detail/update/delete APIs working.
+- [x] Replace API keeps stable media URL.
+- [x] Usage tracking API returns real references.
+- [x] Each admin API route validated for `requireAuth(req)` + `connectDB()` usage.
+- [x] Role restrictions validated (Admin vs Editor paths).
 
 ### Checkpoint 3: Admin UI
 
-- [ ] Library page complete with search/filter/actions.
-- [ ] Settings page persists and reloads correctly.
-- [ ] Bulk optimize page shows live progress.
-- [ ] Sidebar submenu structure complete (`Library`, `Bulk Optimize`, `Settings`).
-- [ ] Pages exist under `app/admin/(authenticated)/media/...`.
+- [x] Library page complete with search/filter/actions.
+- [x] Settings page persists and reloads correctly.
+- [x] Bulk optimize page shows live progress.
+- [x] Sidebar submenu structure complete (`Library`, `Bulk Optimize`, `Settings`).
+- [x] Pages exist under `app/admin/(authenticated)/media/...`.
 
 ### Checkpoint 4: Delivery Integration
 
-- [ ] `/media/:id` endpoint serving optimized variants.
-- [ ] Shared `MediaImage` integrated in blogs/events/sliders/builder.
-- [ ] Lazy loading and responsive sizes verified.
-- [ ] Backward compatibility for legacy `/uploads/...` references verified.
+- [x] `/media/:id` endpoint serving optimized variants.
+- [ ] Shared `MediaImage` integrated in blogs/events/sliders/builder. (core blogs/events + events slider done; builder-wide rollout pending)
+- [x] Lazy loading and responsive sizes verified for integrated surfaces.
+- [x] Backward compatibility for legacy `/uploads/...` references verified.
 
 ### Checkpoint 5: Migration and Hardening
 
-- [ ] Old media backfill completed.
-- [ ] Missing formats/sizes regenerated.
-- [ ] Delete block/force flow validated.
+- [ ] Old media backfill completed. (covered for existing `Media` records via bulk jobs; filesystem-only legacy ingestion pending script)
+- [x] Missing formats/sizes regenerated.
+- [x] Delete block/force flow validated.
 - [ ] Backup/rollback test completed on migration flow.
 
 ### Checkpoint 6: QA and Perf
 
-- [ ] No broken image references.
-- [ ] Core pages tested on desktop/mobile.
+- [x] No broken image references on integrated surfaces.
+- [x] Core pages tested on desktop/mobile (blog/events + slider flows).
 - [ ] Performance benchmark recorded before/after.
 - [ ] `npm run lint` passed.
 - [ ] `npm run build` passed.
-- [ ] `docs/API.md` updated with final endpoint contracts.
-- [ ] `docs/TECHNICAL_DESIGN.md` updated with final schemas.
+- [x] `docs/API.md` updated with final endpoint contracts.
+- [x] `docs/TECHNICAL_DESIGN.md` updated with final schemas.
 
 ---
 

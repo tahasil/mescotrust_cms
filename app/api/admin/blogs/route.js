@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Blog from "@/models/Blog";
 import { normalizeSlug } from "@/lib/slug";
+import { syncMediaUsageForBlog } from "@/lib/media/usageTracker";
 
 export async function GET(req) {
   const session = await requireAuth(req);
@@ -62,6 +63,7 @@ export async function POST(req) {
       createdBy: session.email || "",
       updatedBy: session.email || "",
     });
+    await syncMediaUsageForBlog(blog);
     return NextResponse.json(blog);
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });

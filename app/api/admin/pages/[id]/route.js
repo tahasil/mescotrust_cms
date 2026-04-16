@@ -6,6 +6,7 @@ import Page from "@/models/Page";
 import Menu from "@/models/Menu";
 import { normalizeSlug } from "@/lib/slug";
 import { validateLayoutProps } from "@/lib/validateLayout";
+import { clearUsageForRef, syncMediaUsageForPage } from "@/lib/media/usageTracker";
 
 /**
  * Recursively find and remove a menu item by pageSlug.
@@ -155,6 +156,7 @@ export async function PUT(req, { params }) {
     page.updatedBy = session.email || "";
 
     await page.save();
+    await syncMediaUsageForPage(page);
 
     // Auto-sync menus: update slug and move item if parent folder changed
     if (oldSlug && page.slug !== oldSlug) {
@@ -189,6 +191,7 @@ export async function DELETE(req, { params }) {
     await connectDB();
     const page = await Page.findByIdAndDelete(id);
     if (!page) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    await clearUsageForRef("page", id);
     return NextResponse.json({ deleted: true });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });

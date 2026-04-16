@@ -120,11 +120,33 @@ const menuItems = [
   {
     key: "/admin/media",
     icon: <AppstoreOutlined />,
-    label: (
-      <Link href="/admin/media" style={linkStyle}>
-        Media
-      </Link>
-    ),
+    label: "Media",
+    children: [
+      {
+        key: "/admin/media",
+        label: (
+          <Link href="/admin/media" style={linkStyle}>
+            Library
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/media/bulk-optimize",
+        label: (
+          <Link href="/admin/media/bulk-optimize" style={linkStyle}>
+            Bulk Optimize
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/media/settings",
+        label: (
+          <Link href="/admin/media/settings" style={linkStyle}>
+            Settings
+          </Link>
+        ),
+      },
+    ],
   },
   {
     key: "/admin/menus",

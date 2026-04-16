@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 import nextDynamic from "next/dynamic";
 import { cache } from "react";
 import { connectDB } from "@/lib/db";
@@ -11,6 +11,7 @@ import SafeHtml from "@/components/cms/SafeHtml";
 import { FullWidthBackground, MainTitle, PageContainer } from "@/styles/Theme";
 
 import BlogSidebarFull from "@/components/blog/BlogSidebarFull";
+import MediaImage from "@/components/shared/MediaImage";
 const BlogComments = nextDynamic(
   () => import("@/components/blog/BlogComments"),
   { ssr: false },
@@ -171,7 +172,7 @@ async function PostContent({ slug }) {
                 }}
               >
                 {post.publishedAt && (
-                  <span>📅 {formatDate(post.publishedAt)}</span>
+                  <span>Published: {formatDate(post.publishedAt)}</span>
                 )}
                 {post.author && <span>By {post.author}</span>}
               </div>
@@ -186,30 +187,27 @@ async function PostContent({ slug }) {
                     maxHeight: 400,
                   }}
                 >
-                  <picture style={{ display: "block", textAlign: "left" }}>
-                    {post.featuredImageMobile && (
-                      <source
-                        media="(max-width: 768px)"
-                        srcSet={post.featuredImageMobile}
-                      />
-                    )}
-                    <img
-                      className="blog-detail-banner-img"
-                      src={post.featuredImage}
-                      alt={post.title}
-                      style={{
-                        width: "auto",
-                        maxWidth: "100%",
-                        height: "auto",
-                        maxHeight: 400,
-                        objectFit: "contain",
-                        objectPosition: "left top",
-                        display: "block",
-                        margin: 0,
-                      }}
-                      loading="lazy"
-                    />
-                  </picture>
+                  <MediaImage
+                    src={post.featuredImage}
+                    mobileSrc={post.featuredImageMobile}
+                    variant="desktop"
+                    mobileVariant="mobile"
+                    alt={post.title}
+                    imgClassName="blog-detail-banner-img"
+                    width={1440}
+                    height={810}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 860px"
+                    imgStyle={{
+                      width: "auto",
+                      maxWidth: "100%",
+                      height: "auto",
+                      maxHeight: 400,
+                      objectFit: "contain",
+                      objectPosition: "left top",
+                      display: "block",
+                      margin: 0,
+                    }}
+                  />
                 </figure>
               )}
 
@@ -313,3 +311,4 @@ async function PostContent({ slug }) {
 export default function BlogPostPage({ params }) {
   return <PostContent slug={params.slug} />;
 }
+

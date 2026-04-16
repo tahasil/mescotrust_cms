@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import styled from "styled-components";
 import Link from "next/link";
+import MediaImage from "@/components/shared/MediaImage";
 
 const SidebarWrap = styled.aside`
   @media (max-width: 992px) {
@@ -112,7 +113,15 @@ export default function BlogSidebar({ currentSlug, commentCounts }) {
           <RecentPostItem key={post._id}>
             {post.featuredImage && (
               <Link href={`/blog/${post.slug}`} className="rp-image">
-                <img loading="lazy" src={post.featuredImage} alt={post.title} />
+                <MediaImage
+                  src={post.featuredImage}
+                  variant="thumbnail"
+                  alt={post.title}
+                  width={160}
+                  height={140}
+                  sizes="80px"
+                  imgStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                />
               </Link>
             )}
             <div className="rp-body">

@@ -1,4 +1,4 @@
-# Technical Design Document
+﻿# Technical Design Document
 
 Low-level reference for **data models**, **API endpoints**, and **database** usage in the Mesco Trust CMS. For high-level API usage and conventions, see [API.md](./API.md).
 
@@ -89,7 +89,7 @@ Metadata for site-level components (Header, Footer, HomeHero, etc.). Component I
 | global     | Boolean| no       | If true, rendered on every page (e.g. header/footer) |
 | order      | Number | no       | Render order (lower = first) |
 | position   | String | no       | `"before"` \| `"after"` (above/below main content) |
-| enabled    | Boolean| no       | If false, hidden from “Add Component” and lists |
+| enabled    | Boolean| no       | If false, hidden from â€œAdd Componentâ€ and lists |
 | createdAt  | Date   | auto     | Timestamps |
 | updatedAt  | Date   | auto     | Timestamps |
 
@@ -98,7 +98,7 @@ Metadata for site-level components (Header, Footer, HomeHero, etc.). Component I
 **Where `sitecomponentmetas` is used:**
 - **Admin:** `GET/POST /api/admin/site-components` (list/create), `GET/PUT/DELETE /api/admin/site-components/[id]` (get/update/delete meta and files).
 - **Public API:** `GET /api/public/site-components` returns `{ before, after }` from this collection (global components in render order).
-- **Server (SSR):** `lib/layoutData.js` → `getLayoutData()` reads `SiteComponentMeta` for `globalBefore` / `globalAfter`; the public layout uses this to render global components (no client-side call to the public API).
+- **Server (SSR):** `lib/layoutData.js` â†’ `getLayoutData()` reads `SiteComponentMeta` for `globalBefore` / `globalAfter`; the public layout uses this to render global components (no client-side call to the public API).
 
 ---
 
@@ -197,21 +197,70 @@ Metadata for site-level components (Header, Footer, HomeHero, etc.). Component I
 **File:** `models/Media.js`  
 **Collection:** `media`
 
-| Field       | Type   | Required | Description |
+| Field | Type | Required | Description |
 |------------|--------|----------|-------------|
-| filename   | String | yes      | Stored filename |
-| originalName| String| yes      | Original upload name |
-| mimeType   | String | yes      | MIME type |
-| size       | Number | yes      | Size in bytes |
-| url        | String | yes      | Public URL path |
-| alt        | String | no       | Alt text |
-| width      | Number | no       | Image width (0 if N/A) |
-| height     | Number | no       | Image height (0 if N/A) |
-| uploadedBy | String | no       | User identifier |
-| createdAt  | Date   | auto     | Timestamps |
-| updatedAt  | Date   | auto     | Timestamps |
+| filename / fileName | String | yes | Stored filename (legacy + normalized) |
+| originalName | String | yes | Original upload name |
+| mimeType | String | yes | MIME type |
+| size / originalSize | Number | yes | Original file size in bytes |
+| optimizedSize | Number | no | Best optimized variant size |
+| savingsPercentage | Number | no | Optimization savings percentage |
+| url | String | yes | Current default image URL (usually desktop fallback) |
+| publicUrl | String | no | Stable media URL (`/media/:id`) |
+| originalUrl | String | no | Original upload URL |
+| webpUrl | String | no | WebP URL |
+| avifUrl | String | no | AVIF URL |
+| generatedSizes | Object | no | Variant map (`thumbnail`, `medium`, `large`, `mobile`, `desktop`) |
+| alt / altText | String | no | Alt text (legacy + normalized) |
+| width | Number | no | Width |
+| height | Number | no | Height |
+| storageProvider | String | no | `local` (active) or future provider |
+| storageKey | String | no | Provider file key/path |
+| status | String | no | `processing` \| `ready` \| `failed` |
+| usedIn | Array | no | Where-used references (`blog`, `event`, `page`, etc.) |
+| uploadedBy / createdBy / updatedBy | String | no | Audit fields |
+| createdAt | Date | auto | Timestamps |
+| updatedAt | Date | auto | Timestamps |
 
-**Indexes:** `{ createdAt: -1 }`
+**Indexes:** `{ createdAt: -1 }`, `{ status: 1 }`, `{ "usedIn.refId": 1, "usedIn.type": 1 }`, text index on `title`, `fileName`, `altText`
+
+### 2.8.1 MediaSettings
+
+**File:** `models/MediaSettings.js`  
+**Collection:** `mediasettings`
+
+Single settings document keyed by `settingsKey: "default"`.
+
+| Field | Type | Description |
+|------|------|-------------|
+| compressionMode | String | `lossless` \| `glossy` \| `lossy` |
+| quality | Number | Quality value (40-100) |
+| enableWebP | Boolean | Generate WebP variants |
+| enableAVIF | Boolean | Generate AVIF variants |
+| enableLazyLoad | Boolean | Frontend lazy loading toggle |
+| cropMode | String | `none` \| `cover` \| `contain` |
+| widths | Object | Variant widths (thumbnail/medium/large/mobile/desktop) |
+| webpEffort | Number | WebP encoding effort |
+| avifEffort | Number | AVIF encoding effort |
+| maxUploadMB | Number | Max upload size in MB |
+
+### 2.8.2 MediaJob
+
+**File:** `models/MediaJob.js`  
+**Collection:** `mediajobs`
+
+Tracks background bulk optimization jobs.
+
+| Field | Type | Description |
+|------|------|-------------|
+| jobType | String | `bulk_optimize` \| `regenerate_sizes` \| `convert_formats` |
+| status | String | `queued` \| `running` \| `completed` \| `failed` \| `cancelled` |
+| total / processed | Number | Progress counters |
+| success / failed / skipped | Number | Result counters |
+| errors | Array | Last errors (`mediaId`, `reason`) |
+| startedAt / endedAt | Date | Job lifecycle timestamps |
+| createdBy | String | Actor |
+| createdAt / updatedAt | Date | Timestamps |
 
 ---
 
@@ -290,7 +339,7 @@ Single-document (or keyed) theme; typically queried by `themeKey: "default"`.
 
 - **Identity:** `themeKey`, `siteTitle`, `tagline`, `logoType`, `logoLightUrl`, `logoMobileUrl`, `logoDarkUrl`, `logoImageUrl`, `faviconUrl`, `footerCopyrightText`
 - **Colors:** `primaryColor`, `secondaryColor`, `bodyBackground`, `sectionBackground`, `cardBackground`, `headerBackground`, `footerBackground`, `headingColor`, `paragraphColor`, `linkColor`, `hoverColor`, `mutedTextColor`, `borderColor`, `dividerColor`, `inputBorderColor`, `colors[]` (name/value), `themePalette` (Mixed)
-- **Typography:** `headingFont`, `bodyFont`, `buttonFont`, `baseFontSize`, `h1Size`–`h6Size`, `lineHeight`, `letterSpacing`, font weights, `googleFonts[]` (family + weights), `customFontUrl`; legacy: `fontFamily`, `fontSize`, `headingFontFamily`, etc.
+- **Typography:** `headingFont`, `bodyFont`, `buttonFont`, `baseFontSize`, `h1Size`â€“`h6Size`, `lineHeight`, `letterSpacing`, font weights, `googleFonts[]` (family + weights), `customFontUrl`; legacy: `fontFamily`, `fontSize`, `headingFontFamily`, etc.
 - **Border/Shadow:** `buttonRadius`, `cardRadius`, `inputRadius`, `cardShadow`, `buttonShadow`
 - **Header:** `headerLayout` (default/center/split), `headerSticky`, `headerTransparent`, volunteer/donate labels and hrefs, icon URLs, color keys, `megaMenu`, `dropdownStyle`, `mobileMenuStyle`
 - **Footer:** `footerLogoUrl`, address/email/phone, column links, `footerBgColorKey`, `footerBackgroundImageUrl`, `footerTextColorKey`, `footerCopyrightBarColorKey`, `footerColumnsCount`, `footerLayoutStyle`, `footerSocialIcons`
@@ -330,6 +379,7 @@ Base URL: `/api`. Auth: public (no auth), admin (JWT via NextAuth + `requireAuth
 | GET | `/api/theme/home-hero` | Theme home-hero slice |
 | GET | `/api/theme/marquee` | Theme marquee slice |
 | POST | `/api/contact` | Submit contact form (rate-limited) |
+| GET | `/media/[id]` | Stable media delivery (supports `size` and `format` query params) |
 | POST | `/api/payment/initiate` | Create donation order, encrypt & return CCAvenue form data |
 | POST | `/api/payment/callback` | CCAvenue posts encrypted response here after payment |
 | GET | `/api/payment/donor-lookup` | Auto-fill: lookup previous donor by email or mobile |
@@ -354,6 +404,12 @@ Base URL: `/api`. Auth: public (no auth), admin (JWT via NextAuth + `requireAuth
 | GET, PUT, DELETE | `/api/admin/site-components/[id]` | Get, update, delete site component meta (DELETE also removes file and registry entry) |
 | GET, POST | `/api/admin/media` | List, upload media |
 | GET, PUT, DELETE | `/api/admin/media/[id]` | Get, update, delete media |
+| POST | `/api/admin/media/[id]/replace` | Replace media file for same media ID |
+| GET | `/api/admin/media/usage` | Media where-used lookup |
+| GET, PUT | `/api/admin/media/settings` | Get/update optimization settings |
+| GET, POST | `/api/admin/media/jobs` | List/start bulk optimization jobs |
+| GET | `/api/admin/media/jobs/[jobId]` | Get job progress |
+| POST | `/api/admin/media/jobs/[jobId]/cancel` | Cancel job |
 | GET, POST | `/api/admin/menus` | List, create menus |
 | GET, PUT, DELETE | `/api/admin/menus/[name]` | Get, update, delete menu by name |
 | GET | `/api/admin/contacts` | List contact submissions |
@@ -383,7 +439,7 @@ Base URL: `/api`. Auth: public (no auth), admin (JWT via NextAuth + `requireAuth
 ### 4.1 Environment Variables
 
 ```bash
-CCAVENUE_MERCHANT_ID=        # From CCAvenue M.A.R.S → Settings → API Keys
+CCAVENUE_MERCHANT_ID=        # From CCAvenue M.A.R.S â†’ Settings â†’ API Keys
 CCAVENUE_ACCESS_CODE=        # Uppercase alphanumeric
 CCAVENUE_WORKING_KEY=        # Uppercase alphanumeric (for AES encryption)
 CCAVENUE_GATEWAY_URL=https://test.ccavenue.com/transaction/transaction.do  # Test
@@ -394,38 +450,38 @@ CCAVENUE_GATEWAY_URL=https://test.ccavenue.com/transaction/transaction.do  # Tes
 
 ```
 1. USER FILLS FORM (DonateNow site component)
-   ├─ Selects donation package OR enters custom amount
-   ├─ Fills donor details (name, email, mobile, PAN, address, etc.)
-   ├─ Selects Zakat (Yes/No) and Purpose of Donation
-   └─ Clicks "Donate Now"
+   â”œâ”€ Selects donation package OR enters custom amount
+   â”œâ”€ Fills donor details (name, email, mobile, PAN, address, etc.)
+   â”œâ”€ Selects Zakat (Yes/No) and Purpose of Donation
+   â””â”€ Clicks "Donate Now"
 
 2. INITIATE (POST /api/payment/initiate)
-   ├─ Validates required fields (amount, name, email, mobile)
-   ├─ Generates unique orderId: DON_<timestamp>_<random>
-   ├─ Saves Donation to DB with status: "pending"
-   ├─ Builds CCAvenue request string (key=value pairs joined by &)
-   ├─ Encrypts request using AES-128-CBC with MD5(working_key) as key
-   └─ Returns { encRequest, accessCode, gatewayUrl } to frontend
+   â”œâ”€ Validates required fields (amount, name, email, mobile)
+   â”œâ”€ Generates unique orderId: DON_<timestamp>_<random>
+   â”œâ”€ Saves Donation to DB with status: "pending"
+   â”œâ”€ Builds CCAvenue request string (key=value pairs joined by &)
+   â”œâ”€ Encrypts request using AES-128-CBC with MD5(working_key) as key
+   â””â”€ Returns { encRequest, accessCode, gatewayUrl } to frontend
 
 3. REDIRECT TO CCAVENUE (Frontend)
-   ├─ Creates hidden <form> with encRequest + access_code
-   ├─ form.action = CCAVENUE_GATEWAY_URL (command=initiateTransaction)
-   ├─ Auto-submits form → user lands on CCAvenue payment page
-   └─ User completes payment (card/netbanking/wallet/UPI)
+   â”œâ”€ Creates hidden <form> with encRequest + access_code
+   â”œâ”€ form.action = CCAVENUE_GATEWAY_URL (command=initiateTransaction)
+   â”œâ”€ Auto-submits form â†’ user lands on CCAvenue payment page
+   â””â”€ User completes payment (card/netbanking/wallet/UPI)
 
 4. CALLBACK (POST /api/payment/callback)
-   ├─ CCAvenue POSTs encrypted response (encResp)
-   ├─ Decrypt response using AES-128-CBC with same working_key
-   ├─ Parse key=value pairs from decrypted string
-   ├─ Extract: order_id, order_status, tracking_id, bank_ref_no, payment_mode
-   ├─ Find Donation by orderId, update:
-   │   ├─ status: "success" | "failed" | "aborted"
-   │   └─ payment: { trackingId, bankRefNo, paymentMode, cardName, statusCode, statusMsg }
-   └─ Redirect user to /donation/success or /donation/failed
+   â”œâ”€ CCAvenue POSTs encrypted response (encResp)
+   â”œâ”€ Decrypt response using AES-128-CBC with same working_key
+   â”œâ”€ Parse key=value pairs from decrypted string
+   â”œâ”€ Extract: order_id, order_status, tracking_id, bank_ref_no, payment_mode
+   â”œâ”€ Find Donation by orderId, update:
+   â”‚   â”œâ”€ status: "success" | "failed" | "aborted"
+   â”‚   â””â”€ payment: { trackingId, bankRefNo, paymentMode, cardName, statusCode, statusMsg }
+   â””â”€ Redirect user to /donation/success or /donation/failed
 
 5. QR CODE OPTION ("Donate Now with QR")
-   ├─ Shows UPI QR code image (uploaded via Media Library, URL in drawer)
-   └─ User scans QR → pays via UPI app (manual reconciliation)
+   â”œâ”€ Shows UPI QR code image (uploaded via Media Library, URL in drawer)
+   â””â”€ User scans QR â†’ pays via UPI app (manual reconciliation)
 ```
 
 ### 4.3 Encryption / Decryption
@@ -433,10 +489,10 @@ CCAVENUE_GATEWAY_URL=https://test.ccavenue.com/transaction/transaction.do  # Tes
 CCAvenue uses **AES-128-CBC** encryption:
 - **Key**: MD5 hash of `CCAVENUE_WORKING_KEY` (produces 16 bytes)
 - **IV**: First 16 bytes of the key (or provided by CCAvenue)
-- **Encrypt**: `crypto.createCipheriv('aes-128-cbc', md5Key, iv)` → hex output
-- **Decrypt**: `crypto.createDecipheriv('aes-128-cbc', md5Key, iv)` → plaintext
+- **Encrypt**: `crypto.createCipheriv('aes-128-cbc', md5Key, iv)` â†’ hex output
+- **Decrypt**: `crypto.createDecipheriv('aes-128-cbc', md5Key, iv)` â†’ plaintext
 
-Utility file: `lib/ccavenue.js` — exports `encrypt(data, workingKey)` and `decrypt(data, workingKey)`.
+Utility file: `lib/ccavenue.js` â€” exports `encrypt(data, workingKey)` and `decrypt(data, workingKey)`.
 
 ### 4.4 Auto-fill Donor Lookup
 
@@ -448,28 +504,28 @@ Utility file: `lib/ccavenue.js` — exports `encrypt(data, workingKey)` and `dec
 ### 4.5 Site Component: DonateNow
 
 Managed from Page Builder drawer (same pattern as ContactUs):
-- **Manage Section** — backgrounds, padding, margins
-- **Title & Colors** — section title, subtitle, colors for headings, button bg/text
-- **Donation Packages** — sortable list of { amount, description } items (left panel)
-- **Form Settings** — Purpose of Donation options (comma-separated), QR code image URL
-- **Contact/Address** — optional info displayed alongside form
+- **Manage Section** â€” backgrounds, padding, margins
+- **Title & Colors** â€” section title, subtitle, colors for headings, button bg/text
+- **Donation Packages** â€” sortable list of { amount, description } items (left panel)
+- **Form Settings** â€” Purpose of Donation options (comma-separated), QR code image URL
+- **Contact/Address** â€” optional info displayed alongside form
 
 ### 4.6 Admin: /admin/donations
 
 - Table view of all donations: orderId, donor name, email, amount, status, date
 - Filter by status (pending/success/failed/aborted)
 - Search by name/email
-- View button → modal with full donation + payment details
+- View button â†’ modal with full donation + payment details
 
 ---
 
 ## 5. Key Conventions
 
-- **Layout:** Pages use a **flat** array of blocks; no nested layout tree. Section blocks can store a `props.layout` array for inner blocks; structure is defined in the Component’s schema and validated on save.
+- **Layout:** Pages use a **flat** array of blocks; no nested layout tree. Section blocks can store a `props.layout` array for inner blocks; structure is defined in the Componentâ€™s schema and validated on save.
 - **componentId in layout:** Can be a MongoDB ObjectId (reference to `Component`) or a string site component ID (e.g. `"Header"`, `"HomeHero"`). Resolved at read time for `baseComponent` and props.
 - **Site components:** Implemented under `components/site/`; IDs in `lib/siteComponentRegistry.js` (`SITE_COMPONENT_IDS`). Metadata (global, order, position, enabled) in `SiteComponentMeta`. Creating/deleting via admin API also updates registry and component file.
-- **New site components:** Jab bhi naya site component add karein, **exact same pattern** follow karein jaise LatestEvents1 / HomeHero / Subscribe — 3-file folder, EditForm (load/save API), `EDITABLE_SITE_EDIT_FORMS` entry, aur admin edit page me snapshot + preview + refetch. Full checklist: [NEW_SITE_COMPONENT_CHECKLIST.md](./NEW_SITE_COMPONENT_CHECKLIST.md).
-- **Props schema:** Component and site-component edit forms use a shared schema format (see [API.md](./API.md) “Component Props Schema Format”). Site-specific drawer schemas (e.g. Header) live next to the component (e.g. `headerDrawerSchemas.js`).
+- **New site components:** Jab bhi naya site component add karein, **exact same pattern** follow karein jaise LatestEvents1 / HomeHero / Subscribe â€” 3-file folder, EditForm (load/save API), `EDITABLE_SITE_EDIT_FORMS` entry, aur admin edit page me snapshot + preview + refetch. Full checklist: [NEW_SITE_COMPONENT_CHECKLIST.md](./NEW_SITE_COMPONENT_CHECKLIST.md).
+- **Props schema:** Component and site-component edit forms use a shared schema format (see [API.md](./API.md) â€œComponent Props Schema Formatâ€). Site-specific drawer schemas (e.g. Header) live next to the component (e.g. `headerDrawerSchemas.js`).
 
 ---
 
@@ -479,13 +535,13 @@ Keep this doc in sync when you change low-level behaviour:
 
 | Change | Update in this doc |
 |--------|--------------------|
-| **New or changed Mongoose model** | §1 (if DB/connection changes), §2 — add or edit the model table (fields, types, indexes). |
-| **New or changed API route** | §3 — add/update the endpoint table (method, path, short description). If behaviour or contracts change, also update [API.md](./API.md). |
-| **New collection or index** | §1 (collections list), §2 (model section and indexes). |
-| **Layout block shape or validation** | §2.1 (Layout block table), §4 (Key conventions). |
-| **Theme config fields** | §2.10 — add new ThemeConfig fields or document new slices. |
-| **Site component registry / metadata** | §2.3, §4 (Site components bullet). |
-| **New site component add karna** | [NEW_SITE_COMPONENT_CHECKLIST.md](./NEW_SITE_COMPONENT_CHECKLIST.md) follow karein; §4 (New site components bullet); edit page me snapshot + preview + refetch add karein. |
+| **New or changed Mongoose model** | Â§1 (if DB/connection changes), Â§2 â€” add or edit the model table (fields, types, indexes). |
+| **New or changed API route** | Â§3 â€” add/update the endpoint table (method, path, short description). If behaviour or contracts change, also update [API.md](./API.md). |
+| **New collection or index** | Â§1 (collections list), Â§2 (model section and indexes). |
+| **Layout block shape or validation** | Â§2.1 (Layout block table), Â§4 (Key conventions). |
+| **Theme config fields** | Â§2.10 â€” add new ThemeConfig fields or document new slices. |
+| **Site component registry / metadata** | Â§2.3, Â§4 (Site components bullet). |
+| **New site component add karna** | [NEW_SITE_COMPONENT_CHECKLIST.md](./NEW_SITE_COMPONENT_CHECKLIST.md) follow karein; Â§4 (New site components bullet); edit page me snapshot + preview + refetch add karein. |
 
 After editing, bump the *Last updated* line at the end of the file.
 
@@ -493,12 +549,13 @@ After editing, bump the *Last updated* line at the end of the file.
 
 ## 7. Related Docs
 
-- [API.md](./API.md) — Path convention, auth, public vs admin, props schema format, layout contract, schema change handling, versioning.
-- [SITE_COMPONENTS_STORAGE.md](./SITE_COMPONENTS_STORAGE.md) — Site components storage and registry.
-- [NEW_SITE_COMPONENT_CHECKLIST.md](./NEW_SITE_COMPONENT_CHECKLIST.md) — **New site component create karte waqt follow karne wale steps** (LatestEvents1 jaisa structure + edit flow).
-- [COMPONENT_PLATFORM.md](./COMPONENT_PLATFORM.md) — Page builder and component platform.
-- [PERMISSIONS.md](./PERMISSIONS.md) — Roles and permissions.
+- [API.md](./API.md) â€” Path convention, auth, public vs admin, props schema format, layout contract, schema change handling, versioning.
+- [SITE_COMPONENTS_STORAGE.md](./SITE_COMPONENTS_STORAGE.md) â€” Site components storage and registry.
+- [NEW_SITE_COMPONENT_CHECKLIST.md](./NEW_SITE_COMPONENT_CHECKLIST.md) â€” **New site component create karte waqt follow karne wale steps** (LatestEvents1 jaisa structure + edit flow).
+- [COMPONENT_PLATFORM.md](./COMPONENT_PLATFORM.md) â€” Page builder and component platform.
+- [PERMISSIONS.md](./PERMISSIONS.md) â€” Roles and permissions.
 
 ---
 
-*Last updated: 2026-03-30 — added Donation model (§2.11), CCAvenue payment flow (§4), payment API endpoints (§3), updated ContactSubmission payload fields (§2.9). Update this line when you change the doc.*
+*Last updated: 2026-04-16 - added Media optimization schemas/endpoints (MediaSettings/MediaJob, media replace/jobs/settings/usage APIs), stable `/media/[id]` delivery, and usage-tracking notes.*
+

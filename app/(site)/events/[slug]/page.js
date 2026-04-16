@@ -9,6 +9,7 @@ import EventMeta from "@/components/events/EventMeta";
 import EventContent from "@/components/events/EventContent";
 import { getEventImageSources } from "@/components/events/eventDisplay";
 import EventsSidebarFull from "@/components/events/EventsSidebarFull";
+import MediaImage from "@/components/shared/MediaImage";
 
 export const revalidate = 60;
 
@@ -148,27 +149,28 @@ async function EventDetail({ slug }) {
                     maxHeight: 400,
                   }}
                 >
-                  <picture style={{ display: "block", textAlign: "left" }}>
-                    {mobile && mobile !== desktop ? (
-                      <source media="(max-width: 768px)" srcSet={mobile} />
-                    ) : null}
-                    <img
-                      className="events-detail-banner-img"
-                      src={desktop}
-                      alt={event.title}
-                      style={{
-                        width: "auto",
-                        maxWidth: "100%",
-                        height: "auto",
-                        maxHeight: 400,
-                        objectFit: "contain",
-                        objectPosition: "left top",
-                        display: "block",
-                        margin: 0,
-                      }}
-                      loading="eager"
-                    />
-                  </picture>
+                  <MediaImage
+                    src={desktop}
+                    mobileSrc={mobile && mobile !== desktop ? mobile : ""}
+                    variant="desktop"
+                    mobileVariant="mobile"
+                    alt={event.title}
+                    imgClassName="events-detail-banner-img"
+                    width={1440}
+                    height={810}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 860px"
+                    priority
+                    imgStyle={{
+                      width: "auto",
+                      maxWidth: "100%",
+                      height: "auto",
+                      maxHeight: 400,
+                      objectFit: "contain",
+                      objectPosition: "left top",
+                      display: "block",
+                      margin: 0,
+                    }}
+                  />
                 </figure>
               ) : null}
 

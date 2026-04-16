@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import styled from "styled-components";
+import MediaImage from "@/components/shared/MediaImage";
 
 const cardStyle = {
   border: "1px solid rgba(0,0,0,0.08)",
@@ -227,7 +228,15 @@ export default function EventsSidebarFull({ searchQuery, currentSlug }) {
               <Item key={ev._id || ev.slug}>
                 {pickImage(ev) ? (
                   <Link href={`/events/${ev.slug}`} className="img">
-                    <img loading="lazy" src={pickImage(ev)} alt={ev.title || "Event"} />
+                    <MediaImage
+                      src={pickImage(ev)}
+                      variant="thumbnail"
+                      alt={ev.title || "Event"}
+                      width={156}
+                      height={136}
+                      sizes="78px"
+                      imgStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                    />
                   </Link>
                 ) : (
                   <Link href={`/events/${ev.slug}`} className="img" aria-label={ev.title || "Event"} />
@@ -258,7 +267,15 @@ export default function EventsSidebarFull({ searchQuery, currentSlug }) {
               <Item key={ev._id || ev.slug}>
                 {pickImage(ev) ? (
                   <Link href={`/events/${ev.slug}`} className="img">
-                    <img loading="lazy" src={pickImage(ev)} alt={ev.title || "Event"} />
+                    <MediaImage
+                      src={pickImage(ev)}
+                      variant="thumbnail"
+                      alt={ev.title || "Event"}
+                      width={156}
+                      height={136}
+                      sizes="78px"
+                      imgStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                    />
                   </Link>
                 ) : (
                   <Link href={`/events/${ev.slug}`} className="img" aria-label={ev.title || "Event"} />
