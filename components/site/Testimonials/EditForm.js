@@ -26,6 +26,7 @@ import {
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -500,7 +501,7 @@ function TestimonialsEditForm(
                         </Col>
                         <Col span={24}>
                           <Form.Item {...restField} name={[name, "imageUrl"]} label="Photo URL">
-                            <Input placeholder="https://..." size="large" />
+                            <MediaPickerInput placeholder="https://..." />
                           </Form.Item>
                         </Col>
                         <Col span={24}>

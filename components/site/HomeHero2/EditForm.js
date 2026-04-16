@@ -24,6 +24,7 @@ import {
   PlusOutlined,
   QuestionCircleOutlined,
 } from "@ant-design/icons";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import {
@@ -299,7 +300,7 @@ function HomeHero2EditForm(
             children: (
               <>
                 <Form.Item name="heroIconUrl" label="Hero icon image URL">
-                  <Input placeholder="/images/hero-icon.svg" />
+                  <MediaPickerInput placeholder="/images/hero-icon.svg" />
                 </Form.Item>
                 <Form.Item name="buttonText" label="Button text">
                   <Input placeholder="Contact Us" />
@@ -333,7 +334,7 @@ function HomeHero2EditForm(
                           label="Image URL"
                           style={{ flex: 1 }}
                         >
-                          <Input placeholder="/images/slider-1.png" />
+                          <MediaPickerInput placeholder="/images/slider-1.png" />
                         </Form.Item>
                         <Form.Item
                           {...rest}

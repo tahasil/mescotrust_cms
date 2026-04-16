@@ -16,6 +16,7 @@ import { DeleteOutlined, PlusOutlined, ArrowUpOutlined, ArrowDownOutlined } from
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -200,7 +201,7 @@ function LatestEvents1EditForm(
                       <Row gutter={[16, 16]}>
                         <Col span={24}>
                           <Form.Item {...restField} name={[name, "imageUrl"]} label="Image URL">
-                            <Input placeholder="/images/news-1.png" size="large" />
+                            <MediaPickerInput placeholder="/images/news-1.png" />
                           </Form.Item>
                         </Col>
                         <Col span={24}>

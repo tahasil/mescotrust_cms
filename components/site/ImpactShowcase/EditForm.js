@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "re
 import { Form, Input, Collapse, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -155,10 +156,10 @@ function ImpactShowcaseEditForm({ source, initialData: initialDataProp, onSaveTo
             children: (
               <>
                 <Form.Item name="impactShowcaseLeftImage" label="Left Image URL">
-                  <Input placeholder="/images/about-mesco-1.png" size="large" />
+                  <MediaPickerInput placeholder="/images/about-mesco-1.png" />
                 </Form.Item>
                 <Form.Item name="impactShowcaseRightImage" label="Right Image URL">
-                  <Input placeholder="/images/about-mesco-2.png" size="large" />
+                  <MediaPickerInput placeholder="/images/about-mesco-2.png" />
                 </Form.Item>
               </>
             ),

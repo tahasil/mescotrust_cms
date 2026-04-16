@@ -5,6 +5,7 @@ import { Table, Button, Space, message, Modal, Form, Input, Select, Tag, Drawer 
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import RichTextEditor from "@/components/admin/RichTextEditor";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { ThemeAdminCard } from "@/styles/Theme";
 
 function slugify(text) {
@@ -224,10 +225,10 @@ export default function AdminBlogsPage() {
             <Input.TextArea rows={2} placeholder="Short summary" />
           </Form.Item>
           <Form.Item name="featuredImage" label="Featured Image URL (Desktop)">
-            <Input placeholder="/uploads/featured-desktop.webp" />
+            <MediaPickerInput placeholder="/media/..." />
           </Form.Item>
           <Form.Item name="featuredImageMobile" label="Featured Image URL (Mobile)" extra="Optional. If empty, desktop image is used.">
-            <Input placeholder="/uploads/featured-mobile.webp" />
+            <MediaPickerInput placeholder="/media/..." />
           </Form.Item>
           <Form.Item name="content" label="Content">
             <RichTextEditor />

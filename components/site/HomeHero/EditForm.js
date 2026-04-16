@@ -6,6 +6,7 @@ import { DeleteOutlined, PlusOutlined, ArrowUpOutlined, ArrowDownOutlined, Quest
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -304,7 +305,7 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
                         <Row gutter={[16, 16]}>
                           <Col span={24}>
                             <Form.Item {...restField} name={[name, "bgImageUrl"]} label="Background image URL">
-                              <Input placeholder="e.g. /images/slider.png" size="large" />
+                              <MediaPickerInput placeholder="e.g. /images/slider.png" />
                             </Form.Item>
                           </Col>
                           <Col span={24}>

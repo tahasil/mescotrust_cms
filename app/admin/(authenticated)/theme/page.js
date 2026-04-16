@@ -32,6 +32,7 @@ import {
   SettingOutlined,
 } from "@ant-design/icons";
 import { LOCALE_OPTIONS } from "@/lib/localeOptions";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { ThemeAdminCard } from "@/styles/Theme";
 
 const POPULAR_GOOGLE_FONTS = [
@@ -710,7 +711,7 @@ export default function AdminThemePage() {
             </Col>
             <Col xs={24} sm={12}>
               <Form.Item name="adminLogoUrl" label="Admin logo URL">
-                <Input placeholder="/images/admin-logo.svg" />
+                <MediaPickerInput placeholder="/media/..." />
               </Form.Item>
             </Col>
           </Row>

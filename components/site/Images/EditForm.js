@@ -4,6 +4,7 @@ import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Form, Input, message, Spin, Collapse } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -139,7 +140,7 @@ function ImagesEditForm({ source, initialData: initialDataProp, onSaveToPage, on
             children: (
               <>
                 <Form.Item name="imageUrl" label="Image URL">
-                  <Input placeholder="e.g. /images/clinics-dispensaries.png" />
+                  <MediaPickerInput placeholder="e.g. /images/clinics-dispensaries.png" />
                 </Form.Item>
                 <Form.Item name="imageAlt" label="Image Alt Text">
                   <Input placeholder="e.g. Clinics And Dispensaries" />

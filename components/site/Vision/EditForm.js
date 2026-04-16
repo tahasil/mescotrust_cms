@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "re
 import { Form, Input, InputNumber, Collapse, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -138,7 +139,7 @@ function VisionEditForm({ source, initialData: initialDataProp, onSaveToPage, on
                   <Input.TextArea placeholder="Vision description" rows={3} size="large" />
                 </Form.Item>
                 <Form.Item name="visionImage" label="Image URL">
-                  <Input placeholder="/images/vision.png" size="large" />
+                  <MediaPickerInput placeholder="/images/vision.png" />
                 </Form.Item>
               </>
             ),

@@ -2,6 +2,7 @@
 
 import { Form, Input, Select, Switch, Collapse, Tooltip } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 
 /**
  * Shared "Manage Section" UI: Fluid Container + Box Container (background, padding, margin).
@@ -55,7 +56,7 @@ export default function ManageSectionFields({ prefix, form, themeColorOptions = 
                   tooltip="Enter the full URL or path to the background image."
                   style={{ marginBottom: 12 }}
                 >
-                  <Input placeholder="e.g. /images/section-bg.jpg" size="large" allowClear />
+                  <MediaPickerInput placeholder="e.g. /media/..." />
                 </Form.Item>
               )}
               {sectionBgType === "color" && (
@@ -123,7 +124,7 @@ export default function ManageSectionFields({ prefix, form, themeColorOptions = 
                   tooltip="Background image for the inner container."
                   style={{ marginBottom: 12 }}
                 >
-                  <Input placeholder="e.g. /images/container-bg.jpg" size="large" allowClear />
+                  <MediaPickerInput placeholder="e.g. /media/..." />
                 </Form.Item>
               )}
               {pageContainerBgType === "color" && (

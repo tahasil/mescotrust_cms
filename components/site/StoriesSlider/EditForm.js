@@ -6,6 +6,7 @@ import { QuestionCircleOutlined } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -292,12 +293,12 @@ function StoriesSliderEditForm({ source, initialData: initialDataProp, onSaveToP
                         </Col>
                         <Col span={24}>
                           <Form.Item {...restField} name={[name, "image"]} label="Desktop Image URL" extra="Recommended: 960px x 800px">
-                            <Input placeholder="/uploads/story-desktop.webp" size="large" />
+                            <MediaPickerInput placeholder="/uploads/story-desktop.webp" />
                           </Form.Item>
                         </Col>
                         <Col span={24}>
                           <Form.Item {...restField} name={[name, "mobileImage"]} label="Mobile Image URL" extra="Recommended: 800px x 450px (landscape)">
-                            <Input placeholder="/uploads/story-mobile.webp" size="large" />
+                            <MediaPickerInput placeholder="/uploads/story-mobile.webp" />
                           </Form.Item>
                         </Col>
                       </Row>

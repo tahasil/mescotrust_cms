@@ -5,6 +5,7 @@ import { Form, Input, Row, Col, Select, Collapse, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -189,7 +190,7 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
             children: (
               <>
                 <Form.Item name="footerLogoUrl" label="Footer logo image URL">
-                  <Input placeholder="/images/footer-logo.svg" />
+                  <MediaPickerInput placeholder="/images/footer-logo.svg" />
                 </Form.Item>
                 <Form.Item name="footerAddress" label="Address">
                   <Input.TextArea rows={2} placeholder="Full address" />
@@ -219,7 +220,7 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
                   {({ getFieldValue }) =>
                     getFieldValue("footerBgType") === "image" ? (
                       <Form.Item name="footerBackgroundImageUrl" label="Background image URL">
-                        <Input placeholder="/uploads/footer-bg.svg" />
+                        <MediaPickerInput placeholder="/uploads/footer-bg.svg" />
                       </Form.Item>
                     ) : null
                   }

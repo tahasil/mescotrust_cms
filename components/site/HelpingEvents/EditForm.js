@@ -12,6 +12,7 @@ import {
 } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -197,7 +198,7 @@ function HelpingEventsEditForm(
               <Row gutter={[16, 16]}>
                 <Col span={24}>
                   <Form.Item name="eventImage" label="Event Image URL">
-                    <Input placeholder="e.g. /images/event-img.png" size="large" />
+                    <MediaPickerInput placeholder="e.g. /images/event-img.png" />
                   </Form.Item>
                 </Col>
                 <Col span={24}>

@@ -5,6 +5,7 @@ import { Form, Input, Row, Col, Collapse, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -212,7 +213,7 @@ function InMediaEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                         </Col>
                         <Col span={24}>
                           <Form.Item {...restField} name={[name, "image"]} label="Image URL">
-                            <Input placeholder="/uploads/media-1.webp" size="large" />
+                            <MediaPickerInput placeholder="/uploads/media-1.webp" />
                           </Form.Item>
                         </Col>
                       </Row>

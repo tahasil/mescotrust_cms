@@ -5,6 +5,7 @@ import { Form, Input, Row, Col, Collapse, message, Spin, Select, Switch } from "
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -205,7 +206,7 @@ function SocialMediaWallEditForm({ source, initialData: initialDataProp, onSaveT
                         </Col>
                         <Col span={24}>
                           <Form.Item {...restField} name={[name, "image"]} label="Image URL">
-                            <Input placeholder="/uploads/post-image.webp or https://..." size="large" />
+                            <MediaPickerInput placeholder="/uploads/post-image.webp or https://..." />
                           </Form.Item>
                         </Col>
                         <Col span={24}>

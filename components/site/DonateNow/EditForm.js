@@ -5,6 +5,7 @@ import { Form, Input, Row, Col, Collapse, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -152,7 +153,7 @@ function DonateNowEditForm({ source, initialData: initialDataProp, onSaveToPage,
                   <Input.TextArea rows={3} placeholder="Adopted Municipal School, Clinics, Educate an Orphan..." />
                 </Form.Item>
                 <Form.Item name="donateNowQrImageUrl" label="QR Code Image URL" extra="Leave empty to hide QR button">
-                  <Input placeholder="/uploads/upi-qr-code.webp" />
+                  <MediaPickerInput placeholder="/uploads/upi-qr-code.webp" />
                 </Form.Item>
               </>
             ),

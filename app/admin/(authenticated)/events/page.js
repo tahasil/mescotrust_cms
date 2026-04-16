@@ -24,6 +24,7 @@ import {
 } from "@ant-design/icons";
 import Link from "next/link";
 import RichTextEditor from "@/components/admin/RichTextEditor";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { ThemeAdminCard } from "@/styles/Theme";
 
 function slugify(text) {
@@ -422,7 +423,7 @@ export default function AdminEventsPage() {
                 label="Featured image URL (Desktop)"
                 className="mb-0"
               >
-                <Input placeholder="/uploads/event-desktop.webp" />
+                <MediaPickerInput placeholder="/media/..." />
               </Form.Item>
             </Col>
             <Col xs={24}>
@@ -432,7 +433,7 @@ export default function AdminEventsPage() {
                 extra="Optional. Falls back to desktop image."
                 className="mb-0"
               >
-                <Input placeholder="/uploads/event-mobile.webp" />
+                <MediaPickerInput placeholder="/media/..." />
               </Form.Item>
             </Col>
 

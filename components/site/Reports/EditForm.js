@@ -5,6 +5,7 @@ import { Form, Input, Row, Col, Collapse, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -199,7 +200,7 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                         </Col>
                         <Col span={24}>
                           <Form.Item {...restField} name={[name, "image"]} label="Image URL">
-                            <Input placeholder="/uploads/report-cover.webp" size="large" />
+                            <MediaPickerInput placeholder="/uploads/report-cover.webp" />
                           </Form.Item>
                         </Col>
                         <Col span={24}>

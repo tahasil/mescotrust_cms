@@ -5,6 +5,7 @@ import { Form, Input, Collapse, message, Spin } from "antd";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -132,7 +133,7 @@ function ManagingCommitteeEditForm({ source, initialData: initialDataProp, onSav
                   <RichTextEditor placeholder="Enter paragraph text..." />
                 </Form.Item>
                 <Form.Item name="managingCommitteeImageUrl" label="Image URL">
-                  <Input placeholder="/images/good-governance-2.png" size="large" />
+                  <MediaPickerInput placeholder="/images/good-governance-2.png" />
                 </Form.Item>
                 <Form.Item name="managingCommitteeImageAlt" label="Image Alt Text">
                   <Input placeholder="Managing Committee" size="large" />

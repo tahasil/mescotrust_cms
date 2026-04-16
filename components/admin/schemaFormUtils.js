@@ -11,6 +11,7 @@ import {
 } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import RichTextEditor from "@/components/admin/RichTextEditor";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 
 /** Theme color dropdown + optional custom color picker. */
 export function ThemeColorInput({ value, onChange, themeColorOptions }) {
@@ -154,17 +155,16 @@ export function ArrayEditor({ field, themeColorOptions }) {
                           />
                         ) : null}
                         {(subField.type === "url" ||
-                          subField.type === "image" ||
                           subField.type === "text") &&
                         subField.type !== "richtext" ? (
                           <Input
                             placeholder={
-                              subField.type === "url" ||
-                              subField.type === "image"
-                                ? "https://..."
-                                : ""
+                              subField.type === "url" ? "https://..." : ""
                             }
                           />
+                        ) : null}
+                        {subField.type === "image" ? (
+                          <MediaPickerInput placeholder="https://..." />
                         ) : null}
                       </Form.Item>
                     );
@@ -243,8 +243,13 @@ export function renderSchemaField(field, themeColorOptions) {
           />
         </Form.Item>
       );
-    case "url":
     case "image":
+      return (
+        <Form.Item key={key} name={key} label={label}>
+          <MediaPickerInput placeholder="https://..." />
+        </Form.Item>
+      );
+    case "url":
       return (
         <Form.Item key={key} name={key} label={label}>
           <Input placeholder="https://..." />

@@ -5,6 +5,7 @@ import { Form, Input, Row, Col, Collapse, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -200,7 +201,7 @@ function OverlayCardsEditForm({ source, initialData: initialDataProp, onSaveToPa
                         </Col>
                         <Col span={24}>
                           <Form.Item {...restField} name={[name, "bgImage"]} label="Background Image URL (hover overlay)">
-                            <Input placeholder="/images/newspaper-card-bg-1.png" size="large" />
+                            <MediaPickerInput placeholder="/images/newspaper-card-bg-1.png" />
                           </Form.Item>
                         </Col>
                       </Row>

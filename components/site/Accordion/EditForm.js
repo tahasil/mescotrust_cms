@@ -6,6 +6,7 @@ import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import SortableFormList from "@/components/admin/SortableFormList";
 import RichTextEditor from "@/components/admin/RichTextEditor";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -141,7 +142,7 @@ function AccordionEditForm({ source, initialData: initialDataProp, onSaveToPage,
             label: "Settings",
             children: (
               <Form.Item name="accordionExpandIconUrl" label="Custom expand icon URL">
-                <Input placeholder="/images/arrow-icon.svg" size="large" />
+                <MediaPickerInput placeholder="/images/arrow-icon.svg" />
               </Form.Item>
             ),
           },

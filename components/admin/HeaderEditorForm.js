@@ -15,6 +15,7 @@ import {
   Col,
 } from "antd";
 import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 
 /** Convert menu API items to header nav items (flat label/url/hasDropdown/children). */
 function menuItemsToNavItems(menuItems) {
@@ -195,7 +196,7 @@ export default function HeaderEditorForm({
               <Row gutter={[16, 16]}>
                 <Col {...FORM_COL}>
                   <Form.Item name="logoImage" label="Logo image URL">
-                    <Input placeholder="https://..." />
+                    <MediaPickerInput placeholder="https://..." />
                   </Form.Item>
                 </Col>
                 <Col {...FORM_COL}>
@@ -563,7 +564,7 @@ export default function HeaderEditorForm({
                               label="Icon image URL"
                               style={{ marginBottom: 8 }}
                             >
-                              <Input placeholder="https://..." />
+                              <MediaPickerInput placeholder="https://..." />
                             </Form.Item>
                           </Col>
                           <Col {...FORM_COL}>

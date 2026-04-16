@@ -11,6 +11,7 @@ import { Form, Input, Button, Row, Col, Collapse, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import {
   getManageSectionInitialValues,
   getManageSectionPayload,
@@ -387,10 +388,7 @@ function WelcometoMESCOEditForm(
               <Row gutter={[16, 16]}>
                 <Col span={24}>
                   <Form.Item name="imageUrl" label="Image URL">
-                    <Input
-                      placeholder="e.g. /images/helping.png"
-                      size="large"
-                    />
+                    <MediaPickerInput placeholder="e.g. /images/helping.png" />
                   </Form.Item>
                 </Col>
                 <Col span={24}>
@@ -461,10 +459,7 @@ function WelcometoMESCOEditForm(
                             name={[name, "iconImage"]}
                             label="Icon Image URL"
                           >
-                            <Input
-                              placeholder="e.g. /images/icon-education.png"
-                              size="large"
-                            />
+                            <MediaPickerInput placeholder="e.g. /images/icon-education.png" />
                           </Form.Item>
                         </Col>
                       </Row>

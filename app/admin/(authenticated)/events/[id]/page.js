@@ -6,6 +6,7 @@ import { Button, Form, Input, Select, Space, message, Spin, Switch, Row, Col } f
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import RichTextEditor from "@/components/admin/RichTextEditor";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { ThemeAdminCard } from "@/styles/Theme";
 
 function toDateInput(v) {
@@ -201,7 +202,7 @@ export default function AdminEventEditPage() {
               label="Featured image URL (Desktop)"
               extra="Paste a URL or path from the media library"
             >
-              <Input placeholder="/uploads/event-desktop.webp" />
+              <MediaPickerInput placeholder="/media/..." />
             </Form.Item>
           </Col>
           <Col xs={24} md={12}>
@@ -210,7 +211,7 @@ export default function AdminEventEditPage() {
               label="Featured image URL (Mobile)"
               extra="Optional. If empty, the desktop image is used on small screens."
             >
-              <Input placeholder="/uploads/event-mobile.webp" />
+              <MediaPickerInput placeholder="/media/..." />
             </Form.Item>
           </Col>
 

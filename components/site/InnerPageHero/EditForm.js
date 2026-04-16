@@ -12,6 +12,7 @@ import {
 } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 
 const API_PATH = "/api/theme/InnerPageHero";
@@ -174,7 +175,7 @@ function InnerPageHeroEditForm(
                 </Col>
                 <Col span={24}>
                   <Form.Item name="bgImage" label="Background Image URL">
-                    <Input placeholder="e.g. /images/inner-banner.png (leave empty for default)" size="large" />
+                    <MediaPickerInput placeholder="e.g. /images/inner-banner.png (leave empty for default)" />
                   </Form.Item>
                 </Col>
               </Row>

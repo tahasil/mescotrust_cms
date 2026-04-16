@@ -5,6 +5,7 @@ import { Form, Input, Collapse, message, Spin } from "antd";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -147,7 +148,7 @@ function HelpingpeopleEditForm({ source, initialData: initialDataProp, onSaveToP
                   <RichTextEditor placeholder="Enter paragraph text..." />
                 </Form.Item>
                 <Form.Item name="helpingpeopleImageUrl" label="Image URL">
-                  <Input placeholder="/images/about-mesco-3.png" size="large" />
+                  <MediaPickerInput placeholder="/images/about-mesco-3.png" />
                 </Form.Item>
                 <Form.Item name="helpingpeopleImageAlt" label="Image Alt Text">
                   <Input placeholder="Helping people" size="large" />

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "re
 import { Form, Input, InputNumber, Row, Col, Collapse, Switch, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 
 const API_PATH = "/api/theme/ImageSlider";
@@ -195,7 +196,7 @@ function ImageSliderEditForm({ source, initialData: initialDataProp, onSaveToPag
                       <Row gutter={[16, 16]}>
                         <Col span={24}>
                           <Form.Item {...restField} name={[name, "src"]} label="Image URL" rules={[{ required: true, message: "Image URL is required" }]}>
-                            <Input placeholder="/images/slider-1.png" size="large" />
+                            <MediaPickerInput placeholder="/images/slider-1.png" />
                           </Form.Item>
                         </Col>
                         <Col span={24}>

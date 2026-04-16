@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Form, Collapse, Input, InputNumber, Button, ColorPicker, Row, Col, Select } from "antd";
 import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 
 const FORM_COL = { xs: 24, sm: 12, md: 8, lg: 6 };
 
@@ -98,7 +99,7 @@ export default function FooterEditorForm({ initialValues, onSave, saving }) {
             label: "Logo",
             children: (
               <Row gutter={[16, 16]}>
-                <Col {...FORM_COL}><Form.Item name="logoImage" label="Logo image URL"><Input placeholder="https://..." /></Form.Item></Col>
+                <Col {...FORM_COL}><Form.Item name="logoImage" label="Logo image URL"><MediaPickerInput placeholder="https://..." /></Form.Item></Col>
                 <Col {...FORM_COL}><Form.Item name="logoTitle" label="Logo title"><Input /></Form.Item></Col>
                 <Col {...FORM_COL}><Form.Item name="logoTagline" label="Logo tagline"><Input /></Form.Item></Col>
                 <Col {...FORM_COL}><Form.Item name="logoUrl" label="Logo link URL"><Input placeholder="/" /></Form.Item></Col>

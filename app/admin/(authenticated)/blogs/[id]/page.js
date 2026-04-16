@@ -6,6 +6,7 @@ import { Button, Form, Input, Select, Space, message, Spin } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import RichTextEditor from "@/components/admin/RichTextEditor";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { ThemeAdminCard } from "@/styles/Theme";
 
 export default function AdminBlogEditPage() {
@@ -108,10 +109,10 @@ export default function AdminBlogEditPage() {
             <Input.TextArea rows={2} />
           </Form.Item>
           <Form.Item name="featuredImage" label="Featured image URL (Desktop)" extra="Paste an image URL or path from the media library (e.g. /uploads/photo.webp)">
-            <Input placeholder="/uploads/featured-desktop.webp" />
+            <MediaPickerInput placeholder="/media/..." />
           </Form.Item>
           <Form.Item name="featuredImageMobile" label="Featured image URL (Mobile)" extra="Optional. If empty, the desktop image is used on phones.">
-            <Input placeholder="/uploads/featured-mobile.webp" />
+            <MediaPickerInput placeholder="/media/..." />
           </Form.Item>
           <Form.Item name="content" label="Content">
             <RichTextEditor />

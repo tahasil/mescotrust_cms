@@ -73,6 +73,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Select } from "antd";
 
 import RichTextEditor from "@/components/admin/RichTextEditor";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import * as SiteComponents from "@/components/site";
 import { EDITABLE_SITE_EDIT_FORMS } from "@/components/site";
@@ -702,17 +703,16 @@ function ArrayEditor({ field, themeColorOptions }) {
                           />
                         ) : null}
                         {(subField.type === "url" ||
-                          subField.type === "image" ||
                           subField.type === "text") &&
                         subField.type !== "richtext" ? (
                           <Input
                             placeholder={
-                              subField.type === "url" ||
-                              subField.type === "image"
-                                ? "https://..."
-                                : ""
+                              subField.type === "url" ? "https://..." : ""
                             }
                           />
+                        ) : null}
+                        {subField.type === "image" ? (
+                          <MediaPickerInput placeholder="https://..." />
                         ) : null}
                       </Form.Item>
                     );
@@ -779,8 +779,13 @@ function renderSchemaField(field, themeColorOptions) {
           <ThemeColorInput themeColorOptions={themeColorOptions} />
         </Form.Item>
       );
-    case "url":
     case "image":
+      return (
+        <Form.Item key={key} name={key} label={label}>
+          <MediaPickerInput placeholder="https://..." />
+        </Form.Item>
+      );
+    case "url":
       return (
         <Form.Item key={key} name={key} label={label}>
           <Input placeholder="https://..." />

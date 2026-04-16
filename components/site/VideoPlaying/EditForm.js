@@ -11,6 +11,7 @@ import {
   Spin,
 } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 
 const API_PATH = "/api/theme/VideoPlaying";
@@ -174,7 +175,7 @@ function VideoPlayingEditForm(
                     name="coverImage"
                     label="Cover Image URL"
                   >
-                    <Input placeholder="e.g. /images/player-cover.png" size="large" />
+                    <MediaPickerInput placeholder="e.g. /images/player-cover.png" />
                   </Form.Item>
                 </Col>
                 <Col span={24}>

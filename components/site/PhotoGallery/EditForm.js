@@ -6,6 +6,7 @@ import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import SortableFormList from "@/components/admin/SortableFormList";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -274,7 +275,7 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                         </Col>
                         <Col span={24}>
                           <Form.Item {...restField} name={[name, "image"]} label="Cover Image URL" rules={[{ required: true, message: "Cover image is required" }]}>
-                            <Input placeholder="/uploads/album-cover.webp" size="large" />
+                            <MediaPickerInput placeholder="/uploads/album-cover.webp" />
                           </Form.Item>
                         </Col>
                         <Col span={24}>

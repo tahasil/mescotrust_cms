@@ -5,6 +5,7 @@ import { Form, Input, InputNumber, message, Spin, Collapse, Row, Col } from "ant
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -261,12 +262,12 @@ function OverviewOfOurWorkEditForm(
                         </Col>
                         <Col span={24}>
                           <Form.Item {...restField} name={[name, "bgImageUrl"]} label="Background (Image URL)">
-                            <Input placeholder="https://... or /images/..." />
+                            <MediaPickerInput placeholder="https://... or /images/..." />
                           </Form.Item>
                         </Col>
                         <Col span={24}>
                           <Form.Item {...restField} name={[name, "icon"]} label="Icon (image URL)">
-                            <Input placeholder="/images/icon.svg or https://..." />
+                            <MediaPickerInput placeholder="/images/icon.svg or https://..." />
                           </Form.Item>
                         </Col>
                       </Row>

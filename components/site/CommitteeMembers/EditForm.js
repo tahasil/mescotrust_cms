@@ -5,6 +5,7 @@ import { Form, Input, InputNumber, Row, Col, Collapse, message, Spin } from "ant
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -176,7 +177,7 @@ function CommitteeMembersEditForm({ source, initialData: initialDataProp, onSave
                         </Col>
                         <Col span={24}>
                           <Form.Item {...restField} name={[name, "image"]} label="Image URL">
-                            <Input placeholder="/images/members-1.png" />
+                            <MediaPickerInput placeholder="/images/members-1.png" />
                           </Form.Item>
                         </Col>
                         <Col span={24}>

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "re
 import { Form, Input, Row, Col, Collapse, Select, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -170,7 +171,7 @@ function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage,
                 </Col>
                 <Col span={24}>
                   <Form.Item name="subscribeBgUrl" label="Background image URL">
-                    <Input placeholder="/uploads/..." size="large" />
+                    <MediaPickerInput placeholder="/uploads/..." />
                   </Form.Item>
                 </Col>
               </Row>

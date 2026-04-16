@@ -5,6 +5,7 @@ import { Form, Input, InputNumber, Row, Col, Collapse, message, Spin } from "ant
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -267,7 +268,7 @@ function CardsEditForm(
                             label="Image URL"
                             rules={[{ required: true, message: "Image URL is required" }]}
                           >
-                            <Input placeholder="/images/logo.svg" size="large" />
+                            <MediaPickerInput placeholder="/images/logo.svg" />
                           </Form.Item>
                         </Col>
                         <Col span={24}>

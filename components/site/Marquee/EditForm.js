@@ -6,6 +6,7 @@ import { DeleteOutlined, PlusOutlined, ArrowUpOutlined, ArrowDownOutlined } from
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -177,7 +178,7 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                       <Row gutter={[16, 16]}>
                         <Col span={14}>
                           <Form.Item {...restField} name={[name, "url"]} label="Image URL" rules={[{ required: true, message: "Required" }]}>
-                            <Input placeholder="/images/partner-1.png" size="large" />
+                            <MediaPickerInput placeholder="/images/partner-1.png" />
                           </Form.Item>
                         </Col>
                         <Col span={10}>
