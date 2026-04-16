@@ -8,6 +8,14 @@ import Link from "next/link";
 import PageBuilder from "@/components/admin/PageBuilder";
 import { ThemeAdminCard } from "@/styles/Theme";
 
+function toUrlSlug(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 /** New page: same UI as edit page (Page Builder, Layers, drag-and-drop). Save creates the page via POST then redirects to edit. */
 export default function AdminPageNewPage() {
   const router = useRouter();
@@ -18,6 +26,7 @@ export default function AdminPageNewPage() {
   const [form] = Form.useForm();
   const [parentFolders, setParentFolders] = useState([]);
   const [selectedParent, setSelectedParent] = useState("");
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const watchedSlug = Form.useWatch("slug", form);
 
   useEffect(() => {
@@ -63,7 +72,9 @@ export default function AdminPageNewPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: values.title || "Untitled",
-          slug: selectedParent ? `${selectedParent}/${values.slug || ""}` : (values.slug || ""),
+          slug: selectedParent
+            ? `${selectedParent}/${toUrlSlug(values.slug || "")}`
+            : toUrlSlug(values.slug || ""),
           status: values.status,
           layout: layoutToSave,
           meta: { metaTitle: values.metaTitle, metaDescription: values.metaDescription },
@@ -135,7 +146,15 @@ export default function AdminPageNewPage() {
                 children: (
                   <>
                     <Form.Item name="title" label="Title" rules={[{ required: true }]}>
-                      <Input placeholder="Page title" />
+                      <Input
+                        placeholder="Page title"
+                        onChange={(e) => {
+                          const nextTitle = e.target.value;
+                          if (!slugManuallyEdited) {
+                            form.setFieldValue("slug", toUrlSlug(nextTitle));
+                          }
+                        }}
+                      />
                     </Form.Item>
                     <Form.Item label="Parent Menu">
                       <Select
@@ -156,10 +175,23 @@ export default function AdminPageNewPage() {
                     <Form.Item
                       name="slug"
                       label="Slug"
-                      rules={[{ required: true }]}
+                      rules={[
+                        { required: true, message: "Slug is required" },
+                        {
+                          pattern: /^[a-z0-9-]+$/,
+                          message: "Use only lowercase letters, numbers, and hyphens",
+                        },
+                      ]}
                       extra="Use slug 'home' for the homepage (/) and Status 'Published' for the page to show on the site."
                     >
-                      <Input placeholder="e.g. home, about" />
+                      <Input
+                        placeholder="e.g. home, about"
+                        onChange={(e) => {
+                          setSlugManuallyEdited(true);
+                          form.setFieldValue("slug", toUrlSlug(e.target.value));
+                        }}
+                        onBlur={(e) => form.setFieldValue("slug", toUrlSlug(e.target.value))}
+                      />
                     </Form.Item>
                     <Form.Item name="status" label="Status">
                       <Select options={[{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }]} />

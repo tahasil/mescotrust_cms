@@ -125,16 +125,21 @@ export async function PUT(req, { params }) {
     if (!page) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     const oldSlug = page.slug;
-    if (rawSlug !== undefined) {
-      const result = normalizeSlug(rawSlug);
-      if (!result.valid) {
-        return NextResponse.json({ error: result.error }, { status: 400 });
-      }
-      const existing = await Page.findOne({ slug: result.slug, _id: { $ne: id } });
+    const slugSource =
+      rawSlug !== undefined && String(rawSlug).trim() !== ""
+        ? rawSlug
+        : (title !== undefined ? title : page.slug);
+    const result = normalizeSlug(slugSource);
+    if (!result.valid) {
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+    const nextSlug = result.slug;
+    if (nextSlug !== page.slug) {
+      const existing = await Page.findOne({ slug: nextSlug, _id: { $ne: id } });
       if (existing) {
         return NextResponse.json({ error: "A page with this slug already exists" }, { status: 400 });
       }
-      page.slug = result.slug;
+      page.slug = nextSlug;
     }
     if (title !== undefined) page.title = title;
     if (status !== undefined) page.status = status;

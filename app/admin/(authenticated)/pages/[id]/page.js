@@ -8,6 +8,14 @@ import Link from "next/link";
 import PageBuilder from "@/components/admin/PageBuilder";
 import { ThemeAdminCard } from "@/styles/Theme";
 
+function toUrlSlug(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 export default function AdminPageEditPage() {
   const params = useParams();
   const router = useRouter();
@@ -21,6 +29,7 @@ export default function AdminPageEditPage() {
   const [form] = Form.useForm();
   const [parentFolders, setParentFolders] = useState([]);
   const [selectedParent, setSelectedParent] = useState("");
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const selectedParentRef = useRef("");
   const watchedSlug = Form.useWatch("slug", form);
 
@@ -65,12 +74,13 @@ export default function AdminPageEditPage() {
         if (parent) updateSelectedParent(parent);
         form.setFieldsValue({
           title: data.title,
-          slug: pageSlug || "",
+          slug: toUrlSlug(pageSlug || ""),
           _parentFolder: parent || "",
           status: data.status,
           metaTitle: data.meta?.metaTitle,
           metaDescription: data.meta?.metaDescription,
         });
+        setSlugManuallyEdited(false);
       } catch (e) {
         message.error("Failed to load page");
       } finally {
@@ -115,7 +125,7 @@ export default function AdminPageEditPage() {
       setSaving(true);
       const layoutToSave = layoutRef.current;
       const parentFolder = values._parentFolder || selectedParentRef.current || "";
-      const pageSlug = values.slug || "";
+      const pageSlug = toUrlSlug(values.slug || "");
       const fullSlug = parentFolder ? `${parentFolder}/${pageSlug}` : pageSlug;
       const res = await fetch(`/api/admin/pages/${id}`, {
         method: "PUT",
@@ -206,7 +216,14 @@ export default function AdminPageEditPage() {
                 children: (
                   <>
                     <Form.Item name="title" label="Title" rules={[{ required: true }]}>
-                      <Input />
+                      <Input
+                        onChange={(e) => {
+                          const nextTitle = e.target.value;
+                          if (!slugManuallyEdited) {
+                            form.setFieldValue("slug", toUrlSlug(nextTitle));
+                          }
+                        }}
+                      />
                     </Form.Item>
                     <Form.Item label="Parent Menu">
                       <Select
@@ -227,10 +244,23 @@ export default function AdminPageEditPage() {
                     <Form.Item
                       name="slug"
                       label="Slug"
-                      rules={[{ required: true }]}
+                      rules={[
+                        { required: true, message: "Slug is required" },
+                        {
+                          pattern: /^[a-z0-9-]+$/,
+                          message: "Use only lowercase letters, numbers, and hyphens",
+                        },
+                      ]}
                       extra="Use slug 'home' for the homepage (/) and Status 'Published' for the page to show on the site."
                     >
-                      <Input placeholder="e.g. home, about" />
+                      <Input
+                        placeholder="e.g. home, about"
+                        onChange={(e) => {
+                          setSlugManuallyEdited(true);
+                          form.setFieldValue("slug", toUrlSlug(e.target.value));
+                        }}
+                        onBlur={(e) => form.setFieldValue("slug", toUrlSlug(e.target.value))}
+                      />
                     </Form.Item>
                     <Form.Item name="status" label="Status" initialValue="draft">
                       <Select options={[{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }]} />
