@@ -13,6 +13,7 @@ import {
   Spin,
   Row,
   Col,
+  Card,
 } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import Link from "next/link";
@@ -207,36 +208,47 @@ export default function AdminBlogEditPage() {
               </Col>
 
               <Col xs={24} xl={12}>
-                <Form.Item
-                  name="featuredImage"
-                  label="Featured image URL (Desktop)"
-                  extra="Paste an image URL or path from the media library (e.g. /media/...)"
-                  className="mb-0"
-                >
-                  <MediaPickerInput placeholder="/media/..." />
-                </Form.Item>
-                <Form.Item
-                  name="featuredImageMobile"
-                  label="Featured image URL (Mobile)"
-                  extra="Optional. If empty, the desktop image is used on phones."
-                  className="mb-0"
-                >
-                  <MediaPickerInput placeholder="/media/..." />
-                </Form.Item>
+                <Card title="Featured Images" size="small">
+                  <Row gutter={[12, 12]}>
+                    <Col xs={24} md={12}>
+                      <Card title="Desktop Image" size="small">
+                        <Form.Item name="featuredImage" className="mb-0">
+                          <MediaPickerInput
+                            placeholder="/media/..."
+                            uiVariant="stacked"
+                            showVariants={false}
+                            hintText="Recommended: 1200x600"
+                          />
+                        </Form.Item>
+                      </Card>
+                    </Col>
+                    <Col xs={24} md={12}>
+                      <Card title="Mobile Image" size="small">
+                        <Form.Item name="featuredImageMobile" className="mb-0">
+                          <MediaPickerInput
+                            placeholder="/media/..."
+                            uiVariant="stacked"
+                            showVariants={false}
+                            hintText="Optional for mobile"
+                          />
+                        </Form.Item>
+                      </Card>
+                    </Col>
+                  </Row>
+                </Card>
               </Col>
             </Row>
           </Col>
 
           <Col span={24}>
-            <Form.Item>
-              <Space>
-                <Button type="primary" htmlType="submit" loading={saving}>
-                  Save
-                </Button>
-                <Button href={`/preview/${id}?type=blog`} target="_blank">
-                  Preview draft
-                </Button>
-              </Space>
+            <Form.Item style={{ marginBottom: 0 }}>
+              <div style={{ display: "flex", justifyContent: "flex-end", width: "100%" }}>
+                <Space wrap>
+                  <Button type="primary" htmlType="submit" loading={saving}>
+                    Save
+                  </Button>
+                </Space>
+              </div>
             </Form.Item>
           </Col>
         </Row>

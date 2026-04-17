@@ -81,6 +81,8 @@ export default function MediaPickerInput({
   placeholder = "https://...",
   allowManual = true,
   showVariants = true,
+  uiVariant = "default",
+  hintText = "",
 }) {
   const parsed = useMemo(() => parseMediaValue(value), [value]);
   const [libraryOpen, setLibraryOpen] = useState(false);
@@ -224,93 +226,168 @@ export default function MediaPickerInput({
     if (mediaId) return buildMediaUrl(mediaId, size, format);
     return String(value || "").trim();
   }, [mediaId, size, format, value]);
+  const isStacked = uiVariant === "stacked";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-      <Space.Compact style={{ width: "100%" }}>
-        <Input
-          value={value || ""}
-          onChange={(e) => onChange?.(e.target.value)}
-          placeholder={placeholder}
-          disabled={!allowManual}
-        />
-        <Button
-          icon={<PictureOutlined />}
-          onClick={() => setLibraryOpen(true)}
-          type="default"
-        >
-          {value ? "Replace" : "Choose"}
-        </Button>
-        <Button
-          icon={<DeleteOutlined />}
-          danger
-          onClick={() => onChange?.("")}
-          disabled={!value}
-        />
-      </Space.Compact>
-
-      {showVariants && mediaId ? (
-        <Space wrap style={{ width: "100%" }}>
-          <Select
-            value={size}
-            onChange={(nextSize) => {
-              setSize(nextSize);
-              applyVariantUrl(mediaId, nextSize, format);
-            }}
-            style={{ minWidth: 140 }}
-            options={SIZE_OPTIONS.map((option) => ({
-              value: option.value,
-              label:
-                option.value === "original" || variantAvailability[option.value]
-                  ? option.label
-                  : `${option.label} (not generated)`,
-            }))}
-          />
-          <Select
-            value={format}
-            onChange={(nextFormat) => {
-              setFormat(nextFormat);
-              applyVariantUrl(mediaId, size, nextFormat);
-            }}
-            style={{ minWidth: 190 }}
-            options={FORMAT_OPTIONS}
-          />
-          {activeMedia?.webpUrl ? <Tag color="green">WebP</Tag> : null}
-          {activeMedia?.avifUrl ? <Tag color="purple">AVIF</Tag> : null}
-        </Space>
-      ) : null}
-
-      {previewSrc ? (
-        <div
-          style={{
-            border: "1px solid #e8e8e8",
-            borderRadius: 8,
-            padding: 8,
-            background: "#fafafa",
-            maxWidth: 260,
-          }}
-        >
-          <img
-            src={previewSrc}
-            alt="Selected media preview"
+      {isStacked ? (
+        <>
+          <div
             style={{
+              border: "1px solid #e8e8e8",
+              borderRadius: 8,
+              padding: 8,
+              background: "#fafafa",
               width: "100%",
-              maxHeight: 110,
-              objectFit: "contain",
-              borderRadius: 6,
-              background: "#fff",
+              minHeight: 150,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
+          >
+            {previewSrc ? (
+              <img
+                src={previewSrc}
+                alt="Selected media preview"
+                style={{
+                  width: "100%",
+                  maxHeight: 180,
+                  objectFit: "contain",
+                  borderRadius: 6,
+                  background: "#fff",
+                }}
+              />
+            ) : (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description="No image selected"
+                style={{ margin: 0 }}
+              />
+            )}
+          </div>
+
+          <Input
+            size="large"
+            value={value || ""}
+            onChange={(e) => onChange?.(e.target.value)}
+            placeholder={placeholder}
+            disabled={!allowManual}
           />
-          {activeMedia ? (
-            <Typography.Text
-              type="secondary"
-              style={{ fontSize: 12, marginTop: 6, display: "block" }}
+
+          <Space wrap>
+            <Button
+              icon={<UploadOutlined />}
+              onClick={() => setLibraryOpen(true)}
+              type="default"
+              size="large"
             >
-              {activeMedia.originalName || activeMedia.title || "Selected image"}
+              {value ? "Replace" : "Choose"}
+            </Button>
+            <Button
+              icon={<DeleteOutlined />}
+              danger
+              size="large"
+              onClick={() => onChange?.("")}
+              disabled={!value}
+            >
+              Delete
+            </Button>
+          </Space>
+
+          {hintText ? (
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              {hintText}
             </Typography.Text>
           ) : null}
-        </div>
-      ) : null}
+        </>
+      ) : (
+        <>
+          <Space.Compact style={{ width: "100%" }}>
+            <Input
+              value={value || ""}
+              onChange={(e) => onChange?.(e.target.value)}
+              placeholder={placeholder}
+              disabled={!allowManual}
+            />
+            <Button
+              icon={<PictureOutlined />}
+              onClick={() => setLibraryOpen(true)}
+              type="default"
+            >
+              {value ? "Replace" : "Choose"}
+            </Button>
+            <Button
+              icon={<DeleteOutlined />}
+              danger
+              onClick={() => onChange?.("")}
+              disabled={!value}
+            />
+          </Space.Compact>
+
+          {showVariants && mediaId ? (
+            <Space wrap style={{ width: "100%" }}>
+              <Select
+                value={size}
+                onChange={(nextSize) => {
+                  setSize(nextSize);
+                  applyVariantUrl(mediaId, nextSize, format);
+                }}
+                style={{ minWidth: 140 }}
+                options={SIZE_OPTIONS.map((option) => ({
+                  value: option.value,
+                  label:
+                    option.value === "original" || variantAvailability[option.value]
+                      ? option.label
+                      : `${option.label} (not generated)`,
+                }))}
+              />
+              <Select
+                value={format}
+                onChange={(nextFormat) => {
+                  setFormat(nextFormat);
+                  applyVariantUrl(mediaId, size, nextFormat);
+                }}
+                style={{ minWidth: 190 }}
+                options={FORMAT_OPTIONS}
+              />
+              {activeMedia?.webpUrl ? <Tag color="green">WebP</Tag> : null}
+              {activeMedia?.avifUrl ? <Tag color="purple">AVIF</Tag> : null}
+            </Space>
+          ) : null}
+
+          {previewSrc ? (
+            <div
+              style={{
+                border: "1px solid #e8e8e8",
+                borderRadius: 8,
+                padding: 8,
+                background: "#fafafa",
+                maxWidth: 260,
+              }}
+            >
+              <img
+                src={previewSrc}
+                alt="Selected media preview"
+                style={{
+                  width: "100%",
+                  maxHeight: 110,
+                  objectFit: "contain",
+                  borderRadius: 6,
+                  background: "#fff",
+                }}
+              />
+              {activeMedia ? (
+                <Typography.Text
+                  type="secondary"
+                  style={{ fontSize: 12, marginTop: 6, display: "block" }}
+                >
+                  {activeMedia.originalName || activeMedia.title || "Selected image"}
+                </Typography.Text>
+              ) : null}
+            </div>
+          ) : null}
+        </>
+      )}
 
       <Modal
         title="Media Library"

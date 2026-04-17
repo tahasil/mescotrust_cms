@@ -12,6 +12,7 @@ import {
   Switch,
   Row,
   Col,
+  Card,
 } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import Link from "next/link";
@@ -256,35 +257,53 @@ export default function AdminEventEditPage() {
               </Col>
 
               <Col xs={24} xl={12}>
-                <Form.Item
-                  name="featuredImageDesktop"
-                  label="Featured image URL (Desktop)"
-                  extra="Paste a URL or path from the media library"
-                >
-                  <MediaPickerInput placeholder="/media/..." />
-                </Form.Item>
-                <Form.Item
-                  name="featuredImageMobile"
-                  label="Featured image URL (Mobile)"
-                  extra="Optional. If empty, the desktop image is used on small screens."
-                  style={{ marginBottom: 0 }}
-                >
-                  <MediaPickerInput placeholder="/media/..." />
-                </Form.Item>
+                <Card title="Featured Images" size="small">
+                  <Row gutter={[12, 12]}>
+                    <Col xs={24} md={12}>
+                      <Card title="Desktop Image" size="small">
+                        <Form.Item
+                          name="featuredImageDesktop"
+                          style={{ marginBottom: 0 }}
+                        >
+                          <MediaPickerInput
+                            placeholder="/media/..."
+                            uiVariant="stacked"
+                            showVariants={false}
+                            hintText="Recommended: 1200x600"
+                          />
+                        </Form.Item>
+                      </Card>
+                    </Col>
+                    <Col xs={24} md={12}>
+                      <Card title="Mobile Image" size="small">
+                        <Form.Item
+                          name="featuredImageMobile"
+                          style={{ marginBottom: 0 }}
+                        >
+                          <MediaPickerInput
+                            placeholder="/media/..."
+                            uiVariant="stacked"
+                            showVariants={false}
+                            hintText="Optional for mobile"
+                          />
+                        </Form.Item>
+                      </Card>
+                    </Col>
+                  </Row>
+                </Card>
               </Col>
             </Row>
           </Col>
 
           <Col span={24}>
             <Form.Item style={{ marginBottom: 0 }}>
-              <Space>
-                <Button type="primary" htmlType="submit" loading={saving}>
-                  Save
-                </Button>
-                <Button href={`/preview/${id}?type=event`} target="_blank">
-                  Preview draft
-                </Button>
-              </Space>
+              <div style={{ display: "flex", justifyContent: "flex-end", width: "100%" }}>
+                <Space wrap>
+                  <Button type="primary" htmlType="submit" loading={saving}>
+                    Save
+                  </Button>
+                </Space>
+              </div>
             </Form.Item>
           </Col>
         </Row>

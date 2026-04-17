@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Form, Input, Select, Space, Switch, message, Spin, Row, Col } from "antd";
+import { Button, Form, Input, Select, Space, Switch, message, Spin, Row, Col, Card } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import RichTextEditor from "@/components/admin/RichTextEditor";
@@ -159,32 +159,50 @@ export default function AdminBlogNewPage() {
               </Col>
 
               <Col xs={24} xl={12}>
-                <Form.Item
-                  name="featuredImage"
-                  label="Featured image URL (Desktop)"
-                  extra="Paste an image URL or path from the media library (e.g. /media/...)"
-                >
-                  <MediaPickerInput placeholder="/media/..." />
-                </Form.Item>
-                <Form.Item
-                  name="featuredImageMobile"
-                  label="Featured image URL (Mobile)"
-                  extra="Optional. If empty, the desktop image is used on phones."
-                  style={{ marginBottom: 0 }}
-                >
-                  <MediaPickerInput placeholder="/media/..." />
-                </Form.Item>
+                <Card title="Featured Images" size="small">
+                  <Row gutter={[12, 12]}>
+                    <Col xs={24} md={12}>
+                      <Card title="Desktop Image" size="small">
+                        <Form.Item name="featuredImage" style={{ marginBottom: 0 }}>
+                          <MediaPickerInput
+                            placeholder="/media/..."
+                            uiVariant="stacked"
+                            showVariants={false}
+                            hintText="Recommended: 1200x600"
+                          />
+                        </Form.Item>
+                      </Card>
+                    </Col>
+                    <Col xs={24} md={12}>
+                      <Card title="Mobile Image" size="small">
+                        <Form.Item
+                          name="featuredImageMobile"
+                          style={{ marginBottom: 0 }}
+                        >
+                          <MediaPickerInput
+                            placeholder="/media/..."
+                            uiVariant="stacked"
+                            showVariants={false}
+                            hintText="Optional for mobile"
+                          />
+                        </Form.Item>
+                      </Card>
+                    </Col>
+                  </Row>
+                </Card>
               </Col>
             </Row>
           </Col>
 
           <Col span={24}>
             <Form.Item style={{ marginBottom: 0 }}>
-              <Space>
-                <Button type="primary" htmlType="submit" loading={saving}>
-                  Create
-                </Button>
-              </Space>
+              <div style={{ display: "flex", justifyContent: "flex-end", width: "100%" }}>
+                <Space wrap>
+                  <Button type="primary" htmlType="submit" loading={saving}>
+                    Create
+                  </Button>
+                </Space>
+              </div>
             </Form.Item>
           </Col>
         </Row>
