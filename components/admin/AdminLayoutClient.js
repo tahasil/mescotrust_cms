@@ -78,6 +78,15 @@ const menuItems = [
     ),
   },
   {
+    key: "/admin/sliders",
+    icon: <AppstoreOutlined />,
+    label: (
+      <Link href="/admin/sliders" style={linkStyle}>
+        Sliders
+      </Link>
+    ),
+  },
+  {
     key: "/admin/blogs",
     icon: <BookOutlined />,
     label: "Blogs",

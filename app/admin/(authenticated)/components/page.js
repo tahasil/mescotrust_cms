@@ -7,6 +7,12 @@ import { EditOutlined, PlusOutlined, SaveOutlined, SearchOutlined } from "@ant-d
 import Link from "next/link";
 import { ThemeAdminCard } from "@/styles/Theme";
 
+const EXCLUDED_COMPONENT_IDS = new Set([
+  "ImageSlider",
+  "StoriesSlider",
+  "EventsSlider",
+]);
+
 function deriveComponentId(displayName) {
   if (!displayName || typeof displayName !== "string") return "";
   let base = displayName.replace(/\s+/g, "").replace(/[^a-zA-Z0-9]/g, "");
@@ -26,8 +32,11 @@ export default function AdminComponentsPage() {
 
   const filteredList = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
-    if (!q) return list;
-    return list.filter(
+    const visibleList = list.filter(
+      (c) => !EXCLUDED_COMPONENT_IDS.has(c.componentId),
+    );
+    if (!q) return visibleList;
+    return visibleList.filter(
       (c) =>
         (c.displayName || "").toLowerCase().includes(q) ||
         (c.componentId || "").toLowerCase().includes(q),
