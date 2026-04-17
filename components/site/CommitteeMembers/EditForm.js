@@ -13,11 +13,21 @@ const API_PATH = "/api/theme/CommitteeMembers";
 const PREFIX = "committeeMembers";
 
 function normalizeItem(it) {
+  const desktopImage =
+    it?.imageDesktop != null
+      ? String(it.imageDesktop).trim()
+      : it?.image != null
+        ? String(it.image).trim()
+        : "";
+  const mobileImage =
+    it?.imageMobile != null ? String(it.imageMobile).trim() : "";
   return {
     name: it?.name != null ? String(it.name).trim() : "",
     qualification: it?.qualification != null ? String(it.qualification).trim() : "",
     title: it?.title != null ? String(it.title).trim() : "",
-    image: it?.image != null ? String(it.image).trim() : "",
+    imageDesktop: desktopImage,
+    imageMobile: mobileImage,
+    image: desktopImage,
     bio: it?.bio != null ? String(it.bio).trim() : "",
   };
 }
@@ -176,8 +186,21 @@ function CommitteeMembersEditForm({ source, initialData: initialDataProp, onSave
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "image"]} label="Image URL">
-                            <MediaPickerInput placeholder="/images/members-1.png" />
+                          <Form.Item {...restField} name={[name, "imageDesktop"]} label="Desktop Image">
+                            <MediaPickerInput
+                              placeholder="/images/members-1.png"
+                              uiVariant="stacked"
+                              hintText="Recommended for desktop/tablet"
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "imageMobile"]} label="Mobile Image">
+                            <MediaPickerInput
+                              placeholder="/images/members-1-mobile.png"
+                              uiVariant="stacked"
+                              hintText="Optional. Desktop image will be used if empty."
+                            />
                           </Form.Item>
                         </Col>
                         <Col span={24}>

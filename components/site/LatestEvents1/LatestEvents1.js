@@ -60,8 +60,18 @@ const HomeCardNews = styled(Card)`
 `;
 
 function normalizeItem(it) {
+  const desktopImage =
+    it?.imageUrlDesktop != null
+      ? String(it.imageUrlDesktop).trim()
+      : it?.imageUrl != null
+        ? String(it.imageUrl).trim()
+        : "";
+  const mobileImage =
+    it?.imageUrlMobile != null ? String(it.imageUrlMobile).trim() : "";
   return {
-    imageUrl: it?.imageUrl != null ? String(it.imageUrl).trim() : "",
+    imageUrlDesktop: desktopImage,
+    imageUrlMobile: mobileImage,
+    imageUrl: desktopImage,
     date: it?.date != null ? String(it.date).trim() : "",
     title: it?.title != null ? String(it.title).trim() : "",
     description: it?.description != null ? String(it.description).trim() : "",
@@ -90,7 +100,8 @@ export default function LatestEvents1(props) {
       ? props.latestEvents1Items
       : [
           {
-            imageUrl: "/images/news-1.png",
+            imageUrlDesktop: "/images/news-1.png",
+            imageUrlMobile: "",
             date: "02 Feb 2026",
             title: "Scholarship information for the year 2025-26",
             description:
@@ -99,7 +110,8 @@ export default function LatestEvents1(props) {
             buttonLink: "/",
           },
           {
-            imageUrl: "/images/news-2.png",
+            imageUrlDesktop: "/images/news-2.png",
+            imageUrlMobile: "",
             date: "02 Feb 2026",
             title:
               "Congratulations to all our EAS students for passing their HSC examination.",
@@ -147,12 +159,21 @@ export default function LatestEvents1(props) {
             <HomeCardNews>
               <Row gutter={[16, 16]} align="middle">
                 <Col span={24} sm={8} md={8} lg={10}>
-                  {item.imageUrl ? (
-                    <img loading="lazy"
-                      className="img-fluid"
-                      src={item.imageUrl}
-                      alt={item.title || `News ${index + 1}`}
-                    />
+                  {item.imageUrlDesktop || item.imageUrlMobile ? (
+                    <picture>
+                      {item.imageUrlMobile ? (
+                        <source
+                          media="(max-width: 767px)"
+                          srcSet={item.imageUrlMobile}
+                        />
+                      ) : null}
+                      <img
+                        loading="lazy"
+                        className="img-fluid"
+                        src={item.imageUrlDesktop || item.imageUrlMobile}
+                        alt={item.title || `News ${index + 1}`}
+                      />
+                    </picture>
                   ) : (
                     <div
                       style={{

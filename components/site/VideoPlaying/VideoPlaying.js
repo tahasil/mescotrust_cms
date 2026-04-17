@@ -91,7 +91,12 @@ export default function VideoPlaying(props) {
 
   /* ── Content ── */
   const youtubeVideoId = (props?.youtubeVideoId ?? "dQw4w9WgXcQ").toString().trim();
-  const coverImage = (props?.coverImage ?? "/images/player-cover.png").toString().trim();
+  const coverImageDesktop = (
+    props?.coverImageDesktop ?? props?.coverImage ?? "/images/player-cover.png"
+  )
+    .toString()
+    .trim();
+  const coverImageMobile = (props?.coverImageMobile ?? "").toString().trim();
   const coverAlt = (props?.coverAlt ?? "Video cover").toString().trim();
 
   /* ── Section background ── */
@@ -169,7 +174,16 @@ export default function VideoPlaying(props) {
                 />
               ) : (
                 <>
-                  <img loading="lazy" src={coverImage} alt={coverAlt} />
+                  <picture>
+                    {coverImageMobile ? (
+                      <source media="(max-width: 767px)" srcSet={coverImageMobile} />
+                    ) : null}
+                    <img
+                      loading="lazy"
+                      src={coverImageDesktop || coverImageMobile}
+                      alt={coverAlt}
+                    />
+                  </picture>
                   <VideoCover
                     onClick={() => setVideoPlaying(true)}
                     role="button"

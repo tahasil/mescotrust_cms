@@ -16,25 +16,41 @@ const DEFAULT_ITEMS = [
   {
     title: "Mumbai City Unit (Bandra to Colaba)",
     description: "Contact No: +91 9969937812",
+    bgImageDesktop: "/images/newspaper-card-bg-1.png",
+    bgImageMobile: "",
     bgImage: "/images/newspaper-card-bg-1.png",
   },
   {
     title: "Mumbai Suburban Unit (Santacruz to Borivali)",
     description: "Contact No: +91 9969937814",
+    bgImageDesktop: "/images/newspaper-card-bg-2.png",
+    bgImageMobile: "",
     bgImage: "/images/newspaper-card-bg-2.png",
   },
   {
     title: "Thane Unit (Thane and Navi Mumbai)",
     description: "Contact No: +91 7718038065",
+    bgImageDesktop: "/images/newspaper-card-bg-3.png",
+    bgImageMobile: "",
     bgImage: "/images/newspaper-card-bg-3.png",
   },
 ];
 
 function normalizeItem(it) {
+  const desktopImage =
+    it?.bgImageDesktop != null
+      ? String(it.bgImageDesktop).trim()
+      : it?.bgImage != null
+        ? String(it.bgImage).trim()
+        : "";
+  const mobileImage =
+    it?.bgImageMobile != null ? String(it.bgImageMobile).trim() : "";
   return {
     title: it?.title != null ? String(it.title).trim() : "",
     description: it?.description != null ? String(it.description).trim() : "",
-    bgImage: it?.bgImage != null ? String(it.bgImage).trim() : "",
+    bgImageDesktop: desktopImage,
+    bgImageMobile: mobileImage,
+    bgImage: desktopImage,
   };
 }
 
@@ -173,6 +189,8 @@ function OverlayCardsEditForm({ source, initialData: initialDataProp, onSaveToPa
                     defaultAddPayload={{
                       title: "",
                       description: "",
+                      bgImageDesktop: "",
+                      bgImageMobile: "",
                       bgImage: "",
                     }}
                     reorderMovedIndex={reorderMovedIndex}
@@ -200,8 +218,21 @@ function OverlayCardsEditForm({ source, initialData: initialDataProp, onSaveToPa
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "bgImage"]} label="Background Image URL (hover overlay)">
-                            <MediaPickerInput placeholder="/images/newspaper-card-bg-1.png" />
+                          <Form.Item {...restField} name={[name, "bgImageDesktop"]} label="Desktop Background Image">
+                            <MediaPickerInput
+                              placeholder="/images/newspaper-card-bg-1.png"
+                              uiVariant="stacked"
+                              hintText="Recommended for desktop/tablet"
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "bgImageMobile"]} label="Mobile Background Image">
+                            <MediaPickerInput
+                              placeholder="/images/newspaper-card-bg-1-mobile.png"
+                              uiVariant="stacked"
+                              hintText="Optional. Desktop image will be used if empty."
+                            />
                           </Form.Item>
                         </Col>
                       </Row>

@@ -34,10 +34,20 @@ const DEFAULT_ITEMS = [
 ];
 
 function normalizeItem(it) {
+  const desktopImage =
+    it?.imageDesktop != null
+      ? String(it.imageDesktop).trim()
+      : it?.image != null
+        ? String(it.image).trim()
+        : "";
+  const mobileImage =
+    it?.imageMobile != null ? String(it.imageMobile).trim() : "";
   return {
     name: it?.name != null ? String(it.name).trim() : "",
     date: it?.date != null ? String(it.date).trim() : "",
-    image: it?.image != null ? String(it.image).trim() : "",
+    imageDesktop: desktopImage,
+    imageMobile: mobileImage,
+    image: desktopImage,
     source: it?.source != null ? String(it.source).trim() : "",
   };
 }
@@ -179,6 +189,8 @@ function InMediaEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                     defaultAddPayload={{
                       name: "",
                       date: "",
+                      imageDesktop: "",
+                      imageMobile: "",
                       image: "",
                       source: "",
                     }}
@@ -212,8 +224,21 @@ function InMediaEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "image"]} label="Image URL">
-                            <MediaPickerInput placeholder="/uploads/media-1.webp" />
+                          <Form.Item {...restField} name={[name, "imageDesktop"]} label="Desktop Image">
+                            <MediaPickerInput
+                              placeholder="/uploads/media-1.webp"
+                              uiVariant="stacked"
+                              hintText="Recommended for desktop/tablet"
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "imageMobile"]} label="Mobile Image">
+                            <MediaPickerInput
+                              placeholder="/uploads/media-1-mobile.webp"
+                              uiVariant="stacked"
+                              hintText="Optional. Desktop image will be used if empty."
+                            />
                           </Form.Item>
                         </Col>
                       </Row>

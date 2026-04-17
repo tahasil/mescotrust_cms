@@ -53,9 +53,19 @@ const FALLBACK_THEME_COLOR_KEYS = [
  * When editing from Admin → Components: load/save via API_PATH (component doc).
  */
 function normalizeItem(it) {
+  const desktopImage =
+    it?.imageDesktop != null
+      ? String(it.imageDesktop).trim()
+      : it?.imageUrl != null
+        ? String(it.imageUrl).trim()
+        : "";
+  const mobileImage =
+    it?.imageMobile != null ? String(it.imageMobile).trim() : "";
   return {
     quote: it?.quote != null ? String(it.quote).trim() : "",
-    imageUrl: it?.imageUrl != null ? String(it.imageUrl).trim() : "",
+    imageDesktop: desktopImage,
+    imageMobile: mobileImage,
+    imageUrl: desktopImage,
     name: it?.name != null ? String(it.name).trim() : "",
     title: it?.title != null ? String(it.title).trim() : "",
     rating: Math.min(5, Math.max(0, Number(it?.rating) || 0)),
@@ -475,6 +485,8 @@ function TestimonialsEditForm(
                     addButtonText="Add testimonial"
                     defaultAddPayload={{
                       quote: "",
+                      imageDesktop: "",
+                      imageMobile: "",
                       imageUrl: "",
                       name: "",
                       title: "",
@@ -500,8 +512,21 @@ function TestimonialsEditForm(
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "imageUrl"]} label="Photo URL">
-                            <MediaPickerInput placeholder="https://..." />
+                          <Form.Item {...restField} name={[name, "imageDesktop"]} label="Desktop Photo">
+                            <MediaPickerInput
+                              placeholder="https://..."
+                              uiVariant="stacked"
+                              hintText="Recommended for desktop/tablet"
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "imageMobile"]} label="Mobile Photo">
+                            <MediaPickerInput
+                              placeholder="https://..."
+                              uiVariant="stacked"
+                              hintText="Optional. Desktop image will be used if empty."
+                            />
                           </Form.Item>
                         </Col>
                         <Col span={24}>

@@ -56,8 +56,20 @@ function VideoPlayingEditForm(
         ...getManageSectionInitialValues(PREFIX, data),
         youtubeVideoId:
           data?.youtubeVideoId != null ? String(data.youtubeVideoId).trim() : "dQw4w9WgXcQ",
+        coverImageDesktop:
+          data?.coverImageDesktop != null
+            ? String(data.coverImageDesktop).trim()
+            : data?.coverImage != null
+              ? String(data.coverImage).trim()
+              : "/images/player-cover.png",
+        coverImageMobile:
+          data?.coverImageMobile != null ? String(data.coverImageMobile).trim() : "",
         coverImage:
-          data?.coverImage != null ? String(data.coverImage).trim() : "/images/player-cover.png",
+          data?.coverImageDesktop != null
+            ? String(data.coverImageDesktop).trim()
+            : data?.coverImage != null
+              ? String(data.coverImage).trim()
+              : "/images/player-cover.png",
         coverAlt:
           data?.coverAlt != null ? String(data.coverAlt).trim() : "Video cover",
       });
@@ -106,8 +118,20 @@ function VideoPlayingEditForm(
         ...getManageSectionPayload(PREFIX, values),
         youtubeVideoId:
           values.youtubeVideoId != null ? String(values.youtubeVideoId).trim() : "dQw4w9WgXcQ",
+        coverImageDesktop:
+          values.coverImageDesktop != null
+            ? String(values.coverImageDesktop).trim()
+            : values.coverImage != null
+              ? String(values.coverImage).trim()
+              : "/images/player-cover.png",
+        coverImageMobile:
+          values.coverImageMobile != null ? String(values.coverImageMobile).trim() : "",
         coverImage:
-          values.coverImage != null ? String(values.coverImage).trim() : "/images/player-cover.png",
+          values.coverImageDesktop != null
+            ? String(values.coverImageDesktop).trim()
+            : values.coverImage != null
+              ? String(values.coverImage).trim()
+              : "/images/player-cover.png",
         coverAlt:
           values.coverAlt != null ? String(values.coverAlt).trim() : "Video cover",
       };
@@ -172,10 +196,26 @@ function VideoPlayingEditForm(
                 </Col>
                 <Col span={24}>
                   <Form.Item
-                    name="coverImage"
-                    label="Cover Image URL"
+                    name="coverImageDesktop"
+                    label="Desktop Cover Image"
                   >
-                    <MediaPickerInput placeholder="e.g. /images/player-cover.png" />
+                    <MediaPickerInput
+                      placeholder="e.g. /images/player-cover.png"
+                      uiVariant="stacked"
+                      hintText="Recommended for desktop/tablet"
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={24}>
+                  <Form.Item
+                    name="coverImageMobile"
+                    label="Mobile Cover Image"
+                  >
+                    <MediaPickerInput
+                      placeholder="e.g. /images/player-cover-mobile.png"
+                      uiVariant="stacked"
+                      hintText="Optional. Desktop image will be used if empty."
+                    />
                   </Form.Item>
                 </Col>
                 <Col span={24}>

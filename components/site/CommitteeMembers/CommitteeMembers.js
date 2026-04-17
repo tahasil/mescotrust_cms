@@ -218,12 +218,22 @@ const ProfileDetailUI = styled.div`
 
 /* ── Helpers ── */
 function normalizeItem(it) {
+  const desktopImage =
+    it?.imageDesktop != null
+      ? String(it.imageDesktop).trim()
+      : it?.image != null
+        ? String(it.image).trim()
+        : "";
+  const mobileImage =
+    it?.imageMobile != null ? String(it.imageMobile).trim() : "";
   return {
     name: it?.name != null ? String(it.name).trim() : "",
     qualification:
       it?.qualification != null ? String(it.qualification).trim() : "",
     title: it?.title != null ? String(it.title).trim() : "",
-    image: it?.image != null ? String(it.image).trim() : "",
+    imageDesktop: desktopImage,
+    imageMobile: mobileImage,
+    image: desktopImage,
     bio: it?.bio != null ? String(it.bio).trim() : "",
   };
 }
@@ -457,8 +467,17 @@ export default function CommitteeMembers(props) {
               <CardWrapper className="card-wrapper">
                 <CommitteeCard
                   cover={
-                    member.image ? (
-                      <img loading="lazy" src={member.image} alt={member.name} />
+                    member.imageDesktop || member.imageMobile ? (
+                      <picture>
+                        {member.imageMobile ? (
+                          <source media="(max-width: 767px)" srcSet={member.imageMobile} />
+                        ) : null}
+                        <img
+                          loading="lazy"
+                          src={member.imageDesktop || member.imageMobile}
+                          alt={member.name}
+                        />
+                      </picture>
                     ) : undefined
                   }
                 >
@@ -506,9 +525,13 @@ export default function CommitteeMembers(props) {
         {selectedMember && (
           <ProfileDetailUI>
             <div className="profile-detail-header">
-              {selectedMember.image && (
+              {(selectedMember.imageDesktop || selectedMember.imageMobile) && (
                 <div className="profile-detail-image">
-                  <img loading="lazy" src={selectedMember.image} alt={selectedMember.name} />
+                  <img
+                    loading="lazy"
+                    src={selectedMember.imageDesktop || selectedMember.imageMobile}
+                    alt={selectedMember.name}
+                  />
                 </div>
               )}
               <div className="profile-detail-meta">

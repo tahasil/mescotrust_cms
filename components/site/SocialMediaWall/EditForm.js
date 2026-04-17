@@ -24,17 +24,27 @@ const PLATFORM_OPTIONS = [
 ];
 
 const DEFAULT_POSTS = [
-  { platform: "instagram", username: "@mescotrust", caption: "", image: "", date: "", postUrl: "", enabled: true },
-  { platform: "facebook", username: "MESCO Trust", caption: "", image: "", date: "", postUrl: "", enabled: true },
-  { platform: "youtube", username: "MESCO Trust", caption: "", image: "", date: "", postUrl: "", enabled: true },
+  { platform: "instagram", username: "@mescotrust", caption: "", imageDesktop: "", imageMobile: "", image: "", date: "", postUrl: "", enabled: true },
+  { platform: "facebook", username: "MESCO Trust", caption: "", imageDesktop: "", imageMobile: "", image: "", date: "", postUrl: "", enabled: true },
+  { platform: "youtube", username: "MESCO Trust", caption: "", imageDesktop: "", imageMobile: "", image: "", date: "", postUrl: "", enabled: true },
 ];
 
 function normalizePost(it) {
+  const desktopImage =
+    it?.imageDesktop != null
+      ? String(it.imageDesktop).trim()
+      : it?.image != null
+        ? String(it.image).trim()
+        : "";
+  const mobileImage =
+    it?.imageMobile != null ? String(it.imageMobile).trim() : "";
   return {
     platform: it?.platform != null ? String(it.platform).trim() : "other",
     username: it?.username != null ? String(it.username).trim() : "",
     caption: it?.caption != null ? String(it.caption).trim() : "",
-    image: it?.image != null ? String(it.image).trim() : "",
+    imageDesktop: desktopImage,
+    imageMobile: mobileImage,
+    image: desktopImage,
     date: it?.date != null ? String(it.date).trim() : "",
     postUrl: it?.postUrl != null ? String(it.postUrl).trim() : "",
     enabled: it?.enabled !== false,
@@ -175,6 +185,8 @@ function SocialMediaWallEditForm({ source, initialData: initialDataProp, onSaveT
                       platform: "instagram",
                       username: "",
                       caption: "",
+                      imageDesktop: "",
+                      imageMobile: "",
                       image: "",
                       date: "",
                       postUrl: "",
@@ -205,8 +217,21 @@ function SocialMediaWallEditForm({ source, initialData: initialDataProp, onSaveT
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "image"]} label="Image URL">
-                            <MediaPickerInput placeholder="/uploads/post-image.webp or https://..." />
+                          <Form.Item {...restField} name={[name, "imageDesktop"]} label="Desktop Image">
+                            <MediaPickerInput
+                              placeholder="/uploads/post-image.webp or https://..."
+                              uiVariant="stacked"
+                              hintText="Recommended for desktop/tablet"
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "imageMobile"]} label="Mobile Image">
+                            <MediaPickerInput
+                              placeholder="/uploads/post-image-mobile.webp or https://..."
+                              uiVariant="stacked"
+                              hintText="Optional. Desktop image will be used if empty."
+                            />
                           </Form.Item>
                         </Col>
                         <Col span={24}>

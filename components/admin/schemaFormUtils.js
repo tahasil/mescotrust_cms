@@ -64,6 +64,20 @@ function ChildrenPreserver() {
   return null;
 }
 
+function shouldUseResponsiveImageField(field = {}) {
+  const key = String(field?.key || "").toLowerCase();
+  const label = String(field?.label || "").toLowerCase();
+  const haystack = `${key} ${label}`;
+  if (!haystack) return false;
+  if (!/(image|bg|background|banner|cover|hero|photo|thumbnail)/.test(haystack)) {
+    return false;
+  }
+  if (/(icon|logo|pdf|file|document)/.test(haystack)) {
+    return false;
+  }
+  return true;
+}
+
 export function ArrayEditor({ field, themeColorOptions }) {
   const { key, label, itemSchema = [], itemLabel = "Item" } = field;
   const defaultItem = itemSchema.reduce(
@@ -122,6 +136,37 @@ export function ArrayEditor({ field, themeColorOptions }) {
                         >
                           <ChildrenPreserver />
                         </Form.Item>
+                      );
+                    }
+                    if (
+                      subField.type === "image" &&
+                      shouldUseResponsiveImageField(subField)
+                    ) {
+                      return (
+                        <div key={subField.key} style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                          <Form.Item
+                            name={[name, subField.key]}
+                            label={`${subField.label || "Image"} (Desktop)`}
+                            style={{ marginBottom: 8 }}
+                          >
+                            <MediaPickerInput
+                              placeholder="https://..."
+                              uiVariant="stacked"
+                              hintText="Recommended for desktop/tablet"
+                            />
+                          </Form.Item>
+                          <Form.Item
+                            name={[name, `${subField.key}Mobile`]}
+                            label={`${subField.label || "Image"} (Mobile)`}
+                            style={{ marginBottom: 8 }}
+                          >
+                            <MediaPickerInput
+                              placeholder="https://..."
+                              uiVariant="stacked"
+                              hintText="Optional. Desktop image will be used if empty."
+                            />
+                          </Form.Item>
+                        </div>
                       );
                     }
                     return (
@@ -244,6 +289,30 @@ export function renderSchemaField(field, themeColorOptions) {
         </Form.Item>
       );
     case "image":
+      if (shouldUseResponsiveImageField(field)) {
+        return (
+          <>
+            <Form.Item key={`${key}-desktop`} name={key} label={`${label || "Image"} (Desktop)`}>
+              <MediaPickerInput
+                placeholder="https://..."
+                uiVariant="stacked"
+                hintText="Recommended for desktop/tablet"
+              />
+            </Form.Item>
+            <Form.Item
+              key={`${key}-mobile`}
+              name={`${key}Mobile`}
+              label={`${label || "Image"} (Mobile)`}
+            >
+              <MediaPickerInput
+                placeholder="https://..."
+                uiVariant="stacked"
+                hintText="Optional. Desktop image will be used if empty."
+              />
+            </Form.Item>
+          </>
+        );
+      }
       return (
         <Form.Item key={key} name={key} label={label}>
           <MediaPickerInput placeholder="https://..." />

@@ -16,7 +16,15 @@ function applyFormValues(form, data) {
   form.setFieldsValue({
     managingCommitteeMainTitle: data?.managingCommitteeMainTitle ?? "Managing Committee",
     managingCommitteeParagraph: data?.managingCommitteeParagraph ?? "",
-    managingCommitteeImageUrl: data?.managingCommitteeImageUrl ?? "/images/good-governance-2.png",
+    managingCommitteeImageDesktop:
+      data?.managingCommitteeImageDesktop ??
+      data?.managingCommitteeImageUrl ??
+      "/images/good-governance-2.png",
+    managingCommitteeImageMobile: data?.managingCommitteeImageMobile ?? "",
+    managingCommitteeImageUrl:
+      data?.managingCommitteeImageDesktop ??
+      data?.managingCommitteeImageUrl ??
+      "/images/good-governance-2.png",
     managingCommitteeImageAlt: data?.managingCommitteeImageAlt ?? "Managing Committee",
     managingCommitteeTitleColorKey: data?.managingCommitteeTitleColorKey ?? "",
     managingCommitteeTextColorKey: data?.managingCommitteeTextColorKey ?? "",
@@ -78,7 +86,11 @@ function ManagingCommitteeEditForm({ source, initialData: initialDataProp, onSav
       const payload = {
         managingCommitteeMainTitle: values.managingCommitteeMainTitle ?? "",
         managingCommitteeParagraph: values.managingCommitteeParagraph ?? "",
-        managingCommitteeImageUrl: values.managingCommitteeImageUrl ?? "",
+        managingCommitteeImageDesktop:
+          values.managingCommitteeImageDesktop ?? values.managingCommitteeImageUrl ?? "",
+        managingCommitteeImageMobile: values.managingCommitteeImageMobile ?? "",
+        managingCommitteeImageUrl:
+          values.managingCommitteeImageDesktop ?? values.managingCommitteeImageUrl ?? "",
         managingCommitteeImageAlt: values.managingCommitteeImageAlt ?? "",
         managingCommitteeTitleColorKey: values.managingCommitteeTitleColorKey ?? "",
         managingCommitteeTextColorKey: values.managingCommitteeTextColorKey ?? "",
@@ -132,8 +144,19 @@ function ManagingCommitteeEditForm({ source, initialData: initialDataProp, onSav
                 <Form.Item name="managingCommitteeParagraph" label="Paragraph">
                   <RichTextEditor placeholder="Enter paragraph text..." />
                 </Form.Item>
-                <Form.Item name="managingCommitteeImageUrl" label="Image URL">
-                  <MediaPickerInput placeholder="/images/good-governance-2.png" />
+                <Form.Item name="managingCommitteeImageDesktop" label="Desktop Image">
+                  <MediaPickerInput
+                    placeholder="/images/good-governance-2.png"
+                    uiVariant="stacked"
+                    hintText="Recommended for desktop/tablet"
+                  />
+                </Form.Item>
+                <Form.Item name="managingCommitteeImageMobile" label="Mobile Image">
+                  <MediaPickerInput
+                    placeholder="/images/good-governance-2-mobile.png"
+                    uiVariant="stacked"
+                    hintText="Optional. Desktop image will be used if empty."
+                  />
                 </Form.Item>
                 <Form.Item name="managingCommitteeImageAlt" label="Image Alt Text">
                   <Input placeholder="Managing Committee" size="large" />

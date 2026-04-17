@@ -42,8 +42,18 @@ function clamp(value, min, max, fallback) {
 }
 
 function normalizeItem(it) {
+  const desktopImage =
+    it?.imageDesktop != null
+      ? String(it.imageDesktop).trim()
+      : it?.image != null
+        ? String(it.image).trim()
+        : "";
+  const mobileImage =
+    it?.imageMobile != null ? String(it.imageMobile).trim() : "";
   return {
-    image: it?.image != null ? String(it.image).trim() : "",
+    imageDesktop: desktopImage,
+    imageMobile: mobileImage,
+    image: desktopImage,
     title: it?.title != null ? String(it.title).trim() : "",
   };
 }
@@ -294,12 +304,17 @@ export default function Cards(props) {
           {cards.map((card, idx) => (
             <article className="cards-item" key={`${card.title}-${idx}`}>
               <div className="cards-item-image-wrap">
-                {card.image ? (
-                  <img
-                    src={card.image}
-                    alt={card.title || `Card ${idx + 1}`}
-                    loading="lazy"
-                  />
+                {card.imageDesktop || card.imageMobile ? (
+                  <picture>
+                    {card.imageMobile ? (
+                      <source media="(max-width: 767px)" srcSet={card.imageMobile} />
+                    ) : null}
+                    <img
+                      src={card.imageDesktop || card.imageMobile}
+                      alt={card.title || `Card ${idx + 1}`}
+                      loading="lazy"
+                    />
+                  </picture>
                 ) : (
                   <div className="cards-placeholder">No Image</div>
                 )}
@@ -344,6 +359,14 @@ export default function Cards(props) {
             max-height: var(--cards-image-max-height, 110px);
             object-fit: contain;
             display: block;
+          }
+
+          .cards-item-image-wrap picture {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
           }
 
           .cards-item-content {

@@ -13,16 +13,54 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 const API_PATH = "/api/theme/PhotoGallery";
 const PREFIX = "photoGallery";
 
+function normalizeGalleryImage(img) {
+  if (typeof img === "string") {
+    const desktop = img.trim();
+    return {
+      urlDesktop: desktop,
+      urlMobile: "",
+      url: desktop,
+    };
+  }
+  const desktop =
+    img?.urlDesktop != null
+      ? String(img.urlDesktop).trim()
+      : img?.url != null
+        ? String(img.url).trim()
+        : img?.src != null
+          ? String(img.src).trim()
+          : "";
+  const mobile = img?.urlMobile != null ? String(img.urlMobile).trim() : "";
+  return {
+    urlDesktop: desktop,
+    urlMobile: mobile,
+    url: desktop,
+  };
+}
+
 function normalizeItem(it) {
   const cats = Array.isArray(it?.categories) ? it.categories : (it?.category ? [String(it.category).trim()] : []);
-  const images = Array.isArray(it?.images) ? it.images.map((img) => (typeof img === "string" ? img : img?.url || "").trim()).filter(Boolean) : [];
-  const cover = it?.image != null ? String(it.image).trim() : "";
+  const images = Array.isArray(it?.images)
+    ? it.images
+        .map(normalizeGalleryImage)
+        .filter((img) => img.urlDesktop || img.urlMobile)
+    : [];
+  const coverDesktop =
+    it?.imageDesktop != null
+      ? String(it.imageDesktop).trim()
+      : it?.image != null
+        ? String(it.image).trim()
+        : images[0]?.urlDesktop || "";
+  const coverMobile =
+    it?.imageMobile != null ? String(it.imageMobile).trim() : "";
   const type = it?.type === "link" ? "link" : "album";
   const linkType = it?.linkType === "external" ? "external" : "internal";
   const linkUrl = it?.linkUrl != null ? String(it.linkUrl).trim() : "";
   return {
     title: it?.title != null ? String(it.title).trim() : "",
-    image: cover,
+    imageDesktop: coverDesktop,
+    imageMobile: coverMobile,
+    image: coverDesktop,
     images: images,
     categories: cats.filter((c) => c !== "All"),
     type,
@@ -274,8 +312,21 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "image"]} label="Cover Image URL" rules={[{ required: true, message: "Cover image is required" }]}>
-                            <MediaPickerInput placeholder="/uploads/album-cover.webp" />
+                          <Form.Item {...restField} name={[name, "imageDesktop"]} label="Desktop Cover Image" rules={[{ required: true, message: "Cover image is required" }]}>
+                            <MediaPickerInput
+                              placeholder="/uploads/album-cover.webp"
+                              uiVariant="stacked"
+                              hintText="Recommended for desktop/tablet"
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "imageMobile"]} label="Mobile Cover Image">
+                            <MediaPickerInput
+                              placeholder="/uploads/album-cover-mobile.webp"
+                              uiVariant="stacked"
+                              hintText="Optional. Desktop image will be used if empty."
+                            />
                           </Form.Item>
                         </Col>
                         <Col span={24}>
@@ -316,16 +367,40 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                                     {(imgFields, { add: addImg, remove: removeImg }) => (
                                       <>
                                         {imgFields.map(({ key, name: imgName, ...imgRest }) => (
-                                          <div key={key} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-                                            <Form.Item {...imgRest} name={[imgName]} noStyle>
-                                              <Input placeholder="/uploads/photo.webp" size="large" style={{ flex: 1 }} />
+                                          <div key={key} style={{ marginBottom: 12, padding: 12, border: "1px solid #f0f0f0", borderRadius: 10 }}>
+                                            <Form.Item
+                                              {...imgRest}
+                                              name={[imgName, "urlDesktop"]}
+                                              label="Desktop Image"
+                                              style={{ marginBottom: 8 }}
+                                              rules={[{ required: true, message: "Desktop image is required" }]}
+                                            >
+                                              <MediaPickerInput
+                                                placeholder="/uploads/photo.webp"
+                                                uiVariant="stacked"
+                                                hintText="Recommended for desktop/tablet"
+                                              />
                                             </Form.Item>
-                                            <Button
-                                              type="text"
-                                              danger
-                                              icon={<DeleteOutlined />}
-                                              onClick={() => removeImg(imgName)}
-                                            />
+                                            <Form.Item
+                                              {...imgRest}
+                                              name={[imgName, "urlMobile"]}
+                                              label="Mobile Image"
+                                              style={{ marginBottom: 0 }}
+                                            >
+                                              <MediaPickerInput
+                                                placeholder="/uploads/photo-mobile.webp"
+                                                uiVariant="stacked"
+                                                hintText="Optional. Desktop image will be used if empty."
+                                              />
+                                            </Form.Item>
+                                            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+                                              <Button
+                                                type="text"
+                                                danger
+                                                icon={<DeleteOutlined />}
+                                                onClick={() => removeImg(imgName)}
+                                              />
+                                            </div>
                                           </div>
                                         ))}
                                         <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 4 }}>
@@ -333,7 +408,7 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                                             type="primary"
                                             shape="circle"
                                             icon={<PlusOutlined />}
-                                            onClick={() => addImg("")}
+                                            onClick={() => addImg({ urlDesktop: "", urlMobile: "", url: "" })}
                                           />
                                         </div>
                                       </>

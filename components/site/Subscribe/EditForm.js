@@ -32,7 +32,20 @@ function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage,
       subscribeTitle: data?.subscribeTitle != null ? String(data.subscribeTitle).trim() : "",
       subscribePlaceholder: data?.subscribePlaceholder != null ? String(data.subscribePlaceholder).trim() : "",
       subscribeButtonText: data?.subscribeButtonText != null ? String(data.subscribeButtonText).trim() : "",
-      subscribeBgUrl: data?.subscribeBgUrl != null ? String(data.subscribeBgUrl).trim() : "",
+      subscribeBgDesktop:
+        data?.subscribeBgDesktop != null
+          ? String(data.subscribeBgDesktop).trim()
+          : data?.subscribeBgUrl != null
+            ? String(data.subscribeBgUrl).trim()
+            : "",
+      subscribeBgMobile:
+        data?.subscribeBgMobile != null ? String(data.subscribeBgMobile).trim() : "",
+      subscribeBgUrl:
+        data?.subscribeBgDesktop != null
+          ? String(data.subscribeBgDesktop).trim()
+          : data?.subscribeBgUrl != null
+            ? String(data.subscribeBgUrl).trim()
+            : "",
       subscribeSubtitleColorKey: data?.subscribeSubtitleColorKey != null ? String(data.subscribeSubtitleColorKey).trim() : "",
       subscribeTitleColorKey: data?.subscribeTitleColorKey != null ? String(data.subscribeTitleColorKey).trim() : "",
       subscribeButtonBgColorKey: data?.subscribeButtonBgColorKey != null ? String(data.subscribeButtonBgColorKey).trim() : "",
@@ -93,7 +106,22 @@ function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage,
         subscribeTitle: String(values.subscribeTitle ?? "").trim(),
         subscribePlaceholder: String(values.subscribePlaceholder ?? "").trim(),
         subscribeButtonText: String(values.subscribeButtonText ?? "").trim(),
-        subscribeBgUrl: String(values.subscribeBgUrl ?? "").trim(),
+        subscribeBgDesktop:
+          values.subscribeBgDesktop != null
+            ? String(values.subscribeBgDesktop).trim()
+            : values.subscribeBgUrl != null
+              ? String(values.subscribeBgUrl).trim()
+              : "",
+        subscribeBgMobile:
+          values.subscribeBgMobile != null
+            ? String(values.subscribeBgMobile).trim()
+            : "",
+        subscribeBgUrl:
+          values.subscribeBgDesktop != null
+            ? String(values.subscribeBgDesktop).trim()
+            : values.subscribeBgUrl != null
+              ? String(values.subscribeBgUrl).trim()
+              : "",
         subscribeSubtitleColorKey: String(values.subscribeSubtitleColorKey ?? "").trim(),
         subscribeTitleColorKey: String(values.subscribeTitleColorKey ?? "").trim(),
         subscribeButtonBgColorKey: String(values.subscribeButtonBgColorKey ?? "").trim(),
@@ -170,8 +198,21 @@ function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage,
                   </Form.Item>
                 </Col>
                 <Col span={24}>
-                  <Form.Item name="subscribeBgUrl" label="Background image URL">
-                    <MediaPickerInput placeholder="/uploads/..." />
+                  <Form.Item name="subscribeBgDesktop" label="Desktop Background Image">
+                    <MediaPickerInput
+                      placeholder="/uploads/..."
+                      uiVariant="stacked"
+                      hintText="Recommended for desktop/tablet"
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={24}>
+                  <Form.Item name="subscribeBgMobile" label="Mobile Background Image">
+                    <MediaPickerInput
+                      placeholder="/uploads/..."
+                      uiVariant="stacked"
+                      hintText="Optional. Desktop image will be used if empty."
+                    />
                   </Form.Item>
                 </Col>
               </Row>

@@ -19,6 +19,7 @@ export const HEADER_OFFSET_MOBILE = "56px";
 /** Fallback values when a color is not in Theme.colors (no built-in palette in DB/Theme.js) */
 export const FALLBACK_COLORS = {
   primary: "#CF372F",
+  primaryLight: "rgba(207, 55, 47, 0.12)",
   white: "#FFFFFF",
   black: "#050505",
   headerBg: "rgba(5, 5, 5, 0.5)",
@@ -50,25 +51,34 @@ export const getColor = (key) => {
   const k = String(key).trim();
   // Direct match
   if (Theme.colors[k]) return Theme.colors[k];
-  // CamelCase match (e.g. "Black Light" → "blackLight")
+  // Normalize key into a stable slug (supports "Primary Light", "primaryLight", "primary-light")
   const slug = k
+    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
     .toLowerCase()
     .replace(/\s+/g, "-")
     .replace(/[^a-z0-9-]/g, "");
   const camel = slug.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+  const compact = slug.replace(/-/g, "");
   if (Theme.colors[camel]) return Theme.colors[camel];
+  if (Theme.colors[compact]) return Theme.colors[compact];
   // Case-insensitive match in Theme.colors
   const colorsKey = Object.keys(Theme.colors).find(
     (c) =>
       c.toLowerCase() === k.toLowerCase() ||
-      c.toLowerCase() === camel.toLowerCase(),
+      c.toLowerCase() === camel.toLowerCase() ||
+      c.toLowerCase() === compact.toLowerCase(),
   );
   if (colorsKey) return Theme.colors[colorsKey];
   // Fallback colors
   const fallbackKey = Object.keys(FALLBACK_COLORS).find(
-    (f) => f.toLowerCase() === k.toLowerCase(),
+    (f) =>
+      f.toLowerCase() === k.toLowerCase() ||
+      f.toLowerCase() === camel.toLowerCase() ||
+      f.toLowerCase() === compact.toLowerCase(),
   );
-  if (fallbackKey) return FALLBACK_COLORS[fallbackKey];
+  if (fallbackKey) {
+    return `var(--theme-${slug}, ${FALLBACK_COLORS[fallbackKey]})`;
+  }
   return `var(--theme-${slug})`;
 };
 
@@ -294,10 +304,16 @@ export const InnerBanner = styled.section`
     )
     1;
   background-color: transparent;
-  background-image: url("/images/inner-banner.png");
+  background-image: var(--inner-banner-bg, url("/images/inner-banner.png"));
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
+  @media (max-width: 767px) {
+    background-image: var(
+      --inner-banner-bg-mobile,
+      var(--inner-banner-bg, url("/images/inner-banner.png"))
+    );
+  }
   &::before {
     content: "";
     position: absolute;

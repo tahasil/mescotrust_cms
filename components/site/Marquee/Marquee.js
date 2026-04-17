@@ -62,6 +62,41 @@ const defaultImages = [
   "/images/partner-6.png",
 ];
 
+function normalizeImageItem(item) {
+  if (typeof item === "string") {
+    const url = item.trim();
+    return {
+      desktop: url,
+      mobile: "",
+      alt: "Partner",
+      key: url,
+    };
+  }
+  const desktop =
+    item?.urlDesktop != null
+      ? String(item.urlDesktop).trim()
+      : item?.url != null
+        ? String(item.url).trim()
+        : item?.src != null
+          ? String(item.src).trim()
+          : "";
+  const mobile =
+    item?.urlMobile != null
+      ? String(item.urlMobile).trim()
+      : item?.mobileImage != null
+        ? String(item.mobileImage).trim()
+        : "";
+  return {
+    desktop,
+    mobile,
+    alt:
+      item?.alt != null && String(item.alt).trim()
+        ? String(item.alt).trim()
+        : "Partner",
+    key: desktop || mobile || "partner",
+  };
+}
+
 /**
  * Site component: Marquee — CSR Partners / Awards & Recognition scrolling strip.
  * Data source: page block props (marqueeTitle, marqueeItems from pages collection) first, else theme API (components collection).
@@ -88,7 +123,7 @@ export default function Marquee(props) {
       ? String(data.marqueeTitle).trim()
       : null) ??
     "Our CSR Partners | Awards & Recognition";
-  const images =
+  const imageItems =
     Array.isArray(props?.marqueeItems) && props.marqueeItems.length > 0
       ? props.marqueeItems
       : Array.isArray(props?.images) && props.images.length > 0
@@ -112,19 +147,29 @@ export default function Marquee(props) {
         gradient={props?.gradient !== false}
         autoFill={true}
       >
-        {images.map((src, i) => (
+        {imageItems.map((rawItem, i) => {
+          const item = normalizeImageItem(rawItem);
+          const desktop = item.desktop || item.mobile;
+          if (!desktop) return null;
+          return (
           <div
-            key={`${i}-${typeof src === "string" ? src : src?.url}`}
+            key={`${i}-${item.key}`}
             className="marquee-item"
           >
-            <img
-              loading="lazy"
-              className="img-fluid"
-              src={typeof src === "string" ? src : (src?.url ?? src)}
-              alt={typeof src === "object" && src?.alt ? src.alt : "Partner"}
-            />
+            <picture>
+              {item.mobile ? (
+                <source media="(max-width: 767px)" srcSet={item.mobile} />
+              ) : null}
+              <img
+                loading="lazy"
+                className="img-fluid"
+                src={desktop}
+                alt={item.alt}
+              />
+            </picture>
           </div>
-        ))}
+          );
+        })}
       </ReactMarquee>
     </PartnersSection>
   );

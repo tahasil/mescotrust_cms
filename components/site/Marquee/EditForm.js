@@ -15,6 +15,22 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
  * When source="page": data from block.props (pages collection); save updates layout only, not components collection.
  * Exposes update() via ref for drawer header button.
  */
+function normalizeItem(it) {
+  const desktopUrl =
+    it?.urlDesktop != null
+      ? String(it.urlDesktop).trim()
+      : it?.url != null
+        ? String(it.url).trim()
+        : "";
+  const mobileUrl = it?.urlMobile != null ? String(it.urlMobile).trim() : "";
+  return {
+    urlDesktop: desktopUrl,
+    urlMobile: mobileUrl,
+    url: desktopUrl,
+    alt: it?.alt != null ? String(it.alt).trim() : "",
+  };
+}
+
 function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [] }, ref) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
@@ -35,10 +51,7 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
       const data = initialDataProp ?? {};
       const title = data.marqueeTitle != null ? String(data.marqueeTitle).trim() : "";
       const items = Array.isArray(data.marqueeItems)
-        ? data.marqueeItems.map((it) => ({
-            url: it?.url != null ? String(it.url).trim() : "",
-            alt: it?.alt != null ? String(it.alt).trim() : "",
-          }))
+        ? data.marqueeItems.map(normalizeItem)
         : [];
       setInitialData({
         marqueeTitle: title,
@@ -71,10 +84,7 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
       .then(([data, theme]) => {
         const title = data.marqueeTitle != null ? String(data.marqueeTitle).trim() : "Our CSR Partners | Awards & Recognition";
         const items = Array.isArray(data.marqueeItems)
-          ? data.marqueeItems.map((it) => ({
-              url: it?.url != null ? String(it.url).trim() : "",
-              alt: it?.alt != null ? String(it.alt).trim() : "",
-            }))
+          ? data.marqueeItems.map(normalizeItem)
           : [];
         setInitialData({
           marqueeTitle: title,
@@ -97,10 +107,7 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
       const title = values.marqueeTitle != null ? String(values.marqueeTitle).trim() : "";
       const rawItems = values.marqueeItems ?? [];
       const items = Array.isArray(rawItems)
-        ? rawItems.map((it) => ({
-            url: it?.url != null ? String(it.url).trim() : "",
-            alt: it?.alt != null ? String(it.alt).trim() : "",
-          }))
+        ? rawItems.map(normalizeItem)
         : [];
       const payload = {
         marqueeTitle: title,
@@ -166,7 +173,7 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                     move={move}
                     itemLabel="Item"
                     addButtonText="Add item"
-                    defaultAddPayload={{ url: "", alt: "" }}
+                    defaultAddPayload={{ urlDesktop: "", urlMobile: "", url: "", alt: "" }}
                     reorderMovedIndex={reorderMovedIndex}
                     reorderDirection={reorderDirection}
                     onMoveWithTransition={(from, to) => {
@@ -176,12 +183,25 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                     }}
                     renderItemContent={(name, restField) => (
                       <Row gutter={[16, 16]}>
-                        <Col span={14}>
-                          <Form.Item {...restField} name={[name, "url"]} label="Image URL" rules={[{ required: true, message: "Required" }]}>
-                            <MediaPickerInput placeholder="/images/partner-1.png" />
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "urlDesktop"]} label="Desktop Image" rules={[{ required: true, message: "Required" }]}>
+                            <MediaPickerInput
+                              placeholder="/images/partner-1.png"
+                              uiVariant="stacked"
+                              hintText="Recommended for desktop/tablet"
+                            />
                           </Form.Item>
                         </Col>
-                        <Col span={10}>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "urlMobile"]} label="Mobile Image">
+                            <MediaPickerInput
+                              placeholder="/images/partner-1-mobile.png"
+                              uiVariant="stacked"
+                              hintText="Optional. Desktop image will be used if empty."
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
                           <Form.Item {...restField} name={[name, "alt"]} label="Alt text">
                             <Input placeholder="Partner" size="large" />
                           </Form.Item>

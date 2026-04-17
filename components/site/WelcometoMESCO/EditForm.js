@@ -103,10 +103,20 @@ function WelcometoMESCOEditForm(
             : "Zakat Appeal",
         buttonLink:
           data?.buttonLink != null ? String(data.buttonLink).trim() : "/",
+        imageDesktop:
+          data?.imageDesktop != null
+            ? String(data.imageDesktop).trim()
+            : data?.imageUrl != null
+              ? String(data.imageUrl).trim()
+              : "/images/helping.png",
+        imageMobile:
+          data?.imageMobile != null ? String(data.imageMobile).trim() : "",
         imageUrl:
-          data?.imageUrl != null
-            ? String(data.imageUrl).trim()
-            : "/images/helping.png",
+          data?.imageDesktop != null
+            ? String(data.imageDesktop).trim()
+            : data?.imageUrl != null
+              ? String(data.imageUrl).trim()
+              : "/images/helping.png",
         imageAlt:
           data?.imageAlt != null ? String(data.imageAlt).trim() : "Helping",
         titleColorKey:
@@ -210,9 +220,19 @@ function WelcometoMESCOEditForm(
               : "Zakat Appeal",
           buttonLink:
             values.buttonLink != null ? String(values.buttonLink).trim() : "/",
+          imageDesktop:
+            values.imageDesktop != null
+              ? String(values.imageDesktop).trim()
+              : values.imageUrl != null
+                ? String(values.imageUrl).trim()
+                : "/images/helping.png",
+          imageMobile:
+            values.imageMobile != null ? String(values.imageMobile).trim() : "",
           imageUrl:
-            values.imageUrl != null
-              ? String(values.imageUrl).trim()
+            values.imageDesktop != null
+              ? String(values.imageDesktop).trim()
+              : values.imageUrl != null
+                ? String(values.imageUrl).trim()
               : "/images/helping.png",
           imageAlt:
             values.imageAlt != null
@@ -387,8 +407,21 @@ function WelcometoMESCOEditForm(
             children: (
               <Row gutter={[16, 16]}>
                 <Col span={24}>
-                  <Form.Item name="imageUrl" label="Image URL">
-                    <MediaPickerInput placeholder="e.g. /images/helping.png" />
+                  <Form.Item name="imageDesktop" label="Desktop Image">
+                    <MediaPickerInput
+                      placeholder="e.g. /images/helping.png"
+                      uiVariant="stacked"
+                      hintText="Recommended for desktop/tablet"
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={24}>
+                  <Form.Item name="imageMobile" label="Mobile Image">
+                    <MediaPickerInput
+                      placeholder="e.g. /images/helping-mobile.png"
+                      uiVariant="stacked"
+                      hintText="Optional. Desktop image will be used if empty."
+                    />
                   </Form.Item>
                 </Col>
                 <Col span={24}>

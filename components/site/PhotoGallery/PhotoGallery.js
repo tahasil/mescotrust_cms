@@ -147,23 +147,64 @@ const HiddenGallery = styled.div`
   display: none;
 `;
 
+function normalizeGalleryImage(img) {
+  if (typeof img === "string") {
+    const desktop = img.trim();
+    return {
+      urlDesktop: desktop,
+      urlMobile: "",
+      url: desktop,
+    };
+  }
+  const desktop =
+    img?.urlDesktop != null
+      ? String(img.urlDesktop).trim()
+      : img?.url != null
+        ? String(img.url).trim()
+        : img?.src != null
+          ? String(img.src).trim()
+          : "";
+  const mobile = img?.urlMobile != null ? String(img.urlMobile).trim() : "";
+  return {
+    urlDesktop: desktop,
+    urlMobile: mobile,
+    url: desktop,
+  };
+}
+
 function normalizeItem(it) {
   const cats = Array.isArray(it?.categories)
     ? it.categories
     : it?.category
       ? [String(it.category).trim()]
       : [];
-  const images = Array.isArray(it?.images)
-    ? it.images.map((img) => (typeof img === "string" ? img : img?.url || "").trim()).filter(Boolean)
+  const normalizedImages = Array.isArray(it?.images)
+    ? it.images
+        .map(normalizeGalleryImage)
+        .filter((img) => img.urlDesktop || img.urlMobile)
     : [];
-  const cover = it?.image != null ? String(it.image).trim() : "";
+  const coverDesktop =
+    it?.imageDesktop != null
+      ? String(it.imageDesktop).trim()
+      : it?.image != null
+        ? String(it.image).trim()
+        : normalizedImages[0]?.urlDesktop || "";
+  const coverMobile =
+    it?.imageMobile != null ? String(it.imageMobile).trim() : "";
   const itemType = it?.type === "link" ? "link" : "album";
   const linkType = it?.linkType === "external" ? "external" : "internal";
   const linkUrl = it?.linkUrl != null ? String(it.linkUrl).trim() : "";
   return {
     title: it?.title != null ? String(it.title).trim() : "",
-    image: cover,
-    images: images.length > 0 ? images : (cover ? [cover] : []),
+    imageDesktop: coverDesktop,
+    imageMobile: coverMobile,
+    image: coverDesktop,
+    images:
+      normalizedImages.length > 0
+        ? normalizedImages
+        : coverDesktop
+          ? [{ urlDesktop: coverDesktop, urlMobile: "", url: coverDesktop }]
+          : [],
     categories: cats.filter((c) => c !== "All"),
     type: itemType,
     linkType,
@@ -179,7 +220,9 @@ export default function PhotoGallery(props) {
     Array.isArray(props?.photoGalleryItems) && props.photoGalleryItems.length > 0
       ? props.photoGalleryItems
       : [];
-  const items = rawItems.map(normalizeItem).filter((it) => it.image);
+  const items = rawItems
+    .map(normalizeItem)
+    .filter((it) => it.imageDesktop || it.imageMobile);
   const tabs =
     Array.isArray(props?.photoGalleryTabs) && props.photoGalleryTabs.length > 0
       ? props.photoGalleryTabs
@@ -217,6 +260,14 @@ export default function PhotoGallery(props) {
       : undefined;
 
   const [activeTab, setActiveTab] = useState("All");
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+
+  useEffect(() => {
+    const updateViewport = () => setIsMobileViewport(window.innerWidth <= 767);
+    updateViewport();
+    window.addEventListener("resize", updateViewport);
+    return () => window.removeEventListener("resize", updateViewport);
+  }, []);
 
   /* Store lightGallery instances per album */
   const lgInstances = useRef({});
@@ -249,6 +300,15 @@ export default function PhotoGallery(props) {
       openAlbum(itemIndex);
     },
     [router],
+  );
+
+  const resolveImageForViewport = useCallback(
+    (img) => {
+      if (!img || typeof img !== "object") return "";
+      if (isMobileViewport && img.urlMobile) return img.urlMobile;
+      return img.urlDesktop || img.urlMobile || "";
+    },
+    [isMobileViewport],
   );
 
   const PREFIX = "photoGallery";
@@ -331,7 +391,19 @@ export default function PhotoGallery(props) {
           {filteredItems.map((item, index) => (
             <Col key={index} xs={24} sm={12} md={12} lg={8}>
               <GalleryCard onClick={() => handleItemClick(item, index)}>
-                <img loading="lazy" src={item.image} alt={item.title} />
+                <picture>
+                  {item.imageMobile ? (
+                    <source
+                      media="(max-width: 767px)"
+                      srcSet={item.imageMobile}
+                    />
+                  ) : null}
+                  <img
+                    loading="lazy"
+                    src={item.imageDesktop || item.imageMobile}
+                    alt={item.title}
+                  />
+                </picture>
                 <GalleryCardTitle>{item.title}</GalleryCardTitle>
                 {item.type === "album" && item.images.length > 1 && (
                   <GalleryCardCount>{item.images.length} photos</GalleryCardCount>
@@ -374,16 +446,22 @@ export default function PhotoGallery(props) {
               thumbnail={true}
               exThumbImage="data-thumb"
             >
-              {item.images.map((img, imgIdx) => (
+              {item.images.map((img, imgIdx) => {
+                const desktop = img?.urlDesktop || img?.url || "";
+                const mobile = img?.urlMobile || "";
+                const imageForViewer = resolveImageForViewport(img);
+                if (!desktop && !mobile) return null;
+                return (
                 <a
                   key={imgIdx}
-                  href={img}
-                  data-thumb={img}
+                  href={imageForViewer || desktop || mobile}
+                  data-thumb={imageForViewer || desktop || mobile}
                   data-sub-html={`<h4>${item.title}</h4>${item.images.length > 1 ? `<p>${imgIdx + 1} / ${item.images.length}</p>` : ""}`}
                 >
-                  <img src={img} alt={item.title} />
+                  <img src={imageForViewer || desktop || mobile} alt={item.title} />
                 </a>
-              ))}
+                );
+              })}
             </LightGallery>
           ) : null}
         </HiddenGallery>

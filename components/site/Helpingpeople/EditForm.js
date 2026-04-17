@@ -33,7 +33,22 @@ function HelpingpeopleEditForm({ source, initialData: initialDataProp, onSaveToP
     form.setFieldsValue({
       helpingpeopleMainTitle: data?.helpingpeopleMainTitle != null ? String(data.helpingpeopleMainTitle).trim() : "Helping people live better tomorrow",
       helpingpeopleParagraph: data?.helpingpeopleParagraph != null ? String(data.helpingpeopleParagraph).trim() : "",
-      helpingpeopleImageUrl: data?.helpingpeopleImageUrl != null ? String(data.helpingpeopleImageUrl).trim() : "/images/about-mesco-3.png",
+      helpingpeopleImageDesktop:
+        data?.helpingpeopleImageDesktop != null
+          ? String(data.helpingpeopleImageDesktop).trim()
+          : data?.helpingpeopleImageUrl != null
+            ? String(data.helpingpeopleImageUrl).trim()
+            : "/images/about-mesco-3.png",
+      helpingpeopleImageMobile:
+        data?.helpingpeopleImageMobile != null
+          ? String(data.helpingpeopleImageMobile).trim()
+          : "",
+      helpingpeopleImageUrl:
+        data?.helpingpeopleImageDesktop != null
+          ? String(data.helpingpeopleImageDesktop).trim()
+          : data?.helpingpeopleImageUrl != null
+            ? String(data.helpingpeopleImageUrl).trim()
+            : "/images/about-mesco-3.png",
       helpingpeopleImageAlt: data?.helpingpeopleImageAlt != null ? String(data.helpingpeopleImageAlt).trim() : "Helping people",
       helpingpeopleTitleColorKey: data?.helpingpeopleTitleColorKey != null ? String(data.helpingpeopleTitleColorKey).trim() : "",
       helpingpeopleTextColorKey: data?.helpingpeopleTextColorKey != null ? String(data.helpingpeopleTextColorKey).trim() : "",
@@ -84,7 +99,22 @@ function HelpingpeopleEditForm({ source, initialData: initialDataProp, onSaveToP
       const payload = {
         helpingpeopleMainTitle: values.helpingpeopleMainTitle != null ? String(values.helpingpeopleMainTitle).trim() : "",
         helpingpeopleParagraph: values.helpingpeopleParagraph != null ? String(values.helpingpeopleParagraph).trim() : "",
-        helpingpeopleImageUrl: values.helpingpeopleImageUrl != null ? String(values.helpingpeopleImageUrl).trim() : "",
+        helpingpeopleImageDesktop:
+          values.helpingpeopleImageDesktop != null
+            ? String(values.helpingpeopleImageDesktop).trim()
+            : values.helpingpeopleImageUrl != null
+              ? String(values.helpingpeopleImageUrl).trim()
+              : "",
+        helpingpeopleImageMobile:
+          values.helpingpeopleImageMobile != null
+            ? String(values.helpingpeopleImageMobile).trim()
+            : "",
+        helpingpeopleImageUrl:
+          values.helpingpeopleImageDesktop != null
+            ? String(values.helpingpeopleImageDesktop).trim()
+            : values.helpingpeopleImageUrl != null
+              ? String(values.helpingpeopleImageUrl).trim()
+              : "",
         helpingpeopleImageAlt: values.helpingpeopleImageAlt != null ? String(values.helpingpeopleImageAlt).trim() : "",
         helpingpeopleTitleColorKey: values.helpingpeopleTitleColorKey != null ? String(values.helpingpeopleTitleColorKey).trim() : "",
         helpingpeopleTextColorKey: values.helpingpeopleTextColorKey != null ? String(values.helpingpeopleTextColorKey).trim() : "",
@@ -147,8 +177,19 @@ function HelpingpeopleEditForm({ source, initialData: initialDataProp, onSaveToP
                 <Form.Item name="helpingpeopleParagraph" label="Paragraph">
                   <RichTextEditor placeholder="Enter paragraph text..." />
                 </Form.Item>
-                <Form.Item name="helpingpeopleImageUrl" label="Image URL">
-                  <MediaPickerInput placeholder="/images/about-mesco-3.png" />
+                <Form.Item name="helpingpeopleImageDesktop" label="Desktop Image">
+                  <MediaPickerInput
+                    placeholder="/images/about-mesco-3.png"
+                    uiVariant="stacked"
+                    hintText="Recommended for desktop/tablet"
+                  />
+                </Form.Item>
+                <Form.Item name="helpingpeopleImageMobile" label="Mobile Image">
+                  <MediaPickerInput
+                    placeholder="/images/about-mesco-3-mobile.png"
+                    uiVariant="stacked"
+                    hintText="Optional. Desktop image will be used if empty."
+                  />
                 </Form.Item>
                 <Form.Item name="helpingpeopleImageAlt" label="Image Alt Text">
                   <Input placeholder="Helping people" size="large" />

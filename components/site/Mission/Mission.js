@@ -24,7 +24,12 @@ export default function Mission(props) {
   )
     .toString()
     .trim();
-  const missionImage = (props?.missionImage ?? "/images/mission.png")
+  const missionImageDesktop = (
+    props?.missionImageDesktop ?? props?.missionImage ?? "/images/mission.png"
+  )
+    .toString()
+    .trim();
+  const missionImageMobile = (props?.missionImageMobile ?? "")
     .toString()
     .trim();
 
@@ -201,12 +206,21 @@ export default function Mission(props) {
         >
           <Row gutter={[16, 16]} align="middle">
             <Col xs={24} sm={24} md={12} lg={12}>
-              <img loading="lazy"
-                className="img-fluid"
-                style={{ display: "block", margin: "0 auto" }}
-                src={missionImage}
-                alt={missionSubTitle}
-              />
+              <picture>
+                {missionImageMobile ? (
+                  <source
+                    media="(max-width: 767px)"
+                    srcSet={missionImageMobile}
+                  />
+                ) : null}
+                <img
+                  loading="lazy"
+                  className="img-fluid"
+                  style={{ display: "block", margin: "0 auto" }}
+                  src={missionImageDesktop || missionImageMobile}
+                  alt={missionSubTitle}
+                />
+              </picture>
             </Col>
             <Col xs={24} sm={24} md={12} lg={12}>
               <SubTitle

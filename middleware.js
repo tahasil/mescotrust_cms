@@ -33,6 +33,12 @@ function isAdminRoute(pathname) {
   return pathname.startsWith(adminPathPrefix) || pathname.startsWith("/api/admin");
 }
 
+function isMediaObjectIdPath(pathname) {
+  const m = pathname.match(/^\/media\/([^/]+)$/);
+  if (!m) return false;
+  return /^[0-9a-fA-F]{24}$/.test(m[1]);
+}
+
 function isStateChanging(method) {
   return method === "POST" || method === "PUT" || method === "PATCH" || method === "DELETE";
 }
@@ -60,6 +66,14 @@ function withPathname(req) {
 
 export async function middleware(req) {
   const { pathname } = req.nextUrl;
+
+  // Resolve frontend CMS pages under /media/* (e.g. /media/in-media)
+  // while preserving /media/<ObjectId> for media-file delivery.
+  if (pathname.startsWith("/media/") && !isMediaObjectIdPath(pathname)) {
+    const url = req.nextUrl.clone();
+    url.pathname = `/resolved-pages${pathname}`;
+    return NextResponse.rewrite(url);
+  }
 
   if (pathname.startsWith("/api/auth") && req.method === "POST") {
     if (!checkLoginRate(getIp(req))) {

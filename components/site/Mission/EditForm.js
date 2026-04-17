@@ -12,7 +12,7 @@ const API_PATH = "/api/theme/Mission";
 const PREFIX = "mission";
 
 const CONTENT_FIELDS = [
-  "missionSubTitle", "missionTitle", "missionImage",
+  "missionSubTitle", "missionTitle", "missionImageDesktop", "missionImageMobile", "missionImage",
   "missionCardRadius", "missionCardPadding",
   "missionSubTitleColorKey", "missionMainTitleColorKey",
 ];
@@ -21,7 +21,9 @@ function applyFormValues(form, data) {
   form.setFieldsValue({
     missionSubTitle: data?.missionSubTitle ?? "Mission",
     missionTitle: data?.missionTitle ?? "Strive to improve the quality of life of the financially disadvantaged by promoting meaningful education & health.",
-    missionImage: data?.missionImage ?? "/images/mission.png",
+    missionImageDesktop: data?.missionImageDesktop ?? data?.missionImage ?? "/images/mission.png",
+    missionImageMobile: data?.missionImageMobile ?? "",
+    missionImage: data?.missionImageDesktop ?? data?.missionImage ?? "/images/mission.png",
     missionCardRadius: data?.missionCardRadius ?? 40,
     missionCardPadding: data?.missionCardPadding ?? 40,
     missionSubTitleColorKey: data?.missionSubTitleColorKey ?? "",
@@ -85,6 +87,12 @@ function MissionEditForm({ source, initialData: initialDataProp, onSaveToPage, o
       CONTENT_FIELDS.forEach((k) => {
         payload[k] = values[k] != null ? String(values[k]).trim() : "";
       });
+      payload.missionImage =
+        values.missionImageDesktop != null
+          ? String(values.missionImageDesktop).trim()
+          : values.missionImage != null
+            ? String(values.missionImage).trim()
+            : "";
       Object.assign(payload, getManageSectionPayload(PREFIX, values));
 
       if (isPageBlock && onSaveToPage) {
@@ -138,8 +146,19 @@ function MissionEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                 <Form.Item name="missionTitle" label="Main title" rules={[{ required: true }]}>
                   <Input.TextArea placeholder="Mission description" rows={3} size="large" />
                 </Form.Item>
-                <Form.Item name="missionImage" label="Image URL">
-                  <MediaPickerInput placeholder="/images/mission.png" />
+                <Form.Item name="missionImageDesktop" label="Desktop Image">
+                  <MediaPickerInput
+                    placeholder="/images/mission.png"
+                    uiVariant="stacked"
+                    hintText="Recommended for desktop/tablet"
+                  />
+                </Form.Item>
+                <Form.Item name="missionImageMobile" label="Mobile Image">
+                  <MediaPickerInput
+                    placeholder="/images/mission-mobile.png"
+                    uiVariant="stacked"
+                    hintText="Optional. Desktop image will be used if empty."
+                  />
                 </Form.Item>
               </>
             ),

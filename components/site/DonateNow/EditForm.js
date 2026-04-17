@@ -62,7 +62,11 @@ function DonateNowEditForm({ source, initialData: initialDataProp, onSaveToPage,
         donateNowPkgActiveColorKey: data?.donateNowPkgActiveColorKey != null ? String(data.donateNowPkgActiveColorKey).trim() : "",
         donateNowFormHeadingColorKey: data?.donateNowFormHeadingColorKey != null ? String(data.donateNowFormHeadingColorKey).trim() : "",
         donateNowPurposeOptions: data?.donateNowPurposeOptions ?? "Adopted Municipal School, Clinics, Educate an Orphan, Educational Aid, General Aid, Medical Aid, Office Premises",
-        donateNowQrImageUrl: data?.donateNowQrImageUrl ?? "",
+        donateNowQrImageDesktop:
+          data?.donateNowQrImageDesktop ?? data?.donateNowQrImageUrl ?? "",
+        donateNowQrImageMobile: data?.donateNowQrImageMobile ?? "",
+        donateNowQrImageUrl:
+          data?.donateNowQrImageDesktop ?? data?.donateNowQrImageUrl ?? "",
         donateNowPackages: pkgs.length > 0 ? pkgs : DEFAULT_PACKAGES.map(normalizePackage),
       });
       if (theme) {
@@ -115,7 +119,22 @@ function DonateNowEditForm({ source, initialData: initialDataProp, onSaveToPage,
         donateNowPkgActiveColorKey: values.donateNowPkgActiveColorKey != null ? String(values.donateNowPkgActiveColorKey).trim() : "",
         donateNowFormHeadingColorKey: values.donateNowFormHeadingColorKey != null ? String(values.donateNowFormHeadingColorKey).trim() : "",
         donateNowPurposeOptions: values.donateNowPurposeOptions != null ? String(values.donateNowPurposeOptions).trim() : "",
-        donateNowQrImageUrl: values.donateNowQrImageUrl != null ? String(values.donateNowQrImageUrl).trim() : "",
+        donateNowQrImageDesktop:
+          values.donateNowQrImageDesktop != null
+            ? String(values.donateNowQrImageDesktop).trim()
+            : values.donateNowQrImageUrl != null
+              ? String(values.donateNowQrImageUrl).trim()
+              : "",
+        donateNowQrImageMobile:
+          values.donateNowQrImageMobile != null
+            ? String(values.donateNowQrImageMobile).trim()
+            : "",
+        donateNowQrImageUrl:
+          values.donateNowQrImageDesktop != null
+            ? String(values.donateNowQrImageDesktop).trim()
+            : values.donateNowQrImageUrl != null
+              ? String(values.donateNowQrImageUrl).trim()
+              : "",
         donateNowPackages: pkgs,
       };
       if (isPageBlock && onSaveToPage) {
@@ -152,8 +171,19 @@ function DonateNowEditForm({ source, initialData: initialDataProp, onSaveToPage,
                 <Form.Item name="donateNowPurposeOptions" label="Purpose of Donation Options" extra="Comma-separated list">
                   <Input.TextArea rows={3} placeholder="Adopted Municipal School, Clinics, Educate an Orphan..." />
                 </Form.Item>
-                <Form.Item name="donateNowQrImageUrl" label="QR Code Image URL" extra="Leave empty to hide QR button">
-                  <MediaPickerInput placeholder="/uploads/upi-qr-code.webp" />
+                <Form.Item name="donateNowQrImageDesktop" label="Desktop QR Code Image" extra="Used on desktop/tablet">
+                  <MediaPickerInput
+                    placeholder="/uploads/upi-qr-code.webp"
+                    uiVariant="stacked"
+                    hintText="Recommended for desktop/tablet"
+                  />
+                </Form.Item>
+                <Form.Item name="donateNowQrImageMobile" label="Mobile QR Code Image" extra="Optional. Desktop image will be used if empty.">
+                  <MediaPickerInput
+                    placeholder="/uploads/upi-qr-code-mobile.webp"
+                    uiVariant="stacked"
+                    hintText="Optional. Desktop image will be used if empty."
+                  />
                 </Form.Item>
               </>
             ),

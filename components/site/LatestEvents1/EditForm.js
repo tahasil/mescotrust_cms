@@ -23,8 +23,18 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 const API_PATH = "/api/theme/LatestEvents1";
 
 function normalizeItem(it) {
+  const desktopImage =
+    it?.imageUrlDesktop != null
+      ? String(it.imageUrlDesktop).trim()
+      : it?.imageUrl != null
+        ? String(it.imageUrl).trim()
+        : "";
+  const mobileImage =
+    it?.imageUrlMobile != null ? String(it.imageUrlMobile).trim() : "";
   return {
-    imageUrl: it?.imageUrl != null ? String(it.imageUrl).trim() : "",
+    imageUrlDesktop: desktopImage,
+    imageUrlMobile: mobileImage,
+    imageUrl: desktopImage,
     date: it?.date != null ? String(it.date).trim() : "",
     title: it?.title != null ? String(it.title).trim() : "",
     description: it?.description != null ? String(it.description).trim() : "",
@@ -200,8 +210,29 @@ function LatestEvents1EditForm(
                     renderItemContent={(name, restField) => (
                       <Row gutter={[16, 16]}>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "imageUrl"]} label="Image URL">
-                            <MediaPickerInput placeholder="/images/news-1.png" />
+                          <Form.Item
+                            {...restField}
+                            name={[name, "imageUrlDesktop"]}
+                            label="Desktop Image"
+                          >
+                            <MediaPickerInput
+                              placeholder="/images/news-1.png"
+                              uiVariant="stacked"
+                              hintText="Recommended for desktop/tablet"
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item
+                            {...restField}
+                            name={[name, "imageUrlMobile"]}
+                            label="Mobile Image"
+                          >
+                            <MediaPickerInput
+                              placeholder="/images/news-1-mobile.png"
+                              uiVariant="stacked"
+                              hintText="Optional. Desktop image will be used if empty."
+                            />
                           </Form.Item>
                         </Col>
                         <Col span={24}>

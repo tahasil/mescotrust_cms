@@ -315,7 +315,13 @@ export default function Reports(props) {
           {items.map((item, idx) => {
             const name = (item?.name ?? "").toString().trim();
             const tag = (item?.tag ?? "").toString().trim();
-            const image = (item?.image ?? "").toString().trim();
+            const imageDesktop = (
+              item?.imageDesktop ?? item?.image ?? ""
+            )
+              .toString()
+              .trim();
+            const imageMobile = (item?.imageMobile ?? "").toString().trim();
+            const image = imageDesktop || imageMobile;
             const pdfUrl = (item?.pdfUrl ?? "").toString().trim();
             return (
               <Col key={idx} xs={24} sm={12} md={12} lg={8}>
@@ -323,12 +329,18 @@ export default function Reports(props) {
                   <ReportCard>
                     {image ? (
                       <div className="imageWrapper">
-                        <img loading="lazy"
-                          className="w-100"
-                          src={image}
-                          alt={name}
-                          style={{ display: "block" }}
-                        />
+                        <picture>
+                          {imageMobile ? (
+                            <source media="(max-width: 767px)" srcSet={imageMobile} />
+                          ) : null}
+                          <img
+                            loading="lazy"
+                            className="w-100"
+                            src={imageDesktop || imageMobile}
+                            alt={name}
+                            style={{ display: "block" }}
+                          />
+                        </picture>
                       </div>
                     ) : (
                       <div className="imageWrapper" />

@@ -13,10 +13,34 @@ const API_PATH = "/api/theme/OverviewOfOurWork";
 const PREFIX = "overviewOfOurWork";
 
 function normalizeItem(it) {
+  const imageDesktop =
+    it?.imageUrlDesktop != null
+      ? String(it.imageUrlDesktop).trim()
+      : it?.imageUrl != null
+        ? String(it.imageUrl).trim()
+        : it?.image != null
+          ? String(it.image).trim()
+          : "";
+  const imageMobile =
+    it?.imageUrlMobile != null ? String(it.imageUrlMobile).trim() : "";
+  const bgImageDesktop =
+    it?.bgImageUrlDesktop != null
+      ? String(it.bgImageUrlDesktop).trim()
+      : it?.bgImageUrl != null
+        ? String(it.bgImageUrl).trim()
+        : it?.bgImage != null
+          ? String(it.bgImage).trim()
+          : "";
+  const bgImageMobile =
+    it?.bgImageUrlMobile != null ? String(it.bgImageUrlMobile).trim() : "";
   return {
     title: (it?.title != null ? String(it.title).trim() : "") || "Card",
-    imageUrl: it?.imageUrl != null ? String(it.imageUrl).trim() : "",
-    bgImageUrl: it?.bgImageUrl != null ? String(it.bgImageUrl).trim() : "",
+    imageUrlDesktop: imageDesktop,
+    imageUrlMobile: imageMobile,
+    imageUrl: imageDesktop,
+    bgImageUrlDesktop: bgImageDesktop,
+    bgImageUrlMobile: bgImageMobile,
+    bgImageUrl: bgImageDesktop,
     link: it?.link != null ? String(it.link).trim() : it?.url != null ? String(it.url).trim() : "",
     linkText: (it?.linkText != null ? String(it.linkText).trim() : (it?.buttonText != null ? String(it.buttonText).trim() : "")) || "More Details",
     titleColorKey: it?.titleColorKey != null ? String(it.titleColorKey).trim() : it?.cardTitleColorKey != null ? String(it.cardTitleColorKey).trim() : "",
@@ -261,8 +285,39 @@ function OverviewOfOurWorkEditForm(
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "bgImageUrl"]} label="Background (Image URL)">
-                            <MediaPickerInput placeholder="https://... or /images/..." />
+                          <Form.Item {...restField} name={[name, "imageUrlDesktop"]} label="Desktop Foreground Image">
+                            <MediaPickerInput
+                              placeholder="https://... or /images/..."
+                              uiVariant="stacked"
+                              hintText="Recommended for desktop/tablet"
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "imageUrlMobile"]} label="Mobile Foreground Image">
+                            <MediaPickerInput
+                              placeholder="https://... or /images/..."
+                              uiVariant="stacked"
+                              hintText="Optional. Desktop image will be used if empty."
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "bgImageUrlDesktop"]} label="Desktop Background Image">
+                            <MediaPickerInput
+                              placeholder="https://... or /images/..."
+                              uiVariant="stacked"
+                              hintText="Recommended for desktop/tablet"
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "bgImageUrlMobile"]} label="Mobile Background Image">
+                            <MediaPickerInput
+                              placeholder="https://... or /images/..."
+                              uiVariant="stacked"
+                              hintText="Optional. Desktop image will be used if empty."
+                            />
                           </Form.Item>
                         </Col>
                         <Col span={24}>

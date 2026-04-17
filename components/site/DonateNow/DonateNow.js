@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Row, Col, Select, notification } from "antd";
 import styled from "styled-components";
 import {
@@ -179,6 +179,14 @@ export default function DonateNow(props) {
   const [submitting, setSubmitting] = useState(false);
   const [encData, setEncData] = useState(null);
   const [errors, setErrors] = useState({});
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+
+  useEffect(() => {
+    const updateViewport = () => setIsMobileViewport(window.innerWidth <= 767);
+    updateViewport();
+    window.addEventListener("resize", updateViewport);
+    return () => window.removeEventListener("resize", updateViewport);
+  }, []);
 
   /* ── Title ── */
   const mainTitle = (props?.mainTitle ?? "").toString().trim();
@@ -244,7 +252,16 @@ export default function DonateNow(props) {
     : [];
 
   /* ── QR ── */
-  const qrImageUrl = (props?.donateNowQrImageUrl ?? "").toString().trim();
+  const qrImageDesktop = (
+    props?.donateNowQrImageDesktop ?? props?.donateNowQrImageUrl ?? ""
+  )
+    .toString()
+    .trim();
+  const qrImageMobile = (props?.donateNowQrImageMobile ?? "")
+    .toString()
+    .trim();
+  const qrImageUrl =
+    isMobileViewport && qrImageMobile ? qrImageMobile : qrImageDesktop || qrImageMobile;
 
   /* ── Section bg (standard boilerplate) ── */
   const PREFIX = "donateNow";

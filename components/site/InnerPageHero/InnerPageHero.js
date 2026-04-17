@@ -44,10 +44,18 @@ export default function InnerPageHero(props) {
       ];
 
   /* ── Background image ── */
-  const bgImage = (props?.bgImage ?? "").toString().trim();
-  const bannerStyle = bgImage
-    ? { backgroundImage: `url(${bgImage})` }
-    : undefined;
+  const bgImageDesktop = (
+    props?.bgImageDesktop ?? props?.bgImage ?? ""
+  )
+    .toString()
+    .trim();
+  const bgImageMobile = (props?.bgImageMobile ?? "").toString().trim();
+  const bannerStyle = {
+    ...(bgImageDesktop ? { "--inner-banner-bg": `url(${bgImageDesktop})` } : {}),
+    ...(bgImageMobile
+      ? { "--inner-banner-bg-mobile": `url(${bgImageMobile})` }
+      : {}),
+  };
 
   return (
     <InnerBanner style={bannerStyle}>

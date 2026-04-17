@@ -24,7 +24,12 @@ export default function Vision(props) {
   )
     .toString()
     .trim();
-  const visionImage = (props?.visionImage ?? "/images/vision.png")
+  const visionImageDesktop = (
+    props?.visionImageDesktop ?? props?.visionImage ?? "/images/vision.png"
+  )
+    .toString()
+    .trim();
+  const visionImageMobile = (props?.visionImageMobile ?? "")
     .toString()
     .trim();
 
@@ -225,12 +230,21 @@ export default function Vision(props) {
               md={{ span: 12, order: 2 }}
               lg={{ span: 12, order: 2 }}
             >
-              <img loading="lazy"
-                className="img-fluid"
-                style={{ display: "block", margin: "0 auto" }}
-                src={visionImage}
-                alt={visionSubTitle}
-              />
+              <picture>
+                {visionImageMobile ? (
+                  <source
+                    media="(max-width: 767px)"
+                    srcSet={visionImageMobile}
+                  />
+                ) : null}
+                <img
+                  loading="lazy"
+                  className="img-fluid"
+                  style={{ display: "block", margin: "0 auto" }}
+                  src={visionImageDesktop || visionImageMobile}
+                  alt={visionSubTitle}
+                />
+              </picture>
             </Col>
           </Row>
         </ThemeCard>

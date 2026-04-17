@@ -53,7 +53,20 @@ function HelpingEventsEditForm(
         titleColorKey: data?.titleColorKey != null ? String(data.titleColorKey).trim() : "",
         eventTitle: data?.eventTitle != null ? String(data.eventTitle).trim() : "",
         eventDescription: data?.eventDescription != null ? String(data.eventDescription).trim() : "",
-        eventImage: data?.eventImage != null ? String(data.eventImage).trim() : "/images/event-img.png",
+        eventImageDesktop:
+          data?.eventImageDesktop != null
+            ? String(data.eventImageDesktop).trim()
+            : data?.eventImage != null
+              ? String(data.eventImage).trim()
+              : "/images/event-img.png",
+        eventImageMobile:
+          data?.eventImageMobile != null ? String(data.eventImageMobile).trim() : "",
+        eventImage:
+          data?.eventImageDesktop != null
+            ? String(data.eventImageDesktop).trim()
+            : data?.eventImage != null
+              ? String(data.eventImage).trim()
+              : "/images/event-img.png",
         eventImageAlt: data?.eventImageAlt != null ? String(data.eventImageAlt).trim() : "Event",
         buttonText: data?.buttonText != null ? String(data.buttonText).trim() : "Donate Now",
         buttonLink: data?.buttonLink != null ? String(data.buttonLink).trim() : "/",
@@ -103,7 +116,20 @@ function HelpingEventsEditForm(
         titleColorKey: values.titleColorKey != null ? String(values.titleColorKey).trim() : "",
         eventTitle: values.eventTitle != null ? String(values.eventTitle).trim() : "",
         eventDescription: values.eventDescription != null ? String(values.eventDescription).trim() : "",
-        eventImage: values.eventImage != null ? String(values.eventImage).trim() : "/images/event-img.png",
+        eventImageDesktop:
+          values.eventImageDesktop != null
+            ? String(values.eventImageDesktop).trim()
+            : values.eventImage != null
+              ? String(values.eventImage).trim()
+              : "/images/event-img.png",
+        eventImageMobile:
+          values.eventImageMobile != null ? String(values.eventImageMobile).trim() : "",
+        eventImage:
+          values.eventImageDesktop != null
+            ? String(values.eventImageDesktop).trim()
+            : values.eventImage != null
+              ? String(values.eventImage).trim()
+              : "/images/event-img.png",
         eventImageAlt: values.eventImageAlt != null ? String(values.eventImageAlt).trim() : "Event",
         buttonText: values.buttonText != null ? String(values.buttonText).trim() : "Donate Now",
         buttonLink: values.buttonLink != null ? String(values.buttonLink).trim() : "/",
@@ -197,8 +223,21 @@ function HelpingEventsEditForm(
             children: (
               <Row gutter={[16, 16]}>
                 <Col span={24}>
-                  <Form.Item name="eventImage" label="Event Image URL">
-                    <MediaPickerInput placeholder="e.g. /images/event-img.png" />
+                  <Form.Item name="eventImageDesktop" label="Desktop Image">
+                    <MediaPickerInput
+                      placeholder="e.g. /images/event-img.png"
+                      uiVariant="stacked"
+                      hintText="Recommended for desktop/tablet"
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={24}>
+                  <Form.Item name="eventImageMobile" label="Mobile Image">
+                    <MediaPickerInput
+                      placeholder="e.g. /images/event-img-mobile.png"
+                      uiVariant="stacked"
+                      hintText="Optional. Desktop image will be used if empty."
+                    />
                   </Form.Item>
                 </Col>
                 <Col span={24}>

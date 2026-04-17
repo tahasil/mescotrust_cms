@@ -50,7 +50,11 @@ function ImagesEditForm({ source, initialData: initialDataProp, onSaveToPage, on
         imagesTitleEnabled: data.imagesTitleEnabled !== false,
         imagesSubTitleEnabled: data.imagesSubTitleEnabled !== false,
         imagesSubTitleColorKey: data.imagesSubTitleColorKey ?? "",
-        imageUrl: data.imageUrl ?? "/images/clinics-dispensaries.png",
+        imageUrlDesktop:
+          data.imageUrlDesktop ?? data.imageUrl ?? "/images/clinics-dispensaries.png",
+        imageUrlMobile: data.imageUrlMobile ?? "",
+        imageUrl:
+          data.imageUrlDesktop ?? data.imageUrl ?? "/images/clinics-dispensaries.png",
         imageAlt: data.imageAlt ?? "Clinics And Dispensaries",
         ...getManageSectionInitialValues(PREFIX, data),
         ...data,
@@ -68,7 +72,13 @@ function ImagesEditForm({ source, initialData: initialDataProp, onSaveToPage, on
           imagesTitleEnabled: data?.imagesTitleEnabled !== false,
           imagesSubTitleEnabled: data?.imagesSubTitleEnabled !== false,
           imagesSubTitleColorKey: data?.imagesSubTitleColorKey ?? "",
-          imageUrl: (data && data.imageUrl) ?? "/images/clinics-dispensaries.png",
+          imageUrlDesktop:
+            (data && (data.imageUrlDesktop ?? data.imageUrl)) ??
+            "/images/clinics-dispensaries.png",
+          imageUrlMobile: (data && data.imageUrlMobile) ?? "",
+          imageUrl:
+            (data && (data.imageUrlDesktop ?? data.imageUrl)) ??
+            "/images/clinics-dispensaries.png",
           imageAlt: (data && data.imageAlt) ?? "Clinics And Dispensaries",
           ...getManageSectionInitialValues(PREFIX, data),
           ...(data && typeof data === "object" ? data : {}),
@@ -83,6 +93,12 @@ function ImagesEditForm({ source, initialData: initialDataProp, onSaveToPage, on
       const values = form.getFieldsValue(true);
       const payload = {
         ...values,
+        imageUrl:
+          values.imageUrlDesktop != null
+            ? String(values.imageUrlDesktop).trim()
+            : values.imageUrl != null
+              ? String(values.imageUrl).trim()
+              : "",
         ...getManageSectionPayload(PREFIX, values),
       };
       if (isPageBlock && onSaveToPage) {
@@ -139,8 +155,19 @@ function ImagesEditForm({ source, initialData: initialDataProp, onSaveToPage, on
             label: "Content",
             children: (
               <>
-                <Form.Item name="imageUrl" label="Image URL">
-                  <MediaPickerInput placeholder="e.g. /images/clinics-dispensaries.png" />
+                <Form.Item name="imageUrlDesktop" label="Desktop Image">
+                  <MediaPickerInput
+                    placeholder="e.g. /images/clinics-dispensaries.png"
+                    uiVariant="stacked"
+                    hintText="Recommended for desktop/tablet"
+                  />
+                </Form.Item>
+                <Form.Item name="imageUrlMobile" label="Mobile Image">
+                  <MediaPickerInput
+                    placeholder="e.g. /images/clinics-dispensaries-mobile.png"
+                    uiVariant="stacked"
+                    hintText="Optional. Desktop image will be used if empty."
+                  />
                 </Form.Item>
                 <Form.Item name="imageAlt" label="Image Alt Text">
                   <Input placeholder="e.g. Clinics And Dispensaries" />

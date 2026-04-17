@@ -46,8 +46,18 @@ function clamp(value, min, max, fallback) {
 }
 
 function normalizeItem(it) {
+  const desktopImage =
+    it?.imageDesktop != null
+      ? String(it.imageDesktop).trim()
+      : it?.image != null
+        ? String(it.image).trim()
+        : "";
+  const mobileImage =
+    it?.imageMobile != null ? String(it.imageMobile).trim() : "";
   return {
-    image: it?.image != null ? String(it.image).trim() : "",
+    imageDesktop: desktopImage,
+    imageMobile: mobileImage,
+    image: desktopImage,
     title: it?.title != null ? String(it.title).trim() : "",
   };
 }
@@ -251,7 +261,7 @@ function CardsEditForm(
                     move={move}
                     itemLabel="Card"
                     addButtonText="Add card"
-                    defaultAddPayload={{ image: "", title: "" }}
+                    defaultAddPayload={{ imageDesktop: "", imageMobile: "", image: "", title: "" }}
                     reorderMovedIndex={reorderMovedIndex}
                     reorderDirection={reorderDirection}
                     onMoveWithTransition={(from, to) => {
@@ -264,11 +274,28 @@ function CardsEditForm(
                         <Col span={24}>
                           <Form.Item
                             {...restField}
-                            name={[name, "image"]}
-                            label="Image URL"
+                            name={[name, "imageDesktop"]}
+                            label="Desktop Image"
                             rules={[{ required: true, message: "Image URL is required" }]}
                           >
-                            <MediaPickerInput placeholder="/images/logo.svg" />
+                            <MediaPickerInput
+                              placeholder="/images/logo.svg"
+                              uiVariant="stacked"
+                              hintText="Recommended for desktop/tablet"
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item
+                            {...restField}
+                            name={[name, "imageMobile"]}
+                            label="Mobile Image"
+                          >
+                            <MediaPickerInput
+                              placeholder="/images/logo-mobile.svg"
+                              uiVariant="stacked"
+                              hintText="Optional. Desktop image will be used if empty."
+                            />
                           </Form.Item>
                         </Col>
                         <Col span={24}>

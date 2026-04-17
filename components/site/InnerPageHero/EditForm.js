@@ -61,7 +61,20 @@ function InnerPageHeroEditForm(
         ...getManageSectionInitialValues(PREFIX, data),
         title: data?.title != null ? String(data.title).trim() : "Page Title",
         description: data?.description != null ? String(data.description).trim() : "",
-        bgImage: data?.bgImage != null ? String(data.bgImage).trim() : "",
+        bgImageDesktop:
+          data?.bgImageDesktop != null
+            ? String(data.bgImageDesktop).trim()
+            : data?.bgImage != null
+              ? String(data.bgImage).trim()
+              : "",
+        bgImageMobile:
+          data?.bgImageMobile != null ? String(data.bgImageMobile).trim() : "",
+        bgImage:
+          data?.bgImageDesktop != null
+            ? String(data.bgImageDesktop).trim()
+            : data?.bgImage != null
+              ? String(data.bgImage).trim()
+              : "",
         breadcrumbItems:
           items.length > 0 ? items : [{ label: "Home", href: "/" }, { label: "Page Title", href: "" }],
       });
@@ -107,7 +120,20 @@ function InnerPageHeroEditForm(
         ...getManageSectionPayload(PREFIX, values),
         title: values.title != null ? String(values.title).trim() : "Page Title",
         description: values.description != null ? String(values.description).trim() : "",
-        bgImage: values.bgImage != null ? String(values.bgImage).trim() : "",
+        bgImageDesktop:
+          values.bgImageDesktop != null
+            ? String(values.bgImageDesktop).trim()
+            : values.bgImage != null
+              ? String(values.bgImage).trim()
+              : "",
+        bgImageMobile:
+          values.bgImageMobile != null ? String(values.bgImageMobile).trim() : "",
+        bgImage:
+          values.bgImageDesktop != null
+            ? String(values.bgImageDesktop).trim()
+            : values.bgImage != null
+              ? String(values.bgImage).trim()
+              : "",
         breadcrumbItems: items,
       };
       if (isPageBlock && onSaveToPage) {
@@ -174,8 +200,21 @@ function InnerPageHeroEditForm(
                   </Form.Item>
                 </Col>
                 <Col span={24}>
-                  <Form.Item name="bgImage" label="Background Image URL">
-                    <MediaPickerInput placeholder="e.g. /images/inner-banner.png (leave empty for default)" />
+                  <Form.Item name="bgImageDesktop" label="Desktop Image">
+                    <MediaPickerInput
+                      placeholder="e.g. /images/inner-banner.png"
+                      uiVariant="stacked"
+                      hintText="Recommended for desktop/tablet"
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={24}>
+                  <Form.Item name="bgImageMobile" label="Mobile Image">
+                    <MediaPickerInput
+                      placeholder="e.g. /images/inner-banner-mobile.png"
+                      uiVariant="stacked"
+                      hintText="Optional. Desktop image will be used if empty."
+                    />
                   </Form.Item>
                 </Col>
               </Row>

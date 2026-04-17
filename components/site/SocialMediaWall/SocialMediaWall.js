@@ -35,6 +35,22 @@ const PLATFORM_COLORS = {
 
 const MAX_POSTS = 20;
 
+function getPostImageSources(post) {
+  const desktop =
+    post?.imageDesktop != null
+      ? String(post.imageDesktop).trim()
+      : post?.image != null
+        ? String(post.image).trim()
+        : "";
+  const mobile =
+    post?.imageMobile != null ? String(post.imageMobile).trim() : "";
+  return {
+    desktop,
+    mobile,
+    image: desktop || mobile,
+  };
+}
+
 /* ── Platform SVG Icons ── */
 function PlatformIcon({ platform, size = 24, color }) {
   const fill = color || PLATFORM_COLORS[platform] || "#666";
@@ -350,7 +366,9 @@ export default function SocialMediaWall(props) {
 
   /* ── Merge manual + live posts ── */
   const manualPosts = Array.isArray(props?.socialMediaWallPosts) ? props.socialMediaWallPosts : [];
-  const enabledManual = manualPosts.filter((p) => p?.enabled !== false).map((p) => ({ ...p, source: "manual" }));
+  const enabledManual = manualPosts
+    .filter((p) => p?.enabled !== false)
+    .map((p) => ({ ...p, ...getPostImageSources(p), source: "manual" }));
   const allPosts = [...enabledManual, ...livePosts].slice(0, MAX_POSTS);
 
   /* ── Section bg ── */
@@ -433,7 +451,8 @@ export default function SocialMediaWall(props) {
                 const platform = (post?.platform ?? "").toString().trim().toLowerCase();
                 const username = (post?.username ?? "").toString().trim();
                 const caption = (post?.caption ?? "").toString().trim();
-                const image = (post?.image ?? "").toString().trim();
+                const imageSources = getPostImageSources(post);
+                const image = imageSources.image;
                 const date = (post?.date ?? "").toString().trim();
                 const platformLabel = PLATFORM_LABELS[platform] || platform;
                 const platformColor = PLATFORM_COLORS[platform] || "#666";
@@ -453,7 +472,19 @@ export default function SocialMediaWall(props) {
                     {/* Post image (natural height) */}
                     {image && (
                       <PostImage>
-                        <img loading="lazy" src={image} alt={caption || username || platformLabel} />
+                        <picture>
+                          {imageSources.mobile ? (
+                            <source
+                              media="(max-width: 767px)"
+                              srcSet={imageSources.mobile}
+                            />
+                          ) : null}
+                          <img
+                            loading="lazy"
+                            src={image}
+                            alt={caption || username || platformLabel}
+                          />
+                        </picture>
                       </PostImage>
                     )}
 
@@ -506,7 +537,8 @@ export default function SocialMediaWall(props) {
           const platform = (selectedPost.platform ?? "").toString().trim().toLowerCase();
           const username = (selectedPost.username ?? "").toString().trim();
           const caption = (selectedPost.caption ?? "").toString().trim();
-          const image = (selectedPost.image ?? "").toString().trim();
+          const imageSources = getPostImageSources(selectedPost);
+          const image = imageSources.image;
           const date = (selectedPost.date ?? "").toString().trim();
           const postUrl = (selectedPost.postUrl ?? "").toString().trim();
           const platformLabel = PLATFORM_LABELS[platform] || platform;
@@ -516,7 +548,15 @@ export default function SocialMediaWall(props) {
             <div data-lenis-prevent>
               {image && (
                 <ModalImage>
-                  <img src={image} alt={caption || username || platformLabel} />
+                  <picture>
+                    {imageSources.mobile ? (
+                      <source
+                        media="(max-width: 767px)"
+                        srcSet={imageSources.mobile}
+                      />
+                    ) : null}
+                    <img src={image} alt={caption || username || platformLabel} />
+                  </picture>
                 </ModalImage>
               )}
               <ModalContent>

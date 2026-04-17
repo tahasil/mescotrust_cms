@@ -5,17 +5,25 @@ import { Input, Button } from "antd";
 import { getColor } from "@/styles/Theme";
 
 export const SubscribeWrapper = styled.section.attrs((p) => ({
-  $bgUrl: p.$bgUrl || "",
+  $bgDesktop: p.$bgDesktop || "",
+  $bgMobile: p.$bgMobile || "",
 }))`
   width: 100%;
   position: relative;
   min-height: 380px;
   padding-bottom: 100px;
   background: ${(p) =>
-    p.$bgUrl ? `url(${p.$bgUrl}) no-repeat center bottom` : 'url("/images/subscribe-bg.png") no-repeat center bottom'};
+    p.$bgDesktop ? `url(${p.$bgDesktop}) no-repeat center bottom` : 'url("/images/subscribe-bg.png") no-repeat center bottom'};
   background-size: cover;
   @media (max-width: 768px) {
     min-height: 300px;
+    background: ${(p) =>
+      p.$bgMobile
+        ? `url(${p.$bgMobile}) no-repeat center bottom`
+        : p.$bgDesktop
+          ? `url(${p.$bgDesktop}) no-repeat center bottom`
+          : 'url("/images/subscribe-bg.png") no-repeat center bottom'};
+    background-size: cover;
   }
 `;
 

@@ -122,7 +122,22 @@ export default function OverlayCards(props) {
 
   /* ── Items ── */
   const items = Array.isArray(props?.overlayCardsItems)
-    ? props.overlayCardsItems
+    ? props.overlayCardsItems.map((item) => {
+        const desktopImage =
+          item?.bgImageDesktop != null
+            ? String(item.bgImageDesktop).trim()
+            : item?.bgImage != null
+              ? String(item.bgImage).trim()
+              : "";
+        const mobileImage =
+          item?.bgImageMobile != null ? String(item.bgImageMobile).trim() : "";
+        return {
+          ...item,
+          bgImageDesktop: desktopImage,
+          bgImageMobile: mobileImage,
+          bgImage: desktopImage,
+        };
+      })
     : [];
 
   /* ── Section bg ── */
@@ -301,13 +316,29 @@ export default function OverlayCards(props) {
             {items.map((item, idx) => {
               const title = (item?.title ?? "").toString().trim();
               const description = (item?.description ?? "").toString().trim();
-              const bgImage = (item?.bgImage ?? "").toString().trim();
+              const bgImageDesktop = (
+                item?.bgImageDesktop ?? item?.bgImage ?? ""
+              )
+                .toString()
+                .trim();
+              const bgImageMobile = (item?.bgImageMobile ?? "")
+                .toString()
+                .trim();
+              const bgImage = bgImageDesktop || bgImageMobile;
               return (
                 <Col key={idx} xs={24} sm={12} md={12} lg={8}>
                   <div className="innerCardBox text-center">
                     {bgImage && (
                       <div className="cardBackground">
-                        <img loading="lazy" src={bgImage} alt={title} />
+                        <picture>
+                          {bgImageMobile ? (
+                            <source
+                              media="(max-width: 767px)"
+                              srcSet={bgImageMobile}
+                            />
+                          ) : null}
+                          <img loading="lazy" src={bgImage} alt={title} />
+                        </picture>
                       </div>
                     )}
                     {title && <h3 className="my-4">{title}</h3>}

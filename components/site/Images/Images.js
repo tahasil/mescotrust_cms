@@ -29,7 +29,12 @@ export default function Images(props) {
   const subTitleColor = subTitleColorKey
     ? getColor(subTitleColorKey)
     : undefined;
-  const imageUrl = (props?.imageUrl ?? "/images/clinics-dispensaries.png")
+  const imageUrlDesktop = (
+    props?.imageUrlDesktop ?? props?.imageUrl ?? "/images/clinics-dispensaries.png"
+  )
+    .toString()
+    .trim();
+  const imageUrlMobile = (props?.imageUrlMobile ?? "")
     .toString()
     .trim();
   const imageAlt = (props?.imageAlt ?? "Clinics And Dispensaries")
@@ -195,7 +200,17 @@ export default function Images(props) {
         )}
         <Row gutter={[16, 16]}>
           <Col span={24}>
-            <img loading="lazy" className="w-100" src={imageUrl} alt={imageAlt} />
+            <picture>
+              {imageUrlMobile ? (
+                <source media="(max-width: 767px)" srcSet={imageUrlMobile} />
+              ) : null}
+              <img
+                loading="lazy"
+                className="w-100"
+                src={imageUrlDesktop || imageUrlMobile}
+                alt={imageAlt}
+              />
+            </picture>
           </Col>
         </Row>
       </PageContainer>

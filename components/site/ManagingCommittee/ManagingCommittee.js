@@ -15,7 +15,14 @@ import {
 export default function ManagingCommittee(props) {
   const mainTitle = (props?.managingCommitteeMainTitle ?? "Managing Committee").toString().trim();
   const paragraph = (props?.managingCommitteeParagraph ?? "").toString().trim();
-  const imageUrl = (props?.managingCommitteeImageUrl ?? "/images/good-governance-2.png").toString().trim();
+  const imageDesktop = (
+    props?.managingCommitteeImageDesktop ??
+    props?.managingCommitteeImageUrl ??
+    "/images/good-governance-2.png"
+  )
+    .toString()
+    .trim();
+  const imageMobile = (props?.managingCommitteeImageMobile ?? "").toString().trim();
   const imageAlt = (props?.managingCommitteeImageAlt ?? "Managing Committee").toString().trim();
 
   const titleColorKey = (props?.managingCommitteeTitleColorKey ?? "").toString().trim();
@@ -83,8 +90,18 @@ export default function ManagingCommittee(props) {
       <PageContainer style={pageContainerBgStyle}>
         <Row gutter={[32, 32]} align="middle">
           <Col xs={24} sm={24} md={12} lg={10}>
-            {imageUrl ? (
-              <img loading="lazy" className="img-fluid" src={imageUrl} alt={imageAlt} />
+            {imageDesktop || imageMobile ? (
+              <picture>
+                {imageMobile ? (
+                  <source media="(max-width: 767px)" srcSet={imageMobile} />
+                ) : null}
+                <img
+                  loading="lazy"
+                  className="img-fluid"
+                  src={imageDesktop || imageMobile}
+                  alt={imageAlt}
+                />
+              </picture>
             ) : (
               <div style={{ minHeight: 200, background: "rgba(255,255,255,0.1)", borderRadius: 8 }} />
             )}

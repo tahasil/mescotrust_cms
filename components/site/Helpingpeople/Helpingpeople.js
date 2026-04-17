@@ -20,7 +20,14 @@ export default function Helpingpeople(props) {
     .toString()
     .trim();
   const paragraph = (props?.helpingpeopleParagraph ?? "").toString().trim();
-  const imageUrl = (props?.helpingpeopleImageUrl ?? "/images/about-mesco-3.png")
+  const imageDesktop = (
+    props?.helpingpeopleImageDesktop ??
+    props?.helpingpeopleImageUrl ??
+    "/images/about-mesco-3.png"
+  )
+    .toString()
+    .trim();
+  const imageMobile = (props?.helpingpeopleImageMobile ?? "")
     .toString()
     .trim();
   const imageAlt = (props?.helpingpeopleImageAlt ?? "Helping people")
@@ -229,8 +236,18 @@ export default function Helpingpeople(props) {
             lg={{ span: 12, order: 2 }}
             className="text-center"
           >
-            {imageUrl ? (
-              <img loading="lazy" className="m-auto img-fluid" src={imageUrl} alt={imageAlt} />
+            {imageDesktop || imageMobile ? (
+              <picture>
+                {imageMobile ? (
+                  <source media="(max-width: 767px)" srcSet={imageMobile} />
+                ) : null}
+                <img
+                  loading="lazy"
+                  className="m-auto img-fluid"
+                  src={imageDesktop || imageMobile}
+                  alt={imageAlt}
+                />
+              </picture>
             ) : (
               <div
                 style={{

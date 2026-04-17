@@ -16,14 +16,24 @@ import Link from "next/link";
  * Manage Section (background/padding) and Title & Colors come from EditForm.
  */
 export default function ImpactShowcase(props) {
-  const leftImage = (
-    props?.impactShowcaseLeftImage ?? "/images/about-mesco-1.png"
+  const leftImageDesktop = (
+    props?.impactShowcaseLeftImageDesktop ??
+    props?.impactShowcaseLeftImage ??
+    "/images/about-mesco-1.png"
   )
     .toString()
     .trim();
-  const rightImage = (
-    props?.impactShowcaseRightImage ?? "/images/about-mesco-2.png"
+  const leftImageMobile = (props?.impactShowcaseLeftImageMobile ?? "")
+    .toString()
+    .trim();
+  const rightImageDesktop = (
+    props?.impactShowcaseRightImageDesktop ??
+    props?.impactShowcaseRightImage ??
+    "/images/about-mesco-2.png"
   )
+    .toString()
+    .trim();
+  const rightImageMobile = (props?.impactShowcaseRightImageMobile ?? "")
     .toString()
     .trim();
   const button1Text = (props?.impactShowcaseButton1Text ?? "Contact Us")
@@ -228,13 +238,18 @@ export default function ImpactShowcase(props) {
       <PageContainer style={pageContainerBgStyle}>
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={24} md={24} lg={14}>
-            {leftImage ? (
-              <img
-                loading="lazy"
-                className="img-fluid"
-                src={leftImage}
-                alt="Impact"
-              />
+            {leftImageDesktop || leftImageMobile ? (
+              <picture>
+                {leftImageMobile ? (
+                  <source media="(max-width: 767px)" srcSet={leftImageMobile} />
+                ) : null}
+                <img
+                  loading="lazy"
+                  className="img-fluid"
+                  src={leftImageDesktop || leftImageMobile}
+                  alt="Impact"
+                />
+              </picture>
             ) : (
               <div
                 style={{
@@ -307,13 +322,18 @@ export default function ImpactShowcase(props) {
                 )
               )}
             </Space>
-            {rightImage ? (
-              <img
-                loading="lazy"
-                className="img-fluid"
-                src={rightImage}
-                alt="Impact"
-              />
+            {rightImageDesktop || rightImageMobile ? (
+              <picture>
+                {rightImageMobile ? (
+                  <source media="(max-width: 767px)" srcSet={rightImageMobile} />
+                ) : null}
+                <img
+                  loading="lazy"
+                  className="img-fluid"
+                  src={rightImageDesktop || rightImageMobile}
+                  alt="Impact"
+                />
+              </picture>
             ) : (
               <div
                 style={{

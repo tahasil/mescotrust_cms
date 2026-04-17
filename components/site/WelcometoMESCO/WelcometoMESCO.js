@@ -137,7 +137,12 @@ export default function WelcometoMESCO(props) {
   const buttonLink = (props?.buttonLink ?? "/").toString().trim();
 
   /* ── Image ── */
-  const imageUrl = (props?.imageUrl ?? "/images/helping.png").toString().trim();
+  const imageDesktop = (
+    props?.imageDesktop ?? props?.imageUrl ?? "/images/helping.png"
+  )
+    .toString()
+    .trim();
+  const imageMobile = (props?.imageMobile ?? "").toString().trim();
   const imageAlt = (props?.imageAlt ?? "Helping").toString().trim();
 
   /* ── Stats ── */
@@ -357,12 +362,17 @@ export default function WelcometoMESCO(props) {
               md={{ span: 24, order: 1 }}
               lg={{ span: 12, order: 2 }}
             >
-              <img
-                loading="lazy"
-                className="w-100"
-                src={imageUrl}
-                alt={imageAlt}
-              />
+              <picture>
+                {imageMobile ? (
+                  <source media="(max-width: 767px)" srcSet={imageMobile} />
+                ) : null}
+                <img
+                  loading="lazy"
+                  className="w-100"
+                  src={imageDesktop || imageMobile}
+                  alt={imageAlt}
+                />
+              </picture>
             </Col>
           </Row>
         </HomeHelping>

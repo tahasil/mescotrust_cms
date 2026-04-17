@@ -109,7 +109,12 @@ export default function Subscribe(props) {
   const buttonText = (raw?.subscribeButtonText ?? raw?.buttonText ?? "")
     .toString()
     .trim();
-  const bgUrl = (raw?.subscribeBgUrl ?? raw?.bgUrl ?? "").toString().trim();
+  const bgDesktop = (
+    raw?.subscribeBgDesktop ?? raw?.subscribeBgUrl ?? raw?.bgUrl ?? ""
+  )
+    .toString()
+    .trim();
+  const bgMobile = (raw?.subscribeBgMobile ?? "").toString().trim();
   const subtitleColorKey = (raw?.subscribeSubtitleColorKey ?? "")
     .toString()
     .trim();
@@ -123,7 +128,10 @@ export default function Subscribe(props) {
 
   return (
     <section className="site-component-subscribe" data-component="Subscribe">
-      <SubscribeWrapper $bgUrl={bgUrl} />
+      <SubscribeWrapper
+        $bgDesktop={bgDesktop}
+        $bgMobile={bgMobile}
+      />
       <SubscribeCard as={PageContainer}>
         <SubscribeContent>
           <StyledSubTitle $subtitleColorKey={subtitleColorKey || undefined}>

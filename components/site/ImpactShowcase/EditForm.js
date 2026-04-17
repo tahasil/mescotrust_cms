@@ -30,8 +30,38 @@ function ImpactShowcaseEditForm({ source, initialData: initialDataProp, onSaveTo
 
   function applyFormValues(data) {
     form.setFieldsValue({
-      impactShowcaseLeftImage: data?.impactShowcaseLeftImage != null ? String(data.impactShowcaseLeftImage).trim() : "/images/about-mesco-1.png",
-      impactShowcaseRightImage: data?.impactShowcaseRightImage != null ? String(data.impactShowcaseRightImage).trim() : "/images/about-mesco-2.png",
+      impactShowcaseLeftImageDesktop:
+        data?.impactShowcaseLeftImageDesktop != null
+          ? String(data.impactShowcaseLeftImageDesktop).trim()
+          : data?.impactShowcaseLeftImage != null
+            ? String(data.impactShowcaseLeftImage).trim()
+            : "/images/about-mesco-1.png",
+      impactShowcaseLeftImageMobile:
+        data?.impactShowcaseLeftImageMobile != null
+          ? String(data.impactShowcaseLeftImageMobile).trim()
+          : "",
+      impactShowcaseLeftImage:
+        data?.impactShowcaseLeftImageDesktop != null
+          ? String(data.impactShowcaseLeftImageDesktop).trim()
+          : data?.impactShowcaseLeftImage != null
+            ? String(data.impactShowcaseLeftImage).trim()
+            : "/images/about-mesco-1.png",
+      impactShowcaseRightImageDesktop:
+        data?.impactShowcaseRightImageDesktop != null
+          ? String(data.impactShowcaseRightImageDesktop).trim()
+          : data?.impactShowcaseRightImage != null
+            ? String(data.impactShowcaseRightImage).trim()
+            : "/images/about-mesco-2.png",
+      impactShowcaseRightImageMobile:
+        data?.impactShowcaseRightImageMobile != null
+          ? String(data.impactShowcaseRightImageMobile).trim()
+          : "",
+      impactShowcaseRightImage:
+        data?.impactShowcaseRightImageDesktop != null
+          ? String(data.impactShowcaseRightImageDesktop).trim()
+          : data?.impactShowcaseRightImage != null
+            ? String(data.impactShowcaseRightImage).trim()
+            : "/images/about-mesco-2.png",
       impactShowcaseButton1Text: data?.impactShowcaseButton1Text != null ? String(data.impactShowcaseButton1Text).trim() : "Contact Us",
       impactShowcaseButton1Link: data?.impactShowcaseButton1Link != null ? String(data.impactShowcaseButton1Link).trim() : "/",
       impactShowcaseButton1IconUrl: data?.impactShowcaseButton1IconUrl != null ? String(data.impactShowcaseButton1IconUrl).trim() : "",
@@ -87,8 +117,38 @@ function ImpactShowcaseEditForm({ source, initialData: initialDataProp, onSaveTo
     form.validateFields().then(() => {
       const values = form.getFieldsValue(true);
       const payload = {
-        impactShowcaseLeftImage: values.impactShowcaseLeftImage != null ? String(values.impactShowcaseLeftImage).trim() : "",
-        impactShowcaseRightImage: values.impactShowcaseRightImage != null ? String(values.impactShowcaseRightImage).trim() : "",
+        impactShowcaseLeftImageDesktop:
+          values.impactShowcaseLeftImageDesktop != null
+            ? String(values.impactShowcaseLeftImageDesktop).trim()
+            : values.impactShowcaseLeftImage != null
+              ? String(values.impactShowcaseLeftImage).trim()
+              : "",
+        impactShowcaseLeftImageMobile:
+          values.impactShowcaseLeftImageMobile != null
+            ? String(values.impactShowcaseLeftImageMobile).trim()
+            : "",
+        impactShowcaseLeftImage:
+          values.impactShowcaseLeftImageDesktop != null
+            ? String(values.impactShowcaseLeftImageDesktop).trim()
+            : values.impactShowcaseLeftImage != null
+              ? String(values.impactShowcaseLeftImage).trim()
+              : "",
+        impactShowcaseRightImageDesktop:
+          values.impactShowcaseRightImageDesktop != null
+            ? String(values.impactShowcaseRightImageDesktop).trim()
+            : values.impactShowcaseRightImage != null
+              ? String(values.impactShowcaseRightImage).trim()
+              : "",
+        impactShowcaseRightImageMobile:
+          values.impactShowcaseRightImageMobile != null
+            ? String(values.impactShowcaseRightImageMobile).trim()
+            : "",
+        impactShowcaseRightImage:
+          values.impactShowcaseRightImageDesktop != null
+            ? String(values.impactShowcaseRightImageDesktop).trim()
+            : values.impactShowcaseRightImage != null
+              ? String(values.impactShowcaseRightImage).trim()
+              : "",
         impactShowcaseButton1Text: values.impactShowcaseButton1Text != null ? String(values.impactShowcaseButton1Text).trim() : "",
         impactShowcaseButton1Link: values.impactShowcaseButton1Link != null ? String(values.impactShowcaseButton1Link).trim() : "/",
         impactShowcaseButton1IconUrl: values.impactShowcaseButton1IconUrl != null ? String(values.impactShowcaseButton1IconUrl).trim() : "",
@@ -155,11 +215,33 @@ function ImpactShowcaseEditForm({ source, initialData: initialDataProp, onSaveTo
             label: "Content",
             children: (
               <>
-                <Form.Item name="impactShowcaseLeftImage" label="Left Image URL">
-                  <MediaPickerInput placeholder="/images/about-mesco-1.png" />
+                <Form.Item name="impactShowcaseLeftImageDesktop" label="Left Desktop Image">
+                  <MediaPickerInput
+                    placeholder="/images/about-mesco-1.png"
+                    uiVariant="stacked"
+                    hintText="Recommended for desktop/tablet"
+                  />
                 </Form.Item>
-                <Form.Item name="impactShowcaseRightImage" label="Right Image URL">
-                  <MediaPickerInput placeholder="/images/about-mesco-2.png" />
+                <Form.Item name="impactShowcaseLeftImageMobile" label="Left Mobile Image">
+                  <MediaPickerInput
+                    placeholder="/images/about-mesco-1-mobile.png"
+                    uiVariant="stacked"
+                    hintText="Optional. Desktop image will be used if empty."
+                  />
+                </Form.Item>
+                <Form.Item name="impactShowcaseRightImageDesktop" label="Right Desktop Image">
+                  <MediaPickerInput
+                    placeholder="/images/about-mesco-2.png"
+                    uiVariant="stacked"
+                    hintText="Recommended for desktop/tablet"
+                  />
+                </Form.Item>
+                <Form.Item name="impactShowcaseRightImageMobile" label="Right Mobile Image">
+                  <MediaPickerInput
+                    placeholder="/images/about-mesco-2-mobile.png"
+                    uiVariant="stacked"
+                    hintText="Optional. Desktop image will be used if empty."
+                  />
                 </Form.Item>
               </>
             ),

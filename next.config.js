@@ -9,6 +9,14 @@ const nextConfig = {
       { protocol: "https", hostname: "**" },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: "/media/:id([0-9a-fA-F]{24})",
+        destination: "/api/media/:id",
+      },
+    ];
+  },
   async headers() {
     return [
       {

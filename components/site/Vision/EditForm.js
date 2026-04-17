@@ -12,7 +12,7 @@ const API_PATH = "/api/theme/Vision";
 const PREFIX = "vision";
 
 const CONTENT_FIELDS = [
-  "visionSubTitle", "visionTitle", "visionImage",
+  "visionSubTitle", "visionTitle", "visionImageDesktop", "visionImageMobile", "visionImage",
   "visionCardRadius", "visionCardPadding",
   "visionSubTitleColorKey", "visionMainTitleColorKey",
 ];
@@ -21,7 +21,9 @@ function applyFormValues(form, data) {
   form.setFieldsValue({
     visionSubTitle: data?.visionSubTitle ?? "Vision",
     visionTitle: data?.visionTitle ?? "To help the underprivileged and marginalized live a better tomorrow through various interventions.",
-    visionImage: data?.visionImage ?? "/images/vision.png",
+    visionImageDesktop: data?.visionImageDesktop ?? data?.visionImage ?? "/images/vision.png",
+    visionImageMobile: data?.visionImageMobile ?? "",
+    visionImage: data?.visionImageDesktop ?? data?.visionImage ?? "/images/vision.png",
     visionCardRadius: data?.visionCardRadius ?? 40,
     visionCardPadding: data?.visionCardPadding ?? 40,
     visionSubTitleColorKey: data?.visionSubTitleColorKey ?? "",
@@ -85,6 +87,12 @@ function VisionEditForm({ source, initialData: initialDataProp, onSaveToPage, on
       CONTENT_FIELDS.forEach((k) => {
         payload[k] = values[k] != null ? String(values[k]).trim() : "";
       });
+      payload.visionImage =
+        values.visionImageDesktop != null
+          ? String(values.visionImageDesktop).trim()
+          : values.visionImage != null
+            ? String(values.visionImage).trim()
+            : "";
       Object.assign(payload, getManageSectionPayload(PREFIX, values));
 
       if (isPageBlock && onSaveToPage) {
@@ -138,8 +146,19 @@ function VisionEditForm({ source, initialData: initialDataProp, onSaveToPage, on
                 <Form.Item name="visionTitle" label="Main title" rules={[{ required: true }]}>
                   <Input.TextArea placeholder="Vision description" rows={3} size="large" />
                 </Form.Item>
-                <Form.Item name="visionImage" label="Image URL">
-                  <MediaPickerInput placeholder="/images/vision.png" />
+                <Form.Item name="visionImageDesktop" label="Desktop Image">
+                  <MediaPickerInput
+                    placeholder="/images/vision.png"
+                    uiVariant="stacked"
+                    hintText="Recommended for desktop/tablet"
+                  />
+                </Form.Item>
+                <Form.Item name="visionImageMobile" label="Mobile Image">
+                  <MediaPickerInput
+                    placeholder="/images/vision-mobile.png"
+                    uiVariant="stacked"
+                    hintText="Optional. Desktop image will be used if empty."
+                  />
                 </Form.Item>
               </>
             ),

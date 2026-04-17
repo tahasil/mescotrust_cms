@@ -25,7 +25,12 @@ export default function HelpingEvents(props) {
   /* ── Event card content ── */
   const eventTitle = (props?.eventTitle ?? "").toString().trim();
   const eventDescription = (props?.eventDescription ?? "").toString().trim();
-  const eventImage = (props?.eventImage ?? "/images/event-img.png").toString().trim();
+  const eventImageDesktop = (
+    props?.eventImageDesktop ?? props?.eventImage ?? "/images/event-img.png"
+  )
+    .toString()
+    .trim();
+  const eventImageMobile = (props?.eventImageMobile ?? "").toString().trim();
   const eventImageAlt = (props?.eventImageAlt ?? "Event").toString().trim();
   const buttonText = (props?.buttonText ?? "Donate Now").toString().trim();
   const buttonLink = (props?.buttonLink ?? "/").toString().trim();
@@ -115,11 +120,17 @@ export default function HelpingEvents(props) {
         <div className="innerEventBox">
           <Row gutter={[16, 16]} align="middle">
             <Col xs={24} sm={24} md={12} lg={10}>
-              <img loading="lazy"
-                className="img-fluid"
-                src={eventImage}
-                alt={eventImageAlt}
-              />
+              <picture>
+                {eventImageMobile ? (
+                  <source media="(max-width: 767px)" srcSet={eventImageMobile} />
+                ) : null}
+                <img
+                  loading="lazy"
+                  className="img-fluid"
+                  src={eventImageDesktop || eventImageMobile}
+                  alt={eventImageAlt}
+                />
+              </picture>
             </Col>
             <Col xs={24} sm={24} md={12} lg={14}>
               {eventTitle && <h2>{eventTitle}</h2>}

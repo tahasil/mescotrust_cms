@@ -10,13 +10,14 @@ import {
   SubTitle,
 } from "@/styles/Theme";
 
-/* ── Styled Components ── */
+/* Styled Components */
 const NewsletterRow = styled.div`
   display: flex;
   align-items: center;
   gap: 16px;
   padding: 16px 24px;
-  border: 1px solid ${getColor("border")};
+  border: 1px solid
+    ${({ $rowBorderColor }) => $rowBorderColor || getColor("border")} !important;
   border-radius: 12px;
   background: ${getColor("white")};
   margin-bottom: 12px;
@@ -25,7 +26,7 @@ const NewsletterRow = styled.div`
     margin-bottom: 0;
   }
   &:hover {
-    border-color: ${getColor("primary")};
+    border-color: ${({ $rowBorderColor }) => $rowBorderColor || getColor("primary")};
   }
   @media (max-width: 576px) {
     padding: 8px 10px;
@@ -41,6 +42,7 @@ const PdfIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  /* background-color: rgba(207, 55, 47, 0.1); */
   @media (max-width: 576px) {
     width: 36px;
     height: 36px;
@@ -85,7 +87,8 @@ const ContentArea = styled.div`
       width: 4px;
       height: 4px;
       border-radius: 50%;
-      background: rgba(0, 0, 0, 0.25);
+      background: currentColor;
+      opacity: 0.45;
       flex-shrink: 0;
     }
   }
@@ -112,52 +115,77 @@ const ViewLink = styled.a`
  * Vertical list of PDF newsletter rows with icon, title, date, tag, and View link.
  */
 export default function Newsletters(props) {
-  /* ── Title fields ── */
+  const resolveThemeColor = (value) => {
+    const raw = value != null ? String(value).trim() : "";
+    if (!raw) return undefined;
+    if (
+      raw.startsWith("#") ||
+      /^rgba?\(/i.test(raw) ||
+      /^hsla?\(/i.test(raw) ||
+      /gradient\(/i.test(raw) ||
+      /^var\(/i.test(raw)
+    ) {
+      return raw;
+    }
+    return getColor(raw);
+  };
+  /* Title fields */
   const mainTitle = (props?.mainTitle ?? "").toString().trim();
   const subTitle = (props?.subTitle ?? "").toString().trim();
   const titleEnabled = props?.newslettersTitleEnabled !== false;
   const subTitleEnabled = props?.newslettersSubTitleEnabled !== false;
   const titleColorKey = (props?.titleColorKey ?? "").toString().trim();
   const titleColor = titleColorKey
-    ? getColor(titleColorKey)
+    ? resolveThemeColor(titleColorKey)
     : getColor("primary");
   const subTitleColorKey = (props?.newslettersSubTitleColorKey ?? "")
     .toString()
     .trim();
   const subTitleColor = subTitleColorKey
-    ? getColor(subTitleColorKey)
+    ? resolveThemeColor(subTitleColorKey)
     : undefined;
 
-  /* ── Colors ── */
+  /* Colors */
   const iconColorKey = (props?.newslettersIconColorKey ?? "").toString().trim();
-  const iconColor = iconColorKey ? getColor(iconColorKey) : "#cf372f";
+  const iconColor = iconColorKey ? resolveThemeColor(iconColorKey) : "#cf372f";
   const viewColorKey = (props?.newslettersViewColorKey ?? "").toString().trim();
-  const viewColor = viewColorKey ? getColor(viewColorKey) : "#cf372f";
+  const viewColor = viewColorKey ? resolveThemeColor(viewColorKey) : "#cf372f";
   const viewBgColorKey = (props?.newslettersViewBgColorKey ?? "")
     .toString()
     .trim();
-  const viewBgColor = viewBgColorKey ? getColor(viewBgColorKey) : undefined;
+  const viewBgColor = viewBgColorKey
+    ? resolveThemeColor(viewBgColorKey)
+    : undefined;
+  const isViewBgGradient =
+    typeof viewBgColor === "string" &&
+    viewBgColor.toLowerCase().includes("gradient(");
+  const cardBgColorKey = (props?.newslettersCardBgColorKey ?? "")
+    .toString()
+    .trim();
+  const rowBorderColor = cardBgColorKey
+    ? resolveThemeColor(cardBgColorKey)
+    : undefined;
   const titleItemColorKey = (props?.newslettersTitleItemColorKey ?? "")
     .toString()
     .trim();
   const titleItemColor = titleItemColorKey
-    ? getColor(titleItemColorKey)
+    ? resolveThemeColor(titleItemColorKey)
     : undefined;
   const dateColorKey = (props?.newslettersDateColorKey ?? "").toString().trim();
-  const dateColor = dateColorKey ? getColor(dateColorKey) : undefined;
+  const dateColor = dateColorKey ? resolveThemeColor(dateColorKey) : undefined;
   const iconBgColorKey = (props?.newslettersIconBgColorKey ?? "")
     .toString()
     .trim();
   const iconBgColor = iconBgColorKey
-    ? getColor(iconBgColorKey)
+    ? resolveThemeColor(iconBgColorKey)
     : "rgba(207, 55, 47, 0.08)";
 
-  /* ── Items ── */
+  /* Items */
   const items = Array.isArray(props?.newslettersItems)
     ? props.newslettersItems
     : [];
 
-  /* ── Section bg ── */
+  /* Section bg */
   const PREFIX = "newsletters";
   const sectionBgType = (
     props?.[PREFIX + "SectionBgType"] ?? "default"
@@ -328,7 +356,10 @@ export default function Newsletters(props) {
           const tag = (item?.tag ?? "").toString().trim();
           const pdfUrl = (item?.pdfUrl ?? "").toString().trim();
           return (
-            <NewsletterRow key={idx}>
+            <NewsletterRow
+              key={idx}
+              $rowBorderColor={rowBorderColor}
+            >
               <PdfIcon style={{ background: iconBgColor }}>
                 <svg
                   width="36"
@@ -370,7 +401,12 @@ export default function Newsletters(props) {
                 style={{
                   color: viewColor,
                   ...(viewBgColor
-                    ? { backgroundColor: viewBgColor, borderColor: viewBgColor }
+                    ? {
+                        background: viewBgColor,
+                        borderColor: isViewBgGradient
+                          ? "transparent"
+                          : viewBgColor,
+                      }
                     : {}),
                 }}
                 onClick={pdfUrl ? undefined : (e) => e.preventDefault()}

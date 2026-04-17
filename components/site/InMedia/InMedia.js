@@ -369,19 +369,31 @@ export default function InMedia(props) {
               const name = (item?.name ?? "").toString().trim();
               const date = (item?.date ?? "").toString().trim();
               const source = (item?.source ?? "").toString().trim();
-              const image = (item?.image ?? "").toString().trim();
+              const imageDesktop = (
+                item?.imageDesktop ?? item?.image ?? ""
+              )
+                .toString()
+                .trim();
+              const imageMobile = (item?.imageMobile ?? "").toString().trim();
+              const image = imageDesktop || imageMobile;
               return (
                 <Col key={idx} xs={24} sm={12} md={12} lg={8}>
                   <CardWrapper className="card-wrapper">
                     <MediaCard>
                       {image && (
                         <div className="imageWrapper">
-                          <img loading="lazy"
-                            className="w-100"
-                            src={image}
-                            alt={name}
-                            style={{ display: "block" }}
-                          />
+                          <picture>
+                            {imageMobile ? (
+                              <source media="(max-width: 767px)" srcSet={imageMobile} />
+                            ) : null}
+                            <img
+                              loading="lazy"
+                              className="w-100"
+                              src={imageDesktop || imageMobile}
+                              alt={name}
+                              style={{ display: "block" }}
+                            />
+                          </picture>
                         </div>
                       )}
                       <CardBody>
@@ -442,10 +454,18 @@ export default function InMedia(props) {
         destroyOnClose
         data-lenis-prevent
       >
-        {selectedItem && selectedItem.image && (
+        {selectedItem &&
+        ((selectedItem.imageDesktop ?? selectedItem.image ?? "").toString().trim() ||
+          (selectedItem.imageMobile ?? "").toString().trim()) && (
           <div data-lenis-prevent>
-            <img loading="lazy"
-              src={selectedItem.image}
+            <img
+              loading="lazy"
+              src={
+                (selectedItem.imageDesktop ?? selectedItem.image ?? "")
+                  .toString()
+                  .trim() ||
+                (selectedItem.imageMobile ?? "").toString().trim()
+              }
               alt={selectedItem.name || "Media"}
               style={{ display: "block", width: "100%", height: "auto" }}
             />
