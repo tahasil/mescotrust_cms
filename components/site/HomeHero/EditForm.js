@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, Select, Switch, Button, Row, Col, Collapse, List, InputNumber, Tooltip, message, Spin } from "antd";
+import { Form, Input, Select, Switch, Button, Row, Col, Collapse, List, InputNumber, Tooltip, message, Spin, Card } from "antd";
 import { DeleteOutlined, PlusOutlined, ArrowUpOutlined, ArrowDownOutlined, QuestionCircleOutlined } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
@@ -36,7 +36,16 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
       const data = initialDataProp ?? {};
       const slides = Array.isArray(data?.homeHeroSlides)
         ? data.homeHeroSlides.map((s) => ({
-            bgImageUrl: s?.bgImageUrl != null ? String(s.bgImageUrl).trim() : "",
+            bgImageUrlDesktop:
+              s?.bgImageUrlDesktop != null
+                ? String(s.bgImageUrlDesktop).trim()
+                : s?.bgImageUrl != null
+                  ? String(s.bgImageUrl).trim()
+                  : "",
+            bgImageUrlMobile:
+              s?.bgImageUrlMobile != null
+                ? String(s.bgImageUrlMobile).trim()
+                : "",
             mediaType: s?.mediaType === "video" ? "video" : "image",
             youtubeUrl: s?.youtubeUrl != null ? String(s.youtubeUrl).trim() : (s?.videoUrl != null ? String(s.videoUrl).trim() : ""),
             title: s?.title != null ? String(s.title).trim() : "",
@@ -88,7 +97,16 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
 
         const slides = Array.isArray(hero?.homeHeroSlides)
           ? hero.homeHeroSlides.map((s) => ({
-              bgImageUrl: s?.bgImageUrl != null ? String(s.bgImageUrl).trim() : "",
+              bgImageUrlDesktop:
+                s?.bgImageUrlDesktop != null
+                  ? String(s.bgImageUrlDesktop).trim()
+                  : s?.bgImageUrl != null
+                    ? String(s.bgImageUrl).trim()
+                    : "",
+              bgImageUrlMobile:
+                s?.bgImageUrlMobile != null
+                  ? String(s.bgImageUrlMobile).trim()
+                  : "",
               mediaType: s?.mediaType === "video" ? "video" : "image",
               youtubeUrl: s?.youtubeUrl != null ? String(s.youtubeUrl).trim() : (s?.videoUrl != null ? String(s.videoUrl).trim() : ""),
               title: s?.title != null ? String(s.title).trim() : "",
@@ -122,7 +140,22 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
       const rawSlides = values.homeHeroSlides ?? [];
       const slides = Array.isArray(rawSlides)
         ? rawSlides.map((s) => ({
-            bgImageUrl: s?.bgImageUrl != null ? String(s.bgImageUrl).trim() : "",
+            bgImageUrlDesktop:
+              s?.bgImageUrlDesktop != null
+                ? String(s.bgImageUrlDesktop).trim()
+                : s?.bgImageUrl != null
+                  ? String(s.bgImageUrl).trim()
+                  : "",
+            bgImageUrlMobile:
+              s?.bgImageUrlMobile != null
+                ? String(s.bgImageUrlMobile).trim()
+                : "",
+            bgImageUrl:
+              s?.bgImageUrlDesktop != null
+                ? String(s.bgImageUrlDesktop).trim()
+                : s?.bgImageUrl != null
+                  ? String(s.bgImageUrl).trim()
+                  : "",
             mediaType: s?.mediaType === "video" ? "video" : "image",
             youtubeUrl: s?.youtubeUrl != null ? String(s.youtubeUrl).trim() : "",
             title: s?.title != null ? String(s.title).trim() : "",
@@ -293,7 +326,18 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
                       move={move}
                       itemLabel="Slide"
                       addButtonText="Add slide"
-                      defaultAddPayload={{ bgImageUrl: "", mediaType: "image", youtubeUrl: "", title: "", description: "", buttonText: "Contact Us", buttonLink: "/contact", showButton: true }}
+                      defaultAddPayload={{
+                        bgImageUrlDesktop: "",
+                        bgImageUrlMobile: "",
+                        bgImageUrl: "",
+                        mediaType: "image",
+                        youtubeUrl: "",
+                        title: "",
+                        description: "",
+                        buttonText: "Contact Us",
+                        buttonLink: "/contact",
+                        showButton: true,
+                      }}
                       reorderMovedIndex={reorderMovedIndex}
                       reorderDirection={reorderDirection}
                       onMoveWithTransition={(from, to) => {
@@ -304,9 +348,38 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
                       renderItemContent={(name, restField) => (
                         <Row gutter={[16, 16]}>
                           <Col span={24}>
-                            <Form.Item {...restField} name={[name, "bgImageUrl"]} label="Background image URL">
-                              <MediaPickerInput placeholder="e.g. /images/slider.png" />
-                            </Form.Item>
+                            <Row gutter={[12, 12]}>
+                              <Col span={24}>
+                                <Card size="small" title="Desktop Image">
+                                  <Form.Item
+                                    {...restField}
+                                    name={[name, "bgImageUrlDesktop"]}
+                                    style={{ marginBottom: 0 }}
+                                  >
+                                    <MediaPickerInput
+                                      placeholder="e.g. /images/slider-desktop.png"
+                                      uiVariant="stacked"
+                                      hintText="Recommended: 1920x900"
+                                    />
+                                  </Form.Item>
+                                </Card>
+                              </Col>
+                              <Col span={24}>
+                                <Card size="small" title="Mobile Image">
+                                  <Form.Item
+                                    {...restField}
+                                    name={[name, "bgImageUrlMobile"]}
+                                    style={{ marginBottom: 0 }}
+                                  >
+                                    <MediaPickerInput
+                                      placeholder="e.g. /images/slider-mobile.png"
+                                      uiVariant="stacked"
+                                      hintText="Optional for mobile (fallback desktop)"
+                                    />
+                                  </Form.Item>
+                                </Card>
+                              </Col>
+                            </Row>
                           </Col>
                           <Col span={24}>
                             <Form.Item {...restField} name={[name, "mediaType"]} label="Slide type" initialValue="image">

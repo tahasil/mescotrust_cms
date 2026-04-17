@@ -12,7 +12,9 @@ import {
   Input,
   InputNumber,
   Switch,
-  Button,
+  Row,
+  Col,
+  Card,
   List,
   Tooltip,
   message,
@@ -20,12 +22,11 @@ import {
   Collapse,
 } from "antd";
 import {
-  DeleteOutlined,
-  PlusOutlined,
   QuestionCircleOutlined,
 } from "@ant-design/icons";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import {
   getManageSectionInitialValues,
@@ -43,6 +44,27 @@ function buildInitialData(data) {
   const sliderItems = Array.isArray(data?.homeHero2SliderImages)
     ? data.homeHero2SliderImages
     : [];
+  const normalizedSliderItems =
+    sliderItems.length > 0
+      ? sliderItems.map((s) => {
+          const desktopSrc =
+            s?.desktopSrc != null
+              ? String(s.desktopSrc).trim()
+              : s?.src != null
+                ? String(s.src).trim()
+                : s?.url != null
+                  ? String(s.url).trim()
+                  : "";
+          const mobileSrc =
+            s?.mobileSrc != null ? String(s.mobileSrc).trim() : "";
+          return {
+            src: desktopSrc,
+            desktopSrc,
+            mobileSrc,
+            alt: s?.alt != null ? String(s.alt).trim() : "",
+          };
+        })
+      : [{ src: "", desktopSrc: "", mobileSrc: "", alt: "" }];
   return {
     mainTitle: data?.mainTitle ?? "Because Every Learner",
     mainTitleHighlight: data?.mainTitleHighlight ?? "Deserves Support",
@@ -53,8 +75,7 @@ function buildInitialData(data) {
     buttonText: data?.buttonText ?? "Contact Us",
     buttonHref: data?.buttonHref ?? "/",
     heroIconUrl: data?.heroIconUrl ?? "/images/hero-icon.svg",
-    homeHero2SliderImages:
-      sliderItems.length > 0 ? sliderItems : [{ src: "", alt: "" }],
+    homeHero2SliderImages: normalizedSliderItems,
     homeHero2SlideCount:
       data?.homeHero2SlideCount != null ? Number(data.homeHero2SlideCount) : 37,
     homeHero2AutoInterval:
@@ -94,6 +115,8 @@ function HomeHero2EditForm(
   const [themeColorOptions, setThemeColorOptions] = useState(
     themeColorOptionsProp,
   );
+  const [reorderMovedIndex, setReorderMovedIndex] = useState(-1);
+  const [reorderDirection, setReorderDirection] = useState("up");
   const themeFetchedRef = useRef(false);
   const isPageBlock = source === "page";
 
@@ -166,9 +189,11 @@ function HomeHero2EditForm(
         const sliderRaw = values.homeHero2SliderImages;
         const homeHero2SliderImages = Array.isArray(sliderRaw)
           ? sliderRaw
-              .filter((s) => s && (s.src || s.url))
+              .filter((s) => s && (s.desktopSrc || s.src || s.url || s.mobileSrc))
               .map((s) => ({
-                src: (s.src || s.url || "").trim(),
+                src: (s.desktopSrc || s.src || s.url || "").trim(),
+                desktopSrc: (s.desktopSrc || s.src || s.url || "").trim(),
+                mobileSrc: (s.mobileSrc || "").trim(),
                 alt: (s.alt != null ? String(s.alt) : "").trim(),
               }))
           : [];
@@ -316,52 +341,78 @@ function HomeHero2EditForm(
             label: "Circular Slider Images",
             children: (
               <Form.List name="homeHero2SliderImages">
-                {(fields, { add, remove }) => (
-                  <>
-                    {fields.map(({ key, name, ...rest }) => (
-                      <div
-                        key={key}
-                        style={{
-                          display: "flex",
-                          gap: 8,
-                          marginBottom: 8,
-                          alignItems: "flex-start",
-                        }}
-                      >
-                        <Form.Item
-                          {...rest}
-                          name={[name, "src"]}
-                          label="Image URL"
-                          style={{ flex: 1 }}
-                        >
-                          <MediaPickerInput placeholder="/images/slider-1.png" />
-                        </Form.Item>
-                        <Form.Item
-                          {...rest}
-                          name={[name, "alt"]}
-                          label="Alt"
-                          style={{ width: 120 }}
-                        >
-                          <Input placeholder="Alt text" />
-                        </Form.Item>
-                        <Button
-                          type="text"
-                          icon={<DeleteOutlined />}
-                          onClick={() => remove(name)}
-                        />
-                      </div>
-                    ))}
-                    <Form.Item>
-                      <Button
-                        type="dashed"
-                        onClick={() => add({ src: "", alt: "" })}
-                        block
-                        icon={<PlusOutlined />}
-                      >
-                        Add slider image
-                      </Button>
-                    </Form.Item>
-                  </>
+                {(fields, { add, remove, move }) => (
+                  <SortableFormList
+                    fields={fields}
+                    add={add}
+                    remove={remove}
+                    move={move}
+                    itemLabel="Item"
+                    addButtonText="Add slider image"
+                    defaultAddPayload={{
+                      src: "",
+                      desktopSrc: "",
+                      mobileSrc: "",
+                      alt: "",
+                    }}
+                    reorderMovedIndex={reorderMovedIndex}
+                    reorderDirection={reorderDirection}
+                    onMoveWithTransition={(from, to) => {
+                      setReorderDirection(to < from ? "up" : "down");
+                      setReorderMovedIndex(to);
+                      setTimeout(() => setReorderMovedIndex(-1), 400);
+                    }}
+                    renderItemContent={(name, restField) => (
+                      <Row gutter={[12, 12]}>
+                        <Col span={24}>
+                          <Card size="small" title="Desktop Image">
+                            <Form.Item
+                              {...restField}
+                              name={[name, "desktopSrc"]}
+                              rules={[
+                                {
+                                  required: true,
+                                  message: "Desktop image is required",
+                                },
+                              ]}
+                              style={{ marginBottom: 0 }}
+                            >
+                              <MediaPickerInput
+                                placeholder="/images/slider-desktop.png"
+                                uiVariant="stacked"
+                                hintText="Recommended: 1200x700"
+                              />
+                            </Form.Item>
+                          </Card>
+                        </Col>
+                        <Col span={24}>
+                          <Card size="small" title="Mobile Image">
+                            <Form.Item
+                              {...restField}
+                              name={[name, "mobileSrc"]}
+                              style={{ marginBottom: 0 }}
+                            >
+                              <MediaPickerInput
+                                placeholder="/images/slider-mobile.png"
+                                uiVariant="stacked"
+                                hintText="Optional for mobile (fallback desktop)"
+                              />
+                            </Form.Item>
+                          </Card>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item
+                            {...restField}
+                            name={[name, "alt"]}
+                            label="Alt"
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Input placeholder="Alt text" size="large" />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                    )}
+                  />
                 )}
               </Form.List>
             ),

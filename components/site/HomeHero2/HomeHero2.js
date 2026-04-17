@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useRouter } from "next/navigation";
 import { Row, Col } from "antd";
@@ -64,6 +65,7 @@ const HomeContainer = styled.section`
  * Props from theme/Component defaultProps; Manage Section and Title & Colors from EditForm.
  */
 export default function HomeHero2(props) {
+  const [isMobileView, setIsMobileView] = useState(false);
   const mainTitle = (props?.mainTitle ?? "Because Every Learner")
     .toString()
     .trim();
@@ -109,7 +111,21 @@ export default function HomeHero2(props) {
         }
       : undefined;
   const sliderImages = Array.isArray(props?.homeHero2SliderImages)
-    ? props.homeHero2SliderImages.filter((s) => s && (s.src || s.url))
+    ? props.homeHero2SliderImages
+        .map((s) => ({
+          desktopSrc:
+            s?.desktopSrc != null
+              ? String(s.desktopSrc).trim()
+              : s?.src != null
+                ? String(s.src).trim()
+                : s?.url != null
+                  ? String(s.url).trim()
+                  : "",
+          mobileSrc:
+            s?.mobileSrc != null ? String(s.mobileSrc).trim() : "",
+          alt: s?.alt != null ? String(s.alt) : "Slider",
+        }))
+        .filter((s) => s.desktopSrc || s.mobileSrc)
     : [];
   const sliderSlideCount =
     props?.homeHero2SlideCount != null
@@ -131,6 +147,18 @@ export default function HomeHero2(props) {
   const sliderDraggable = props?.homeHero2Draggable !== false;
 
   const router = useRouter();
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobileView(mq.matches);
+    update();
+    if (typeof mq.addEventListener === "function") {
+      mq.addEventListener("change", update);
+      return () => mq.removeEventListener("change", update);
+    }
+    mq.addListener(update);
+    return () => mq.removeListener(update);
+  }, []);
   const isExternal =
     !buttonHref ||
     buttonHref.startsWith("http") ||
@@ -186,8 +214,10 @@ export default function HomeHero2(props) {
       {sliderImages.length > 0 ? (
         <CircularSlider
           images={sliderImages.map((s) => ({
-            src: s.src || s.url,
-            alt: s.alt != null ? String(s.alt) : "Slider",
+            src: isMobileView
+              ? s.mobileSrc || s.desktopSrc
+              : s.desktopSrc || s.mobileSrc,
+            alt: s.alt,
           }))}
           slideCount={sliderSlideCount}
           autoInterval={sliderAutoplay ? sliderAutoInterval : 0}

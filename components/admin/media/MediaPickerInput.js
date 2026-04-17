@@ -294,6 +294,37 @@ export default function MediaPickerInput({
             </Button>
           </Space>
 
+          {showVariants && mediaId ? (
+            <Space wrap style={{ width: "100%" }}>
+              <Select
+                value={size}
+                onChange={(nextSize) => {
+                  setSize(nextSize);
+                  applyVariantUrl(mediaId, nextSize, format);
+                }}
+                style={{ minWidth: 140 }}
+                options={SIZE_OPTIONS.map((option) => ({
+                  value: option.value,
+                  label:
+                    option.value === "original" || variantAvailability[option.value]
+                      ? option.label
+                      : `${option.label} (not generated)`,
+                }))}
+              />
+              <Select
+                value={format}
+                onChange={(nextFormat) => {
+                  setFormat(nextFormat);
+                  applyVariantUrl(mediaId, size, nextFormat);
+                }}
+                style={{ minWidth: 190 }}
+                options={FORMAT_OPTIONS}
+              />
+              {activeMedia?.webpUrl ? <Tag color="green">WebP</Tag> : null}
+              {activeMedia?.avifUrl ? <Tag color="purple">AVIF</Tag> : null}
+            </Space>
+          ) : null}
+
           {hintText ? (
             <Typography.Text type="secondary" style={{ fontSize: 12 }}>
               {hintText}

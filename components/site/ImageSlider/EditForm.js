@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, InputNumber, Row, Col, Collapse, Switch, message, Spin } from "antd";
+import { Form, Input, InputNumber, Row, Col, Collapse, Switch, message, Spin, Card } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
@@ -11,8 +11,12 @@ const API_PATH = "/api/theme/ImageSlider";
 const PREFIX = "imageSlider";
 
 function normalizeImage(it) {
+  const desktopSrc = it?.desktopSrc != null ? String(it.desktopSrc).trim() : (it?.src != null ? String(it.src).trim() : (it?.url != null ? String(it.url).trim() : ""));
+  const mobileSrc = it?.mobileSrc != null ? String(it.mobileSrc).trim() : "";
   return {
-    src: it?.src != null ? String(it.src).trim() : (it?.url != null ? String(it.url).trim() : ""),
+    src: desktopSrc,
+    desktopSrc,
+    mobileSrc,
     alt: it?.alt != null ? String(it.alt).trim() : "",
   };
 }
@@ -195,9 +199,35 @@ function ImageSliderEditForm({ source, initialData: initialDataProp, onSaveToPag
                     renderItemContent={(name, restField) => (
                       <Row gutter={[16, 16]}>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "src"]} label="Image URL" rules={[{ required: true, message: "Image URL is required" }]}>
-                            <MediaPickerInput placeholder="/images/slider-1.png" />
-                          </Form.Item>
+                          <Card size="small" title="Desktop Image">
+                            <Form.Item
+                              {...restField}
+                              name={[name, "desktopSrc"]}
+                              rules={[{ required: true, message: "Desktop image is required" }]}
+                              style={{ marginBottom: 0 }}
+                            >
+                              <MediaPickerInput
+                                placeholder="/images/slider-desktop.png"
+                                uiVariant="stacked"
+                                hintText="Recommended: 1200x700"
+                              />
+                            </Form.Item>
+                          </Card>
+                        </Col>
+                        <Col span={24}>
+                          <Card size="small" title="Mobile Image">
+                            <Form.Item
+                              {...restField}
+                              name={[name, "mobileSrc"]}
+                              style={{ marginBottom: 0 }}
+                            >
+                              <MediaPickerInput
+                                placeholder="/images/slider-mobile.png"
+                                uiVariant="stacked"
+                                hintText="Optional for mobile (fallback desktop)"
+                              />
+                            </Form.Item>
+                          </Card>
                         </Col>
                         <Col span={24}>
                           <Form.Item {...restField} name={[name, "alt"]} label="Alt text">

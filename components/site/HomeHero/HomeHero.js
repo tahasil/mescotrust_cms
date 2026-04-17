@@ -195,9 +195,19 @@ function normalizeSlide(slide) {
   const youtubeUrl =
     slide?.youtubeUrl != null ? String(slide.youtubeUrl).trim() : "";
   const videoUrl = slide?.videoUrl != null ? String(slide.videoUrl).trim() : "";
+  const bgImageUrlDesktop =
+    slide?.bgImageUrlDesktop != null
+      ? String(slide.bgImageUrlDesktop).trim()
+      : slide?.bgImageUrl != null
+        ? String(slide.bgImageUrl).trim()
+        : "";
+  const bgImageUrlMobile =
+    slide?.bgImageUrlMobile != null ? String(slide.bgImageUrlMobile).trim() : "";
 
   return {
-    bgImageUrl: slide?.bgImageUrl != null ? String(slide.bgImageUrl).trim() : "",
+    bgImageUrl: bgImageUrlDesktop,
+    bgImageUrlDesktop,
+    bgImageUrlMobile,
     title: slide?.title != null ? String(slide.title).trim() : "",
     description:
       slide?.description != null ? String(slide.description).trim() : "",
@@ -225,6 +235,7 @@ function fetchHomeHero() {
  */
 export default function HomeHero(props) {
   const [theme, setTheme] = useState(null);
+  const [isMobileView, setIsMobileView] = useState(false);
   const fromPage =
     (Array.isArray(props?.homeHeroSlides) && props.homeHeroSlides.length > 0) ||
     (Array.isArray(props?.slides) && props.slides.length > 0);
@@ -236,6 +247,19 @@ export default function HomeHero(props) {
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, [fromPage]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobileView(mq.matches);
+    update();
+    if (typeof mq.addEventListener === "function") {
+      mq.addEventListener("change", update);
+      return () => mq.removeEventListener("change", update);
+    }
+    mq.addListener(update);
+    return () => mq.removeListener(update);
+  }, []);
 
   const slides =
     Array.isArray(props?.homeHeroSlides) && props.homeHeroSlides.length > 0
@@ -307,13 +331,19 @@ export default function HomeHero(props) {
     buttonTextColor,
     contentContainer,
   };
+  const resolveSlideBgImage = (slide) => {
+    const desktop = slide?.bgImageUrlDesktop || slide?.bgImageUrl || "";
+    const mobile = slide?.bgImageUrlMobile || "";
+    if (isMobileView) return mobile || desktop;
+    return desktop || mobile;
+  };
 
   if (normalizedSlides.length === 0) return null;
 
   const slideContent =
     normalizedSlides.length === 1 ? (
       <SingleSlide
-        bgImageUrl={normalizedSlides[0].bgImageUrl}
+        bgImageUrl={resolveSlideBgImage(normalizedSlides[0])}
         title={normalizedSlides[0].title}
         description={normalizedSlides[0].description}
         buttonText={normalizedSlides[0].buttonText}
@@ -335,7 +365,7 @@ export default function HomeHero(props) {
         {normalizedSlides.map((slide, i) => (
           <SingleSlide
             key={i}
-            bgImageUrl={slide.bgImageUrl}
+            bgImageUrl={resolveSlideBgImage(slide)}
             title={slide.title}
             description={slide.description}
             buttonText={slide.buttonText}

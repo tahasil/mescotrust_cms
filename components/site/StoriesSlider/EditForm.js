@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, InputNumber, Row, Col, Collapse, List, Switch, Tooltip, message, Spin } from "antd";
+import { Form, Input, InputNumber, Row, Col, Collapse, List, Switch, Tooltip, message, Spin, Card } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
@@ -292,14 +292,34 @@ function StoriesSliderEditForm({ source, initialData: initialDataProp, onSaveToP
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "image"]} label="Desktop Image URL" extra="Recommended: 960px x 800px">
-                            <MediaPickerInput placeholder="/uploads/story-desktop.webp" />
-                          </Form.Item>
+                          <Card size="small" title="Desktop Image">
+                            <Form.Item
+                              {...restField}
+                              name={[name, "image"]}
+                              style={{ marginBottom: 0 }}
+                            >
+                              <MediaPickerInput
+                                placeholder="/uploads/story-desktop.webp"
+                                uiVariant="stacked"
+                                hintText="Recommended: 960x800"
+                              />
+                            </Form.Item>
+                          </Card>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "mobileImage"]} label="Mobile Image URL" extra="Recommended: 800px x 450px (landscape)">
-                            <MediaPickerInput placeholder="/uploads/story-mobile.webp" />
-                          </Form.Item>
+                          <Card size="small" title="Mobile Image">
+                            <Form.Item
+                              {...restField}
+                              name={[name, "mobileImage"]}
+                              style={{ marginBottom: 0 }}
+                            >
+                              <MediaPickerInput
+                                placeholder="/uploads/story-mobile.webp"
+                                uiVariant="stacked"
+                                hintText="Optional for mobile (fallback desktop)"
+                              />
+                            </Form.Item>
+                          </Card>
                         </Col>
                       </Row>
                     )}

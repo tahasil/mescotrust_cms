@@ -316,8 +316,19 @@ function normalizeMarqueeItem(item) {
 
 /** Normalize one slide: no defaults — all values from DB. Trim strings, use "" when missing. */
 function normalizeSlide(s) {
+  const bgImageUrlDesktop =
+    s?.bgImageUrlDesktop != null
+      ? String(s.bgImageUrlDesktop).trim()
+      : s?.bgImageUrl != null
+        ? String(s.bgImageUrl).trim()
+        : "";
+  const bgImageUrlMobile =
+    s?.bgImageUrlMobile != null ? String(s.bgImageUrlMobile).trim() : "";
+
   return {
-    bgImageUrl: s?.bgImageUrl != null ? String(s.bgImageUrl).trim() : "",
+    bgImageUrl: bgImageUrlDesktop,
+    bgImageUrlDesktop,
+    bgImageUrlMobile,
     title: s?.title != null ? String(s.title).trim() : "",
     description: s?.description != null ? String(s.description).trim() : "",
     buttonText: s?.buttonText != null ? String(s.buttonText).trim() : "",

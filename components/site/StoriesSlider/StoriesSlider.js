@@ -437,7 +437,7 @@ export default function StoriesSlider(props) {
                               <picture>
                                 {mobileImage && (
                                   <source
-                                    media="(max-width: 992px)"
+                                    media="(max-width: 767px)"
                                     srcSet={mobileImage}
                                   />
                                 )}

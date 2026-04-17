@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 import CircularSlider from "@/components/site/CircularSlider";
 
@@ -9,8 +10,22 @@ import CircularSlider from "@/components/site/CircularSlider";
  * Uses the same CircularSlider internally as HomeHero2.
  */
 export default function ImageSlider(props) {
+  const [isMobileView, setIsMobileView] = useState(false);
   const images = Array.isArray(props?.imageSliderImages)
-    ? props.imageSliderImages.filter((s) => s && (s.src || s.url))
+    ? props.imageSliderImages
+      .map((s) => ({
+        desktopSrc:
+          s?.desktopSrc != null
+            ? String(s.desktopSrc).trim()
+            : s?.src != null
+              ? String(s.src).trim()
+              : s?.url != null
+                ? String(s.url).trim()
+                : "",
+        mobileSrc: s?.mobileSrc != null ? String(s.mobileSrc).trim() : "",
+        alt: s?.alt != null ? String(s.alt) : "Slider",
+      }))
+      .filter((s) => s.desktopSrc || s.mobileSrc)
     : [];
   const slideCount = props?.imageSliderSlideCount != null ? Number(props.imageSliderSlideCount) : 37;
   const autoInterval = props?.imageSliderAutoInterval != null ? Number(props.imageSliderAutoInterval) : 4000;
@@ -46,6 +61,19 @@ export default function ImageSlider(props) {
         }
       : undefined;
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobileView(mq.matches);
+    update();
+    if (typeof mq.addEventListener === "function") {
+      mq.addEventListener("change", update);
+      return () => mq.removeEventListener("change", update);
+    }
+    mq.addListener(update);
+    return () => mq.removeListener(update);
+  }, []);
+
   if (images.length === 0) {
     return null;
   }
@@ -54,8 +82,10 @@ export default function ImageSlider(props) {
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <CircularSlider
         images={images.map((s) => ({
-          src: s.src || s.url,
-          alt: s.alt != null ? String(s.alt) : "Slider",
+          src: isMobileView
+            ? s.mobileSrc || s.desktopSrc
+            : s.desktopSrc || s.mobileSrc,
+          alt: s.alt,
         }))}
         slideCount={slideCount}
         autoInterval={autoplay ? autoInterval : 0}
