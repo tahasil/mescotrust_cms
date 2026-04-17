@@ -580,9 +580,7 @@ export default function AdminMenusPage() {
       <ThemeAdminCard
         title="Menu structure"
         extra={
-          <Button type="text" icon={<ArrowLeftOutlined />} onClick={handleBack}>
-            Back to menus
-          </Button>
+          <Button type="text" icon={<ArrowLeftOutlined />} onClick={handleBack} aria-label="Back to menus" />
         }
       >
         <div style={{ maxWidth: 720 }}>

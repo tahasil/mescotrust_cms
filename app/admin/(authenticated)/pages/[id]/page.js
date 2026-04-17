@@ -208,7 +208,7 @@ export default function AdminPageEditPage() {
           </Button>
         }
       >
-        <Form form={form} layout="vertical">
+        <Form form={form} layout="vertical" size="large">
           <Collapse
             defaultActiveKey={[]}
             style={{ border: "1px solid #e8e8e8", borderRadius: 8, overflow: "hidden" }}

@@ -138,7 +138,7 @@ export default function AdminPageNewPage() {
           </Button>
         }
       >
-        <Form form={form} layout="vertical" initialValues={{ title: "", slug: "", status: "draft" }}>
+        <Form form={form} layout="vertical" size="large" initialValues={{ title: "", slug: "", status: "draft" }}>
           <Collapse
             defaultActiveKey={[]}
             style={{ border: "1px solid #e8e8e8", borderRadius: 8, overflow: "hidden" }}

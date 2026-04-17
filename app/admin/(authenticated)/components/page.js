@@ -11,6 +11,7 @@ const EXCLUDED_COMPONENT_IDS = new Set([
   "ImageSlider",
   "StoriesSlider",
   "EventsSlider",
+  "CommitteeMembers",
 ]);
 
 function deriveComponentId(displayName) {

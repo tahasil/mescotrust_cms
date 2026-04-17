@@ -17,7 +17,13 @@ const TOOLBAR_OPTIONS = [
   ["clean"],
 ];
 
-export default function RichTextEditor({ value, onChange, placeholder, textColor }) {
+export default function RichTextEditor({
+  value,
+  onChange,
+  placeholder,
+  textColor,
+  minHeight = 250,
+}) {
   const uid = useId().replace(/:/g, "");
   const className = `ql-custom-${uid}`;
 
@@ -30,28 +36,35 @@ export default function RichTextEditor({ value, onChange, placeholder, textColor
 
   return (
     <div style={{ marginBottom: 16 }}>
-      {textColor && (
-        <style>{`
-          .${className} .ql-editor,
-          .${className} .ql-editor p,
-          .${className} .ql-editor span,
-          .${className} .ql-editor span[style] {
-            color: ${textColor} !important;
-          }
-          .${className} .ql-editor.ql-blank::before {
-            color: ${textColor} !important;
-            opacity: 0.5;
-          }
-        `}</style>
-      )}
+      <style>{`
+        .${className} {
+          min-height: ${minHeight}px;
+        }
+        .${className} .ql-container,
+        .${className} .ql-editor {
+          min-height: ${Math.max(minHeight - 42, 120)}px;
+        }
+        ${textColor ? `
+        .${className} .ql-editor,
+        .${className} .ql-editor p,
+        .${className} .ql-editor span,
+        .${className} .ql-editor span[style] {
+          color: ${textColor} !important;
+        }
+        .${className} .ql-editor.ql-blank::before {
+          color: ${textColor} !important;
+          opacity: 0.5;
+        }
+        ` : ""}
+      `}</style>
       <ReactQuill
         theme="snow"
         value={value || ""}
         onChange={onChange}
         modules={modules}
         placeholder={placeholder || "Write content..."}
-        className={textColor ? className : undefined}
-        style={{ minHeight: 200 }}
+        className={className}
+        style={{ minHeight }}
       />
     </div>
   );

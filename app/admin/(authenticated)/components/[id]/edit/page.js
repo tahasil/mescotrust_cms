@@ -736,7 +736,7 @@ export default function AdminComponentEditPage() {
         </div>
       }
     >
-      <Form form={form} layout="vertical">
+      <Form form={form} layout="vertical" size="large">
         {isHeader && (
           <>
             {themeLoading ? (

@@ -2,7 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Button, Form, Input, Select, Space, message, Spin } from "antd";
+import {
+  Button,
+  Form,
+  Input,
+  Select,
+  Space,
+  Switch,
+  message,
+  Spin,
+  Row,
+  Col,
+} from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import RichTextEditor from "@/components/admin/RichTextEditor";
@@ -13,11 +24,11 @@ export default function AdminBlogEditPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id;
-  const [post, setPost] = useState(null);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
+  const status = Form.useWatch("status", form);
 
   useEffect(() => {
     if (!id) return;
@@ -32,7 +43,6 @@ export default function AdminBlogEditPage() {
           return;
         }
         const postData = await postRes.json();
-        setPost(postData);
         if (catRes.ok) setCategories(await catRes.json());
         form.setFieldsValue({
           title: postData.title,
@@ -42,13 +52,12 @@ export default function AdminBlogEditPage() {
           featuredImage: postData.featuredImage,
           featuredImageMobile: postData.featuredImageMobile,
           status: postData.status,
-          locale: postData.locale || "en",
           category: postData.category?._id || undefined,
           tags: Array.isArray(postData.tags) ? postData.tags : [],
           metaTitle: postData.meta?.metaTitle,
           metaDescription: postData.meta?.metaDescription,
         });
-      } catch (e) {
+      } catch {
         message.error("Failed to load post");
       } finally {
         setLoading(false);
@@ -68,7 +77,10 @@ export default function AdminBlogEditPage() {
           featuredImageMobile: values.featuredImageMobile || "",
           category: values.category || null,
           tags: Array.isArray(values.tags) ? values.tags : [],
-          meta: { metaTitle: values.metaTitle, metaDescription: values.metaDescription },
+          meta: {
+            metaTitle: values.metaTitle,
+            metaDescription: values.metaDescription,
+          },
         }),
       });
       if (!res.ok) {
@@ -76,7 +88,6 @@ export default function AdminBlogEditPage() {
         message.error(data.error || "Save failed");
         return;
       }
-      setPost(await res.json());
       message.success("Saved");
     } finally {
       setSaving(false);
@@ -90,66 +101,146 @@ export default function AdminBlogEditPage() {
       title={
         <>
           <Link href="/admin/blogs" style={{ marginRight: 8 }}>
-            <Button icon={<ArrowLeftOutlined />} type="text" aria-label="Back to blogs">
-              Back
-            </Button>
+            <Button
+              icon={<ArrowLeftOutlined />}
+              type="text"
+              aria-label="Back to blogs"
+            />
           </Link>
-          <span>Edit post</span>
+          <span>Edit Post</span>
         </>
       }
+      extra={
+        <Space size={8} wrap style={{ justifyContent: "flex-end" }}>
+          <span>Status</span>
+          <Switch
+            checked={status === "published"}
+            checkedChildren="Published"
+            unCheckedChildren="Draft"
+            onChange={(checked) =>
+              form.setFieldValue("status", checked ? "published" : "draft")
+            }
+          />
+        </Space>
+      }
     >
-      <Form form={form} layout="vertical" onFinish={onFinish}>
-          <Form.Item name="title" label="Title" rules={[{ required: true }]}>
+      <Form form={form} layout="vertical" size="large" onFinish={onFinish}>
+        <Row gutter={[16, 16]}>
+          <Form.Item name="status" hidden initialValue="draft">
             <Input />
           </Form.Item>
-          <Form.Item name="slug" label="Slug" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="excerpt" label="Excerpt">
-            <Input.TextArea rows={2} />
-          </Form.Item>
-          <Form.Item name="featuredImage" label="Featured image URL (Desktop)" extra="Paste an image URL or path from the media library (e.g. /uploads/photo.webp)">
-            <MediaPickerInput placeholder="/media/..." />
-          </Form.Item>
-          <Form.Item name="featuredImageMobile" label="Featured image URL (Mobile)" extra="Optional. If empty, the desktop image is used on phones.">
-            <MediaPickerInput placeholder="/media/..." />
-          </Form.Item>
-          <Form.Item name="content" label="Content">
-            <RichTextEditor />
-          </Form.Item>
-          <Form.Item name="category" label="Category">
-            <Select
-              allowClear
-              placeholder="Select category"
-              options={categories.map((c) => ({ value: c._id, label: c.name }))}
-            />
-          </Form.Item>
-          <Form.Item name="tags" label="Tags" extra="Press Enter after each tag">
-            <Select mode="tags" placeholder="Add tags" tokenSeparators={[","]} />
-          </Form.Item>
-          <Form.Item name="status" label="Status" initialValue="draft">
-            <Select options={[{ value: "draft", label: "Draft" }, { value: "published", label: "Published" }]} />
-          </Form.Item>
-          <Form.Item name="locale" label="Locale" extra="Language code (e.g. en, ar, he)">
-            <Input placeholder="en" />
-          </Form.Item>
-          <Form.Item name="metaTitle" label="Meta title">
-            <Input />
-          </Form.Item>
-          <Form.Item name="metaDescription" label="Meta description">
-            <Input.TextArea rows={2} />
-          </Form.Item>
-          <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit" loading={saving}>
-                Save
-              </Button>
-              <Button href={`/preview/${id}?type=blog`} target="_blank">
-                Preview draft
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
+
+          <Col xs={24} sm={12} xl={6}>
+            <Form.Item
+              name="title"
+              label="Title 1"
+              rules={[{ required: true }]}
+              className="mb-0"
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12} xl={6}>
+            <Form.Item
+              name="slug"
+              label="Slug"
+              rules={[{ required: true }]}
+              className="mb-0"
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12} xl={6}>
+            <Form.Item name="category" label="Category" className="mb-0">
+              <Select
+                allowClear
+                placeholder="Select category"
+                options={categories.map((c) => ({
+                  value: c._id,
+                  label: c.name,
+                }))}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12} xl={6}>
+            <Form.Item
+              name="tags"
+              label="Tags"
+              extra="Press Enter after each tag"
+              className="mb-0"
+            >
+              <Select
+                mode="tags"
+                placeholder="Add tags"
+                tokenSeparators={[","]}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12} xl={12}>
+            <Form.Item name="metaTitle" label="Meta title" className="mb-0">
+              <Input />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12} xl={12}>
+            <Form.Item
+              name="metaDescription"
+              label="Meta description"
+              className="mb-0"
+            >
+              <Input.TextArea rows={2} />
+            </Form.Item>
+          </Col>
+
+          <Col span={24}>
+            <Row gutter={[16, 16]}>
+              <Col xs={24} xl={12}>
+                <Form.Item
+                  name="excerpt"
+                  label="Short description"
+                  className="mb-0"
+                >
+                  <Input.TextArea rows={3} />
+                </Form.Item>
+                <Form.Item name="content" label="Description" className="mb-0">
+                  <RichTextEditor />
+                </Form.Item>
+              </Col>
+
+              <Col xs={24} xl={12}>
+                <Form.Item
+                  name="featuredImage"
+                  label="Featured image URL (Desktop)"
+                  extra="Paste an image URL or path from the media library (e.g. /media/...)"
+                  className="mb-0"
+                >
+                  <MediaPickerInput placeholder="/media/..." />
+                </Form.Item>
+                <Form.Item
+                  name="featuredImageMobile"
+                  label="Featured image URL (Mobile)"
+                  extra="Optional. If empty, the desktop image is used on phones."
+                  className="mb-0"
+                >
+                  <MediaPickerInput placeholder="/media/..." />
+                </Form.Item>
+              </Col>
+            </Row>
+          </Col>
+
+          <Col span={24}>
+            <Form.Item>
+              <Space>
+                <Button type="primary" htmlType="submit" loading={saving}>
+                  Save
+                </Button>
+                <Button href={`/preview/${id}?type=blog`} target="_blank">
+                  Preview draft
+                </Button>
+              </Space>
+            </Form.Item>
+          </Col>
+        </Row>
+      </Form>
     </ThemeAdminCard>
   );
 }

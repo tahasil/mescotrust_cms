@@ -87,7 +87,16 @@ const menuItems = [
     ),
   },
   {
-    key: "/admin/blogs",
+    key: "/admin/team",
+    icon: <TeamOutlined />,
+    label: (
+      <Link href="/admin/team" style={linkStyle}>
+        Team
+      </Link>
+    ),
+  },
+  {
+    key: "group:admin:blogs",
     icon: <BookOutlined />,
     label: "Blogs",
     children: [
@@ -95,7 +104,15 @@ const menuItems = [
         key: "/admin/blogs",
         label: (
           <Link href="/admin/blogs" style={linkStyle}>
-            All Posts
+            View All Posts
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/blogs/new",
+        label: (
+          <Link href="/admin/blogs/new" style={linkStyle}>
+            Add Post
           </Link>
         ),
       },
@@ -118,13 +135,27 @@ const menuItems = [
     ],
   },
   {
-    key: "/admin/events",
+    key: "group:admin:events",
     icon: <ClockCircleOutlined />,
-    label: (
-      <Link href="/admin/events" style={linkStyle}>
-        Events
-      </Link>
-    ),
+    label: "Events",
+    children: [
+      {
+        key: "/admin/events",
+        label: (
+          <Link href="/admin/events" style={linkStyle}>
+            View All Events
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/events/new",
+        label: (
+          <Link href="/admin/events/new" style={linkStyle}>
+            Add Event
+          </Link>
+        ),
+      },
+    ],
   },
   {
     key: "/admin/media",
