@@ -34,7 +34,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com data:",
               "img-src 'self' data: blob: https:",
-              "connect-src 'self' https://api.resend.com",
+              "connect-src 'self' https://api.resend.com https://cdn.jsdelivr.net",
               "frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com https://www.google.com https://maps.google.com https://www.instagram.com https://instagram.com https://www.facebook.com https://web.facebook.com https://platform.twitter.com https://syndication.twitter.com",
               "frame-ancestors 'none'",
             ].join("; "),
