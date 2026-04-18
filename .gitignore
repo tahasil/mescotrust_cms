@@ -8,7 +8,7 @@ node_modules
 .env*.local
 
 # Uploads
-public/uploads/
+# public/uploads/
 
 # Debug / IDE
 .DS_Store
