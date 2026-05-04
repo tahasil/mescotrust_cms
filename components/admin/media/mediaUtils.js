@@ -37,8 +37,20 @@ export function monthLabel(monthValue) {
   return date.toLocaleDateString(undefined, { month: "long", year: "numeric" });
 }
 
+function mediaProxyUrl(item, { size = "", format = "" } = {}) {
+  const id = String(item?._id || "").trim();
+  if (!id) return "";
+  const params = new URLSearchParams();
+  if (size) params.set("size", String(size));
+  if (format) params.set("format", String(format));
+  const query = params.toString();
+  return query ? `/media/${id}?${query}` : `/media/${id}`;
+}
+
 export function previewUrl(item) {
   if (!isImage(item)) return "";
+  const proxy = mediaProxyUrl(item, { size: "thumbnail", format: "auto" });
+  if (proxy) return proxy;
   return (
     item?.generatedSizes?.thumbnail?.jpgUrl ||
     item?.generatedSizes?.medium?.jpgUrl ||
@@ -48,8 +60,14 @@ export function previewUrl(item) {
   );
 }
 
+export function originalMediaUrl(item) {
+  const proxy = mediaProxyUrl(item, { size: "original", format: "original" });
+  return proxy || item?.originalUrl || item?.url || "";
+}
+
 export function publicMediaUrl(item) {
-  return item?.publicUrl || item?.url || item?.originalUrl || "";
+  const proxy = mediaProxyUrl(item, { size: "original", format: "auto" });
+  return proxy || item?.publicUrl || item?.url || item?.originalUrl || "";
 }
 
 export function dimensionsText(item) {
