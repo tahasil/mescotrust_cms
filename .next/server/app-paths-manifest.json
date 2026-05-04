@@ -1,7 +1,0 @@
-{
-  "/api/admin/contacts/route": "app/api/admin/contacts/route.js",
-  "/api/admin/donations/route": "app/api/admin/donations/route.js",
-  "/api/admin/subscribers/route": "app/api/admin/subscribers/route.js",
-  "/api/admin/event-registrations/route": "app/api/admin/event-registrations/route.js",
-  "/admin/(authenticated)/pages/[id]/page": "app/admin/(authenticated)/pages/[id]/page.js"
-}
