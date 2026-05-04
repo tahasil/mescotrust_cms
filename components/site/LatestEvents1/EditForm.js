@@ -9,6 +9,7 @@ import {
   Col,
   Collapse,
   Select,
+  Switch,
   message,
   Spin,
 } from "antd";
@@ -21,6 +22,50 @@ import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/ma
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/LatestEvents1";
+const ALLOWED_BUTTON_LINK_EXTENSIONS_RE =
+  /\.(pdf|jpe?g|png|svg|webp)(?:[?#].*)?$/i;
+
+function isValidHttpUrl(value) {
+  try {
+    const parsed = new URL(String(value || "").trim());
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function isMediaRouteLink(value) {
+  return /^\/media\/[0-9a-fA-F]{24}(?:\?.*)?$/i.test(String(value || "").trim());
+}
+
+function hasUnsupportedFileExtension(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return false;
+  const withoutQuery = raw.split("?")[0].split("#")[0];
+  const extMatch = withoutQuery.match(/\.([a-zA-Z0-9]+)$/);
+  if (!extMatch) return false;
+  return !ALLOWED_BUTTON_LINK_EXTENSIONS_RE.test(raw);
+}
+
+function validateButtonLink(_, value) {
+  const link = String(value || "").trim();
+  if (!link) return Promise.resolve();
+
+  if (isMediaRouteLink(link)) return Promise.resolve();
+
+  if (hasUnsupportedFileExtension(link)) {
+    return Promise.reject(
+      new Error("Allowed file formats: .pdf, .jpg, .jpeg, .png, .svg, .webp"),
+    );
+  }
+
+  if (link.startsWith("/")) return Promise.resolve();
+  if (isValidHttpUrl(link)) return Promise.resolve();
+
+  return Promise.reject(
+    new Error("Enter a valid URL/path. Use /path, http(s)://..., or /media/<id>"),
+  );
+}
 
 function normalizeItem(it) {
   const desktopImage =
@@ -40,6 +85,9 @@ function normalizeItem(it) {
     description: it?.description != null ? String(it.description).trim() : "",
     buttonText: it?.buttonText != null ? String(it.buttonText).trim() : "Read Post",
     buttonLink: it?.buttonLink != null ? String(it.buttonLink).trim() : "/",
+    buttonOpenInNewTab:
+      Boolean(it?.buttonOpenInNewTab ?? it?.openInNewTab) ||
+      String(it?.target || it?.buttonTarget || "").toLowerCase() === "_blank",
   };
 }
 
@@ -256,8 +304,28 @@ function LatestEvents1EditForm(
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "buttonLink"]} label="Button link">
-                            <Input placeholder="/" size="large" />
+                          <Form.Item
+                            {...restField}
+                            name={[name, "buttonLink"]}
+                            label="Button link"
+                            rules={[{ validator: validateButtonLink }]}
+                          >
+                            <MediaPickerInput
+                              placeholder="/ or /media/... or https://..."
+                              showVariants={false}
+                              hintText="Supports: internal paths, media library images, and file URLs (.pdf, .jpg, .jpeg, .png, .svg, .webp)."
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item
+                            {...restField}
+                            name={[name, "buttonOpenInNewTab"]}
+                            label="Open link in new tab"
+                            valuePropName="checked"
+                            tooltip="ON = _blank, OFF = _self"
+                          >
+                            <Switch checkedChildren="ON" unCheckedChildren="OFF" />
                           </Form.Item>
                         </Col>
                       </Row>

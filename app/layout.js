@@ -9,17 +9,32 @@ import { getTheme, THEME_DEFAULTS } from "@/lib/layoutData";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export const metadata = {
-  metadataBase: new URL(getSiteUrl()),
-  title: {
-    default: "Mesco Trust CMS",
-    template: "%s | Mesco Trust CMS",
-  },
-  description: "Content management system",
-  openGraph: {
-    siteName: "Mesco Trust CMS",
-  },
-};
+export async function generateMetadata() {
+  const theme = await getTheme();
+  const siteName = String(theme?.siteTitle || "Mesco Trust CMS").trim() || "Mesco Trust CMS";
+  const faviconUrl = String(theme?.faviconUrl || "").trim();
+
+  return {
+    metadataBase: new URL(getSiteUrl()),
+    title: {
+      default: siteName,
+      template: `%s | ${siteName}`,
+    },
+    description: "Content management system",
+    openGraph: {
+      siteName,
+    },
+    ...(faviconUrl
+      ? {
+          icons: {
+            icon: faviconUrl,
+            shortcut: faviconUrl,
+            apple: faviconUrl,
+          },
+        }
+      : {}),
+  };
+}
 
 const NAME_TO_CSS_VAR = {
   primary: "--primary-color",

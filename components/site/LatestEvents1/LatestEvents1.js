@@ -78,7 +78,19 @@ function normalizeItem(it) {
     buttonText:
       it?.buttonText != null ? String(it.buttonText).trim() : "Read Post",
     buttonLink: it?.buttonLink != null ? String(it.buttonLink).trim() : "/",
+    buttonOpenInNewTab:
+      Boolean(it?.buttonOpenInNewTab ?? it?.openInNewTab) ||
+      String(it?.target || it?.buttonTarget || "").toLowerCase() === "_blank",
   };
+}
+
+function isExternalOrAssetLink(href) {
+  const value = String(href || "").trim().toLowerCase();
+  if (!value) return false;
+  if (value.startsWith("http://") || value.startsWith("https://")) return true;
+  if (value.startsWith("/media/")) return true;
+  if (value.startsWith("/uploads/")) return true;
+  return /\.(pdf|jpe?g|png|svg|webp)(?:[?#].*)?$/i.test(value);
 }
 
 /**
@@ -108,6 +120,7 @@ export default function LatestEvents1(props) {
               "Lorem ipsum dolor sit amet consectetur. Amet mattis tellus et as ectus orc.",
             buttonText: "Read Post",
             buttonLink: "/",
+            buttonOpenInNewTab: false,
           },
           {
             imageUrlDesktop: "/images/news-2.png",
@@ -118,6 +131,7 @@ export default function LatestEvents1(props) {
             description: "",
             buttonText: "Read Post",
             buttonLink: "/",
+            buttonOpenInNewTab: false,
           },
         ];
 
@@ -188,18 +202,38 @@ export default function LatestEvents1(props) {
                   {item.date ? <h1>{item.date}</h1> : null}
                   {item.title ? <h2>{item.title}</h2> : null}
                   {item.description ? <p>{item.description}</p> : null}
-                  <Link href={item.buttonLink || "/"}>
-                    <ThemeButton
-                      className="link"
-                      color={buttonColor}
-                      type="button"
-                      size="large"
-                      icon={<ArrowRightOutlined />}
-                      iconPosition="end"
+                  {isExternalOrAssetLink(item.buttonLink) ||
+                  item.buttonOpenInNewTab ? (
+                    <a
+                      href={item.buttonLink || "/"}
+                      target={item.buttonOpenInNewTab ? "_blank" : "_self"}
+                      rel={item.buttonOpenInNewTab ? "noopener noreferrer" : undefined}
                     >
-                      {item.buttonText || "Read Post"}
-                    </ThemeButton>
-                  </Link>
+                      <ThemeButton
+                        className="link"
+                        color={buttonColor}
+                        type="button"
+                        size="large"
+                        icon={<ArrowRightOutlined />}
+                        iconPosition="end"
+                      >
+                        {item.buttonText || "Read Post"}
+                      </ThemeButton>
+                    </a>
+                  ) : (
+                    <Link href={item.buttonLink || "/"} target="_self">
+                      <ThemeButton
+                        className="link"
+                        color={buttonColor}
+                        type="button"
+                        size="large"
+                        icon={<ArrowRightOutlined />}
+                        iconPosition="end"
+                      >
+                        {item.buttonText || "Read Post"}
+                      </ThemeButton>
+                    </Link>
+                  )}
                 </Col>
               </Row>
             </HomeCardNews>
