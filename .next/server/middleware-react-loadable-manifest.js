@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST='{"app/admin/(authenticated)/components/[id]/edit/page.js -> @/components/site/Footer":{"id":57215,"files":[]},"app/admin/(authenticated)/components/[id]/edit/page.js -> @/components/site/Header":{"id":78089,"files":[]},"components/admin/RichTextEditor.js -> react-quill-new":{"id":17857,"files":["static/chunks/7857.0afacf28f4560180.js"]}}';
+self.__REACT_LOADABLE_MANIFEST="{}"
