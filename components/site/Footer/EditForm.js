@@ -20,6 +20,7 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
   const [saving, setSaving] = useState(false);
   const [themeColorOptions, setThemeColorOptions] = useState(themeColorOptionsProp);
   const [initialData, setInitialData] = useState(null);
+  const currentYear = new Date().getFullYear();
   const themeFetchedForColorsRef = useRef(false);
   const componentDataLoadedRef = useRef(false);
   const isPageBlock = source === "page";
@@ -226,7 +227,7 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
                   }
                 </Form.Item>
                 <Form.Item name="footerCopyrightText" label="Copyright text">
-                  <Input placeholder="Copyright © 2023 All Rights Reserved." />
+                  <Input placeholder={`Copyright © ${currentYear} All Rights Reserved.`} />
                 </Form.Item>
               </>
             ),
