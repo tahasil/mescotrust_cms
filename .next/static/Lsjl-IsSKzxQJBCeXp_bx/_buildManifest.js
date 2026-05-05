@@ -1,0 +1,1 @@
+self.__BUILD_MANIFEST={__rewrites:{afterFiles:[{has:void 0,source:"/media/:id([0-9a-fA-F]{24})",destination:"/api/media/:id"}],beforeFiles:[],fallback:[]},"/_error":["static/chunks/pages/_error-cf5ca766ac8f493f.js"],sortedPages:["/_app","/_error"]},self.__BUILD_MANIFEST_CB&&self.__BUILD_MANIFEST_CB();
