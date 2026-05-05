@@ -32,6 +32,8 @@ import {
   formatBytes,
   formatDate,
   isImage,
+  originalMediaUrl,
+  previewUrl,
   publicMediaUrl,
 } from "./mediaUtils";
 import styles from "./AdminMediaLibrary.module.css";
@@ -81,7 +83,7 @@ export default function MediaDetailsDrawer({
           <div className={styles.drawerPreview}>
             {isImage(item) ? (
               <img
-                src={item.url || item.originalUrl}
+                src={previewUrl(item)}
                 alt={item.altText || item.alt || item.originalName}
                 className={styles.drawerPreviewImage}
               />
@@ -121,7 +123,7 @@ export default function MediaDetailsDrawer({
                 icon={<DownloadOutlined />}
                 onClick={() => {
                   const a = document.createElement("a");
-                  a.href = item.originalUrl || item.url;
+                  a.href = originalMediaUrl(item);
                   a.download = item.originalName || "download";
                   a.target = "_blank";
                   document.body.appendChild(a);

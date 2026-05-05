@@ -65,6 +65,8 @@ function buildMediaUrl(mediaId, size, format) {
 
 function getImagePreview(item) {
   if (!item) return "";
+  const id = String(item?._id || "").trim();
+  if (id) return `/media/${id}?size=thumbnail&format=auto`;
   return (
     item?.generatedSizes?.thumbnail?.jpgUrl ||
     item?.generatedSizes?.medium?.jpgUrl ||

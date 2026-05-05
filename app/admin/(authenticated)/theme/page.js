@@ -408,7 +408,89 @@ export default function AdminThemePage() {
     }
   };
 
+  const faviconUrl = Form.useWatch("faviconUrl", form);
+  const adminLogoUrl = Form.useWatch("adminLogoUrl", form);
+
   const websiteCollapseItems = [
+    {
+      key: "identity-branding",
+      label: (
+        <span>
+          <SettingOutlined style={{ marginRight: 8 }} />
+          Identity & Branding
+        </span>
+      ),
+      children: (
+        <div style={{ paddingBlock: 8 }}>
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="siteTitle"
+                label="Branding name"
+                tooltip="Used across website title, header and branding references."
+              >
+                <Input placeholder="e.g. Mesco Trust" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="faviconUrl"
+                label="Favicon (Title icon)"
+                tooltip="Choose from media library or upload a new icon."
+              >
+                <MediaPickerInput
+                  placeholder="/media/..."
+                  showVariants={false}
+                  hintText="Recommended: square icon (32x32 or 64x64), PNG/ICO/SVG."
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+          {faviconUrl ? (
+            <div style={{ marginTop: 8 }}>
+              <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+                Favicon preview
+              </Typography.Text>
+              <div
+                style={{
+                  marginTop: 8,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                }}
+              >
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    border: "1px solid #f0f0f0",
+                    borderRadius: 6,
+                    padding: 6,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "#fff",
+                  }}
+                >
+                  <img
+                    src={faviconUrl}
+                    alt="Favicon preview"
+                    style={{ width: 24, height: 24, objectFit: "contain" }}
+                  />
+                </div>
+                <Button
+                  size="small"
+                  danger
+                  onClick={() => form.setFieldsValue({ faviconUrl: "" })}
+                >
+                  Remove favicon
+                </Button>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      ),
+    },
     {
       key: "layout",
       label: (
@@ -420,17 +502,12 @@ export default function AdminThemePage() {
       children: (
         <div style={{ paddingBlock: 8 }}>
           <Row gutter={[16, 0]}>
-            <Col xs={24} sm={12} md={6}>
-              <Form.Item name="siteTitle" label="Site title">
-                <Input placeholder="Mesco Trust" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={6}>
+            <Col xs={24} sm={12} md={8}>
               <Form.Item name="layoutWidth" label="Container max-width (px)">
                 <InputNumber min={600} max={1920} style={{ width: "100%" }} />
               </Form.Item>
             </Col>
-            <Col xs={24} sm={12} md={6}>
+            <Col xs={24} sm={12} md={8}>
               <Form.Item name="defaultLocale" label="Default locale">
                 <Select
                   placeholder="Select locale"
@@ -439,7 +516,7 @@ export default function AdminThemePage() {
                 />
               </Form.Item>
             </Col>
-            <Col xs={24} sm={12} md={6}>
+            <Col xs={24} sm={12} md={8}>
               <Form.Item name="direction" label="Direction">
                 <Select
                   options={[
@@ -689,8 +766,6 @@ export default function AdminThemePage() {
       ),
     },
   ];
-
-  const adminLogoUrl = Form.useWatch("adminLogoUrl", form);
 
   const adminCollapseItems = [
     {

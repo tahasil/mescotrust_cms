@@ -217,7 +217,8 @@ const DEFAULT_TABS = ["All", "Education", "Medical", "Events", "Community"];
 export default function PhotoGallery(props) {
   const router = useRouter();
   const rawItems =
-    Array.isArray(props?.photoGalleryItems) && props.photoGalleryItems.length > 0
+    Array.isArray(props?.photoGalleryItems) &&
+    props.photoGalleryItems.length > 0
       ? props.photoGalleryItems
       : [];
   const items = rawItems
@@ -230,32 +231,73 @@ export default function PhotoGallery(props) {
           .filter(Boolean)
       : DEFAULT_TABS;
 
-  const accentColorKey = (props?.photoGalleryAccentColorKey ?? "").toString().trim();
-  const accentColor = accentColorKey ? getColor(accentColorKey) : getColor("primary");
+  const accentColorKey = (props?.photoGalleryAccentColorKey ?? "")
+    .toString()
+    .trim();
+  const accentColor = accentColorKey
+    ? getColor(accentColorKey)
+    : getColor("primary");
   const tabBgKey = (props?.photoGalleryTabBgColorKey ?? "").toString().trim();
   const tabBgColor = tabBgKey ? getColor(tabBgKey) : undefined;
-  const tabTextKey = (props?.photoGalleryTabTextColorKey ?? "").toString().trim();
+  const tabTextKey = (props?.photoGalleryTabTextColorKey ?? "")
+    .toString()
+    .trim();
   const tabTextColor = tabTextKey ? getColor(tabTextKey) : undefined;
-  const tabBorderKey = (props?.photoGalleryTabBorderColorKey ?? "").toString().trim();
+  const tabBorderKey = (props?.photoGalleryTabBorderColorKey ?? "")
+    .toString()
+    .trim();
   const tabBorderColor = tabBorderKey ? getColor(tabBorderKey) : undefined;
-  const tabInactiveTextKey = (props?.photoGalleryTabInactiveTextColorKey ?? "").toString().trim();
-  const tabInactiveTextColor = tabInactiveTextKey ? getColor(tabInactiveTextKey) : undefined;
-  const tabHoverBorderKey = (props?.photoGalleryTabHoverBorderColorKey ?? "").toString().trim();
-  const tabHoverBorderColor = tabHoverBorderKey ? getColor(tabHoverBorderKey) : undefined;
-  const tabHoverTextKey = (props?.photoGalleryTabHoverTextColorKey ?? "").toString().trim();
-  const tabHoverTextColor = tabHoverTextKey ? getColor(tabHoverTextKey) : undefined;
+  const tabInactiveTextKey = (props?.photoGalleryTabInactiveTextColorKey ?? "")
+    .toString()
+    .trim();
+  const tabInactiveTextColor = tabInactiveTextKey
+    ? getColor(tabInactiveTextKey)
+    : undefined;
+  const tabHoverBorderKey = (props?.photoGalleryTabHoverBorderColorKey ?? "")
+    .toString()
+    .trim();
+  const tabHoverBorderColor = tabHoverBorderKey
+    ? getColor(tabHoverBorderKey)
+    : undefined;
+  const tabHoverTextKey = (props?.photoGalleryTabHoverTextColorKey ?? "")
+    .toString()
+    .trim();
+  const tabHoverTextColor = tabHoverTextKey
+    ? getColor(tabHoverTextKey)
+    : undefined;
 
-  const limitEnabled = props?.photoGalleryLimitEnabled === true || props?.photoGalleryLimitEnabled === "true";
-  const limitCount = props?.photoGalleryLimitCount != null ? Number(props.photoGalleryLimitCount) : 6;
-  const viewMoreText = (props?.photoGalleryViewMoreText ?? "View More").toString().trim();
-  const viewMoreLink = (props?.photoGalleryViewMoreLink ?? "").toString().trim();
-  const viewMoreButtonBgKey = (props?.photoGalleryViewMoreButtonBgColorKey ?? "").toString().trim();
-  const viewMoreButtonTextKey = (props?.photoGalleryViewMoreButtonTextColorKey ?? "").toString().trim();
+  const limitEnabled =
+    props?.photoGalleryLimitEnabled === true ||
+    props?.photoGalleryLimitEnabled === "true";
+  const limitCount =
+    props?.photoGalleryLimitCount != null
+      ? Number(props.photoGalleryLimitCount)
+      : 6;
+  const viewMoreText = (props?.photoGalleryViewMoreText ?? "View More")
+    .toString()
+    .trim();
+  const viewMoreLink = (props?.photoGalleryViewMoreLink ?? "")
+    .toString()
+    .trim();
+  const viewMoreButtonBgKey = (
+    props?.photoGalleryViewMoreButtonBgColorKey ?? ""
+  )
+    .toString()
+    .trim();
+  const viewMoreButtonTextKey = (
+    props?.photoGalleryViewMoreButtonTextColorKey ?? ""
+  )
+    .toString()
+    .trim();
   const viewMoreButtonStyle =
     viewMoreButtonBgKey || viewMoreButtonTextKey
       ? {
-          ...(viewMoreButtonBgKey ? { background: getColor(viewMoreButtonBgKey) } : {}),
-          ...(viewMoreButtonTextKey ? { color: getColor(viewMoreButtonTextKey) } : {}),
+          ...(viewMoreButtonBgKey
+            ? { background: getColor(viewMoreButtonBgKey) }
+            : {}),
+          ...(viewMoreButtonTextKey
+            ? { color: getColor(viewMoreButtonTextKey) }
+            : {}),
         }
       : undefined;
 
@@ -272,10 +314,17 @@ export default function PhotoGallery(props) {
   /* Store lightGallery instances per album */
   const lgInstances = useRef({});
 
-  const allFilteredItems = activeTab === "All"
-    ? items
-    : items.filter((item) => Array.isArray(item.categories) && item.categories.includes(activeTab));
-  const filteredItems = limitEnabled ? allFilteredItems.slice(0, limitCount) : allFilteredItems;
+  const allFilteredItems =
+    activeTab === "All"
+      ? items
+      : items.filter(
+          (item) =>
+            Array.isArray(item.categories) &&
+            item.categories.includes(activeTab),
+        );
+  const filteredItems = limitEnabled
+    ? allFilteredItems.slice(0, limitCount)
+    : allFilteredItems;
 
   const openAlbum = (albumIndex) => {
     const lgInstance = lgInstances.current[albumIndex];
@@ -290,7 +339,9 @@ export default function PhotoGallery(props) {
         const href = item?.linkUrl != null ? String(item.linkUrl).trim() : "";
         if (!href) return;
         if (item.linkType === "external") {
-          const resolved = /^https?:\/\//i.test(href) ? href : `https://${href}`;
+          const resolved = /^https?:\/\//i.test(href)
+            ? href
+            : `https://${href}`;
           window.open(resolved, "_blank", "noopener,noreferrer");
           return;
         }
@@ -313,56 +364,147 @@ export default function PhotoGallery(props) {
 
   const PREFIX = "photoGallery";
 
-  const sectionBgType = (props?.[PREFIX + "SectionBgType"] ?? "default").toString();
-  const sectionBgImage = (props?.[PREFIX + "SectionBgImage"] ?? "").toString().trim();
-  const sectionBgColorKey = (props?.[PREFIX + "SectionBgColorKey"] ?? "").toString().trim();
-  const sectionBgClassName = sectionBgType === "default" ? "defaultBackground" : undefined;
+  const sectionBgType = (
+    props?.[PREFIX + "SectionBgType"] ?? "default"
+  ).toString();
+  const sectionBgImage = (props?.[PREFIX + "SectionBgImage"] ?? "")
+    .toString()
+    .trim();
+  const sectionBgColorKey = (props?.[PREFIX + "SectionBgColorKey"] ?? "")
+    .toString()
+    .trim();
+  const sectionBgClassName =
+    sectionBgType === "default" ? "defaultBackground" : undefined;
   const sectionBgStyleBase =
     sectionBgType === "image" && sectionBgImage
-      ? { backgroundImage: `url(${sectionBgImage})`, backgroundSize: "cover", backgroundPosition: "center center", backgroundRepeat: "no-repeat" }
+      ? {
+          backgroundImage: `url(${sectionBgImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center center",
+          backgroundRepeat: "no-repeat",
+        }
       : sectionBgType === "color" && sectionBgColorKey
-        ? { backgroundColor: getColor(sectionBgColorKey), backgroundImage: "none" }
+        ? {
+            backgroundColor: getColor(sectionBgColorKey),
+            backgroundImage: "none",
+          }
         : undefined;
-  const sectionPaddingTop = props?.[PREFIX + "SectionPaddingTop"] != null ? Number(props[PREFIX + "SectionPaddingTop"]) : null;
-  const sectionPaddingBottom = props?.[PREFIX + "SectionPaddingBottom"] != null ? Number(props[PREFIX + "SectionPaddingBottom"]) : null;
-  const sectionMarginTop = props?.[PREFIX + "SectionMarginTop"] != null ? Number(props[PREFIX + "SectionMarginTop"]) : null;
-  const sectionMarginBottom = props?.[PREFIX + "SectionMarginBottom"] != null ? Number(props[PREFIX + "SectionMarginBottom"]) : null;
+  const sectionPaddingTop =
+    props?.[PREFIX + "SectionPaddingTop"] != null
+      ? Number(props[PREFIX + "SectionPaddingTop"])
+      : null;
+  const sectionPaddingBottom =
+    props?.[PREFIX + "SectionPaddingBottom"] != null
+      ? Number(props[PREFIX + "SectionPaddingBottom"])
+      : null;
+  const sectionMarginTop =
+    props?.[PREFIX + "SectionMarginTop"] != null
+      ? Number(props[PREFIX + "SectionMarginTop"])
+      : null;
+  const sectionMarginBottom =
+    props?.[PREFIX + "SectionMarginBottom"] != null
+      ? Number(props[PREFIX + "SectionMarginBottom"])
+      : null;
   const sectionBgStyle =
-    sectionBgStyleBase || sectionPaddingTop != null || sectionPaddingBottom != null || sectionMarginTop != null || sectionMarginBottom != null
+    sectionBgStyleBase ||
+    sectionPaddingTop != null ||
+    sectionPaddingBottom != null ||
+    sectionMarginTop != null ||
+    sectionMarginBottom != null
       ? {
           ...(sectionBgStyleBase || {}),
-          ...(sectionPaddingTop != null && sectionPaddingTop >= 0 ? { paddingTop: `${sectionPaddingTop}px` } : {}),
-          ...(sectionPaddingBottom != null && sectionPaddingBottom >= 0 ? { paddingBottom: `${sectionPaddingBottom}px` } : {}),
-          ...(sectionMarginTop != null && sectionMarginTop >= 0 ? { marginTop: `${sectionMarginTop}px` } : {}),
-          ...(sectionMarginBottom != null && sectionMarginBottom >= 0 ? { marginBottom: `${sectionMarginBottom}px` } : {}),
+          ...(sectionPaddingTop != null && sectionPaddingTop >= 0
+            ? { paddingTop: `${sectionPaddingTop}px` }
+            : {}),
+          ...(sectionPaddingBottom != null && sectionPaddingBottom >= 0
+            ? { paddingBottom: `${sectionPaddingBottom}px` }
+            : {}),
+          ...(sectionMarginTop != null && sectionMarginTop >= 0
+            ? { marginTop: `${sectionMarginTop}px` }
+            : {}),
+          ...(sectionMarginBottom != null && sectionMarginBottom >= 0
+            ? { marginBottom: `${sectionMarginBottom}px` }
+            : {}),
         }
       : undefined;
 
-  const pageContainerBgType = (props?.[PREFIX + "PageContainerBgType"] ?? "default").toString();
-  const pageContainerBgImage = (props?.[PREFIX + "PageContainerBgImage"] ?? "").toString().trim();
-  const pageContainerBgColorKey = (props?.[PREFIX + "PageContainerBgColorKey"] ?? "").toString().trim();
+  const pageContainerBgType = (
+    props?.[PREFIX + "PageContainerBgType"] ?? "default"
+  ).toString();
+  const pageContainerBgImage = (props?.[PREFIX + "PageContainerBgImage"] ?? "")
+    .toString()
+    .trim();
+  const pageContainerBgColorKey = (
+    props?.[PREFIX + "PageContainerBgColorKey"] ?? ""
+  )
+    .toString()
+    .trim();
   const pageContainerBgStyleBase =
     pageContainerBgType === "image" && pageContainerBgImage
-      ? { backgroundImage: `url(${pageContainerBgImage})`, backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" }
+      ? {
+          backgroundImage: `url(${pageContainerBgImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }
       : pageContainerBgType === "color" && pageContainerBgColorKey
-        ? { backgroundColor: getColor(pageContainerBgColorKey), backgroundImage: "none" }
+        ? {
+            backgroundColor: getColor(pageContainerBgColorKey),
+            backgroundImage: "none",
+          }
         : undefined;
-  const containerPaddingTop = props?.[PREFIX + "PageContainerPaddingTop"] != null ? Number(props[PREFIX + "PageContainerPaddingTop"]) : null;
-  const containerPaddingRight = props?.[PREFIX + "PageContainerPaddingRight"] != null ? Number(props[PREFIX + "PageContainerPaddingRight"]) : null;
-  const containerPaddingBottom = props?.[PREFIX + "PageContainerPaddingBottom"] != null ? Number(props[PREFIX + "PageContainerPaddingBottom"]) : null;
-  const containerPaddingLeft = props?.[PREFIX + "PageContainerPaddingLeft"] != null ? Number(props[PREFIX + "PageContainerPaddingLeft"]) : null;
-  const containerMarginTop = props?.[PREFIX + "PageContainerMarginTop"] != null ? Number(props[PREFIX + "PageContainerMarginTop"]) : null;
-  const containerMarginBottom = props?.[PREFIX + "PageContainerMarginBottom"] != null ? Number(props[PREFIX + "PageContainerMarginBottom"]) : null;
+  const containerPaddingTop =
+    props?.[PREFIX + "PageContainerPaddingTop"] != null
+      ? Number(props[PREFIX + "PageContainerPaddingTop"])
+      : null;
+  const containerPaddingRight =
+    props?.[PREFIX + "PageContainerPaddingRight"] != null
+      ? Number(props[PREFIX + "PageContainerPaddingRight"])
+      : null;
+  const containerPaddingBottom =
+    props?.[PREFIX + "PageContainerPaddingBottom"] != null
+      ? Number(props[PREFIX + "PageContainerPaddingBottom"])
+      : null;
+  const containerPaddingLeft =
+    props?.[PREFIX + "PageContainerPaddingLeft"] != null
+      ? Number(props[PREFIX + "PageContainerPaddingLeft"])
+      : null;
+  const containerMarginTop =
+    props?.[PREFIX + "PageContainerMarginTop"] != null
+      ? Number(props[PREFIX + "PageContainerMarginTop"])
+      : null;
+  const containerMarginBottom =
+    props?.[PREFIX + "PageContainerMarginBottom"] != null
+      ? Number(props[PREFIX + "PageContainerMarginBottom"])
+      : null;
   const pageContainerBgStyle =
-    pageContainerBgStyleBase || containerPaddingTop != null || containerPaddingRight != null || containerPaddingBottom != null || containerPaddingLeft != null || containerMarginTop != null || containerMarginBottom != null
+    pageContainerBgStyleBase ||
+    containerPaddingTop != null ||
+    containerPaddingRight != null ||
+    containerPaddingBottom != null ||
+    containerPaddingLeft != null ||
+    containerMarginTop != null ||
+    containerMarginBottom != null
       ? {
           ...(pageContainerBgStyleBase || {}),
-          ...(containerPaddingTop != null && containerPaddingTop >= 0 ? { paddingTop: `${containerPaddingTop}px` } : {}),
-          ...(containerPaddingRight != null && containerPaddingRight >= 0 ? { paddingRight: `${containerPaddingRight}px` } : {}),
-          ...(containerPaddingBottom != null && containerPaddingBottom >= 0 ? { paddingBottom: `${containerPaddingBottom}px` } : {}),
-          ...(containerPaddingLeft != null && containerPaddingLeft >= 0 ? { paddingLeft: `${containerPaddingLeft}px` } : {}),
-          ...(containerMarginTop != null && containerMarginTop >= 0 ? { marginTop: `${containerMarginTop}px` } : {}),
-          ...(containerMarginBottom != null && containerMarginBottom >= 0 ? { marginBottom: `${containerMarginBottom}px` } : {}),
+          ...(containerPaddingTop != null && containerPaddingTop >= 0
+            ? { paddingTop: `${containerPaddingTop}px` }
+            : {}),
+          ...(containerPaddingRight != null && containerPaddingRight >= 0
+            ? { paddingRight: `${containerPaddingRight}px` }
+            : {}),
+          ...(containerPaddingBottom != null && containerPaddingBottom >= 0
+            ? { paddingBottom: `${containerPaddingBottom}px` }
+            : {}),
+          ...(containerPaddingLeft != null && containerPaddingLeft >= 0
+            ? { paddingLeft: `${containerPaddingLeft}px` }
+            : {}),
+          ...(containerMarginTop != null && containerMarginTop >= 0
+            ? { marginTop: `${containerMarginTop}px` }
+            : {}),
+          ...(containerMarginBottom != null && containerMarginBottom >= 0
+            ? { marginBottom: `${containerMarginBottom}px` }
+            : {}),
         }
       : undefined;
 
@@ -406,7 +548,9 @@ export default function PhotoGallery(props) {
                 </picture>
                 <GalleryCardTitle>{item.title}</GalleryCardTitle>
                 {item.type === "album" && item.images.length > 1 && (
-                  <GalleryCardCount>{item.images.length} photos</GalleryCardCount>
+                  <GalleryCardCount>
+                    {item.images.length} photos
+                  </GalleryCardCount>
                 )}
                 <GalleryCardArrow $color={accentColor}>
                   <ArrowRightOutlined />
@@ -416,21 +560,27 @@ export default function PhotoGallery(props) {
           ))}
         </Row>
 
-        {limitEnabled && viewMoreLink && allFilteredItems.length > limitCount && (
-          <div style={{ textAlign: "center", marginTop: 32 }}>
-            <Link href={viewMoreLink}>
-              {viewMoreButtonStyle ? (
-                <ThemeButton type="button" size="large" style={viewMoreButtonStyle}>
-                  {viewMoreText}
-                </ThemeButton>
-              ) : (
-                <ThemeButton type="button" size="large">
-                  {viewMoreText}
-                </ThemeButton>
-              )}
-            </Link>
-          </div>
-        )}
+        {limitEnabled &&
+          viewMoreLink &&
+          allFilteredItems.length > limitCount && (
+            <div style={{ textAlign: "center", marginTop: 32 }}>
+              <Link href={viewMoreLink}>
+                {viewMoreButtonStyle ? (
+                  <ThemeButton
+                    type="button"
+                    size="large"
+                    style={viewMoreButtonStyle}
+                  >
+                    {viewMoreText}
+                  </ThemeButton>
+                ) : (
+                  <ThemeButton type="button" size="large">
+                    {viewMoreText}
+                  </ThemeButton>
+                )}
+              </Link>
+            </div>
+          )}
       </PageContainer>
 
       {/* Hidden lightGallery instances — one per album */}
@@ -438,7 +588,9 @@ export default function PhotoGallery(props) {
         <HiddenGallery key={`lg-${index}`}>
           {item.type === "album" && item.images.length > 0 ? (
             <LightGallery
-              onInit={(ref) => { lgInstances.current[index] = ref.instance; }}
+              onInit={(ref) => {
+                lgInstances.current[index] = ref.instance;
+              }}
               speed={500}
               plugins={[lgThumbnail, lgZoom, lgFullscreen]}
               download={false}
@@ -452,14 +604,17 @@ export default function PhotoGallery(props) {
                 const imageForViewer = resolveImageForViewport(img);
                 if (!desktop && !mobile) return null;
                 return (
-                <a
-                  key={imgIdx}
-                  href={imageForViewer || desktop || mobile}
-                  data-thumb={imageForViewer || desktop || mobile}
-                  data-sub-html={`<h4>${item.title}</h4>${item.images.length > 1 ? `<p>${imgIdx + 1} / ${item.images.length}</p>` : ""}`}
-                >
-                  <img src={imageForViewer || desktop || mobile} alt={item.title} />
-                </a>
+                  <a
+                    key={imgIdx}
+                    href={imageForViewer || desktop || mobile}
+                    data-thumb={imageForViewer || desktop || mobile}
+                    data-sub-html={`<h4>${item.title}</h4>${item.images.length > 1 ? `<p>${imgIdx + 1} / ${item.images.length}</p>` : ""}`}
+                  >
+                    <img
+                      src={imageForViewer || desktop || mobile}
+                      alt={item.title}
+                    />
+                  </a>
                 );
               })}
             </LightGallery>

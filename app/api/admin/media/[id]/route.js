@@ -6,6 +6,9 @@ import { isAdmin } from "@/lib/permissions";
 import Media from "@/models/Media";
 import { getStorageAdapter } from "@/lib/storage";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function toStorageKey(urlOrKey) {
   const value = String(urlOrKey || "").trim();
   if (!value) return "";

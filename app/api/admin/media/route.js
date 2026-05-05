@@ -7,6 +7,9 @@ import { ALLOWED_UPLOAD_MIME_TYPES } from "@/lib/media/constants";
 import { getMediaSettings } from "@/lib/media/settings";
 import { optimizeAndStoreUpload } from "@/lib/media/processor";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function sanitizeName(name) {
   return String(name || "upload")
     .trim()
@@ -92,17 +95,26 @@ export async function GET(req) {
         }
       : undefined;
 
-    return NextResponse.json({
-      items: items.map((item) => ({
-        ...item,
-        alt: item.altText || item.alt || "",
-        url: item.url || item.originalUrl || "",
-      })),
-      total,
-      page,
-      totalPages: Math.ceil(total / limit),
-      facets,
-    });
+    return NextResponse.json(
+      {
+        items: items.map((item) => ({
+          ...item,
+          alt: item.altText || item.alt || "",
+          url: item.url || item.originalUrl || "",
+        })),
+        total,
+        page,
+        totalPages: Math.ceil(total / limit),
+        facets,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      },
+    );
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
