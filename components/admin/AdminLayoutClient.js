@@ -532,12 +532,33 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
 
   const sidebarVisible = isMobile ? mobileOpen : !collapsed;
   const contentMarginLeft = isMobile ? 0 : collapsed ? 0 : SIDEBAR_WIDTH;
-  const menuItems =
-    userRole === "Admin"
-      ? baseMenuItems
-      : baseMenuItems.filter((item) => item.key !== "/admin/users");
+  let menuItems = baseMenuItems;
+  if (userRole === "Author") {
+    const dashboard = baseMenuItems.find((item) => item.key === "/admin");
+    const blogGroup = baseMenuItems.find((item) => item.key === "group:admin:blogs");
+    const eventsGroup = baseMenuItems.find((item) => item.key === "group:admin:events");
+    menuItems = [
+      dashboard,
+      blogGroup
+        ? {
+            ...blogGroup,
+            children: (blogGroup.children || []).filter(
+              (child) => child.key === "/admin/blogs" || child.key === "/admin/blogs/new",
+            ),
+          }
+        : null,
+      eventsGroup,
+    ].filter(Boolean);
+  } else if (userRole !== "Admin") {
+    menuItems = baseMenuItems.filter((item) => item.key !== "/admin/users");
+  }
 
   const fetchNotifications = useCallback(() => {
+    if (userRole === "Author") {
+      setNotifications([]);
+      prevCountRef.current = 0;
+      return;
+    }
     Promise.all([
       fetch("/api/admin/contacts?limit=20").then((r) =>
         r.ok ? r.json() : { items: [] },
@@ -619,7 +640,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
         setNotifications(sliced);
       })
       .catch(() => {});
-  }, []);
+  }, [userRole]);
 
   useEffect(() => {
     fetchNotifications();

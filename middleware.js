@@ -33,6 +33,18 @@ function isAdminRoute(pathname) {
   return pathname.startsWith(adminPathPrefix) || pathname.startsWith("/api/admin");
 }
 
+function isAuthorAllowedAdminPath(pathname) {
+  return pathname === "/admin" || pathname.startsWith("/admin/blogs") || pathname.startsWith("/admin/events");
+}
+
+function isAuthorAllowedAdminApi(pathname, method) {
+  return (
+    pathname.startsWith("/api/admin/blogs") ||
+    pathname.startsWith("/api/admin/events") ||
+    (method === "GET" && pathname.startsWith("/api/admin/blog-categories"))
+  );
+}
+
 function isMediaObjectIdPath(pathname) {
   const m = pathname.match(/^\/media\/([^/]+)$/);
   if (!m) return false;
@@ -118,6 +130,18 @@ export async function middleware(req) {
     url.pathname = "/admin";
     url.searchParams.set("forbidden", "1");
     return NextResponse.redirect(url);
+  }
+
+  if (token.role === "Author") {
+    if (pathname.startsWith("/api/admin") && !isAuthorAllowedAdminApi(pathname, req.method)) {
+      return NextResponse.json({ error: "Forbidden: Author access limited to blog/event APIs" }, { status: 403 });
+    }
+    if (pathname.startsWith("/admin") && !isAuthorAllowedAdminPath(pathname)) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/admin";
+      url.searchParams.set("forbidden", "1");
+      return NextResponse.redirect(url);
+    }
   }
 
   return withPathname(req);

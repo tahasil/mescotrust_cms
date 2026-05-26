@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Card, Row, Col, Statistic } from "antd";
 import { FileTextOutlined, BookOutlined, MailOutlined } from "@ant-design/icons";
 import { connectDB } from "@/lib/db";
@@ -28,25 +27,19 @@ export default async function AdminDashboardPage() {
     <AdminPageCard title="Dashboard">
       <Row gutter={16}>
         <Col xs={24} sm={8}>
-          <Link href="/admin/pages">
-            <Card>
-              <Statistic title="Pages" value={pages} prefix={<FileTextOutlined />} />
-            </Card>
-          </Link>
+          <Card>
+            <Statistic title="Pages" value={pages} prefix={<FileTextOutlined />} />
+          </Card>
         </Col>
         <Col xs={24} sm={8}>
-          <Link href="/admin/blogs">
-            <Card>
-              <Statistic title="Blog posts" value={posts} prefix={<BookOutlined />} />
-            </Card>
-          </Link>
+          <Card>
+            <Statistic title="Blog posts" value={posts} prefix={<BookOutlined />} />
+          </Card>
         </Col>
         <Col xs={24} sm={8}>
-          <Link href="/admin/contacts">
-            <Card>
-              <Statistic title="Contact submissions" value={contacts} prefix={<MailOutlined />} />
-            </Card>
-          </Link>
+          <Card>
+            <Statistic title="Contact submissions" value={contacts} prefix={<MailOutlined />} />
+          </Card>
         </Col>
       </Row>
     </AdminPageCard>
