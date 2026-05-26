@@ -5,6 +5,8 @@ import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 import { isAdmin } from "@/lib/permissions";
 
+const ALLOWED_ROLES = new Set(["Admin", "Editor", "Author"]);
+
 function guardAdmin(session) {
   if (!isAdmin(session)) {
     return NextResponse.json({ error: "Forbidden: Admin only" }, { status: 403 });
@@ -45,11 +47,12 @@ export async function POST(req) {
       return NextResponse.json({ error: "Email already in use" }, { status: 400 });
     }
     const hashed = await bcrypt.hash(password, 10);
+    const safeRole = ALLOWED_ROLES.has(role) ? role : "Editor";
     const user = await User.create({
       name: name.trim(),
       email: email.trim().toLowerCase(),
       password: hashed,
-      role: role === "Admin" ? "Admin" : "Editor",
+      role: safeRole,
       status: status === "inactive" ? "inactive" : "active",
     });
     const out = await User.findById(user._id).select("-password").lean();

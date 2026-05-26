@@ -6,6 +6,8 @@ import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 import { isAdmin } from "@/lib/permissions";
 
+const ALLOWED_ROLES = new Set(["Admin", "Editor", "Author"]);
+
 function guardAdmin(session) {
   if (!isAdmin(session)) {
     return NextResponse.json({ error: "Forbidden: Admin only" }, { status: 403 });
@@ -50,8 +52,12 @@ export async function PUT(req, { params }) {
     const user = await User.findById(id);
     if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+    if (role !== undefined && !ALLOWED_ROLES.has(role)) {
+      return NextResponse.json({ error: "Invalid role" }, { status: 400 });
+    }
+
     const adminCount = await User.countDocuments({ role: "Admin" });
-    if (role === "Editor" && user.role === "Admin" && adminCount <= 1) {
+    if (role !== undefined && role !== "Admin" && user.role === "Admin" && adminCount <= 1) {
       return NextResponse.json({ error: "Cannot demote the last Admin" }, { status: 400 });
     }
 

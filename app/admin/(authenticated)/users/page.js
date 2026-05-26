@@ -5,6 +5,12 @@ import { Table, Tag, Button, Space, message, Modal, Form, Input, Select } from "
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 
+const ROLE_OPTIONS = [
+  { value: "Admin", label: "Admin" },
+  { value: "Editor", label: "Editor" },
+  { value: "Author", label: "Author" },
+];
+
 export default function AdminUsersPage() {
   const [list, setList] = useState([]);
   const [filtered, setFiltered] = useState([]);
@@ -159,7 +165,7 @@ export default function AdminUsersPage() {
       }
     >
       <p style={{ color: "#666", marginBottom: 16 }}>
-        Admin and Editor accounts. Only Admins can manage users. Create initial admin via <code>npm run seed</code>.
+        Admin, Editor, and Author accounts. Only Admins can manage users. Create initial admin via <code>npm run seed</code>.
       </p>
       <Input.Search
           placeholder="Search name or email"
@@ -174,7 +180,7 @@ export default function AdminUsersPage() {
           style={{ width: 130, marginLeft: 8, marginBottom: 16 }}
           value={filterRole}
           onChange={setFilterRole}
-          options={[{ value: "Admin", label: "Admin" }, { value: "Editor", label: "Editor" }]}
+          options={ROLE_OPTIONS}
         />
         <Select
           placeholder="Status"
@@ -195,7 +201,11 @@ export default function AdminUsersPage() {
             title: "Role",
             dataIndex: "role",
             key: "role",
-            render: (r) => <Tag color={r === "Admin" ? "blue" : "default"}>{r}</Tag>,
+            render: (r) => (
+              <Tag color={r === "Admin" ? "blue" : r === "Author" ? "purple" : "default"}>
+                {r}
+              </Tag>
+            ),
           },
           {
             title: "Status",
@@ -232,7 +242,7 @@ export default function AdminUsersPage() {
             <Input.Password />
           </Form.Item>
           <Form.Item name="role" label="Role" initialValue="Editor">
-            <Select options={[{ value: "Admin", label: "Admin" }, { value: "Editor", label: "Editor" }]} />
+            <Select options={ROLE_OPTIONS} />
           </Form.Item>
           <Form.Item name="status" label="Status" initialValue="active">
             <Select options={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]} />
@@ -252,7 +262,7 @@ export default function AdminUsersPage() {
             <Input.Password placeholder="Min 6 characters" />
           </Form.Item>
           <Form.Item name="role" label="Role">
-            <Select options={[{ value: "Admin", label: "Admin" }, { value: "Editor", label: "Editor" }]} />
+            <Select options={ROLE_OPTIONS} />
           </Form.Item>
           <Form.Item name="status" label="Status">
             <Select options={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]} />

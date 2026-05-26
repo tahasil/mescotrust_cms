@@ -49,7 +49,7 @@ const ADMIN_ROUTE_LOADER_POST_PATHNAME_SETTLE_MS = 450;
 
 const linkStyle = { textDecoration: "none" };
 
-const menuItems = [
+const baseMenuItems = [
   {
     key: "/admin",
     icon: <DashboardOutlined />,
@@ -532,6 +532,10 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
 
   const sidebarVisible = isMobile ? mobileOpen : !collapsed;
   const contentMarginLeft = isMobile ? 0 : collapsed ? 0 : SIDEBAR_WIDTH;
+  const menuItems =
+    userRole === "Admin"
+      ? baseMenuItems
+      : baseMenuItems.filter((item) => item.key !== "/admin/users");
 
   const fetchNotifications = useCallback(() => {
     Promise.all([
@@ -1080,6 +1084,20 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
             style={{ fontSize: 18, color: at.adminTextColor }}
           />
           <Space size="middle" style={{ marginLeft: "auto" }}>
+            {userRole ? (
+              <Typography.Text
+                style={{
+                  color: at.adminTextColor,
+                  background: "rgba(0, 0, 0, 0.05)",
+                  padding: "2px 10px",
+                  borderRadius: 999,
+                  fontSize: 12,
+                  fontWeight: 600,
+                }}
+              >
+                {userRole}
+              </Typography.Text>
+            ) : null}
             <Popover
               content={notificationContent}
               trigger="click"
