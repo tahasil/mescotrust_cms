@@ -249,6 +249,37 @@ export const Actions = styled.div`
   }
 `;
 
+export const SearchBtn = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 30px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  background: rgba(255, 255, 255, 0.86);
+  color: ${getColor("black")};
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+  &:hover {
+    background: #fff;
+    border-color: rgba(0, 0, 0, 0.24);
+    transform: translateY(-1px);
+  }
+  &:focus-visible {
+    outline: 2px solid rgba(0, 0, 0, 0.3);
+    outline-offset: 2px;
+  }
+  svg {
+    display: block;
+  }
+`;
+
 export const Btn = styled.a`
   display: inline-flex;
   align-items: center;
@@ -499,6 +530,36 @@ export const MobileBtn = styled(Btn)`
   width: 100%;
 `;
 
+export const MobileBtnSearch = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  background: #fff;
+  color: ${getColor("black")};
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+  &:hover {
+    background: #fafafa;
+    border-color: rgba(0, 0, 0, 0.24);
+  }
+  &:focus-visible {
+    outline: 2px solid rgba(0, 0, 0, 0.3);
+    outline-offset: 2px;
+  }
+  svg {
+    display: block;
+  }
+`;
+
 export const MobileBtnVolunteer = styled(MobileBtn)`
   background: ${(props) => props.$headerCtaBgValue || "transparent"};
   color: ${(props) => props.$headerCtaTextValue || "currentColor"};
@@ -509,4 +570,144 @@ export const MobileBtnDonate = styled(MobileBtn)`
   background: ${(props) => props.$headerDonateBgValue || "transparent"};
   color: ${(props) => props.$headerDonateTextValue || "currentColor"};
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+`;
+
+export const SearchOverlay = styled.div`
+  position: ${(props) => (props.$preview ? "absolute" : "fixed")};
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: clamp(84px, 14vh, 130px) 16px 18px;
+  background: rgba(10, 15, 25, 0.6);
+  z-index: ${(props) => (props.$preview ? 5 : 1400)};
+  opacity: ${(props) => (props.$open ? 1 : 0)};
+  visibility: ${(props) => (props.$open ? "visible" : "hidden")};
+  pointer-events: ${(props) => (props.$open ? "auto" : "none")};
+  transition:
+    opacity 0.25s ease,
+    visibility 0.25s ease;
+  @media (max-width: ${BREAKPOINT}) {
+    padding-top: 72px;
+  }
+`;
+
+export const SearchPanel = styled.div`
+  width: min(840px, 100%);
+  max-height: min(70vh, 640px);
+  background: #fff;
+  border-radius: 18px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.22);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: ${(props) =>
+    props.$open ? "translateY(0) scale(1)" : "translateY(12px) scale(0.98)"};
+  opacity: ${(props) => (props.$open ? 1 : 0)};
+  transition:
+    transform 0.28s cubic-bezier(0.2, 0.85, 0.32, 1),
+    opacity 0.2s ease;
+  @media (max-width: ${BREAKPOINT}) {
+    max-height: calc(100vh - 96px);
+    border-radius: 14px;
+  }
+`;
+
+export const SearchTopRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 14px 16px;
+`;
+
+export const SearchTopIcon = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.55);
+  flex-shrink: 0;
+`;
+
+export const SearchInput = styled.input`
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: ${getColor("black")};
+  font-size: 1rem;
+  font-weight: 500;
+  min-width: 0;
+  outline: none;
+  &::placeholder {
+    color: rgba(0, 0, 0, 0.45);
+    font-weight: 400;
+  }
+`;
+
+export const SearchCloseBtn = styled.button`
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.65);
+  cursor: pointer;
+  transition: background 0.2s ease;
+  &:hover {
+    background: rgba(0, 0, 0, 0.07);
+  }
+`;
+
+export const SearchResults = styled.div`
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 8px 12px;
+`;
+
+export const SearchResultLink = styled.a`
+  display: block;
+  text-decoration: none;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 4px 0;
+  color: ${getColor("black")};
+  transition: background 0.2s ease;
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+`;
+
+export const SearchResultType = styled.span`
+  display: inline-flex;
+  align-items: center;
+  text-transform: uppercase;
+  font-size: 0.67rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: #8c1c13;
+  margin-bottom: 4px;
+`;
+
+export const SearchResultTitle = styled.div`
+  font-size: 0.97rem;
+  font-weight: 600;
+  line-height: 1.35;
+`;
+
+export const SearchResultMeta = styled.div`
+  margin-top: 4px;
+  font-size: 0.83rem;
+  color: rgba(0, 0, 0, 0.57);
+  line-height: 1.4;
+`;
+
+export const SearchState = styled.div`
+  padding: 24px 18px 20px;
+  color: rgba(0, 0, 0, 0.65);
+  font-size: 0.95rem;
+  line-height: 1.5;
 `;

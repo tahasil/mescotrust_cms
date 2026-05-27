@@ -27,6 +27,7 @@ import {
   DropdownParentTrigger,
   DropdownSubmenu,
   Actions,
+  SearchBtn,
   BtnVolunteer,
   BtnDonate,
   IconWrap,
@@ -45,8 +46,21 @@ import {
   MobileMenuLogo,
   MobileMenuCloseBtn,
   MobileActions,
+  MobileBtnSearch,
   MobileBtnVolunteer,
   MobileBtnDonate,
+  SearchOverlay,
+  SearchPanel,
+  SearchTopRow,
+  SearchTopIcon,
+  SearchInput,
+  SearchCloseBtn,
+  SearchResults,
+  SearchResultLink,
+  SearchResultType,
+  SearchResultTitle,
+  SearchResultMeta,
+  SearchState,
 } from "./HeaderStyle";
 
 const SCROLL_THRESHOLD_PX = 10;
@@ -151,6 +165,23 @@ const ChevronDown = () => (
 );
 
 /* ── Modal Styled Components ── */
+const SearchIcon = () => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.9"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <circle cx="11" cy="11" r="7" />
+    <path d="M20 20l-3.4-3.4" />
+  </svg>
+);
+
 const ModalOverlay = styled.div`
   position: fixed;
   inset: 0;
@@ -336,8 +367,14 @@ export default function Header({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openAccordion, setOpenAccordion] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchItems, setSearchItems] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState("");
   const [modalErrors, setModalErrors] = useState({});
   const modalFormRef = useRef(null);
+  const searchInputRef = useRef(null);
   const [modalState, modalFormAction] = useFormState(submitContact, null);
 
   /* Listen for global event so other buttons can open this modal */
@@ -384,13 +421,13 @@ export default function Header({
   }, [modalState]);
 
   useEffect(() => {
-    if (modalOpen) {
+    if (modalOpen || searchOpen) {
       document.documentElement.style.overflow = "hidden";
       return () => {
         document.documentElement.style.overflow = "";
       };
     }
-  }, [modalOpen]);
+  }, [modalOpen, searchOpen]);
   const [scrolled, setScrolled] = useState(false);
 
   const items = cmsMenuToHeaderItems(menuItems);
@@ -421,9 +458,71 @@ export default function Header({
     }
   }, [mobileOpen]);
 
+  useEffect(() => {
+    if (!searchOpen) return;
+    const focusTimer = window.setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 120);
+    const handleEsc = (event) => {
+      if (event.key === "Escape") {
+        setSearchOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => {
+      window.clearTimeout(focusTimer);
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [searchOpen]);
+
+  useEffect(() => {
+    if (!searchOpen) return;
+    const q = searchQuery.trim();
+    if (q.length < 2) {
+      setSearchItems([]);
+      setSearchLoading(false);
+      setSearchError("");
+      return;
+    }
+    const controller = new AbortController();
+    const timerId = window.setTimeout(async () => {
+      try {
+        setSearchLoading(true);
+        setSearchError("");
+        const response = await fetch(
+          `/api/public/search?q=${encodeURIComponent(q)}`,
+          { signal: controller.signal },
+        );
+        if (!response.ok) {
+          throw new Error("Search is temporarily unavailable.");
+        }
+        const payload = await response.json();
+        setSearchItems(Array.isArray(payload?.items) ? payload.items : []);
+      } catch (error) {
+        if (error?.name !== "AbortError") {
+          setSearchItems([]);
+          setSearchError(error?.message || "Failed to fetch search results.");
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setSearchLoading(false);
+        }
+      }
+    }, 250);
+    return () => {
+      window.clearTimeout(timerId);
+      controller.abort();
+    };
+  }, [searchOpen, searchQuery]);
+
   const closeMobile = () => {
     setMobileOpen(false);
     setOpenAccordion(null);
+  };
+
+  const closeSearch = () => {
+    setSearchOpen(false);
+    setSearchError("");
   };
 
   const toggleAccordion = (label) => {
@@ -455,6 +554,23 @@ export default function Header({
       return;
     }
     setModalErrors({});
+  };
+
+  const trimmedSearchQuery = searchQuery.trim();
+  const hasMinSearchChars = trimmedSearchQuery.length >= 2;
+  const resultLabel = (type) => {
+    if (type === "blog") return "Blog";
+    if (type === "event") return "Event";
+    return "Page";
+  };
+  const toExcerpt = (value) => {
+    if (!value || typeof value !== "string") return "";
+    const plain = value
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!plain) return "";
+    return plain.length > 130 ? `${plain.slice(0, 127)}...` : plain;
   };
 
   return (
@@ -555,6 +671,14 @@ export default function Header({
           </Nav>
 
           <Actions>
+            <SearchBtn
+              type="button"
+              onClick={() => setSearchOpen(true)}
+              aria-label="Open search"
+            >
+              <SearchIcon />
+              Search
+            </SearchBtn>
             {(volunteerLabel || volunteerHref) && (
               <BtnVolunteer
                 as="button"
@@ -702,6 +826,17 @@ export default function Header({
           )}
         </MobileNav>
         <MobileActions>
+          <MobileBtnSearch
+            type="button"
+            onClick={() => {
+              closeMobile();
+              setSearchOpen(true);
+            }}
+            aria-label="Open search"
+          >
+            <SearchIcon />
+            Search
+          </MobileBtnSearch>
           {(volunteerLabel || volunteerHref) && (
             <MobileBtnVolunteer
               as="button"
@@ -747,6 +882,68 @@ export default function Header({
           )}
         </MobileActions>
       </MobileMenu>
+      <SearchOverlay
+        $open={searchOpen}
+        $preview={preview}
+        onClick={closeSearch}
+        aria-hidden={!searchOpen}
+      >
+        <SearchPanel
+          $open={searchOpen}
+          onClick={(event) => event.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Site search"
+        >
+          <SearchTopRow>
+            <SearchTopIcon>
+              <SearchIcon />
+            </SearchTopIcon>
+            <SearchInput
+              ref={searchInputRef}
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search pages, blogs, and events..."
+              aria-label="Search pages, blogs, and events"
+            />
+            <SearchCloseBtn
+              type="button"
+              aria-label="Close search"
+              onClick={closeSearch}
+            >
+              <CloseIcon />
+            </SearchCloseBtn>
+          </SearchTopRow>
+          <SearchResults>
+            {!hasMinSearchChars ? (
+              <SearchState>Type at least 2 characters to start searching.</SearchState>
+            ) : searchLoading ? (
+              <SearchState>Searching...</SearchState>
+            ) : searchError ? (
+              <SearchState>{searchError}</SearchState>
+            ) : searchItems.length === 0 ? (
+              <SearchState>No results found for "{trimmedSearchQuery}".</SearchState>
+            ) : (
+              searchItems.map((item, index) => (
+                <SearchResultLink
+                  key={`${item.type || "result"}-${item.slug || item.url || index}`}
+                  href={item.url || "#"}
+                  onClick={closeSearch}
+                >
+                  <SearchResultType>{resultLabel(item.type)}</SearchResultType>
+                  <SearchResultTitle>{item.title || "Untitled result"}</SearchResultTitle>
+                  {toExcerpt(item.excerpt) ? (
+                    <SearchResultMeta>{toExcerpt(item.excerpt)}</SearchResultMeta>
+                  ) : (
+                    <SearchResultMeta>{item.url || "#"}</SearchResultMeta>
+                  )}
+                </SearchResultLink>
+              ))
+            )}
+          </SearchResults>
+        </SearchPanel>
+      </SearchOverlay>
       {/* Volunteer Modal */}
       <ModalOverlay $open={modalOpen} onClick={() => setModalOpen(false)}>
         <ModalCard $open={modalOpen} onClick={(e) => e.stopPropagation()}>
