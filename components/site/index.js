@@ -5,7 +5,8 @@
  */
 export { default as Header, HeaderEditForm } from "./Header";
 export { default as Footer, FooterEditForm } from "./Footer/index";
-export { default as HomeHero, HomeHeroEditForm } from "./HomeHero/index";
+// Sliders relocated to the admin slider module (Phase 6). Re-export from @/modules/sliders.
+export { HomeHero, HomeHeroEditForm, NewsFeedSlider, NewsFeedSliderEditForm } from "@/modules/sliders";
 export { default as Marquee, MarqueeEditForm } from "./Marquee/index";
 export { default as Subscribe, SubscribeEditForm } from "./Subscribe/index";
 export { default as Volunteer, VolunteerEditForm } from "./Volunteer/index";
@@ -16,7 +17,7 @@ export { default as Careers, CareersEditForm } from "./Careers/index";
 export { default as Alerts, AlertsEditForm } from "./Alerts/index";
 export { default as Newsletters, NewslettersEditForm } from "./Newsletters/index";
 export { default as DonorTestimonials, DonorTestimonialsEditForm } from "./DonorTestimonials/index";
-export { default as StoriesSlider, StoriesSliderEditForm } from "./StoriesSlider/index";
+export { StoriesSlider, StoriesSliderEditForm } from "@/modules/sliders";
 export { default as Reports, ReportsEditForm } from "./Reports/index";
 export { default as OverlayCards, OverlayCardsEditForm } from "./OverlayCards/index";
 export { default as InMedia, InMediaEditForm } from "./InMedia/index";
@@ -43,8 +44,8 @@ export { default as HomeHero2, HomeHero2EditForm } from "./HomeHero2/index";
 export { default as OverviewOfOurWork, OverviewOfOurWorkEditForm } from "./OverviewOfOurWork/index";
 export { default as Testimonials, TestimonialsEditForm } from "./Testimonials/index";
 export { default as LatestEvents1, LatestEvents1EditForm } from "./LatestEvents1/index";
-export { default as EventsSlider, EventsSliderEditForm } from "./EventsSlider/index";
-export { default as ImageSlider, ImageSliderEditForm } from "./ImageSlider/index";
+export { EventsSlider, EventsSliderEditForm } from "@/modules/sliders";
+export { ImageSlider, ImageSliderEditForm } from "@/modules/sliders";
 export { default as EventRegistrationForm, EventRegistrationFormEditForm } from "./EventRegistrationForm/index";
 export { default as SocialMediaWall, SocialMediaWallEditForm } from "./SocialMediaWall/index";
 // TSUV→MESCO Phase 5: reusable theme components ported into components/site/.
@@ -56,7 +57,7 @@ export { default as Milestones, MilestonesEditForm } from "./Milestones/index";
 export { default as MultiLevelMarquee, MultiLevelMarqueeEditForm } from "./MultiLevelMarquee/index";
 export { default as MediaControl, MediaControlEditForm } from "./MediaControl/index";
 export { default as VideoModalControl, VideoModalControlEditForm } from "./VideoModalControl/index";
-import HomeHeroEditForm from "./HomeHero/EditForm";
+import { HomeHeroEditForm, StoriesSliderEditForm, EventsSliderEditForm, ImageSliderEditForm, NewsFeedSliderEditForm } from "@/modules/sliders";
 import MarqueeEditForm from "./Marquee/EditForm";
 import SubscribeEditForm from "./Subscribe/EditForm";
 import VolunteerEditForm from "./Volunteer/EditForm";
@@ -67,7 +68,6 @@ import DonateNowEditForm from "./DonateNow/EditForm";
 import AlertsEditForm from "./Alerts/EditForm";
 import NewslettersEditForm from "./Newsletters/EditForm";
 import DonorTestimonialsEditForm from "./DonorTestimonials/EditForm";
-import StoriesSliderEditForm from "./StoriesSlider/EditForm";
 import ReportsEditForm from "./Reports/EditForm";
 import OverlayCardsEditForm from "./OverlayCards/EditForm";
 import InMediaEditForm from "./InMedia/EditForm";
@@ -94,8 +94,6 @@ import HomeHero2EditForm from "./HomeHero2/EditForm";
 import OverviewOfOurWorkEditForm from "./OverviewOfOurWork/EditForm";
 import TestimonialsEditForm from "./Testimonials/EditForm";
 import LatestEvents1EditForm from "./LatestEvents1/EditForm";
-import EventsSliderEditForm from "./EventsSlider/EditForm";
-import ImageSliderEditForm from "./ImageSlider/EditForm";
 import EventRegistrationFormEditForm from "./EventRegistrationForm/EditForm";
 import SocialMediaWallEditForm from "./SocialMediaWall/EditForm";
 import HeaderEditForm from "./Header/EditForm";
@@ -127,6 +125,7 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   Cards: CardsEditForm,
   LatestEvents1: LatestEvents1EditForm,
   EventsSlider: EventsSliderEditForm,
+  NewsFeedSlider: NewsFeedSliderEditForm,
   Testimonials: TestimonialsEditForm,
   OverviewOfOurWork: OverviewOfOurWorkEditForm,
   HomeHero2: HomeHero2EditForm,

@@ -283,7 +283,8 @@ Run order = phase order. **Precede every migration with `npm run backup-db-full`
 > Rule: do not start a phase until its **gate** (build + smoke + MESCO-only preservation check) on the previous phase passes. Update the status line below as you go.
 
 **Overall status:** `[~]` Phases 1–3 COMPLETE + build-verified + committed (`05e2ba1`). Phase 4 SAFE PARTS done + committed (`8994475` ThemeConfig additive merge; `ff2b4f2` persistence libs + AppearanceColorConfig, dormant). Phase 4 CUTOVER (DB-coupled) remaining. — _last updated 2026-05-29_
-Phase: 0`[x]` 1`[x]` 2`[x]` 3`[x]` 4`[x]` 5`[~]` 6`[ ]` 7`[x]` 8`[~]` 9`[~]` 10`[x]` 11`[ ]`
+Phase: 0`[x]` 1`[x]` 2`[x]` 3`[x]` 4`[x]` 5`[~]` 6`[x]` 7`[x]` 8`[x]` 9`[~]` 10`[x]` 11`[ ]`
+> 2026-05-29 (cont. 2): **Phase 8 Forms COMPLETE** (`0170110`) — admin form builder + submissions inbox (singular `/admin/submission/[formKey]`) + public submit API + nav entry + `lib/mapEmbed.js`; tsuv copy re-defaulted; MESCO contacts/ContactForm kept. **Phase 6 Sliders COMPLETE** (relocate-and-replace) — grafted slider+popup branches into `/api/theme/[componentId]` + rewrote `/api/theme/home-hero` to the `sliders` collection; ported `modules/sliders/*` + `components/admin/sliders/*` + `lib/mapSliderAnimations` + `MapSliderAnimations` + `lottie-web`; re-wired `components/site/index.js` (5 sliders → `@/modules/sliders`, retired local folders, kept CircularSlider/Testimonials); **M7 run + verified on `mesco_cms_dev`** (4 sliders `components`→`sliders`, idempotent); **build ✓ 87/87 + homepage runtime-verified** (HomeHero + carousels render, no errors). DEFERRED: CustomSlider create-flow, admin edit-save login smoke.
 > 2026-05-29 (cont.): Phase 6/7/8 foundation = Slider + Form models (sanitized) committed (eb8cf11). Phase 8 Dashboard committed (f3f2823, clean). Phase 7 COMPLETE — Portfolio (f078acf) + Team (ec4012d, DB-driven per 6.6, CommitteeMembers kept). REMAINING: Phase 8 Forms (large + FS-scaffolding 6.7a + ContactForm/submission/contacts decisions), Phase 6 Popups (needs surgical forcedComponentId edit-page upgrade + sliderRegistry), Phase 6 Sliders (HIGH RISK — relocates MESCO homepage HomeHero + M7 data migration; needs explicit go-ahead).
 > Phase 10 DONE + runtime-verified (2026-05-29): /blog→/blogs (middleware 308 + stubs), SocialShare preserved (blog+events), events link-target wired. Deferred: blog-component theming diff-merge.
 > Phase 5 partial (2026-05-29): form-util merges + SiteComponentMeta.module + 8 reusable components ported/registered/re-defaulted (build ✓). DEFERRED: overlapping-component diff-merges (Accordion/Cards/AnimationsText/InnerPageHero), systemComponents *Target, shortcode, admin theme-component platform reconcile, conditional components, M6 backfill.
@@ -304,9 +305,9 @@ Phase: 0`[x]` 1`[x]` 2`[x]` 3`[x]` 4`[x]` 5`[~]` 6`[ ]` 7`[x]` 8`[~]` 9`[~]` 10`
 - [x] 6.2 components = keep `components/site/` + merge registry
 - [x] 6.3 theme persistence = full adoption (sitesettings + AppearanceColorConfig)
 - [ ] 6.4 confirm RBAC level for donations/event-registrations/subscribers/volunteer
-- [ ] 6.5 confirm sliders replace-vs-coexist (+ accept HomeHero data migration)
+- [x] 6.5 sliders = relocate-and-replace (HomeHero + 3 core sliders → `sliders` collection via M7; HomeHero2/Testimonials kept as MESCO site components)
 - [ ] 6.6 confirm Team module canonical + CommitteeMembers stays
-- [ ] 6.7a confirm deploy target (writable FS? → Forms scaffolding vs DB-only)
+- [x] 6.7a deploy target = writable FS (VM/container) → Forms file-scaffolding kept
 - [ ] 6.7b/c/e confirm ContactForm wrapper, CSP/Bootstrap, NEXTAUTH_URL override
 - [ ] Create a working branch off `tahasil_admin`; full DB backup taken
 
@@ -366,14 +367,14 @@ Phase: 0`[x]` 1`[x]` 2`[x]` 3`[x]` 4`[x]` 5`[~]` 6`[ ]` 7`[x]` 8`[~]` 9`[~]` 10`
 - [~] Gate: **build ✓ (73/73)**. Render-in-PageBuilder smoke needs admin login (runtime debt).
 
 ### Phase 6 — Popups then Sliders
-- [ ] **(audit)** upgrade `components/[id]/edit/page.js` for `forcedComponentId`/`forcedBackHref` (gates BOTH Popups & Sliders `[slug]` pages) — do first
-- [ ] **Popups:** `models/Popup.js`, `lib/popupRouteUtils.js`, public popups API, admin module, `modules/popups/*`, `popups/{page,[slug]/page}.js`, theme-route popup branch, `<RoutePopupHost/>` surgical insert into PublicShell
-- [ ] **Sliders:** `models/Slider.js`, `lib/sliderComponentRegistry.js`, admin module, `modules/sliders/*`, slider pages, lottie-web (if HomeHero anim), HomeHero data migration M7
-- [ ] **(audit)** port ALL slider editors: HomeHero, CircularSlider/ImageSlider, StoriesSlider, EventsSlider, **NewsFeedSlider**, **CustomSlider**, **Testimonials**
-- [ ] **(audit) Testimonials name-collision decision** (keep MESCO `components/site/Testimonials` vs migrate to slider module)
-- [ ] **(audit) re-wire `components/site/index.js`** slider/popup exports + EditForm map → `@/modules/*`; retire replaced local slider folders
-- [ ] **(audit)** HomeHero/home-hero map branch needs `lib/mapSliderAnimations.js` + `components/site/MapSliderAnimations` (or strip)
-- [ ] Gate: build ✓ · popup shows by route · sliders edit/save ✓ · existing HomeHero content intact ✓
+- [x] **(audit)** upgrade `components/[id]/edit/page.js` for `forcedComponentId`/`forcedBackHref` (gates BOTH Popups & Sliders `[slug]` pages) — done in Popups commit `311276d`
+- [x] **Popups:** `models/Popup.js`, `lib/popupRouteUtils.js`, public popups API, admin module, `modules/popups/*`, `popups/{page,[slug]/page}.js`, `<RoutePopupHost/>` insert (`311276d`); **theme-route popup branch grafted in the Sliders commit** (generic `[componentId]` route now routes popups→Popup model with full sanitization).
+- [x] **Sliders:** `models/Slider.js` + `lib/sliderComponentRegistry.js` (foundation `eb8cf11`); ported `modules/sliders/*` + `components/admin/sliders/*` + `lib/mapSliderAnimations.js` + `components/site/MapSliderAnimations`; added `lottie-web@^5.13.0`; `scripts/migrate-sliders-to-collection.js` (M7) **run + verified on `mesco_cms_dev`** (HomeHero/ImageSlider/StoriesSlider/EventsSlider `components`→`sliders`, idempotent).
+- [x] **(audit)** ported slider editors: HomeHero, CircularSlider/ImageSlider, StoriesSlider, EventsSlider, **NewsFeedSlider** wired; **CustomSlider/Testimonials** files ported (CustomSlider create-flow not wired — deferred; Testimonials kept as MESCO site component).
+- [x] **(audit) Testimonials name-collision** → **keep MESCO `components/site/Testimonials`** (TSUV's slider-module Testimonials NOT wired).
+- [x] **(audit) re-wire `components/site/index.js`** → HomeHero/StoriesSlider/EventsSlider/ImageSlider/NewsFeedSlider exports + EDITABLE map repointed to `@/modules/sliders`; retired local `HomeHero/StoriesSlider/EventsSlider/ImageSlider` folders (**kept `CircularSlider`** — `HomeHero2` imports it). `/admin/sliders` page lists all 5; `+NewsFeedSlider` in `SITE_COMPONENT_IDS`.
+- [x] **(audit)** `lib/mapSliderAnimations.js` + `components/site/MapSliderAnimations` ported (HomeHero map/lottie branch live); re-defaulted tsuv `india_map.svg` → `""` and §2B brand hex (`#00516f`/`#fbb040` → neutral/MESCO primary).
+- [x] Gate: **build ✓ (exit 0, 87/87)** · **RUNTIME-verified on dev**: `/` → HTTP 200, HomeHero slide title rendered, 36 slick-carousel elements, zero render errors; `/api/theme/home-hero` + `/api/theme/HomeHero` return migrated slides. Edit-save (admin) pending login smoke.
 
 ### Phase 7 — Portfolio + Team
 - [ ] Portfolio (models, APIs, admin, block, libs, pages) — **do NOT run tsuv migrate scripts**; generic-ize "startups"

@@ -174,7 +174,7 @@ function StoriesSliderEditForm({ source, initialData: initialDataProp, onSaveToP
           },
           {
             key: "title-colors",
-            label: "Title & Colors",
+            label: "Colors",
             children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("StoriesSlider")} />,
           },
           {
@@ -335,3 +335,4 @@ function StoriesSliderEditForm({ source, initialData: initialDataProp, onSaveToP
 }
 
 export default forwardRef(StoriesSliderEditForm);
+

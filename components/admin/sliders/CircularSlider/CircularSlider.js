@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
-import CircularSlider from "@/components/site/CircularSlider";
+import { FullWidthBackground, getColor } from "@/styles/Theme";
+import CircularSliderCore from "./CircularSliderCore";
 
 /**
  * Site component: ImageSlider (Circular Image Slider).
@@ -75,12 +75,46 @@ export default function ImageSlider(props) {
   }, []);
 
   if (images.length === 0) {
-    return null;
+    return (
+      <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
+        <div
+          style={{
+            width: "min(920px, calc(100% - 32px))",
+            margin: "24px auto",
+            borderRadius: 20,
+            border: "1px dashed rgba(0, 81, 111, 0.32)",
+            background:
+              "linear-gradient(135deg, rgba(0,81,111,0.06), rgba(0,81,111,0.12))",
+            padding: "28px 24px",
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              fontSize: 18,
+              fontWeight: 600,
+              color: "rgba(0, 81, 111, 0.9)",
+              marginBottom: 6,
+            }}
+          >
+            ImageSlider Placeholder
+          </div>
+          <div
+            style={{
+              fontSize: 14,
+              color: "rgba(0, 0, 0, 0.6)",
+            }}
+          >
+            No slider images are configured. Add images from the ImageSlider drawer.
+          </div>
+        </div>
+      </FullWidthBackground>
+    );
   }
 
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-      <CircularSlider
+      <CircularSliderCore
         images={images.map((s) => ({
           src: isMobileView
             ? s.mobileSrc || s.desktopSrc

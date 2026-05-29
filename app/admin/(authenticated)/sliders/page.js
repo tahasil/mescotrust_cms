@@ -6,12 +6,14 @@ import { EditOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { ThemeAdminCard } from "@/styles/Theme";
 
-const SLIDER_COMPONENT_IDS = ["ImageSlider", "StoriesSlider", "EventsSlider"];
+const SLIDER_COMPONENT_IDS = ["HomeHero", "ImageSlider", "StoriesSlider", "EventsSlider", "NewsFeedSlider"];
 
 const SLIDER_LABELS = {
+  HomeHero: "Home Hero",
   ImageSlider: "Circular Slider",
   StoriesSlider: "Stories Slider",
   EventsSlider: "Events Slider",
+  NewsFeedSlider: "News Feed Slider",
 };
 
 export default function AdminSlidersPage() {

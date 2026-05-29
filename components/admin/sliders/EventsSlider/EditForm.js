@@ -8,8 +8,6 @@ import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
-const TITLE_COLORS = getTitleAndColorsConfig("EventsSlider");
-
 const API_PATH = "/api/theme/EventsSlider";
 const PREFIX = "eventsSlider";
 
@@ -164,9 +162,9 @@ function EventsSliderEditForm(
           },
           {
             key: "title-colors",
-            label: "Title & Colors",
+            label: "Colors",
             children: (
-              <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...TITLE_COLORS} />
+              <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("EventsSlider")} />
             ),
           },
           {
@@ -258,7 +256,7 @@ function EventsSliderEditForm(
                   <InputNumber min={0} max={999} style={{ width: "100%" }} />
                 </Form.Item>
                 <div style={{ fontSize: 12, color: "rgba(0,0,0,0.45)" }}>
-                  Button colors are configured in <b>Title & Colors</b>.
+                  Button colors are configured in <b>Colors</b>.
                 </div>
               </div>
             ),
@@ -270,3 +268,4 @@ function EventsSliderEditForm(
 }
 
 export default forwardRef(EventsSliderEditForm);
+
