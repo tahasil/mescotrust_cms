@@ -9,7 +9,8 @@ const subscriberSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-subscriberSchema.index({ email: 1 });
+// email already gets a unique index from `unique: true` — no separate decl
+// (avoids the duplicate-index conflict on createIndexes).
 subscriberSchema.index({ status: 1 });
 subscriberSchema.index({ createdAt: -1 });
 

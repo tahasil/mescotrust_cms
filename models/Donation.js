@@ -46,7 +46,8 @@ const donationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-donationSchema.index({ orderId: 1 });
+// orderId already gets a unique index from `unique: true` — no separate decl
+// (avoids the duplicate-index conflict on createIndexes).
 donationSchema.index({ status: 1 });
 donationSchema.index({ "donor.email": 1 });
 donationSchema.index({ createdAt: -1 });

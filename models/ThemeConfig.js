@@ -352,9 +352,9 @@ const themeConfigSchema = new mongoose.Schema(
     adminLoaderBgColor: { type: String, default: "rgba(255,255,255,0.5)" },
 
     // ─── TSUV→MESCO port (Phase 4): additive Appearance fields ──
-    // New optional fields adopted from TSUV's sitesettings model. Kept additive
-    // (MESCO fields/defaults above are preserved; collection stays "themeconfigs"
-    // until the M4/M5 cutover). Defaults are blank so nothing changes until set.
+    // New optional fields adopted from TSUV's sitesettings model. MESCO
+    // fields/defaults above are preserved. Defaults are blank so nothing changes
+    // until set. (Collection is now "sitesettings" — see schema options below.)
     buttonTarget: { type: String, enum: ["_self", "_blank"], default: "_self" },
     headerMobileMenuHeaderBgColorKey: { type: String, default: "" },
     footerCol1Title: { type: String, default: "" },
@@ -371,7 +371,15 @@ const themeConfigSchema = new mongoose.Schema(
     activeFrontendBackgroundColor: { type: String, default: "" },
     activeAdminBackgroundColor: { type: String, default: "" },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+    // TSUV→MESCO Phase 4 cutover: theme now persists to the "sitesettings"
+    // collection. lib/siteSettings.getSiteSettingsLean auto-migrates the legacy
+    // "themeconfigs" doc on first read. strict:false lets the Appearance layer
+    // persist forward-compatible fields not yet in this schema.
+    strict: false,
+    collection: "sitesettings",
+  },
 );
 
 // Every public page read hits ThemeConfig.findOne({ themeKey: "default" }).
