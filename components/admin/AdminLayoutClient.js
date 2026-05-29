@@ -99,6 +99,15 @@ const baseMenuItems = [
     ),
   },
   {
+    key: "/admin/portfolio",
+    icon: <AppstoreOutlined />,
+    label: (
+      <Link href="/admin/portfolio" style={linkStyle}>
+        Portfolio
+      </Link>
+    ),
+  },
+  {
     key: "group:admin:blogs",
     icon: <BookOutlined />,
     label: "Blogs",

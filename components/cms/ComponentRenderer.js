@@ -16,6 +16,7 @@ import EmbedBlock from "@/components/cms/blocks/Embed";
 import BreadcrumbsBlock from "@/components/cms/blocks/Breadcrumbs";
 import CardBlock from "@/components/cms/blocks/Card";
 import CardGridBlock from "@/components/cms/blocks/CardGrid";
+import PortfolioBlock from "@/components/cms/blocks/Portfolio";
 import AccordionBlock from "@/components/cms/blocks/Accordion";
 import TabsBlock from "@/components/cms/blocks/Tabs";
 import HeroBlock from "@/components/cms/blocks/Hero";
@@ -65,6 +66,7 @@ const COMPONENT_MAP = {
   Breadcrumbs: BreadcrumbsBlock,
   Card: CardBlock,
   CardGrid: CardGridBlock,
+  Portfolio: PortfolioBlock,
   Accordion: AccordionBlock,
   Tabs: TabsBlock,
   Hero: HeroBlock,
