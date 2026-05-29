@@ -506,4 +506,77 @@ export const ThemeAdminCard = styled(Card)`
     }
   }
 `;
+
+// TSUV→MESCO Phase 4: line-tab styling for the Appearance module's sectioned editor.
+export const ThemeAppearanceLineTabs = styled.div`
+  .appearance-line-tabs > .ant-tabs-nav {
+    margin: 0 0 10px 0;
+  }
+  .appearance-line-tabs > .ant-tabs-nav::before {
+    border-bottom: none !important;
+  }
+  .appearance-line-tabs .ant-tabs-nav-list {
+    width: auto;
+    display: inline-flex;
+    gap: 10px;
+  }
+  .appearance-line-tabs .ant-tabs-tab {
+    margin: 0 !important;
+    padding: 8px 18px !important;
+    border: 1px solid #dbdbdb !important;
+    border-radius: 10px !important;
+    background: #ffffff !important;
+    flex: 0 0 auto;
+    justify-content: flex-start;
+    min-height: 38px;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .appearance-line-tabs .ant-tabs-tab-btn {
+    color: #0f2f3a;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+  .appearance-line-tabs .ant-tabs-tab:hover {
+    border-color: #dbdbdb !important;
+  }
+  .appearance-line-tabs .ant-tabs-tab:hover .ant-tabs-tab-btn {
+    color: #0f2f3a;
+  }
+  .appearance-line-tabs .ant-tabs-tab-active {
+    border-color: #dbdbdb !important;
+    box-shadow: none;
+  }
+  .appearance-line-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+    color: #0f2f3a !important;
+    font-weight: 700;
+  }
+  .appearance-line-tabs .ant-tabs-ink-bar {
+    display: none !important;
+  }
+  .appearance-line-tabs .ant-tabs-content-holder {
+    border: 1px solid #dbdbdb;
+    border-radius: 12px;
+    margin-top: 10px;
+    padding: 14px 12px 12px;
+    background: #ffffff;
+  }
+  @media (max-width: 991px) {
+    .appearance-line-tabs .ant-tabs-tab {
+      padding: 7px 12px !important;
+      min-height: 36px;
+    }
+    .appearance-line-tabs .ant-tabs-tab-btn {
+      font-size: 14px;
+    }
+    .appearance-line-tabs .ant-tabs-content-holder {
+      border-radius: 10px;
+      margin-top: 8px;
+      padding: 12px 10px 10px;
+    }
+  }
+`;
+
 export default Theme;

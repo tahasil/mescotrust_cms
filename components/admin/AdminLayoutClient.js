@@ -210,6 +210,15 @@ const baseMenuItems = [
     ),
   },
   {
+    key: "/admin/appearance",
+    icon: <BgColorsOutlined />,
+    label: (
+      <Link href="/admin/appearance" style={linkStyle}>
+        Appearance
+      </Link>
+    ),
+  },
+  {
     key: "/admin/submissions",
     icon: <MailOutlined />,
     label: "Submissions",

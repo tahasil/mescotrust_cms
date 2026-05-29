@@ -1,0 +1,1033 @@
+"use client";
+
+import { useState, useEffect, useRef, Fragment } from "react";
+import { Row, Col, notification } from "antd";
+import styled from "styled-components";
+import { useFormState, useFormStatus } from "react-dom";
+import { usePathname } from "next/navigation";
+import { submitContact } from "@/app/actions/contact";
+import { getColor } from "@/styles/Theme";
+import {
+  hasMinText,
+  isValidEmail,
+  isValidName,
+  normalizeText,
+} from "@/lib/formValidation";
+import {
+  ensureMailto,
+  normalizeTargetFromItem,
+} from "@/lib/linkUtils";
+import {
+  HeaderWrapper,
+  HeaderMainWrapper,
+  Logo,
+  Nav,
+  NavItem,
+  NavLink,
+  Chevron,
+  Dropdown,
+  DropdownItem,
+  DropdownLabel,
+  DropdownParentRow,
+  DropdownParentTrigger,
+  DropdownSubmenu,
+  Actions,
+  HeaderVolunteerButton,
+  IconWrap,
+  HamburgerBtn,
+  MobileOverlay,
+  MobileMenu,
+  MobileNav,
+  MobileNavLink,
+  MobileNavItem,
+  MobileAccordionTrigger,
+  MobileAccordionContent,
+  MobileSubLink,
+  MobileSubLinkNested,
+  MobileNavLabel,
+  MobileMenuHeader,
+  MobileMenuLogo,
+  MobileMenuCloseBtn,
+  MobileActions,
+  HeaderMobileVolunteerButton,
+} from "./HeaderStyle";
+
+const SCROLL_THRESHOLD_PX = 10;
+
+/** Convert CMS menu items { label, url, openInNewTab?, children? } to header shape { label, href, target?, submenu? } */
+function cmsMenuToHeaderItems(items) {
+  if (!Array.isArray(items)) return [];
+  return items
+    .filter((it) => it?.enabled !== false)
+    .map((it) => {
+      const item = it && typeof it === "object" ? it : {};
+      const url = ensureMailto(item?.url || "#") || "#";
+      const children = Array.isArray(item.children) ? item.children : [];
+      const submenu = children.length
+        ? cmsMenuToHeaderItems(children)
+        : undefined;
+      const target = normalizeTargetFromItem(item, {
+        targetKeys: ["target"],
+        boolKeys: ["openInNewTab"],
+        fallback: "_self",
+      });
+      return {
+        label: String(item.label ?? ""),
+        href: url,
+        target,
+        submenu,
+      };
+    });
+}
+
+function normalizeRoutePath(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (/^(mailto:|tel:|javascript:|#)/i.test(raw)) return "";
+
+  let path = raw;
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      path = new URL(raw).pathname || "";
+    } catch {
+      return "";
+    }
+  } else {
+    path = raw.split("?")[0].split("#")[0];
+  }
+
+  if (!path.startsWith("/")) return "";
+  const normalized = (path.replace(/\/+$/, "") || "/").toLowerCase();
+  if (normalized === "/home") return "/";
+  return normalized;
+}
+
+function isMenuItemActive(item, currentPath) {
+  if (!item || typeof item !== "object") return false;
+  const target = normalizeRoutePath(item.href);
+  const selfActive = target
+    ? target === "/"
+      ? currentPath === "/"
+      : currentPath === target || currentPath.startsWith(`${target}/`)
+    : false;
+
+  if (selfActive) return true;
+
+  if (Array.isArray(item.submenu) && item.submenu.length > 0) {
+    return item.submenu.some((child) => isMenuItemActive(child, currentPath));
+  }
+
+  return false;
+}
+
+const DropdownChevron = () => (
+  <Chevron>
+    <svg
+      width="10"
+      height="6"
+      viewBox="0 0 12 8"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M1 1 L6 6 L11 1" />
+    </svg>
+  </Chevron>
+);
+
+const RightArrow = () => (
+  <svg
+    width="8"
+    height="12"
+    viewBox="0 0 8 12"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M1 1 L6 6 L1 11" />
+  </svg>
+);
+
+const CloseIcon = () => (
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M18 6L6 18M6 6l12 12" />
+  </svg>
+);
+
+const MenuIcon = () => (
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M4 6h16M4 12h16M4 18h16" />
+  </svg>
+);
+
+const ChevronDown = () => (
+  <svg
+    width="12"
+    height="8"
+    viewBox="0 0 12 8"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M1 1 L6 6 L11 1" />
+  </svg>
+);
+
+/* ── Modal Styled Components ── */
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: ${(p) => (p.$open ? 1 : 0)};
+  pointer-events: ${(p) => (p.$open ? "auto" : "none")};
+  transition: opacity 0.25s ease;
+`;
+const ModalCard = styled.div`
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  width: 100%;
+  max-width: 600px;
+  position: relative;
+  transform: ${(p) => (p.$open ? "translateY(0)" : "translateY(20px)")};
+  transition: transform 0.25s ease;
+  @media (max-width: 576px) {
+    padding: 24px;
+  }
+`;
+const ModalCloseBtn = styled.button`
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s;
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+`;
+const ModalTitle = styled.h2`
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 24px 0;
+  padding-right: 40px;
+`;
+const ModalFormGroup = styled.div`
+  margin-bottom: 16px;
+  .mlabel {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .mreq {
+    color: #cf372f;
+  }
+  .mfield {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    background: #fff;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+    &:focus {
+      border-color: rgba(0, 0, 0, 0.3);
+    }
+    &::placeholder {
+      color: rgba(0, 0, 0, 0.3);
+    }
+  }
+  textarea.mfield {
+    resize: vertical;
+    min-height: 100px;
+  }
+`;
+const ModalBtnRow = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+`;
+const ModalCancelBtn = styled.button`
+  padding: 10px 28px;
+  border: 1px solid;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  background: transparent;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  &:hover {
+    opacity: 0.7;
+  }
+`;
+const ModalSendBtn = styled.button`
+  padding: 10px 28px;
+  border: none;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  &:hover {
+    opacity: 0.85;
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
+function ModalSubmitButton({ bgColor, textColor }) {
+  const { pending } = useFormStatus();
+  return (
+    <ModalSendBtn
+      type="submit"
+      disabled={pending}
+      style={{ background: bgColor || "#8b1a1a", color: textColor || "#fff" }}
+    >
+      {pending ? "Sending..." : "Send Message"}
+    </ModalSendBtn>
+  );
+}
+
+export default function Header({
+  menuItems = [],
+  siteTitle = "",
+  logoImageUrl = "",
+  logoLightUrl = "",
+  logoMobileUrl = "",
+  logoDarkUrl = "",
+  sticky = true,
+  transparent = false,
+  layout = "default",
+  volunteerLabel = "",
+  volunteerHref = "",
+  volunteerOpenInNewTab = false,
+  volunteerIconUrl = "",
+  volunteerIconUrlMobile,
+  menuPosition = "center",
+  navColorValue = "",
+  navHoverColorValue = "",
+  navItemBackgroundValue = "",
+  navItemHoverBackgroundValue = "",
+  navFontSize = "",
+  navFontWeight = "",
+  preview = false,
+  headerBgValue = "",
+  headerMobileMenuHeaderBgValue = "",
+  headerCtaBgValue = "",
+  headerCtaTextValue = "",
+  sectionBg = "",
+  sectionPadding = "",
+  sectionBorderSize = "",
+  sectionBorderStyle = "",
+  sectionBorderColor = "",
+  sectionShadow = "",
+  /* Modal props */
+  volunteerModalTitle = "Leave us a message",
+  volunteerModalBtnBg = "",
+  volunteerModalBtnText = "",
+  volunteerModalCancelColor = "",
+}) {
+  const pathname = usePathname();
+  /* Resolve modal color keys to actual CSS color values */
+  const resolvedModalBtnBg = volunteerModalBtnBg
+    ? getColor(volunteerModalBtnBg) || volunteerModalBtnBg
+    : "#8b1a1a";
+  const resolvedModalBtnText = volunteerModalBtnText
+    ? getColor(volunteerModalBtnText) || volunteerModalBtnText
+    : "#fff";
+  const resolvedModalCancelColor = volunteerModalCancelColor
+    ? getColor(volunteerModalCancelColor) || volunteerModalCancelColor
+    : "#8b1a1a";
+
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [openAccordion, setOpenAccordion] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalErrors, setModalErrors] = useState({});
+  const modalFormRef = useRef(null);
+  const [modalState, modalFormAction] = useFormState(submitContact, null);
+
+  /* Listen for global event so other buttons can open this modal */
+  useEffect(() => {
+    const handleOpen = () => setModalOpen(true);
+    window.addEventListener("open-volunteer-modal", handleOpen);
+    const handleHash = () => {
+      if (window.location.hash === "#volunteer-modal") {
+        setModalOpen(true);
+        history.replaceState(
+          null,
+          "",
+          window.location.pathname + window.location.search,
+        );
+      }
+    };
+    window.addEventListener("hashchange", handleHash);
+    handleHash();
+    return () => {
+      window.removeEventListener("open-volunteer-modal", handleOpen);
+      window.removeEventListener("hashchange", handleHash);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!modalState) return;
+    if (modalState.success) {
+      notification.success({
+        message: "Success",
+        description: "Message sent successfully!",
+        placement: "bottomRight",
+      });
+      modalFormRef.current?.reset();
+      setModalErrors({});
+      setModalOpen(false);
+      window.dispatchEvent(new Event("new-contact-submission"));
+    } else if (modalState.error) {
+      notification.error({
+        message: "Submission failed",
+        description: modalState.error,
+        placement: "bottomRight",
+      });
+    }
+  }, [modalState]);
+
+  useEffect(() => {
+    if (modalOpen) {
+      document.documentElement.style.overflow = "hidden";
+      return () => {
+        document.documentElement.style.overflow = "";
+      };
+    }
+  }, [modalOpen]);
+  const [scrolled, setScrolled] = useState(false);
+
+  const items = cmsMenuToHeaderItems(menuItems);
+  const currentPath = normalizeRoutePath(pathname || "/");
+  const hasMenuItems = items.length > 0;
+  const emptyMenuPlaceholder = "Menu";
+  const logoUrl = logoLightUrl || logoImageUrl;
+  const logoUrlMobile = logoMobileUrl || logoUrl;
+  const title = siteTitle ?? "";
+  const volunteerIconMobile = volunteerIconUrlMobile ?? volunteerIconUrl;
+  const volunteerHrefTrimmed = ensureMailto(volunteerHref);
+  const opensVolunteerModal =
+    volunteerHrefTrimmed === "" ||
+    volunteerHrefTrimmed === "#" ||
+    volunteerHrefTrimmed === "#volunteer-modal" ||
+    volunteerHrefTrimmed === "/#volunteer-modal";
+
+  useEffect(() => {
+    const onScroll = () =>
+      setScrolled(
+        typeof window !== "undefined" && window.scrollY >= SCROLL_THRESHOLD_PX,
+      );
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    if (mobileOpen) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
+  }, [mobileOpen]);
+
+  const closeMobile = () => {
+    setMobileOpen(false);
+    setOpenAccordion(null);
+  };
+
+  const toggleAccordion = (label) => {
+    setOpenAccordion((prev) => (prev === label ? null : label));
+  };
+
+  const handleModalSubmit = (event) => {
+    const formData = new FormData(event.currentTarget);
+    const name = normalizeText(formData.get("name"));
+    const email = normalizeText(formData.get("email"));
+    const subject = normalizeText(formData.get("subject"));
+    const body = normalizeText(formData.get("message"));
+    const nextErrors = {};
+    if (!name) nextErrors.name = "Full name is required";
+    if (name && !isValidName(name))
+      nextErrors.name = "Name should contain alphabets only";
+    if (!email) nextErrors.email = "Email is required";
+    if (email && !isValidEmail(email))
+      nextErrors.email = "Please enter a valid email address";
+    if (!subject) nextErrors.subject = "Subject is required";
+    if (subject && !hasMinText(subject, 3))
+      nextErrors.subject = "Subject must be at least 3 characters";
+    if (!body) nextErrors.message = "Message is required";
+    if (body && !hasMinText(body, 5))
+      nextErrors.message = "Message must be at least 5 characters";
+    if (Object.keys(nextErrors).length > 0) {
+      event.preventDefault();
+      setModalErrors(nextErrors);
+      return;
+    }
+    setModalErrors({});
+  };
+
+  return (
+    <>
+      <HeaderWrapper
+        $preview={preview}
+        $sectionBg={sectionBg}
+        $sectionPadding={sectionPadding}
+        $sectionBorderSize={sectionBorderSize}
+        $sectionBorderStyle={sectionBorderStyle}
+        $sectionBorderColor={sectionBorderColor}
+        $sectionShadow={sectionShadow}
+        $navColorValue={navColorValue}
+        $navHoverColorValue={navHoverColorValue}
+        $navItemBackgroundValue={navItemBackgroundValue}
+        $navItemHoverBackgroundValue={navItemHoverBackgroundValue}
+        $navFontSize={navFontSize}
+        $navFontWeight={navFontWeight}
+        className={scrolled && !preview ? "is-scrolled" : ""}
+      >
+        <HeaderMainWrapper>
+          <Logo href="/" onClick={closeMobile}>
+            {logoUrl ? (
+              <img
+                loading="lazy"
+                src={logoUrl}
+                alt={title}
+                className="img-fluid"
+              />
+            ) : (
+              <span>{title}</span>
+            )}
+          </Logo>
+
+          <Nav $menuPosition={menuPosition}>
+            {hasMenuItems ? (
+              items.map((item) => {
+                const itemIsActive = isMenuItemActive(item, currentPath);
+                return (
+                  <NavItem key={item.label}>
+                    {item.submenu ? (
+                      <>
+                        <NavLink
+                          as="span"
+                          tabIndex={0}
+                          className={itemIsActive ? "is-active" : undefined}
+                        >
+                          {item.label} <DropdownChevron />
+                        </NavLink>
+                        <Dropdown>
+                          {item.submenu.map((sub) => {
+                            const subIsActive = isMenuItemActive(
+                              sub,
+                              currentPath,
+                            );
+
+                            if (sub.submenu) {
+                              return (
+                                <DropdownParentRow key={sub.label}>
+                                  <DropdownParentTrigger
+                                    className={
+                                      subIsActive ? "is-active" : undefined
+                                    }
+                                  >
+                                    {sub.label}
+                                    <RightArrow />
+                                  </DropdownParentTrigger>
+                                  <DropdownSubmenu>
+                                    {sub.submenu.map((child) => (
+                                      <DropdownItem
+                                        key={child.label}
+                                        href={child.href}
+                                        className={
+                                          isMenuItemActive(child, currentPath)
+                                            ? "is-active"
+                                            : undefined
+                                        }
+                                        target={child.target}
+                                        rel={
+                                          child.target === "_blank"
+                                            ? "noopener noreferrer"
+                                            : undefined
+                                        }
+                                      >
+                                        {child.label}
+                                      </DropdownItem>
+                                    ))}
+                                  </DropdownSubmenu>
+                                </DropdownParentRow>
+                              );
+                            }
+
+                            if (sub.isLabel) {
+                              return (
+                                <DropdownLabel key={sub.label}>
+                                  {sub.label}
+                                </DropdownLabel>
+                              );
+                            }
+
+                            return (
+                              <DropdownItem
+                                key={sub.label}
+                                href={sub.href}
+                                className={
+                                  subIsActive ? "is-active" : undefined
+                                }
+                                target={sub.target}
+                                rel={
+                                  sub.target === "_blank"
+                                    ? "noopener noreferrer"
+                                    : undefined
+                                }
+                              >
+                                {sub.label}
+                              </DropdownItem>
+                            );
+                          })}
+                        </Dropdown>
+                      </>
+                    ) : (
+                      <NavLink
+                        href={item.href}
+                        className={itemIsActive ? "is-active" : undefined}
+                        target={item.target}
+                        rel={
+                          item.target === "_blank"
+                            ? "noopener noreferrer"
+                            : undefined
+                        }
+                      >
+                        {item.label}
+                      </NavLink>
+                    )}
+                  </NavItem>
+                );
+              })
+            ) : (
+              <NavItem>
+                <NavLink as="span" tabIndex={-1} aria-disabled="true">
+                  {emptyMenuPlaceholder}
+                </NavLink>
+              </NavItem>
+            )}
+          </Nav>
+
+          <Actions>
+            {(volunteerLabel || volunteerHref) &&
+              (opensVolunteerModal ? (
+                <HeaderVolunteerButton
+                  as="button"
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setModalOpen(true);
+                  }}
+                  $headerCtaBgValue={headerCtaBgValue}
+                  $headerCtaTextValue={headerCtaTextValue}
+                  style={{ cursor: "pointer" }}
+                >
+                  {volunteerLabel}
+                  {volunteerIconUrl ? (
+                    <IconWrap>
+                      <img
+                        loading="lazy"
+                        src={volunteerIconUrl}
+                        alt={volunteerLabel}
+                      />
+                    </IconWrap>
+                  ) : null}
+                </HeaderVolunteerButton>
+              ) : (
+                <HeaderVolunteerButton
+                  href={volunteerHrefTrimmed}
+                  target={volunteerOpenInNewTab ? "_blank" : undefined}
+                  rel={
+                    volunteerOpenInNewTab ? "noopener noreferrer" : undefined
+                  }
+                  $headerCtaBgValue={headerCtaBgValue}
+                  $headerCtaTextValue={headerCtaTextValue}
+                >
+                  {volunteerLabel}
+                  {volunteerIconUrl ? (
+                    <IconWrap>
+                      <img
+                        loading="lazy"
+                        src={volunteerIconUrl}
+                        alt={volunteerLabel}
+                      />
+                    </IconWrap>
+                  ) : null}
+                </HeaderVolunteerButton>
+              ))}
+          </Actions>
+
+          <HamburgerBtn
+            type="button"
+            aria-label="Toggle menu"
+            aria-expanded={mobileOpen}
+            onClick={() => setMobileOpen((o) => !o)}
+          >
+            {mobileOpen ? <CloseIcon /> : <MenuIcon />}
+          </HamburgerBtn>
+        </HeaderMainWrapper>
+      </HeaderWrapper>
+
+      <MobileOverlay
+        $open={mobileOpen}
+        $preview={preview}
+        onClick={closeMobile}
+        aria-hidden="true"
+      />
+      <MobileMenu
+        $open={mobileOpen}
+        $preview={preview}
+        $headerBgValue={headerBgValue}
+        $navColorValue={navColorValue}
+        $navHoverColorValue={navHoverColorValue}
+        $navItemBackgroundValue={navItemBackgroundValue}
+        $navItemHoverBackgroundValue={navItemHoverBackgroundValue}
+        $navFontSize={navFontSize}
+        $navFontWeight={navFontWeight}
+      >
+        <MobileMenuHeader
+          $headerMobileMenuHeaderBgValue={headerMobileMenuHeaderBgValue}
+        >
+          <MobileMenuLogo href="/" onClick={closeMobile}>
+            {logoUrlMobile ? (
+              <img loading="lazy" src={logoUrlMobile} alt={title} />
+            ) : (
+              <span>{title}</span>
+            )}
+          </MobileMenuLogo>
+          <MobileMenuCloseBtn
+            type="button"
+            aria-label="Close menu"
+            onClick={closeMobile}
+          >
+            <CloseIcon />
+          </MobileMenuCloseBtn>
+        </MobileMenuHeader>
+        <MobileNav>
+          {hasMenuItems ? (
+            items.map((item) => {
+              const itemIsActive = isMenuItemActive(item, currentPath);
+              return item.submenu ? (
+                <MobileNavItem key={item.label}>
+                  <MobileAccordionTrigger
+                    type="button"
+                    $open={openAccordion === item.label}
+                    className={itemIsActive ? "is-active" : undefined}
+                    onClick={() => toggleAccordion(item.label)}
+                    aria-expanded={openAccordion === item.label}
+                  >
+                    {item.label}
+                    <ChevronDown />
+                  </MobileAccordionTrigger>
+                  <MobileAccordionContent $open={openAccordion === item.label}>
+                    {item.submenu.map((sub) =>
+                      sub.submenu ? (
+                        <Fragment key={sub.label}>
+                          <MobileNavLabel>{sub.label}</MobileNavLabel>
+                          {sub.submenu.map((child) => (
+                            <MobileSubLinkNested
+                              key={child.label}
+                              href={child.href}
+                              className={
+                                isMenuItemActive(child, currentPath)
+                                  ? "is-active"
+                                  : undefined
+                              }
+                              target={child.target}
+                              rel={
+                                child.target === "_blank"
+                                  ? "noopener noreferrer"
+                                  : undefined
+                              }
+                              onClick={closeMobile}
+                            >
+                              {child.label}
+                            </MobileSubLinkNested>
+                          ))}
+                        </Fragment>
+                      ) : sub.isLabel ? null : (
+                        <MobileSubLink
+                          key={sub.label}
+                          href={sub.href}
+                          className={
+                            isMenuItemActive(sub, currentPath)
+                              ? "is-active"
+                              : undefined
+                          }
+                          target={sub.target}
+                          rel={
+                            sub.target === "_blank"
+                              ? "noopener noreferrer"
+                              : undefined
+                          }
+                          onClick={closeMobile}
+                        >
+                          {sub.label}
+                        </MobileSubLink>
+                      ),
+                    )}
+                  </MobileAccordionContent>
+                </MobileNavItem>
+              ) : (
+                <MobileNavLink
+                  key={item.label}
+                  href={item.href}
+                  className={itemIsActive ? "is-active" : undefined}
+                  target={item.target}
+                  rel={
+                    item.target === "_blank" ? "noopener noreferrer" : undefined
+                  }
+                  onClick={closeMobile}
+                >
+                  {item.label}
+                </MobileNavLink>
+              );
+            })
+          ) : (
+            <MobileNavLabel>{emptyMenuPlaceholder}</MobileNavLabel>
+          )}
+        </MobileNav>
+        <MobileActions>
+          {(volunteerLabel || volunteerHref) &&
+            (opensVolunteerModal ? (
+              <HeaderMobileVolunteerButton
+                as="button"
+                type="button"
+                onClick={() => {
+                  closeMobile();
+                  setModalOpen(true);
+                }}
+                $headerCtaBgValue={headerCtaBgValue}
+                $headerCtaTextValue={headerCtaTextValue}
+                style={{ cursor: "pointer" }}
+              >
+                {volunteerIconMobile ? (
+                  <IconWrap>
+                    <img
+                      loading="lazy"
+                      src={volunteerIconMobile}
+                      alt={volunteerLabel}
+                    />
+                  </IconWrap>
+                ) : null}
+                {volunteerLabel}
+              </HeaderMobileVolunteerButton>
+            ) : (
+              <HeaderMobileVolunteerButton
+                href={volunteerHrefTrimmed}
+                target={volunteerOpenInNewTab ? "_blank" : undefined}
+                rel={volunteerOpenInNewTab ? "noopener noreferrer" : undefined}
+                onClick={closeMobile}
+                $headerCtaBgValue={headerCtaBgValue}
+                $headerCtaTextValue={headerCtaTextValue}
+              >
+                {volunteerIconMobile ? (
+                  <IconWrap>
+                    <img
+                      loading="lazy"
+                      src={volunteerIconMobile}
+                      alt={volunteerLabel}
+                    />
+                  </IconWrap>
+                ) : null}
+                {volunteerLabel}
+              </HeaderMobileVolunteerButton>
+            ))}
+        </MobileActions>
+      </MobileMenu>
+      {/* Volunteer Modal */}
+      <ModalOverlay $open={modalOpen} onClick={() => setModalOpen(false)}>
+        <ModalCard $open={modalOpen} onClick={(e) => e.stopPropagation()}>
+          <ModalCloseBtn onClick={() => setModalOpen(false)}>
+            &#x2715;
+          </ModalCloseBtn>
+          <ModalTitle>{volunteerModalTitle}</ModalTitle>
+          <form
+            ref={modalFormRef}
+            action={modalFormAction}
+            onSubmit={handleModalSubmit}
+            noValidate
+          >
+            <input type="hidden" name="page" value="volunteer-modal" />
+            <input type="hidden" name="source" value="header-volunteer" />
+            <input type="hidden" name="phone" value="" />
+            <Row gutter={[16, 0]}>
+              <Col xs={24} sm={12}>
+                <ModalFormGroup>
+                  <label className="mlabel">
+                    Full Name <span className="mreq">*</span>
+                  </label>
+                  <input
+                    name="name"
+                    required
+                    className="mfield"
+                    placeholder="Your name"
+                    onChange={() =>
+                      modalErrors.name &&
+                      setModalErrors((prev) => ({ ...prev, name: "" }))
+                    }
+                    style={
+                      modalErrors.name ? { borderColor: "#cf372f" } : undefined
+                    }
+                  />
+                  {modalErrors.name ? (
+                    <div
+                      style={{ marginTop: 6, fontSize: 12, color: "#cf372f" }}
+                    >
+                      {modalErrors.name}
+                    </div>
+                  ) : null}
+                </ModalFormGroup>
+              </Col>
+              <Col xs={24} sm={12}>
+                <ModalFormGroup>
+                  <label className="mlabel">
+                    Email <span className="mreq">*</span>
+                  </label>
+                  <input
+                    name="email"
+                    type="email"
+                    required
+                    className="mfield"
+                    placeholder="Your email address"
+                    onChange={() =>
+                      modalErrors.email &&
+                      setModalErrors((prev) => ({ ...prev, email: "" }))
+                    }
+                    style={
+                      modalErrors.email ? { borderColor: "#cf372f" } : undefined
+                    }
+                  />
+                  {modalErrors.email ? (
+                    <div
+                      style={{ marginTop: 6, fontSize: 12, color: "#cf372f" }}
+                    >
+                      {modalErrors.email}
+                    </div>
+                  ) : null}
+                </ModalFormGroup>
+              </Col>
+            </Row>
+            <ModalFormGroup>
+              <label className="mlabel">
+                Subject <span className="mreq">*</span>
+              </label>
+              <input
+                name="subject"
+                required
+                className="mfield"
+                placeholder="Subject of message"
+                onChange={() =>
+                  modalErrors.subject &&
+                  setModalErrors((prev) => ({ ...prev, subject: "" }))
+                }
+                style={
+                  modalErrors.subject ? { borderColor: "#cf372f" } : undefined
+                }
+              />
+              {modalErrors.subject ? (
+                <div style={{ marginTop: 6, fontSize: 12, color: "#cf372f" }}>
+                  {modalErrors.subject}
+                </div>
+              ) : null}
+            </ModalFormGroup>
+            <ModalFormGroup>
+              <label className="mlabel">
+                Message <span className="mreq">*</span>
+              </label>
+              <textarea
+                name="message"
+                required
+                className="mfield"
+                placeholder="Message text"
+                rows={4}
+                onChange={() =>
+                  modalErrors.message &&
+                  setModalErrors((prev) => ({ ...prev, message: "" }))
+                }
+                style={
+                  modalErrors.message ? { borderColor: "#cf372f" } : undefined
+                }
+              />
+              {modalErrors.message ? (
+                <div style={{ marginTop: 6, fontSize: 12, color: "#cf372f" }}>
+                  {modalErrors.message}
+                </div>
+              ) : null}
+            </ModalFormGroup>
+            <ModalBtnRow>
+              <ModalCancelBtn
+                type="button"
+                style={{
+                  color: resolvedModalCancelColor,
+                  borderColor: resolvedModalCancelColor,
+                }}
+                onClick={() => setModalOpen(false)}
+              >
+                Cancel
+              </ModalCancelBtn>
+              <ModalSubmitButton
+                bgColor={resolvedModalBtnBg}
+                textColor={resolvedModalBtnText}
+              />
+            </ModalBtnRow>
+          </form>
+        </ModalCard>
+      </ModalOverlay>
+    </>
+  );
+}
