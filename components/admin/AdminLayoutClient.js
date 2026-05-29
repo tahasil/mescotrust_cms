@@ -26,6 +26,7 @@ import {
   MenuOutlined,
   BgColorsOutlined,
   TeamOutlined,
+  FormOutlined,
   MailOutlined,
   UserOutlined,
   LogoutOutlined,
@@ -104,6 +105,15 @@ const baseMenuItems = [
     label: (
       <Link href="/admin/portfolio" style={linkStyle}>
         Portfolio
+      </Link>
+    ),
+  },
+  {
+    key: "/admin/forms",
+    icon: <FormOutlined />,
+    label: (
+      <Link href="/admin/forms" style={linkStyle}>
+        Forms
       </Link>
     ),
   },
