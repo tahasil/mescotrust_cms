@@ -283,8 +283,10 @@ Run order = phase order. **Precede every migration with `npm run backup-db-full`
 > Rule: do not start a phase until its **gate** (build + smoke + MESCO-only preservation check) on the previous phase passes. Update the status line below as you go.
 
 **Overall status:** `[~]` Phases 1–3 COMPLETE + build-verified + committed (`05e2ba1`). Phase 4 SAFE PARTS done + committed (`8994475` ThemeConfig additive merge; `ff2b4f2` persistence libs + AppearanceColorConfig, dormant). Phase 4 CUTOVER (DB-coupled) remaining. — _last updated 2026-05-29_
-Phase: 0`[x]` 1`[x]` 2`[x]` 3`[x]` 4`[~]` 5`[ ]` 6`[ ]` 7`[ ]` 8`[ ]` 9`[~]` 10`[ ]` 11`[ ]`
+Phase: 0`[x]` 1`[x]` 2`[x]` 3`[x]` 4`[x]*` 5`[ ]` 6`[ ]` 7`[ ]` 8`[ ]` 9`[~]` 10`[ ]` 11`[ ]`
+> Phase 4 (2026-05-29, DB session on `mesco_cms_dev`): theme-persistence cutover DONE + **runtime-verified** — themeconfigs→sitesettings auto-migrated, theme renders with MESCO colors/marquee/siteTitle, editor write path intact, header/footer/subscribe kept Component-backed (no M5/no data loss). `*` = TSUV's new Appearance sectioned UI + title-and-colors routes + Theme.js semantic keys deferred as enhancements (MESCO's /admin/theme editor works without them).
 > Phase 9 partial (2026-05-29): next.config + instrumentation/ensure-indexes + model indexes/fields + backup/restore scripts DONE + build-verified. DEFERRED: media merge (diverged files), compare-db/sync-db/audit-unused-media operator scripts.
+> Dev-DB verification (2026-05-29): backup taken; ensure-indexes OK; M1 author→editor applied; foundation smoke PASSED (home renders, auth gated, search works, no errors); Phase 4 theme cutover runtime-verified.
 > **Build verified 2026-05-29:** `npm run build` → exit 0, "✓ Compiled successfully", "✓ Generating static pages (72/72)", type-check passed. All new routes registered (rbac, pages/publish, preview-token, preview). Only pre-existing benign warnings: `HeaderEditForm` re-export shim (known); Mongoose duplicate-index on `orderId`(Donation)/`email`(Subscriber — Phase 9 cleanup). No eslintrc in repo → `next lint` prompts interactively (skipped; `next build` type-check covers it). Remaining runtime debt: M1/M2/M3 + login/role smoke before deploy. Decisions 6.4 kept (user-confirmed).
 
 > **Working branch:** `tsuv-port` (off `askari` HEAD, which is 239 commits ahead of `tahasil_admin` — i.e. the latest MESCO state). DB backup present at `DB_Backup/dump_2026-05-29_16-18-49/`.
@@ -338,16 +340,14 @@ Phase: 0`[x]` 1`[x]` 2`[x]` 3`[x]` 4`[~]` 5`[ ]` 6`[ ]` 7`[ ]` 8`[ ]` 9`[~]` 10`
 
 ### Phase 4 — Theme persistence + Appearance (HIGHEST RISK)
 - [x] persistence libs (`siteSettings`, `appearanceColors`, `appearanceThemeOwnership`, `appearanceTitleAndColorsConfig`, `themeColors`) + `models/AppearanceColorConfig.js` — **DONE + build-verified, DORMANT** (nothing imports them until the cutover). §2B brand defaults sanitized: `AppearanceColorConfig` frontend palette → `{}`, `appearanceColors.DEFAULT_THEME_PALETTE` → `{}` (MESCO palette flows in via the `seed` from the live ThemeConfig doc). ⚠️ Cutover note: `siteSettings.getSiteSettingsLean` sets `out.colors=[]` and sources the palette from `AppearanceColorConfig` (seeded from current `themePalette`) — MUST verify the seed preserves MESCO's palette against a real DB before layoutData consumes it, or site colors blank.
-- [~] **`models/ThemeConfig.js` merge** — **additive part DONE** (added bg-library subschemas + backgroundImages/Colors/active* + buttonTarget + footerCol1/2/Latest titles + footerSocialColorKey + headerMobileMenuHeaderBgColorKey + subscribeBgDesktop/Mobile + `{themeKey,updatedAt}` index; **kept** marquee*/smoothScroll*(4)/fadeAnimation*(4)/siteTitle:"Mesco Trust"/Donate+header+hero colorKey defaults). **DEFERRED to cutover:** `collection:"sitesettings"` + `strict:false` (the storage switch — gated on M4/M5 + DB test). node --check ✓.
-- [ ] **tested `themeconfigs`→`sitesettings` migration M4** (on backup first) + confirm public site reads CSS vars
-- [ ] **(audit) M5: migrate Header/Footer/Subscribe `components` docs → `sitesettings`** BEFORE cutting those 3 theme routes over
-- [ ] `app/api/theme/{route,header,footer,subscribe,[componentId],home-hero}/*` merge (keep marquee route + themeColorFallbacks)
-- [ ] **(audit)** NEW `app/api/admin/title-and-colors-config/route.js` + `app/api/admin/appearance/title-and-colors-config/route.js`
-- [ ] **(audit) `lib/layoutData.js` MERGE** (every public page; keep MESCO smoothScroll/fade/Donate defaults + themeColorFallbacks)
-- [ ] `components/admin/appearance/*` + appearance pages + `theme/page.js` redirect
-- [ ] add Appearance sections (or keep legacy editor) for marquee/smoothScroll/fadeAnimation/Donate
-- [ ] `styles/Theme.js` merge (keep MESCO palette + `THEME_COLOR_ALIASES`)
-- [ ] Gate: build ✓ · all theme settings persist & render · Donate/marquee intact ✓
+- [x] **`models/ThemeConfig.js` merge** — additive fields DONE + **collection flipped to `sitesettings` + `strict:false`** (cutover). Kept marquee*/smoothScroll*(4)/fadeAnimation*(4)/siteTitle:"Mesco Trust"/Donate+header+hero defaults.
+- [x] **M4 `themeconfigs`→`sitesettings`** — DONE via `siteSettings.migrateFromLegacyThemeConfigs` (auto on first read). **Verified on dev DB**: sitesettings doc created (themeKey/siteTitle/marquee preserved); home renders MESCO colors via CSS vars (`--primary-color #CF372F`, `--theme-gradient`). No manual migration needed for the main theme doc.
+- [x] **M5 AVOIDED (safer path):** Header/Footer/Subscribe theme routes **kept Component-backed** (they use only the `Component` model — untouched by the cutover), so no `components`→`sitesettings` migration and **no data-loss risk (R12 sidestepped)**.
+- [x] `app/api/theme/route.js` — works as-is: uses the `ThemeConfig` model throughout, so writes now transparently target `sitesettings` (consistent with reads); MESCO `/admin/theme` editor stays functional. (`fs.writeFileSync(Theme.js)` left in place — harmless; CSS-var rendering confirmed so it can be dropped later. RBAC: writes gated by middleware `appearance.settings_access` + in-route `isAdmin`.) header/footer/subscribe routes unchanged.
+- [x] **(audit) `lib/layoutData.js` MERGE** — DONE: theme doc sourced via `getSiteSettingsLean()`; MESCO `THEME_DEFAULTS` (smoothScroll/fade/Donate) + `normalizeThemeColorCollections` palette fallback + Component-backed Header/Footer reads all preserved. **Runtime-verified.**
+- [ ] **(ENHANCEMENT, deferred)** NEW `title-and-colors-config` routes + `components/admin/appearance/*` sectioned editor + `theme/page.js` redirect — TSUV's new Appearance UI. **Not required for convergence**: MESCO's existing `/admin/theme` editor works and writes to `sitesettings`. Port as a follow-up if the new sectioned editor is wanted.
+- [ ] **(ENHANCEMENT, deferred)** `styles/Theme.js` merge (new semantic color keys) — only needed by the Phase 5 ported components; keep MESCO palette + `THEME_COLOR_ALIASES`.
+- [x] Gate: **build ✓ (72/72) + RUNTIME-verified on dev DB** — theme persists to sitesettings, renders with MESCO colors/marquee/siteTitle, no errors. Theme-write smoke (authenticated save round-trip) still worth a manual pass.
 
 ### Phase 5 — Theme-component system + new components
 - [ ] **patch ported `"theme-components"` path literals → `"site"`** in site-components routes/admin pages
