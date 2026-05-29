@@ -47,6 +47,15 @@ export { default as EventsSlider, EventsSliderEditForm } from "./EventsSlider/in
 export { default as ImageSlider, ImageSliderEditForm } from "./ImageSlider/index";
 export { default as EventRegistrationForm, EventRegistrationFormEditForm } from "./EventRegistrationForm/index";
 export { default as SocialMediaWall, SocialMediaWallEditForm } from "./SocialMediaWall/index";
+// TSUV→MESCO Phase 5: reusable theme components ported into components/site/.
+export { default as HighlightCardsGrid, HighlightCardsGridEditForm } from "./HighlightCardsGrid/index";
+export { default as InfoStatsGrid, InfoStatsGridEditForm } from "./InfoStatsGrid/index";
+export { default as JourneyTimeline, JourneyTimelineEditForm } from "./JourneyTimeline/index";
+export { default as CallToActionBanner, CallToActionBannerEditForm } from "./CallToActionBanner/index";
+export { default as Milestones, MilestonesEditForm } from "./Milestones/index";
+export { default as MultiLevelMarquee, MultiLevelMarqueeEditForm } from "./MultiLevelMarquee/index";
+export { default as MediaControl, MediaControlEditForm } from "./MediaControl/index";
+export { default as VideoModalControl, VideoModalControlEditForm } from "./VideoModalControl/index";
 import HomeHeroEditForm from "./HomeHero/EditForm";
 import MarqueeEditForm from "./Marquee/EditForm";
 import SubscribeEditForm from "./Subscribe/EditForm";
@@ -91,8 +100,24 @@ import EventRegistrationFormEditForm from "./EventRegistrationForm/EditForm";
 import SocialMediaWallEditForm from "./SocialMediaWall/EditForm";
 import HeaderEditForm from "./Header/EditForm";
 import FooterEditForm from "./Footer/EditForm";
+import HighlightCardsGridEditForm from "./HighlightCardsGrid/EditForm";
+import InfoStatsGridEditForm from "./InfoStatsGrid/EditForm";
+import JourneyTimelineEditForm from "./JourneyTimeline/EditForm";
+import CallToActionBannerEditForm from "./CallToActionBanner/EditForm";
+import MilestonesEditForm from "./Milestones/EditForm";
+import MultiLevelMarqueeEditForm from "./MultiLevelMarquee/EditForm";
+import MediaControlEditForm from "./MediaControl/EditForm";
+import VideoModalControlEditForm from "./VideoModalControl/EditForm";
 /** componentId -> EditForm for drawer (Admin → Components and Page Builder use same form). Add new editable site components here. */
 export const EDITABLE_SITE_EDIT_FORMS = {
+  HighlightCardsGrid: HighlightCardsGridEditForm,
+  InfoStatsGrid: InfoStatsGridEditForm,
+  JourneyTimeline: JourneyTimelineEditForm,
+  CallToActionBanner: CallToActionBannerEditForm,
+  Milestones: MilestonesEditForm,
+  MultiLevelMarquee: MultiLevelMarqueeEditForm,
+  MediaControl: MediaControlEditForm,
+  VideoModalControl: VideoModalControlEditForm,
   Header: HeaderEditForm,
   Footer: FooterEditForm,
   HomeHero: HomeHeroEditForm,
