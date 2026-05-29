@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const softDeletePlugin = require("./plugins/softDelete");
 
 const menuItemSchema = new mongoose.Schema(
   {
@@ -21,6 +22,8 @@ const menuSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+menuSchema.plugin(softDeletePlugin);
 
 module.exports =
   (mongoose.models && mongoose.models.Menu) || mongoose.model("Menu", menuSchema);

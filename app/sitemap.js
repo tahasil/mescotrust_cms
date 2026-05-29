@@ -3,6 +3,7 @@ import { getSiteUrl } from "@/lib/env";
 import Page from "@/models/Page";
 import Blog from "@/models/Blog";
 import Event from "@/models/Event";
+import { getPublishedSlug } from "@/lib/pagePublication";
 
 export default async function sitemap() {
   const baseUrl = getSiteUrl();
@@ -11,7 +12,7 @@ export default async function sitemap() {
   try {
     await connectDB();
     const [pages, blogs, events] = await Promise.all([
-      Page.find({ status: "published" }).select("slug updatedAt").lean(),
+      Page.find({ status: "published", isDeleted: { $ne: 1 } }).select("slug publishedSlug updatedAt").lean(),
       Blog.find({ status: "published" }).select("slug updatedAt publishedAt").lean(),
       Event.find({ status: "published" }).select("slug updatedAt startDate").lean(),
     ]);
@@ -22,9 +23,10 @@ export default async function sitemap() {
     entries.push({ url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 });
 
     for (const p of pages) {
-      if (p.slug && p.slug !== "home") {
+      const liveSlug = getPublishedSlug(p);
+      if (liveSlug && liveSlug !== "home") {
         entries.push({
-          url: `${baseUrl}/${p.slug}`,
+          url: `${baseUrl}/${liveSlug}`,
           lastModified: p.updatedAt ? new Date(p.updatedAt) : new Date(),
           changeFrequency: "weekly",
           priority: 0.8,

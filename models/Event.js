@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const softDeletePlugin = require("./plugins/softDelete");
 
 const eventSchema = new mongoose.Schema(
   {
@@ -30,6 +31,8 @@ const eventSchema = new mongoose.Schema(
 eventSchema.index({ status: 1 });
 eventSchema.index({ startDate: 1 });
 eventSchema.index({ updatedAt: -1 });
+
+eventSchema.plugin(softDeletePlugin);
 
 module.exports =
   (mongoose.models && mongoose.models.Event) || mongoose.model("Event", eventSchema);

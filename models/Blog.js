@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const softDeletePlugin = require("./plugins/softDelete");
 
 const blogSchema = new mongoose.Schema(
   {
@@ -26,6 +27,8 @@ const blogSchema = new mongoose.Schema(
 
 blogSchema.index({ status: 1 });
 blogSchema.index({ publishedAt: -1 });
+
+blogSchema.plugin(softDeletePlugin);
 
 module.exports =
   (mongoose.models && mongoose.models.Blog) || mongoose.model("Blog", blogSchema);

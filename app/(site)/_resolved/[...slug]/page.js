@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import Page from "@/models/Page";
 import Component from "@/models/Component";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
+import { buildPublishedSlugFilter, toPublishedPageShape } from "@/lib/pagePublication";
 
 export const dynamic = "force-dynamic";
 
@@ -44,8 +45,9 @@ async function PageContent({ slug }) {
   let page;
   try {
     await connectDB();
-    page = await Page.findOne({ slug, status: "published" })
+    page = await Page.findOne(buildPublishedSlugFilter(slug))
       .populate("layout.componentId")
+      .populate("publishedLayout.componentId")
       .lean();
   } catch {
     return (
@@ -57,8 +59,9 @@ async function PageContent({ slug }) {
   }
 
   if (!page) notFound();
+  const livePage = toPublishedPageShape(page);
 
-  const layoutBlocks = page.layout || [];
+  const layoutBlocks = livePage.layout || [];
   const baseComponents = [
     ...new Set(
       layoutBlocks

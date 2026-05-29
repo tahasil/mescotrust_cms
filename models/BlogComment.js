@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const softDeletePlugin = require("./plugins/softDelete");
 
 const blogCommentSchema = new mongoose.Schema(
   {
@@ -14,6 +15,8 @@ const blogCommentSchema = new mongoose.Schema(
 blogCommentSchema.index({ blogId: 1, status: 1 });
 blogCommentSchema.index({ blogId: 1, status: 1, createdAt: -1 });
 blogCommentSchema.index({ createdAt: -1 });
+
+blogCommentSchema.plugin(softDeletePlugin);
 
 module.exports =
   (mongoose.models && mongoose.models.BlogComment) ||

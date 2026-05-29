@@ -1,98 +1,29 @@
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
-import { requireAuth } from "@/lib/apiAuth";
+import { requirePermission } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Page from "@/models/Page";
-import Menu from "@/models/Menu";
 import { normalizeSlug } from "@/lib/slug";
 import { validateLayoutProps } from "@/lib/validateLayout";
-import { clearUsageForRef, syncMediaUsageForPage } from "@/lib/media/usageTracker";
+import { syncMediaUsageForPage } from "@/lib/media/usageTracker";
+import { hasPublishedSnapshot } from "@/lib/pagePublication";
 
-/**
- * Recursively find and remove a menu item by pageSlug.
- * Returns the removed item or null.
- */
-function findAndRemoveBySlug(items, slug) {
-  for (let i = 0; i < items.length; i++) {
-    if (items[i].type === "page" && items[i].pageSlug === slug) {
-      return items.splice(i, 1)[0];
-    }
-    if (Array.isArray(items[i].children) && items[i].children.length > 0) {
-      const found = findAndRemoveBySlug(items[i].children, slug);
-      if (found) return found;
-    }
-  }
-  return null;
-}
+const ACTIVE_PAGE_FILTER = { isDeleted: { $ne: 1 } };
 
-/**
- * Recursively find a parent menu item whose slugified label matches the given folder.
- * Returns the item (so we can push into its children) or null.
- */
-function findParentByFolder(items, folder) {
-  for (const item of items) {
-    const slugified = (item.label || "").trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-    if (slugified === folder) return item;
-    if (Array.isArray(item.children) && item.children.length > 0) {
-      const found = findParentByFolder(item.children, folder);
-      if (found) return found;
-    }
-  }
-  return null;
-}
-
-/**
- * Sync menu items when a page slug changes:
- * 1. Update pageSlug and url on the matching menu item
- * 2. If parent folder changed, move the item to the correct parent in the menu tree
- */
-function syncMenuForSlugChange(menuItems, oldSlug, newSlug) {
-  const oldFolder = oldSlug.includes("/") ? oldSlug.substring(0, oldSlug.lastIndexOf("/")) : "";
-  const newFolder = newSlug.includes("/") ? newSlug.substring(0, newSlug.lastIndexOf("/")) : "";
-
-  // If parent folder didn't change, just update slug and url in place
-  if (oldFolder === newFolder) {
-    let changed = false;
-    const updateInPlace = (items) => {
-      for (const item of items) {
-        if (item.type === "page" && item.pageSlug === oldSlug) {
-          item.pageSlug = newSlug;
-          item.url = "/" + newSlug;
-          changed = true;
-        }
-        if (Array.isArray(item.children)) updateInPlace(item.children);
-      }
-    };
-    updateInPlace(menuItems);
-    return changed;
-  }
-
-  // Parent folder changed — remove item from old position and insert under new parent
-  const removed = findAndRemoveBySlug(menuItems, oldSlug);
-  if (!removed) return false;
-
-  // Update the slug on the removed item
-  removed.pageSlug = newSlug;
-  removed.url = "/" + newSlug;
-
-  if (!newFolder) {
-    // Moved to root level
-    menuItems.push(removed);
-  } else {
-    const newParent = findParentByFolder(menuItems, newFolder);
-    if (newParent) {
-      if (!Array.isArray(newParent.children)) newParent.children = [];
-      newParent.children.push(removed);
-    } else {
-      // New parent not found in menu — place at root
-      menuItems.push(removed);
-    }
-  }
-  return true;
+function hydrateLegacyPublishedSnapshot(page) {
+  if (!page || page.status !== "published") return;
+  if (hasPublishedSnapshot(page)) return;
+  page.publishedTitle = page.title || "";
+  page.publishedSlug = page.slug || "";
+  page.publishedLayout = Array.isArray(page.layout) ? page.layout : [];
+  page.publishedMeta = page.meta || {};
+  page.publishedAt = page.updatedAt || new Date();
+  page.publishedBy = page.updatedBy || page.createdBy || "";
+  page.publishedRevision = Math.max(1, Number(page.publishedRevision) || 0);
 }
 
 export async function GET(req, { params }) {
-  const session = await requireAuth(req);
+  const session = await requirePermission(req, "pages.view");
   if (session instanceof NextResponse) return session;
 
   try {
@@ -101,7 +32,10 @@ export async function GET(req, { params }) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
     await connectDB();
-    const page = await Page.findById(id).populate("layout.componentId").lean();
+    const page = await Page.findOne({ _id: id, ...ACTIVE_PAGE_FILTER })
+      .populate("layout.componentId")
+      .populate("publishedLayout.componentId")
+      .lean();
     if (!page) return NextResponse.json({ error: "Not found" }, { status: 404 });
     return NextResponse.json(page);
   } catch (err) {
@@ -110,7 +44,7 @@ export async function GET(req, { params }) {
 }
 
 export async function PUT(req, { params }) {
-  const session = await requireAuth(req);
+  const session = await requirePermission(req, "pages.edit");
   if (session instanceof NextResponse) return session;
 
   try {
@@ -119,13 +53,26 @@ export async function PUT(req, { params }) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
     const body = await req.json();
-    const { title, slug: rawSlug, status, layout, meta, locale } = body;
+    const { title, slug: rawSlug, status, layout, meta, locale, ifMatchUpdatedAt } = body;
 
     await connectDB();
-    const page = await Page.findById(id);
+    const page = await Page.findOne({ _id: id, ...ACTIVE_PAGE_FILTER });
     if (!page) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    const oldSlug = page.slug;
+    if (ifMatchUpdatedAt && page.updatedAt) {
+      const expected = new Date(ifMatchUpdatedAt);
+      const current = new Date(page.updatedAt);
+      if (!Number.isNaN(expected.getTime()) && expected.getTime() !== current.getTime()) {
+        return NextResponse.json(
+          { error: "This page was updated by another user. Please refresh and try again." },
+          { status: 409 },
+        );
+      }
+    }
+
+    // Legacy safety: preserve currently-live content before first draft edit on old published docs.
+    hydrateLegacyPublishedSnapshot(page);
+
     const slugSource =
       rawSlug !== undefined && String(rawSlug).trim() !== ""
         ? rawSlug
@@ -136,14 +83,20 @@ export async function PUT(req, { params }) {
     }
     const nextSlug = result.slug;
     if (nextSlug !== page.slug) {
-      const existing = await Page.findOne({ slug: nextSlug, _id: { $ne: id } });
+      const existing = await Page.findOne({ slug: nextSlug, _id: { $ne: id }, ...ACTIVE_PAGE_FILTER });
       if (existing) {
         return NextResponse.json({ error: "A page with this slug already exists" }, { status: 400 });
       }
       page.slug = nextSlug;
     }
+
     if (title !== undefined) page.title = title;
-    if (status !== undefined) page.status = status;
+
+    // Draft saves must not implicitly publish. Keep published pages published.
+    if (status === "draft" && page.status !== "published") {
+      page.status = "draft";
+    }
+
     if (Array.isArray(layout)) {
       const validationErrors = await validateLayoutProps(layout);
       if (validationErrors.length > 0) {
@@ -151,6 +104,7 @@ export async function PUT(req, { params }) {
       }
       page.layout = layout;
     }
+
     if (meta !== undefined) page.meta = meta;
     if (locale !== undefined) page.locale = locale;
     page.updatedBy = session.email || "";
@@ -158,29 +112,19 @@ export async function PUT(req, { params }) {
     await page.save();
     await syncMediaUsageForPage(page);
 
-    // Auto-sync menus: update slug and move item if parent folder changed
-    if (oldSlug && page.slug !== oldSlug) {
-      try {
-        const menus = await Menu.find().lean();
-        for (const menu of menus) {
-          const plainItems = JSON.parse(JSON.stringify(menu.items));
-          if (syncMenuForSlugChange(plainItems, oldSlug, page.slug)) {
-            await Menu.updateOne({ _id: menu._id }, { $set: { items: plainItems } });
-          }
-        }
-      } catch (e) {
-        console.error("Menu sync after slug change failed:", e);
-      }
-    }
+    const fresh = await Page.findOne({ _id: id, ...ACTIVE_PAGE_FILTER })
+      .populate("layout.componentId")
+      .populate("publishedLayout.componentId")
+      .lean();
 
-    return NextResponse.json(page);
+    return NextResponse.json(fresh || page);
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
 export async function DELETE(req, { params }) {
-  const session = await requireAuth(req);
+  const session = await requirePermission(req, "pages.delete");
   if (session instanceof NextResponse) return session;
 
   try {
@@ -189,9 +133,16 @@ export async function DELETE(req, { params }) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
     await connectDB();
-    const page = await Page.findByIdAndDelete(id);
+    const page = await Page.findOne({ _id: id, ...ACTIVE_PAGE_FILTER });
     if (!page) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    await clearUsageForRef("page", id);
+    page.isDeleted = 1;
+    page.deletedSlug = page.slug || "";
+    if (page.publishedSlug) {
+      page.publishedSlug = `${page.publishedSlug}--deleted-${page._id}`;
+    }
+    page.slug = `${page.slug || "page"}--deleted-${page._id}`;
+    page.updatedBy = session.email || "";
+    await page.save();
     return NextResponse.json({ deleted: true });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });

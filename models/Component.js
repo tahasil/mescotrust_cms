@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const softDeletePlugin = require("./plugins/softDelete");
 
 const componentSchema = new mongoose.Schema(
   {
@@ -19,6 +20,8 @@ const componentSchema = new mongoose.Schema(
 );
 
 componentSchema.index({ baseComponent: 1 });
+
+componentSchema.plugin(softDeletePlugin);
 
 module.exports =
   (mongoose.models && mongoose.models.Component) || mongoose.model("Component", componentSchema);

@@ -24,6 +24,19 @@ export default function ManageSectionFields({ prefix, form, themeColorOptions = 
           <Switch />
         </Form.Item>
       </div>
+      <Form.Item
+        name={prefix + "SectionId"}
+        label="Section ID"
+        tooltip="Optional. Use this as a scroll target from links (example: partner-with-us, then link to #partner-with-us)."
+        rules={[
+          {
+            pattern: /^[A-Za-z][A-Za-z0-9\-_:.]*$/,
+            message: "Use letters, numbers, -, _, :, . and start with a letter.",
+          },
+        ]}
+      >
+        <Input placeholder="e.g. partner-with-us" size="large" allowClear />
+      </Form.Item>
     <Collapse
       defaultActiveKey={[]}
       size="small"

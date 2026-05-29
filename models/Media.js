@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const softDeletePlugin = require("./plugins/softDelete");
 
 const mediaVariantSchema = new mongoose.Schema(
   {
@@ -97,6 +98,8 @@ mediaSchema.index({ createdAt: -1 });
 mediaSchema.index({ status: 1 });
 mediaSchema.index({ "usedIn.refId": 1, "usedIn.type": 1 });
 mediaSchema.index({ title: "text", fileName: "text", altText: "text" });
+
+mediaSchema.plugin(softDeletePlugin);
 
 module.exports =
   (mongoose.models && mongoose.models.Media) || mongoose.model("Media", mediaSchema);

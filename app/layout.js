@@ -2,6 +2,7 @@ import "./globals.css";
 import { headers } from "next/headers";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import StyledComponentsRegistry from "@/lib/StyledComponentsRegistry";
+import AntdLoaderIndicator from "@/components/shared/AntdLoaderIndicator";
 import { getSiteUrl } from "@/lib/env";
 import { getTheme } from "@/lib/layoutData";
 
@@ -212,7 +213,10 @@ html.page-loading,body.page-loading{overflow:hidden;margin:0;padding:0}
       </head>
       <body className={loaderEnabled ? "page-loading" : undefined}>
         <StyledComponentsRegistry>
-          <AntdRegistry>{children}</AntdRegistry>
+          <AntdRegistry>
+            <AntdLoaderIndicator />
+            {children}
+          </AntdRegistry>
         </StyledComponentsRegistry>
         {loaderEnabled && (
           <>

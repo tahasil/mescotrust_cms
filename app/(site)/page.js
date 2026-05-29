@@ -4,16 +4,18 @@ import { connectDB } from "@/lib/db";
 import Page from "@/models/Page";
 import Component from "@/models/Component";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
+import { buildPublishedSlugFilter, toPublishedPageShape } from "@/lib/pagePublication";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
   try {
     await connectDB();
-    const page = await Page.findOne({ slug: "home", status: "published" }).lean();
+    const page = await Page.findOne(buildPublishedSlugFilter("home")).lean();
     if (!page) return {};
-    const title = page.meta?.metaTitle || page.title || undefined;
-    const description = page.meta?.metaDescription || undefined;
+    const livePage = toPublishedPageShape(page);
+    const title = livePage.meta?.metaTitle || livePage.title || undefined;
+    const description = livePage.meta?.metaDescription || undefined;
     return {
       ...(title && { title }),
       ...(description && { description }),
@@ -40,13 +42,17 @@ async function HomeContent() {
   let page = null;
   try {
     await connectDB();
-    page = await Page.findOne({ slug: "home", status: "published" }).populate("layout.componentId").lean();
+    page = await Page.findOne(buildPublishedSlugFilter("home"))
+      .populate("layout.componentId")
+      .populate("publishedLayout.componentId")
+      .lean();
   } catch {
     // leave page null
   }
 
   if (page) {
-    const layoutBlocks = page.layout || [];
+    const livePage = toPublishedPageShape(page);
+    const layoutBlocks = livePage.layout || [];
     const baseComponents = [...new Set(layoutBlocks.map((b) => b.baseComponent || (typeof b.componentId === "object" && b.componentId?.baseComponent) || (typeof b.componentId === "string" ? b.componentId : null) || "Paragraph"))].filter(Boolean);
     const componentDocs = await Component.find({ baseComponent: { $in: baseComponents } }).lean();
     const defaultPropsByBase = {};

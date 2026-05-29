@@ -6,6 +6,7 @@ export const dynamic = "force-dynamic";
 import Page from "@/models/Page";
 import Component from "@/models/Component";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
+import { buildPublishedSlugFilter, toPublishedPageShape } from "@/lib/pagePublication";
 
 const RESERVED = ["admin", "blog", "contact", "search", "api", "preview"];
 
@@ -14,10 +15,11 @@ export async function generateMetadata({ params }) {
   if (RESERVED.includes(slug.split("/")[0])) return {};
   try {
     await connectDB();
-    const page = await Page.findOne({ slug, status: "published" }).lean();
+    const page = await Page.findOne(buildPublishedSlugFilter(slug)).lean();
     if (!page) return {};
-    const title = page.meta?.metaTitle || page.title;
-    const description = page.meta?.metaDescription || undefined;
+    const livePage = toPublishedPageShape(page);
+    const title = livePage.meta?.metaTitle || livePage.title;
+    const description = livePage.meta?.metaDescription || undefined;
     return {
       title,
       description,
@@ -44,7 +46,10 @@ async function PageContent({ slug }) {
   let page;
   try {
     await connectDB();
-    page = await Page.findOne({ slug, status: "published" }).populate("layout.componentId").lean();
+    page = await Page.findOne(buildPublishedSlugFilter(slug))
+      .populate("layout.componentId")
+      .populate("publishedLayout.componentId")
+      .lean();
   } catch {
     return (
       <div style={{ textAlign: "center", padding: "2rem 0" }}>
@@ -55,8 +60,9 @@ async function PageContent({ slug }) {
   }
 
   if (!page) notFound();
+  const livePage = toPublishedPageShape(page);
 
-  const layoutBlocks = page.layout || [];
+  const layoutBlocks = livePage.layout || [];
   const baseComponents = [...new Set(layoutBlocks.map((b) => b.baseComponent || (typeof b.componentId === "object" && b.componentId?.baseComponent) || (typeof b.componentId === "string" ? b.componentId : null) || "Paragraph"))].filter(Boolean);
   const componentDocs = await Component.find({ baseComponent: { $in: baseComponents } }).lean();
   const defaultPropsByBase = {};

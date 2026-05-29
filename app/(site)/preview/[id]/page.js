@@ -10,6 +10,7 @@ import Blog from "@/models/Blog";
 import Event from "@/models/Event";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import SafeHtml from "@/components/cms/SafeHtml";
+import { verifyPreviewToken } from "@/lib/previewToken";
 
 export async function generateMetadata({ params }) {
   return { title: "Preview", robots: { index: false, follow: false } };
@@ -23,6 +24,7 @@ export default async function PreviewPage({ params, searchParams }) {
 
   const id = params.id;
   const type = searchParams?.type || "page";
+  const token = searchParams?.token || "";
 
   try {
     await connectDB();
@@ -67,7 +69,21 @@ export default async function PreviewPage({ params, searchParams }) {
       );
     }
 
-    const page = await Page.findById(id).populate("layout.componentId").lean();
+    // Page preview is gated by a signed preview token (from the admin editor's
+    // preview-token route) in addition to the admin session above.
+    const parsedToken = verifyPreviewToken(token);
+    if (!parsedToken || parsedToken.kind !== "page-preview" || parsedToken.pageId !== String(id)) {
+      notFound();
+    }
+    const sessionEmail = String(session?.user?.email || "").trim().toLowerCase();
+    const tokenEmail = String(parsedToken?.email || "").trim().toLowerCase();
+    if (tokenEmail && sessionEmail && tokenEmail !== sessionEmail) {
+      notFound();
+    }
+
+    const page = await Page.findOne({ _id: id, isDeleted: { $ne: 1 } })
+      .populate("layout.componentId")
+      .lean();
     if (!page) notFound();
 
     const layoutBlocks = page.layout || [];

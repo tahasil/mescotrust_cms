@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -37,6 +37,9 @@ import {
   CloseOutlined,
 } from "@ant-design/icons";
 import { signOut } from "next-auth/react";
+import { canAccessMenu, hasPermission } from "@/lib/rbac/clientPermissions";
+import { getDefaultPermissionKeysForRole } from "@/lib/rbac/catalog";
+import { AdminAuthProvider } from "@/components/admin/AdminAuthContext";
 
 const { Header, Content } = Layout;
 
@@ -283,7 +286,14 @@ const DEFAULT_ADMIN_THEME = {
   adminLoaderBgColor: "rgba(255,255,255,0.5)",
 };
 
-export default function AdminLayoutClient({ children, userName, userRole }) {
+export default function AdminLayoutClient({
+  children,
+  userName,
+  userRole,
+  userRoleKey,
+  userType,
+  permissionKeys,
+}) {
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -302,6 +312,26 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
   const routeChangedRef = useRef(false);
   const navPendingFetchRef = useRef(0);
   const prevCountRef = useRef(0);
+
+  // RBAC: build the permission context for menu gating + AdminAuthProvider.
+  // Falls back to the role's default permission set if no explicit keys are passed.
+  const effectivePermissionKeys = useMemo(() => {
+    if (Array.isArray(permissionKeys)) {
+      return permissionKeys;
+    }
+    return Array.from(getDefaultPermissionKeysForRole(userRoleKey || userRole || "editor"));
+  }, [permissionKeys, userRole, userRoleKey]);
+
+  const authContext = useMemo(
+    () => ({
+      role: userRole,
+      roleKey: userRoleKey || userRole,
+      userType: userType || "",
+      permissionKeys: effectivePermissionKeys,
+    }),
+    [effectivePermissionKeys, userRole, userRoleKey, userType],
+  );
+
   const applyAdminTheme = useCallback((data) => {
     const next = { ...DEFAULT_ADMIN_THEME };
     if (data && typeof data === "object") {
@@ -543,29 +573,36 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
 
   const sidebarVisible = isMobile ? mobileOpen : !collapsed;
   const contentMarginLeft = isMobile ? 0 : collapsed ? 0 : SIDEBAR_WIDTH;
-  let menuItems = baseMenuItems;
-  if (userRole === "Author") {
-    const dashboard = baseMenuItems.find((item) => item.key === "/admin");
-    const blogGroup = baseMenuItems.find((item) => item.key === "group:admin:blogs");
-    const eventsGroup = baseMenuItems.find((item) => item.key === "group:admin:events");
-    menuItems = [
-      dashboard,
-      blogGroup
-        ? {
-            ...blogGroup,
-            children: (blogGroup.children || []).filter(
-              (child) => child.key === "/admin/blogs" || child.key === "/admin/blogs/new",
-            ),
-          }
-        : null,
-      eventsGroup,
-    ].filter(Boolean);
-  } else if (userRole !== "Admin") {
-    menuItems = baseMenuItems.filter((item) => item.key !== "/admin/users");
-  }
+  // RBAC: filter nav by the active user's permissions. Submenu/group nodes
+  // (containers) are kept only if at least one child survives; leaf items are
+  // kept only if canAccessMenu allows their path. Replaces the old Author/Admin
+  // role-string gating (Author is dropped per migration decision 6.1).
+  const filteredMenuItems = useMemo(() => {
+    const filterItems = (items) => {
+      const source = Array.isArray(items) ? items : [];
+      const result = [];
+      for (const item of source) {
+        const hasChildContainer = Array.isArray(item?.children);
+        const children = hasChildContainer ? filterItems(item.children) : undefined;
+        const itemKey = String(item?.key || "");
+        const isGroupNode = itemKey.startsWith("group:");
+        const selfAllowed = isGroupNode ? true : canAccessMenu(authContext, itemKey);
+        const hasChildren = Array.isArray(children) && children.length > 0;
+        if (hasChildContainer) {
+          if (hasChildren) result.push({ ...item, children });
+          continue;
+        }
+        if (isGroupNode) continue;
+        if (!selfAllowed) continue;
+        result.push(item);
+      }
+      return result;
+    };
+    return filterItems(baseMenuItems);
+  }, [authContext]);
 
   const fetchNotifications = useCallback(() => {
-    if (userRole === "Author") {
+    if (!hasPermission(authContext, "contacts.view")) {
       setNotifications([]);
       prevCountRef.current = 0;
       return;
@@ -651,7 +688,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
         setNotifications(sliced);
       })
       .catch(() => {});
-  }, [userRole]);
+  }, [authContext]);
 
   useEffect(() => {
     fetchNotifications();
@@ -794,6 +831,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
   );
 
   return (
+    <AdminAuthProvider value={authContext}>
     <Layout style={{ minHeight: "100vh" }}>
       <style>{`
         @keyframes bellShake {
@@ -1059,7 +1097,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
             mode="inline"
             selectedKeys={[pathname]}
             // defaultOpenKeys={["/admin/blogs"]}
-            items={menuItems}
+            items={filteredMenuItems}
             style={{
               borderRight: 0,
               color: at.adminSidebarText,
@@ -1184,5 +1222,6 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
         </div>
       </Layout>
     </Layout>
+    </AdminAuthProvider>
   );
 }

@@ -1,5 +1,11 @@
 import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
+import {
+  getAdminApiRestriction,
+  getAdminPageRestriction,
+  isRoleAllowedForRestriction,
+  normalizeRoleLabel,
+} from "@/lib/adminAccess";
 
 const adminPathPrefix = "/admin";
 const loginPath = "/admin/login";
@@ -33,18 +39,6 @@ function isAdminRoute(pathname) {
   return pathname.startsWith(adminPathPrefix) || pathname.startsWith("/api/admin");
 }
 
-function isAuthorAllowedAdminPath(pathname) {
-  return pathname === "/admin" || pathname.startsWith("/admin/blogs") || pathname.startsWith("/admin/events");
-}
-
-function isAuthorAllowedAdminApi(pathname, method) {
-  return (
-    pathname.startsWith("/api/admin/blogs") ||
-    pathname.startsWith("/api/admin/events") ||
-    (method === "GET" && pathname.startsWith("/api/admin/blog-categories"))
-  );
-}
-
 function isMediaObjectIdPath(pathname) {
   const m = pathname.match(/^\/media\/([^/]+)$/);
   if (!m) return false;
@@ -76,8 +70,26 @@ function withPathname(req) {
   return NextResponse.next({ request: newRequest });
 }
 
+function buildForbiddenRedirectUrl(req, { requiredRole, requiredPermission } = {}) {
+  const url = req.nextUrl.clone();
+  const requestedPath = `${req.nextUrl.pathname}${req.nextUrl.search || ""}`;
+  url.pathname = "/admin/forbidden";
+  url.search = "";
+  url.searchParams.set("requiredRole", String(requiredRole || "Admin"));
+  if (requiredPermission) {
+    url.searchParams.set("requiredPermission", String(requiredPermission));
+  }
+  url.searchParams.set("from", requestedPath);
+  return url;
+}
+
 export async function middleware(req) {
   const { pathname } = req.nextUrl;
+
+  // Never intercept uploaded static assets. Let Next serve them directly.
+  if (pathname.startsWith("/uploads/")) {
+    return NextResponse.next();
+  }
 
   // Resolve frontend CMS pages under /media/* (e.g. /media/in-media)
   // while preserving /media/<ObjectId> for media-file delivery.
@@ -104,6 +116,10 @@ export async function middleware(req) {
   }
 
   if (pathname === loginPath) {
+    const forceReloginReason = String(req.nextUrl.searchParams.get("reason") || "").trim();
+    if (forceReloginReason) {
+      return withPathname(req);
+    }
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
     if (token) {
       const url = req.nextUrl.clone();
@@ -121,32 +137,36 @@ export async function middleware(req) {
     return NextResponse.redirect(url);
   }
 
-  const adminOnlyPaths = ["/admin/users", "/admin/theme", "/api/admin/users"];
-  if (token.role !== "Admin" && adminOnlyPaths.some((p) => pathname.startsWith(p))) {
-    if (pathname.startsWith("/api/")) {
-      return NextResponse.json({ error: "Forbidden: Admin only" }, { status: 403 });
-    }
-    const url = req.nextUrl.clone();
-    url.pathname = "/admin";
-    url.searchParams.set("forbidden", "1");
+  if (pathname === "/admin" && req.nextUrl.searchParams.get("forbidden") === "1") {
+    const url = buildForbiddenRedirectUrl(req, { requiredRole: "Admin" });
     return NextResponse.redirect(url);
   }
 
-  if (token.role === "Author") {
-    if (pathname.startsWith("/api/admin") && !isAuthorAllowedAdminApi(pathname, req.method)) {
-      return NextResponse.json({ error: "Forbidden: Author access limited to blog/event APIs" }, { status: 403 });
-    }
-    if (pathname.startsWith("/admin") && !isAuthorAllowedAdminPath(pathname)) {
-      const url = req.nextUrl.clone();
-      url.pathname = "/admin";
-      url.searchParams.set("forbidden", "1");
-      return NextResponse.redirect(url);
-    }
+  const pageRestriction = getAdminPageRestriction(pathname);
+  if (pageRestriction && !isRoleAllowedForRestriction(token, pageRestriction)) {
+    const url = buildForbiddenRedirectUrl(req, {
+      requiredRole: pageRestriction.requiredRole,
+      requiredPermission: pageRestriction.requiredPermission,
+    });
+    return NextResponse.redirect(url);
+  }
+
+  const apiRestriction = getAdminApiRestriction(pathname, req.method);
+  if (apiRestriction && !isRoleAllowedForRestriction(token, apiRestriction)) {
+    return NextResponse.json(
+      {
+        error: "Forbidden: insufficient permission",
+        requiredPermission: apiRestriction.requiredPermission,
+        requiredRole: apiRestriction.requiredRole,
+        currentRole: normalizeRoleLabel(token.role),
+      },
+      { status: 403 },
+    );
   }
 
   return withPathname(req);
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon\\.ico|uploads/).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon\\.ico|uploads/|uploads$).*)"],
 };

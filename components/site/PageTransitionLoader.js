@@ -21,6 +21,11 @@ function isInternalNavigableAnchor(anchor) {
   }
   if (url.origin !== window.location.origin) return false;
 
+  // Ignore hash-only changes on the same route (in-page anchor scroll).
+  const nextRoute = `${url.pathname}${url.search}`;
+  const currentRoute = `${window.location.pathname}${window.location.search}`;
+  if (nextRoute === currentRoute) return false;
+
   const nextPath = `${url.pathname}${url.search}${url.hash}`;
   const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
   return nextPath !== currentPath;
@@ -132,7 +137,9 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
         try {
           const target = new URL(String(args[2]), window.location.href);
           const current = new URL(window.location.href);
-          if (`${target.pathname}${target.search}${target.hash}` !== `${current.pathname}${current.search}${current.hash}`) showLoader();
+          const targetRoute = `${target.pathname}${target.search}`;
+          const currentRoute = `${current.pathname}${current.search}`;
+          if (targetRoute !== currentRoute) showLoader();
         } catch {}
       }
       return originalPushState.apply(window.history, args);
@@ -143,7 +150,9 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
         try {
           const target = new URL(String(args[2]), window.location.href);
           const current = new URL(window.location.href);
-          if (`${target.pathname}${target.search}${target.hash}` !== `${current.pathname}${current.search}${current.hash}`) showLoader();
+          const targetRoute = `${target.pathname}${target.search}`;
+          const currentRoute = `${current.pathname}${current.search}`;
+          if (targetRoute !== currentRoute) showLoader();
         } catch {}
       }
       return originalReplaceState.apply(window.history, args);

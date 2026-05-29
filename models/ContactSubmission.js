@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const softDeletePlugin = require("./plugins/softDelete");
 
 const contactSubmissionSchema = new mongoose.Schema(
   {
@@ -15,6 +16,8 @@ const contactSubmissionSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+contactSubmissionSchema.plugin(softDeletePlugin);
 
 module.exports =
   (mongoose.models && mongoose.models.ContactSubmission) || mongoose.model("ContactSubmission", contactSubmissionSchema);
