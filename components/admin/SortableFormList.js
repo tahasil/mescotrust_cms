@@ -27,6 +27,7 @@ function SortableRow({
   itemLabel,
   itemIndex,
   totalItems,
+  allowDeleteLast = false,
   children,
   reorderClassName,
   onMoveUp,
@@ -93,7 +94,7 @@ function SortableRow({
           onClick={(e) => { e.stopPropagation(); onMoveDown?.(); }}
           title="Move down"
         />
-        {totalItems > 1 && (
+        {(allowDeleteLast || totalItems > 1) && (
           <Button
             type="text"
             danger
@@ -147,8 +148,10 @@ export default function SortableFormList({
   reorderMovedIndex = -1,
   reorderDirection = "up",
   addButtonText = "Add item",
+  addButtonVariant = "icon",
   defaultAddPayload,
   onMoveWithTransition,
+  allowDeleteLast = false,
 }) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -194,6 +197,7 @@ export default function SortableFormList({
                 itemLabel={itemLabel}
                 itemIndex={name}
                 totalItems={fields.length}
+                allowDeleteLast={allowDeleteLast}
                 reorderClassName={
                   reorderMovedIndex === name
                     ? `admin-reorder-moved-${reorderDirection}`
@@ -210,14 +214,24 @@ export default function SortableFormList({
         </SortableContext>
       </DndContext>
       <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
-        <Button
-          type="primary"
-          shape="circle"
-          size="large"
-          icon={<PlusOutlined />}
-          onClick={() => add(defaultAddPayload)}
-          title="Add New"
-        />
+        {addButtonVariant === "text" ? (
+          <Button
+            type="dashed"
+            icon={<PlusOutlined />}
+            onClick={() => add(defaultAddPayload)}
+          >
+            {addButtonText}
+          </Button>
+        ) : (
+          <Button
+            type="primary"
+            shape="circle"
+            size="large"
+            icon={<PlusOutlined />}
+            onClick={() => add(defaultAddPayload)}
+            title="Add New"
+          />
+        )}
       </div>
     </>
   );

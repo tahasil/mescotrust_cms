@@ -13,6 +13,32 @@ import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 
+function ThemeColorOnlySelect({ fieldKey, options = [], value, onChange }) {
+  const current = String(value ?? "").trim();
+  const normalizedValue = current ? value : undefined;
+  const opts = Array.isArray(options) ? options : [];
+  const exists = current
+    ? opts.some(
+        (o) =>
+          String(o?.value || "").trim().toLowerCase() === current.toLowerCase(),
+      )
+    : true;
+  const mergedOptions = current && !exists
+    ? [{ label: current, value: current }, ...opts]
+    : opts;
+
+  return (
+    <Select
+      value={normalizedValue}
+      onChange={onChange}
+      options={mergedOptions}
+      placeholder="Select theme color"
+      allowClear
+      style={{ width: "100%" }}
+    />
+  );
+}
+
 /** Theme color dropdown + optional custom color picker. */
 export function ThemeColorInput({ value, onChange, themeColorOptions }) {
   const options = themeColorOptions || [];
@@ -280,12 +306,7 @@ export function renderSchemaField(field, themeColorOptions) {
     case "themeColorOnly":
       return (
         <Form.Item key={key} name={key} label={label}>
-          <Select
-            options={themeColorOptions || []}
-            placeholder="Select theme color"
-            allowClear
-            style={{ width: "100%" }}
-          />
+          <ThemeColorOnlySelect fieldKey={key} options={themeColorOptions} />
         </Form.Item>
       );
     case "image":

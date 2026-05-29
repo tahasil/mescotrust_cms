@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const softDeletePlugin = require("./plugins/softDelete");
 
 const siteComponentMetaSchema = new mongoose.Schema(
   {
@@ -13,11 +14,19 @@ const siteComponentMetaSchema = new mongoose.Schema(
     position: { type: String, enum: ["before", "after"], default: "before" },
     /** If false, component is hidden from Add Component and not offered in the list. */
     enabled: { type: Boolean, default: true },
+    /** Admin module owner: generic Components, or the Sliders/Popups modules (TSUV→MESCO port). */
+    module: {
+      type: String,
+      enum: ["components", "sliders", "popups"],
+      default: "components",
+    },
   },
   { timestamps: true }
 );
 
 siteComponentMetaSchema.index({ global: 1, position: 1, order: 1 });
+
+siteComponentMetaSchema.plugin(softDeletePlugin);
 
 module.exports =
   (mongoose.models && mongoose.models.SiteComponentMeta) ||
