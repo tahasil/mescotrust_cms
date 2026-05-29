@@ -283,7 +283,8 @@ Run order = phase order. **Precede every migration with `npm run backup-db-full`
 > Rule: do not start a phase until its **gate** (build + smoke + MESCO-only preservation check) on the previous phase passes. Update the status line below as you go.
 
 **Overall status:** `[~]` Phases 1–3 COMPLETE + build-verified + committed (`05e2ba1`). Phase 4 SAFE PARTS done + committed (`8994475` ThemeConfig additive merge; `ff2b4f2` persistence libs + AppearanceColorConfig, dormant). Phase 4 CUTOVER (DB-coupled) remaining. — _last updated 2026-05-29_
-Phase: 0`[x]` 1`[x]` 2`[x]` 3`[x]` 4`[x]` 5`[~]` 6`[ ]` 7`[ ]` 8`[ ]` 9`[~]` 10`[ ]` 11`[ ]`
+Phase: 0`[x]` 1`[x]` 2`[x]` 3`[x]` 4`[x]` 5`[~]` 6`[ ]` 7`[ ]` 8`[ ]` 9`[~]` 10`[x]` 11`[ ]`
+> Phase 10 DONE + runtime-verified (2026-05-29): /blog→/blogs (middleware 308 + stubs), SocialShare preserved (blog+events), events link-target wired. Deferred: blog-component theming diff-merge.
 > Phase 5 partial (2026-05-29): form-util merges + SiteComponentMeta.module + 8 reusable components ported/registered/re-defaulted (build ✓). DEFERRED: overlapping-component diff-merges (Accordion/Cards/AnimationsText/InnerPageHero), systemComponents *Target, shortcode, admin theme-component platform reconcile, conditional components, M6 backfill.
 > Phase 4 COMPLETE (2026-05-29): theme cutover (runtime-verified) + Appearance sectioned UI (build/route-verified). MESCO /admin/theme kept for marquee/Donate/smoothScroll/fade. Remaining Phase-4 runtime debt: rendered Appearance UI + authenticated theme-save smoke (need admin login).
 > Phase 4 (2026-05-29, DB session on `mesco_cms_dev`): theme-persistence cutover DONE + **runtime-verified** — themeconfigs→sitesettings auto-migrated, theme renders with MESCO colors/marquee/siteTitle, editor write path intact, header/footer/subscribe kept Component-backed (no M5/no data loss). `*` = TSUV's new Appearance sectioned UI + title-and-colors routes + Theme.js semantic keys deferred as enhancements (MESCO's /admin/theme editor works without them).
@@ -396,10 +397,10 @@ Phase: 0`[x]` 1`[x]` 2`[x]` 3`[x]` 4`[x]` 5`[~]` 6`[ ]` 7`[ ]` 8`[ ]` 9`[~]` 10`
 - [~] Gate: **build ✓ (exit 0, 72/72, 2026-05-29)** · runtime-pending: audio/video upload + range playback + uploads served (those land with the deferred media merge).
 
 ### Phase 10 — blog → blogs + events
-- [ ] `/blog`→`/blogs` redirects + new blogs pages + `basePath` in `components/blog/*` + sitemap + search + Header/Footer/menu `<Link>`s
-- [ ] **re-integrate SocialShare** into new `blogs/[slug]` + `events/[slug]`
-- [ ] events link-target normalization + events feature flag decision
-- [ ] Gate: build ✓ · blog list/detail + share + events render ✓
+- [x] `/blog`→`/blogs`: moved pages (git mv, MESCO render kept — no BlogsListing dep), `/blog`+`/blog/[slug]` redirect stubs + **middleware HTTP 308** (clean, query preserved), basePath repointed in `components/blog/*` + sitemap + search + PublicShell nav + home link. **NOT touched:** /blog-categories, /blog-comments, /api/public/blogs, @/components/blog imports.
+- [x] **SocialShare** — already present on both blog detail (now `blogs/[slug]`, canonical → /blogs) + `events/[slug]`; preserved (nothing dropped, since MESCO render was kept rather than swapped for tsuv's).
+- [x] events link-target — wired `eventLinkTarget`/`eventLinkOpenInNewTab` into the Register link via `normalizeTargetFromItem` (default `_self`). Events feature-flag gate: **skipped** (MESCO uses events; not gated — 6.7d).
+- [x] Gate: **build ✓ (74/74) + RUNTIME-verified** (dev DB): /blog→308→/blogs, /blog/<slug>→308, query preserved, /blogs + detail render 200, SocialShare present. DEFERRED: blog-component CSS-var theming diff-merge (MESCO's kept); DB Menu items (work via 308).
 
 ### Phase 11 — Verification (final)
 - [ ] run tsuv RBAC endpoint audit script against MESCO (no unprotected admin routes)
