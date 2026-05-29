@@ -2,14 +2,22 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { cache } from "react";
 import { connectDB } from "@/lib/db";
-import Event from "@/models/Event";
 import { getSiteUrl } from "@/lib/env";
+import {
+  buildCanonicalUrl,
+  getGlobalFallbackImageFromTheme,
+  resolveShareMetadata,
+  toAbsoluteUrl,
+} from "@/helpers/socialShare";
+import Event from "@/models/Event";
+import ThemeConfig from "@/models/ThemeConfig";
 import { FullWidthBackground, PageContainer } from "@/styles/Theme";
 import EventMeta from "@/components/events/EventMeta";
 import EventContent from "@/components/events/EventContent";
 import { getEventImageSources } from "@/components/events/eventDisplay";
 import EventsSidebarFull from "@/components/events/EventsSidebarFull";
 import MediaImage from "@/components/shared/MediaImage";
+import SocialShare from "@/components/common/SocialShare";
 
 export const revalidate = 60;
 
@@ -18,29 +26,89 @@ const getPublishedEventBySlug = cache(async (slug) => {
   return Event.findOne({ slug, status: "published" }).lean();
 });
 
+const getThemeForEventDetail = cache(async () => {
+  await connectDB();
+  return ThemeConfig.findOne({
+    $or: [{ themeKey: "default" }, { themeKey: { $exists: false } }],
+  })
+    .sort({ updatedAt: -1 })
+    .select(
+      "logoLightUrl logoImageUrl logoMobileUrl logoDarkUrl faviconUrl seoImage ogImage socialShareImage",
+    )
+    .lean();
+});
+
+function getEventShareMeta(event, themeDoc, slug) {
+  const siteUrl = getSiteUrl();
+  const canonicalUrl = buildCanonicalUrl(siteUrl, `/events/${slug}`);
+  const globalFallbackImage = toAbsoluteUrl(
+    getGlobalFallbackImageFromTheme(themeDoc),
+    siteUrl,
+  );
+  const { desktop, mobile } = getEventImageSources(event || {});
+
+  const shareMeta = resolveShareMetadata({
+    canonicalUrl,
+    title: event?.title,
+    metaTitle: event?.meta?.metaTitle,
+    description: event?.description,
+    metaDescription: event?.meta?.metaDescription,
+    shortDescription: event?.shortDescription,
+    excerpt: event?.excerpt,
+    featuredImageDesktop: event?.featuredImageDesktop || desktop,
+    featuredImage: event?.featuredImage,
+    featuredImageMobile: event?.featuredImageMobile || mobile,
+    seoImage: event?.seoImage,
+    globalFallbackImage,
+  });
+
+  return {
+    canonicalUrl,
+    title: shareMeta.title || String(event?.title || ""),
+    description: shareMeta.description || "",
+    image: toAbsoluteUrl(shareMeta.image, siteUrl),
+  };
+}
+
 export async function generateMetadata({ params }) {
   const slug = params.slug;
+
   try {
-    const event = await getPublishedEventBySlug(slug);
+    const [event, themeDoc] = await Promise.all([
+      getPublishedEventBySlug(slug),
+      getThemeForEventDetail(),
+    ]);
+
     if (!event) return {};
-    const title = event.meta?.metaTitle || event.title;
-    const description =
-      event.meta?.metaDescription || event.description || undefined;
-    const og = {
-      title,
-      description,
-      url: `/events/${slug}`,
+
+    const shareMeta = getEventShareMeta(event, themeDoc, slug);
+
+    const openGraph = {
+      title: shareMeta.title,
+      description: shareMeta.description,
+      url: shareMeta.canonicalUrl,
       type: "website",
+      ...(shareMeta.image
+        ? {
+            images: [{
+              url: shareMeta.image,
+              alt: shareMeta.title,
+            }],
+          }
+        : {}),
     };
-    const { desktop } = getEventImageSources(event);
-    if (desktop) {
-      og.images = [{ url: desktop, alt: title }];
-    }
+
     return {
-      title,
-      description,
+      title: shareMeta.title,
+      description: shareMeta.description,
       alternates: { canonical: `/events/${slug}` },
-      openGraph: og,
+      openGraph,
+      twitter: {
+        card: shareMeta.image ? "summary_large_image" : "summary",
+        title: shareMeta.title,
+        description: shareMeta.description,
+        ...(shareMeta.image ? { images: [shareMeta.image] } : {}),
+      },
     };
   } catch {
     return {};
@@ -49,8 +117,15 @@ export async function generateMetadata({ params }) {
 
 async function EventDetail({ slug }) {
   let event;
+  let themeDoc;
+
   try {
-    event = await getPublishedEventBySlug(slug);
+    const [eventDoc, themeConfigDoc] = await Promise.all([
+      getPublishedEventBySlug(slug),
+      getThemeForEventDetail(),
+    ]);
+    event = eventDoc;
+    themeDoc = themeConfigDoc;
   } catch {
     return (
       <div style={{ textAlign: "center", padding: "2rem 0" }}>
@@ -63,16 +138,15 @@ async function EventDetail({ slug }) {
   if (!event) notFound();
 
   const { desktop, mobile } = getEventImageSources(event);
-  const siteUrl = getSiteUrl();
+  const shareMeta = getEventShareMeta(event, themeDoc, slug);
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Event",
     name: event.title,
-    ...(event.description && { description: event.description }),
-    url: `${siteUrl}/events/${slug}`,
-    ...(desktop && {
-      image: desktop.startsWith("http") ? desktop : `${siteUrl}${desktop}`,
-    }),
+    ...(shareMeta.description && { description: shareMeta.description }),
+    url: shareMeta.canonicalUrl,
+    ...(shareMeta.image && { image: shareMeta.image }),
     ...(event.startDate && {
       startDate: new Date(event.startDate).toISOString(),
     }),
@@ -84,7 +158,7 @@ async function EventDetail({ slug }) {
       ? {
           location: {
             "@type": "VirtualLocation",
-            url: event.eventLink || `${siteUrl}/events/${slug}`,
+            url: event.eventLink || shareMeta.canonicalUrl,
           },
         }
       : event.location
@@ -129,15 +203,33 @@ async function EventDetail({ slug }) {
                 {event.title}
               </h1>
 
-              <EventMeta
-                event={event}
-                showIcons
+              <div
+                className="events-detail-meta-row"
                 style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  gap: 16,
                   marginBottom: 24,
-                  fontSize: 15,
-                  color: "rgba(0,0,0,0.45)",
+                  flexWrap: "wrap",
                 }}
-              />
+              >
+                <EventMeta
+                  event={event}
+                  showIcons
+                  style={{
+                    marginBottom: 0,
+                    fontSize: 15,
+                    color: "rgba(0,0,0,0.45)",
+                  }}
+                />
+                <SocialShare
+                  canonicalUrl={shareMeta.canonicalUrl}
+                  title={shareMeta.title}
+                  description={shareMeta.description}
+                  image={shareMeta.image}
+                />
+              </div>
 
               {desktop ? (
                 <figure
@@ -284,6 +376,7 @@ async function EventDetail({ slug }) {
         }
         @media (max-width: 768px) {
           .events-detail-title { font-size: 24px !important; line-height: 1.3 !important; }
+          .events-detail-meta-row { align-items: stretch !important; }
           .events-detail-banner { margin-bottom: 20px !important; max-height: none !important; border-radius: 10px !important; }
           .events-detail-banner-img {
             width: 100% !important;
@@ -306,3 +399,4 @@ async function EventDetail({ slug }) {
 export default function EventDetailPage({ params }) {
   return <EventDetail slug={params.slug} />;
 }
+

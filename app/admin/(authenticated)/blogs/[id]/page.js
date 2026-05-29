@@ -178,7 +178,12 @@ export default function AdminBlogEditPage() {
             </Form.Item>
           </Col>
           <Col xs={24} sm={12} xl={12}>
-            <Form.Item name="metaTitle" label="Meta title" className="mb-0">
+            <Form.Item
+              name="metaTitle"
+              label="Meta title"
+              extra="Used for social sharing title (Facebook, X, LinkedIn, WhatsApp, Telegram, Email)."
+              className="mb-0"
+            >
               <Input />
             </Form.Item>
           </Col>
@@ -186,6 +191,7 @@ export default function AdminBlogEditPage() {
             <Form.Item
               name="metaDescription"
               label="Meta description"
+              extra="Used for social sharing description when available."
               className="mb-0"
             >
               <Input.TextArea rows={2} />
@@ -212,7 +218,11 @@ export default function AdminBlogEditPage() {
                   <Row gutter={[12, 12]}>
                     <Col xs={24} md={12}>
                       <Card title="Desktop Image" size="small">
-                        <Form.Item name="featuredImage" className="mb-0">
+                        <Form.Item
+                          name="featuredImage"
+                          extra="Primary image for social sharing previews."
+                          className="mb-0"
+                        >
                           <MediaPickerInput
                             placeholder="/media/..."
                             uiVariant="stacked"
@@ -224,7 +234,11 @@ export default function AdminBlogEditPage() {
                     </Col>
                     <Col xs={24} md={12}>
                       <Card title="Mobile Image" size="small">
-                        <Form.Item name="featuredImageMobile" className="mb-0">
+                        <Form.Item
+                          name="featuredImageMobile"
+                          extra="Used as social sharing fallback image when desktop image is missing."
+                          className="mb-0"
+                        >
                           <MediaPickerInput
                             placeholder="/media/..."
                             uiVariant="stacked"

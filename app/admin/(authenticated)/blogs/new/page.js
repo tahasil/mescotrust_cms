@@ -137,12 +137,20 @@ export default function AdminBlogNewPage() {
             </Form.Item>
           </Col>
           <Col xs={24} sm={12} xl={12}>
-            <Form.Item name="metaTitle" label="Meta title">
+            <Form.Item
+              name="metaTitle"
+              label="Meta title"
+              extra="Used for social sharing title (Facebook, X, LinkedIn, WhatsApp, Telegram, Email)."
+            >
               <Input />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12} xl={12}>
-            <Form.Item name="metaDescription" label="Meta description">
+            <Form.Item
+              name="metaDescription"
+              label="Meta description"
+              extra="Used for social sharing description when available."
+            >
               <Input.TextArea rows={2} />
             </Form.Item>
           </Col>
@@ -163,7 +171,11 @@ export default function AdminBlogNewPage() {
                   <Row gutter={[12, 12]}>
                     <Col xs={24} md={12}>
                       <Card title="Desktop Image" size="small">
-                        <Form.Item name="featuredImage" style={{ marginBottom: 0 }}>
+                        <Form.Item
+                          name="featuredImage"
+                          extra="Primary image for social sharing previews."
+                          style={{ marginBottom: 0 }}
+                        >
                           <MediaPickerInput
                             placeholder="/media/..."
                             uiVariant="stacked"
@@ -177,6 +189,7 @@ export default function AdminBlogNewPage() {
                       <Card title="Mobile Image" size="small">
                         <Form.Item
                           name="featuredImageMobile"
+                          extra="Used as social sharing fallback image when desktop image is missing."
                           style={{ marginBottom: 0 }}
                         >
                           <MediaPickerInput
