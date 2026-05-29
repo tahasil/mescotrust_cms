@@ -283,7 +283,8 @@ Run order = phase order. **Precede every migration with `npm run backup-db-full`
 > Rule: do not start a phase until its **gate** (build + smoke + MESCO-only preservation check) on the previous phase passes. Update the status line below as you go.
 
 **Overall status:** `[~]` Phases 1–3 COMPLETE + build-verified + committed (`05e2ba1`). Phase 4 SAFE PARTS done + committed (`8994475` ThemeConfig additive merge; `ff2b4f2` persistence libs + AppearanceColorConfig, dormant). Phase 4 CUTOVER (DB-coupled) remaining. — _last updated 2026-05-29_
-Phase: 0`[x]` 1`[x]` 2`[x]` 3`[x]` 4`[x]` 5`[ ]` 6`[ ]` 7`[ ]` 8`[ ]` 9`[~]` 10`[ ]` 11`[ ]`
+Phase: 0`[x]` 1`[x]` 2`[x]` 3`[x]` 4`[x]` 5`[~]` 6`[ ]` 7`[ ]` 8`[ ]` 9`[~]` 10`[ ]` 11`[ ]`
+> Phase 5 partial (2026-05-29): form-util merges + SiteComponentMeta.module + 8 reusable components ported/registered/re-defaulted (build ✓). DEFERRED: overlapping-component diff-merges (Accordion/Cards/AnimationsText/InnerPageHero), systemComponents *Target, shortcode, admin theme-component platform reconcile, conditional components, M6 backfill.
 > Phase 4 COMPLETE (2026-05-29): theme cutover (runtime-verified) + Appearance sectioned UI (build/route-verified). MESCO /admin/theme kept for marquee/Donate/smoothScroll/fade. Remaining Phase-4 runtime debt: rendered Appearance UI + authenticated theme-save smoke (need admin login).
 > Phase 4 (2026-05-29, DB session on `mesco_cms_dev`): theme-persistence cutover DONE + **runtime-verified** — themeconfigs→sitesettings auto-migrated, theme renders with MESCO colors/marquee/siteTitle, editor write path intact, header/footer/subscribe kept Component-backed (no M5/no data loss). `*` = TSUV's new Appearance sectioned UI + title-and-colors routes + Theme.js semantic keys deferred as enhancements (MESCO's /admin/theme editor works without them).
 > Phase 9 partial (2026-05-29): next.config + instrumentation/ensure-indexes + model indexes/fields + backup/restore scripts DONE + build-verified. DEFERRED: media merge (diverged files), compare-db/sync-db/audit-unused-media operator scripts.
@@ -350,17 +351,17 @@ Phase: 0`[x]` 1`[x]` 2`[x]` 3`[x]` 4`[x]` 5`[ ]` 6`[ ]` 7`[ ]` 8`[ ]` 9`[~]` 10`
 - [x] `styles/Theme.js` merge — added `ThemeAppearanceLineTabs` (the only new symbol the editor imports); MESCO palette + `THEME_COLOR_ALIASES` kept.
 - [x] Gate: **build ✓ (72/72) + RUNTIME-verified on dev DB** — theme persists to sitesettings, renders with MESCO colors/marquee/siteTitle, no errors. Theme-write smoke (authenticated save round-trip) still worth a manual pass.
 
-### Phase 5 — Theme-component system + new components
-- [ ] **patch ported `"theme-components"` path literals → `"site"`** in site-components routes/admin pages
-- [ ] merge `components/site/index.js` + `SITE_COMPONENT_IDS` (union) + ComponentRenderer (add Portfolio, register new)
-- [ ] port reusable components → `components/site/` (HighlightCardsGrid, InfoStatsGrid, JourneyTimeline, CallToActionBanner, Milestones, MultiLevelMarquee, MediaControl, VideoModalControl; conditional AboutUs/FeaturedReport/NetworkMetricsCard/BlogsListing/MapSliderAnimations) — **re-default tsuv copy**; skip WhyInvestWithStepUp
-- [ ] overlapping upgrades (Accordion, Cards, AnimationsText, InnerPageHero) diff-merge
-- [ ] **(audit) MERGE `components/admin/schemaFormUtils.js` (+ThemeColorOnlySelect) + `components/admin/SortableFormList.js` (+allowDeleteLast/addButtonVariant)** — every ported EditForm depends on these
-- [ ] **(audit) `lib/systemComponents.js` MERGE** (link-target props now; Portfolio entry with Phase 7) + re-run components seed/ensure
-- [ ] shortcode (`lib/shortcode.js` + `ShortCode/*`); resolve theme-components admin redirect pages + `component/shortcode/page.js` per 6.2
-- [ ] admin theme-component platform + reconcile removed "global/position" feature + module exclusion filter
-- [ ] `models/SiteComponentMeta.js` (+ `module` field, softDelete, backfill migration M6)
-- [ ] Gate: build ✓ · all MESCO components + new ones render in PageBuilder ✓
+### Phase 5 — Theme-component system + new components  `[~]` PARTIAL (additive core done, committed fab735f + 2c6a246)
+- [n/a] **patch `"theme-components"` path literals** — NOT needed: kept MESCO's existing `app/api/admin/site-components/*` (already "site"); did NOT port TSUV's theme-component admin platform.
+- [x] merge `components/site/index.js` + `SITE_COMPONENT_IDS` (UNION — all 44 MESCO IDs kept + 8 new) + ComponentRenderer auto-registers via `import * as SiteComponents` (no edit needed). (Portfolio block = Phase 7.)
+- [x] port reusable components → `components/site/`: HighlightCardsGrid, InfoStatsGrid, JourneyTimeline, CallToActionBanner, Milestones, MultiLevelMarquee, MediaControl, VideoModalControl — **tsuv copy re-defaulted** (§2C) + tsuv brand-hex fallback neutralized. WhyInvestWithStepUp skipped. **DEFERRED (conditional):** AboutUs/FeaturedReport/NetworkMetricsCard/BlogsListing/MapSliderAnimations.
+- [ ] **DEFERRED** overlapping upgrades (Accordion, Cards, AnimationsText, InnerPageHero) diff-merge — MESCO's versions kept (risky diff-merge; do as focused pass).
+- [x] **MERGED `schemaFormUtils.js` (+ThemeColorOnlySelect) + `SortableFormList.js` (+allowDeleteLast/addButtonVariant)** (TSUV supersets, MESCO behavior preserved by defaults).
+- [ ] **DEFERRED** `lib/systemComponents.js` *Target props (fiddly single-line edits; not a hard dep) + re-run seed/ensure.
+- [ ] **DEFERRED** shortcode (`lib/shortcode.js` + `ShortCode/*`) — bundle with Forms (Phase 8).
+- [ ] **DEFERRED** admin theme-component platform reconcile + module exclusion filter (MESCO's site-components admin kept; reconcile when Sliders/Popups land in Phase 6).
+- [x] `models/SiteComponentMeta.js` (+ `module` field, softDelete). **DEFERRED:** M6 backfill script (only needed once sliders/popups exist — Phase 6).
+- [~] Gate: **build ✓ (73/73)**. Render-in-PageBuilder smoke needs admin login (runtime debt).
 
 ### Phase 6 — Popups then Sliders
 - [ ] **(audit)** upgrade `components/[id]/edit/page.js` for `forcedComponentId`/`forcedBackHref` (gates BOTH Popups & Sliders `[slug]` pages) — do first
