@@ -18,6 +18,7 @@ import { getEventImageSources } from "@/components/events/eventDisplay";
 import EventsSidebarFull from "@/components/events/EventsSidebarFull";
 import MediaImage from "@/components/shared/MediaImage";
 import SocialShare from "@/components/common/SocialShare";
+import { normalizeTargetFromItem } from "@/lib/linkUtils";
 
 export const revalidate = 60;
 
@@ -172,6 +173,12 @@ async function EventDetail({ slug }) {
   };
 
   const regLink = (event.eventLink || "").trim();
+  // Phase 10: honor the event link-target fields (eventLinkTarget / openInNewTab).
+  const regTarget = normalizeTargetFromItem(event, {
+    targetKeys: ["eventLinkTarget"],
+    boolKeys: ["eventLinkOpenInNewTab"],
+    fallback: "_self",
+  });
 
   return (
     <>
@@ -270,6 +277,7 @@ async function EventDetail({ slug }) {
                 <p style={{ margin: "0 0 24px 0" }}>
                   <a
                     href={regLink}
+                    target={regTarget}
                     rel="noopener noreferrer"
                     style={{
                       display: "inline-block",

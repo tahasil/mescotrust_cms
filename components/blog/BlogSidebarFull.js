@@ -81,7 +81,7 @@ export default function BlogSidebarFull({
         <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 14 }}>
           Search
         </div>
-        <form action="/blog" method="GET" style={{ display: "flex", gap: 8 }}>
+        <form action="/blogs" method="GET" style={{ display: "flex", gap: 8 }}>
           <input
             type="text"
             name="q"
@@ -117,7 +117,7 @@ export default function BlogSidebarFull({
         </form>
         {searchQuery && (
           <Link
-            href="/blog"
+            href="/blogs"
             style={{
               fontSize: 12,
               color: "rgba(0,0,0,0.4)",
@@ -144,7 +144,7 @@ export default function BlogSidebarFull({
           >
             <li style={{ marginBottom: 10 }}>
               <Link
-                href="/blog"
+                href="/blogs"
                 style={{
                   fontSize: 14,
                   color: !categorySlug
@@ -174,7 +174,7 @@ export default function BlogSidebarFull({
             {categories.map((cat) => (
               <li key={cat._id || cat.slug} style={{ marginBottom: 10 }}>
                 <Link
-                  href={`/blog?category=${cat.slug}`}
+                  href={`/blogs?category=${cat.slug}`}
                   style={{
                     fontSize: 14,
                     color:

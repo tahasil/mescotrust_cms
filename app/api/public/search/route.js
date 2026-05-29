@@ -40,7 +40,7 @@ export async function GET(req) {
         const title = getPublishedTitle(p);
         return { type: "page", title, url: `/${slug}`, slug };
       }),
-      ...blogs.map((b) => ({ type: "blog", title: b.title, url: `/blog/${b.slug}`, slug: b.slug, excerpt: b.excerpt })),
+      ...blogs.map((b) => ({ type: "blog", title: b.title, url: `/blogs/${b.slug}`, slug: b.slug, excerpt: b.excerpt })),
       ...events.map((ev) => ({ type: "event", title: ev.title, url: `/events/${ev.slug}`, slug: ev.slug, excerpt: ev.description })),
     ];
     return NextResponse.json({ items });

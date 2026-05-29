@@ -99,6 +99,15 @@ export async function middleware(req) {
     return NextResponse.rewrite(url);
   }
 
+  // /blog has moved to /blogs (TSUV→MESCO Phase 10). Clean HTTP 308 here (before
+  // rendering) — a page-level redirect would fall back to a 200 + <meta refresh>
+  // because the (site) layout streams first. Query string is preserved.
+  if (pathname === "/blog" || pathname.startsWith("/blog/")) {
+    const url = req.nextUrl.clone();
+    url.pathname = pathname.replace(/^\/blog/, "/blogs");
+    return NextResponse.redirect(url, 308);
+  }
+
   if (pathname.startsWith("/api/auth") && req.method === "POST") {
     if (!checkLoginRate(getIp(req))) {
       return NextResponse.json({ error: "Too many login attempts. Try again later." }, { status: 429 });

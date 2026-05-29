@@ -18,7 +18,7 @@ export default async function sitemap() {
     ]);
 
     entries.push({ url: baseUrl, lastModified: new Date(), changeFrequency: "daily", priority: 1 });
-    entries.push({ url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 });
+    entries.push({ url: `${baseUrl}/blogs`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 });
     entries.push({ url: `${baseUrl}/events`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 });
     entries.push({ url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 });
 
@@ -35,7 +35,7 @@ export default async function sitemap() {
     }
     for (const b of blogs) {
       entries.push({
-        url: `${baseUrl}/blog/${b.slug}`,
+        url: `${baseUrl}/blogs/${b.slug}`,
         lastModified: (b.publishedAt || b.updatedAt) ? new Date(b.publishedAt || b.updatedAt) : new Date(),
         changeFrequency: "monthly",
         priority: 0.7,

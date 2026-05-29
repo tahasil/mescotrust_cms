@@ -23,7 +23,7 @@ export default function BlogRecentComments() {
         <li key={c._id} style={{ marginBottom: 12, fontSize: 14, lineHeight: 1.5 }}>
           <span style={{ fontWeight: 600 }}>{c.name}</span>
           <span style={{ color: "rgba(0,0,0,0.4)" }}> on </span>
-          <Link href={`/blog/${c.blogSlug}#comments`} style={{ color: "var(--primary-color, #8b1a1a)", textDecoration: "none" }}>
+          <Link href={`/blogs/${c.blogSlug}#comments`} style={{ color: "var(--primary-color, #8b1a1a)", textDecoration: "none" }}>
             {c.blogTitle}
           </Link>
         </li>

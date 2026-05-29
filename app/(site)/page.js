@@ -78,7 +78,7 @@ async function HomeContent() {
     <div style={{ textAlign: "center" }}>
       <h1>Welcome</h1>
       <p style={{ marginBottom: "1.5rem" }}>Create a page with slug &quot;home&quot; in the admin to customize this page.</p>
-      <Link href="/blog" style={{ color: "var(--primary-color, #1890ff)" }}>
+      <Link href="/blogs" style={{ color: "var(--primary-color, #1890ff)" }}>
         View blog
       </Link>
     </div>

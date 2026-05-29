@@ -23,7 +23,7 @@ function PublicHeader({ menuItems, siteTitle, logoType, logoImageUrl, logoLightU
     ? menuItems
     : [
         { label: "Home", url: "/", openInNewTab: false },
-        { label: "Blog", url: "/blog", openInNewTab: false },
+        { label: "Blog", url: "/blogs", openInNewTab: false },
         { label: "Events", url: "/events", openInNewTab: false },
         { label: "Contact", url: "/contact", openInNewTab: false },
       ];

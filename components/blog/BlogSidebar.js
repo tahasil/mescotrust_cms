@@ -112,7 +112,7 @@ export default function BlogSidebar({ currentSlug, commentCounts }) {
         {display.map((post) => (
           <RecentPostItem key={post._id}>
             {post.featuredImage && (
-              <Link href={`/blog/${post.slug}`} className="rp-image">
+              <Link href={`/blogs/${post.slug}`} className="rp-image">
                 <MediaImage
                   src={post.featuredImage}
                   variant="thumbnail"
@@ -126,7 +126,7 @@ export default function BlogSidebar({ currentSlug, commentCounts }) {
             )}
             <div className="rp-body">
               <div className="rp-title">
-                <Link href={`/blog/${post.slug}`}>{post.title}</Link>
+                <Link href={`/blogs/${post.slug}`}>{post.title}</Link>
               </div>
               <div className="rp-meta">
                 {post.publishedAt ? formatDate(post.publishedAt) : ""}
