@@ -299,6 +299,66 @@ const THEME_CONFIG_OWNED_KEYS = new Set([
   ...Object.keys(DEFAULTS),
   ...THEME_SCHEMA_KEYS,
 ]);
+const HEADER_COMPONENT_OVERRIDE_KEYS = new Set([
+  "menuName",
+  "navItems",
+  "logoType",
+  "logoLightUrl",
+  "logoMobileUrl",
+  "logoDarkUrl",
+  "logoImageUrl",
+  "headerVolunteerLabel",
+  "headerVolunteerHref",
+  "headerVolunteerIconUrl",
+  "headerVolunteerIconUrlMobile",
+  "headerDonateLabel",
+  "headerDonateHref",
+  "headerDonateIconUrl",
+  "headerDonateIconUrlMobile",
+  "headerBgColorKey",
+  "headerCtaBgColorKey",
+  "headerCtaTextColorKey",
+  "headerDonateBgColorKey",
+  "headerDonateTextColorKey",
+  "volunteerModalTitle",
+  "volunteerModalBtnBg",
+  "volunteerModalBtnText",
+  "volunteerModalCancelColor",
+  "_sectionBg",
+  "_containerType",
+  "_sectionPadding",
+  "_sectionBorderSize",
+  "_sectionBorderStyle",
+  "_sectionBorderColor",
+  "_sectionShadow",
+  "headerSectionBgType",
+  "headerSectionBgImage",
+  "headerSectionBgColorKey",
+  "headerSectionPaddingTop",
+  "headerSectionPaddingRight",
+  "headerSectionPaddingBottom",
+  "headerSectionPaddingLeft",
+  "headerSectionMarginTop",
+  "headerSectionMarginBottom",
+  "headerPageContainerBgType",
+  "headerPageContainerBgImage",
+  "headerPageContainerBgColorKey",
+  "headerPageContainerPaddingTop",
+  "headerPageContainerPaddingRight",
+  "headerPageContainerPaddingBottom",
+  "headerPageContainerPaddingLeft",
+  "headerPageContainerMarginTop",
+  "headerPageContainerMarginBottom",
+  "_disableFadeAnimation",
+]);
+
+function shouldMergeComponentProp(baseComponent, key) {
+  if (!THEME_CONFIG_OWNED_KEYS.has(key)) return true;
+  if (baseComponent === "Header") {
+    return HEADER_COMPONENT_OVERRIDE_KEYS.has(key);
+  }
+  return false;
+}
 
 function normalizeTheme(theme) {
   if (!theme) return normalizeThemeColorCollections({ ...DEFAULTS });
@@ -410,9 +470,10 @@ export async function GET() {
     const comps = await Component.find({ baseComponent: { $in: getRegistryIdsFromDisk() } }).lean();
     for (const c of comps || []) {
       const props = c.defaultProps;
+      const baseComponent = c?.baseComponent;
       if (props && typeof props === "object") {
         for (const key of Object.keys(props)) {
-          if (THEME_CONFIG_OWNED_KEYS.has(key)) continue;
+          if (!shouldMergeComponentProp(baseComponent, key)) continue;
           if (props[key] !== undefined) normalized[key] = props[key];
         }
       }

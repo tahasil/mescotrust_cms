@@ -903,8 +903,9 @@ export default function AdminComponentEditPage() {
                     setDrawerUpdateLoading(true);
                     await componentEditFormRef.current?.update?.();
                   } catch {
-                    setDrawerUpdateLoading(false);
                     // error already shown by EditForm
+                  } finally {
+                    setDrawerUpdateLoading(false);
                   }
                 }}
               >
@@ -981,6 +982,29 @@ export default function AdminComponentEditPage() {
                       MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Header,
                       theme,
                     ),
+                  });
+                  form.setFieldsValue({
+                    logoType: theme.logoType ?? "text",
+                    logoLightUrl: theme.logoLightUrl || theme.logoImageUrl || "",
+                    logoMobileUrl: theme.logoMobileUrl ?? "",
+                    headerVolunteerLabel: theme.headerVolunteerLabel ?? "",
+                    headerVolunteerHref: theme.headerVolunteerHref ?? "",
+                    headerVolunteerIconUrl: theme.headerVolunteerIconUrl ?? "",
+                    headerVolunteerIconUrlMobile:
+                      theme.headerVolunteerIconUrlMobile ?? "",
+                    headerDonateLabel: theme.headerDonateLabel ?? "",
+                    headerDonateHref: theme.headerDonateHref ?? "",
+                    headerDonateIconUrl: theme.headerDonateIconUrl ?? "",
+                    headerDonateIconUrlMobile:
+                      theme.headerDonateIconUrlMobile ?? "",
+                    headerBgColorKey: theme.headerBgColorKey ?? "headerBg",
+                    headerCtaBgColorKey: theme.headerCtaBgColorKey ?? "headerCta",
+                    headerCtaTextColorKey:
+                      theme.headerCtaTextColorKey ?? "primary",
+                    headerDonateBgColorKey:
+                      theme.headerDonateBgColorKey ?? "gradient",
+                    headerDonateTextColorKey:
+                      theme.headerDonateTextColorKey ?? "white",
                   });
                 } else if (cid === "Footer") {
                   setThemeFooterSnapshot({

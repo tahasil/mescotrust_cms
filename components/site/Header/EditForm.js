@@ -180,49 +180,63 @@ function HeaderEditForm(
       .catch((e) => message.error(e?.message || "Could not load menu"));
   };
 
-  const handleUpdate = () => {
-    form.validateFields().then(() => {
-      let values = form.getFieldsValue(true);
-      if (Array.isArray(values?.navItems)) {
-        const loaded = lastLoadedNavItemsRef.current;
-        const formItems = values.navItems;
-        values = {
-          ...values,
-          navItems:
-            Array.isArray(loaded) && loaded.length === formItems.length
-              ? formItems.map((item, i) => ({
-                  label: item?.label ?? loaded[i]?.label ?? "",
-                  url: item?.url ?? loaded[i]?.url ?? "#",
-                  hasDropdown: item?.hasDropdown ?? loaded[i]?.hasDropdown ?? false,
-                  children: Array.isArray(loaded[i]?.children) ? loaded[i].children : Array.isArray(item?.children) ? item.children : [],
-                }))
-              : formItems.map((item) => ({
-                  ...item,
-                  children: Array.isArray(item?.children) ? item.children : [],
-                })),
-        };
-      }
-      const payload = { ...values, ...getManageSectionPayload("header", values) };
-      if (isPageBlock && onSaveToPage) {
-        onSaveToPage(payload);
-        message.success("Changes will be saved with the page");
-        onSuccess?.();
-        return;
-      }
-      setSaving(true);
-      fetch("/api/theme/header", {
+  const handleUpdate = async () => {
+    try {
+      await form.validateFields();
+    } catch (err) {
+      throw err;
+    }
+
+    let values = form.getFieldsValue(true);
+    if (Array.isArray(values?.navItems)) {
+      const loaded = lastLoadedNavItemsRef.current;
+      const formItems = values.navItems;
+      values = {
+        ...values,
+        navItems:
+          Array.isArray(loaded) && loaded.length === formItems.length
+            ? formItems.map((item, i) => ({
+                label: item?.label ?? loaded[i]?.label ?? "",
+                url: item?.url ?? loaded[i]?.url ?? "#",
+                hasDropdown: item?.hasDropdown ?? loaded[i]?.hasDropdown ?? false,
+                children: Array.isArray(loaded[i]?.children) ? loaded[i].children : Array.isArray(item?.children) ? item.children : [],
+              }))
+            : formItems.map((item) => ({
+                ...item,
+                children: Array.isArray(item?.children) ? item.children : [],
+              })),
+      };
+    }
+    const payload = { ...values, ...getManageSectionPayload("header", values) };
+    if (isPageBlock && onSaveToPage) {
+      onSaveToPage(payload);
+      message.success("Changes will be saved with the page");
+      onSuccess?.();
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const res = await fetch("/api/theme/header", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-      })
-        .then((r) => { if (!r.ok) return r.json().then((d) => Promise.reject(d)); })
-        .then(() => { message.success("Header saved"); onSuccess?.(); })
-        .catch((e) => message.error(e?.error || "Failed to save header"))
-        .finally(() => setSaving(false));
-    }).catch(() => {});
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || "Failed to save header");
+      }
+      message.success("Header saved");
+      await onSuccess?.();
+    } catch (e) {
+      message.error(e?.message || "Failed to save header");
+      throw e;
+    } finally {
+      setSaving(false);
+    }
   };
 
-  useImperativeHandle(ref, () => ({ update: handleUpdate }), []);
+  useImperativeHandle(ref, () => ({ update: handleUpdate }));
 
   if (loading) {
     return <div style={{ padding: 24, textAlign: "center", color: "#999" }}>Loading…</div>;
