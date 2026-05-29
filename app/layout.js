@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import StyledComponentsRegistry from "@/lib/StyledComponentsRegistry";
 import { getSiteUrl } from "@/lib/env";
-import { getTheme, THEME_DEFAULTS } from "@/lib/layoutData";
+import { getTheme } from "@/lib/layoutData";
 
 /** Always fetch fresh theme and menu from DB; no cache so menu changes show immediately. */
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ export const revalidate = 0;
 
 export async function generateMetadata() {
   const theme = await getTheme();
-  const siteName = String(theme?.siteTitle || "Mesco Trust CMS").trim() || "Mesco Trust CMS";
+  const siteName = String(theme?.siteTitle ?? "").trim();
   const faviconUrl = String(theme?.faviconUrl || "").trim();
 
   return {
@@ -77,10 +77,10 @@ function buildThemeCssVars(theme) {
     ...set("--border-color", t.borderColor),
     ...set("--divider-color", t.dividerColor),
     ...set("--input-border-color", t.inputBorderColor),
-    ...set("--font-family", t.bodyFont || "system-ui, sans-serif"),
-    ...set("--heading-font", t.headingFont || t.bodyFont || "system-ui, sans-serif"),
+    ...set("--font-family", t.bodyFont),
+    ...set("--heading-font", t.headingFont || t.bodyFont),
     ...set("--button-font", t.buttonFont || t.bodyFont),
-    ...set("--font-size", t.baseFontSize ? `${t.baseFontSize}px` : "16px"),
+    ...set("--font-size", t.baseFontSize != null ? `${t.baseFontSize}px` : undefined),
     ...set("--line-height", t.lineHeight),
     ...set("--letter-spacing", t.letterSpacing != null ? `${t.letterSpacing}px` : undefined),
     ...set("--font-weight", t.fontWeightNormal),
@@ -88,7 +88,7 @@ function buildThemeCssVars(theme) {
     ...set("--button-radius", t.buttonRadius != null ? `${t.buttonRadius}px` : undefined),
     ...set("--card-radius", t.cardRadius != null ? `${t.cardRadius}px` : undefined),
     ...set("--input-radius", t.inputRadius != null ? `${t.inputRadius}px` : undefined),
-    ...set("--layout-width", t.layoutWidth ? `${t.layoutWidth}px` : "1200px"),
+    ...set("--layout-width", t.layoutWidth != null ? `${t.layoutWidth}px` : undefined),
     ...(t.cardShadow === false ? { "--card-shadow": "none" } : {}),
     ...(t.buttonShadow === true ? { "--button-shadow": "0 2px 4px rgba(0,0,0,0.1)" } : {}),
     ...set("--button-bg", t.buttonBackground),
@@ -115,7 +115,7 @@ export default async function RootLayout({ children }) {
   const pathname = headersList.get("x-pathname") || headersList.get("X-Pathname") || "";
   const theme = await getTheme();
   const isAdmin = pathname.startsWith("/admin");
-  const dir = theme.direction || "ltr";
+  const dir = theme.direction;
   const googleFontsUrl = buildGoogleFontsUrl(theme.googleFonts);
 
   const colorVars = buildCssVarsFromColors(theme.colors);
@@ -136,22 +136,25 @@ export default async function RootLayout({ children }) {
     ...themeVars,
     ...themePaletteVars,
     ...colorVars,
-    "--font-family": theme.bodyFont || theme.fontFamily || "system-ui, sans-serif",
-    "--heading-font": theme.headingFont || theme.headingFontFamily || theme.bodyFont || "system-ui, sans-serif",
-    "--font-size": `${theme.baseFontSize ?? theme.fontSize ?? 16}px`,
-    "--line-height": String(theme.lineHeight ?? 1.6),
-    "--letter-spacing": `${theme.letterSpacing ?? 0}px`,
-    "--font-weight": String(theme.fontWeightNormal ?? theme.fontWeight ?? 400),
-    "--heading-font-weight": String(theme.fontWeightBold ?? theme.headingFontWeight ?? 700),
-    "--layout-width": `${theme.layoutWidth ?? 1200}px`,
+    "--font-family": theme.bodyFont || theme.fontFamily,
+    "--heading-font":
+      theme.headingFont || theme.headingFontFamily || theme.bodyFont,
+    "--font-size": `${theme.baseFontSize ?? theme.fontSize}px`,
+    "--line-height": String(theme.lineHeight),
+    "--letter-spacing": `${theme.letterSpacing}px`,
+    "--font-weight": String(theme.fontWeightNormal ?? theme.fontWeight),
+    "--heading-font-weight": String(
+      theme.fontWeightBold ?? theme.headingFontWeight,
+    ),
+    "--layout-width": `${theme.layoutWidth}px`,
   };
 
   const loaderEnabled = !isAdmin && theme.pageLoaderEnabled !== false;
-  const loaderBg = theme.pageLoaderBgColor || "#000000";
-  const loaderBar = theme.pageLoaderBarColor || "#CF372F";
-  const loaderMinDuration = theme.pageLoaderMinDuration ?? 400;
+  const loaderBg = theme.pageLoaderBgColor;
+  const loaderBar = theme.pageLoaderBarColor;
+  const loaderMinDuration = theme.pageLoaderMinDuration;
 
-  const siteName = theme.siteTitle || "Mesco Trust CMS";
+  const siteName = theme.siteTitle;
   const orgJsonLd = !isAdmin
     ? {
         "@context": "https://schema.org",
@@ -162,7 +165,7 @@ export default async function RootLayout({ children }) {
     : null;
 
   return (
-    <html lang={theme.defaultLocale || "en"} dir={dir} style={cssVars} data-header-layout={theme.headerLayout} data-card-style={theme.cardStyle} className={loaderEnabled ? "page-loading" : undefined}>
+    <html lang={theme.defaultLocale} dir={dir} style={cssVars} data-header-layout={theme.headerLayout} data-card-style={theme.cardStyle} className={loaderEnabled ? "page-loading" : undefined}>
       <head>
         {theme.faviconUrl && <link rel="icon" href={theme.faviconUrl} />}
         {googleFontsUrl && <link rel="stylesheet" href={googleFontsUrl} />}

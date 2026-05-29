@@ -219,7 +219,7 @@ const headerThemeProps = (props) => ({
   headerCtaTextValue: props.headerCtaTextValue ?? "",
   headerDonateBgValue: props.headerDonateBgValue ?? "",
   headerDonateTextValue: props.headerDonateTextValue ?? "",
-  volunteerModalTitle: props.volunteerModalTitle ?? "Leave us a message",
+  volunteerModalTitle: props.volunteerModalTitle ?? "",
   volunteerModalBtnBg: props.volunteerModalBtnBg ?? "",
   volunteerModalBtnText: props.volunteerModalBtnText ?? "",
   volunteerModalCancelColor: props.volunteerModalCancelColor ?? "",

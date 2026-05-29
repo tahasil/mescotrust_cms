@@ -34,21 +34,21 @@ export default async function SiteLayout({ children }) {
   const theme = data?.theme || {};
   const logoUrl = theme.logoLightUrl || theme.logoImageUrl || "";
 
-  const headerBgKey = theme.headerBgColorKey || "headerBg";
-  const headerCtaBgKey = theme.headerCtaBgColorKey || "headerCta";
-  const headerCtaTextKey = theme.headerCtaTextColorKey || "primary";
-  const headerDonateBgKey = theme.headerDonateBgColorKey || "gradient";
-  const headerDonateTextKey = theme.headerDonateTextColorKey || "white";
+  const headerBgKey = theme.headerBgColorKey ?? "";
+  const headerCtaBgKey = theme.headerCtaBgColorKey ?? "";
+  const headerCtaTextKey = theme.headerCtaTextColorKey ?? "";
+  const headerDonateBgKey = theme.headerDonateBgColorKey ?? "";
+  const headerDonateTextKey = theme.headerDonateTextColorKey ?? "";
 
-  const footerBgKey = theme.footerBgColorKey || "";
-  const footerTextKey = theme.footerTextColorKey || "";
-  const footerCopyrightBarKey = theme.footerCopyrightBarColorKey || "";
+  const footerBgKey = theme.footerBgColorKey ?? "";
+  const footerTextKey = theme.footerTextColorKey ?? "";
+  const footerCopyrightBarKey = theme.footerCopyrightBarColorKey ?? "";
 
   return (
     <>
       <PageTransitionLoader
         enabled={theme.pageLoaderEnabled !== false}
-        minDuration={theme.pageLoaderMinDuration ?? 400}
+        minDuration={theme.pageLoaderMinDuration}
       />
       <SmoothScroll />
       <PublicShell
@@ -59,30 +59,30 @@ export default async function SiteLayout({ children }) {
         customFooterLayout={data?.customFooterLayout || null}
         globalBefore={data?.globalBefore || []}
         globalAfter={data?.globalAfter || []}
-        siteTitle={theme.siteTitle ?? ""}
+        siteTitle={theme.siteTitle}
         tagline={theme.tagline}
-        logoType={theme.logoType || "text"}
+        logoType={theme.logoType}
         logoLightUrl={logoUrl}
-        logoMobileUrl={theme.logoMobileUrl || ""}
-        logoDarkUrl={theme.logoDarkUrl || ""}
+        logoMobileUrl={theme.logoMobileUrl ?? ""}
+        logoDarkUrl={theme.logoDarkUrl ?? ""}
         footerCopyrightText={theme.footerCopyrightText}
         headerSticky={theme.headerSticky !== false}
         headerTransparent={theme.headerTransparent}
-        headerLayout={theme.headerLayout || "default"}
+        headerLayout={theme.headerLayout}
         headerVolunteerLabel={theme.headerVolunteerLabel}
         headerVolunteerHref={theme.headerVolunteerHref}
         headerVolunteerIconUrl={theme.headerVolunteerIconUrl}
-        headerVolunteerIconUrlMobile={theme.headerVolunteerIconUrlMobile || ""}
+        headerVolunteerIconUrlMobile={theme.headerVolunteerIconUrlMobile ?? ""}
         headerDonateLabel={theme.headerDonateLabel}
         headerDonateHref={theme.headerDonateHref}
         headerDonateIconUrl={theme.headerDonateIconUrl}
-        headerDonateIconUrlMobile={theme.headerDonateIconUrlMobile || ""}
+        headerDonateIconUrlMobile={theme.headerDonateIconUrlMobile ?? ""}
         headerBgValue={resolveThemeColor(theme, headerBgKey)}
         headerCtaBgValue={resolveThemeColor(theme, headerCtaBgKey)}
         headerCtaTextValue={resolveThemeColor(theme, headerCtaTextKey)}
         headerDonateBgValue={resolveThemeColor(theme, headerDonateBgKey)}
         headerDonateTextValue={resolveThemeColor(theme, headerDonateTextKey)}
-        volunteerModalTitle={theme.volunteerModalTitle || "Leave us a message"}
+        volunteerModalTitle={theme.volunteerModalTitle}
         volunteerModalBtnBg={resolveThemeColor(theme, theme.volunteerModalBtnBg)}
         volunteerModalBtnText={resolveThemeColor(theme, theme.volunteerModalBtnText)}
         volunteerModalCancelColor={resolveThemeColor(theme, theme.volunteerModalCancelColor)}
@@ -92,33 +92,33 @@ export default async function SiteLayout({ children }) {
         headerSectionBorderStyle={theme._sectionBorderStyle ?? ""}
         headerSectionBorderColor={theme._sectionBorderColor ?? ""}
         headerSectionShadow={theme._sectionShadow ?? ""}
-        footerColumnsCount={theme.footerColumnsCount ?? 4}
+        footerColumnsCount={theme.footerColumnsCount}
         footerSocialIcons={theme.footerSocialIcons !== false}
         footerLayoutStyle={theme.footerLayoutStyle}
-        footerLogoUrl={theme.footerLogoUrl || ""}
-        footerAddress={theme.footerAddress || ""}
-        footerEmail={theme.footerEmail || ""}
-        footerPhone={theme.footerPhone || ""}
+        footerLogoUrl={theme.footerLogoUrl ?? ""}
+        footerAddress={theme.footerAddress ?? ""}
+        footerEmail={theme.footerEmail ?? ""}
+        footerPhone={theme.footerPhone ?? ""}
         footerCol1Links={theme.footerCol1Links || []}
         footerCol2Links={theme.footerCol2Links || []}
         footerSocialLinks={theme.footerSocialLinks || []}
         footerBgValue={resolveThemeColor(theme, footerBgKey)}
-        footerBackgroundImageUrl={theme.footerBackgroundImageUrl || ""}
+        footerBackgroundImageUrl={theme.footerBackgroundImageUrl ?? ""}
         footerTextValue={resolveThemeColor(theme, footerTextKey)}
         footerCopyrightBarValue={resolveThemeColor(theme, footerCopyrightBarKey)}
       >
         {children}
       </PublicShell>
       <style dangerouslySetInnerHTML={{ __html: `:root {
-        --layout-width: ${Number(theme.layoutWidth) > 0 ? Number(theme.layoutWidth) : 1200}px;
+        --layout-width: ${Number(theme.layoutWidth)}px;
         --smooth-scroll-enabled: ${theme.smoothScrollEnabled !== false ? "1" : "0"};
-        --smooth-scroll-duration: ${Number(theme.smoothScrollDuration) > 0 ? Number(theme.smoothScrollDuration) : 1.4};
-        --smooth-scroll-wheel: ${Number(theme.smoothScrollWheelMultiplier) > 0 ? Number(theme.smoothScrollWheelMultiplier) : 1};
-        --smooth-scroll-touch: ${Number(theme.smoothScrollTouchMultiplier) > 0 ? Number(theme.smoothScrollTouchMultiplier) : 1.2};
+        --smooth-scroll-duration: ${Number(theme.smoothScrollDuration)};
+        --smooth-scroll-wheel: ${Number(theme.smoothScrollWheelMultiplier)};
+        --smooth-scroll-touch: ${Number(theme.smoothScrollTouchMultiplier)};
         --fade-enabled: ${theme.fadeAnimationEnabled !== false ? "1" : "0"};
-        --fade-duration: ${Number(theme.fadeAnimationDuration) > 0 ? Number(theme.fadeAnimationDuration) : 1}s;
-        --fade-distance: ${Number(theme.fadeAnimationDistance) > 0 ? Number(theme.fadeAnimationDistance) : 20}vh;
-        --fade-threshold: ${Number(theme.fadeAnimationThreshold) >= 0 ? Number(theme.fadeAnimationThreshold) : 0.1};
+        --fade-duration: ${Number(theme.fadeAnimationDuration)}s;
+        --fade-distance: ${Number(theme.fadeAnimationDistance)}vh;
+        --fade-threshold: ${Number(theme.fadeAnimationThreshold)};
       }` }} />
       {theme.footerScripts && <script dangerouslySetInnerHTML={{ __html: theme.footerScripts }} />}
       <Script

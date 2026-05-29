@@ -403,6 +403,11 @@ export default function AdminThemePage() {
           ? data.colors
           : (form.getFieldValue("colors") ?? []),
       });
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("admin-theme-updated", { detail: data }),
+        );
+      }
     } finally {
       setSaving(false);
     }

@@ -309,7 +309,10 @@ function ModalSubmitButton({ bgColor, textColor }) {
     <ModalSendBtn
       type="submit"
       disabled={pending}
-      style={{ background: bgColor || "#8b1a1a", color: textColor || "#fff" }}
+      style={{
+        background: bgColor || getColor("primary") || "var(--theme-primary)",
+        color: textColor || getColor("white") || "var(--theme-white)",
+      }}
     >
       {pending ? "Sending..." : "Send Message"}
     </ModalSendBtn>
@@ -348,7 +351,7 @@ export default function Header({
   sectionBorderColor = "",
   sectionShadow = "",
   /* Modal props */
-  volunteerModalTitle = "Leave us a message",
+  volunteerModalTitle = "",
   volunteerModalBtnBg = "",
   volunteerModalBtnText = "",
   volunteerModalCancelColor = "",
@@ -356,13 +359,13 @@ export default function Header({
   /* Resolve modal color keys to actual CSS color values */
   const resolvedModalBtnBg = volunteerModalBtnBg
     ? getColor(volunteerModalBtnBg) || volunteerModalBtnBg
-    : "#8b1a1a";
+    : getColor("primary") || "var(--theme-primary)";
   const resolvedModalBtnText = volunteerModalBtnText
     ? getColor(volunteerModalBtnText) || volunteerModalBtnText
-    : "#fff";
+    : getColor("white") || "var(--theme-white)";
   const resolvedModalCancelColor = volunteerModalCancelColor
     ? getColor(volunteerModalCancelColor) || volunteerModalCancelColor
-    : "#8b1a1a";
+    : getColor("primary") || "var(--theme-primary)";
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openAccordion, setOpenAccordion] = useState(null);

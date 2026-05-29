@@ -295,6 +295,14 @@ const themeConfigSchema = new mongoose.Schema(
     layoutWidth: { type: Number, default: 1200 },
     defaultLocale: { type: String, default: "en" },
     direction: { type: String, enum: ["ltr", "rtl"], default: "ltr" },
+    smoothScrollEnabled: { type: Boolean, default: true },
+    smoothScrollDuration: { type: Number, default: 1.4 },
+    smoothScrollWheelMultiplier: { type: Number, default: 1 },
+    smoothScrollTouchMultiplier: { type: Number, default: 1.2 },
+    fadeAnimationEnabled: { type: Boolean, default: true },
+    fadeAnimationDuration: { type: Number, default: 1 },
+    fadeAnimationDistance: { type: Number, default: 20 },
+    fadeAnimationThreshold: { type: Number, default: 0.1 },
 
     // ─── 13. Admin Panel Theme ─────────────────────────────────
     adminSiteName: { type: String, default: "" },

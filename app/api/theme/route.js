@@ -225,6 +225,14 @@ const DEFAULTS = {
   layoutWidth: 1200,
   defaultLocale: "en",
   direction: "ltr",
+  smoothScrollEnabled: true,
+  smoothScrollDuration: 1.4,
+  smoothScrollWheelMultiplier: 1,
+  smoothScrollTouchMultiplier: 1.2,
+  fadeAnimationEnabled: true,
+  fadeAnimationDuration: 1,
+  fadeAnimationDistance: 20,
+  fadeAnimationThreshold: 0.1,
   adminSiteName: "",
   adminLogoUrl: "",
   adminTextColor: "#333333",
@@ -273,11 +281,24 @@ const THEME_FIELDS = [
   "pageLoaderEnabled", "pageLoaderBgColor", "pageLoaderBarColor", "pageLoaderMinDuration",
   "customCss", "customJs", "headScripts", "footerScripts", "googleAnalyticsId",
   "layoutWidth", "defaultLocale", "direction",
+  "smoothScrollEnabled", "smoothScrollDuration", "smoothScrollWheelMultiplier", "smoothScrollTouchMultiplier",
+  "fadeAnimationEnabled", "fadeAnimationDuration", "fadeAnimationDistance", "fadeAnimationThreshold",
   "adminSiteName", "adminLogoUrl", "adminTextColor", "adminBorderColor",
   "adminCtaBgColor", "adminCtaTextColor", "adminCtaHoverBgColor", "adminCtaHoverTextColor",
   "adminSidebarBg", "adminSidebarText", "adminSidebarHoverBg", "adminSidebarHoverText",
   "adminSidebarActiveBg", "adminSidebarActiveText", "adminLoaderColor", "adminLoaderBgColor",
 ];
+const THEME_SCHEMA_KEYS = Object.keys(ThemeConfig?.schema?.paths || {}).filter(
+  (key) =>
+    key !== "_id" &&
+    key !== "__v" &&
+    key !== "createdAt" &&
+    key !== "updatedAt",
+);
+const THEME_CONFIG_OWNED_KEYS = new Set([
+  ...Object.keys(DEFAULTS),
+  ...THEME_SCHEMA_KEYS,
+]);
 
 function normalizeTheme(theme) {
   if (!theme) return { ...DEFAULTS, themePalette: { ...THEME_PALETTE_DEFAULTS } };
@@ -394,6 +415,7 @@ export async function GET() {
       const props = c.defaultProps;
       if (props && typeof props === "object") {
         for (const key of Object.keys(props)) {
+          if (THEME_CONFIG_OWNED_KEYS.has(key)) continue;
           if (props[key] !== undefined) normalized[key] = props[key];
         }
       }

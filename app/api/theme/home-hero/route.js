@@ -10,16 +10,6 @@ import { isAdmin } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
-const HOME_HERO_KEYS = [
-  "homeHeroSlides",
-  "homeHeroSliderTitleColorKey",
-  "homeHeroSliderDescColorKey",
-  "homeHeroSliderButtonBgColorKey",
-  "homeHeroSliderButtonTextColorKey",
-  "homeHeroBackgroundContainer",
-  "homeHeroContentContainer",
-];
-
 const HOME_HERO_DEFAULTS = {
   homeHeroSlides: [],
   homeHeroSliderTitleColorKey: "",
@@ -28,6 +18,11 @@ const HOME_HERO_DEFAULTS = {
   homeHeroSliderButtonTextColorKey: "",
   homeHeroBackgroundContainer: "full",
   homeHeroContentContainer: "pageContainer",
+  homeHeroAutoplay: true,
+  homeHeroShowArrows: true,
+  homeHeroShowDots: true,
+  homeHeroAutoplaySpeed: 5000,
+  homeHeroSpeed: 500,
 };
 
 function normalizeSlide(s) {
@@ -61,16 +56,43 @@ function normalizeSlide(s) {
   };
 }
 
+function normalizeHomeHeroProps(input) {
+  const payload = input && typeof input === "object" ? input : {};
+  const out = { ...HOME_HERO_DEFAULTS, ...payload };
+  out.homeHeroSlides = Array.isArray(out.homeHeroSlides)
+    ? out.homeHeroSlides.map(normalizeSlide)
+    : [];
+  if (out.homeHeroAutoplay !== undefined) {
+    out.homeHeroAutoplay = out.homeHeroAutoplay !== false;
+  }
+  if (out.homeHeroShowArrows !== undefined) {
+    out.homeHeroShowArrows = out.homeHeroShowArrows !== false;
+  }
+  if (out.homeHeroShowDots !== undefined) {
+    out.homeHeroShowDots = out.homeHeroShowDots !== false;
+  }
+  if (out.homeHeroAutoplaySpeed != null) {
+    const n = Number(out.homeHeroAutoplaySpeed);
+    out.homeHeroAutoplaySpeed = Number.isFinite(n) ? Math.max(1000, n) : HOME_HERO_DEFAULTS.homeHeroAutoplaySpeed;
+  }
+  if (out.homeHeroSpeed != null) {
+    const n = Number(out.homeHeroSpeed);
+    out.homeHeroSpeed = Number.isFinite(n) ? Math.max(200, n) : HOME_HERO_DEFAULTS.homeHeroSpeed;
+  }
+  for (const [key, value] of Object.entries(out)) {
+    if (key === "homeHeroSlides") continue;
+    if (typeof value === "string") out[key] = value.trim();
+  }
+  return out;
+}
+
 function toPayload(defaultProps) {
-  const out = { ...HOME_HERO_DEFAULTS };
+  const out = normalizeHomeHeroProps(defaultProps);
   if (defaultProps && typeof defaultProps === "object") {
-    if (Array.isArray(defaultProps.homeHeroSlides)) {
-      out.homeHeroSlides = defaultProps.homeHeroSlides.map(normalizeSlide);
-    }
-    for (const k of HOME_HERO_KEYS) {
-      if (k !== "homeHeroSlides" && defaultProps[k] != null) {
-        out[k] = String(defaultProps[k]).trim();
-      }
+    for (const key of Object.keys(defaultProps)) {
+      if (out[key] !== undefined) continue;
+      const value = defaultProps[key];
+      out[key] = typeof value === "string" ? value.trim() : value;
     }
   }
   return out;
@@ -97,30 +119,26 @@ export async function PUT(req) {
 
   try {
     const body = await req.json();
-    const defaultProps = { ...HOME_HERO_DEFAULTS };
-    if (Array.isArray(body.homeHeroSlides)) {
-      defaultProps.homeHeroSlides = body.homeHeroSlides.map(normalizeSlide);
-    }
-    for (const k of HOME_HERO_KEYS) {
-      if (k !== "homeHeroSlides" && body[k] !== undefined) {
-        defaultProps[k] = typeof body[k] === "string" ? String(body[k]).trim() : body[k];
-      }
-    }
+    const payload = body && typeof body === "object" ? body : {};
 
     await connectDB();
     let doc = await Component.findOne({ baseComponent: "HomeHero" });
     if (!doc) {
+      const defaultProps = normalizeHomeHeroProps(payload);
       doc = await Component.create({
         name: "HomeHero",
         displayName: "Home Hero",
         type: "system",
         baseComponent: "HomeHero",
-        defaultProps,
+        defaultProps: { ...defaultProps },
         layout: [],
         active: true,
       });
     } else {
-      doc.defaultProps = { ...(doc.defaultProps || {}), ...defaultProps };
+      doc.defaultProps = normalizeHomeHeroProps({
+        ...(doc.defaultProps || {}),
+        ...payload,
+      });
       doc.markModified("defaultProps");
       await doc.save();
     }

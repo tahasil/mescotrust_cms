@@ -16,21 +16,20 @@ export const HEADER_OFFSET_DESKTOP = "88px";
 /** Space needed on mobile (full-width bar) */
 export const HEADER_OFFSET_MOBILE = "56px";
 
-/** Fallback values when a color is not in Theme.colors (no built-in palette in DB/Theme.js) */
-export const FALLBACK_COLORS = {
-  primary: "#CF372F",
-  primaryLight: "rgba(207, 55, 47, 0.12)",
-  white: "#FFFFFF",
-  black: "#050505",
-  headerBg: "rgba(5, 5, 5, 0.5)",
-  headerCta: "rgba(207, 55, 47, 0.1)",
-  ctaBorder: "rgba(255, 255, 255, 0.2)",
-  gradient: "linear-gradient(90deg, #CF372F 0%, #691C18 100%)",
-  themeBorder: "rgba(0, 0, 0, 0.1)",
-  imgFillWhite:
-    "brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(3%) hue-rotate(51deg) brightness(115%) contrast(100%)",
-  imgFillTheme:
-    "brightness(0) saturate(100%) invert(25%) sepia(76%) saturate(6383%) hue-rotate(354deg) brightness(93%) contrast(73%)",
+/** Semantic aliases map to CSS vars injected from DB-backed theme config. */
+export const THEME_COLOR_ALIASES = {
+  primary: "var(--primary-color)",
+  secondary: "var(--secondary-color)",
+  white: "var(--theme-white)",
+  black: "var(--theme-black)",
+  headerBg: "var(--theme-header-bg)",
+  headerCta: "var(--theme-header-cta)",
+  ctaBorder: "var(--theme-cta-border)",
+  gradient: "var(--theme-gradient)",
+  primaryLight: "var(--theme-primary-light)",
+  themeBorder: "var(--theme-theme-border, var(--border-color))",
+  imgFillWhite: "var(--theme-img-fill-white)",
+  imgFillTheme: "var(--theme-img-fill-theme)",
 };
 
 const Theme = {
@@ -43,7 +42,7 @@ const Theme = {
 };
 
 /**
- * Resolve theme color by key. Uses Theme.colors, then FALLBACK_COLORS (case-insensitive),
+ * Resolve theme color by key. Uses Theme.colors, then semantic alias CSS vars (case-insensitive),
  * then CSS variable var(--theme-{key}) so layout-injected theme palette applies (admin + frontend).
  */
 export const getColor = (key) => {
@@ -69,15 +68,15 @@ export const getColor = (key) => {
       c.toLowerCase() === compact.toLowerCase(),
   );
   if (colorsKey) return Theme.colors[colorsKey];
-  // Fallback colors
-  const fallbackKey = Object.keys(FALLBACK_COLORS).find(
+  // Semantic alias colors (CSS vars)
+  const aliasKey = Object.keys(THEME_COLOR_ALIASES).find(
     (f) =>
       f.toLowerCase() === k.toLowerCase() ||
       f.toLowerCase() === camel.toLowerCase() ||
       f.toLowerCase() === compact.toLowerCase(),
   );
-  if (fallbackKey) {
-    return `var(--theme-${slug}, ${FALLBACK_COLORS[fallbackKey]})`;
+  if (aliasKey) {
+    return THEME_COLOR_ALIASES[aliasKey];
   }
   return `var(--theme-${slug})`;
 };

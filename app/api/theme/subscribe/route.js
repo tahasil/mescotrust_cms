@@ -11,22 +11,13 @@ import { isAdmin } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
-const SUBSCRIBE_KEYS = [
-  "subscribeSubtitle",
-  "subscribeTitle",
-  "subscribePlaceholder",
-  "subscribeButtonText",
-  "subscribeBgUrl",
-  "subscribeSubtitleColorKey",
-  "subscribeTitleColorKey",
-  "subscribeButtonBgColorKey",
-  "subscribeButtonTextColorKey",
-];
 const SUBSCRIBE_DEFAULTS = {
   subscribeSubtitle: "",
   subscribeTitle: "",
   subscribePlaceholder: "",
   subscribeButtonText: "",
+  subscribeBgDesktop: "",
+  subscribeBgMobile: "",
   subscribeBgUrl: "",
   subscribeSubtitleColorKey: "",
   subscribeTitleColorKey: "",
@@ -34,11 +25,41 @@ const SUBSCRIBE_DEFAULTS = {
   subscribeButtonTextColorKey: "",
 };
 
+function normalizeSubscribeProps(input) {
+  const payload = input && typeof input === "object" ? input : {};
+  const out = { ...SUBSCRIBE_DEFAULTS, ...payload };
+
+  const bgDesktop =
+    out.subscribeBgDesktop != null
+      ? String(out.subscribeBgDesktop).trim()
+      : out.subscribeBgUrl != null
+        ? String(out.subscribeBgUrl).trim()
+        : "";
+  out.subscribeBgDesktop = bgDesktop;
+  out.subscribeBgUrl = bgDesktop;
+  out.subscribeBgMobile =
+    out.subscribeBgMobile != null ? String(out.subscribeBgMobile).trim() : "";
+
+  for (const [key, value] of Object.entries(out)) {
+    if (
+      key === "subscribeBgDesktop" ||
+      key === "subscribeBgUrl" ||
+      key === "subscribeBgMobile"
+    ) {
+      continue;
+    }
+    if (typeof value === "string") out[key] = value.trim();
+  }
+  return out;
+}
+
 function toPayload(defaultProps) {
-  const out = { ...SUBSCRIBE_DEFAULTS };
+  const out = normalizeSubscribeProps(defaultProps);
   if (defaultProps && typeof defaultProps === "object") {
-    for (const k of SUBSCRIBE_KEYS) {
-      if (defaultProps[k] != null) out[k] = String(defaultProps[k]).trim();
+    for (const key of Object.keys(defaultProps)) {
+      if (out[key] !== undefined) continue;
+      const value = defaultProps[key];
+      out[key] = typeof value === "string" ? value.trim() : value;
     }
   }
   return out;
@@ -67,27 +88,26 @@ export async function PUT(req) {
 
   try {
     const body = await req.json();
-    const defaultProps = { ...SUBSCRIBE_DEFAULTS };
-    for (const k of SUBSCRIBE_KEYS) {
-      if (body[k] !== undefined) {
-        defaultProps[k] = typeof body[k] === "string" ? String(body[k]).trim() : body[k];
-      }
-    }
+    const payload = body && typeof body === "object" ? body : {};
 
     await connectDB();
     let doc = await Component.findOne({ baseComponent: "Subscribe" });
     if (!doc) {
+      const defaultProps = normalizeSubscribeProps(payload);
       doc = await Component.create({
         name: "Subscribe",
         displayName: "Subscribe",
         type: "system",
         baseComponent: "Subscribe",
-        defaultProps,
+        defaultProps: { ...defaultProps },
         layout: [],
         active: true,
       });
     } else {
-      doc.defaultProps = { ...(doc.defaultProps || {}), ...defaultProps };
+      doc.defaultProps = normalizeSubscribeProps({
+        ...(doc.defaultProps || {}),
+        ...payload,
+      });
       doc.markModified("defaultProps");
       await doc.save();
     }

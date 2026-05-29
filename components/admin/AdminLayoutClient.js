@@ -302,6 +302,17 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
   const routeChangedRef = useRef(false);
   const navPendingFetchRef = useRef(0);
   const prevCountRef = useRef(0);
+  const applyAdminTheme = useCallback((data) => {
+    const next = { ...DEFAULT_ADMIN_THEME };
+    if (data && typeof data === "object") {
+      for (const key of Object.keys(DEFAULT_ADMIN_THEME)) {
+        if (data[key] !== undefined && data[key] !== "") {
+          next[key] = data[key];
+        }
+      }
+    }
+    setAdminTheme(next);
+  }, []);
 
   const clearRouteLoaderTimers = useCallback(() => {
     if (routeShowTimerRef.current) {
@@ -358,17 +369,17 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
 
   // Fetch admin theme settings
   useEffect(() => {
+    const handleAdminThemeUpdated = (event) => {
+      applyAdminTheme(event?.detail);
+    };
     fetch("/api/theme")
       .then((res) => (res.ok ? res.json() : {}))
-      .then((data) => {
-        const t = { ...DEFAULT_ADMIN_THEME };
-        for (const key of Object.keys(DEFAULT_ADMIN_THEME)) {
-          if (data[key] !== undefined && data[key] !== "") t[key] = data[key];
-        }
-        setAdminTheme(t);
-      })
+      .then((data) => applyAdminTheme(data))
       .catch(() => {});
-  }, []);
+    window.addEventListener("admin-theme-updated", handleAdminThemeUpdated);
+    return () =>
+      window.removeEventListener("admin-theme-updated", handleAdminThemeUpdated);
+  }, [applyAdminTheme]);
 
   // Responsive detection
   useEffect(() => {
