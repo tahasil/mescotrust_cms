@@ -29,6 +29,7 @@ const MODEL_FILES = [
   "Page",
   "Permission",
   "PermissionAuditLog",
+  "Popup",
   "Portfolio",
   "PortfolioCategory",
   "RolePermission",

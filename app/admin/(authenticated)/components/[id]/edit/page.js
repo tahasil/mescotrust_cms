@@ -52,10 +52,13 @@ const LOGO_TYPE_OPTIONS = [
   { value: "image", label: "Image" },
 ];
 
-export default function AdminComponentEditPage() {
+export default function AdminComponentEditPage({ forcedComponentId, forcedBackHref = "" } = {}) {
   const params = useParams();
   const router = useRouter();
-  const id = params.id;
+  // Sliders/Popups reuse this editor with a forced component id + back href
+  // (TSUV→MESCO Phase 6); default to the URL param + the Components list.
+  const id = forcedComponentId || params.id;
+  const backHref = forcedBackHref || "/admin/components";
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [record, setRecord] = useState(null);
@@ -102,7 +105,7 @@ export default function AdminComponentEditPage() {
       .then(async (res) => {
         if (res.status === 404) {
           message.error("Component not found");
-          router.push("/admin/components");
+          router.push(backHref);
           return null;
         }
         if (!res.ok) {
@@ -128,7 +131,7 @@ export default function AdminComponentEditPage() {
       })
       .catch((err) => {
         message.error(err?.message || "Failed to load component");
-        router.push("/admin/components");
+        router.push(backHref);
       })
       .finally(() => setLoading(false));
   }, [id, form, router]);
@@ -626,7 +629,7 @@ export default function AdminComponentEditPage() {
     <ThemeAdminCard
       title={
         <>
-          <Link href="/admin/components" style={{ marginRight: 8 }}>
+          <Link href={backHref} style={{ marginRight: 8 }}>
             <Button
               type="text"
               icon={<ArrowLeftOutlined />}

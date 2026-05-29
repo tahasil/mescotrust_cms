@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import * as SiteComponents from "@/components/site";
+import RoutePopupHost from "@/components/layout/RoutePopupHost";
 
 const hasHeaderBlock = (layout) =>
   Array.isArray(layout) && layout.some((b) => (b?.baseComponent || b?.componentId?.baseComponent) === "Header");
@@ -416,6 +417,8 @@ export default function PublicShell({
       ) : (
         <SiteComponents.Footer key="site-footer" {...footerThemeProps(themeProps)} />
       )}
+      {/* TSUV→MESCO Phase 6: route-targeted marketing popups. */}
+      <RoutePopupHost />
     </div>
   );
 }
