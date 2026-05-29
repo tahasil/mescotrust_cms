@@ -35,6 +35,8 @@ const MODEL_FILES = [
   "SiteComponentMeta",
   "Slider",
   "Subscriber",
+  "Team",
+  "TeamCategory",
   "ThemeConfig",
   "User",
 ];
