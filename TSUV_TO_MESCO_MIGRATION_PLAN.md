@@ -282,8 +282,8 @@ Run order = phase order. **Precede every migration with `npm run backup-db-full`
 > Legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocked/needs decision.
 > Rule: do not start a phase until its **gate** (build + smoke + MESCO-only preservation check) on the previous phase passes. Update the status line below as you go.
 
-**Overall status:** `[~]` Phases 1, 2, 3 COMPLETE and **BUILD-VERIFIED** (`npm run build` exit 0, ✓ compiled, 72/72 pages, 2026-05-29, re-verified after Phase 3.4). Phase 4 (highest risk) next. — _last updated 2026-05-29_
-Phase: 0`[x]` 1`[x]` 2`[x]` 3`[x]` 4`[ ]` 5`[ ]` 6`[ ]` 7`[ ]` 8`[ ]` 9`[ ]` 10`[ ]` 11`[ ]`
+**Overall status:** `[~]` Phases 1–3 COMPLETE + build-verified + committed (`05e2ba1`). Phase 4 SAFE PARTS done + committed (`8994475` ThemeConfig additive merge; `ff2b4f2` persistence libs + AppearanceColorConfig, dormant). Phase 4 CUTOVER (DB-coupled) remaining. — _last updated 2026-05-29_
+Phase: 0`[x]` 1`[x]` 2`[x]` 3`[x]` 4`[~]` 5`[ ]` 6`[ ]` 7`[ ]` 8`[ ]` 9`[ ]` 10`[ ]` 11`[ ]`
 > **Build verified 2026-05-29:** `npm run build` → exit 0, "✓ Compiled successfully", "✓ Generating static pages (72/72)", type-check passed. All new routes registered (rbac, pages/publish, preview-token, preview). Only pre-existing benign warnings: `HeaderEditForm` re-export shim (known); Mongoose duplicate-index on `orderId`(Donation)/`email`(Subscriber — Phase 9 cleanup). No eslintrc in repo → `next lint` prompts interactively (skipped; `next build` type-check covers it). Remaining runtime debt: M1/M2/M3 + login/role smoke before deploy. Decisions 6.4 kept (user-confirmed).
 
 > **Working branch:** `tsuv-port` (off `askari` HEAD, which is 239 commits ahead of `tahasil_admin` — i.e. the latest MESCO state). DB backup present at `DB_Backup/dump_2026-05-29_16-18-49/`.
@@ -336,7 +336,7 @@ Phase: 0`[x]` 1`[x]` 2`[x]` 3`[x]` 4`[ ]` 5`[ ]` 6`[ ]` 7`[ ]` 8`[ ]` 9`[ ]` 10`
 - [x] Gate: **build ✓ (exit 0, 2026-05-29; re-verified after 3.4)** · runtime-pending: draft-vs-published render check + legacy pages still render + token-preview end-to-end smoke.
 
 ### Phase 4 — Theme persistence + Appearance (HIGHEST RISK)
-- [ ] persistence libs (`siteSettings`, `appearanceColors`, `appearanceThemeOwnership`, `appearanceTitleAndColorsConfig`, `themeColors`) + `models/AppearanceColorConfig.js`
+- [x] persistence libs (`siteSettings`, `appearanceColors`, `appearanceThemeOwnership`, `appearanceTitleAndColorsConfig`, `themeColors`) + `models/AppearanceColorConfig.js` — **DONE + build-verified, DORMANT** (nothing imports them until the cutover). §2B brand defaults sanitized: `AppearanceColorConfig` frontend palette → `{}`, `appearanceColors.DEFAULT_THEME_PALETTE` → `{}` (MESCO palette flows in via the `seed` from the live ThemeConfig doc). ⚠️ Cutover note: `siteSettings.getSiteSettingsLean` sets `out.colors=[]` and sources the palette from `AppearanceColorConfig` (seeded from current `themePalette`) — MUST verify the seed preserves MESCO's palette against a real DB before layoutData consumes it, or site colors blank.
 - [~] **`models/ThemeConfig.js` merge** — **additive part DONE** (added bg-library subschemas + backgroundImages/Colors/active* + buttonTarget + footerCol1/2/Latest titles + footerSocialColorKey + headerMobileMenuHeaderBgColorKey + subscribeBgDesktop/Mobile + `{themeKey,updatedAt}` index; **kept** marquee*/smoothScroll*(4)/fadeAnimation*(4)/siteTitle:"Mesco Trust"/Donate+header+hero colorKey defaults). **DEFERRED to cutover:** `collection:"sitesettings"` + `strict:false` (the storage switch — gated on M4/M5 + DB test). node --check ✓.
 - [ ] **tested `themeconfigs`→`sitesettings` migration M4** (on backup first) + confirm public site reads CSS vars
 - [ ] **(audit) M5: migrate Header/Footer/Subscribe `components` docs → `sitesettings`** BEFORE cutting those 3 theme routes over
