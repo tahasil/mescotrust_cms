@@ -9,6 +9,8 @@ const menuItemSchema = new mongoose.Schema(
     openInNewTab: { type: Boolean, default: false },
     type: { type: String, enum: ["custom_link", "page"], default: "custom_link" },
     pageSlug: { type: String, trim: true, default: "" },
+    enabled: { type: Boolean, default: true },
+    target: { type: String, enum: ["_self", "_blank"], default: "_self" },
   },
   { _id: true }
 );

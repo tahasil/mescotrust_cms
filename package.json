@@ -12,7 +12,10 @@
     "seed-subscribe": "node scripts/seed-subscribe-from-mescotrust.js",
     "backup-db": "node scripts/backup-db.js",
     "migrate-author-to-editor": "node scripts/migrate-author-to-editor.js",
-    "rbac-promote-super-admin": "node scripts/rbac-promote-super-admin.js"
+    "rbac-promote-super-admin": "node scripts/rbac-promote-super-admin.js",
+    "backup-db-full": "node scripts/backup-db-full.js",
+    "restore-db-full": "node scripts/restore-db-full.js",
+    "ensure-indexes": "node scripts/ensure-indexes.js"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.0",

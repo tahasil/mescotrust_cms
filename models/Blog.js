@@ -27,6 +27,9 @@ const blogSchema = new mongoose.Schema(
 
 blogSchema.index({ status: 1 });
 blogSchema.index({ publishedAt: -1 });
+// Public blog listings filter by status + sort by publishedAt desc.
+blogSchema.index({ status: 1, publishedAt: -1 });
+blogSchema.index({ category: 1, status: 1, publishedAt: -1 });
 
 blogSchema.plugin(softDeletePlugin);
 

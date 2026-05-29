@@ -15,6 +15,8 @@ const eventSchema = new mongoose.Schema(
     location: { type: String, default: "" },
     isOnline: { type: Boolean, default: false },
     eventLink: { type: String, default: "" },
+    eventLinkTarget: { type: String, enum: ["_self", "_blank"], default: "_self" },
+    eventLinkOpenInNewTab: { type: Boolean, default: false },
     tags: [{ type: String, trim: true }],
     status: { type: String, enum: ["draft", "published"], default: "draft" },
     meta: {
@@ -31,6 +33,8 @@ const eventSchema = new mongoose.Schema(
 eventSchema.index({ status: 1 });
 eventSchema.index({ startDate: 1 });
 eventSchema.index({ updatedAt: -1 });
+// Public events listings filter by status + sort by startDate.
+eventSchema.index({ status: 1, startDate: -1 });
 
 eventSchema.plugin(softDeletePlugin);
 

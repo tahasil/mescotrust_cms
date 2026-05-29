@@ -283,7 +283,8 @@ Run order = phase order. **Precede every migration with `npm run backup-db-full`
 > Rule: do not start a phase until its **gate** (build + smoke + MESCO-only preservation check) on the previous phase passes. Update the status line below as you go.
 
 **Overall status:** `[~]` Phases 1–3 COMPLETE + build-verified + committed (`05e2ba1`). Phase 4 SAFE PARTS done + committed (`8994475` ThemeConfig additive merge; `ff2b4f2` persistence libs + AppearanceColorConfig, dormant). Phase 4 CUTOVER (DB-coupled) remaining. — _last updated 2026-05-29_
-Phase: 0`[x]` 1`[x]` 2`[x]` 3`[x]` 4`[~]` 5`[ ]` 6`[ ]` 7`[ ]` 8`[ ]` 9`[ ]` 10`[ ]` 11`[ ]`
+Phase: 0`[x]` 1`[x]` 2`[x]` 3`[x]` 4`[~]` 5`[ ]` 6`[ ]` 7`[ ]` 8`[ ]` 9`[~]` 10`[ ]` 11`[ ]`
+> Phase 9 partial (2026-05-29): next.config + instrumentation/ensure-indexes + model indexes/fields + backup/restore scripts DONE + build-verified. DEFERRED: media merge (diverged files), compare-db/sync-db/audit-unused-media operator scripts.
 > **Build verified 2026-05-29:** `npm run build` → exit 0, "✓ Compiled successfully", "✓ Generating static pages (72/72)", type-check passed. All new routes registered (rbac, pages/publish, preview-token, preview). Only pre-existing benign warnings: `HeaderEditForm` re-export shim (known); Mongoose duplicate-index on `orderId`(Donation)/`email`(Subscriber — Phase 9 cleanup). No eslintrc in repo → `next lint` prompts interactively (skipped; `next build` type-check covers it). Remaining runtime debt: M1/M2/M3 + login/role smoke before deploy. Decisions 6.4 kept (user-confirmed).
 
 > **Working branch:** `tsuv-port` (off `askari` HEAD, which is 239 commits ahead of `tahasil_admin` — i.e. the latest MESCO state). DB backup present at `DB_Backup/dump_2026-05-29_16-18-49/`.
@@ -385,12 +386,12 @@ Phase: 0`[x]` 1`[x]` 2`[x]` 3`[x]` 4`[~]` 5`[ ]` 6`[ ]` 7`[ ]` 8`[ ]` 9`[ ]` 10`
 - [ ] Gate: build ✓ · form create/submit/inbox · dashboard KPIs + notifications ✓
 
 ### Phase 9 — Media + config + infra
-- [ ] media: `lib/media/{constants,url,processor}.js`, `lib/storage/*` merge, `app/uploads/[...path]`, media stream routes (+Range), admin media routes (validation/rollback/filter), media components
-- [ ] `next.config.js` merge (perf, headers, CSP `media-src`; resolve jsdelivr/Bootstrap)
-- [ ] `instrumentation.js` + `scripts/ensure-indexes.js` (**add MESCO-only `Donation` to `MODEL_FILES`**)
-- [ ] model indexes/fields (Blog, Menu enabled/target, Event link-target; Subscriber: adopt TSUV — drops redundant index)
-- [ ] ops scripts (port generic + add `package.json` aliases `compare-db`/`sync-db-safe`; fix sync-db URI; skip operator/data-specific)
-- [ ] Gate: build ✓ · audio/video upload + range playback · uploads served ✓
+- [ ] **(DEFERRED)** media: `lib/media/{constants,url,processor}.js`, `lib/storage/*` merge, `app/uploads/[...path]`, media stream routes (+Range), admin media routes, media components — MESCO already has diverged `lib/media/*`+`lib/storage/*`, so this is a **MERGE** (higher risk); deferred to a focused pass.
+- [x] `next.config.js` merge (perf flags + compress + optimizePackageImports + image formats/minimumCacheTTL + cache headers for _next/uploads/images/js + CSP `media-src`). **Kept MESCO's jsdelivr + blob: in script-src/connect-src** (6.7c: keep jsdelivr, Bootstrap stays). Build ✓.
+- [x] `instrumentation.js` (boot index sync + `SKIP_INDEX_SYNC` opt-out) + `scripts/ensure-indexes.js` (MESCO `MODEL_FILES`: RBAC models + `Donation` + `EventRegistration`; gracefully skips not-yet-ported models). Build ✓.
+- [x] model indexes/fields: Blog (+2 compound indexes), Menu item (`enabled`/`target`), Event (`eventLinkTarget`/`eventLinkOpenInNewTab` + `{status,startDate}` index). node --check ✓. (Subscriber redundant-index drop = optional, deferred.)
+- [x] ops scripts: `backup-db-full.js` + `restore-db-full.js` ported (EJSON via mongoose's bundled bson; tsuv URIs scrubbed) + `package.json` aliases (`backup-db-full`/`restore-db-full`/`ensure-indexes`). **(DEFERRED:** `compare-db-remote-local`/`sync-db-schema-and-core-data`/`audit-unused-media` — operator tools with tsuv default URIs + `C:\tmp` paths to scrub.)
+- [~] Gate: **build ✓ (exit 0, 72/72, 2026-05-29)** · runtime-pending: audio/video upload + range playback + uploads served (those land with the deferred media merge).
 
 ### Phase 10 — blog → blogs + events
 - [ ] `/blog`→`/blogs` redirects + new blogs pages + `basePath` in `components/blog/*` + sitemap + search + Header/Footer/menu `<Link>`s
