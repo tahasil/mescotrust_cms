@@ -8,14 +8,14 @@ import ThemeConfig from "@/models/ThemeConfig";
 import Component from "@/models/Component";
 import { isAdmin } from "@/lib/permissions";
 import { getRegistryIdsFromDisk } from "@/lib/getRegistryIdsFromDisk";
+import { normalizeThemeColorCollections } from "@/lib/themeColorFallbacks";
 
 export const dynamic = "force-dynamic";
 
 /** Single theme doc: match by themeKey or legacy docs without themeKey */
 const THEME_QUERY = { $or: [{ themeKey: "default" }, { themeKey: { $exists: false } }] };
 
-/** No built-in palette; only admin-defined palette + custom colors are stored and synced to Theme.js */
-const THEME_PALETTE_DEFAULTS = {};
+/** Legacy theme colors are recovered when missing; stored themePalette is preserved (except known bad generated keys). */
 
 function slugToCamel(slug) {
   return slug.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
@@ -301,16 +301,13 @@ const THEME_CONFIG_OWNED_KEYS = new Set([
 ]);
 
 function normalizeTheme(theme) {
-  if (!theme) return { ...DEFAULTS, themePalette: { ...THEME_PALETTE_DEFAULTS } };
+  if (!theme) return normalizeThemeColorCollections({ ...DEFAULTS });
   const out = { ...DEFAULTS, ...theme };
   if (!out.bodyFont && out.fontFamily) out.bodyFont = out.fontFamily;
   if (!out.headingFont && out.headingFontFamily) out.headingFont = out.headingFontFamily;
   if (out.baseFontSize == null && out.fontSize != null) out.baseFontSize = out.fontSize;
   if (!out.logoLightUrl && out.logoImageUrl) out.logoLightUrl = out.logoImageUrl;
-  if (!Array.isArray(out.colors)) out.colors = [];
-  const storedPalette = out.themePalette && typeof out.themePalette === "object" ? out.themePalette : {};
-  out.themePalette = Object.keys(storedPalette).length > 0 ? { ...storedPalette } : { ...THEME_PALETTE_DEFAULTS };
-  return out;
+  return normalizeThemeColorCollections(out);
 }
 
 const HERO_BANNER_KEYS = [

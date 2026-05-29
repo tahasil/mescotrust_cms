@@ -11,6 +11,7 @@ import Component from "@/models/Component";
 import ThemeConfig from "@/models/ThemeConfig";
 import { isAdmin } from "@/lib/permissions";
 import { getRegistryIdsFromDisk } from "@/lib/getRegistryIdsFromDisk";
+import { normalizeThemeColorCollections } from "@/lib/themeColorFallbacks";
 
 export const dynamic = "force-dynamic";
 
@@ -37,8 +38,15 @@ export async function GET(req, { params }) {
       ThemeConfig.findOne(THEME_QUERY).sort({ updatedAt: -1 }).lean(),
     ]);
     const payload = (doc?.defaultProps && typeof doc.defaultProps === "object") ? { ...doc.defaultProps } : {};
-    const palette = themeDoc?.themePalette && typeof themeDoc.themePalette === "object" ? themeDoc.themePalette : {};
-    const colors = Array.isArray(themeDoc?.colors) ? themeDoc.colors : [];
+    const normalizedTheme = normalizeThemeColorCollections(themeDoc || {});
+    const palette =
+      normalizedTheme?.themePalette &&
+      typeof normalizedTheme.themePalette === "object"
+        ? normalizedTheme.themePalette
+        : {};
+    const colors = Array.isArray(normalizedTheme?.colors)
+      ? normalizedTheme.colors
+      : [];
     return NextResponse.json(
       {
         ...payload,
