@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import * as SiteComponents from "@/components/site";
+import RoutePopupHost from "@/components/layout/RoutePopupHost";
 
 const hasHeaderBlock = (layout) =>
   Array.isArray(layout) && layout.some((b) => (b?.baseComponent || b?.componentId?.baseComponent) === "Header");
@@ -402,6 +403,7 @@ export default function PublicShell({
 
   return (
     <div className="public-site" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      <RoutePopupHost />
       {headerArea}
       {useSiteHeaderForLayout && layoutWithoutHeaderBlocks(customHeaderLayout).length > 0 && (
         <ComponentRenderer layout={layoutWithoutHeaderBlocks(customHeaderLayout)} />

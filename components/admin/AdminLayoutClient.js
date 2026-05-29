@@ -87,6 +87,15 @@ const baseMenuItems = [
     ),
   },
   {
+    key: "/admin/popups",
+    icon: <AppstoreOutlined />,
+    label: (
+      <Link href="/admin/popups" style={linkStyle}>
+        Popups
+      </Link>
+    ),
+  },
+  {
     key: "/admin/team",
     icon: <TeamOutlined />,
     label: (
@@ -563,6 +572,9 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
   } else if (userRole !== "Admin") {
     menuItems = baseMenuItems.filter((item) => item.key !== "/admin/users");
   }
+  const selectedMenuKey = String(pathname || "").startsWith("/admin/popups/")
+    ? "/admin/popups"
+    : pathname;
 
   const fetchNotifications = useCallback(() => {
     if (userRole === "Author") {
@@ -1057,7 +1069,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
           <Menu
             theme="light"
             mode="inline"
-            selectedKeys={[pathname]}
+            selectedKeys={[selectedMenuKey]}
             // defaultOpenKeys={["/admin/blogs"]}
             items={menuItems}
             style={{
