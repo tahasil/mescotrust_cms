@@ -33,6 +33,35 @@ const marqueeItemSchema = new mongoose.Schema(
   { _id: false },
 );
 
+// TSUV→MESCO port (Phase 4): Appearance background library subschemas.
+const backgroundAssetSchema = new mongoose.Schema(
+  {
+    name: { type: String, default: "" },
+    url: { type: String, default: "" },
+    target: {
+      type: String,
+      enum: ["frontend", "admin", "both"],
+      default: "frontend",
+    },
+    enabled: { type: Boolean, default: true },
+  },
+  { _id: false },
+);
+
+const backgroundColorAssetSchema = new mongoose.Schema(
+  {
+    name: { type: String, default: "" },
+    value: { type: String, default: "" },
+    target: {
+      type: String,
+      enum: ["frontend", "admin", "both"],
+      default: "frontend",
+    },
+    enabled: { type: Boolean, default: true },
+  },
+  { _id: false },
+);
+
 const themeConfigSchema = new mongoose.Schema(
   {
     // Single theme doc: always query by this so save/load use same document
@@ -321,9 +350,32 @@ const themeConfigSchema = new mongoose.Schema(
     adminSidebarActiveText: { type: String, default: "#1677ff" },
     adminLoaderColor: { type: String, default: "#1677ff" },
     adminLoaderBgColor: { type: String, default: "rgba(255,255,255,0.5)" },
+
+    // ─── TSUV→MESCO port (Phase 4): additive Appearance fields ──
+    // New optional fields adopted from TSUV's sitesettings model. Kept additive
+    // (MESCO fields/defaults above are preserved; collection stays "themeconfigs"
+    // until the M4/M5 cutover). Defaults are blank so nothing changes until set.
+    buttonTarget: { type: String, enum: ["_self", "_blank"], default: "_self" },
+    headerMobileMenuHeaderBgColorKey: { type: String, default: "" },
+    footerCol1Title: { type: String, default: "" },
+    footerCol2Title: { type: String, default: "" },
+    footerLatestTitle: { type: String, default: "" },
+    footerLatestPlaceholder: { type: String, default: "" },
+    footerSocialColorKey: { type: String, default: "" },
+    subscribeBgDesktop: { type: String, default: "" },
+    subscribeBgMobile: { type: String, default: "" },
+    backgroundImages: { type: [backgroundAssetSchema], default: [] },
+    backgroundColors: { type: [backgroundColorAssetSchema], default: [] },
+    activeFrontendBackgroundImage: { type: String, default: "" },
+    activeAdminBackgroundImage: { type: String, default: "" },
+    activeFrontendBackgroundColor: { type: String, default: "" },
+    activeAdminBackgroundColor: { type: String, default: "" },
   },
   { timestamps: true },
 );
+
+// Every public page read hits ThemeConfig.findOne({ themeKey: "default" }).
+themeConfigSchema.index({ themeKey: 1, updatedAt: -1 });
 
 module.exports =
   (mongoose.models && mongoose.models.ThemeConfig) ||

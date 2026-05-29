@@ -337,7 +337,7 @@ Phase: 0`[x]` 1`[x]` 2`[x]` 3`[x]` 4`[ ]` 5`[ ]` 6`[ ]` 7`[ ]` 8`[ ]` 9`[ ]` 10`
 
 ### Phase 4 — Theme persistence + Appearance (HIGHEST RISK)
 - [ ] persistence libs (`siteSettings`, `appearanceColors`, `appearanceThemeOwnership`, `appearanceTitleAndColorsConfig`, `themeColors`) + `models/AppearanceColorConfig.js`
-- [ ] **`models/ThemeConfig.js` merge** (carry marquee/smoothScroll/fadeAnimation/Donate + siteTitle)
+- [~] **`models/ThemeConfig.js` merge** — **additive part DONE** (added bg-library subschemas + backgroundImages/Colors/active* + buttonTarget + footerCol1/2/Latest titles + footerSocialColorKey + headerMobileMenuHeaderBgColorKey + subscribeBgDesktop/Mobile + `{themeKey,updatedAt}` index; **kept** marquee*/smoothScroll*(4)/fadeAnimation*(4)/siteTitle:"Mesco Trust"/Donate+header+hero colorKey defaults). **DEFERRED to cutover:** `collection:"sitesettings"` + `strict:false` (the storage switch — gated on M4/M5 + DB test). node --check ✓.
 - [ ] **tested `themeconfigs`→`sitesettings` migration M4** (on backup first) + confirm public site reads CSS vars
 - [ ] **(audit) M5: migrate Header/Footer/Subscribe `components` docs → `sitesettings`** BEFORE cutting those 3 theme routes over
 - [ ] `app/api/theme/{route,header,footer,subscribe,[componentId],home-hero}/*` merge (keep marquee route + themeColorFallbacks)
