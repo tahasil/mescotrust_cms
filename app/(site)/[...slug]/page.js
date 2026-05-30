@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/db";
 export const dynamic = "force-dynamic";
 import Page from "@/models/Page";
 import Component from "@/models/Component";
+import Slider from "@/models/Slider";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import { buildPublishedSlugFilter, toPublishedPageShape } from "@/lib/pagePublication";
 
@@ -69,6 +70,13 @@ async function PageContent({ slug }) {
   for (const doc of componentDocs || []) {
     if (doc.baseComponent && doc.defaultProps && typeof doc.defaultProps === "object") {
       defaultPropsByBase[doc.baseComponent] = doc.defaultProps;
+    }
+  }
+  // Sliders relocated to the sliders collection (Phase 6) override Component defaults.
+  const sliderDocs = await Slider.find({ componentId: { $in: baseComponents } }).lean();
+  for (const doc of sliderDocs || []) {
+    if (doc.componentId && doc.defaultProps && typeof doc.defaultProps === "object") {
+      defaultPropsByBase[doc.componentId] = doc.defaultProps;
     }
   }
   const layout = layoutBlocks.map((block) => {
