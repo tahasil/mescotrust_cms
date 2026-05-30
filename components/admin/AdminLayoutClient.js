@@ -92,22 +92,66 @@ const baseMenuItems = [
     ),
   },
   {
-    key: "/admin/team",
+    key: "group:admin:team",
     icon: <TeamOutlined />,
-    label: (
-      <Link href="/admin/team" style={linkStyle}>
-        Team
-      </Link>
-    ),
+    label: "Team",
+    children: [
+      {
+        key: "/admin/team",
+        label: (
+          <Link href="/admin/team" style={linkStyle}>
+            All Members
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/team/new",
+        label: (
+          <Link href="/admin/team/new" style={linkStyle}>
+            Add Member
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/team/categories",
+        label: (
+          <Link href="/admin/team/categories" style={linkStyle}>
+            Manage Categories
+          </Link>
+        ),
+      },
+    ],
   },
   {
-    key: "/admin/portfolio",
+    key: "group:admin:portfolio",
     icon: <AppstoreOutlined />,
-    label: (
-      <Link href="/admin/portfolio" style={linkStyle}>
-        Portfolio
-      </Link>
-    ),
+    label: "Portfolio",
+    children: [
+      {
+        key: "/admin/portfolio",
+        label: (
+          <Link href="/admin/portfolio" style={linkStyle}>
+            All Portfolio
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/portfolio/new",
+        label: (
+          <Link href="/admin/portfolio/new" style={linkStyle}>
+            Add Portfolio
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/portfolio/categories",
+        label: (
+          <Link href="/admin/portfolio/categories" style={linkStyle}>
+            Manage Categories
+          </Link>
+        ),
+      },
+    ],
   },
   {
     key: "/admin/forms",
