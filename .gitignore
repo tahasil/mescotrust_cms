@@ -20,3 +20,8 @@ npm-debug.log*
 # Local DB dumps / backups (never commit)
 DB_Backup/
 backup/
+.playwright-mcp/
+*-revealed.png
+local-home-*.png
+local-scroll*.png
+demo-home-*.png

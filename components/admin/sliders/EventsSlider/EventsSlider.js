@@ -365,6 +365,14 @@ export default function EventsSlider(props) {
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  // Avoid an antd <Spin> SSR/client hydration mismatch (span-in-span) that fails
+  // hydration of the homepage Suspense boundary: render a stable placeholder on
+  // the server + first client render, and only mount the spinner after hydration.
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -388,11 +396,11 @@ export default function EventsSlider(props) {
     };
   }, [limit, sort]);
 
-  if (loading) {
+  if (!mounted || loading) {
     return (
       <PageContainer>
-        <div style={{ textAlign: "center", padding: "48px 0" }}>
-          <Spin />
+        <div style={{ textAlign: "center", padding: "48px 0", minHeight: 200 }}>
+          {mounted ? <Spin /> : null}
         </div>
       </PageContainer>
     );
