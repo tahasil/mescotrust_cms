@@ -96,7 +96,12 @@ export default function AdminComponentEditPage({ forcedComponentId, forcedBackHr
   const isTestimonials = record?.componentId === "Testimonials";
   const staticEditForm =
     record?.componentId && EDITABLE_SITE_EDIT_FORMS[record.componentId];
-  const hasEditForm = !!(staticEditForm || dynamicEditForm);
+  // Custom popups (module === "popups") are DB-only — they have no entry in
+  // EDITABLE_SITE_EDIT_FORMS and no components/site/<id> folder — so reuse the
+  // MarketingPopup editor, which now targets /api/theme/<componentId>.
+  const popupEditForm =
+    record?.module === "popups" ? EDITABLE_SITE_EDIT_FORMS.MarketingPopup : null;
+  const hasEditForm = !!(staticEditForm || dynamicEditForm || popupEditForm);
 
   useEffect(() => {
     if (!id) return;
@@ -574,7 +579,11 @@ export default function AdminComponentEditPage({ forcedComponentId, forcedBackHr
 
   // Newly created components: load EditForm dynamically from component folder
   useEffect(() => {
-    if (!record?.componentId || EDITABLE_SITE_EDIT_FORMS[record.componentId]) {
+    if (
+      !record?.componentId ||
+      EDITABLE_SITE_EDIT_FORMS[record.componentId] ||
+      record.module === "popups"
+    ) {
       setDynamicEditForm(null);
       return;
     }
@@ -929,7 +938,8 @@ export default function AdminComponentEditPage({ forcedComponentId, forcedBackHr
               const EditFormComp =
                 (record?.componentId &&
                   EDITABLE_SITE_EDIT_FORMS[record.componentId]) ||
-                dynamicEditForm;
+                dynamicEditForm ||
+                popupEditForm;
               if (!EditFormComp) return null;
               const refetchAndClose = async () => {
                 const cid = record?.componentId;
@@ -1284,6 +1294,7 @@ export default function AdminComponentEditPage({ forcedComponentId, forcedBackHr
               return (
                 <EditFormComp
                   ref={componentEditFormRef}
+                  componentId={record?.componentId}
                   themeColorOptions={themeColorOptions}
                   onSuccess={refetchAndClose}
                   onCancel={() => setComponentDrawerOpen(false)}

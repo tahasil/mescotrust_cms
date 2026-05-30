@@ -24,7 +24,7 @@ import {
   normalizePopupTargetRoutes,
 } from "@/lib/popupRouteUtils";
 
-const API_PATH = "/api/theme/MarketingPopup";
+const DEFAULT_POPUP_COMPONENT_ID = "MarketingPopup";
 const HOME_ROUTE_OPTION = { label: "Home / Landing", value: "/home" };
 const POPUP_WIDTH_PRESET_OPTIONS = [
   { label: "Small", value: "small" },
@@ -138,6 +138,7 @@ function VisibilitySwitchRow({ label, name }) {
 
 function MarketingPopupEditForm(
   {
+    componentId,
     source,
     initialData: initialDataProp,
     onSaveToPage,
@@ -146,6 +147,12 @@ function MarketingPopupEditForm(
   },
   ref,
 ) {
+  // The system popup defaults to "MarketingPopup"; custom popups pass their own
+  // componentId so load/save target /api/theme/<componentId> (their own Popup doc).
+  // encodeURIComponent guards against path traversal from an unexpected id.
+  const apiPath = `/api/theme/${encodeURIComponent(
+    componentId || DEFAULT_POPUP_COMPONENT_ID,
+  )}`;
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -224,12 +231,12 @@ function MarketingPopupEditForm(
       return;
     }
 
-    fetch(API_PATH, { cache: "no-store" })
+    fetch(apiPath, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : {}))
       .then((data) => applyValues(data))
       .catch(() => message.error("Failed to load popup settings"))
       .finally(() => setLoading(false));
-  }, [form, initialDataProp, isPageBlock]);
+  }, [form, initialDataProp, isPageBlock, apiPath]);
 
   const routeSelectOptions = useMemo(() => {
     const map = new Map();
@@ -343,7 +350,7 @@ function MarketingPopupEditForm(
         }
 
         setSaving(true);
-        const res = await fetch(API_PATH, {
+        const res = await fetch(apiPath, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -370,7 +377,10 @@ function MarketingPopupEditForm(
       .finally(() => setSaving(false));
   };
 
-  useImperativeHandle(ref, () => ({ update: handleUpdate }), []);
+  // Re-bind when apiPath changes: this editor instance can be reused across
+  // popups (same [slug] route) without remounting, so an empty-deps handle would
+  // keep saving to the previously-edited popup's endpoint (stale closure).
+  useImperativeHandle(ref, () => ({ update: handleUpdate }), [apiPath]);
 
   if (loading) {
     return (

@@ -31,16 +31,23 @@ export const dynamic = "force-dynamic";
 const STATIC_ROUTES = ["header", "footer", "subscribe", "home-hero", "marquee"];
 const THEME_QUERY = { $or: [{ themeKey: "default" }, { themeKey: { $exists: false } }] };
 
-function isAllowed(componentId) {
-  if (!componentId || typeof componentId !== "string") return false;
-  const id = componentId.trim();
-  if (STATIC_ROUTES.includes(id.toLowerCase())) return false;
-  // Sliders/popups live in their own collections, not the site-component registry,
-  // so allow their componentIds here (e.g. MarketingPopup) — otherwise GET/PUT of
-  // a popup/slider's defaultProps would 400 before reaching the model branch.
+// Cheap, synchronous pre-check: reject empty/reserved ids before any DB work.
+function isReservedComponentId(componentId) {
+  if (!componentId || typeof componentId !== "string") return true;
+  return STATIC_ROUTES.includes(componentId.trim().toLowerCase());
+}
+
+// Authoritative allow-check, run AFTER the meta lookup. A component is editable
+// via this route if it is in the disk registry, is a core slider/popup, or has a
+// SiteComponentMeta declaring the sliders/popups module. Custom popups/sliders
+// live in their own collections (not the disk registry), so the meta.module check
+// is what lets their (admin-created) componentIds through.
+function isKnownComponentId(componentId, meta) {
+  const id = (componentId || "").trim();
+  if (!id) return false;
   if (isCorePopupComponentId(id) || isCoreSliderComponentId(id)) return true;
-  const ids = getRegistryIdsFromDisk();
-  return ids.includes(id);
+  if (meta?.module === "popups" || meta?.module === "sliders") return true;
+  return getRegistryIdsFromDisk().includes(id);
 }
 
 function buildPaletteResponse(themeDoc) {
@@ -157,7 +164,7 @@ function sanitizePopupPayload(raw) {
 
 export async function GET(req, { params }) {
   const componentId = (params?.componentId || "").trim();
-  if (!isAllowed(componentId)) {
+  if (isReservedComponentId(componentId)) {
     return NextResponse.json({ error: "Unknown or reserved component id" }, { status: 400 });
   }
   try {
@@ -169,6 +176,9 @@ export async function GET(req, { params }) {
       SiteComponentMeta.findOne({ componentId }).lean(),
       ThemeConfig.findOne(THEME_QUERY).sort({ updatedAt: -1 }).lean(),
     ]);
+    if (!isKnownComponentId(componentId, meta)) {
+      return NextResponse.json({ error: "Unknown or reserved component id" }, { status: 400 });
+    }
     const componentModule = inferComponentModule(componentId, meta?.module);
     const fromComponents =
       componentDoc?.defaultProps && typeof componentDoc.defaultProps === "object"
@@ -205,7 +215,7 @@ export async function PUT(req, { params }) {
   if (!isAdmin(token)) return NextResponse.json({ error: "Forbidden: Admin only" }, { status: 403 });
 
   const componentId = (params?.componentId || "").trim();
-  if (!isAllowed(componentId)) {
+  if (isReservedComponentId(componentId)) {
     return NextResponse.json({ error: "Unknown or reserved component id" }, { status: 400 });
   }
 
@@ -219,6 +229,9 @@ export async function PUT(req, { params }) {
 
     await connectDB();
     const meta = await SiteComponentMeta.findOne({ componentId }).lean();
+    if (!isKnownComponentId(componentId, meta)) {
+      return NextResponse.json({ error: "Unknown or reserved component id" }, { status: 400 });
+    }
     const componentModule = inferComponentModule(componentId, meta?.module);
     const displayName =
       typeof meta?.displayName === "string" && meta.displayName.trim()
