@@ -165,11 +165,11 @@ export default function PartnerWithUsPreview({
     buttonBg:
       resolveThemeColorValue(ui?.buttonBgColorKey, "") ||
       resolveThemeColorValue(ui?.buttonBg, "secondary") ||
-      "#f7b733",
+      "#cf372f",
     buttonTextColor:
       resolveThemeColorValue(ui?.buttonTextColorKey, "") ||
       resolveThemeColorValue(ui?.buttonTextColor, "primary") ||
-      "#00516f",
+      "#ffffff",
     buttonHoverBg:
       resolveThemeColorValue(ui?.buttonHoverBgColorKey, "") ||
       resolveThemeColorValue(ui?.buttonHoverBg, "white") ||
@@ -177,7 +177,7 @@ export default function PartnerWithUsPreview({
     buttonHoverTextColor:
       resolveThemeColorValue(ui?.buttonHoverTextColorKey, "") ||
       resolveThemeColorValue(ui?.buttonHoverTextColor, "primary") ||
-      "#00516f",
+      "#cf372f",
     buttonRadius: Number(ui?.buttonRadius ?? 24),
   };
 
@@ -319,15 +319,15 @@ export default function PartnerWithUsPreview({
             <Form.Item
               name="investmentInterest"
               // label={
-              //   <span style={{ color: styles.labelColor }}>Investment Interest</span>
+              //   <span style={{ color: styles.labelColor }}>Area of Interest</span>
               // }
               rules={[
-                { required: true, message: "Investment Interest is required" },
+                { required: true, message: "Area of Interest is required" },
               ]}
               style={{ marginBottom: 12 }}
             >
               <Input
-                placeholder="Investment Interest*"
+                placeholder="Area of Interest*"
                 style={commonControlStyle}
               />
             </Form.Item>

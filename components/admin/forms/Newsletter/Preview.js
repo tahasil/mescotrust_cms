@@ -162,11 +162,11 @@ export default function NewsletterPreview({
     buttonBg:
       resolveThemeColorValue(ui?.buttonBgColorKey, "") ||
       resolveThemeColorValue(ui?.buttonBg, "secondary") ||
-      "#f7b733",
+      "#cf372f",
     buttonTextColor:
       resolveThemeColorValue(ui?.buttonTextColorKey, "") ||
       resolveThemeColorValue(ui?.buttonTextColor, "primary") ||
-      "#00516f",
+      "#ffffff",
     buttonHoverBg:
       resolveThemeColorValue(ui?.buttonHoverBgColorKey, "") ||
       resolveThemeColorValue(ui?.buttonHoverBg, "white") ||
@@ -174,7 +174,7 @@ export default function NewsletterPreview({
     buttonHoverTextColor:
       resolveThemeColorValue(ui?.buttonHoverTextColorKey, "") ||
       resolveThemeColorValue(ui?.buttonHoverTextColor, "primary") ||
-      "#00516f",
+      "#cf372f",
     buttonRadius: Number(ui?.buttonRadius ?? 24),
   };
 

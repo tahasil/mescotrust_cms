@@ -13,7 +13,7 @@ const DEFAULT_SUCCESS_MESSAGE = "Form submitted successfully.";
 const DEFAULT_LEFT_CONTENT_HTML =
   "<p>If you would like to get involved or collaborate with us, please register your interest here and we will get back to you.</p>";
 const DEFAULT_MAP_EMBED_URL =
-  "https://maps.google.com/maps?q=Karnataka%20Bangalore&t=&z=14&ie=UTF8&iwloc=&output=embed";
+  "";
 
 const ContactUsSubmitButton = styled(ThemeButton)`
   && {
@@ -274,7 +274,7 @@ export default function ContactUsPreview({
       buttonTextColor:
         resolveThemeColorValue(ui?.buttonTextColorKey, "") ||
         resolveThemeColorValue(ui?.buttonTextColor, "primary") ||
-        "#00516f",
+        "#ffffff",
       buttonHoverBg:
         resolveThemeColorValue(ui?.buttonHoverBgColorKey, "") ||
         resolveThemeColorValue(
@@ -285,7 +285,7 @@ export default function ContactUsPreview({
       buttonHoverTextColor:
         resolveThemeColorValue(ui?.buttonHoverTextColorKey, "") ||
         resolveThemeColorValue(ui?.buttonHoverTextColor, "primary") ||
-        "#00516f",
+        "#cf372f",
       buttonRadius: toFiniteNumber(ui?.buttonRadius, 999, 0, 999),
       leftContentHtml:
         String(ui?.leftContentHtml || "").trim() || DEFAULT_LEFT_CONTENT_HTML,

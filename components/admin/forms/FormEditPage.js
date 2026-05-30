@@ -33,13 +33,13 @@ import { isValidMapEmbedInput, normalizeMapEmbedInput } from "@/lib/mapEmbed";
 const DEFAULT_FORM_UI = {
   labelColor: "#334155",
   labelColorKey: "",
-  buttonBg: "#f7b733",
+  buttonBg: "#cf372f",
   buttonBgColorKey: "",
-  buttonTextColor: "#00516f",
+  buttonTextColor: "#ffffff",
   buttonTextColorKey: "",
   buttonHoverBg: "#ffffff",
   buttonHoverBgColorKey: "",
-  buttonHoverTextColor: "#00516f",
+  buttonHoverTextColor: "#cf372f",
   buttonHoverTextColorKey: "",
   buttonRadius: 24,
   leftContentHtml:
@@ -52,7 +52,7 @@ const DEFAULT_FORM_UI = {
   leftContentBottomSpacing: 16,
   leftMapTopSpacing: 18,
   mapEmbedUrl:
-    "https://maps.google.com/maps?q=Karnataka%20Bangalore&t=&z=14&ie=UTF8&iwloc=&output=embed",
+    "",
   mapHeightDesktop: 370,
   mapHeightTablet: 300,
   mapHeightMobile: 260,
