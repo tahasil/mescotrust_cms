@@ -287,9 +287,18 @@ export default function AdminComponentEditPage({ forcedComponentId, forcedBackHr
   useEffect(() => {
     if (!isHomeHero) return;
     setThemeLoading(true);
-    fetch("/api/theme", { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : {}))
-      .then((theme) => {
+    // Palette/colors come from the global theme; HomeHero slide data comes from
+    // the canonical /api/theme/home-hero (sliders collection) — NOT the global
+    // theme's legacy ThemeConfig.homeHeroSlides, which is now write-orphaned.
+    Promise.all([
+      fetch("/api/theme", { cache: "no-store" }).then((res) =>
+        res.ok ? res.json() : {},
+      ),
+      fetch("/api/theme/home-hero", { cache: "no-store" }).then((res) =>
+        res.ok ? res.json() : {},
+      ),
+    ])
+      .then(([theme, homeHero]) => {
         const palette = theme.themePalette || {};
         const customColors = Array.isArray(theme.colors) ? theme.colors : [];
         setThemePaletteData({ themePalette: palette, colors: customColors });
@@ -303,8 +312,8 @@ export default function AdminComponentEditPage({ forcedComponentId, forcedBackHr
           names.map((name) => ({ label: name, value: name })),
         );
         // All from DB — no default slide; empty array if no slides
-        const slides = Array.isArray(theme?.homeHeroSlides)
-          ? theme.homeHeroSlides.map((s) => ({
+        const slides = Array.isArray(homeHero?.homeHeroSlides)
+          ? homeHero.homeHeroSlides.map((s) => ({
               bgImageUrl:
                 s?.bgImageUrl != null ? String(s.bgImageUrl).trim() : "",
               title: s?.title != null ? String(s.title).trim() : "",
@@ -320,33 +329,33 @@ export default function AdminComponentEditPage({ forcedComponentId, forcedBackHr
         setThemeHomeHeroSnapshot({
           homeHeroSlides: slides,
           homeHeroSliderTitleColorKey:
-            theme.homeHeroSliderTitleColorKey != null
-              ? String(theme.homeHeroSliderTitleColorKey).trim()
+            homeHero.homeHeroSliderTitleColorKey != null
+              ? String(homeHero.homeHeroSliderTitleColorKey).trim()
               : "",
           homeHeroSliderDescColorKey:
-            theme.homeHeroSliderDescColorKey != null
-              ? String(theme.homeHeroSliderDescColorKey).trim()
+            homeHero.homeHeroSliderDescColorKey != null
+              ? String(homeHero.homeHeroSliderDescColorKey).trim()
               : "",
           homeHeroSliderButtonBgColorKey:
-            theme.homeHeroSliderButtonBgColorKey != null
-              ? String(theme.homeHeroSliderButtonBgColorKey).trim()
+            homeHero.homeHeroSliderButtonBgColorKey != null
+              ? String(homeHero.homeHeroSliderButtonBgColorKey).trim()
               : "",
           homeHeroSliderButtonTextColorKey:
-            theme.homeHeroSliderButtonTextColorKey != null
-              ? String(theme.homeHeroSliderButtonTextColorKey).trim()
+            homeHero.homeHeroSliderButtonTextColorKey != null
+              ? String(homeHero.homeHeroSliderButtonTextColorKey).trim()
               : "",
-          homeHeroAutoplay: theme?.homeHeroAutoplay ?? true,
-          homeHeroShowArrows: theme?.homeHeroShowArrows ?? true,
-          homeHeroShowDots: theme?.homeHeroShowDots ?? true,
+          homeHeroAutoplay: homeHero?.homeHeroAutoplay ?? true,
+          homeHeroShowArrows: homeHero?.homeHeroShowArrows ?? true,
+          homeHeroShowDots: homeHero?.homeHeroShowDots ?? true,
           homeHeroAutoplaySpeed:
-            theme?.homeHeroAutoplaySpeed != null
-              ? Number(theme.homeHeroAutoplaySpeed)
+            homeHero?.homeHeroAutoplaySpeed != null
+              ? Number(homeHero.homeHeroAutoplaySpeed)
               : 5000,
           homeHeroSpeed:
-            theme?.homeHeroSpeed != null ? Number(theme.homeHeroSpeed) : 500,
+            homeHero?.homeHeroSpeed != null ? Number(homeHero.homeHeroSpeed) : 500,
           ...getManageSectionSnapshot(
             MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.HomeHero,
-            theme,
+            homeHero,
           ),
         });
       })
@@ -1034,8 +1043,15 @@ export default function AdminComponentEditPage({ forcedComponentId, forcedBackHr
                     ),
                   });
                 } else if (cid === "HomeHero") {
-                  const slides = Array.isArray(theme?.homeHeroSlides)
-                    ? theme.homeHeroSlides.map((s) => ({
+                  // HomeHero lives in the sliders collection — read it from the
+                  // canonical /api/theme/home-hero, not the global theme.
+                  const heroSrc = await fetch("/api/theme/home-hero", {
+                    cache: "no-store",
+                  })
+                    .then((r) => (r.ok ? r.json() : {}))
+                    .catch(() => ({}));
+                  const slides = Array.isArray(heroSrc?.homeHeroSlides)
+                    ? heroSrc.homeHeroSlides.map((s) => ({
                         bgImageUrl:
                           s?.bgImageUrl != null
                             ? String(s.bgImageUrl).trim()
@@ -1059,35 +1075,35 @@ export default function AdminComponentEditPage({ forcedComponentId, forcedBackHr
                   setThemeHomeHeroSnapshot({
                     homeHeroSlides: slides,
                     homeHeroSliderTitleColorKey:
-                      theme.homeHeroSliderTitleColorKey != null
-                        ? String(theme.homeHeroSliderTitleColorKey).trim()
+                      heroSrc.homeHeroSliderTitleColorKey != null
+                        ? String(heroSrc.homeHeroSliderTitleColorKey).trim()
                         : "",
                     homeHeroSliderDescColorKey:
-                      theme.homeHeroSliderDescColorKey != null
-                        ? String(theme.homeHeroSliderDescColorKey).trim()
+                      heroSrc.homeHeroSliderDescColorKey != null
+                        ? String(heroSrc.homeHeroSliderDescColorKey).trim()
                         : "",
                     homeHeroSliderButtonBgColorKey:
-                      theme.homeHeroSliderButtonBgColorKey != null
-                        ? String(theme.homeHeroSliderButtonBgColorKey).trim()
+                      heroSrc.homeHeroSliderButtonBgColorKey != null
+                        ? String(heroSrc.homeHeroSliderButtonBgColorKey).trim()
                         : "",
                     homeHeroSliderButtonTextColorKey:
-                      theme.homeHeroSliderButtonTextColorKey != null
-                        ? String(theme.homeHeroSliderButtonTextColorKey).trim()
+                      heroSrc.homeHeroSliderButtonTextColorKey != null
+                        ? String(heroSrc.homeHeroSliderButtonTextColorKey).trim()
                         : "",
-                    homeHeroAutoplay: theme?.homeHeroAutoplay ?? true,
-                    homeHeroShowArrows: theme?.homeHeroShowArrows ?? true,
-                    homeHeroShowDots: theme?.homeHeroShowDots ?? true,
+                    homeHeroAutoplay: heroSrc?.homeHeroAutoplay ?? true,
+                    homeHeroShowArrows: heroSrc?.homeHeroShowArrows ?? true,
+                    homeHeroShowDots: heroSrc?.homeHeroShowDots ?? true,
                     homeHeroAutoplaySpeed:
-                      theme?.homeHeroAutoplaySpeed != null
-                        ? Number(theme.homeHeroAutoplaySpeed)
+                      heroSrc?.homeHeroAutoplaySpeed != null
+                        ? Number(heroSrc.homeHeroAutoplaySpeed)
                         : 5000,
                     homeHeroSpeed:
-                      theme?.homeHeroSpeed != null
-                        ? Number(theme.homeHeroSpeed)
+                      heroSrc?.homeHeroSpeed != null
+                        ? Number(heroSrc.homeHeroSpeed)
                         : 500,
                     ...getManageSectionSnapshot(
                       MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.HomeHero,
-                      theme,
+                      heroSrc,
                     ),
                   });
                 } else if (cid === "Marquee") {
