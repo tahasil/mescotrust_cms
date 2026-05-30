@@ -5,6 +5,7 @@ import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import SiteComponentMeta from "@/models/SiteComponentMeta";
 import Page from "@/models/Page";
+import Popup from "@/models/Popup";
 import { SITE_COMPONENT_IDS } from "@/lib/siteComponentRegistry";
 
 /** Remove blocks with baseComponent === componentId from layout (and from nested Section layouts). */
@@ -136,6 +137,16 @@ export async function DELETE(req, { params }) {
 
   try {
     await connectDB();
+
+    // Popups are DB-only (no scaffolded file, no registry/index export, not a
+    // page block): just drop the Popup doc + its meta and return.
+    const existingMeta = await SiteComponentMeta.findOne({ componentId: id }).lean();
+    if (existingMeta?.module === "popups") {
+      await Popup.deleteOne({ componentId: id });
+      await SiteComponentMeta.deleteOne({ componentId: id });
+      return NextResponse.json({ ok: true, deleted: id });
+    }
+
     const root = process.cwd();
     const registryPath = path.join(root, "lib", "siteComponentRegistry.js");
     const indexPath = path.join(root, "components", "site", "index.js");

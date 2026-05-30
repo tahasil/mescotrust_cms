@@ -5,7 +5,9 @@ import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import SiteComponentMeta from "@/models/SiteComponentMeta";
 import Component from "@/models/Component";
+import Popup from "@/models/Popup";
 import { getRegistryIdsFromDisk } from "@/lib/getRegistryIdsFromDisk";
+import { inferComponentModule } from "@/lib/sliderComponentRegistry";
 
 /** GET: list all site components (registry + custom from DB) with metadata */
 export async function GET(req) {
@@ -41,6 +43,7 @@ export async function GET(req) {
         order: m?.order ?? index,
         position: m?.position ?? defaultPosition,
         enabled: m?.enabled !== false,
+        module: inferComponentModule(id, m?.module),
       };
     });
 
@@ -87,6 +90,28 @@ export async function POST(req) {
     const global = Boolean(body.global);
     const order = Number(body.order) ?? 0;
     const position = body.position === "after" ? "after" : "before";
+
+    // Popups are DB-only modules: they render via <RoutePopupHost/> from the
+    // popups collection, not a scaffolded site-component file. Create the meta
+    // (with module: "popups" so inferComponentModule routes edits to the Popup
+    // model) + an empty Popup doc, and skip the component-file scaffolding below.
+    if (body?.module === "popups") {
+      const metaDoc = await SiteComponentMeta.create({
+        componentId,
+        displayName,
+        global,
+        order,
+        position,
+        enabled: true,
+        module: "popups",
+      });
+      await Popup.findOneAndUpdate(
+        { componentId },
+        { $set: { componentId, displayName, defaultProps: {}, enabled: true } },
+        { new: true, upsert: true, setDefaultsOnInsert: true, strict: false },
+      );
+      return NextResponse.json(metaDoc.toObject ? metaDoc.toObject() : metaDoc);
+    }
 
     const root = process.cwd();
     const siteDir = path.join(root, "components", "site");
