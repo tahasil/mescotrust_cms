@@ -19,7 +19,11 @@ import ThemeConfig from "@/models/ThemeConfig";
 import { isAdmin } from "@/lib/permissions";
 import { getRegistryIdsFromDisk } from "@/lib/getRegistryIdsFromDisk";
 import { normalizeThemeColorCollections } from "@/lib/themeColorFallbacks";
-import { inferComponentModule } from "@/lib/sliderComponentRegistry";
+import {
+  inferComponentModule,
+  isCorePopupComponentId,
+  isCoreSliderComponentId,
+} from "@/lib/sliderComponentRegistry";
 import { normalizePopupTargetRoutes } from "@/lib/popupRouteUtils";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +35,10 @@ function isAllowed(componentId) {
   if (!componentId || typeof componentId !== "string") return false;
   const id = componentId.trim();
   if (STATIC_ROUTES.includes(id.toLowerCase())) return false;
+  // Sliders/popups live in their own collections, not the site-component registry,
+  // so allow their componentIds here (e.g. MarketingPopup) — otherwise GET/PUT of
+  // a popup/slider's defaultProps would 400 before reaching the model branch.
+  if (isCorePopupComponentId(id) || isCoreSliderComponentId(id)) return true;
   const ids = getRegistryIdsFromDisk();
   return ids.includes(id);
 }

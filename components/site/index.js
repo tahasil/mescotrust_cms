@@ -108,6 +108,7 @@ import MultiLevelMarqueeEditForm from "./MultiLevelMarquee/EditForm";
 import MediaControlEditForm from "./MediaControl/EditForm";
 import VideoModalControlEditForm from "./VideoModalControl/EditForm";
 import ShortCodeEditForm from "./ShortCode/EditForm";
+import { MarketingPopupEditForm } from "@/modules/popups";
 /** componentId -> EditForm for drawer (Admin → Components and Page Builder use same form). Add new editable site components here. */
 export const EDITABLE_SITE_EDIT_FORMS = {
   HighlightCardsGrid: HighlightCardsGridEditForm,
@@ -119,6 +120,7 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   MediaControl: MediaControlEditForm,
   VideoModalControl: VideoModalControlEditForm,
   ShortCode: ShortCodeEditForm,
+  MarketingPopup: MarketingPopupEditForm,
   Header: HeaderEditForm,
   Footer: FooterEditForm,
   HomeHero: HomeHeroEditForm,

@@ -7,6 +7,13 @@ import SiteComponentMeta from "@/models/SiteComponentMeta";
 import Page from "@/models/Page";
 import Popup from "@/models/Popup";
 import { SITE_COMPONENT_IDS } from "@/lib/siteComponentRegistry";
+import {
+  isCorePopupComponentId,
+  isCoreSliderComponentId,
+  inferComponentModule,
+  CORE_POPUP_LABELS,
+  CORE_SLIDER_LABELS,
+} from "@/lib/sliderComponentRegistry";
 
 /** Remove blocks with baseComponent === componentId from layout (and from nested Section layouts). */
 function filterLayoutBlocks(layout, componentId) {
@@ -44,7 +51,9 @@ export async function GET(req, { params }) {
     await connectDB();
     const doc = await SiteComponentMeta.findOne({ componentId: id }).lean();
     const isInRegistry = SITE_COMPONENT_IDS.includes(id);
-    if (!doc && !isInRegistry) {
+    const isCorePopupOrSlider =
+      isCorePopupComponentId(id) || isCoreSliderComponentId(id);
+    if (!doc && !isInRegistry && !isCorePopupOrSlider) {
       return NextResponse.json({ error: "Component not found" }, { status: 404 });
     }
 
@@ -52,11 +61,13 @@ export async function GET(req, { params }) {
     const defaultOrder = Math.max(0, SITE_COMPONENT_IDS.indexOf(id));
     const payload = {
       componentId: id,
-      displayName: doc?.displayName || id,
+      displayName:
+        doc?.displayName || CORE_POPUP_LABELS[id] || CORE_SLIDER_LABELS[id] || id,
       global: doc?.global ?? false,
       order: doc?.order ?? defaultOrder,
       position: doc?.position || defaultPosition,
       enabled: doc?.enabled !== false,
+      module: inferComponentModule(id, doc?.module),
     };
     return NextResponse.json(payload);
   } catch (err) {
