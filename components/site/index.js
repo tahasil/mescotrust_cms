@@ -57,6 +57,7 @@ export { default as Milestones, MilestonesEditForm } from "./Milestones/index";
 export { default as MultiLevelMarquee, MultiLevelMarqueeEditForm } from "./MultiLevelMarquee/index";
 export { default as MediaControl, MediaControlEditForm } from "./MediaControl/index";
 export { default as VideoModalControl, VideoModalControlEditForm } from "./VideoModalControl/index";
+export { default as ShortCode, ShortCodeEditForm } from "./ShortCode/index";
 import { HomeHeroEditForm, StoriesSliderEditForm, EventsSliderEditForm, ImageSliderEditForm, NewsFeedSliderEditForm } from "@/modules/sliders";
 import MarqueeEditForm from "./Marquee/EditForm";
 import SubscribeEditForm from "./Subscribe/EditForm";
@@ -106,6 +107,7 @@ import MilestonesEditForm from "./Milestones/EditForm";
 import MultiLevelMarqueeEditForm from "./MultiLevelMarquee/EditForm";
 import MediaControlEditForm from "./MediaControl/EditForm";
 import VideoModalControlEditForm from "./VideoModalControl/EditForm";
+import ShortCodeEditForm from "./ShortCode/EditForm";
 /** componentId -> EditForm for drawer (Admin → Components and Page Builder use same form). Add new editable site components here. */
 export const EDITABLE_SITE_EDIT_FORMS = {
   HighlightCardsGrid: HighlightCardsGridEditForm,
@@ -116,6 +118,7 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   MultiLevelMarquee: MultiLevelMarqueeEditForm,
   MediaControl: MediaControlEditForm,
   VideoModalControl: VideoModalControlEditForm,
+  ShortCode: ShortCodeEditForm,
   Header: HeaderEditForm,
   Footer: FooterEditForm,
   HomeHero: HomeHeroEditForm,
