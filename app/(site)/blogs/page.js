@@ -419,7 +419,9 @@ export default async function BlogListPage({ searchParams }) {
           </div>
         </div>
 
-        <style>{`
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
         @media (max-width: 992px) {
           .blog-layout { flex-direction: column !important; gap: 0 !important; }
           .blog-sidebar { width: 100% !important; margin-top: 40px; }
@@ -436,7 +438,9 @@ export default async function BlogListPage({ searchParams }) {
           article img { min-height: 150px !important; max-height: 180px !important; }
           article h2 { font-size: 16px !important; margin-bottom: 8px !important; }
         }
-      `}</style>
+      `,
+          }}
+        />
       </PageContainer>
     </FullWidthBackground>
   );
