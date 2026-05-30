@@ -13,6 +13,7 @@ import FileDownloadBlock from "@/components/cms/blocks/FileDownload";
 import CoverBlock from "@/components/cms/blocks/Cover";
 import CallToActionBlock from "@/components/cms/blocks/CallToAction";
 import EmbedBlock from "@/components/cms/blocks/Embed";
+import FormEmbedBlock from "@/components/cms/blocks/FormEmbed";
 import BreadcrumbsBlock from "@/components/cms/blocks/Breadcrumbs";
 import CardBlock from "@/components/cms/blocks/Card";
 import CardGridBlock from "@/components/cms/blocks/CardGrid";
@@ -62,6 +63,7 @@ const COMPONENT_MAP = {
   Cover: CoverBlock,
   CallToAction: CallToActionBlock,
   Embed: EmbedBlock,
+  FormEmbed: FormEmbedBlock,
   Breadcrumbs: BreadcrumbsBlock,
   Card: CardBlock,
   CardGrid: CardGridBlock,

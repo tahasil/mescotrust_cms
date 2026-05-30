@@ -350,6 +350,7 @@ const BLOCK_ICON_MAP = {
   Testimonial: <TeamOutlined />,
   Team: <TeamOutlined />,
   Embed: <PictureOutlined />,
+  FormEmbed: <InteractionOutlined />,
   Accordion: <UnorderedListOutlined />,
   Tabs: <AppstoreOutlined />,
   Modal: <InteractionOutlined />,
@@ -2024,6 +2025,7 @@ export default function PageBuilder({
   const [addBlockLoading, setAddBlockLoading] = useState(null);
   const [form] = Form.useForm();
   const [adminMenusList, setAdminMenusList] = useState([]);
+  const [formEmbedOptions, setFormEmbedOptions] = useState([]);
   /** Last nav items loaded from selected menu – used at save so all children are persisted (form may not keep them). */
   const lastLoadedNavItemsRef = useRef(null);
   const canvasRef = useRef(null);
@@ -2106,6 +2108,19 @@ export default function PageBuilder({
       })
       .catch(() => setComponents([]));
   }, [includeAntdBlocks]);
+
+  useEffect(() => {
+    fetch("/api/admin/form-builder?limit=500&includeArchived=false", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : { items: [] }))
+      .then((data) => {
+        const options = (Array.isArray(data?.items) ? data.items : []).map((item) => ({
+          value: item.formId,
+          label: `${item.name || item.formId} (${item.formId})`,
+        }));
+        setFormEmbedOptions(options);
+      })
+      .catch(() => setFormEmbedOptions([]));
+  }, []);
 
   /** Single source for palette + schema: DB components + optional Ant Design blocks. */
   const fullPalette = useMemo(
@@ -2468,7 +2483,19 @@ export default function PageBuilder({
           <Input.TextArea rows={2} />
         </Form.Item>
       );
-    const schema = enrichSchema(baseComponent, raw);
+    let schema = enrichSchema(baseComponent, raw);
+    if (baseComponent === "FormEmbed") {
+      schema = schema.map((field) =>
+        field.key === "formId"
+          ? {
+              ...field,
+              type: "select",
+              options: formEmbedOptions,
+              label: "Select Form",
+            }
+          : field,
+      );
+    }
     return schema.map((f) => renderSchemaField(f, themeColorOptions));
   };
 

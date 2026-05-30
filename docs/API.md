@@ -25,6 +25,10 @@ All API routes live under `/api/`. The convention is:
 | GET | `/api/public/blog-categories` | All blog categories |
 | GET | `/api/public/menus?name=header` | Menu by name (e.g. header, footer) |
 | GET | `/api/public/search?q=term` | Search pages and posts by title/slug/excerpt |
+| GET | `/api/public/forms/[formId]` | Public form schema/config payload (published/allowed archived only) |
+| GET | `/api/public/forms/resolve?shortcode=[form id="FORM_001"]` | Resolve shortcode to immutable form ID |
+| POST | `/api/public/forms/[formId]/upload` | Upload file(s) for file fields before submit |
+| POST | `/api/public/forms/[formId]/submit` | Submit dynamic form payload with server-side validation |
 | GET | `/api/theme` | Active theme configuration |
 | GET | `/media/[id]?size=desktop&format=auto` | Stable media delivery endpoint (AVIF/WebP/fallback) |
 | GET | `/api/health` | Database connectivity check (200 or 503) |
@@ -43,6 +47,13 @@ All admin APIs require authentication via JWT (enforced by middleware and `requi
 | GET/PUT/DELETE | `/api/admin/blog-categories/[id]` | Admin, Editor | Read/update/delete category |
 | GET/POST | `/api/admin/components` | Admin, Editor | List/create components |
 | GET/PUT/DELETE | `/api/admin/components/[id]` | Admin, Editor | Read/update/delete component |
+| GET/POST | `/api/admin/form-builder` | Admin, Editor | List/create dynamic forms |
+| GET/PUT/DELETE | `/api/admin/form-builder/[formId]` | Admin, Editor (DELETE: Admin) | Form details and metadata update/delete |
+| PUT | `/api/admin/form-builder/[formId]/schema` | Admin, Editor | Save full builder schema + configuration (versioned) |
+| GET | `/api/admin/form-builder/[formId]/submissions` | Admin, Editor | List submissions for one form (dynamic columns source) |
+| GET/PATCH/DELETE | `/api/admin/form-builder/[formId]/submissions/[submissionId]` | Admin, Editor (DELETE: Admin) | Submission detail, mark-read, delete |
+| GET | `/api/admin/form-builder/submissions` | Admin, Editor | Cross-form submissions feed (used by notification polling) |
+| GET | `/api/admin/form-builder/files/[fileId]/download` | Admin, Editor | Secure file download/open for submission file |
 | GET | `/api/admin/components/[id]/usage` | Admin, Editor | Count pages using component |
 | GET/POST | `/api/admin/media` | Admin, Editor | List/upload media |
 | GET/PUT/DELETE | `/api/admin/media/[id]` | Admin, Editor | Read/update/delete media |

@@ -357,6 +357,22 @@ All fields have defaults in the schema; full field list is in `models/ThemeConfi
 
 ---
 
+### 2.12 Dynamic Form Builder Models
+
+**Files:**  
+`models/Form.js`, `models/FormField.js`, `models/FormConfiguration.js`, `models/FormSubmission.js`, `models/SubmissionFile.js`, `models/Counter.js`
+
+**Collections:**  
+`forms`, `formfields`, `formconfigurations`, `formsubmissions`, `submissionfiles`, `counters`
+
+**Key contract points:**
+- `Form.formId` is immutable and generated via `Counter` as `FORM_###`.
+- Shortcodes are immutable at creation (`[form id="FORM_###"]`, `[form_builder id="FORM_###"]`).
+- Builder schema is normalized and stored in `FormField` rows (`fieldKey` stable across renames).
+- `FormConfiguration.schemaVersion` increments on each full schema save.
+- `FormSubmission` stores both `payloadByFieldKey` and `payloadByFieldNameSnapshot`, plus `fieldSnapshot` for historical rendering after schema changes.
+- `SubmissionFile` stores pre-submit uploads and links them to the final `submissionId` on successful submit.
+
 ## 3. API Endpoints Summary
 
 Base URL: `/api`. Auth: public (no auth), admin (JWT via NextAuth + `requireAuth`). See [API.md](./API.md) for path convention and roles.
@@ -371,6 +387,10 @@ Base URL: `/api`. Auth: public (no auth), admin (JWT via NextAuth + `requireAuth
 | GET | `/api/public/blog-categories` | Blog categories |
 | GET | `/api/public/menus` | Menu by `name` (e.g. header, footer) |
 | GET | `/api/public/search` | Search pages/posts (`q`) |
+| GET | `/api/public/forms/[formId]` | Resolve published/allowed archived form schema + runtime configuration |
+| GET | `/api/public/forms/resolve` | Resolve shortcode to immutable `formId` |
+| POST | `/api/public/forms/[formId]/upload` | Upload file for a file-field (pre-submit token flow) |
+| POST | `/api/public/forms/[formId]/submit` | Validate + persist dynamic form submission |
 | GET | `/api/public/site-components` | Global site component IDs (before/after) |
 | GET | `/api/theme` | Full theme config |
 | GET | `/api/theme/header` | Theme header slice |
@@ -397,6 +417,13 @@ Base URL: `/api`. Auth: public (no auth), admin (JWT via NextAuth + `requireAuth
 | GET, PUT, DELETE | `/api/admin/blog-categories/[id]` | Get, update, delete category |
 | GET, POST | `/api/admin/components` | List, create components |
 | GET, PUT, DELETE | `/api/admin/components/[id]` | Get, update, delete component |
+| GET, POST | `/api/admin/form-builder` | List/create forms (`FORM_###` IDs, immutable shortcodes) |
+| GET, PUT, DELETE | `/api/admin/form-builder/[formId]` | Form details + metadata updates / delete |
+| PUT | `/api/admin/form-builder/[formId]/schema` | Atomic save for fields + form configuration (increments schemaVersion) |
+| GET | `/api/admin/form-builder/[formId]/submissions` | Paginated submissions list for one form |
+| GET, PATCH, DELETE | `/api/admin/form-builder/[formId]/submissions/[submissionId]` | Submission detail / mark-read / delete |
+| GET | `/api/admin/form-builder/submissions` | Cross-form submissions feed for notification polling |
+| GET | `/api/admin/form-builder/files/[fileId]/download` | Authenticated submission-file download/open |
 | GET | `/api/admin/components/[id]/usage` | Count pages using component |
 | GET | `/api/admin/components/seed` | POST: seed default components |
 | GET | `/api/admin/components/ensure/[base]` | Ensure component exists by baseComponent |
@@ -557,5 +584,5 @@ After editing, bump the *Last updated* line at the end of the file.
 
 ---
 
-*Last updated: 2026-04-16 - added Media optimization schemas/endpoints (MediaSettings/MediaJob, media replace/jobs/settings/usage APIs), stable `/media/[id]` delivery, and usage-tracking notes.*
+*Last updated: 2026-05-30 - added Dynamic Form Builder data models and API surfaces (admin CRUD/schema/submissions, public resolve/get/upload/submit), including submission-file download flow.*
 

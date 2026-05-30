@@ -75,6 +75,12 @@ Models in `models/`:
 - `Donation`
 - `Event`
 - `EventRegistration`
+- `Counter`
+- `Form`
+- `FormField`
+- `FormConfiguration`
+- `FormSubmission`
+- `SubmissionFile`
 
 For field-level schema details, use `docs/TECHNICAL_DESIGN.md`.
 
@@ -88,11 +94,12 @@ Conventions:
 - `/api/health` -> DB health
 
 Key public groups:
-- Pages, blogs, categories, menus, search, theme, social wall, event registrations
+- Pages, blogs, categories, menus, search, theme, social wall, event registrations, dynamic forms
 
 Key admin groups:
 - Pages, blogs, categories, comments, components, site-components, menus
 - Media, contacts, users, subscribers, donations, events, event-registrations, fonts
+- Form Builder (`/api/admin/form-builder/*`) + form submissions + secure submission file downloads
 
 Use `docs/API.md` for endpoint behavior and request/response contracts.
 
@@ -178,6 +185,7 @@ Reference: `docs/BACKUPS.md`
    - page render
    - blog list/detail
    - admin save/edit flows
+   - form builder CRUD/builder/submissions
    - media upload
    - contact/subscribe flows
    - payment callbacks (if touched)
@@ -233,6 +241,10 @@ Key implementation files:
 - `components/site/index.js`
 - `app/api/admin/site-components/route.js`
 - `app/admin/(authenticated)/components/[id]/edit/page.js`
+- `app/api/admin/form-builder/route.js`
+- `app/api/public/forms/[formId]/submit/route.js`
+- `app/admin/(authenticated)/form-builder/page.js`
+- `app/admin/(authenticated)/form-submissions/page.js`
 
 ---
 

@@ -78,6 +78,15 @@ const baseMenuItems = [
     ),
   },
   {
+    key: "/admin/form-builder",
+    icon: <AppstoreOutlined />,
+    label: (
+      <Link href="/admin/form-builder" style={linkStyle}>
+        Form Builder
+      </Link>
+    ),
+  },
+  {
     key: "/admin/sliders",
     icon: <AppstoreOutlined />,
     label: (
@@ -257,6 +266,14 @@ const baseMenuItems = [
         label: (
           <Link href="/admin/contacts" style={linkStyle}>
             Contact Us
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/form-submissions",
+        label: (
+          <Link href="/admin/form-submissions" style={linkStyle}>
+            Form Builder
           </Link>
         ),
       },
@@ -595,8 +612,11 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
       fetch("/api/admin/event-registrations?limit=20").then((r) =>
         r.ok ? r.json() : { items: [] },
       ),
+      fetch("/api/admin/form-builder/submissions?unreadOnly=true&limit=20").then(
+        (r) => (r.ok ? r.json() : { items: [] }),
+      ),
     ])
-      .then(([contacts, donations, subscribers, eventRegs]) => {
+      .then(([contacts, donations, subscribers, eventRegs, formSubs]) => {
         const notifs = [];
         (contacts.items || []).forEach((c) => {
           if (!c.isRead) {
@@ -650,6 +670,23 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
             });
           }
         });
+        (formSubs.items || []).forEach((entry) => {
+          if (!entry.isRead) {
+            const titleParts = [];
+            if (entry.formName) titleParts.push(entry.formName);
+            if (entry.formId) titleParts.push(entry.formId);
+            notifs.push({
+              id: entry._id,
+              type: "form-submission",
+              icon: <FileTextOutlined style={{ color: "#1677ff" }} />,
+              title: `New form submission: ${titleParts.join(" • ") || "Form"}`,
+              time: entry.createdAt,
+              link: `/admin/form-submissions?formId=${encodeURIComponent(
+                entry.formId || "",
+              )}&submissionId=${encodeURIComponent(entry._id)}`,
+            });
+          }
+        });
         notifs.sort((a, b) => new Date(b.time) - new Date(a.time));
         const sliced = notifs.slice(0, 10);
         if (
@@ -670,10 +707,12 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
     const interval = setInterval(fetchNotifications, 5000);
     const handleNewSubmission = () => setTimeout(fetchNotifications, 500);
     window.addEventListener("new-contact-submission", handleNewSubmission);
+    window.addEventListener("new-form-submission", handleNewSubmission);
     window.addEventListener("new-donation", handleNewSubmission);
     return () => {
       clearInterval(interval);
       window.removeEventListener("new-contact-submission", handleNewSubmission);
+      window.removeEventListener("new-form-submission", handleNewSubmission);
       window.removeEventListener("new-donation", handleNewSubmission);
     };
   }, [fetchNotifications]);

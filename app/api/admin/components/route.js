@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Component from "@/models/Component";
+import systemComponents from "@/lib/systemComponents";
+const { SYSTEM_COMPONENTS } = systemComponents;
 
 export async function GET(req) {
   const session = await requireAuth(req);
@@ -9,6 +11,24 @@ export async function GET(req) {
 
   try {
     await connectDB();
+    // Keep newly added system blocks immediately available (e.g. FormEmbed)
+    // even before a manual seed run in older databases.
+    for (const comp of SYSTEM_COMPONENTS) {
+      // eslint-disable-next-line no-await-in-loop
+      const existing = await Component.findOne({
+        baseComponent: comp.baseComponent,
+        type: "system",
+      }).lean();
+      if (!existing) {
+        // eslint-disable-next-line no-await-in-loop
+        await Component.create({
+          ...comp,
+          layout: [],
+          container: "container",
+          active: true,
+        });
+      }
+    }
     const components = await Component.find()
       .sort({ category: 1, name: 1 })
       .lean();
