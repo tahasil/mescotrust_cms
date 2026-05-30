@@ -239,13 +239,83 @@ const baseMenuItems = [
     ),
   },
   {
-    key: "/admin/appearance",
+    key: "group:admin:appearance",
     icon: <BgColorsOutlined />,
-    label: (
-      <Link href="/admin/appearance" style={linkStyle}>
-        Appearance
-      </Link>
-    ),
+    label: "Appearance",
+    children: [
+      {
+        key: "/admin/appearance/header",
+        label: (
+          <Link href="/admin/appearance/header" style={linkStyle}>
+            Header
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/appearance/footer",
+        label: (
+          <Link href="/admin/appearance/footer" style={linkStyle}>
+            Footer
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/appearance/menu",
+        label: (
+          <Link href="/admin/appearance/menu" style={linkStyle}>
+            Menu
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/appearance/background",
+        label: (
+          <Link href="/admin/appearance/background" style={linkStyle}>
+            Background
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/appearance/colors",
+        label: (
+          <Link href="/admin/appearance/colors" style={linkStyle}>
+            Colors
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/appearance/layouts",
+        label: (
+          <Link href="/admin/appearance/layouts" style={linkStyle}>
+            Layouts
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/appearance/loader",
+        label: (
+          <Link href="/admin/appearance/loader" style={linkStyle}>
+            Loader
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/appearance/advanced",
+        label: (
+          <Link href="/admin/appearance/advanced" style={linkStyle}>
+            Advanced
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/appearance/branding",
+        label: (
+          <Link href="/admin/appearance/branding" style={linkStyle}>
+            Branding
+          </Link>
+        ),
+      },
+    ],
   },
   {
     key: "/admin/submissions",
