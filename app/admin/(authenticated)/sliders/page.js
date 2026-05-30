@@ -5,16 +5,10 @@ import { Button, Table, Tag, message } from "antd";
 import { EditOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { ThemeAdminCard } from "@/styles/Theme";
-
-const SLIDER_COMPONENT_IDS = ["HomeHero", "ImageSlider", "StoriesSlider", "EventsSlider", "NewsFeedSlider"];
-
-const SLIDER_LABELS = {
-  HomeHero: "Home Hero",
-  ImageSlider: "Circular Slider",
-  StoriesSlider: "Stories Slider",
-  EventsSlider: "Events Slider",
-  NewsFeedSlider: "News Feed Slider",
-};
+import {
+  CORE_SLIDER_COMPONENT_IDS,
+  CORE_SLIDER_LABELS,
+} from "@/lib/sliderComponentRegistry";
 
 export default function AdminSlidersPage() {
   const [list, setList] = useState([]);
@@ -31,12 +25,12 @@ export default function AdminSlidersPage() {
 
   const sliderRows = useMemo(() => {
     const byId = new Map(list.map((item) => [item.componentId, item]));
-    return SLIDER_COMPONENT_IDS.map((componentId, index) => {
+    return CORE_SLIDER_COMPONENT_IDS.map((componentId, index) => {
       const item = byId.get(componentId) || {};
       return {
         key: componentId,
         componentId,
-        displayName: item.displayName || SLIDER_LABELS[componentId] || componentId,
+        displayName: item.displayName || CORE_SLIDER_LABELS[componentId] || componentId,
         enabled: item.enabled !== false,
         order: index + 1,
       };

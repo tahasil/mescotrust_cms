@@ -6,46 +6,7 @@ import { requirePermission } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Form from "@/models/Form";
 import { normalizeMapEmbedInput } from "@/lib/mapEmbed";
-
-const DEFAULT_FORM_UI = {
-  sectionBgGradient: "",
-  cardBg: "#ffffff",
-  cardBorderRadius: 16,
-  cardPadding: 24,
-  titleColor: "#0b2130",
-  labelColor: "#334155",
-  labelColorKey: "",
-  inputBg: "#ffffff",
-  inputBorderColor: "#e5e7eb",
-  inputTextColor: "#111827",
-  buttonBg: "",
-  buttonBgColorKey: "",
-  buttonTextColor: "",
-  buttonTextColorKey: "",
-  buttonHoverBg: "#ffffff",
-  buttonHoverBgColorKey: "",
-  buttonHoverTextColor: "",
-  buttonHoverTextColorKey: "",
-  buttonRadius: 24,
-  leftContentHtml:
-    "<p>If you would like to get involved or collaborate with us, please register your interest here and we will get back to you.</p>",
-  leftContentColor: "#1f2933",
-  leftContentColorKey: "",
-  leftContentAlign: "left",
-  leftContentFontSize: 16,
-  leftContentLineHeight: 1.6,
-  leftContentBottomSpacing: 16,
-  leftMapTopSpacing: 18,
-  mapEmbedUrl:
-    "",
-  mapHeightDesktop: 370,
-  mapHeightTablet: 300,
-  mapHeightMobile: 260,
-  mapBorderRadius: 4,
-  mapBorderColor: "#edf0f3",
-  mapBorderColorKey: "",
-};
-const DEFAULT_SUCCESS_MESSAGE = "Form submitted successfully.";
+import { DEFAULT_FORM_UI, DEFAULT_SUCCESS_MESSAGE } from "@/lib/formDefaults";
 
 function toFiniteNumber(value, fallback) {
   const parsed = Number(value);
