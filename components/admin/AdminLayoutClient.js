@@ -180,7 +180,7 @@ const baseMenuItems = [
     ],
   },
   {
-    key: "/admin/media",
+    key: "group:admin:media",
     icon: <AppstoreOutlined />,
     label: "Media",
     children: [
@@ -1203,10 +1203,12 @@ export default function AdminLayoutClient({
               onOpenChange={setNotifOpen}
               placement="bottomRight"
               arrow={false}
-              overlayInnerStyle={{
-                padding: 0,
-                borderRadius: 12,
-                overflow: "hidden",
+              styles={{
+                body: {
+                  padding: 0,
+                  borderRadius: 12,
+                  overflow: "hidden",
+                },
               }}
             >
               <Badge count={notifications.length} size="small" offset={[-2, 2]}>

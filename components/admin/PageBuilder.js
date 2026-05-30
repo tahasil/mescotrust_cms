@@ -1709,7 +1709,7 @@ function ComponentPaletteItem({ comp, onAdd, index, loading = false }) {
       mouseEnterDelay={0.4}
       mouseLeaveDelay={0.15}
       overlayStyle={{ maxWidth: 500 }}
-      overlayInnerStyle={{ padding: 0, overflow: "hidden", borderRadius: 8 }}
+      styles={{ body: { padding: 0, overflow: "hidden", borderRadius: 8 } }}
       getPopupContainer={() => document.body}
       content={
         <ComponentPreviewContent
