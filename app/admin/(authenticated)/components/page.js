@@ -33,8 +33,15 @@ export default function AdminComponentsPage() {
 
   const filteredList = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
+    // Hide components that belong to the Sliders/Popups modules — they are edited
+    // from /admin/sliders and /admin/popups, not here (the API returns each item's
+    // resolved `module`). This catches HomeHero/NewsFeedSlider/MarketingPopup that
+    // the name-based EXCLUDED set above misses after the Phase 6 relocation.
     const visibleList = list.filter(
-      (c) => !EXCLUDED_COMPONENT_IDS.has(c.componentId),
+      (c) =>
+        !EXCLUDED_COMPONENT_IDS.has(c.componentId) &&
+        c.module !== "sliders" &&
+        c.module !== "popups",
     );
     if (!q) return visibleList;
     return visibleList.filter(
