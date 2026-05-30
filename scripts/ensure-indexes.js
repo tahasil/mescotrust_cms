@@ -6,9 +6,8 @@ const mongoose = require("mongoose");
 
 // Load every model so its schema-level indexes are registered with mongoose.
 // MESCO model set (incl. RBAC models + MESCO-only Donation/EventRegistration).
-// Models from later TSUV→MESCO phases (Form, Popup, Portfolio, PortfolioCategory,
-// Slider, Team, TeamCategory) are intentionally omitted — add them here as each
-// phase lands. (syncAllIndexes also gracefully skips any model file that is
+// Includes all ported TSUV→MESCO models (Form, Popup, Portfolio, PortfolioCategory,
+// Slider, Team, TeamCategory). (syncAllIndexes also gracefully skips any model file that is
 // missing, so a stale entry only logs a warning.)
 const MODEL_FILES = [
   "AdminRole",
