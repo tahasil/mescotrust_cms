@@ -8,6 +8,7 @@ export { default as Footer, FooterEditForm } from "./Footer/index";
 export { default as HomeHero, HomeHeroEditForm } from "./HomeHero/index";
 export { default as Marquee, MarqueeEditForm } from "./Marquee/index";
 export { default as Subscribe, SubscribeEditForm } from "./Subscribe/index";
+export { default as VolunteersFeedback, VolunteersFeedbackEditForm } from "./VolunteersFeedback/index";
 export { default as Internshiplifecycle, InternshiplifecycleEditForm } from "./Internshiplifecycle/index";
 export { default as SectionIntro, SectionIntroEditForm } from "./SectionIntro/index";
 export { default as Volunteer, VolunteerEditForm } from "./Volunteer/index";
@@ -52,6 +53,7 @@ export { default as SocialMediaWall, SocialMediaWallEditForm } from "./SocialMed
 import HomeHeroEditForm from "./HomeHero/EditForm";
 import MarqueeEditForm from "./Marquee/EditForm";
 import SubscribeEditForm from "./Subscribe/EditForm";
+import VolunteersFeedbackEditForm from "./VolunteersFeedback/EditForm";
 import InternshiplifecycleEditForm from "./Internshiplifecycle/EditForm";
 import SectionIntroEditForm from "./SectionIntro/EditForm";
 import VolunteerEditForm from "./Volunteer/EditForm";
