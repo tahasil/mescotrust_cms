@@ -27,6 +27,7 @@ import {
   BgColorsOutlined,
   TeamOutlined,
   FormOutlined,
+  NotificationOutlined,
   MailOutlined,
   UserOutlined,
   LogoutOutlined,
@@ -114,6 +115,15 @@ const baseMenuItems = [
     label: (
       <Link href="/admin/forms" style={linkStyle}>
         Forms
+      </Link>
+    ),
+  },
+  {
+    key: "/admin/popups",
+    icon: <NotificationOutlined />,
+    label: (
+      <Link href="/admin/popups" style={linkStyle}>
+        Popups
       </Link>
     ),
   },

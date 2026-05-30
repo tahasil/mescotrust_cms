@@ -6,7 +6,7 @@ import { connectDB } from "@/lib/db";
 import Form from "@/models/Form";
 
 const DEFAULT_FORM_UI = {
-  sectionBgGradient: "linear-gradient(172.897deg, rgb(0, 81, 111) 0%, rgb(0, 0, 0) 100%)",
+  sectionBgGradient: "",
   cardBg: "#ffffff",
   cardBorderRadius: 16,
   cardPadding: 24,
@@ -16,17 +16,17 @@ const DEFAULT_FORM_UI = {
   inputBg: "#ffffff",
   inputBorderColor: "#e5e7eb",
   inputTextColor: "#111827",
-  buttonBg: "#f7b733",
+  buttonBg: "",
   buttonBgColorKey: "",
-  buttonTextColor: "#00516f",
+  buttonTextColor: "",
   buttonTextColorKey: "",
   buttonHoverBg: "#ffffff",
   buttonHoverBgColorKey: "",
-  buttonHoverTextColor: "#00516f",
+  buttonHoverTextColor: "",
   buttonHoverTextColorKey: "",
   buttonRadius: 24,
   leftContentHtml:
-    "<p>We are happy to work with interns or people or organizations who are enthusiastic on working and helping startups grow.</p><p>If you think you can work and you have it in you or if you would like to collaborate with us in this space, then register your interest here. We will get back to you as soon as possible to discuss over a cup of coffee.</p>",
+    "<p>If you would like to get involved or collaborate with us, please register your interest here and we will get back to you.</p>",
   leftContentColor: "#1f2933",
   leftContentColorKey: "",
   leftContentAlign: "left",
@@ -34,8 +34,7 @@ const DEFAULT_FORM_UI = {
   leftContentLineHeight: 1.6,
   leftContentBottomSpacing: 16,
   leftMapTopSpacing: 18,
-  mapEmbedUrl:
-    "https://maps.google.com/maps?q=Karnataka%20Bangalore&t=&z=14&ie=UTF8&iwloc=&output=embed",
+  mapEmbedUrl: "",
   mapHeightDesktop: 370,
   mapHeightTablet: 300,
   mapHeightMobile: 260,
@@ -423,11 +422,11 @@ export default function GeneratedForm({
     buttonBg:
       resolveThemeColorValue(ui?.buttonBgColorKey, "") ||
       resolveThemeColorValue(ui?.buttonBg, "secondary") ||
-      "#f7b733",
+      "#cf372f",
     buttonTextColor:
       resolveThemeColorValue(ui?.buttonTextColorKey, "") ||
       resolveThemeColorValue(ui?.buttonTextColor, "primary") ||
-      "#00516f",
+      "#ffffff",
     buttonHoverBg:
       resolveThemeColorValue(ui?.buttonHoverBgColorKey, "") ||
       resolveThemeColorValue(ui?.buttonHoverBg, "white") ||
@@ -435,7 +434,7 @@ export default function GeneratedForm({
     buttonHoverTextColor:
       resolveThemeColorValue(ui?.buttonHoverTextColorKey, "") ||
       resolveThemeColorValue(ui?.buttonHoverTextColor, "primary") ||
-      "#00516f",
+      "#cf372f",
     buttonRadius: Number(ui?.buttonRadius ?? 24),
   };
 
