@@ -50,6 +50,12 @@
 2. Build `/admin/form-builder` listing page with columns: Form ID, Form Name, Shortcode, Status, Created Date, Actions.
 3. Add actions: Edit, View, Delete, Copy Shortcode.
 4. Add **Add Form** flow (create form, generate immutable ID + shortcode, open builder editor).
+5. In create/edit UI, show:
+6. `Form ID` as read-only/non-editable field.
+7. `Form Name` as editable field at all times.
+8. Shortcode variants as read-only with copy buttons.
+9. Ensure rename/status updates never mutate existing `formId` or shortcode values.
+10. Define **View** action as read-only form preview (no mutation controls).
 
 ## 5. Drag-and-Drop Builder UI
 
@@ -70,6 +76,7 @@
 7. Preserve backward readability:
 8. If a field is removed from active schema, still show old value in submission detail from `fieldSnapshot`.
 9. If label/name changed, list columns follow latest schema while detail view can show submitted snapshot and current mapping.
+10. Submission detail view must display file-field values with preview (where possible), filename, size, type, and secure download/open action.
 
 ## 7. Submissions Module Integration
 
@@ -80,6 +87,8 @@
 5. Define fallback column behavior:
 6. Unknown/removed field values appear under a grouped "Legacy Fields" area in details.
 7. Add server-side pagination/filter/search on dynamic submissions listing.
+8. When a form is created and saved, it must automatically appear in Submissions module without manual setup or code changes.
+9. For multiple forms, provide form selector/tabs in submissions UI with stable deep-linking per form.
 
 ## 8. Shortcode + Page Builder Integration
 
@@ -135,3 +144,21 @@
 13. Maintain a checklist with `Pass/Fail/Blocked` status per critical flow.
 14. Block release if any critical flow is not `Pass`.
 15. Capture evidence for each gate (API checks, UI screenshots, and command outputs for lint/build).
+
+## 12. Explicit Acceptance Checklist (Request Mapping)
+
+1. Form ID is auto-generated, unique, and immutable after creation.
+2. Form Name is editable at any time.
+3. Shortcode is auto-generated, read-only, copyable, and unchanged when form name changes.
+4. Form listing contains required columns and actions: Edit, View, Delete, Copy Shortcode.
+5. Drag-and-drop builder supports all requested field types and reorder/duplicate/remove/edit flows.
+6. Field configuration and validation options match requested scope, including file constraints and custom messages.
+7. Full schema/config is saved and editable with immediate post-save reflection.
+8. New/updated forms appear in Submissions module automatically; submission columns track latest field labels/names.
+9. Existing submission records remain intact after field updates/removals, with legacy fallback rendering.
+10. Page Builder `Form Embed` supports form selection and manual shortcode paste, and renders on frontend.
+11. Frontend submissions are validated client-side and server-side, stored in DB, and include file handling.
+12. Admin notifications for form submissions match existing notification behavior (count/list/details/deep-link/read state).
+13. Backward compatibility with existing submissions modules and notifications is preserved.
+14. Responsive behavior is validated for admin + frontend.
+15. Release is blocked unless all defined regression gates pass.
