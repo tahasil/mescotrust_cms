@@ -8,7 +8,7 @@ import Form from "@/models/Form";
 import { normalizeMapEmbedInput } from "@/lib/mapEmbed";
 
 const DEFAULT_FORM_UI = {
-  sectionBgGradient: "linear-gradient(172.897deg, rgb(0, 81, 111) 0%, rgb(0, 0, 0) 100%)",
+  sectionBgGradient: "",
   cardBg: "#ffffff",
   cardBorderRadius: 16,
   cardPadding: 24,
@@ -18,17 +18,17 @@ const DEFAULT_FORM_UI = {
   inputBg: "#ffffff",
   inputBorderColor: "#e5e7eb",
   inputTextColor: "#111827",
-  buttonBg: "#f7b733",
+  buttonBg: "",
   buttonBgColorKey: "",
-  buttonTextColor: "#00516f",
+  buttonTextColor: "",
   buttonTextColorKey: "",
   buttonHoverBg: "#ffffff",
   buttonHoverBgColorKey: "",
-  buttonHoverTextColor: "#00516f",
+  buttonHoverTextColor: "",
   buttonHoverTextColorKey: "",
   buttonRadius: 24,
   leftContentHtml:
-    "<p>We are happy to work with interns or people or organizations who are enthusiastic on working and helping startups grow.</p><p>If you think you can work and you have it in you or if you would like to collaborate with us in this space, then register your interest here. We will get back to you as soon as possible to discuss over a cup of coffee.</p>",
+    "<p>If you would like to get involved or collaborate with us, please register your interest here and we will get back to you.</p>",
   leftContentColor: "#1f2933",
   leftContentColorKey: "",
   leftContentAlign: "left",
@@ -37,7 +37,7 @@ const DEFAULT_FORM_UI = {
   leftContentBottomSpacing: 16,
   leftMapTopSpacing: 18,
   mapEmbedUrl:
-    "https://maps.google.com/maps?q=Karnataka%20Bangalore&t=&z=14&ie=UTF8&iwloc=&output=embed",
+    "",
   mapHeightDesktop: 370,
   mapHeightTablet: 300,
   mapHeightMobile: 260,

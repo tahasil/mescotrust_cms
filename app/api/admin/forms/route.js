@@ -217,11 +217,11 @@ async function scaffoldFormFiles({ name, formKey, shortcode }) {
           <Col xs={24} md={12}>
             <Form.Item
               name="investmentInterest"
-              label={<span style={{ color: styles.labelColor }}>Investment Interest</span>}
-              rules={[{ required: true, message: "Investment Interest is required" }]}
+              label={<span style={{ color: styles.labelColor }}>Area of Interest</span>}
+              rules={[{ required: true, message: "Area of Interest is required" }]}
               style={{ marginBottom: 12 }}
             >
-              <Input placeholder="Investment Interest*" style={commonControlStyle} />
+              <Input placeholder="Area of Interest*" style={commonControlStyle} />
             </Form.Item>
           </Col>`
     : `
