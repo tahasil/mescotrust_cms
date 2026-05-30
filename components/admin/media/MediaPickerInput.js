@@ -428,7 +428,7 @@ export default function MediaPickerInput({
         onCancel={() => setLibraryOpen(false)}
         footer={null}
         width={980}
-        destroyOnClose
+        destroyOnHidden
       >
         <div
           style={{

@@ -193,7 +193,7 @@ export default function AdminComponentsPage() {
         closable={!saving}
         maskClosable={!saving}
         footer={null}
-        destroyOnClose
+        destroyOnHidden
         width={520}
       >
         <Form

@@ -511,7 +511,7 @@ export default function Videogallery(props) {
         footer={null}
         centered
         width={900}
-        destroyOnClose
+        destroyOnHidden
         closable={false}
         styles={{
           mask: {

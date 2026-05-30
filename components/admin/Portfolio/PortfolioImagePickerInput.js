@@ -607,7 +607,7 @@ export default function PortfolioImagePickerInput({
         onCancel={() => setLibraryOpen(false)}
         footer={null}
         width={980}
-        destroyOnClose
+        destroyOnHidden
       >
         <div
           style={{

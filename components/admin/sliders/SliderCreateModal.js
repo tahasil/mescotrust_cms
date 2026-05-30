@@ -17,7 +17,7 @@ export default function SliderCreateModal({
       open={open}
       onCancel={onCancel}
       footer={null}
-      destroyOnClose
+      destroyOnHidden
       closable={!saving}
       maskClosable={!saving}
       width={520}

@@ -530,7 +530,7 @@ export default function SocialMediaWall(props) {
         centered
         footer={null}
         width={600}
-        destroyOnClose
+        destroyOnHidden
         data-lenis-prevent
       >
         {selectedPost && (() => {

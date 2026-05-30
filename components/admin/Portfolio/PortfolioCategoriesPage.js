@@ -284,7 +284,7 @@ export default function PortfolioCategoriesPage() {
         onOk={handleSave}
         okText={editingCategory?._id ? "Update" : "Create"}
         confirmLoading={saving}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={form} layout="vertical">
           <Form.Item

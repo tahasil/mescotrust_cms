@@ -284,7 +284,7 @@ export default function TeamCategoriesPage() {
         onOk={handleSave}
         okText={editingCategory?._id ? "Update" : "Create"}
         confirmLoading={saving}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={form} layout="vertical">
           <Form.Item

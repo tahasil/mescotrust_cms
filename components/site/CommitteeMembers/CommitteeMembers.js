@@ -520,7 +520,7 @@ export default function CommitteeMembers(props) {
         footer={null}
         width={640}
         centered
-        destroyOnClose
+        destroyOnHidden
       >
         {selectedMember && (
           <ProfileDetailUI>

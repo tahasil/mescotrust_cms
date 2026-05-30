@@ -451,7 +451,7 @@ export default function InMedia(props) {
         centered
         footer={null}
         width={800}
-        destroyOnClose
+        destroyOnHidden
         data-lenis-prevent
       >
         {selectedItem &&
