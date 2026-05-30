@@ -131,6 +131,7 @@ const AWARDS_TO_OVERVIEW_PROP_KEYS = {
   awardsRecognitionCardTitleColorKey: "overviewOfOurWorkCardTitleColorKey",
   awardsRecognitionCardBorderColorKey: "overviewOfOurWorkCardBorderColorKey",
   awardsRecognitionButtonColorKey: "overviewOfOurWorkButtonColorKey",
+  awardsRecognitionIconHoverColorKey: "overviewOfOurWorkIconHoverColorKey",
   awardsRecognitionHoverColorKey: "overviewOfOurWorkHoverColorKey",
 };
 

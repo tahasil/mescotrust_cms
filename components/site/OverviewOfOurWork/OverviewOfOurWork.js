@@ -1,6 +1,5 @@
 "use client";
 
-import { Row, Col } from "antd";
 import { ArrowRightOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import styled from "styled-components";
@@ -21,6 +20,7 @@ const CardsWrapper = styled.div`
   position: relative;
   --card-border-color: ${(p) => p.$cardBorderColor || getColor("ctaBorder")};
   --button-color: ${(p) => p.$buttonColor || getColor("white")};
+  --icon-hover-color: ${(p) => p.$iconHoverColor || "transparent"};
   --hover-overlay-color: ${(p) =>
     p.$hoverOverlayColor || "rgba(207, 55, 47, 0.5)"};
   --hover-overlay-opacity: ${(p) =>
@@ -29,6 +29,30 @@ const CardsWrapper = styled.div`
     p.$hoverOverlayOpacity <= 1
       ? p.$hoverOverlayOpacity
       : 0.5};
+  --title-font-family: ${(p) =>
+    p.$titleFontFamily ? p.$titleFontFamily : "inherit"};
+  --title-font-size: ${(p) =>
+    typeof p.$titleFontSize === "number" && p.$titleFontSize > 0
+      ? `${p.$titleFontSize}px`
+      : "24px"};
+  --title-font-size-mobile: ${(p) =>
+    typeof p.$titleFontSizeMobile === "number" && p.$titleFontSizeMobile > 0
+      ? `${p.$titleFontSizeMobile}px`
+      : "20px"};
+  --title-font-weight: ${(p) =>
+    typeof p.$titleFontWeight === "number" && p.$titleFontWeight >= 100
+      ? p.$titleFontWeight
+      : 700};
+  --title-font-style: ${(p) =>
+    p.$titleFontStyle === "italic" ? "italic" : "normal"};
+  --title-letter-spacing: ${(p) =>
+    typeof p.$titleLetterSpacing === "number"
+      ? `${p.$titleLetterSpacing}px`
+      : "normal"};
+  --title-line-height: ${(p) =>
+    typeof p.$titleLineHeight === "number" && p.$titleLineHeight > 0
+      ? p.$titleLineHeight
+      : 1.2};
   .cardBackground {
     position: absolute;
     inset: 0;
@@ -75,15 +99,49 @@ const CardsWrapper = styled.div`
     > button,
     > p,
     > .ant-btn,
-    > a {
+    > a,
+    > .cardIconWrap {
       position: relative;
       z-index: 1;
     }
+    .cardIconWrap {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 12px;
+      display: block;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .cardIconImage {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      transition: opacity 0.3s ease, filter 0.3s ease;
+    }
+    .cardIconHoverTint {
+      position: absolute;
+      inset: 0;
+      display: block;
+      opacity: 0;
+      pointer-events: none;
+      background: var(--icon-hover-color);
+      transition: opacity 0.3s ease;
+      -webkit-mask-position: center;
+      mask-position: center;
+      -webkit-mask-size: contain;
+      mask-size: contain;
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+    }
     h1 {
       margin: 0 0 1rem 0;
-      font-size: 24px;
-      font-weight: 700;
-      line-height: 1.2;
+      font-family: var(--title-font-family);
+      font-size: var(--title-font-size);
+      font-weight: var(--title-font-weight);
+      font-style: var(--title-font-style);
+      letter-spacing: var(--title-letter-spacing);
+      line-height: var(--title-line-height);
       color: ${() => getColor("white")};
       text-align: center;
       min-height: 90px;
@@ -108,7 +166,7 @@ const CardsWrapper = styled.div`
       padding: 32px 20px;
       min-height: 280px;
       h1 {
-        font-size: 20px;
+        font-size: var(--title-font-size-mobile);
         min-height: 72px;
       }
     }
@@ -129,19 +187,66 @@ const CardsWrapper = styled.div`
         rotate: 0deg !important;
         fill: var(--button-color) !important;
       }
-      img:not(.cardBackground img) {
+      img:not(.cardBackground img):not(.cardIconImage) {
         filter: ${() =>
           getColor("imgFillWhite") || "brightness(0) invert(1)"} !important;
       }
+      .cardIconWrap:not(.hasCustomHoverColor) .cardIconImage {
+        filter: ${() =>
+          getColor("imgFillWhite") || "brightness(0) invert(1)"} !important;
+      }
+      .cardIconWrap.hasCustomHoverColor .cardIconImage {
+        opacity: 0;
+        filter: none !important;
+      }
+      .cardIconWrap.hasCustomHoverColor .cardIconHoverTint {
+        opacity: 1;
+      }
+    }
+  }
+  .overviewGrid {
+    display: grid;
+    grid-template-columns: repeat(
+      var(--overview-cards-cols-desktop, 4),
+      minmax(0, 1fr)
+    );
+    gap: 16px;
+    align-items: stretch;
+  }
+  .overviewGridItem {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  @media (max-width: 992px) {
+    .overviewGrid {
+      grid-template-columns: repeat(
+        var(--overview-cards-cols-tablet, 2),
+        minmax(0, 1fr)
+      );
+    }
+  }
+  @media (max-width: 576px) {
+    .overviewGrid {
+      grid-template-columns: repeat(
+        var(--overview-cards-cols-mobile, 1),
+        minmax(0, 1fr)
+      );
     }
   }
 `;
+
+function clamp(value, min, max, fallback) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(min, Math.min(max, n));
+}
 
 /**
  * Site component: OverviewOfOurWork (Overview of Our Work).
  * Section comes from ComponentRenderer. Props from theme/Component defaultProps.
  * Manage Section (background/padding) and Title & Colors come from EditForm.
- * UI: 4-card grid (Educational Support, Medical Aid, Clinics & Dispensaries, Relief of Poverty).
+ * UI: card grid with configurable desktop columns.
  */
 export default function OverviewOfOurWork(props) {
   const cardTitleColorKeyDefault = (
@@ -158,6 +263,9 @@ export default function OverviewOfOurWork(props) {
   const hoverColorKey = (props?.overviewOfOurWorkHoverColorKey ?? "")
     .toString()
     .trim();
+  const iconHoverColorKey = (props?.overviewOfOurWorkIconHoverColorKey ?? "")
+    .toString()
+    .trim();
   const hoverOverlayOpacity =
     props?.overviewOfOurWorkHoverOverlayOpacity != null
       ? Math.min(
@@ -165,6 +273,51 @@ export default function OverviewOfOurWork(props) {
           Math.max(0, Number(props.overviewOfOurWorkHoverOverlayOpacity)),
         )
       : 0.5;
+  const cardsPerRowDesktop = clamp(
+    props?.overviewOfOurWorkCardsPerRow ?? props?.cardsPerRow,
+    1,
+    8,
+    4,
+  );
+  const cardsPerRowTablet = Math.max(
+    1,
+    Math.min(3, Math.ceil(cardsPerRowDesktop / 2)),
+  );
+  const cardsPerRowMobile = 1;
+  const titleFontFamily = (
+    props?.overviewOfOurWorkTitleFontFamily ?? ""
+  )
+    .toString()
+    .trim();
+  const titleFontSize = clamp(props?.overviewOfOurWorkTitleFontSize, 10, 96, 24);
+  const titleFontSizeMobile = clamp(
+    props?.overviewOfOurWorkTitleFontSizeMobile,
+    10,
+    96,
+    Math.max(10, Math.round(titleFontSize * 0.8333)),
+  );
+  const titleFontWeight = clamp(
+    props?.overviewOfOurWorkTitleFontWeight,
+    100,
+    900,
+    700,
+  );
+  const titleFontStyle =
+    (props?.overviewOfOurWorkTitleFontStyle ?? "normal").toString() === "italic"
+      ? "italic"
+      : "normal";
+  const titleLetterSpacing = clamp(
+    props?.overviewOfOurWorkTitleLetterSpacing,
+    -2,
+    20,
+    0,
+  );
+  const titleLineHeight = clamp(
+    props?.overviewOfOurWorkTitleLineHeight,
+    0.8,
+    3,
+    1.2,
+  );
 
   const rawItems = props?.overviewOfOurWorkItems ?? props?.items;
   const cards = Array.isArray(rawItems)
@@ -192,10 +345,8 @@ export default function OverviewOfOurWork(props) {
         )
           .toString()
           .trim(),
-        link: (it?.link ?? it?.url ?? "/").toString().trim(),
-        linkText:
-          (it?.linkText ?? it?.buttonText ?? "").toString().trim() ||
-          "More Details",
+        link: (it?.link ?? it?.url ?? "").toString().trim(),
+        linkText: (it?.linkText ?? it?.buttonText ?? "").toString().trim(),
         titleColorKey: (it?.titleColorKey ?? it?.cardTitleColorKey ?? "")
           .toString()
           .trim(),
@@ -362,6 +513,10 @@ export default function OverviewOfOurWork(props) {
   const hoverOverlayColor = hoverColorKey
     ? getColor(hoverColorKey)
     : "rgba(207, 55, 47, 0.5)";
+  const iconHoverColor = iconHoverColorKey
+    ? getColor(iconHoverColorKey)
+    : undefined;
+  const hasCustomIconHoverColor = Boolean(iconHoverColorKey);
 
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
@@ -369,8 +524,16 @@ export default function OverviewOfOurWork(props) {
         <CardsWrapper
           $cardBorderColor={cardBorderColor}
           $buttonColor={buttonColor}
+          $iconHoverColor={iconHoverColor}
           $hoverOverlayColor={hoverOverlayColor}
           $hoverOverlayOpacity={hoverOverlayOpacity}
+          $titleFontFamily={titleFontFamily}
+          $titleFontSize={titleFontSize}
+          $titleFontSizeMobile={titleFontSizeMobile}
+          $titleFontWeight={titleFontWeight}
+          $titleFontStyle={titleFontStyle}
+          $titleLetterSpacing={titleLetterSpacing}
+          $titleLineHeight={titleLineHeight}
         >
           {cards.length === 0 ? (
             <div
@@ -383,96 +546,112 @@ export default function OverviewOfOurWork(props) {
               No cards yet. Edit this component and add items under Content.
             </div>
           ) : (
-            <Row gutter={[16, 16]} style={{ alignItems: "stretch" }}>
-              {cards.map((card, i) => (
-                <Col
-                  key={i}
-                  xs={24}
-                  sm={12}
-                  md={12}
-                  lg={6}
-                  style={{ display: "flex", flexDirection: "column" }}
-                >
-                  <div
-                    className="innerCardBox text-center"
-                    style={{ width: "100%", flex: 1 }}
-                  >
-                    <div className="cardBackground">
-                      {card.bgImageUrlDesktop || card.bgImageUrlMobile ? (
+            <div
+              className="overviewGrid"
+              style={{
+                "--overview-cards-cols-desktop": cardsPerRowDesktop,
+                "--overview-cards-cols-tablet": cardsPerRowTablet,
+                "--overview-cards-cols-mobile": cardsPerRowMobile,
+              }}
+            >
+              {cards.map((card, i) => {
+                const hasCardLink = Boolean(card.linkText && card.link);
+                return (
+                  <div key={i} className="overviewGridItem">
+                    <div
+                      className="innerCardBox text-center"
+                      style={{ width: "100%", flex: 1 }}
+                    >
+                      <div className="cardBackground">
+                        {card.bgImageUrlDesktop || card.bgImageUrlMobile ? (
+                          <picture>
+                            {card.bgImageUrlMobile ? (
+                              <source
+                                media="(max-width: 767px)"
+                                srcSet={card.bgImageUrlMobile}
+                              />
+                            ) : null}
+                            <img
+                              loading="lazy"
+                              src={card.bgImageUrlDesktop || card.bgImageUrlMobile}
+                              alt=""
+                              aria-hidden
+                            />
+                          </picture>
+                        ) : null}
+                      </div>
+                      {card.icon &&
+                      (card.icon.startsWith("http") ||
+                        card.icon.startsWith("/")) ? (
+                        <span
+                          className={`cardIconWrap${
+                            hasCustomIconHoverColor ? " hasCustomHoverColor" : ""
+                          }`}
+                        >
+                          <img
+                            loading="lazy"
+                            className="cardIconImage"
+                            src={card.icon}
+                            alt=""
+                          />
+                          {hasCustomIconHoverColor ? (
+                            <span
+                              className="cardIconHoverTint"
+                              aria-hidden
+                              style={{
+                                WebkitMaskImage: `url("${card.icon}")`,
+                                maskImage: `url("${card.icon}")`,
+                              }}
+                            />
+                          ) : null}
+                        </span>
+                      ) : null}
+                      {card.imageUrlDesktop || card.imageUrlMobile ? (
                         <picture>
-                          {card.bgImageUrlMobile ? (
+                          {card.imageUrlMobile ? (
                             <source
                               media="(max-width: 767px)"
-                              srcSet={card.bgImageUrlMobile}
+                              srcSet={card.imageUrlMobile}
                             />
                           ) : null}
                           <img
                             loading="lazy"
-                            src={card.bgImageUrlDesktop || card.bgImageUrlMobile}
-                            alt=""
-                            aria-hidden
+                            className="m-auto"
+                            src={card.imageUrlDesktop || card.imageUrlMobile}
+                            alt={card.title}
+                            style={{ display: "block", margin: "0 auto" }}
                           />
                         </picture>
                       ) : null}
-                    </div>
-                    {card.icon &&
-                    (card.icon.startsWith("http") ||
-                      card.icon.startsWith("/")) ? (
-                      <img loading="lazy"
-                        src={card.icon}
-                        alt=""
-                        style={{
-                          width: 48,
-                          height: 48,
-                          objectFit: "contain",
-                          margin: "0 auto 12px",
-                          display: "block",
-                        }}
-                      />
-                    ) : null}
-                    {card.imageUrlDesktop || card.imageUrlMobile ? (
-                      <picture>
-                        {card.imageUrlMobile ? (
-                          <source
-                            media="(max-width: 767px)"
-                            srcSet={card.imageUrlMobile}
-                          />
-                        ) : null}
-                        <img
-                          loading="lazy"
-                          className="m-auto"
-                          src={card.imageUrlDesktop || card.imageUrlMobile}
-                          alt={card.title}
-                          style={{ display: "block", margin: "0 auto" }}
-                        />
-                      </picture>
-                    ) : null}
-                    <h1
-                      className="my-4"
-                      style={{ color: cardTitleColor(card.titleColorKey) }}
-                    >
-                      {card.title}
-                    </h1>
-                    <div className="cardLinkWrap">
-                      <Link
-                        href={card.link || "#"}
-                        style={{ textDecoration: "none" }}
+                      <h1
+                        className="my-4"
+                        style={{ color: cardTitleColor(card.titleColorKey) }}
                       >
-                        <ThemeButton
-                          className="link"
-                          type="button"
-                          size="large"
-                          icon={<ArrowRightOutlined />}
-                          iconPosition="end"
-                        >
-                          {card.linkText}
-                        </ThemeButton>
-                      </Link>
+                        {card.title}
+                      </h1>
+                      {hasCardLink ? (
+                        <div className="cardLinkWrap">
+                          <Link
+                            href={card.link}
+                            style={{ textDecoration: "none" }}
+                          >
+                            <ThemeButton
+                              className="link"
+                              type="button"
+                              size="large"
+                              icon={<ArrowRightOutlined />}
+                              iconPosition="end"
+                            >
+                              {card.linkText}
+                            </ThemeButton>
+                          </Link>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
-                </Col>
-              ))}
-            </Row>
+                );
+              })}
+            </div>
           )}
         </CardsWrapper>
       </PageContainer>

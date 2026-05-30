@@ -434,7 +434,7 @@ export default function AdminMediaLibrary() {
 
       <Modal title="Upload media" open={uploadModalOpen} onCancel={() => !uploading && setUploadModalOpen(false)} width={720} footer={[<Button key="close" onClick={() => setUploadModalOpen(false)} disabled={uploading}>Close</Button>]}>
         <div className={styles.uploadHint}>Drag files inside the zone. Uploads are auto-optimized.</div>
-        <Dragger multiple accept=".jpg,.jpeg,.png,.webp,.avif,.pdf" customRequest={uploadRequest} fileList={uploadFileList} onChange={({ fileList }) => setUploadFileList(fileList.slice(-80))} showUploadList={{ showRemoveIcon: !uploading }}><p className="ant-upload-drag-icon"><InboxOutlined /></p><p className="ant-upload-text">Click or drag files to upload</p></Dragger>
+        <Dragger multiple accept=".jpg,.jpeg,.png,.webp,.avif,.svg,.pdf" customRequest={uploadRequest} fileList={uploadFileList} onChange={({ fileList }) => setUploadFileList(fileList.slice(-80))} showUploadList={{ showRemoveIcon: !uploading }}><p className="ant-upload-drag-icon"><InboxOutlined /></p><p className="ant-upload-text">Click or drag files to upload</p></Dragger>
         {uploading && <Progress percent={uploadOverallPercent} status="active" style={{ marginTop: 14 }} />}
       </Modal>
 

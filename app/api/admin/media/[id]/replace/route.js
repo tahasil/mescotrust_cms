@@ -4,9 +4,13 @@ import path from "path";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Media from "@/models/Media";
-import { ALLOWED_UPLOAD_MIME_TYPES } from "@/lib/media/constants";
+import {
+  ALLOWED_UPLOAD_MIME_TYPES,
+  UPLOAD_MIME_BY_EXT,
+} from "@/lib/media/constants";
 import { getMediaSettings } from "@/lib/media/settings";
 import { optimizeAndStoreUpload } from "@/lib/media/processor";
+import { isSvgMimeType, sanitizeUploadedSvg } from "@/lib/media/svgSanitizer";
 
 function sanitizeOriginalName(name) {
   return String(name || "upload")
@@ -39,18 +43,31 @@ export async function POST(req, { params }) {
     if (!file || typeof file === "string") {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
-    if (!ALLOWED_UPLOAD_MIME_TYPES.includes(String(file.type || "").toLowerCase())) {
-      return NextResponse.json({ error: "Unsupported file type" }, { status: 400 });
+    const rawMimeType = String(file.type || "").toLowerCase().trim();
+    const ext = path.extname(String(file.name || "")).toLowerCase();
+    const mimeType = rawMimeType || UPLOAD_MIME_BY_EXT[ext] || "";
+    if (!ALLOWED_UPLOAD_MIME_TYPES.includes(mimeType)) {
+      return NextResponse.json(
+        { error: "Unsupported file type. Allowed: JPG, JPEG, PNG, WEBP, AVIF, SVG, PDF." },
+        { status: 400 },
+      );
     }
 
     const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    let buffer = Buffer.from(bytes);
+    if (isSvgMimeType(mimeType)) {
+      const sanitizedSvg = sanitizeUploadedSvg(buffer);
+      if (!sanitizedSvg.ok) {
+        return NextResponse.json({ error: sanitizedSvg.error }, { status: 400 });
+      }
+      buffer = sanitizedSvg.buffer;
+    }
     const originalName = sanitizeOriginalName(file.name) || `media-${id}${path.extname(file.name || "")}`;
     const settings = await getMediaSettings();
     const storageProvider = process.env.MEDIA_STORAGE_PROVIDER || "local";
     const optimized = await optimizeAndStoreUpload({
       buffer,
-      mimeType: file.type,
+      mimeType,
       originalName,
       mediaId: String(media._id),
       settings,
@@ -64,7 +81,7 @@ export async function POST(req, { params }) {
     media.filename = optimized.filename || media.filename;
     media.fileName = optimized.fileName || media.fileName || media.filename;
     media.originalName = file.name || media.originalName;
-    media.mimeType = file.type || media.mimeType;
+    media.mimeType = mimeType || media.mimeType;
     media.ext = optimized.ext || media.ext;
     media.storageProvider = optimized.storageProvider || media.storageProvider || "local";
     media.storageKey = optimized.storageKey || media.storageKey;

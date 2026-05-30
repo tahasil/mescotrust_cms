@@ -215,8 +215,8 @@ export async function POST(req) {
           results.push({
             id,
             status: "skipped",
-            code: "NON_IMAGE",
-            message: "Skipped non-image media",
+            code: "NON_OPTIMIZABLE",
+            message: "Skipped non-optimizable media type",
           });
           continue;
         }

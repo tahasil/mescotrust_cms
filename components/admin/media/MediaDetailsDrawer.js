@@ -138,7 +138,7 @@ export default function MediaDetailsDrawer({
             <Space wrap>
               <Upload
                 beforeUpload={() => false}
-                accept=".jpg,.jpeg,.png,.webp,.avif,.pdf"
+                accept=".jpg,.jpeg,.png,.webp,.avif,.svg,.pdf"
                 fileList={replaceFileList}
                 onChange={({ fileList }) => setReplaceFileList(fileList.slice(-1))}
                 maxCount={1}

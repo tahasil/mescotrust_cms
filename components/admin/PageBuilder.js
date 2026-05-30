@@ -214,7 +214,18 @@ function getDefaultPropsForNewSiteComponent(componentId) {
         eventsSliderButtonSize: "md",
       };
     case "OverviewOfOurWork":
-      return { ...base, overviewOfOurWorkItems: [] };
+      return {
+        ...base,
+        overviewOfOurWorkTitleFontFamily: "",
+        overviewOfOurWorkTitleFontSize: 24,
+        overviewOfOurWorkTitleFontWeight: 700,
+        overviewOfOurWorkTitleFontStyle: "normal",
+        overviewOfOurWorkTitleLetterSpacing: 0,
+        overviewOfOurWorkTitleLineHeight: 1.2,
+        overviewOfOurWorkIconHoverColorKey: "",
+        overviewOfOurWorkCardsPerRow: 4,
+        overviewOfOurWorkItems: [],
+      };
     case "HomeHero2":
       return {
         ...base,
@@ -281,6 +292,7 @@ const AWARDS_TO_OVERVIEW_KEYS = {
   awardsRecognitionCardTitleColorKey: "overviewOfOurWorkCardTitleColorKey",
   awardsRecognitionCardBorderColorKey: "overviewOfOurWorkCardBorderColorKey",
   awardsRecognitionButtonColorKey: "overviewOfOurWorkButtonColorKey",
+  awardsRecognitionIconHoverColorKey: "overviewOfOurWorkIconHoverColorKey",
   awardsRecognitionHoverColorKey: "overviewOfOurWorkHoverColorKey",
 };
 function normalizeAwardsBlockPropsToOverview(props) {

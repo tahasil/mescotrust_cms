@@ -448,7 +448,7 @@ export default function MediaPickerInput({
             style={{ width: 300, maxWidth: "100%" }}
           />
           <Upload
-            accept="image/*"
+            accept="image/*,.svg"
             showUploadList={false}
             customRequest={onUpload}
             disabled={uploading}

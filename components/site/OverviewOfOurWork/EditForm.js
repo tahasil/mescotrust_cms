@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, InputNumber, message, Spin, Collapse, Row, Col } from "antd";
+import { Form, Input, InputNumber, Select, message, Spin, Collapse, Row, Col } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
@@ -42,10 +42,16 @@ function normalizeItem(it) {
     bgImageUrlMobile: bgImageMobile,
     bgImageUrl: bgImageDesktop,
     link: it?.link != null ? String(it.link).trim() : it?.url != null ? String(it.url).trim() : "",
-    linkText: (it?.linkText != null ? String(it.linkText).trim() : (it?.buttonText != null ? String(it.buttonText).trim() : "")) || "More Details",
+    linkText: it?.linkText != null ? String(it.linkText).trim() : it?.buttonText != null ? String(it.buttonText).trim() : "",
     titleColorKey: it?.titleColorKey != null ? String(it.titleColorKey).trim() : it?.cardTitleColorKey != null ? String(it.cardTitleColorKey).trim() : "",
     icon: it?.icon != null ? String(it.icon).trim() : "",
   };
+}
+
+function clamp(value, min, max, fallback) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(min, Math.min(max, n));
 }
 
 /**
@@ -106,10 +112,50 @@ function OverviewOfOurWorkEditForm(
         data?.overviewOfOurWorkHoverOverlayOpacity != null
           ? Math.min(1, Math.max(0, Number(data.overviewOfOurWorkHoverOverlayOpacity)))
           : 0.5;
+      const cardsPerRow = clamp(data?.overviewOfOurWorkCardsPerRow, 1, 8, 4);
+      const titleFontFamily =
+        data?.overviewOfOurWorkTitleFontFamily != null
+          ? String(data.overviewOfOurWorkTitleFontFamily).trim()
+          : "";
+      const titleFontSize = clamp(
+        data?.overviewOfOurWorkTitleFontSize,
+        10,
+        96,
+        24,
+      );
+      const titleFontWeight = clamp(
+        data?.overviewOfOurWorkTitleFontWeight,
+        100,
+        900,
+        700,
+      );
+      const titleFontStyle =
+        (data?.overviewOfOurWorkTitleFontStyle ?? "normal").toString() === "italic"
+          ? "italic"
+          : "normal";
+      const titleLetterSpacing = clamp(
+        data?.overviewOfOurWorkTitleLetterSpacing,
+        -2,
+        20,
+        0,
+      );
+      const titleLineHeight = clamp(
+        data?.overviewOfOurWorkTitleLineHeight,
+        0.8,
+        3,
+        1.2,
+      );
       form.setFieldsValue({
         ...getManageSectionInitialValues(PREFIX, data),
         ...titleColorValues,
         overviewOfOurWorkHoverOverlayOpacity: hoverOpacity,
+        overviewOfOurWorkCardsPerRow: cardsPerRow,
+        overviewOfOurWorkTitleFontFamily: titleFontFamily,
+        overviewOfOurWorkTitleFontSize: titleFontSize,
+        overviewOfOurWorkTitleFontWeight: titleFontWeight,
+        overviewOfOurWorkTitleFontStyle: titleFontStyle,
+        overviewOfOurWorkTitleLetterSpacing: titleLetterSpacing,
+        overviewOfOurWorkTitleLineHeight: titleLineHeight,
         overviewOfOurWorkItems: items.length > 0 ? items : [normalizeItem({})],
       });
       if (theme) {
@@ -169,10 +215,50 @@ function OverviewOfOurWorkEditForm(
       const opacityVal = values.overviewOfOurWorkHoverOverlayOpacity;
       const hoverOverlayOpacity =
         opacityVal != null ? Math.min(1, Math.max(0, Number(opacityVal))) : 0.5;
+      const cardsPerRow = clamp(values.overviewOfOurWorkCardsPerRow, 1, 8, 4);
+      const titleFontFamily =
+        values.overviewOfOurWorkTitleFontFamily != null
+          ? String(values.overviewOfOurWorkTitleFontFamily).trim()
+          : "";
+      const titleFontSize = clamp(
+        values.overviewOfOurWorkTitleFontSize,
+        10,
+        96,
+        24,
+      );
+      const titleFontWeight = clamp(
+        values.overviewOfOurWorkTitleFontWeight,
+        100,
+        900,
+        700,
+      );
+      const titleFontStyle =
+        (values.overviewOfOurWorkTitleFontStyle ?? "normal").toString() === "italic"
+          ? "italic"
+          : "normal";
+      const titleLetterSpacing = clamp(
+        values.overviewOfOurWorkTitleLetterSpacing,
+        -2,
+        20,
+        0,
+      );
+      const titleLineHeight = clamp(
+        values.overviewOfOurWorkTitleLineHeight,
+        0.8,
+        3,
+        1.2,
+      );
       const payload = {
         ...getManageSectionPayload(PREFIX, values),
         ...titleColorPayload,
         overviewOfOurWorkHoverOverlayOpacity: hoverOverlayOpacity,
+        overviewOfOurWorkCardsPerRow: cardsPerRow,
+        overviewOfOurWorkTitleFontFamily: titleFontFamily,
+        overviewOfOurWorkTitleFontSize: titleFontSize,
+        overviewOfOurWorkTitleFontWeight: titleFontWeight,
+        overviewOfOurWorkTitleFontStyle: titleFontStyle,
+        overviewOfOurWorkTitleLetterSpacing: titleLetterSpacing,
+        overviewOfOurWorkTitleLineHeight: titleLineHeight,
         overviewOfOurWorkItems: items,
       };
       if (isPageBlock && onSaveToPage) {
@@ -243,6 +329,65 @@ function OverviewOfOurWorkEditForm(
                     style={{ width: "100%" }}
                   />
                 </Form.Item>
+                <Row gutter={[12, 12]}>
+                  <Col xs={24} sm={12}>
+                    <Form.Item
+                      name="overviewOfOurWorkTitleFontSize"
+                      label="Title font size (px)"
+                    >
+                      <InputNumber min={10} max={96} style={{ width: "100%" }} />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={12}>
+                    <Form.Item
+                      name="overviewOfOurWorkTitleFontWeight"
+                      label="Title font weight"
+                    >
+                      <Select
+                        options={[
+                          { label: "100", value: 100 },
+                          { label: "200", value: 200 },
+                          { label: "300", value: 300 },
+                          { label: "400", value: 400 },
+                          { label: "500", value: 500 },
+                          { label: "600", value: 600 },
+                          { label: "700", value: 700 },
+                          { label: "800", value: 800 },
+                          { label: "900", value: 900 },
+                        ]}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={12}>
+                    <Form.Item
+                      name="overviewOfOurWorkTitleFontStyle"
+                      label="Title font style"
+                    >
+                      <Select
+                        options={[
+                          { label: "Normal", value: "normal" },
+                          { label: "Italic", value: "italic" },
+                        ]}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={12}>
+                    <Form.Item
+                      name="overviewOfOurWorkTitleLetterSpacing"
+                      label="Title letter spacing (px)"
+                    >
+                      <InputNumber min={-2} max={20} step={0.1} style={{ width: "100%" }} />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={12}>
+                    <Form.Item
+                      name="overviewOfOurWorkTitleLineHeight"
+                      label="Title line height"
+                    >
+                      <InputNumber min={0.8} max={3} step={0.1} style={{ width: "100%" }} />
+                    </Form.Item>
+                  </Col>
+                </Row>
               </>
             ),
           },
@@ -250,86 +395,99 @@ function OverviewOfOurWorkEditForm(
             key: "content",
             label: "Content",
             children: (
-              <Form.List name="overviewOfOurWorkItems">
-                {(fields, { add, remove, move }) => (
-                  <SortableFormList
-                    fields={fields}
-                    add={add}
-                    remove={remove}
-                    move={move}
-                    itemLabel="Item"
-                    addButtonText="Add item"
-                    defaultAddPayload={normalizeItem({})}
-                    reorderMovedIndex={reorderMovedIndex}
-                    reorderDirection={reorderDirection}
-                    onMoveWithTransition={(from, to) => {
-                      setReorderDirection(to < from ? "up" : "down");
-                      setReorderMovedIndex(to);
-                      setTimeout(() => setReorderMovedIndex(-1), 400);
-                    }}
-                    renderItemContent={(name, restField) => (
-                      <Row gutter={[12, 12]}>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "title"]} label="Card title" rules={[{ required: true, message: "Title required" }]}>
-                            <Input placeholder="e.g. Educational Support" />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "linkText"]} label="Link text">
-                            <Input placeholder="e.g. More Details, Learn More" />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "link"]} label="Link URL">
-                            <Input placeholder="/page or https://..." />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "imageUrlDesktop"]} label="Desktop Foreground Image">
-                            <MediaPickerInput
-                              placeholder="https://... or /images/..."
-                              uiVariant="stacked"
-                              hintText="Recommended for desktop/tablet"
-                            />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "imageUrlMobile"]} label="Mobile Foreground Image">
-                            <MediaPickerInput
-                              placeholder="https://... or /images/..."
-                              uiVariant="stacked"
-                              hintText="Optional. Desktop image will be used if empty."
-                            />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "bgImageUrlDesktop"]} label="Desktop Background Image">
-                            <MediaPickerInput
-                              placeholder="https://... or /images/..."
-                              uiVariant="stacked"
-                              hintText="Recommended for desktop/tablet"
-                            />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "bgImageUrlMobile"]} label="Mobile Background Image">
-                            <MediaPickerInput
-                              placeholder="https://... or /images/..."
-                              uiVariant="stacked"
-                              hintText="Optional. Desktop image will be used if empty."
-                            />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "icon"]} label="Icon (image URL)">
-                            <MediaPickerInput placeholder="/images/icon.svg or https://..." />
-                          </Form.Item>
-                        </Col>
-                      </Row>
-                    )}
-                  />
-                )}
-              </Form.List>
+              <>
+                <Row gutter={[12, 12]}>
+                  <Col span={24}>
+                    <Form.Item
+                      name="overviewOfOurWorkCardsPerRow"
+                      label="Cards per row (desktop)"
+                      tooltip="Number of cards shown in each desktop row. Tablet/mobile adjust automatically."
+                    >
+                      <InputNumber min={1} max={8} style={{ width: "100%" }} />
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Form.List name="overviewOfOurWorkItems">
+                  {(fields, { add, remove, move }) => (
+                    <SortableFormList
+                      fields={fields}
+                      add={add}
+                      remove={remove}
+                      move={move}
+                      itemLabel="Item"
+                      addButtonText="Add item"
+                      defaultAddPayload={normalizeItem({})}
+                      reorderMovedIndex={reorderMovedIndex}
+                      reorderDirection={reorderDirection}
+                      onMoveWithTransition={(from, to) => {
+                        setReorderDirection(to < from ? "up" : "down");
+                        setReorderMovedIndex(to);
+                        setTimeout(() => setReorderMovedIndex(-1), 400);
+                      }}
+                      renderItemContent={(name, restField) => (
+                        <Row gutter={[12, 12]}>
+                          <Col span={24}>
+                            <Form.Item {...restField} name={[name, "title"]} label="Card title" rules={[{ required: true, message: "Title required" }]}>
+                              <Input placeholder="e.g. Educational Support" />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}>
+                            <Form.Item {...restField} name={[name, "linkText"]} label="Link text">
+                              <Input placeholder="e.g. More Details, Learn More" />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}>
+                            <Form.Item {...restField} name={[name, "link"]} label="Link URL">
+                              <Input placeholder="/page or https://..." />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}>
+                            <Form.Item {...restField} name={[name, "imageUrlDesktop"]} label="Desktop Foreground Image">
+                              <MediaPickerInput
+                                placeholder="https://... or /images/..."
+                                uiVariant="stacked"
+                                hintText="Recommended for desktop/tablet"
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}>
+                            <Form.Item {...restField} name={[name, "imageUrlMobile"]} label="Mobile Foreground Image">
+                              <MediaPickerInput
+                                placeholder="https://... or /images/..."
+                                uiVariant="stacked"
+                                hintText="Optional. Desktop image will be used if empty."
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}>
+                            <Form.Item {...restField} name={[name, "bgImageUrlDesktop"]} label="Desktop Background Image">
+                              <MediaPickerInput
+                                placeholder="https://... or /images/..."
+                                uiVariant="stacked"
+                                hintText="Recommended for desktop/tablet"
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}>
+                            <Form.Item {...restField} name={[name, "bgImageUrlMobile"]} label="Mobile Background Image">
+                              <MediaPickerInput
+                                placeholder="https://... or /images/..."
+                                uiVariant="stacked"
+                                hintText="Optional. Desktop image will be used if empty."
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}>
+                            <Form.Item {...restField} name={[name, "icon"]} label="Icon (image URL)">
+                              <MediaPickerInput placeholder="/images/icon.svg or https://..." />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+                      )}
+                    />
+                  )}
+                </Form.List>
+              </>
             ),
           },
         ]}

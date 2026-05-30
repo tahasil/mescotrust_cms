@@ -3,9 +3,13 @@ import path from "path";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Media from "@/models/Media";
-import { ALLOWED_UPLOAD_MIME_TYPES } from "@/lib/media/constants";
+import {
+  ALLOWED_UPLOAD_MIME_TYPES,
+  UPLOAD_MIME_BY_EXT,
+} from "@/lib/media/constants";
 import { getMediaSettings } from "@/lib/media/settings";
 import { optimizeAndStoreUpload } from "@/lib/media/processor";
+import { isSvgMimeType, sanitizeUploadedSvg } from "@/lib/media/svgSanitizer";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -137,10 +141,16 @@ export async function POST(req) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    const mimeType = String(file.type || "").toLowerCase();
+    const rawMimeType = String(file.type || "").toLowerCase().trim();
+    const ext = path.extname(String(file.name || "")).toLowerCase();
+    const mimeType = rawMimeType || UPLOAD_MIME_BY_EXT[ext] || "";
     if (!ALLOWED_UPLOAD_MIME_TYPES.includes(mimeType)) {
       return NextResponse.json(
-        { error: `Unsupported file type: ${mimeType}` },
+        {
+          error: `Unsupported file type${
+            mimeType ? `: ${mimeType}` : ""
+          }. Allowed: JPG, JPEG, PNG, WEBP, AVIF, SVG, PDF.`,
+        },
         { status: 400 },
       );
     }
@@ -153,8 +163,14 @@ export async function POST(req) {
       );
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const ext = path.extname(String(file.name || "")).toLowerCase();
+    let buffer = Buffer.from(await file.arrayBuffer());
+    if (isSvgMimeType(mimeType)) {
+      const sanitizedSvg = sanitizeUploadedSvg(buffer);
+      if (!sanitizedSvg.ok) {
+        return NextResponse.json({ error: sanitizedSvg.error }, { status: 400 });
+      }
+      buffer = sanitizedSvg.buffer;
+    }
     const safeName = sanitizeName(file.name) || `upload${ext || ".bin"}`;
 
     const draft = await Media.create({
