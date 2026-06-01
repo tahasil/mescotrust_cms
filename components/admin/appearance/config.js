@@ -6,6 +6,7 @@ export const APPEARANCE_SECTIONS = [
   { key: "background", label: "Background" },
   { key: "colors", label: "Colors" },
   { key: "layouts", label: "Layouts" },
+  { key: "effects", label: "Effects" },
   { key: "loader", label: "Loader" },
   { key: "advanced", label: "Advanced" },
   { key: "branding", label: "Branding" },

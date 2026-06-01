@@ -274,15 +274,6 @@ const baseMenuItems = [
     ),
   },
   {
-    key: "/admin/theme",
-    icon: <BgColorsOutlined />,
-    label: (
-      <Link href="/admin/theme" style={linkStyle}>
-        Theme
-      </Link>
-    ),
-  },
-  {
     key: "group:admin:appearance",
     icon: <BgColorsOutlined />,
     label: "Appearance",
@@ -332,6 +323,14 @@ const baseMenuItems = [
         label: (
           <Link href="/admin/appearance/layouts" style={linkStyle}>
             Layouts
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/appearance/effects",
+        label: (
+          <Link href="/admin/appearance/effects" style={linkStyle}>
+            Effects
           </Link>
         ),
       },

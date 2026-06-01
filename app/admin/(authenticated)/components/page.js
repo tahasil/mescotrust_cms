@@ -12,6 +12,10 @@ const EXCLUDED_COMPONENT_IDS = new Set([
   "StoriesSlider",
   "EventsSlider",
   "CommitteeMembers",
+  // Header & Footer are edited under Appearance (sitesettings-authoritative after the
+  // Appearance cutover), not as page components — hide them from the Components list.
+  "Header",
+  "Footer",
 ]);
 
 function deriveComponentId(displayName) {

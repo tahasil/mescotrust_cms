@@ -118,6 +118,16 @@ export const appearanceInitialValues = {
   mobileSectionSpacing: "",
   hideSectionOnMobile: false,
 
+  // Effects (smooth scroll + scroll-fade) — match THEME_DEFAULTS in lib/layoutData.js
+  smoothScrollEnabled: true,
+  smoothScrollDuration: 1.4,
+  smoothScrollWheelMultiplier: 1,
+  smoothScrollTouchMultiplier: 1.2,
+  fadeAnimationEnabled: true,
+  fadeAnimationDuration: 1,
+  fadeAnimationDistance: 20,
+  fadeAnimationThreshold: 0.1,
+
   pageLoaderEnabled: true,
   pageLoaderBgColor: "#000000",
   pageLoaderBarColor: "#CF372F",

@@ -17,6 +17,7 @@ import MenuSection from "@/components/admin/appearance/sections/MenuSection";
 import BackgroundSection from "@/components/admin/appearance/sections/BackgroundSection";
 import ColorsSection from "@/components/admin/appearance/sections/ColorsSection";
 import LayoutsSection from "@/components/admin/appearance/sections/LayoutsSection";
+import EffectsSection from "@/components/admin/appearance/sections/EffectsSection";
 import LoaderSection from "@/components/admin/appearance/Loader";
 import AdvancedSection from "@/components/admin/appearance/sections/AdvancedSection";
 import BrandingSection from "@/components/admin/appearance/sections/BrandingSection";
@@ -33,6 +34,7 @@ const SECTION_COMPONENTS = {
   background: BackgroundSection,
   colors: ColorsSection,
   layouts: LayoutsSection,
+  effects: EffectsSection,
   loader: LoaderSection,
   advanced: AdvancedSection,
   branding: BrandingSection,
