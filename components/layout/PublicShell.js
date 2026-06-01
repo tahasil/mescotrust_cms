@@ -408,15 +408,21 @@ export default function PublicShell({
         <ComponentRenderer layout={layoutWithoutHeaderBlocks(customHeaderLayout)} />
       )}
       <div style={{ flex: 1 }}>{children}</div>
-      {hasGlobalAfter ? (
-        globalAfter.map((id) => renderGlobalComponent(id, "after"))
-      ) : useSiteFooterForLayout ? (
-        <SiteComponents.Footer key="site-footer" {...footerThemeProps(themeProps)} />
-      ) : hasCustomFooter ? (
-        <ComponentRenderer layout={customFooterLayout} />
-      ) : (
-        <SiteComponents.Footer key="site-footer" {...footerThemeProps(themeProps)} />
-      )}
+      {/* Global "after" components (e.g. a global Subscribe) render here. The footer
+          must ALWAYS render below them — previously these were mutually exclusive, so a
+          global Subscribe (global=true, position=after) suppressed the footer entirely
+          whenever Footer itself wasn't a global component. Render the footer unless it
+          is already one of the global-after components (avoids a double render). */}
+      {hasGlobalAfter &&
+        globalAfter.map((id) => renderGlobalComponent(id, "after"))}
+      {!globalAfter.includes("Footer") &&
+        (useSiteFooterForLayout ? (
+          <SiteComponents.Footer key="site-footer" {...footerThemeProps(themeProps)} />
+        ) : hasCustomFooter ? (
+          <ComponentRenderer layout={customFooterLayout} />
+        ) : (
+          <SiteComponents.Footer key="site-footer" {...footerThemeProps(themeProps)} />
+        ))}
       {/* TSUV→MESCO Phase 6: route-targeted marketing popups. */}
       <RoutePopupHost />
     </div>
