@@ -85,6 +85,9 @@ export default function MediaPickerInput({
   showVariants = true,
   uiVariant = "default",
   hintText = "",
+  requiredImageWidth,
+  requiredImageHeight,
+  uploadResolutionErrorMessage = "",
 }) {
   const parsed = useMemo(() => parseMediaValue(value), [value]);
   const [libraryOpen, setLibraryOpen] = useState(false);
@@ -101,6 +104,81 @@ export default function MediaPickerInput({
 
   const mediaId = parsed.mediaId || String(activeMedia?._id || "");
   const pageSize = 18;
+
+  // Optional exact-resolution enforcement. When a caller passes
+  // requiredImageWidth/requiredImageHeight (e.g. brand logos), uploads and library
+  // selections that don't match those exact pixel dimensions are rejected.
+  const expectedWidth = Number(requiredImageWidth);
+  const expectedHeight = Number(requiredImageHeight);
+  const needsResolutionValidation =
+    Number.isFinite(expectedWidth) &&
+    Number.isFinite(expectedHeight) &&
+    expectedWidth > 0 &&
+    expectedHeight > 0;
+  const resolutionErrorMessage =
+    uploadResolutionErrorMessage ||
+    "Image resolution is not correct. Please upload an image with the required size.";
+
+  const getUploadFileBlob = useCallback((uploadFile) => {
+    if (!uploadFile) return null;
+    if (uploadFile instanceof Blob) return uploadFile;
+    if (uploadFile.originFileObj instanceof Blob) return uploadFile.originFileObj;
+    return null;
+  }, []);
+
+  const readImageDimensions = useCallback(
+    (uploadFile) => {
+      const fileBlob = getUploadFileBlob(uploadFile);
+      if (!fileBlob) return Promise.reject(new Error("Invalid file selected"));
+      return new Promise((resolve, reject) => {
+        const objectUrl = URL.createObjectURL(fileBlob);
+        const img = new Image();
+        img.onload = () => {
+          const width = Number(img.naturalWidth || img.width) || 0;
+          const height = Number(img.naturalHeight || img.height) || 0;
+          URL.revokeObjectURL(objectUrl);
+          resolve({ width, height });
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(objectUrl);
+          reject(new Error("Unable to validate image resolution"));
+        };
+        img.src = objectUrl;
+      });
+    },
+    [getUploadFileBlob],
+  );
+
+  const isMatchingRequiredResolution = useCallback(
+    (width, height) => {
+      if (!needsResolutionValidation) return true;
+      const w = Number(width) || 0;
+      const h = Number(height) || 0;
+      // MESCO media docs don't yet store extracted dimensions (width/height default 0).
+      // When the stored size is unknown we can't validate a library selection, so allow
+      // it rather than reject every existing image. Uploads are still validated against
+      // the actual file dimensions in onUpload below.
+      if (w === 0 || h === 0) return true;
+      return w === expectedWidth && h === expectedHeight;
+    },
+    [expectedHeight, expectedWidth, needsResolutionValidation],
+  );
+
+  const ensureMediaItemResolution = useCallback(
+    async (item) => {
+      if (!needsResolutionValidation) return;
+      if (isMatchingRequiredResolution(item?.width, item?.height)) return;
+      const id = String(item?._id || "").trim();
+      if (!id) throw new Error(resolutionErrorMessage);
+      const res = await fetch(`/api/admin/media/${id}`);
+      const data = await readJson(res);
+      if (!res.ok) throw new Error(data.error || "Failed to validate image resolution");
+      if (!isMatchingRequiredResolution(data?.width, data?.height)) {
+        throw new Error(resolutionErrorMessage);
+      }
+    },
+    [isMatchingRequiredResolution, needsResolutionValidation, resolutionErrorMessage],
+  );
 
   useEffect(() => {
     setSize(parsed.size || "original");
@@ -178,8 +256,14 @@ export default function MediaPickerInput({
     [onChange],
   );
 
-  const selectMedia = (item) => {
+  const selectMedia = async (item) => {
     if (!item?._id) return;
+    try {
+      await ensureMediaItemResolution(item);
+    } catch (err) {
+      message.error(err.message || resolutionErrorMessage);
+      return;
+    }
     setActiveMedia(item);
     applyVariantUrl(item._id, size || "original", format || "auto");
     setLibraryOpen(false);
@@ -188,6 +272,12 @@ export default function MediaPickerInput({
   const onUpload = async ({ file, onSuccess, onError }) => {
     setUploading(true);
     try {
+      if (needsResolutionValidation) {
+        const { width, height } = await readImageDimensions(file);
+        if (width !== expectedWidth || height !== expectedHeight) {
+          throw new Error(resolutionErrorMessage);
+        }
+      }
       const fd = new FormData();
       fd.append("file", file);
       const res = await fetch("/api/admin/media", {
