@@ -73,8 +73,11 @@ export default function HomeHero2(props) {
     .toString()
     .trim();
   const subTitle = (props?.subTitle ?? "").toString().trim();
-  const buttonText = (props?.buttonText ?? "Contact Us").toString().trim();
-  const buttonHref = (props?.buttonHref ?? "/").toString().trim();
+  const buttonText =
+    props?.buttonText != null ? String(props.buttonText).trim() : "";
+  const buttonHref =
+    props?.buttonHref != null ? String(props.buttonHref).trim() : "";
+  const shouldRenderButton = Boolean(buttonText && buttonHref);
   const heroIconUrl = (props?.heroIconUrl ?? "/images/hero-icon.svg")
     .toString()
     .trim();
@@ -159,13 +162,13 @@ export default function HomeHero2(props) {
     mq.addListener(update);
     return () => mq.removeListener(update);
   }, []);
+  const buttonHrefLower = buttonHref.toLowerCase();
   const isExternal =
-    !buttonHref ||
-    buttonHref.startsWith("http") ||
-    buttonHref.startsWith("mailto:") ||
-    buttonHref.startsWith("tel:");
+    buttonHrefLower.startsWith("http") ||
+    buttonHrefLower.startsWith("mailto:") ||
+    buttonHrefLower.startsWith("tel:");
   const onButtonClick = () => {
-    if (!buttonHref) return;
+    if (!shouldRenderButton) return;
     if (isExternal) window.location.href = buttonHref;
     else router.push(buttonHref);
   };
@@ -199,16 +202,18 @@ export default function HomeHero2(props) {
           >
             {subTitle ? <p>{subTitle}</p> : null}
           </Col>
-          <Col xs={24} className="text-center">
-            <ThemeButton
-              type="button"
-              size="large"
-              onClick={onButtonClick}
-              style={buttonStyle}
-            >
-              {buttonText} <RightCircleFilled />
-            </ThemeButton>
-          </Col>
+          {shouldRenderButton ? (
+            <Col xs={24} className="text-center">
+              <ThemeButton
+                type="button"
+                size="large"
+                onClick={onButtonClick}
+                style={buttonStyle}
+              >
+                {buttonText} <RightCircleFilled />
+              </ThemeButton>
+            </Col>
+          ) : null}
         </Row>
       </PageContainer>
       {sliderImages.length > 0 ? (

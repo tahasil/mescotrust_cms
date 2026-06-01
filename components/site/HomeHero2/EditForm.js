@@ -72,8 +72,10 @@ function buildInitialData(data) {
     titleColorKey: data?.titleColorKey ?? "",
     homeHero2ButtonBgColorKey: data?.homeHero2ButtonBgColorKey ?? "",
     homeHero2ButtonTextColorKey: data?.homeHero2ButtonTextColorKey ?? "",
-    buttonText: data?.buttonText ?? "Contact Us",
-    buttonHref: data?.buttonHref ?? "/",
+    buttonText:
+      data?.buttonText != null ? String(data.buttonText).trim() : "",
+    buttonHref:
+      data?.buttonHref != null ? String(data.buttonHref).trim() : "",
     heroIconUrl: data?.heroIconUrl ?? "/images/hero-icon.svg",
     homeHero2SliderImages: normalizedSliderItems,
     homeHero2SlideCount:
@@ -219,6 +221,10 @@ function HomeHero2EditForm(
             values.homeHero2ButtonTextColorKey != null
               ? String(values.homeHero2ButtonTextColorKey).trim()
               : "",
+          buttonText:
+            values.buttonText != null ? String(values.buttonText).trim() : "",
+          buttonHref:
+            values.buttonHref != null ? String(values.buttonHref).trim() : "",
           homeHero2SliderImages,
           homeHero2SlideCount:
             values.homeHero2SlideCount != null
