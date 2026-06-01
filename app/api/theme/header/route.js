@@ -3,6 +3,7 @@
  * GET: public. PUT: admin only.
  */
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getToken } from "next-auth/jwt";
 import { connectDB } from "@/lib/db";
 import Component from "@/models/Component";
@@ -13,7 +14,24 @@ export const dynamic = "force-dynamic";
 const HEADER_DEFAULTS = {
   menuName: "",
   navItems: [],
+  headerSearchEnabled: false,
+  headerSearchLabel: "",
+  headerSearchOpenAriaLabel: "",
+  headerSearchPlaceholder: "",
+  headerSearchDialogLabel: "",
+  headerSearchInputAriaLabel: "",
+  headerSearchCloseAriaLabel: "",
+  headerSearchMinCharsMessage: "",
+  headerSearchLoadingMessage: "",
+  headerSearchNoResultsMessage: "",
+  headerSearchErrorMessage: "",
+  headerSearchResultTypePageLabel: "",
+  headerSearchResultTypeBlogLabel: "",
+  headerSearchResultTypeEventLabel: "",
+  headerSearchFallbackTitle: "",
+  headerSearchFallbackMeta: "",
   logoType: "text",
+  logoUrl: "",
   logoLightUrl: "",
   logoMobileUrl: "",
   logoDarkUrl: "",
@@ -31,7 +49,28 @@ const HEADER_DEFAULTS = {
   headerCtaTextColorKey: "primary",
   headerDonateBgColorKey: "gradient",
   headerDonateTextColorKey: "white",
-  volunteerModalTitle: "Leave us a message",
+  volunteerModalTitle: "",
+  volunteerModalSuccessTitle: "",
+  volunteerModalSuccessDescription: "",
+  volunteerModalErrorTitle: "",
+  volunteerModalNameLabel: "",
+  volunteerModalEmailLabel: "",
+  volunteerModalSubjectLabel: "",
+  volunteerModalMessageLabel: "",
+  volunteerModalNamePlaceholder: "",
+  volunteerModalEmailPlaceholder: "",
+  volunteerModalSubjectPlaceholder: "",
+  volunteerModalMessagePlaceholder: "",
+  volunteerModalCancelLabel: "",
+  volunteerModalSendLabel: "",
+  volunteerModalSendingLabel: "",
+  volunteerModalNameRequiredMessage: "",
+  volunteerModalEmailRequiredMessage: "",
+  volunteerModalEmailInvalidMessage: "",
+  volunteerModalSubjectRequiredMessage: "",
+  volunteerModalSubjectMinMessage: "",
+  volunteerModalMessageRequiredMessage: "",
+  volunteerModalMessageMinMessage: "",
   volunteerModalBtnBg: "",
   volunteerModalBtnText: "",
   volunteerModalCancelColor: "",
@@ -47,6 +86,7 @@ const HEADER_DEFAULTS = {
 function normalizeHeaderProps(input) {
   const payload = input && typeof input === "object" ? input : {};
   const out = { ...HEADER_DEFAULTS, ...payload };
+  out.headerSearchEnabled = out.headerSearchEnabled === true;
   out.menuName = String(out.menuName || "").trim();
   out.navItems = Array.isArray(out.navItems) ? out.navItems : [];
   for (const [key, value] of Object.entries(out)) {
@@ -59,7 +99,9 @@ function normalizeHeaderProps(input) {
 export async function GET() {
   try {
     await connectDB();
-    const doc = await Component.findOne({ baseComponent: "Header" }).lean();
+    const doc = await Component.findOne({ baseComponent: "Header" })
+      .sort({ updatedAt: -1 })
+      .lean();
     const payload = normalizeHeaderProps(doc?.defaultProps);
     return NextResponse.json(payload, {
       headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
@@ -80,7 +122,9 @@ export async function PUT(req) {
     const payload = body && typeof body === "object" ? body : {};
 
     await connectDB();
-    let doc = await Component.findOne({ baseComponent: "Header" });
+    let doc = await Component.findOne({ baseComponent: "Header" }).sort({
+      updatedAt: -1,
+    });
     if (!doc) {
       const defaultProps = normalizeHeaderProps(payload);
       doc = await Component.create({
@@ -101,6 +145,7 @@ export async function PUT(req) {
       await doc.save();
     }
 
+    revalidatePath("/", "layout");
     const out = normalizeHeaderProps(doc.defaultProps);
     return NextResponse.json(out, {
       headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },

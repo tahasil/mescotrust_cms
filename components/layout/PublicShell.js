@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { Fragment } from "react";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import * as SiteComponents from "@/components/site";
 import RoutePopupHost from "@/components/layout/RoutePopupHost";
@@ -15,190 +14,26 @@ const hasFooterBlock = (layout) =>
 const layoutWithoutFooterBlocks = (layout) =>
   Array.isArray(layout) ? layout.filter((b) => (b?.baseComponent || b?.componentId?.baseComponent) !== "Footer") : [];
 
-function PublicHeader({ menuItems, siteTitle, logoType, logoImageUrl, logoLightUrl, logoDarkUrl, sticky, transparent, layout }) {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [openSubmenuKey, setOpenSubmenuKey] = useState(null);
-  const logoUrl = logoLightUrl || logoImageUrl;
-  const title = siteTitle ?? "";
-  const links = menuItems?.length
-    ? menuItems
-    : [
-        { label: "Home", url: "/", openInNewTab: false },
-        { label: "Blog", url: "/blog", openInNewTab: false },
-        { label: "Events", url: "/events", openInNewTab: false },
-        { label: "Contact", url: "/contact", openInNewTab: false },
-      ];
-
-  const closeMenu = () => {
-    setMobileOpen(false);
-    setOpenSubmenuKey(null);
-  };
-
-  const headerClass = [
-    "public-header",
-    sticky !== false ? "public-header-sticky" : "",
-    transparent ? "public-header-transparent" : "",
-    layout ? `public-header-${layout}` : "",
-  ].filter(Boolean).join(" ");
-
-  const renderLink = (item, closeOnClick = true) => {
-    const onClick = closeOnClick ? closeMenu : undefined;
-    if (item.openInNewTab) {
-      return (
-        <a href={item.url || "#"} target="_blank" rel="noopener noreferrer" onClick={onClick}>
-          {item.label || "Link"}
-        </a>
-      );
-    }
-    return (
-      <Link href={item.url || "#"} onClick={onClick}>
-        {item.label || "Link"}
-      </Link>
-    );
-  };
-
-  const renderDropdownContent = (child, j, parentKey) => {
-    const subChildren = Array.isArray(child.children) ? child.children : [];
-    const hasNested = subChildren.length > 0;
-    const subKey = `${parentKey}-${j}`;
-    const subOpen = openSubmenuKey === subKey;
-    if (hasNested) {
-      return (
-        <div key={subKey} role="none" className="public-nav-dropdown-item public-nav-dropdown-nested">
-          <div
-            className={`public-nav-dropdown ${subOpen ? "open" : ""}`}
-            onMouseEnter={() => setOpenSubmenuKey(subKey)}
-            onMouseLeave={() => setOpenSubmenuKey(null)}
-          >
-            <button
-              type="button"
-              className="public-nav-dropdown-trigger public-nav-dropdown-trigger-inner"
-              onClick={(e) => { e.stopPropagation(); setOpenSubmenuKey((p) => (p === subKey ? null : subKey)); }}
-              aria-expanded={subOpen}
-              aria-haspopup="true"
-            >
-              {child.label || "Menu"}
-              <span className="public-nav-dropdown-arrow" aria-hidden />
-            </button>
-            <div className="public-nav-dropdown-menu public-nav-dropdown-submenu" role="menu">
-              {subChildren.map((subChild, k) => renderDropdownContent(subChild, k, subKey))}
-            </div>
-          </div>
-        </div>
-      );
-    }
-    return (
-      <div key={subKey} role="none" className="public-nav-dropdown-item">
-        {child.openInNewTab ? (
-          <a href={child.url || "#"} target="_blank" rel="noopener noreferrer" onClick={closeMenu} role="menuitem">
-            {child.label || "Link"}
-          </a>
-        ) : (
-          <Link href={child.url || "#"} onClick={closeMenu} role="menuitem">
-            {child.label || "Link"}
-          </Link>
-        )}
-      </div>
-    );
-  };
-
-  const renderNavItem = (item, index, keyPrefix) => {
-    const children = Array.isArray(item.children) ? item.children : [];
-    const hasSubmenu = children.length > 0;
-    const key = keyPrefix !== undefined ? `${keyPrefix}-${index}` : String(index);
-    const isOpen = openSubmenuKey === key;
-
-    if (hasSubmenu) {
-      return (
-        <div
-          key={key}
-          className={`public-nav-dropdown ${isOpen ? "open" : ""}`}
-        >
-          <button
-            type="button"
-            className="public-nav-dropdown-trigger"
-            onClick={() => setOpenSubmenuKey((prev) => (prev === key ? null : key))}
-            aria-expanded={isOpen}
-            aria-haspopup="true"
-          >
-            {item.label || "Menu"}
-            <span className="public-nav-dropdown-arrow" aria-hidden />
-          </button>
-          <div className="public-nav-dropdown-menu" role="menu">
-            {children.map((child, j) => renderDropdownContent(child, j, key))}
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div key={key} className="public-nav-link">
-        {renderLink(item)}
-      </div>
-    );
-  };
-
-  return (
-    <header className={headerClass}>
-      <div className="public-header-inner">
-        <Link href="/" className="public-logo" aria-label={title}>
-          {logoType === "image" && logoUrl ? (
-            <img loading="lazy" src={logoUrl} alt={title} />
-          ) : (
-            title
-          )}
-        </Link>
-        <button
-          className="hamburger-btn"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Toggle menu"
-        >
-          <span className={`hamburger-icon ${mobileOpen ? "open" : ""}`} />
-        </button>
-        <nav className={`public-nav ${mobileOpen ? "mobile-open" : ""}`}>
-          {links.map((item, i) => renderNavItem(item, i))}
-          <div className="public-nav-link">
-            <Link href="/search" onClick={closeMenu} aria-label="Search">Search</Link>
-          </div>
-        </nav>
-      </div>
-    </header>
-  );
-}
-
-function PublicFooter({ menuItems, siteTitle, copyrightText, columnsCount, socialIcons, layoutStyle }) {
-  const title = siteTitle ?? "";
-  const copy = copyrightText && copyrightText.trim() ? copyrightText.trim() : `© ${new Date().getFullYear()} ${title}. All rights reserved.`;
-  const footerClass = [
-    "public-footer",
-    layoutStyle ? `public-footer-${layoutStyle}` : "",
-  ].filter(Boolean).join(" ");
-  return (
-    <footer className={footerClass} data-columns={columnsCount}>
-      <div className="public-footer-inner">
-        {menuItems?.length > 0 && (
-          <nav className="footer-nav">
-            {menuItems.map((item) =>
-              item.openInNewTab ? (
-                <a key={item.url + item.label} href={item.url} target="_blank" rel="noopener noreferrer">{item.label}</a>
-              ) : (
-                <Link key={item.url + item.label} href={item.url}>{item.label}</Link>
-              )
-            )}
-          </nav>
-        )}
-        {socialIcons !== false && (
-          <div className="footer-social" aria-hidden />
-        )}
-        <p className="footer-copy" dangerouslySetInnerHTML={{ __html: copy }} />
-      </div>
-    </footer>
-  );
-}
-
 const headerThemeProps = (props) => ({
   menuItems: props.headerItems,
   siteTitle: props.siteTitle,
+  logoUrl: props.logoUrl,
+  headerSearchEnabled: props.headerSearchEnabled === true,
+  headerSearchLabel: props.headerSearchLabel ?? "",
+  headerSearchOpenAriaLabel: props.headerSearchOpenAriaLabel ?? "",
+  headerSearchPlaceholder: props.headerSearchPlaceholder ?? "",
+  headerSearchDialogLabel: props.headerSearchDialogLabel ?? "",
+  headerSearchInputAriaLabel: props.headerSearchInputAriaLabel ?? "",
+  headerSearchCloseAriaLabel: props.headerSearchCloseAriaLabel ?? "",
+  headerSearchMinCharsMessage: props.headerSearchMinCharsMessage ?? "",
+  headerSearchLoadingMessage: props.headerSearchLoadingMessage ?? "",
+  headerSearchNoResultsMessage: props.headerSearchNoResultsMessage ?? "",
+  headerSearchErrorMessage: props.headerSearchErrorMessage ?? "",
+  headerSearchResultTypePageLabel: props.headerSearchResultTypePageLabel ?? "",
+  headerSearchResultTypeBlogLabel: props.headerSearchResultTypeBlogLabel ?? "",
+  headerSearchResultTypeEventLabel: props.headerSearchResultTypeEventLabel ?? "",
+  headerSearchFallbackTitle: props.headerSearchFallbackTitle ?? "",
+  headerSearchFallbackMeta: props.headerSearchFallbackMeta ?? "",
   logoType: props.logoType,
   logoImageUrl: props.logoImageUrl,
   logoLightUrl: props.logoLightUrl,
@@ -221,6 +56,27 @@ const headerThemeProps = (props) => ({
   headerDonateBgValue: props.headerDonateBgValue ?? "",
   headerDonateTextValue: props.headerDonateTextValue ?? "",
   volunteerModalTitle: props.volunteerModalTitle ?? "",
+  volunteerModalSuccessTitle: props.volunteerModalSuccessTitle ?? "",
+  volunteerModalSuccessDescription: props.volunteerModalSuccessDescription ?? "",
+  volunteerModalErrorTitle: props.volunteerModalErrorTitle ?? "",
+  volunteerModalNameLabel: props.volunteerModalNameLabel ?? "",
+  volunteerModalEmailLabel: props.volunteerModalEmailLabel ?? "",
+  volunteerModalSubjectLabel: props.volunteerModalSubjectLabel ?? "",
+  volunteerModalMessageLabel: props.volunteerModalMessageLabel ?? "",
+  volunteerModalNamePlaceholder: props.volunteerModalNamePlaceholder ?? "",
+  volunteerModalEmailPlaceholder: props.volunteerModalEmailPlaceholder ?? "",
+  volunteerModalSubjectPlaceholder: props.volunteerModalSubjectPlaceholder ?? "",
+  volunteerModalMessagePlaceholder: props.volunteerModalMessagePlaceholder ?? "",
+  volunteerModalCancelLabel: props.volunteerModalCancelLabel ?? "",
+  volunteerModalSendLabel: props.volunteerModalSendLabel ?? "",
+  volunteerModalSendingLabel: props.volunteerModalSendingLabel ?? "",
+  volunteerModalNameRequiredMessage: props.volunteerModalNameRequiredMessage ?? "",
+  volunteerModalEmailRequiredMessage: props.volunteerModalEmailRequiredMessage ?? "",
+  volunteerModalEmailInvalidMessage: props.volunteerModalEmailInvalidMessage ?? "",
+  volunteerModalSubjectRequiredMessage: props.volunteerModalSubjectRequiredMessage ?? "",
+  volunteerModalSubjectMinMessage: props.volunteerModalSubjectMinMessage ?? "",
+  volunteerModalMessageRequiredMessage: props.volunteerModalMessageRequiredMessage ?? "",
+  volunteerModalMessageMinMessage: props.volunteerModalMessageMinMessage ?? "",
   volunteerModalBtnBg: props.volunteerModalBtnBg ?? "",
   volunteerModalBtnText: props.volunteerModalBtnText ?? "",
   volunteerModalCancelColor: props.volunteerModalCancelColor ?? "",
@@ -262,6 +118,23 @@ export default function PublicShell({
   globalAfter = [],
   siteTitle,
   tagline,
+  logoUrl,
+  headerSearchEnabled,
+  headerSearchLabel,
+  headerSearchOpenAriaLabel,
+  headerSearchPlaceholder,
+  headerSearchDialogLabel,
+  headerSearchInputAriaLabel,
+  headerSearchCloseAriaLabel,
+  headerSearchMinCharsMessage,
+  headerSearchLoadingMessage,
+  headerSearchNoResultsMessage,
+  headerSearchErrorMessage,
+  headerSearchResultTypePageLabel,
+  headerSearchResultTypeBlogLabel,
+  headerSearchResultTypeEventLabel,
+  headerSearchFallbackTitle,
+  headerSearchFallbackMeta,
   logoType,
   logoImageUrl,
   logoLightUrl,
@@ -285,6 +158,27 @@ export default function PublicShell({
   headerDonateBgValue,
   headerDonateTextValue,
   volunteerModalTitle,
+  volunteerModalSuccessTitle,
+  volunteerModalSuccessDescription,
+  volunteerModalErrorTitle,
+  volunteerModalNameLabel,
+  volunteerModalEmailLabel,
+  volunteerModalSubjectLabel,
+  volunteerModalMessageLabel,
+  volunteerModalNamePlaceholder,
+  volunteerModalEmailPlaceholder,
+  volunteerModalSubjectPlaceholder,
+  volunteerModalMessagePlaceholder,
+  volunteerModalCancelLabel,
+  volunteerModalSendLabel,
+  volunteerModalSendingLabel,
+  volunteerModalNameRequiredMessage,
+  volunteerModalEmailRequiredMessage,
+  volunteerModalEmailInvalidMessage,
+  volunteerModalSubjectRequiredMessage,
+  volunteerModalSubjectMinMessage,
+  volunteerModalMessageRequiredMessage,
+  volunteerModalMessageMinMessage,
   volunteerModalBtnBg,
   volunteerModalBtnText,
   volunteerModalCancelColor,
@@ -310,8 +204,6 @@ export default function PublicShell({
   footerCopyrightBarValue,
   children,
 }) {
-  const hasGlobalBefore = Array.isArray(globalBefore) && globalBefore.length > 0;
-  const hasGlobalAfter = Array.isArray(globalAfter) && globalAfter.length > 0;
   const hasCustomHeader = Array.isArray(customHeaderLayout) && customHeaderLayout.length > 0;
   const hasCustomFooter = Array.isArray(customFooterLayout) && customFooterLayout.length > 0;
 
@@ -320,6 +212,23 @@ export default function PublicShell({
     footerItems,
     siteTitle,
     tagline,
+    logoUrl,
+    headerSearchEnabled,
+    headerSearchLabel,
+    headerSearchOpenAriaLabel,
+    headerSearchPlaceholder,
+    headerSearchDialogLabel,
+    headerSearchInputAriaLabel,
+    headerSearchCloseAriaLabel,
+    headerSearchMinCharsMessage,
+    headerSearchLoadingMessage,
+    headerSearchNoResultsMessage,
+    headerSearchErrorMessage,
+    headerSearchResultTypePageLabel,
+    headerSearchResultTypeBlogLabel,
+    headerSearchResultTypeEventLabel,
+    headerSearchFallbackTitle,
+    headerSearchFallbackMeta,
     logoType,
     logoImageUrl,
     logoLightUrl,
@@ -343,6 +252,27 @@ export default function PublicShell({
     headerDonateBgValue,
     headerDonateTextValue,
     volunteerModalTitle,
+    volunteerModalSuccessTitle,
+    volunteerModalSuccessDescription,
+    volunteerModalErrorTitle,
+    volunteerModalNameLabel,
+    volunteerModalEmailLabel,
+    volunteerModalSubjectLabel,
+    volunteerModalMessageLabel,
+    volunteerModalNamePlaceholder,
+    volunteerModalEmailPlaceholder,
+    volunteerModalSubjectPlaceholder,
+    volunteerModalMessagePlaceholder,
+    volunteerModalCancelLabel,
+    volunteerModalSendLabel,
+    volunteerModalSendingLabel,
+    volunteerModalNameRequiredMessage,
+    volunteerModalEmailRequiredMessage,
+    volunteerModalEmailInvalidMessage,
+    volunteerModalSubjectRequiredMessage,
+    volunteerModalSubjectMinMessage,
+    volunteerModalMessageRequiredMessage,
+    volunteerModalMessageMinMessage,
     volunteerModalBtnBg,
     volunteerModalBtnText,
     volunteerModalCancelColor,
@@ -358,7 +288,7 @@ export default function PublicShell({
     footerLogoUrl,
     footerAddress,
     footerEmail,
-  footerPhone,
+    footerPhone,
     footerCol1Links,
     footerCol2Links,
     footerSocialLinks,
@@ -368,55 +298,66 @@ export default function PublicShell({
     footerCopyrightBarValue,
   };
 
-  const renderGlobalComponent = (id, position) => {
+  const renderGlobalComponent = (id, key) => {
     const Comp = SiteComponents[id];
     if (!Comp) return null;
-    if (id === "Header") return <Comp key={id} {...headerThemeProps(themeProps)} />;
-    if (id === "Footer") return <Comp key={id} {...footerThemeProps(themeProps)} />;
-    return <Comp key={id} {...globalTheme} />;
+    if (id === "Header") return <Comp key={key ?? id} {...headerThemeProps(themeProps)} />;
+    if (id === "Footer") return <Comp key={key ?? id} {...footerThemeProps(themeProps)} />;
+    return <Comp key={key ?? id} {...globalTheme} />;
   };
+
+  const beforeGlobalIds = Array.isArray(globalBefore) ? globalBefore : [];
+  const afterGlobalIds = Array.isArray(globalAfter) ? globalAfter : [];
+  const hasGlobalHeader = beforeGlobalIds.includes("Header");
+  const hasGlobalFooter = afterGlobalIds.includes("Footer");
 
   const useSiteHeaderForLayout =
     hasCustomHeader && hasHeaderBlock(customHeaderLayout);
   const useSiteFooterForLayout =
     hasCustomFooter && hasFooterBlock(customFooterLayout);
-  const headerArea =
-    hasGlobalBefore ? (
-      globalBefore.map((id) => renderGlobalComponent(id, "before"))
-    ) : useSiteHeaderForLayout ? (
+
+  const fallbackHeader =
+    useSiteHeaderForLayout ? (
       <SiteComponents.Header key="site-header" {...headerThemeProps(themeProps)} />
     ) : hasCustomHeader ? (
       <ComponentRenderer layout={customHeaderLayout} />
     ) : (
-      <PublicHeader
-        menuItems={headerItems}
-        siteTitle={siteTitle}
-        logoType={logoType}
-        logoImageUrl={logoImageUrl}
-        logoLightUrl={logoLightUrl}
-        logoDarkUrl={logoDarkUrl}
-        sticky={headerSticky}
-        transparent={headerTransparent}
-        layout={headerLayout}
-      />
+      <SiteComponents.Header key="site-header" {...headerThemeProps(themeProps)} />
     );
+  const fallbackFooter =
+    useSiteFooterForLayout ? (
+      <SiteComponents.Footer key="site-footer" {...footerThemeProps(themeProps)} />
+    ) : hasCustomFooter ? (
+      <ComponentRenderer layout={customFooterLayout} />
+    ) : (
+      <SiteComponents.Footer key="site-footer" {...footerThemeProps(themeProps)} />
+    );
+  const beforeRenderOrder = hasGlobalHeader
+    ? beforeGlobalIds
+    : ["__fallback_header__", ...beforeGlobalIds];
+  const afterRenderOrder = hasGlobalFooter
+    ? afterGlobalIds
+    : [...afterGlobalIds, "__fallback_footer__"];
 
   return (
     <div className="public-site" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <RoutePopupHost />
-      {headerArea}
-      {useSiteHeaderForLayout && layoutWithoutHeaderBlocks(customHeaderLayout).length > 0 && (
+      {beforeRenderOrder.map((id, index) =>
+        id === "__fallback_header__"
+          ? <Fragment key={`fallback-header-${index}`}>{fallbackHeader}</Fragment>
+          : renderGlobalComponent(id, `before-${id}-${index}`),
+      )}
+      {!hasGlobalHeader && useSiteHeaderForLayout && layoutWithoutHeaderBlocks(customHeaderLayout).length > 0 && (
         <ComponentRenderer layout={layoutWithoutHeaderBlocks(customHeaderLayout)} />
       )}
       <div style={{ flex: 1 }}>{children}</div>
-      {hasGlobalAfter ? (
-        globalAfter.map((id) => renderGlobalComponent(id, "after"))
-      ) : useSiteFooterForLayout ? (
-        <SiteComponents.Footer key="site-footer" {...footerThemeProps(themeProps)} />
-      ) : hasCustomFooter ? (
-        <ComponentRenderer layout={customFooterLayout} />
-      ) : (
-        <SiteComponents.Footer key="site-footer" {...footerThemeProps(themeProps)} />
+      {afterRenderOrder.map((id, index) =>
+        id === "__fallback_footer__"
+          ? <Fragment key={`fallback-footer-${index}`}>{fallbackFooter}</Fragment>
+          : renderGlobalComponent(id, `after-${id}-${index}`),
+      )}
+      {!hasGlobalFooter && useSiteFooterForLayout && layoutWithoutFooterBlocks(customFooterLayout).length > 0 && (
+        <ComponentRenderer layout={layoutWithoutFooterBlocks(customFooterLayout)} />
       )}
     </div>
   );

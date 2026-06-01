@@ -20,8 +20,9 @@ export default function LayoutSwitcher({ children, data, theme, logoUrl, initial
       customFooterLayout={data?.customFooterLayout || null}
       globalBefore={data?.globalBefore || []}
       globalAfter={data?.globalAfter || []}
-      siteTitle={theme?.siteTitle || "Mesco Trust"}
+      siteTitle={theme?.siteTitle || ""}
       tagline={theme?.tagline}
+      logoUrl={theme?.logoUrl || ""}
       logoType={theme?.logoType || "text"}
       logoLightUrl={logoUrl}
       logoDarkUrl={theme?.logoDarkUrl || ""}

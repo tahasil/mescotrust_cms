@@ -80,9 +80,10 @@ function syncColorsToThemeJs(paletteColors, colors, themePath) {
 }
 
 const DEFAULTS = {
-  siteTitle: "Mesco Trust",
+  siteTitle: "",
   tagline: "",
   logoType: "text",
+  logoUrl: "",
   logoLightUrl: "",
   logoMobileUrl: "",
   logoDarkUrl: "",
@@ -136,12 +137,12 @@ const DEFAULTS = {
   headerLayout: "default",
   headerSticky: true,
   headerTransparent: false,
-  headerVolunteerLabel: "Volunteer",
-  headerVolunteerHref: "/volunteer",
+  headerVolunteerLabel: "",
+  headerVolunteerHref: "",
   headerVolunteerIconUrl: "",
   headerVolunteerIconUrlMobile: "",
-  headerDonateLabel: "Donate Now",
-  headerDonateHref: "/donate",
+  headerDonateLabel: "",
+  headerDonateHref: "",
   headerDonateIconUrl: "",
   headerDonateIconUrlMobile: "",
   headerBgColorKey: "headerBg",
@@ -351,11 +352,77 @@ const HEADER_COMPONENT_OVERRIDE_KEYS = new Set([
   "headerPageContainerMarginBottom",
   "_disableFadeAnimation",
 ]);
+const FOOTER_COMPONENT_OVERRIDE_KEYS = new Set([
+  "footerLogoUrl",
+  "footerAddress",
+  "footerEmail",
+  "footerPhone",
+  "footerCol1Links",
+  "footerCol2Links",
+  "footerSocialLinks",
+  "footerCopyrightText",
+  "footerBgColorKey",
+  "footerBackgroundImageUrl",
+  "footerTextColorKey",
+  "footerCopyrightBarColorKey",
+  "footerColumnsCount",
+  "footerLayoutStyle",
+  "footerSocialIcons",
+]);
+
+function pickPreferredComponentDocs(components, { preferLayout = false } = {}) {
+  const byBase = new Map();
+  if (!Array.isArray(components)) return byBase;
+
+  for (const component of components) {
+    const baseComponent = String(component?.baseComponent || "").trim();
+    if (!baseComponent) continue;
+
+    const existing = byBase.get(baseComponent);
+    if (!existing) {
+      byBase.set(baseComponent, component);
+      continue;
+    }
+
+    if (preferLayout) {
+      const existingHasLayout =
+        Array.isArray(existing?.layout) && existing.layout.length > 0;
+      const currentHasLayout =
+        Array.isArray(component?.layout) && component.layout.length > 0;
+      if (currentHasLayout && !existingHasLayout) {
+        byBase.set(baseComponent, component);
+        continue;
+      }
+      if (!currentHasLayout && existingHasLayout) {
+        continue;
+      }
+    }
+
+    const existingUpdated = new Date(existing?.updatedAt || 0).getTime();
+    const currentUpdated = new Date(component?.updatedAt || 0).getTime();
+    if (currentUpdated > existingUpdated) {
+      byBase.set(baseComponent, component);
+      continue;
+    }
+    if (currentUpdated < existingUpdated) continue;
+
+    const existingId = String(existing?._id || "");
+    const currentId = String(component?._id || "");
+    if (currentId > existingId) {
+      byBase.set(baseComponent, component);
+    }
+  }
+
+  return byBase;
+}
 
 function shouldMergeComponentProp(baseComponent, key) {
   if (!THEME_CONFIG_OWNED_KEYS.has(key)) return true;
   if (baseComponent === "Header") {
     return HEADER_COMPONENT_OVERRIDE_KEYS.has(key);
+  }
+  if (baseComponent === "Footer") {
+    return FOOTER_COMPONENT_OVERRIDE_KEYS.has(key);
   }
   return false;
 }
@@ -467,8 +534,11 @@ export async function GET() {
       normalized[k] = plain[k] != null ? String(plain[k]).trim() : "";
     }
     // Merge from components collection (all site components: Header, Footer, HomeHero, Subscribe + any new)
-    const comps = await Component.find({ baseComponent: { $in: getRegistryIdsFromDisk() } }).lean();
-    for (const c of comps || []) {
+    const comps = await Component.find({
+      baseComponent: { $in: getRegistryIdsFromDisk() },
+    }).lean();
+    const preferredComps = Array.from(pickPreferredComponentDocs(comps).values());
+    for (const c of preferredComps) {
       const props = c.defaultProps;
       const baseComponent = c?.baseComponent;
       if (props && typeof props === "object") {

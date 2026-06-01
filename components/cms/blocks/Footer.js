@@ -70,7 +70,7 @@ export default function FooterBlock({
             <NextImage loading="lazy" src={logoImage} alt={logoTitle} width={120} height={40} style={{ objectFit: "contain" }} />
           ) : (
             <>
-              <div style={{ fontWeight: 700, fontSize: "1.25rem", letterSpacing: "0.05em", color: linkColor }}>{logoTitle || "Logo"}</div>
+              <div style={{ fontWeight: 700, fontSize: "1.25rem", letterSpacing: "0.05em", color: linkColor }}>{logoTitle || ""}</div>
               {logoTagline && <div style={{ fontSize: "0.75rem", opacity: 0.8, marginTop: 2 }}>{logoTagline}</div>}
             </>
           )}
@@ -81,7 +81,7 @@ export default function FooterBlock({
             <NextImage loading="lazy" src={logoImage} alt={logoTitle} width={120} height={40} style={{ objectFit: "contain" }} />
           ) : (
             <>
-              <div style={{ fontWeight: 700, fontSize: "1.25rem", letterSpacing: "0.05em", color: linkColor }}>{logoTitle || "Logo"}</div>
+              <div style={{ fontWeight: 700, fontSize: "1.25rem", letterSpacing: "0.05em", color: linkColor }}>{logoTitle || ""}</div>
               {logoTagline && <div style={{ fontSize: "0.75rem", opacity: 0.8, marginTop: 2 }}>{logoTagline}</div>}
             </>
           )}
@@ -99,8 +99,15 @@ export default function FooterBlock({
         ) : null}
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {links.map((link, j) => {
-            const href = link.url || "#";
-            const content = link.label || "Link";
+            const href = String(link?.url || "").trim();
+            const content = String(link?.label || "").trim();
+            if (!href) {
+              return (
+                <span key={j} style={linkStyle}>
+                  {content}
+                </span>
+              );
+            }
             if (isExternal(href)) {
               return (
                 <a key={j} href={href} target="_blank" rel="noopener noreferrer" style={linkStyle}>{content}</a>
@@ -126,11 +133,13 @@ export default function FooterBlock({
       {socialList.length > 0 && (
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
           {socialList.map((link, i) => {
+            const socialUrl = String(link?.url || "").trim();
+            if (!socialUrl) return null;
             const icon = SOCIAL_ICONS[link.platform?.toLowerCase()] || link.platform?.charAt(0)?.toUpperCase() || "?";
             return (
               <a
                 key={i}
-                href={link.url || "#"}
+                href={socialUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 title={link.platform}
@@ -192,7 +201,7 @@ export default function FooterBlock({
           color: "#fff",
         }}
       >
-        {copyrightText || `© ${new Date().getFullYear()} All rights reserved.`}
+        {copyrightText}
       </div>
     </footer>
   );

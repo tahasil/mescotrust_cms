@@ -303,7 +303,12 @@ const ModalSendBtn = styled.button`
   }
 `;
 
-function ModalSubmitButton({ bgColor, textColor }) {
+function ModalSubmitButton({
+  bgColor,
+  textColor,
+  sendLabel = "",
+  sendingLabel = "",
+}) {
   const { pending } = useFormStatus();
   return (
     <ModalSendBtn
@@ -314,7 +319,7 @@ function ModalSubmitButton({ bgColor, textColor }) {
         color: textColor || getColor("white") || "var(--theme-white)",
       }}
     >
-      {pending ? "Sending..." : "Send Message"}
+      {pending ? sendingLabel : sendLabel}
     </ModalSendBtn>
   );
 }
@@ -322,7 +327,24 @@ function ModalSubmitButton({ bgColor, textColor }) {
 export default function Header({
   menuItems = [],
   siteTitle = "",
+  headerSearchEnabled = false,
+  headerSearchLabel = "",
+  headerSearchOpenAriaLabel = "",
+  headerSearchPlaceholder = "",
+  headerSearchDialogLabel = "",
+  headerSearchInputAriaLabel = "",
+  headerSearchCloseAriaLabel = "",
+  headerSearchMinCharsMessage = "",
+  headerSearchLoadingMessage = "",
+  headerSearchNoResultsMessage = "",
+  headerSearchErrorMessage = "",
+  headerSearchResultTypePageLabel = "",
+  headerSearchResultTypeBlogLabel = "",
+  headerSearchResultTypeEventLabel = "",
+  headerSearchFallbackTitle = "",
+  headerSearchFallbackMeta = "",
   logoType = "text",
+  logoUrl = "",
   logoImageUrl = "",
   logoLightUrl = "",
   logoMobileUrl = "",
@@ -352,6 +374,27 @@ export default function Header({
   sectionShadow = "",
   /* Modal props */
   volunteerModalTitle = "",
+  volunteerModalSuccessTitle = "",
+  volunteerModalSuccessDescription = "",
+  volunteerModalErrorTitle = "",
+  volunteerModalNameLabel = "",
+  volunteerModalEmailLabel = "",
+  volunteerModalSubjectLabel = "",
+  volunteerModalMessageLabel = "",
+  volunteerModalNamePlaceholder = "",
+  volunteerModalEmailPlaceholder = "",
+  volunteerModalSubjectPlaceholder = "",
+  volunteerModalMessagePlaceholder = "",
+  volunteerModalCancelLabel = "",
+  volunteerModalSendLabel = "",
+  volunteerModalSendingLabel = "",
+  volunteerModalNameRequiredMessage = "",
+  volunteerModalEmailRequiredMessage = "",
+  volunteerModalEmailInvalidMessage = "",
+  volunteerModalSubjectRequiredMessage = "",
+  volunteerModalSubjectMinMessage = "",
+  volunteerModalMessageRequiredMessage = "",
+  volunteerModalMessageMinMessage = "",
   volunteerModalBtnBg = "",
   volunteerModalBtnText = "",
   volunteerModalCancelColor = "",
@@ -405,23 +448,32 @@ export default function Header({
   useEffect(() => {
     if (!modalState) return;
     if (modalState.success) {
-      notification.success({
-        message: "Success",
-        description: "Message sent successfully!",
-        placement: "bottomRight",
-      });
+      if (volunteerModalSuccessTitle || volunteerModalSuccessDescription) {
+        notification.success({
+          message: volunteerModalSuccessTitle,
+          description: volunteerModalSuccessDescription,
+          placement: "bottomRight",
+        });
+      }
       modalFormRef.current?.reset();
       setModalErrors({});
       setModalOpen(false);
       window.dispatchEvent(new Event("new-contact-submission"));
     } else if (modalState.error) {
-      notification.error({
-        message: "Submission failed",
-        description: modalState.error,
-        placement: "bottomRight",
-      });
+      if (volunteerModalErrorTitle || modalState.error) {
+        notification.error({
+          message: volunteerModalErrorTitle,
+          description: modalState.error,
+          placement: "bottomRight",
+        });
+      }
     }
-  }, [modalState]);
+  }, [
+    modalState,
+    volunteerModalSuccessTitle,
+    volunteerModalSuccessDescription,
+    volunteerModalErrorTitle,
+  ]);
 
   useEffect(() => {
     if (modalOpen || searchOpen) {
@@ -434,8 +486,9 @@ export default function Header({
   const [scrolled, setScrolled] = useState(false);
 
   const items = cmsMenuToHeaderItems(menuItems);
-  const logoUrl = logoLightUrl || logoImageUrl;
-  const logoUrlMobile = logoMobileUrl || logoUrl;
+  const logoImage = logoLightUrl || logoImageUrl;
+  const logoUrlMobile = logoMobileUrl || logoImage;
+  const logoHref = String(logoUrl || "").trim();
   const title = siteTitle ?? "";
   const volunteerIconMobile = volunteerIconUrlMobile ?? volunteerIconUrl;
   const donateIconMobile = donateIconUrlMobile ?? donateIconUrl;
@@ -497,14 +550,14 @@ export default function Header({
           { signal: controller.signal },
         );
         if (!response.ok) {
-          throw new Error("Search is temporarily unavailable.");
+          throw new Error(headerSearchErrorMessage || "");
         }
         const payload = await response.json();
         setSearchItems(Array.isArray(payload?.items) ? payload.items : []);
       } catch (error) {
         if (error?.name !== "AbortError") {
           setSearchItems([]);
-          setSearchError(error?.message || "Failed to fetch search results.");
+          setSearchError(error?.message || headerSearchErrorMessage || "");
         }
       } finally {
         if (!controller.signal.aborted) {
@@ -516,7 +569,7 @@ export default function Header({
       window.clearTimeout(timerId);
       controller.abort();
     };
-  }, [searchOpen, searchQuery]);
+  }, [searchOpen, searchQuery, headerSearchErrorMessage]);
 
   const closeMobile = () => {
     setMobileOpen(false);
@@ -539,18 +592,18 @@ export default function Header({
     const subject = normalizeText(formData.get("subject"));
     const body = normalizeText(formData.get("message"));
     const nextErrors = {};
-    if (!name) nextErrors.name = "Full name is required";
+    if (!name) nextErrors.name = volunteerModalNameRequiredMessage || "";
     if (name && !isValidName(name))
-      nextErrors.name = "Name should contain alphabets only";
-    if (!email) nextErrors.email = "Email is required";
+      nextErrors.name = volunteerModalNameRequiredMessage || "";
+    if (!email) nextErrors.email = volunteerModalEmailRequiredMessage || "";
     if (email && !isValidEmail(email))
-      nextErrors.email = "Please enter a valid email address";
-    if (!subject) nextErrors.subject = "Subject is required";
+      nextErrors.email = volunteerModalEmailInvalidMessage || "";
+    if (!subject) nextErrors.subject = volunteerModalSubjectRequiredMessage || "";
     if (subject && !hasMinText(subject, 3))
-      nextErrors.subject = "Subject must be at least 3 characters";
-    if (!body) nextErrors.message = "Message is required";
+      nextErrors.subject = volunteerModalSubjectMinMessage || "";
+    if (!body) nextErrors.message = volunteerModalMessageRequiredMessage || "";
     if (body && !hasMinText(body, 5))
-      nextErrors.message = "Message must be at least 5 characters";
+      nextErrors.message = volunteerModalMessageMinMessage || "";
     if (Object.keys(nextErrors).length > 0) {
       event.preventDefault();
       setModalErrors(nextErrors);
@@ -562,10 +615,17 @@ export default function Header({
   const trimmedSearchQuery = searchQuery.trim();
   const hasMinSearchChars = trimmedSearchQuery.length >= 2;
   const resultLabel = (type) => {
-    if (type === "blog") return "Blog";
-    if (type === "event") return "Event";
-    return "Page";
+    if (type === "blog")
+      return headerSearchResultTypeBlogLabel || String(type || "");
+    if (type === "event")
+      return headerSearchResultTypeEventLabel || String(type || "");
+    return headerSearchResultTypePageLabel || String(type || "");
   };
+  const hasSearchAction =
+    headerSearchEnabled === true && String(headerSearchLabel || "").trim() !== "";
+  const noResultsText = headerSearchNoResultsMessage
+    ? headerSearchNoResultsMessage.replace("{query}", trimmedSearchQuery)
+    : "";
   const toExcerpt = (value) => {
     if (!value || typeof value !== "string") return "";
     const plain = value
@@ -589,11 +649,15 @@ export default function Header({
         className={scrolled && !preview ? "is-scrolled" : ""}
       >
         <HeaderMainWrapper>
-          <Logo href="/" onClick={closeMobile}>
-            {logoType === "image" && logoUrl ? (
+          <Logo
+            as={logoHref ? "a" : "span"}
+            href={logoHref || undefined}
+            onClick={closeMobile}
+          >
+            {logoType === "image" && logoImage ? (
               <img
                 loading="lazy"
-                src={logoUrl}
+                src={logoImage}
                 alt={title}
                 className="img-fluid"
               />
@@ -674,14 +738,16 @@ export default function Header({
           </Nav>
 
           <Actions>
-            <SearchBtn
-              type="button"
-              onClick={() => setSearchOpen(true)}
-              aria-label="Open search"
-            >
-              <SearchIcon />
-              Search
-            </SearchBtn>
+            {hasSearchAction && (
+              <SearchBtn
+                type="button"
+                onClick={() => setSearchOpen(true)}
+                aria-label={headerSearchOpenAriaLabel || headerSearchLabel}
+              >
+                <SearchIcon />
+                {headerSearchLabel}
+              </SearchBtn>
+            )}
             {(volunteerLabel || volunteerHref) && (
               <BtnVolunteer
                 as="button"
@@ -707,9 +773,9 @@ export default function Header({
                 </IconWrap>
               </BtnVolunteer>
             )}
-            {(donateLabel || donateHref) && (
+            {(donateLabel || donateHref) && donateHref && (
               <BtnDonate
-                href={donateHref || "#"}
+                href={donateHref}
                 $headerDonateBgValue={headerDonateBgValue}
                 $headerDonateTextValue={headerDonateTextValue}
               >
@@ -746,7 +812,11 @@ export default function Header({
         $headerBgValue={headerBgValue}
       >
         <MobileMenuHeader>
-          <MobileMenuLogo href="/" onClick={closeMobile}>
+          <MobileMenuLogo
+            as={logoHref ? "a" : "span"}
+            href={logoHref || undefined}
+            onClick={closeMobile}
+          >
             {logoType === "image" && logoUrlMobile ? (
               <img loading="lazy" src={logoUrlMobile} alt={title} />
             ) : (
@@ -829,17 +899,19 @@ export default function Header({
           )}
         </MobileNav>
         <MobileActions>
-          <MobileBtnSearch
-            type="button"
-            onClick={() => {
-              closeMobile();
-              setSearchOpen(true);
-            }}
-            aria-label="Open search"
-          >
-            <SearchIcon />
-            Search
-          </MobileBtnSearch>
+          {hasSearchAction && (
+            <MobileBtnSearch
+              type="button"
+              onClick={() => {
+                closeMobile();
+                setSearchOpen(true);
+              }}
+              aria-label={headerSearchOpenAriaLabel || headerSearchLabel}
+            >
+              <SearchIcon />
+              {headerSearchLabel}
+            </MobileBtnSearch>
+          )}
           {(volunteerLabel || volunteerHref) && (
             <MobileBtnVolunteer
               as="button"
@@ -864,9 +936,9 @@ export default function Header({
               {volunteerLabel}
             </MobileBtnVolunteer>
           )}
-          {(donateLabel || donateHref) && (
+          {(donateLabel || donateHref) && donateHref && (
             <MobileBtnDonate
-              href={donateHref || "#"}
+              href={donateHref}
               onClick={closeMobile}
               $headerDonateBgValue={headerDonateBgValue}
               $headerDonateTextValue={headerDonateTextValue}
@@ -896,7 +968,7 @@ export default function Header({
           onClick={(event) => event.stopPropagation()}
           role="dialog"
           aria-modal="true"
-          aria-label="Site search"
+          aria-label={headerSearchDialogLabel || headerSearchLabel}
         >
           <SearchTopRow>
             <SearchTopIcon>
@@ -907,12 +979,12 @@ export default function Header({
               type="search"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search pages, blogs, and events..."
-              aria-label="Search pages, blogs, and events"
+              placeholder={headerSearchPlaceholder}
+              aria-label={headerSearchInputAriaLabel || headerSearchLabel}
             />
             <SearchCloseBtn
               type="button"
-              aria-label="Close search"
+              aria-label={headerSearchCloseAriaLabel || headerSearchLabel}
               onClick={closeSearch}
             >
               <CloseIcon />
@@ -920,26 +992,30 @@ export default function Header({
           </SearchTopRow>
           <SearchResults>
             {!hasMinSearchChars ? (
-              <SearchState>Type at least 2 characters to start searching.</SearchState>
+              <SearchState>{headerSearchMinCharsMessage}</SearchState>
             ) : searchLoading ? (
-              <SearchState>Searching...</SearchState>
+              <SearchState>{headerSearchLoadingMessage}</SearchState>
             ) : searchError ? (
               <SearchState>{searchError}</SearchState>
             ) : searchItems.length === 0 ? (
-              <SearchState>No results found for "{trimmedSearchQuery}".</SearchState>
+              <SearchState>{noResultsText}</SearchState>
             ) : (
               searchItems.map((item, index) => (
                 <SearchResultLink
                   key={`${item.type || "result"}-${item.slug || item.url || index}`}
-                  href={item.url || "#"}
+                  href={item.url || ""}
                   onClick={closeSearch}
                 >
                   <SearchResultType>{resultLabel(item.type)}</SearchResultType>
-                  <SearchResultTitle>{item.title || "Untitled result"}</SearchResultTitle>
+                  <SearchResultTitle>
+                    {item.title || headerSearchFallbackTitle}
+                  </SearchResultTitle>
                   {toExcerpt(item.excerpt) ? (
                     <SearchResultMeta>{toExcerpt(item.excerpt)}</SearchResultMeta>
                   ) : (
-                    <SearchResultMeta>{item.url || "#"}</SearchResultMeta>
+                    <SearchResultMeta>
+                      {item.url || headerSearchFallbackMeta}
+                    </SearchResultMeta>
                   )}
                 </SearchResultLink>
               ))
@@ -967,22 +1043,25 @@ export default function Header({
               <Col xs={24} sm={12}>
                 <ModalFormGroup>
                   <label className="mlabel">
-                    Full Name <span className="mreq">*</span>
+                    {volunteerModalNameLabel} <span className="mreq">*</span>
                   </label>
                   <input
                     name="name"
                     required
                     className="mfield"
-                    placeholder="Your name"
+                    placeholder={volunteerModalNamePlaceholder}
                     onChange={() =>
-                      modalErrors.name &&
+                      Object.prototype.hasOwnProperty.call(modalErrors, "name") &&
                       setModalErrors((prev) => ({ ...prev, name: "" }))
                     }
                     style={
-                      modalErrors.name ? { borderColor: "#cf372f" } : undefined
+                      Object.prototype.hasOwnProperty.call(modalErrors, "name")
+                        ? { borderColor: "#cf372f" }
+                        : undefined
                     }
                   />
-                  {modalErrors.name ? (
+                  {Object.prototype.hasOwnProperty.call(modalErrors, "name") &&
+                  modalErrors.name ? (
                     <div
                       style={{ marginTop: 6, fontSize: 12, color: "#cf372f" }}
                     >
@@ -994,23 +1073,26 @@ export default function Header({
               <Col xs={24} sm={12}>
                 <ModalFormGroup>
                   <label className="mlabel">
-                    Email <span className="mreq">*</span>
+                    {volunteerModalEmailLabel} <span className="mreq">*</span>
                   </label>
                   <input
                     name="email"
                     type="email"
                     required
                     className="mfield"
-                    placeholder="Your email address"
+                    placeholder={volunteerModalEmailPlaceholder}
                     onChange={() =>
-                      modalErrors.email &&
+                      Object.prototype.hasOwnProperty.call(modalErrors, "email") &&
                       setModalErrors((prev) => ({ ...prev, email: "" }))
                     }
                     style={
-                      modalErrors.email ? { borderColor: "#cf372f" } : undefined
+                      Object.prototype.hasOwnProperty.call(modalErrors, "email")
+                        ? { borderColor: "#cf372f" }
+                        : undefined
                     }
                   />
-                  {modalErrors.email ? (
+                  {Object.prototype.hasOwnProperty.call(modalErrors, "email") &&
+                  modalErrors.email ? (
                     <div
                       style={{ marginTop: 6, fontSize: 12, color: "#cf372f" }}
                     >
@@ -1022,22 +1104,25 @@ export default function Header({
             </Row>
             <ModalFormGroup>
               <label className="mlabel">
-                Subject <span className="mreq">*</span>
+                {volunteerModalSubjectLabel} <span className="mreq">*</span>
               </label>
               <input
                 name="subject"
                 required
                 className="mfield"
-                placeholder="Subject of message"
+                placeholder={volunteerModalSubjectPlaceholder}
                 onChange={() =>
-                  modalErrors.subject &&
+                  Object.prototype.hasOwnProperty.call(modalErrors, "subject") &&
                   setModalErrors((prev) => ({ ...prev, subject: "" }))
                 }
                 style={
-                  modalErrors.subject ? { borderColor: "#cf372f" } : undefined
+                  Object.prototype.hasOwnProperty.call(modalErrors, "subject")
+                    ? { borderColor: "#cf372f" }
+                    : undefined
                 }
               />
-              {modalErrors.subject ? (
+              {Object.prototype.hasOwnProperty.call(modalErrors, "subject") &&
+              modalErrors.subject ? (
                 <div style={{ marginTop: 6, fontSize: 12, color: "#cf372f" }}>
                   {modalErrors.subject}
                 </div>
@@ -1045,23 +1130,26 @@ export default function Header({
             </ModalFormGroup>
             <ModalFormGroup>
               <label className="mlabel">
-                Message <span className="mreq">*</span>
+                {volunteerModalMessageLabel} <span className="mreq">*</span>
               </label>
               <textarea
                 name="message"
                 required
                 className="mfield"
-                placeholder="Message text"
+                placeholder={volunteerModalMessagePlaceholder}
                 rows={4}
                 onChange={() =>
-                  modalErrors.message &&
+                  Object.prototype.hasOwnProperty.call(modalErrors, "message") &&
                   setModalErrors((prev) => ({ ...prev, message: "" }))
                 }
                 style={
-                  modalErrors.message ? { borderColor: "#cf372f" } : undefined
+                  Object.prototype.hasOwnProperty.call(modalErrors, "message")
+                    ? { borderColor: "#cf372f" }
+                    : undefined
                 }
               />
-              {modalErrors.message ? (
+              {Object.prototype.hasOwnProperty.call(modalErrors, "message") &&
+              modalErrors.message ? (
                 <div style={{ marginTop: 6, fontSize: 12, color: "#cf372f" }}>
                   {modalErrors.message}
                 </div>
@@ -1076,11 +1164,13 @@ export default function Header({
                 }}
                 onClick={() => setModalOpen(false)}
               >
-                Cancel
+                {volunteerModalCancelLabel}
               </ModalCancelBtn>
               <ModalSubmitButton
                 bgColor={resolvedModalBtnBg}
                 textColor={resolvedModalBtnText}
+                sendLabel={volunteerModalSendLabel}
+                sendingLabel={volunteerModalSendingLabel}
               />
             </ModalBtnRow>
           </form>

@@ -91,7 +91,7 @@ function HeaderEditForm(
       return;
     }
     themeLoadedOnceRef.current = true;
-    fetch("/api/theme")
+    fetch("/api/theme", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : {}))
       .then((theme) => {
         const flat = theme?.header ? { ...theme.header } : {};
@@ -100,8 +100,25 @@ function HeaderEditForm(
         if (theme?.logoImageUrl != null && !flat.logoLightUrl) flat.logoLightUrl = theme.logoImageUrl;
         if (theme?.logoMobileUrl != null) flat.logoMobileUrl = theme.logoMobileUrl;
         if (theme?.logoDarkUrl != null) flat.logoDarkUrl = theme.logoDarkUrl;
+        if (theme?.logoUrl != null) flat.logoUrl = theme.logoUrl;
         if (theme?.logoTitle != null) flat.logoTitle = theme.logoTitle;
         if (theme?.logoTagline != null) flat.logoTagline = theme.logoTagline;
+        if (theme?.headerSearchEnabled != null) flat.headerSearchEnabled = theme.headerSearchEnabled === true;
+        if (theme?.headerSearchLabel != null) flat.headerSearchLabel = theme.headerSearchLabel;
+        if (theme?.headerSearchOpenAriaLabel != null) flat.headerSearchOpenAriaLabel = theme.headerSearchOpenAriaLabel;
+        if (theme?.headerSearchPlaceholder != null) flat.headerSearchPlaceholder = theme.headerSearchPlaceholder;
+        if (theme?.headerSearchDialogLabel != null) flat.headerSearchDialogLabel = theme.headerSearchDialogLabel;
+        if (theme?.headerSearchInputAriaLabel != null) flat.headerSearchInputAriaLabel = theme.headerSearchInputAriaLabel;
+        if (theme?.headerSearchCloseAriaLabel != null) flat.headerSearchCloseAriaLabel = theme.headerSearchCloseAriaLabel;
+        if (theme?.headerSearchMinCharsMessage != null) flat.headerSearchMinCharsMessage = theme.headerSearchMinCharsMessage;
+        if (theme?.headerSearchLoadingMessage != null) flat.headerSearchLoadingMessage = theme.headerSearchLoadingMessage;
+        if (theme?.headerSearchNoResultsMessage != null) flat.headerSearchNoResultsMessage = theme.headerSearchNoResultsMessage;
+        if (theme?.headerSearchErrorMessage != null) flat.headerSearchErrorMessage = theme.headerSearchErrorMessage;
+        if (theme?.headerSearchResultTypePageLabel != null) flat.headerSearchResultTypePageLabel = theme.headerSearchResultTypePageLabel;
+        if (theme?.headerSearchResultTypeBlogLabel != null) flat.headerSearchResultTypeBlogLabel = theme.headerSearchResultTypeBlogLabel;
+        if (theme?.headerSearchResultTypeEventLabel != null) flat.headerSearchResultTypeEventLabel = theme.headerSearchResultTypeEventLabel;
+        if (theme?.headerSearchFallbackTitle != null) flat.headerSearchFallbackTitle = theme.headerSearchFallbackTitle;
+        if (theme?.headerSearchFallbackMeta != null) flat.headerSearchFallbackMeta = theme.headerSearchFallbackMeta;
         if (theme?.headerVolunteerLabel != null) flat.headerVolunteerLabel = theme.headerVolunteerLabel;
         if (theme?.headerVolunteerHref != null) flat.headerVolunteerHref = theme.headerVolunteerHref;
         if (theme?.headerVolunteerIconUrl != null) flat.headerVolunteerIconUrl = theme.headerVolunteerIconUrl;
@@ -115,6 +132,27 @@ function HeaderEditForm(
         if (theme?.headerDonateBgColorKey != null) flat.headerDonateBgColorKey = theme.headerDonateBgColorKey;
         if (theme?.headerDonateTextColorKey != null) flat.headerDonateTextColorKey = theme.headerDonateTextColorKey;
         if (theme?.volunteerModalTitle != null) flat.volunteerModalTitle = theme.volunteerModalTitle;
+        if (theme?.volunteerModalSuccessTitle != null) flat.volunteerModalSuccessTitle = theme.volunteerModalSuccessTitle;
+        if (theme?.volunteerModalSuccessDescription != null) flat.volunteerModalSuccessDescription = theme.volunteerModalSuccessDescription;
+        if (theme?.volunteerModalErrorTitle != null) flat.volunteerModalErrorTitle = theme.volunteerModalErrorTitle;
+        if (theme?.volunteerModalNameLabel != null) flat.volunteerModalNameLabel = theme.volunteerModalNameLabel;
+        if (theme?.volunteerModalEmailLabel != null) flat.volunteerModalEmailLabel = theme.volunteerModalEmailLabel;
+        if (theme?.volunteerModalSubjectLabel != null) flat.volunteerModalSubjectLabel = theme.volunteerModalSubjectLabel;
+        if (theme?.volunteerModalMessageLabel != null) flat.volunteerModalMessageLabel = theme.volunteerModalMessageLabel;
+        if (theme?.volunteerModalNamePlaceholder != null) flat.volunteerModalNamePlaceholder = theme.volunteerModalNamePlaceholder;
+        if (theme?.volunteerModalEmailPlaceholder != null) flat.volunteerModalEmailPlaceholder = theme.volunteerModalEmailPlaceholder;
+        if (theme?.volunteerModalSubjectPlaceholder != null) flat.volunteerModalSubjectPlaceholder = theme.volunteerModalSubjectPlaceholder;
+        if (theme?.volunteerModalMessagePlaceholder != null) flat.volunteerModalMessagePlaceholder = theme.volunteerModalMessagePlaceholder;
+        if (theme?.volunteerModalCancelLabel != null) flat.volunteerModalCancelLabel = theme.volunteerModalCancelLabel;
+        if (theme?.volunteerModalSendLabel != null) flat.volunteerModalSendLabel = theme.volunteerModalSendLabel;
+        if (theme?.volunteerModalSendingLabel != null) flat.volunteerModalSendingLabel = theme.volunteerModalSendingLabel;
+        if (theme?.volunteerModalNameRequiredMessage != null) flat.volunteerModalNameRequiredMessage = theme.volunteerModalNameRequiredMessage;
+        if (theme?.volunteerModalEmailRequiredMessage != null) flat.volunteerModalEmailRequiredMessage = theme.volunteerModalEmailRequiredMessage;
+        if (theme?.volunteerModalEmailInvalidMessage != null) flat.volunteerModalEmailInvalidMessage = theme.volunteerModalEmailInvalidMessage;
+        if (theme?.volunteerModalSubjectRequiredMessage != null) flat.volunteerModalSubjectRequiredMessage = theme.volunteerModalSubjectRequiredMessage;
+        if (theme?.volunteerModalSubjectMinMessage != null) flat.volunteerModalSubjectMinMessage = theme.volunteerModalSubjectMinMessage;
+        if (theme?.volunteerModalMessageRequiredMessage != null) flat.volunteerModalMessageRequiredMessage = theme.volunteerModalMessageRequiredMessage;
+        if (theme?.volunteerModalMessageMinMessage != null) flat.volunteerModalMessageMinMessage = theme.volunteerModalMessageMinMessage;
         if (theme?.volunteerModalBtnBg != null) flat.volunteerModalBtnBg = theme.volunteerModalBtnBg;
         if (theme?.volunteerModalBtnText != null) flat.volunteerModalBtnText = theme.volunteerModalBtnText;
         if (theme?.volunteerModalCancelColor != null) flat.volunteerModalCancelColor = theme.volunteerModalCancelColor;

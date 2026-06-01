@@ -1,1 +1,1 @@
-export { default } from "./Header/index";
+export { default, HeaderEditForm } from "./Header/index";

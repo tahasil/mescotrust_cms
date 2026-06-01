@@ -144,9 +144,29 @@ export default function AdminComponentEditPage() {
         setThemePaletteData({ themePalette: palette, colors: customColors });
         setThemeHeaderSnapshot({
           siteTitle: theme.siteTitle ?? "",
+          headerSearchEnabled: theme.headerSearchEnabled === true,
+          headerSearchLabel: theme.headerSearchLabel ?? "",
+          headerSearchOpenAriaLabel: theme.headerSearchOpenAriaLabel ?? "",
+          headerSearchPlaceholder: theme.headerSearchPlaceholder ?? "",
+          headerSearchDialogLabel: theme.headerSearchDialogLabel ?? "",
+          headerSearchInputAriaLabel: theme.headerSearchInputAriaLabel ?? "",
+          headerSearchCloseAriaLabel: theme.headerSearchCloseAriaLabel ?? "",
+          headerSearchMinCharsMessage: theme.headerSearchMinCharsMessage ?? "",
+          headerSearchLoadingMessage: theme.headerSearchLoadingMessage ?? "",
+          headerSearchNoResultsMessage: theme.headerSearchNoResultsMessage ?? "",
+          headerSearchErrorMessage: theme.headerSearchErrorMessage ?? "",
+          headerSearchResultTypePageLabel:
+            theme.headerSearchResultTypePageLabel ?? "",
+          headerSearchResultTypeBlogLabel:
+            theme.headerSearchResultTypeBlogLabel ?? "",
+          headerSearchResultTypeEventLabel:
+            theme.headerSearchResultTypeEventLabel ?? "",
+          headerSearchFallbackTitle: theme.headerSearchFallbackTitle ?? "",
+          headerSearchFallbackMeta: theme.headerSearchFallbackMeta ?? "",
           logoType: theme.logoType ?? "text",
           logoLightUrl: theme.logoLightUrl || theme.logoImageUrl || "",
           logoMobileUrl: theme.logoMobileUrl ?? "",
+          logoUrl: theme.logoUrl ?? "",
           headerVolunteerLabel: theme.headerVolunteerLabel ?? "",
           headerVolunteerHref: theme.headerVolunteerHref ?? "",
           headerVolunteerIconUrl: theme.headerVolunteerIconUrl ?? "",
@@ -161,6 +181,40 @@ export default function AdminComponentEditPage() {
           headerCtaTextColorKey: theme.headerCtaTextColorKey ?? "primary",
           headerDonateBgColorKey: theme.headerDonateBgColorKey ?? "gradient",
           headerDonateTextColorKey: theme.headerDonateTextColorKey ?? "white",
+          volunteerModalTitle: theme.volunteerModalTitle ?? "",
+          volunteerModalSuccessTitle: theme.volunteerModalSuccessTitle ?? "",
+          volunteerModalSuccessDescription:
+            theme.volunteerModalSuccessDescription ?? "",
+          volunteerModalErrorTitle: theme.volunteerModalErrorTitle ?? "",
+          volunteerModalNameLabel: theme.volunteerModalNameLabel ?? "",
+          volunteerModalEmailLabel: theme.volunteerModalEmailLabel ?? "",
+          volunteerModalSubjectLabel: theme.volunteerModalSubjectLabel ?? "",
+          volunteerModalMessageLabel: theme.volunteerModalMessageLabel ?? "",
+          volunteerModalNamePlaceholder:
+            theme.volunteerModalNamePlaceholder ?? "",
+          volunteerModalEmailPlaceholder:
+            theme.volunteerModalEmailPlaceholder ?? "",
+          volunteerModalSubjectPlaceholder:
+            theme.volunteerModalSubjectPlaceholder ?? "",
+          volunteerModalMessagePlaceholder:
+            theme.volunteerModalMessagePlaceholder ?? "",
+          volunteerModalCancelLabel: theme.volunteerModalCancelLabel ?? "",
+          volunteerModalSendLabel: theme.volunteerModalSendLabel ?? "",
+          volunteerModalSendingLabel: theme.volunteerModalSendingLabel ?? "",
+          volunteerModalNameRequiredMessage:
+            theme.volunteerModalNameRequiredMessage ?? "",
+          volunteerModalEmailRequiredMessage:
+            theme.volunteerModalEmailRequiredMessage ?? "",
+          volunteerModalEmailInvalidMessage:
+            theme.volunteerModalEmailInvalidMessage ?? "",
+          volunteerModalSubjectRequiredMessage:
+            theme.volunteerModalSubjectRequiredMessage ?? "",
+          volunteerModalSubjectMinMessage:
+            theme.volunteerModalSubjectMinMessage ?? "",
+          volunteerModalMessageRequiredMessage:
+            theme.volunteerModalMessageRequiredMessage ?? "",
+          volunteerModalMessageMinMessage:
+            theme.volunteerModalMessageMinMessage ?? "",
           _sectionBg: theme._sectionBg ?? "",
           _sectionPadding: theme._sectionPadding ?? "",
           _sectionBorderSize: theme._sectionBorderSize ?? "",
@@ -182,9 +236,29 @@ export default function AdminComponentEditPage() {
           names.map((name) => ({ label: name, value: name })),
         );
         form.setFieldsValue({
+          headerSearchEnabled: theme.headerSearchEnabled === true,
+          headerSearchLabel: theme.headerSearchLabel ?? "",
+          headerSearchOpenAriaLabel: theme.headerSearchOpenAriaLabel ?? "",
+          headerSearchPlaceholder: theme.headerSearchPlaceholder ?? "",
+          headerSearchDialogLabel: theme.headerSearchDialogLabel ?? "",
+          headerSearchInputAriaLabel: theme.headerSearchInputAriaLabel ?? "",
+          headerSearchCloseAriaLabel: theme.headerSearchCloseAriaLabel ?? "",
+          headerSearchMinCharsMessage: theme.headerSearchMinCharsMessage ?? "",
+          headerSearchLoadingMessage: theme.headerSearchLoadingMessage ?? "",
+          headerSearchNoResultsMessage: theme.headerSearchNoResultsMessage ?? "",
+          headerSearchErrorMessage: theme.headerSearchErrorMessage ?? "",
+          headerSearchResultTypePageLabel:
+            theme.headerSearchResultTypePageLabel ?? "",
+          headerSearchResultTypeBlogLabel:
+            theme.headerSearchResultTypeBlogLabel ?? "",
+          headerSearchResultTypeEventLabel:
+            theme.headerSearchResultTypeEventLabel ?? "",
+          headerSearchFallbackTitle: theme.headerSearchFallbackTitle ?? "",
+          headerSearchFallbackMeta: theme.headerSearchFallbackMeta ?? "",
           logoType: theme.logoType ?? "text",
           logoLightUrl: theme.logoLightUrl || theme.logoImageUrl || "",
           logoMobileUrl: theme.logoMobileUrl ?? "",
+          logoUrl: theme.logoUrl ?? "",
           headerVolunteerLabel: theme.headerVolunteerLabel ?? "",
           headerVolunteerHref: theme.headerVolunteerHref ?? "",
           headerVolunteerIconUrl: theme.headerVolunteerIconUrl ?? "",
@@ -199,6 +273,40 @@ export default function AdminComponentEditPage() {
           headerCtaTextColorKey: theme.headerCtaTextColorKey ?? "primary",
           headerDonateBgColorKey: theme.headerDonateBgColorKey ?? "gradient",
           headerDonateTextColorKey: theme.headerDonateTextColorKey ?? "white",
+          volunteerModalTitle: theme.volunteerModalTitle ?? "",
+          volunteerModalSuccessTitle: theme.volunteerModalSuccessTitle ?? "",
+          volunteerModalSuccessDescription:
+            theme.volunteerModalSuccessDescription ?? "",
+          volunteerModalErrorTitle: theme.volunteerModalErrorTitle ?? "",
+          volunteerModalNameLabel: theme.volunteerModalNameLabel ?? "",
+          volunteerModalEmailLabel: theme.volunteerModalEmailLabel ?? "",
+          volunteerModalSubjectLabel: theme.volunteerModalSubjectLabel ?? "",
+          volunteerModalMessageLabel: theme.volunteerModalMessageLabel ?? "",
+          volunteerModalNamePlaceholder:
+            theme.volunteerModalNamePlaceholder ?? "",
+          volunteerModalEmailPlaceholder:
+            theme.volunteerModalEmailPlaceholder ?? "",
+          volunteerModalSubjectPlaceholder:
+            theme.volunteerModalSubjectPlaceholder ?? "",
+          volunteerModalMessagePlaceholder:
+            theme.volunteerModalMessagePlaceholder ?? "",
+          volunteerModalCancelLabel: theme.volunteerModalCancelLabel ?? "",
+          volunteerModalSendLabel: theme.volunteerModalSendLabel ?? "",
+          volunteerModalSendingLabel: theme.volunteerModalSendingLabel ?? "",
+          volunteerModalNameRequiredMessage:
+            theme.volunteerModalNameRequiredMessage ?? "",
+          volunteerModalEmailRequiredMessage:
+            theme.volunteerModalEmailRequiredMessage ?? "",
+          volunteerModalEmailInvalidMessage:
+            theme.volunteerModalEmailInvalidMessage ?? "",
+          volunteerModalSubjectRequiredMessage:
+            theme.volunteerModalSubjectRequiredMessage ?? "",
+          volunteerModalSubjectMinMessage:
+            theme.volunteerModalSubjectMinMessage ?? "",
+          volunteerModalMessageRequiredMessage:
+            theme.volunteerModalMessageRequiredMessage ?? "",
+          volunteerModalMessageMinMessage:
+            theme.volunteerModalMessageMinMessage ?? "",
         });
       })
       .catch(() => message.error("Failed to load theme"))
@@ -215,7 +323,7 @@ export default function AdminComponentEditPage() {
         const customColors = Array.isArray(theme.colors) ? theme.colors : [];
         setThemePaletteData({ themePalette: palette, colors: customColors });
         setThemeFooterSnapshot({
-          siteTitle: theme.siteTitle ?? "Mesco Trust",
+          siteTitle: theme.siteTitle ?? "",
           footerLogoUrl: theme.footerLogoUrl ?? "",
           footerAddress: theme.footerAddress ?? "",
           footerEmail: theme.footerEmail ?? "",
@@ -949,10 +1057,41 @@ export default function AdminComponentEditPage() {
                 if (cid === "Header") {
                   setThemeHeaderSnapshot({
                     siteTitle: theme.siteTitle ?? "",
+                    headerSearchEnabled: theme.headerSearchEnabled === true,
+                    headerSearchLabel: theme.headerSearchLabel ?? "",
+                    headerSearchOpenAriaLabel:
+                      theme.headerSearchOpenAriaLabel ?? "",
+                    headerSearchPlaceholder:
+                      theme.headerSearchPlaceholder ?? "",
+                    headerSearchDialogLabel:
+                      theme.headerSearchDialogLabel ?? "",
+                    headerSearchInputAriaLabel:
+                      theme.headerSearchInputAriaLabel ?? "",
+                    headerSearchCloseAriaLabel:
+                      theme.headerSearchCloseAriaLabel ?? "",
+                    headerSearchMinCharsMessage:
+                      theme.headerSearchMinCharsMessage ?? "",
+                    headerSearchLoadingMessage:
+                      theme.headerSearchLoadingMessage ?? "",
+                    headerSearchNoResultsMessage:
+                      theme.headerSearchNoResultsMessage ?? "",
+                    headerSearchErrorMessage:
+                      theme.headerSearchErrorMessage ?? "",
+                    headerSearchResultTypePageLabel:
+                      theme.headerSearchResultTypePageLabel ?? "",
+                    headerSearchResultTypeBlogLabel:
+                      theme.headerSearchResultTypeBlogLabel ?? "",
+                    headerSearchResultTypeEventLabel:
+                      theme.headerSearchResultTypeEventLabel ?? "",
+                    headerSearchFallbackTitle:
+                      theme.headerSearchFallbackTitle ?? "",
+                    headerSearchFallbackMeta:
+                      theme.headerSearchFallbackMeta ?? "",
                     logoType: theme.logoType ?? "text",
                     logoLightUrl:
                       theme.logoLightUrl || theme.logoImageUrl || "",
                     logoMobileUrl: theme.logoMobileUrl ?? "",
+                    logoUrl: theme.logoUrl ?? "",
                     headerVolunteerLabel: theme.headerVolunteerLabel ?? "",
                     headerVolunteerHref: theme.headerVolunteerHref ?? "",
                     headerVolunteerIconUrl: theme.headerVolunteerIconUrl ?? "",
@@ -972,6 +1111,49 @@ export default function AdminComponentEditPage() {
                       theme.headerDonateBgColorKey ?? "gradient",
                     headerDonateTextColorKey:
                       theme.headerDonateTextColorKey ?? "white",
+                    volunteerModalTitle: theme.volunteerModalTitle ?? "",
+                    volunteerModalSuccessTitle:
+                      theme.volunteerModalSuccessTitle ?? "",
+                    volunteerModalSuccessDescription:
+                      theme.volunteerModalSuccessDescription ?? "",
+                    volunteerModalErrorTitle:
+                      theme.volunteerModalErrorTitle ?? "",
+                    volunteerModalNameLabel:
+                      theme.volunteerModalNameLabel ?? "",
+                    volunteerModalEmailLabel:
+                      theme.volunteerModalEmailLabel ?? "",
+                    volunteerModalSubjectLabel:
+                      theme.volunteerModalSubjectLabel ?? "",
+                    volunteerModalMessageLabel:
+                      theme.volunteerModalMessageLabel ?? "",
+                    volunteerModalNamePlaceholder:
+                      theme.volunteerModalNamePlaceholder ?? "",
+                    volunteerModalEmailPlaceholder:
+                      theme.volunteerModalEmailPlaceholder ?? "",
+                    volunteerModalSubjectPlaceholder:
+                      theme.volunteerModalSubjectPlaceholder ?? "",
+                    volunteerModalMessagePlaceholder:
+                      theme.volunteerModalMessagePlaceholder ?? "",
+                    volunteerModalCancelLabel:
+                      theme.volunteerModalCancelLabel ?? "",
+                    volunteerModalSendLabel:
+                      theme.volunteerModalSendLabel ?? "",
+                    volunteerModalSendingLabel:
+                      theme.volunteerModalSendingLabel ?? "",
+                    volunteerModalNameRequiredMessage:
+                      theme.volunteerModalNameRequiredMessage ?? "",
+                    volunteerModalEmailRequiredMessage:
+                      theme.volunteerModalEmailRequiredMessage ?? "",
+                    volunteerModalEmailInvalidMessage:
+                      theme.volunteerModalEmailInvalidMessage ?? "",
+                    volunteerModalSubjectRequiredMessage:
+                      theme.volunteerModalSubjectRequiredMessage ?? "",
+                    volunteerModalSubjectMinMessage:
+                      theme.volunteerModalSubjectMinMessage ?? "",
+                    volunteerModalMessageRequiredMessage:
+                      theme.volunteerModalMessageRequiredMessage ?? "",
+                    volunteerModalMessageMinMessage:
+                      theme.volunteerModalMessageMinMessage ?? "",
                     _sectionBg: theme._sectionBg ?? "",
                     _sectionPadding: theme._sectionPadding ?? "",
                     _sectionBorderSize: theme._sectionBorderSize ?? "",
@@ -984,9 +1166,40 @@ export default function AdminComponentEditPage() {
                     ),
                   });
                   form.setFieldsValue({
+                    headerSearchEnabled: theme.headerSearchEnabled === true,
+                    headerSearchLabel: theme.headerSearchLabel ?? "",
+                    headerSearchOpenAriaLabel:
+                      theme.headerSearchOpenAriaLabel ?? "",
+                    headerSearchPlaceholder:
+                      theme.headerSearchPlaceholder ?? "",
+                    headerSearchDialogLabel:
+                      theme.headerSearchDialogLabel ?? "",
+                    headerSearchInputAriaLabel:
+                      theme.headerSearchInputAriaLabel ?? "",
+                    headerSearchCloseAriaLabel:
+                      theme.headerSearchCloseAriaLabel ?? "",
+                    headerSearchMinCharsMessage:
+                      theme.headerSearchMinCharsMessage ?? "",
+                    headerSearchLoadingMessage:
+                      theme.headerSearchLoadingMessage ?? "",
+                    headerSearchNoResultsMessage:
+                      theme.headerSearchNoResultsMessage ?? "",
+                    headerSearchErrorMessage:
+                      theme.headerSearchErrorMessage ?? "",
+                    headerSearchResultTypePageLabel:
+                      theme.headerSearchResultTypePageLabel ?? "",
+                    headerSearchResultTypeBlogLabel:
+                      theme.headerSearchResultTypeBlogLabel ?? "",
+                    headerSearchResultTypeEventLabel:
+                      theme.headerSearchResultTypeEventLabel ?? "",
+                    headerSearchFallbackTitle:
+                      theme.headerSearchFallbackTitle ?? "",
+                    headerSearchFallbackMeta:
+                      theme.headerSearchFallbackMeta ?? "",
                     logoType: theme.logoType ?? "text",
                     logoLightUrl: theme.logoLightUrl || theme.logoImageUrl || "",
                     logoMobileUrl: theme.logoMobileUrl ?? "",
+                    logoUrl: theme.logoUrl ?? "",
                     headerVolunteerLabel: theme.headerVolunteerLabel ?? "",
                     headerVolunteerHref: theme.headerVolunteerHref ?? "",
                     headerVolunteerIconUrl: theme.headerVolunteerIconUrl ?? "",
@@ -1005,6 +1218,49 @@ export default function AdminComponentEditPage() {
                       theme.headerDonateBgColorKey ?? "gradient",
                     headerDonateTextColorKey:
                       theme.headerDonateTextColorKey ?? "white",
+                    volunteerModalTitle: theme.volunteerModalTitle ?? "",
+                    volunteerModalSuccessTitle:
+                      theme.volunteerModalSuccessTitle ?? "",
+                    volunteerModalSuccessDescription:
+                      theme.volunteerModalSuccessDescription ?? "",
+                    volunteerModalErrorTitle:
+                      theme.volunteerModalErrorTitle ?? "",
+                    volunteerModalNameLabel:
+                      theme.volunteerModalNameLabel ?? "",
+                    volunteerModalEmailLabel:
+                      theme.volunteerModalEmailLabel ?? "",
+                    volunteerModalSubjectLabel:
+                      theme.volunteerModalSubjectLabel ?? "",
+                    volunteerModalMessageLabel:
+                      theme.volunteerModalMessageLabel ?? "",
+                    volunteerModalNamePlaceholder:
+                      theme.volunteerModalNamePlaceholder ?? "",
+                    volunteerModalEmailPlaceholder:
+                      theme.volunteerModalEmailPlaceholder ?? "",
+                    volunteerModalSubjectPlaceholder:
+                      theme.volunteerModalSubjectPlaceholder ?? "",
+                    volunteerModalMessagePlaceholder:
+                      theme.volunteerModalMessagePlaceholder ?? "",
+                    volunteerModalCancelLabel:
+                      theme.volunteerModalCancelLabel ?? "",
+                    volunteerModalSendLabel:
+                      theme.volunteerModalSendLabel ?? "",
+                    volunteerModalSendingLabel:
+                      theme.volunteerModalSendingLabel ?? "",
+                    volunteerModalNameRequiredMessage:
+                      theme.volunteerModalNameRequiredMessage ?? "",
+                    volunteerModalEmailRequiredMessage:
+                      theme.volunteerModalEmailRequiredMessage ?? "",
+                    volunteerModalEmailInvalidMessage:
+                      theme.volunteerModalEmailInvalidMessage ?? "",
+                    volunteerModalSubjectRequiredMessage:
+                      theme.volunteerModalSubjectRequiredMessage ?? "",
+                    volunteerModalSubjectMinMessage:
+                      theme.volunteerModalSubjectMinMessage ?? "",
+                    volunteerModalMessageRequiredMessage:
+                      theme.volunteerModalMessageRequiredMessage ?? "",
+                    volunteerModalMessageMinMessage:
+                      theme.volunteerModalMessageMinMessage ?? "",
                   });
                 } else if (cid === "Footer") {
                   setThemeFooterSnapshot({
@@ -1337,6 +1593,7 @@ function HeaderPreviewBlock({ form, themePaletteData, themeHeaderSnapshot }) {
     Form.useWatch("logoLightUrl", form) || s?.logoLightUrl || "";
   const logoMobileUrl =
     Form.useWatch("logoMobileUrl", form) || s?.logoMobileUrl || "";
+  const logoUrl = Form.useWatch("logoUrl", form) || s?.logoUrl || "";
   const volunteerLabel =
     Form.useWatch("headerVolunteerLabel", form) ||
     s?.headerVolunteerLabel ||
@@ -1360,6 +1617,154 @@ function HeaderPreviewBlock({ form, themePaletteData, themeHeaderSnapshot }) {
   const donateIconUrlMobile =
     Form.useWatch("headerDonateIconUrlMobile", form) ||
     s?.headerDonateIconUrlMobile ||
+    "";
+  const headerSearchEnabled =
+    Form.useWatch("headerSearchEnabled", form) ??
+    s?.headerSearchEnabled ??
+    false;
+  const headerSearchLabel =
+    Form.useWatch("headerSearchLabel", form) || s?.headerSearchLabel || "";
+  const headerSearchOpenAriaLabel =
+    Form.useWatch("headerSearchOpenAriaLabel", form) ||
+    s?.headerSearchOpenAriaLabel ||
+    "";
+  const headerSearchPlaceholder =
+    Form.useWatch("headerSearchPlaceholder", form) ||
+    s?.headerSearchPlaceholder ||
+    "";
+  const headerSearchDialogLabel =
+    Form.useWatch("headerSearchDialogLabel", form) ||
+    s?.headerSearchDialogLabel ||
+    "";
+  const headerSearchInputAriaLabel =
+    Form.useWatch("headerSearchInputAriaLabel", form) ||
+    s?.headerSearchInputAriaLabel ||
+    "";
+  const headerSearchCloseAriaLabel =
+    Form.useWatch("headerSearchCloseAriaLabel", form) ||
+    s?.headerSearchCloseAriaLabel ||
+    "";
+  const headerSearchMinCharsMessage =
+    Form.useWatch("headerSearchMinCharsMessage", form) ||
+    s?.headerSearchMinCharsMessage ||
+    "";
+  const headerSearchLoadingMessage =
+    Form.useWatch("headerSearchLoadingMessage", form) ||
+    s?.headerSearchLoadingMessage ||
+    "";
+  const headerSearchNoResultsMessage =
+    Form.useWatch("headerSearchNoResultsMessage", form) ||
+    s?.headerSearchNoResultsMessage ||
+    "";
+  const headerSearchErrorMessage =
+    Form.useWatch("headerSearchErrorMessage", form) ||
+    s?.headerSearchErrorMessage ||
+    "";
+  const headerSearchResultTypePageLabel =
+    Form.useWatch("headerSearchResultTypePageLabel", form) ||
+    s?.headerSearchResultTypePageLabel ||
+    "";
+  const headerSearchResultTypeBlogLabel =
+    Form.useWatch("headerSearchResultTypeBlogLabel", form) ||
+    s?.headerSearchResultTypeBlogLabel ||
+    "";
+  const headerSearchResultTypeEventLabel =
+    Form.useWatch("headerSearchResultTypeEventLabel", form) ||
+    s?.headerSearchResultTypeEventLabel ||
+    "";
+  const headerSearchFallbackTitle =
+    Form.useWatch("headerSearchFallbackTitle", form) ||
+    s?.headerSearchFallbackTitle ||
+    "";
+  const headerSearchFallbackMeta =
+    Form.useWatch("headerSearchFallbackMeta", form) ||
+    s?.headerSearchFallbackMeta ||
+    "";
+  const volunteerModalTitle =
+    Form.useWatch("volunteerModalTitle", form) || s?.volunteerModalTitle || "";
+  const volunteerModalSuccessTitle =
+    Form.useWatch("volunteerModalSuccessTitle", form) ||
+    s?.volunteerModalSuccessTitle ||
+    "";
+  const volunteerModalSuccessDescription =
+    Form.useWatch("volunteerModalSuccessDescription", form) ||
+    s?.volunteerModalSuccessDescription ||
+    "";
+  const volunteerModalErrorTitle =
+    Form.useWatch("volunteerModalErrorTitle", form) ||
+    s?.volunteerModalErrorTitle ||
+    "";
+  const volunteerModalNameLabel =
+    Form.useWatch("volunteerModalNameLabel", form) ||
+    s?.volunteerModalNameLabel ||
+    "";
+  const volunteerModalEmailLabel =
+    Form.useWatch("volunteerModalEmailLabel", form) ||
+    s?.volunteerModalEmailLabel ||
+    "";
+  const volunteerModalSubjectLabel =
+    Form.useWatch("volunteerModalSubjectLabel", form) ||
+    s?.volunteerModalSubjectLabel ||
+    "";
+  const volunteerModalMessageLabel =
+    Form.useWatch("volunteerModalMessageLabel", form) ||
+    s?.volunteerModalMessageLabel ||
+    "";
+  const volunteerModalNamePlaceholder =
+    Form.useWatch("volunteerModalNamePlaceholder", form) ||
+    s?.volunteerModalNamePlaceholder ||
+    "";
+  const volunteerModalEmailPlaceholder =
+    Form.useWatch("volunteerModalEmailPlaceholder", form) ||
+    s?.volunteerModalEmailPlaceholder ||
+    "";
+  const volunteerModalSubjectPlaceholder =
+    Form.useWatch("volunteerModalSubjectPlaceholder", form) ||
+    s?.volunteerModalSubjectPlaceholder ||
+    "";
+  const volunteerModalMessagePlaceholder =
+    Form.useWatch("volunteerModalMessagePlaceholder", form) ||
+    s?.volunteerModalMessagePlaceholder ||
+    "";
+  const volunteerModalCancelLabel =
+    Form.useWatch("volunteerModalCancelLabel", form) ||
+    s?.volunteerModalCancelLabel ||
+    "";
+  const volunteerModalSendLabel =
+    Form.useWatch("volunteerModalSendLabel", form) ||
+    s?.volunteerModalSendLabel ||
+    "";
+  const volunteerModalSendingLabel =
+    Form.useWatch("volunteerModalSendingLabel", form) ||
+    s?.volunteerModalSendingLabel ||
+    "";
+  const volunteerModalNameRequiredMessage =
+    Form.useWatch("volunteerModalNameRequiredMessage", form) ||
+    s?.volunteerModalNameRequiredMessage ||
+    "";
+  const volunteerModalEmailRequiredMessage =
+    Form.useWatch("volunteerModalEmailRequiredMessage", form) ||
+    s?.volunteerModalEmailRequiredMessage ||
+    "";
+  const volunteerModalEmailInvalidMessage =
+    Form.useWatch("volunteerModalEmailInvalidMessage", form) ||
+    s?.volunteerModalEmailInvalidMessage ||
+    "";
+  const volunteerModalSubjectRequiredMessage =
+    Form.useWatch("volunteerModalSubjectRequiredMessage", form) ||
+    s?.volunteerModalSubjectRequiredMessage ||
+    "";
+  const volunteerModalSubjectMinMessage =
+    Form.useWatch("volunteerModalSubjectMinMessage", form) ||
+    s?.volunteerModalSubjectMinMessage ||
+    "";
+  const volunteerModalMessageRequiredMessage =
+    Form.useWatch("volunteerModalMessageRequiredMessage", form) ||
+    s?.volunteerModalMessageRequiredMessage ||
+    "";
+  const volunteerModalMessageMinMessage =
+    Form.useWatch("volunteerModalMessageMinMessage", form) ||
+    s?.volunteerModalMessageMinMessage ||
     "";
   const headerBgColorKey =
     Form.useWatch("headerBgColorKey", form) ||
@@ -1405,7 +1810,24 @@ function HeaderPreviewBlock({ form, themePaletteData, themeHeaderSnapshot }) {
         preview
         menuItems={[]}
         siteTitle={siteTitle}
+        headerSearchEnabled={headerSearchEnabled === true}
+        headerSearchLabel={headerSearchLabel}
+        headerSearchOpenAriaLabel={headerSearchOpenAriaLabel}
+        headerSearchPlaceholder={headerSearchPlaceholder}
+        headerSearchDialogLabel={headerSearchDialogLabel}
+        headerSearchInputAriaLabel={headerSearchInputAriaLabel}
+        headerSearchCloseAriaLabel={headerSearchCloseAriaLabel}
+        headerSearchMinCharsMessage={headerSearchMinCharsMessage}
+        headerSearchLoadingMessage={headerSearchLoadingMessage}
+        headerSearchNoResultsMessage={headerSearchNoResultsMessage}
+        headerSearchErrorMessage={headerSearchErrorMessage}
+        headerSearchResultTypePageLabel={headerSearchResultTypePageLabel}
+        headerSearchResultTypeBlogLabel={headerSearchResultTypeBlogLabel}
+        headerSearchResultTypeEventLabel={headerSearchResultTypeEventLabel}
+        headerSearchFallbackTitle={headerSearchFallbackTitle}
+        headerSearchFallbackMeta={headerSearchFallbackMeta}
         logoType={logoType}
+        logoUrl={logoUrl}
         logoLightUrl={logoLightUrl}
         logoMobileUrl={logoMobileUrl || undefined}
         logoImageUrl={logoLightUrl}
@@ -1444,6 +1866,28 @@ function HeaderPreviewBlock({ form, themePaletteData, themeHeaderSnapshot }) {
           themePaletteData,
           headerDonateTextColorKey,
         )}
+        volunteerModalTitle={volunteerModalTitle}
+        volunteerModalSuccessTitle={volunteerModalSuccessTitle}
+        volunteerModalSuccessDescription={volunteerModalSuccessDescription}
+        volunteerModalErrorTitle={volunteerModalErrorTitle}
+        volunteerModalNameLabel={volunteerModalNameLabel}
+        volunteerModalEmailLabel={volunteerModalEmailLabel}
+        volunteerModalSubjectLabel={volunteerModalSubjectLabel}
+        volunteerModalMessageLabel={volunteerModalMessageLabel}
+        volunteerModalNamePlaceholder={volunteerModalNamePlaceholder}
+        volunteerModalEmailPlaceholder={volunteerModalEmailPlaceholder}
+        volunteerModalSubjectPlaceholder={volunteerModalSubjectPlaceholder}
+        volunteerModalMessagePlaceholder={volunteerModalMessagePlaceholder}
+        volunteerModalCancelLabel={volunteerModalCancelLabel}
+        volunteerModalSendLabel={volunteerModalSendLabel}
+        volunteerModalSendingLabel={volunteerModalSendingLabel}
+        volunteerModalNameRequiredMessage={volunteerModalNameRequiredMessage}
+        volunteerModalEmailRequiredMessage={volunteerModalEmailRequiredMessage}
+        volunteerModalEmailInvalidMessage={volunteerModalEmailInvalidMessage}
+        volunteerModalSubjectRequiredMessage={volunteerModalSubjectRequiredMessage}
+        volunteerModalSubjectMinMessage={volunteerModalSubjectMinMessage}
+        volunteerModalMessageRequiredMessage={volunteerModalMessageRequiredMessage}
+        volunteerModalMessageMinMessage={volunteerModalMessageMinMessage}
       />
     </div>
   );
@@ -1451,7 +1895,7 @@ function HeaderPreviewBlock({ form, themePaletteData, themeHeaderSnapshot }) {
 
 function FooterPreviewBlock({ form, themePaletteData, themeFooterSnapshot }) {
   const s = themeFooterSnapshot;
-  const siteTitle = s?.siteTitle || "Mesco Trust";
+  const siteTitle = s?.siteTitle || "";
   const footerLogoUrl =
     Form.useWatch("footerLogoUrl", form) || s?.footerLogoUrl || "";
   const footerAddress =

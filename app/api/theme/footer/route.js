@@ -3,6 +3,7 @@
  * GET: public. PUT: admin only.
  */
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getToken } from "next-auth/jwt";
 import { connectDB } from "@/lib/db";
 import Component from "@/models/Component";
@@ -76,7 +77,9 @@ function toPayload(defaultProps) {
 export async function GET() {
   try {
     await connectDB();
-    const doc = await Component.findOne({ baseComponent: "Footer" }).lean();
+    const doc = await Component.findOne({ baseComponent: "Footer" })
+      .sort({ updatedAt: -1 })
+      .lean();
     const payload = toPayload(doc?.defaultProps);
     return NextResponse.json(payload, {
       headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
@@ -97,7 +100,9 @@ export async function PUT(req) {
     const payload = body && typeof body === "object" ? body : {};
 
     await connectDB();
-    let doc = await Component.findOne({ baseComponent: "Footer" });
+    let doc = await Component.findOne({ baseComponent: "Footer" }).sort({
+      updatedAt: -1,
+    });
     if (!doc) {
       const defaultProps = normalizeFooterProps(payload);
       doc = await Component.create({
@@ -118,6 +123,7 @@ export async function PUT(req) {
       await doc.save();
     }
 
+    revalidatePath("/", "layout");
     const out = toPayload(doc.defaultProps);
     return NextResponse.json(out, {
       headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
