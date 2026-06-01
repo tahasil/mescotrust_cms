@@ -39,16 +39,23 @@ const nextConfig = {
     ];
   },
   async headers() {
+    const isDev = process.env.NODE_ENV !== "production";
     const longCache = "public, max-age=31536000, immutable";
+    // In `next dev`, /_next/static chunks are served under STABLE (non-hashed)
+    // names, so an immutable year-long cache makes the browser serve stale JS
+    // forever across edits and dev restarts (working pages look broken/empty).
+    // Only cache-forever in a production build, where chunk URLs are content-hashed.
+    const staticCache = isDev ? "no-cache" : longCache;
     // Admin CMS may replace uploaded files at the same /uploads path. Keep a
     // short fresh window (60s) so changes propagate without a rebuild, with a
     // long stale-while-revalidate window so most loads still hit cache.
     const uploadCache = "public, max-age=60, stale-while-revalidate=86400";
     return [
-      // Hashed Next.js static assets — safe to cache forever.
+      // Next.js static assets — content-hashed in production (cache forever),
+      // but revalidated in dev so edits are never masked by a stale cache.
       {
         source: "/_next/static/:path*",
-        headers: [{ key: "Cache-Control", value: longCache }],
+        headers: [{ key: "Cache-Control", value: staticCache }],
       },
       // User-uploaded media. Short fresh window so CMS edits show up quickly.
       {
@@ -58,12 +65,12 @@ const nextConfig = {
       // Static images shipped with the app build — content-addressed.
       {
         source: "/images/:path*",
-        headers: [{ key: "Cache-Control", value: longCache }],
+        headers: [{ key: "Cache-Control", value: staticCache }],
       },
       // App-shipped static JS (e.g. /js/* polyfills bundled in /public).
       {
         source: "/js/:path*",
-        headers: [{ key: "Cache-Control", value: longCache }],
+        headers: [{ key: "Cache-Control", value: staticCache }],
       },
       {
         source: "/:path*",
