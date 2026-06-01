@@ -12,7 +12,6 @@ import {
   Select,
   Spin,
   Switch,
-  Typography,
 } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
@@ -24,10 +23,13 @@ import {
 } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
-const { Text } = Typography;
-
 const API_PATH = "/api/theme/Cards1";
 const PREFIX = "cards1";
+const CARD_VARIANT_OPTIONS = [
+  { label: "Style 1", value: "style1" },
+  { label: "Style 2", value: "style2" },
+  { label: "Style 3", value: "style3" },
+];
 
 function cleanText(value) {
   return value != null ? String(value).trim() : "";
@@ -37,6 +39,31 @@ function clamp(value, min, max, fallback) {
   const n = Number(value);
   if (!Number.isFinite(n)) return fallback;
   return Math.max(min, Math.min(max, n));
+}
+
+function normalizeVariant(value) {
+  const normalized = cleanText(value).toLowerCase();
+  return CARD_VARIANT_OPTIONS.some((item) => item.value === normalized)
+    ? normalized
+    : "style1";
+}
+
+function normalizeHoverEnabledByVariant(mapLike, fallbackEnabled = true) {
+  const base =
+    mapLike && typeof mapLike === "object" && !Array.isArray(mapLike) ? mapLike : {};
+  const fallback = fallbackEnabled !== false;
+  const normalized = {};
+  CARD_VARIANT_OPTIONS.forEach(({ value }) => {
+    normalized[value] =
+      typeof base[value] === "boolean" ? base[value] : fallback;
+  });
+  return normalized;
+}
+
+function hoverEnabledForVariant(mapLike, variant) {
+  const normalizedVariant = normalizeVariant(variant);
+  const normalizedMap = normalizeHoverEnabledByVariant(mapLike, true);
+  return normalizedMap[normalizedVariant] !== false;
 }
 
 function normalizeItem(item, index) {
@@ -92,9 +119,17 @@ function toThemeColorOptions(theme) {
 
 function applyFormValues(form, data) {
   const cards = sortAndNormalizeItems(data?.cards1Items);
+  const variant = normalizeVariant(data?.cards1Variant);
+  const hoverEnabledByVariant = normalizeHoverEnabledByVariant(
+    data?.cards1HoverEnabledByVariant,
+    data?.cards1EnableHoverEffect,
+  );
   form.setFieldsValue({
     mainTitle: cleanText(data?.mainTitle),
     subTitle: cleanText(data?.subTitle),
+    cards1Variant: variant,
+    cards1EnableHoverEffect: hoverEnabledForVariant(hoverEnabledByVariant, variant),
+    cards1HoverEnabledByVariant: hoverEnabledByVariant,
     cards1TitleEnabled: data?.cards1TitleEnabled !== false,
     cards1SubTitleEnabled: data?.cards1SubTitleEnabled !== false,
     cards1SubTitleColorKey: cleanText(data?.cards1SubTitleColorKey),
@@ -163,6 +198,8 @@ function Cards1EditForm(
   const [reorderDirection, setReorderDirection] = useState("up");
   const themeFetchedForColorsRef = useRef(false);
   const isPageBlock = source === "page";
+  const selectedVariant = Form.useWatch("cards1Variant", form);
+  const hoverEnabledByVariant = Form.useWatch("cards1HoverEnabledByVariant", form);
 
   useEffect(() => {
     if (themeColorOptionsProp?.length > 0) {
@@ -206,6 +243,29 @@ function Cards1EditForm(
       .finally(() => setLoading(false));
   }, [form, isPageBlock, initialDataProp]);
 
+  useEffect(() => {
+    const variant = normalizeVariant(selectedVariant);
+    const rawMap = form.getFieldValue("cards1HoverEnabledByVariant");
+    const currentMap = normalizeHoverEnabledByVariant(
+      rawMap ?? hoverEnabledByVariant,
+      true,
+    );
+    const hasAllVariantKeys =
+      rawMap &&
+      typeof rawMap === "object" &&
+      !Array.isArray(rawMap) &&
+      CARD_VARIANT_OPTIONS.every(
+        ({ value }) => typeof rawMap[value] === "boolean",
+      );
+    if (!hasAllVariantKeys) {
+      form.setFieldValue("cards1HoverEnabledByVariant", currentMap);
+    }
+    const enabled = hoverEnabledForVariant(currentMap, variant);
+    if (form.getFieldValue("cards1EnableHoverEffect") !== enabled) {
+      form.setFieldValue("cards1EnableHoverEffect", enabled);
+    }
+  }, [selectedVariant, hoverEnabledByVariant, form]);
+
   const syncSortOrderFromCurrentList = () => {
     const current = form.getFieldValue("cards1Items");
     if (!Array.isArray(current)) return;
@@ -215,11 +275,32 @@ function Cards1EditForm(
     );
   };
 
+  const handleHoverEffectToggle = (checked) => {
+    const variant = normalizeVariant(form.getFieldValue("cards1Variant"));
+    const currentMap = normalizeHoverEnabledByVariant(
+      form.getFieldValue("cards1HoverEnabledByVariant"),
+      true,
+    );
+    form.setFieldsValue({
+      cards1EnableHoverEffect: checked !== false,
+      cards1HoverEnabledByVariant: {
+        ...currentMap,
+        [variant]: checked !== false,
+      },
+    });
+  };
+
   const handleUpdate = () => {
     form
       .validateFields()
       .then(() => {
         const values = form.getFieldsValue(true);
+        const variant = normalizeVariant(values.cards1Variant);
+        const hoverMap = normalizeHoverEnabledByVariant(
+          form.getFieldValue("cards1HoverEnabledByVariant"),
+          true,
+        );
+        hoverMap[variant] = values.cards1EnableHoverEffect !== false;
         const cardsRaw = Array.isArray(values.cards1Items) ? values.cards1Items : [];
         const cards = cardsRaw
           .map((item, index) => ({ ...normalizeItem(item, index), _sourceIndex: index }))
@@ -236,6 +317,9 @@ function Cards1EditForm(
           ...getManageSectionPayload(PREFIX, values),
           mainTitle: cleanText(values.mainTitle),
           subTitle: cleanText(values.subTitle),
+          cards1Variant: variant,
+          cards1EnableHoverEffect: values.cards1EnableHoverEffect !== false,
+          cards1HoverEnabledByVariant: hoverMap,
           cards1TitleEnabled: values.cards1TitleEnabled !== false,
           cards1SubTitleEnabled: values.cards1SubTitleEnabled !== false,
           cards1SubTitleColorKey: cleanText(values.cards1SubTitleColorKey),
@@ -379,9 +463,34 @@ function Cards1EditForm(
             label: "Manage Cards",
             children: (
               <>
-                <Text type="secondary" style={{ display: "block", marginBottom: 12 }}>
-                  Add, edit, hide, delete, and reorder cards. Display order follows sort order.
-                </Text>
+                <Form.Item
+                  noStyle
+                  shouldUpdate={(prev, curr) =>
+                    prev.cards1Variant !== curr.cards1Variant ||
+                    prev.cards1EnableHoverEffect !== curr.cards1EnableHoverEffect
+                  }
+                >
+                  {() => {
+                    const variant = normalizeVariant(form.getFieldValue("cards1Variant"));
+                    const variantLabel =
+                      CARD_VARIANT_OPTIONS.find((item) => item.value === variant)
+                        ?.label || "Style";
+                    return (
+                      <Form.Item
+                        name="cards1EnableHoverEffect"
+                        label={`Enable Hover Effect (${variantLabel})`}
+                        valuePropName="checked"
+                        style={{ marginBottom: 14 }}
+                      >
+                        <Switch
+                          checkedChildren="On"
+                          unCheckedChildren="Off"
+                          onChange={handleHoverEffectToggle}
+                        />
+                      </Form.Item>
+                    );
+                  }}
+                </Form.Item>
                 <Form.List name="cards1Items">
                   {(fields, { add, remove, move }) => (
                     <SortableFormList
@@ -564,6 +673,14 @@ function Cards1EditForm(
             label: "Card Layout & Responsive",
             children: (
               <Row gutter={[16, 16]}>
+                <Col span={24}>
+                  <Form.Item
+                    name="cards1Variant"
+                    label="Card style / variant"
+                  >
+                    <Select options={CARD_VARIANT_OPTIONS} />
+                  </Form.Item>
+                </Col>
                 <Col xs={24} sm={12} md={8}>
                   <Form.Item name="cards1ColumnsDesktop" label="Desktop columns">
                     <InputNumber min={1} max={6} style={{ width: "100%" }} />
@@ -718,4 +835,3 @@ function Cards1EditForm(
 }
 
 export default forwardRef(Cards1EditForm);
-
