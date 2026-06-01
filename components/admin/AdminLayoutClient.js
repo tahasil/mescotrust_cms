@@ -37,6 +37,7 @@ import {
   MessageOutlined,
   DollarOutlined,
   CloseOutlined,
+  SafetyCertificateOutlined,
 } from "@ant-design/icons";
 import { signOut } from "next-auth/react";
 import { canAccessMenu, hasPermission } from "@/lib/rbac/clientPermissions";
@@ -413,6 +414,15 @@ const baseMenuItems = [
     label: (
       <Link href="/admin/users" style={linkStyle}>
         Users
+      </Link>
+    ),
+  },
+  {
+    key: "/admin/rbac/roles",
+    icon: <SafetyCertificateOutlined />,
+    label: (
+      <Link href="/admin/rbac/roles" style={linkStyle}>
+        Roles &amp; Permissions
       </Link>
     ),
   },
