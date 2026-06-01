@@ -73,7 +73,7 @@ export default function AdminSlidersPage() {
       width: 120,
       render: (_, record) => (
         <Link
-          href={`/admin/components/${encodeURIComponent(record.componentId)}/edit`}
+          href={`/admin/sliders/edit-${encodeURIComponent(record.componentId)}`}
         >
           <Button type="link" size="small" icon={<EditOutlined />}>
             Edit
