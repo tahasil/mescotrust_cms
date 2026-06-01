@@ -253,6 +253,14 @@ const baseMenuItems = [
         ),
       },
       {
+        key: "/admin/volunteers-feedback",
+        label: (
+          <Link href="/admin/volunteers-feedback" style={linkStyle}>
+            Volunteers Feedback
+          </Link>
+        ),
+      },
+      {
         key: "/admin/contacts",
         label: (
           <Link href="/admin/contacts" style={linkStyle}>

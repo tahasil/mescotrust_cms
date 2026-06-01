@@ -75,6 +75,7 @@ Models in `models/`:
 - `Donation`
 - `Event`
 - `EventRegistration`
+- `VolunteersFeedbackSubmission`
 
 For field-level schema details, use `docs/TECHNICAL_DESIGN.md`.
 
@@ -92,7 +93,7 @@ Key public groups:
 
 Key admin groups:
 - Pages, blogs, categories, comments, components, site-components, menus
-- Media, contacts, users, subscribers, donations, events, event-registrations, fonts
+- Media, contacts, users, subscribers, donations, events, event-registrations, volunteers-feedback, fonts
 
 Use `docs/API.md` for endpoint behavior and request/response contracts.
 

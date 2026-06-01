@@ -1,3 +1,5 @@
+import { formatDateTime } from "@/lib/formatDate";
+
 export const PAGE_SIZE = 24;
 
 export const GENERATED_SIZE_ORDER = [
@@ -22,10 +24,7 @@ export function formatBytes(bytes) {
 }
 
 export function formatDate(dateValue) {
-  if (!dateValue) return "-";
-  const date = new Date(dateValue);
-  if (Number.isNaN(date.getTime())) return "-";
-  return date.toLocaleString();
+  return formatDateTime(dateValue);
 }
 
 export function monthLabel(monthValue) {

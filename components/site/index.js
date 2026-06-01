@@ -104,6 +104,7 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   HomeHero: HomeHeroEditForm,
   Marquee: MarqueeEditForm,
   Subscribe: SubscribeEditForm,
+  VolunteersFeedback: VolunteersFeedbackEditForm,
   Internshiplifecycle: InternshiplifecycleEditForm,
   SectionIntro: SectionIntroEditForm,
   Volunteer: VolunteerEditForm,

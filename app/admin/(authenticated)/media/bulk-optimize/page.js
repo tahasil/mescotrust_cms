@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button, message, Progress, Space, Table, Tag, Typography } from "antd";
 import { ThemeAdminCard } from "@/styles/Theme";
+import { formatDateTime } from "@/lib/formatDate";
 
 const JOB_LABELS = {
   bulk_optimize: "Bulk Optimize",
@@ -171,7 +172,7 @@ export default function AdminMediaBulkOptimizePage() {
           {
             title: "Created",
             dataIndex: "createdAt",
-            render: (v) => (v ? new Date(v).toLocaleString() : "-"),
+            render: (v) => formatDateTime(v),
           },
         ]}
       />
