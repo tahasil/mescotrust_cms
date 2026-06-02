@@ -34,6 +34,7 @@ export const THEME_COLOR_ALIASES = {
 
 const Theme = {
   colors: {
+    heading: "var(--theme-heading, rgb(0,153,0))",
   },
   fonts: {
     sans: "'Inter', sans-serif",
