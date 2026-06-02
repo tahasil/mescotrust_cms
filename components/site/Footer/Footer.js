@@ -39,6 +39,15 @@ function withDynamicCopyrightYear(text, year) {
   const raw = String(text || "").trim();
   if (!raw) return `Copyright © ${year} All Rights Reserved.`;
 
+  // Substitute explicit year placeholder tokens first: {{year}}, {{ year }},
+  // {year}, [year], %year%, $year (case-insensitive). This is the canonical way
+  // an admin writes a self-updating copyright line.
+  const tokenReplaced = raw.replace(
+    /\{\{\s*year\s*\}\}|\{\s*year\s*\}|\[\s*year\s*\]|%\s*year\s*%|\$year\b/gi,
+    String(year),
+  );
+  if (tokenReplaced !== raw) return tokenReplaced;
+
   // Prefer replacing the year directly after Copyright/© to preserve existing format.
   const copyScoped = raw.replace(
     /((?:copyright\s*©?|©)\s*)(\d{4})(?!\d)/i,

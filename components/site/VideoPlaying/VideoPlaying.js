@@ -159,7 +159,7 @@ export default function VideoPlaying(props) {
       <PageContainer style={pageContainerBgStyle}>
         <Row gutter={[16, 16]}>
           <Col
-            span={{ span: 24, offset: 0 }}
+            span={24}
             sm={{ span: 24, offset: 0 }}
             md={{ span: 20, offset: 2 }}
             lg={{ span: 20, offset: 2 }}
