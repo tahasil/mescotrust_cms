@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Row, Col } from "antd";
 import styled from "styled-components";
 import {
@@ -12,38 +12,101 @@ import {
   ThemeModal,
 } from "@/styles/Theme";
 
-/* ── Platform config ── */
-const PLATFORM_LABELS = {
-  instagram: "Instagram",
-  facebook: "Facebook",
-  linkedin: "LinkedIn",
-  youtube: "YouTube",
-  whatsapp: "WhatsApp",
-  twitter: "X (Twitter)",
-  googlemaps: "Google Maps",
+const DEFAULT_POST_LIMIT = 20;
+const DEFAULT_CARD_GAP = 16;
+const DEFAULT_REFRESH_INTERVAL_SECONDS = 180;
+const DEFAULT_EMPTY_MESSAGE =
+  "No social posts available right now. Please check back shortly.";
+
+const PLATFORM_META = {
+  instagram: { label: "Instagram", color: "#E4405F" },
+  facebook: { label: "Facebook", color: "#1877F2" },
+  linkedin: { label: "LinkedIn", color: "#0A66C2" },
+  youtube: { label: "YouTube", color: "#FF0000" },
+  whatsapp: { label: "WhatsApp", color: "#25D366" },
+  twitter: { label: "X (Twitter)", color: "#000000" },
+  googlemaps: { label: "Google Maps", color: "#4285F4" },
+  other: { label: "Other", color: "#5E6470" },
 };
 
-const PLATFORM_COLORS = {
-  instagram: "#E4405F",
-  facebook: "#1877F2",
-  linkedin: "#0A66C2",
-  youtube: "#FF0000",
-  whatsapp: "#25D366",
-  twitter: "#000000",
-  googlemaps: "#4285F4",
-};
+function safeString(value) {
+  return value == null ? "" : String(value).trim();
+}
 
-const MAX_POSTS = 20;
+function toPositiveInt(value, fallback) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return fallback;
+  const rounded = Math.floor(num);
+  return rounded > 0 ? rounded : fallback;
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function normalizeVisibility(value) {
+  const normalized = safeString(value).toLowerCase();
+  if (["all", "desktop", "mobile", "none"].includes(normalized)) {
+    return normalized;
+  }
+  return "all";
+}
+
+function normalizeFeedMode(value) {
+  const normalized = safeString(value).toLowerCase();
+  if (["live", "manual", "both"].includes(normalized)) return normalized;
+  return "both";
+}
+
+function toIsoDate(value) {
+  const raw = safeString(value);
+  if (!raw) return "";
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toISOString();
+}
+
+function formatDisplayDate(value) {
+  const iso = toIsoDate(value);
+  if (!iso) return "";
+  try {
+    return new Date(iso).toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return "";
+  }
+}
+
+function hashString(value) {
+  const input = safeString(value);
+  if (!input) return "x";
+  let hash = 0;
+  for (let i = 0; i < input.length; i += 1) {
+    hash = (hash << 5) - hash + input.charCodeAt(i);
+    hash |= 0;
+  }
+  return String(Math.abs(hash));
+}
+
+function isDirectVideoUrl(url) {
+  const value = safeString(url).toLowerCase();
+  if (!value) return false;
+  return (
+    value.endsWith(".mp4") ||
+    value.includes(".mp4?") ||
+    value.endsWith(".webm") ||
+    value.includes(".webm?") ||
+    value.endsWith(".ogg") ||
+    value.includes(".ogg?")
+  );
+}
 
 function getPostImageSources(post) {
-  const desktop =
-    post?.imageDesktop != null
-      ? String(post.imageDesktop).trim()
-      : post?.image != null
-        ? String(post.image).trim()
-        : "";
-  const mobile =
-    post?.imageMobile != null ? String(post.imageMobile).trim() : "";
+  const desktop = safeString(post?.imageDesktop || post?.image || post?.thumbnailDesktop);
+  const mobile = safeString(post?.imageMobile || post?.thumbnailMobile);
   return {
     desktop,
     mobile,
@@ -51,14 +114,97 @@ function getPostImageSources(post) {
   };
 }
 
-/* ── Platform SVG Icons ── */
-function PlatformIcon({ platform, size = 24, color }) {
-  const fill = color || PLATFORM_COLORS[platform] || "#666";
-  const s = Number(size) || 24;
+function normalizePlatformConfig(item, index = 0) {
+  const platform = safeString(item?.platform || "instagram").toLowerCase();
+  return {
+    platform,
+    label: PLATFORM_META[platform]?.label || "Other",
+    color: PLATFORM_META[platform]?.color || PLATFORM_META.other.color,
+    profileUrl: safeString(item?.profileUrl),
+    handle: safeString(item?.handle),
+    accountId: safeString(item?.accountId),
+    active: item?.active !== false,
+    feedMode: normalizeFeedMode(item?.feedMode || "both"),
+    visibility: normalizeVisibility(item?.visibility || "all"),
+    postLimit: clamp(toPositiveInt(item?.postLimit, DEFAULT_POST_LIMIT), 1, 60),
+    order: toPositiveInt(item?.order, index + 1),
+  };
+}
+
+function normalizePost(post, { fallbackSource = "manual", platformConfigMap } = {}) {
+  const platform = safeString(post?.platform || "other").toLowerCase();
+  const config = platformConfigMap?.get(platform);
+  const platformMeta = PLATFORM_META[platform] || PLATFORM_META.other;
+  const imageSources = getPostImageSources(post);
+  const publishedAt = toIsoDate(post?.publishedAt || post?.date);
+  const mediaTypeInput = safeString(post?.mediaType).toLowerCase();
+  const videoUrl = safeString(post?.videoUrl);
+  const hasVideo = !!videoUrl;
+  const hasImage = !!imageSources.image;
+  const mediaType =
+    mediaTypeInput && ["auto", "image", "video", "text"].includes(mediaTypeInput)
+      ? mediaTypeInput === "auto"
+        ? hasVideo
+          ? "video"
+          : hasImage
+            ? "image"
+            : "text"
+        : mediaTypeInput
+      : hasVideo
+        ? "video"
+        : hasImage
+          ? "image"
+          : "text";
+
+  const caption = safeString(post?.caption || post?.text);
+  const handle = safeString(post?.handle || config?.handle);
+  const username = safeString(post?.username || config?.label || handle || platformMeta.label);
+  const postUrl = safeString(post?.postUrl || config?.profileUrl);
+  const visibility = normalizeVisibility(post?.visibility || config?.visibility);
+
+  return {
+    id:
+      safeString(post?.id) ||
+      `${platform}-${hashString(`${postUrl}-${caption}-${publishedAt}-${username}`)}`,
+    platform,
+    platformLabel: safeString(post?.platformLabel || config?.label || platformMeta.label),
+    platformColor: config?.color || platformMeta.color,
+    source: safeString(post?.source || fallbackSource) || fallbackSource,
+    username,
+    handle: handle && !handle.startsWith("@") ? `@${handle}` : handle,
+    caption,
+    text: safeString(post?.text || post?.caption),
+    date: safeString(post?.date || formatDisplayDate(publishedAt)),
+    publishedAt,
+    postUrl,
+    imageDesktop: imageSources.desktop,
+    imageMobile: imageSources.mobile,
+    image: imageSources.image,
+    thumbnailDesktop: safeString(post?.thumbnailDesktop || imageSources.desktop),
+    thumbnailMobile: safeString(post?.thumbnailMobile || imageSources.mobile),
+    videoUrl,
+    mediaType,
+    visibility,
+    active: post?.enabled !== false,
+  };
+}
+
+function compareByDateDesc(first, second) {
+  const firstTime = first?.publishedAt ? Date.parse(first.publishedAt) : 0;
+  const secondTime = second?.publishedAt ? Date.parse(second.publishedAt) : 0;
+  if (Number.isFinite(firstTime) && Number.isFinite(secondTime) && firstTime !== secondTime) {
+    return secondTime - firstTime;
+  }
+  return 0;
+}
+
+function PlatformIcon({ platform, size = 20, color }) {
+  const fill = color || PLATFORM_META[platform]?.color || "#666";
+  const iconSize = Number(size) || 20;
   switch (platform) {
     case "instagram":
       return (
-        <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+        <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none">
           <rect x="2" y="2" width="20" height="20" rx="5" stroke={fill} strokeWidth="2" />
           <circle cx="12" cy="12" r="5" stroke={fill} strokeWidth="2" />
           <circle cx="17.5" cy="6.5" r="1.5" fill={fill} />
@@ -66,208 +212,341 @@ function PlatformIcon({ platform, size = 24, color }) {
       );
     case "facebook":
       return (
-        <svg width={s} height={s} viewBox="0 0 24 24" fill={fill}>
+        <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill={fill}>
           <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
         </svg>
       );
     case "linkedin":
       return (
-        <svg width={s} height={s} viewBox="0 0 24 24" fill={fill}>
+        <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill={fill}>
           <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
         </svg>
       );
     case "youtube":
       return (
-        <svg width={s} height={s} viewBox="0 0 24 24" fill={fill}>
+        <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill={fill}>
           <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
         </svg>
       );
     case "twitter":
       return (
-        <svg width={s} height={s} viewBox="0 0 24 24" fill={fill}>
+        <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill={fill}>
           <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+        </svg>
+      );
+    case "whatsapp":
+      return (
+        <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill={fill}>
+          <path d="M20.52 3.48A11.82 11.82 0 0012.13 0C5.56 0 .2 5.36.2 11.94c0 2.1.55 4.16 1.6 5.97L0 24l6.28-1.64a11.88 11.88 0 005.85 1.5h.01c6.57 0 11.93-5.36 11.93-11.94 0-3.18-1.24-6.17-3.56-8.44zm-8.39 18.35h-.01a9.9 9.9 0 01-5.04-1.38l-.36-.21-3.73.98.99-3.64-.24-.38a9.88 9.88 0 01-1.52-5.24c0-5.45 4.45-9.9 9.93-9.9 2.65 0 5.14 1.03 7.01 2.9a9.86 9.86 0 012.91 7.03c0 5.46-4.45 9.9-9.94 9.9zm5.44-7.42c-.3-.15-1.78-.88-2.06-.98-.27-.1-.47-.15-.67.15-.2.3-.77.98-.94 1.18-.17.2-.35.23-.65.08-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.48-1.75-1.66-2.05-.17-.3-.02-.46.13-.61.14-.14.3-.35.45-.53.15-.18.2-.3.3-.5.1-.2.05-.38-.02-.53-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.53.08-.8.38-.27.3-1.04 1.01-1.04 2.46 0 1.45 1.07 2.86 1.22 3.06.15.2 2.1 3.22 5.09 4.52.71.31 1.26.5 1.69.64.71.23 1.36.2 1.87.12.57-.08 1.78-.73 2.03-1.43.25-.71.25-1.31.17-1.43-.08-.13-.28-.2-.58-.35z" />
+        </svg>
+      );
+    case "googlemaps":
+      return (
+        <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill={fill}>
+          <path d="M12 2C8.14 2 5 5.06 5 8.83c0 4.8 5.66 11.84 6.01 12.27a1.3 1.3 0 001.98 0C13.34 20.67 19 13.63 19 8.83 19 5.06 15.86 2 12 2zm0 9.5a2.67 2.67 0 110-5.33 2.67 2.67 0 010 5.33z" />
         </svg>
       );
     default:
       return (
-        <svg width={s} height={s} viewBox="0 0 24 24" fill={fill}>
+        <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill={fill}>
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
         </svg>
       );
   }
 }
 
-/* ── Styled Components ── */
+const PostsLayout = styled.div`
+  --social-wall-gap: ${(props) => props.$gap}px;
+  --social-wall-cols-desktop: ${(props) => props.$colsDesktop};
+  --social-wall-cols-laptop: ${(props) => props.$colsLaptop};
+  --social-wall-cols-tablet: ${(props) => props.$colsTablet};
+  --social-wall-cols-mobile: ${(props) => props.$colsMobile};
 
-/* Masonry grid using CSS columns */
-const MasonryGrid = styled.div`
-  column-count: 5;
-  column-gap: 16px;
-  @media (max-width: 1200px) {
-    column-count: 4;
+  ${(props) =>
+    props.$layout === "grid"
+      ? `
+    display: grid;
+    grid-template-columns: repeat(var(--social-wall-cols-desktop), minmax(0, 1fr));
+    gap: var(--social-wall-gap);
+    @media (max-width: 1199px) {
+      grid-template-columns: repeat(var(--social-wall-cols-laptop), minmax(0, 1fr));
+    }
+    @media (max-width: 991px) {
+      grid-template-columns: repeat(var(--social-wall-cols-tablet), minmax(0, 1fr));
+    }
+    @media (max-width: 767px) {
+      grid-template-columns: repeat(var(--social-wall-cols-mobile), minmax(0, 1fr));
+    }
+  `
+      : `
+    column-count: var(--social-wall-cols-desktop);
+    column-gap: var(--social-wall-gap);
+    @media (max-width: 1199px) {
+      column-count: var(--social-wall-cols-laptop);
+    }
+    @media (max-width: 991px) {
+      column-count: var(--social-wall-cols-tablet);
+    }
+    @media (max-width: 767px) {
+      column-count: var(--social-wall-cols-mobile);
+    }
+  `}
+`;
+
+const CarouselTrack = styled.div`
+  --social-wall-gap: ${(props) => props.$gap}px;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(260px, 340px);
+  gap: var(--social-wall-gap);
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 2px 8px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+
+  & > * {
+    scroll-snap-align: start;
   }
-  @media (max-width: 992px) {
-    column-count: 3;
-  }
-  @media (max-width: 768px) {
-    column-count: 2;
-  }
-  @media (max-width: 480px) {
-    column-count: 1;
+
+  @media (max-width: 767px) {
+    grid-auto-columns: minmax(84%, 84%);
   }
 `;
 
-const PostCard = styled.div`
+const PostCard = styled.article`
+  position: relative;
   break-inside: avoid;
-  margin-bottom: 16px;
-  border-radius: 12px;
+  width: 100%;
+  margin-bottom: ${(props) => (props.$layout === "masonry" ? `${props.$gap}px` : 0)};
+  border-radius: 14px;
   overflow: hidden;
   background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  &:hover {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    transform: translateY(-2px);
+  border: 1px solid rgba(16, 24, 40, 0.1);
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+  transition:
+    transform 0.28s ease,
+    box-shadow 0.28s ease;
+
+  &[data-clickable="true"] {
+    cursor: pointer;
+  }
+
+  &[data-clickable="true"]:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(16, 24, 40, 0.14);
+  }
+
+  &[data-visibility="none"] {
+    display: none;
+  }
+
+  &[data-visibility="desktop"] {
+    @media (max-width: 767px) {
+      display: none;
+    }
+  }
+
+  &[data-visibility="mobile"] {
+    display: none;
+    @media (max-width: 767px) {
+      display: block;
+    }
   }
 `;
 
-const PostImage = styled.div`
+const MediaArea = styled.div`
+  position: relative;
   width: 100%;
-  overflow: hidden;
-  img {
+  background: linear-gradient(135deg, #f6f8ff 0%, #eef2ff 100%);
+  min-height: 140px;
+
+  img,
+  video {
     width: 100%;
     height: auto;
     display: block;
-    transition: transform 0.4s ease;
-  }
-  ${PostCard}:hover & img {
-    transform: scale(1.03);
   }
 `;
 
-const PostBody = styled.div`
-  padding: 14px;
-  text-align: center;
-`;
-
-const PlatformIconWrap = styled.div`
-  display: flex;
-  justify-content: center;
-  margin-bottom: 6px;
-`;
-
-const PostUsername = styled.div`
-  font-size: 14px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.85);
-  margin-bottom: 8px;
-`;
-
-const PostCaption = styled.p`
-  font-size: 13px;
-  line-height: 1.6;
-  color: rgba(0, 0, 0, 0.65);
-  margin: 0 0 12px 0;
-  text-align: left;
-  word-break: break-word;
-`;
-
-const PostFooter = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
-`;
-
-const PlatformBadge = styled.div`
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
+const VideoOverlay = styled.div`
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: ${(props) => props.$bgColor || "#f5f5f5"};
-  flex-shrink: 0;
-`;
-
-const FooterMeta = styled.div`
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  .footer-name {
-    font-size: 12px;
-    font-weight: 500;
-    color: rgba(0, 0, 0, 0.65);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .footer-sep {
-    color: rgba(0, 0, 0, 0.25);
-    font-size: 10px;
-  }
-  .footer-date {
-    font-size: 11px;
-    color: rgba(0, 0, 0, 0.4);
-    white-space: nowrap;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.2), transparent 45%);
+  svg {
+    width: 46px;
+    height: 46px;
+    opacity: 0.92;
   }
 `;
 
 const LiveBadge = styled.span`
   position: absolute;
-  top: 8px;
-  right: 8px;
-  padding: 2px 8px;
-  border-radius: 4px;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  padding: 3px 8px;
+  border-radius: 999px;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.5px;
-  background: #ff4d4f;
   color: #fff;
-  z-index: 1;
+  background: #e02424;
 `;
 
-/* Modal styles */
+const PostBody = styled.div`
+  padding: 14px 14px 12px;
+`;
+
+const PostHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+`;
+
+const PlatformBadge = styled.div`
+  flex-shrink: 0;
+  width: ${(props) => props.$size || 30}px;
+  height: ${(props) => props.$size || 30}px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: ${(props) => (props.$bg ? `${props.$bg}1A` : "rgba(0,0,0,0.08)")};
+`;
+
+const HeaderMeta = styled.div`
+  min-width: 0;
+  flex: 1;
+  .source {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(16, 24, 40, 0.9);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .handle {
+    font-size: 12px;
+    color: rgba(16, 24, 40, 0.56);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+`;
+
+const PlatformTag = styled.span`
+  flex-shrink: 0;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: ${(props) => props.$color || "#5E6470"};
+  background: ${(props) => (props.$color ? `${props.$color}1A` : "rgba(0,0,0,0.06)")};
+`;
+
+const PostCaption = styled.p`
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(16, 24, 40, 0.72);
+  word-break: break-word;
+  white-space: pre-wrap;
+`;
+
+const Footer = styled.div`
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(16, 24, 40, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+`;
+
+const FooterDate = styled.span`
+  font-size: 12px;
+  color: rgba(16, 24, 40, 0.55);
+`;
+
+const FooterLiveType = styled.span`
+  font-size: 11px;
+  color: rgba(16, 24, 40, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+`;
+
+const EmptyState = styled.div`
+  border-radius: 14px;
+  padding: 28px 20px;
+  text-align: center;
+  border: 1px dashed rgba(16, 24, 40, 0.2);
+  color: rgba(16, 24, 40, 0.68);
+  background: rgba(255, 255, 255, 0.6);
+`;
+
+const SkeletonCard = styled.div`
+  break-inside: avoid;
+  margin-bottom: ${(props) => props.$gap}px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(16, 24, 40, 0.1);
+  .block {
+    background: linear-gradient(90deg, #f2f4f7, #eceff3, #f2f4f7);
+    background-size: 220% 100%;
+    animation: pulse 1.2s linear infinite;
+  }
+  .media {
+    height: 160px;
+  }
+  .line {
+    height: 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
+  .line:last-child {
+    margin-bottom: 0;
+  }
+  .body {
+    padding: 14px;
+  }
+  @keyframes pulse {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -20% 0;
+    }
+  }
+`;
+
 const ModalScrollBody = styled(ThemeModal)`
   .ant-modal-body {
-    max-height: 80vh;
+    max-height: 82vh;
     overflow-y: auto;
     overscroll-behavior: contain;
     padding: 0;
-    &::-webkit-scrollbar {
-      width: 3px;
-    }
-    &::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    &::-webkit-scrollbar-thumb {
-      background: rgba(0, 0, 0, 0.15);
-      border-radius: 10px;
-    }
   }
   .ant-modal-close {
-    background: #dbdbdb !important;
-    top: 6px !important;
-    right: 6px !important;
-    border-radius: 50% !important;
-    z-index: 99 !important;
-    svg {
-      font-size: 14px !important;
-      color: rgba(0, 0, 0, 0.85) !important;
-      opacity: 0.7 !important;
-    }
+    background: #d6d9dd !important;
+    top: 8px !important;
+    right: 8px !important;
+    border-radius: 999px !important;
   }
 `;
 
-const ModalImage = styled.div`
+const ModalMedia = styled.div`
   width: 100%;
-  overflow: hidden;
-  background: #f0f0f0;
-  img {
+  background: #f0f2f5;
+  img,
+  video {
     width: 100%;
     height: auto;
     display: block;
@@ -275,162 +554,555 @@ const ModalImage = styled.div`
 `;
 
 const ModalContent = styled.div`
-  padding: 24px;
+  padding: 20px 20px 24px;
 `;
 
 const ModalHeader = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 `;
 
 const ModalMeta = styled.div`
   flex: 1;
-  .modal-username {
+  min-width: 0;
+  .title {
     font-size: 15px;
     font-weight: 600;
-    color: rgba(0, 0, 0, 0.85);
+    color: rgba(16, 24, 40, 0.9);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
-  .modal-date {
+  .subtitle {
     font-size: 12px;
-    color: rgba(0, 0, 0, 0.45);
+    color: rgba(16, 24, 40, 0.58);
   }
 `;
 
-const ModalPlatformTag = styled.span`
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 500;
-  color: ${(props) => props.$color || "#666"};
-  background: ${(props) => (props.$color ? `${props.$color}14` : "#f5f5f5")};
-`;
-
-const ModalCaption = styled.p`
+const ModalText = styled.p`
+  margin: 0 0 18px;
   font-size: 14px;
   line-height: 1.7;
-  color: rgba(0, 0, 0, 0.75);
+  color: rgba(16, 24, 40, 0.75);
   white-space: pre-wrap;
   word-break: break-word;
-  margin: 0 0 20px 0;
 `;
 
 const ViewOriginalBtn = styled.a`
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 24px;
-  font-size: 14px;
-  font-weight: 500;
-  border-radius: 30px;
-  border: 2px solid var(--primary-color, #1677ff);
-  background: var(--primary-color, #1677ff);
-  color: #fff;
+  padding: 9px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
   text-decoration: none;
-  transition: all 0.25s ease;
+  color: #fff;
+  border: 1px solid ${(props) => props.$color || "var(--primary-color, #1677ff)"};
+  background: ${(props) => props.$color || "var(--primary-color, #1677ff)"};
+  transition: all 0.22s ease;
   &:hover {
+    color: ${(props) => props.$color || "var(--primary-color, #1677ff)"};
     background: #fff;
-    color: var(--primary-color, #1677ff);
   }
 `;
 
-/**
- * Site component: SocialMediaWall.
- * Masonry card-based social media post feed with click-to-modal.
- */
 export default function SocialMediaWall(props) {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
   const [livePosts, setLivePosts] = useState([]);
+  const [loadingLive, setLoadingLive] = useState(false);
 
-  /* ── Fetch live posts on mount ── */
-  useEffect(() => {
-    fetch("/api/public/social-wall")
-      .then((res) => (res.ok ? res.json() : { livePosts: [] }))
-      .then((data) => {
-        if (Array.isArray(data.livePosts)) setLivePosts(data.livePosts);
-      })
-      .catch(() => {});
-  }, []);
+  const componentEnabled = props?.socialMediaWallEnabled !== false;
+  if (!componentEnabled) return null;
 
-  /* ── Title fields ── */
-  const mainTitle = (props?.mainTitle ?? "Social Media Wall").toString().trim();
-  const subTitle = (props?.subTitle ?? "").toString().trim();
   const titleEnabled = props?.socialMediaWallTitleEnabled !== false;
   const subTitleEnabled = props?.socialMediaWallSubTitleEnabled !== false;
-  const titleColorKey = (props?.titleColorKey ?? "").toString().trim();
+  const mainTitle = safeString(props?.mainTitle || "Social Media Wall");
+  const subTitle = safeString(props?.subTitle);
+  const titleColorKey = safeString(props?.titleColorKey);
+  const subTitleColorKey = safeString(props?.socialMediaWallSubTitleColorKey);
   const titleColor = titleColorKey ? getColor(titleColorKey) : getColor("primary");
-  const subTitleColorKey = (props?.socialMediaWallSubTitleColorKey ?? "").toString().trim();
   const subTitleColor = subTitleColorKey ? getColor(subTitleColorKey) : undefined;
 
-  /* ── Merge manual + live posts ── */
-  const manualPosts = Array.isArray(props?.socialMediaWallPosts) ? props.socialMediaWallPosts : [];
-  const enabledManual = manualPosts
-    .filter((p) => p?.enabled !== false)
-    .map((p) => ({ ...p, ...getPostImageSources(p), source: "manual" }));
-  const allPosts = [...enabledManual, ...livePosts].slice(0, MAX_POSTS);
-
-  /* ── Section bg ── */
-  const sectionBgType = (props?.socialMediaWallSectionBgType ?? "default").toString();
-  const sectionBgImage = (props?.socialMediaWallSectionBgImage ?? "").toString().trim();
-  const sectionBgColorKey = (props?.socialMediaWallSectionBgColorKey ?? "").toString().trim();
+  const sectionBgType = safeString(props?.socialMediaWallSectionBgType || "default");
+  const sectionBgImage = safeString(props?.socialMediaWallSectionBgImage);
+  const sectionBgColorKey = safeString(props?.socialMediaWallSectionBgColorKey);
   const sectionBgClassName = sectionBgType === "default" ? "defaultBackground" : undefined;
   const sectionBgStyleBase =
     sectionBgType === "image" && sectionBgImage
-      ? { backgroundImage: `url(${sectionBgImage})`, backgroundSize: "cover", backgroundPosition: "center center", backgroundRepeat: "no-repeat" }
+      ? {
+          backgroundImage: `url(${sectionBgImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center center",
+          backgroundRepeat: "no-repeat",
+        }
       : sectionBgType === "color" && sectionBgColorKey
         ? { backgroundColor: getColor(sectionBgColorKey), backgroundImage: "none" }
         : undefined;
-  const sectionPaddingTop = props?.socialMediaWallSectionPaddingTop != null ? Number(props.socialMediaWallSectionPaddingTop) : null;
-  const sectionPaddingBottom = props?.socialMediaWallSectionPaddingBottom != null ? Number(props.socialMediaWallSectionPaddingBottom) : null;
-  const sectionMarginTop = props?.socialMediaWallSectionMarginTop != null ? Number(props.socialMediaWallSectionMarginTop) : null;
-  const sectionMarginBottom = props?.socialMediaWallSectionMarginBottom != null ? Number(props.socialMediaWallSectionMarginBottom) : null;
+  const sectionPaddingTop =
+    props?.socialMediaWallSectionPaddingTop != null
+      ? Number(props.socialMediaWallSectionPaddingTop)
+      : null;
+  const sectionPaddingBottom =
+    props?.socialMediaWallSectionPaddingBottom != null
+      ? Number(props.socialMediaWallSectionPaddingBottom)
+      : null;
+  const sectionMarginTop =
+    props?.socialMediaWallSectionMarginTop != null
+      ? Number(props.socialMediaWallSectionMarginTop)
+      : null;
+  const sectionMarginBottom =
+    props?.socialMediaWallSectionMarginBottom != null
+      ? Number(props.socialMediaWallSectionMarginBottom)
+      : null;
   const sectionBgStyle =
-    sectionBgStyleBase || sectionPaddingTop != null || sectionPaddingBottom != null || sectionMarginTop != null || sectionMarginBottom != null
+    sectionBgStyleBase ||
+    sectionPaddingTop != null ||
+    sectionPaddingBottom != null ||
+    sectionMarginTop != null ||
+    sectionMarginBottom != null
       ? {
           ...(sectionBgStyleBase || {}),
-          ...(sectionPaddingTop != null && sectionPaddingTop >= 0 ? { paddingTop: `${sectionPaddingTop}px` } : {}),
-          ...(sectionPaddingBottom != null && sectionPaddingBottom >= 0 ? { paddingBottom: `${sectionPaddingBottom}px` } : {}),
-          ...(sectionMarginTop != null && sectionMarginTop >= 0 ? { marginTop: `${sectionMarginTop}px` } : {}),
-          ...(sectionMarginBottom != null && sectionMarginBottom >= 0 ? { marginBottom: `${sectionMarginBottom}px` } : {}),
+          ...(sectionPaddingTop != null && sectionPaddingTop >= 0
+            ? { paddingTop: `${sectionPaddingTop}px` }
+            : {}),
+          ...(sectionPaddingBottom != null && sectionPaddingBottom >= 0
+            ? { paddingBottom: `${sectionPaddingBottom}px` }
+            : {}),
+          ...(sectionMarginTop != null && sectionMarginTop >= 0
+            ? { marginTop: `${sectionMarginTop}px` }
+            : {}),
+          ...(sectionMarginBottom != null && sectionMarginBottom >= 0
+            ? { marginBottom: `${sectionMarginBottom}px` }
+            : {}),
         }
       : undefined;
 
-  /* ── Page container bg ── */
-  const pageContainerBgType = (props?.socialMediaWallPageContainerBgType ?? "default").toString();
-  const pageContainerBgImage = (props?.socialMediaWallPageContainerBgImage ?? "").toString().trim();
-  const pageContainerBgColorKey = (props?.socialMediaWallPageContainerBgColorKey ?? "").toString().trim();
+  const simpleSectionBgColorKey = safeString(props?.socialMediaWallSectionBgColorKey);
+  const simpleSectionSpacingRaw = Number(props?.socialMediaWallSectionSpacing);
+  const simpleSectionSpacing =
+    Number.isFinite(simpleSectionSpacingRaw) && simpleSectionSpacingRaw >= 0
+      ? Math.min(240, Math.floor(simpleSectionSpacingRaw))
+      : null;
+  const sectionBgStyleFinal = {
+    ...(sectionBgStyle || {}),
+    ...(simpleSectionBgColorKey
+      ? { backgroundColor: getColor(simpleSectionBgColorKey), backgroundImage: "none" }
+      : {}),
+    ...(simpleSectionSpacing != null
+      ? {
+          paddingTop: `${simpleSectionSpacing}px`,
+          paddingBottom: `${simpleSectionSpacing}px`,
+        }
+      : {}),
+  };
+  const sectionClassNameFinal =
+    simpleSectionBgColorKey || simpleSectionSpacing != null ? undefined : sectionBgClassName;
+
+  const pageContainerBgType = safeString(
+    props?.socialMediaWallPageContainerBgType || "default",
+  );
+  const pageContainerBgImage = safeString(props?.socialMediaWallPageContainerBgImage);
+  const pageContainerBgColorKey = safeString(
+    props?.socialMediaWallPageContainerBgColorKey,
+  );
   const pageContainerBgStyleBase =
     pageContainerBgType === "image" && pageContainerBgImage
-      ? { backgroundImage: `url(${pageContainerBgImage})`, backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" }
+      ? {
+          backgroundImage: `url(${pageContainerBgImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center center",
+          backgroundRepeat: "no-repeat",
+        }
       : pageContainerBgType === "color" && pageContainerBgColorKey
         ? { backgroundColor: getColor(pageContainerBgColorKey), backgroundImage: "none" }
         : undefined;
-  const containerPaddingTop = props?.socialMediaWallPageContainerPaddingTop != null ? Number(props.socialMediaWallPageContainerPaddingTop) : null;
-  const containerPaddingRight = props?.socialMediaWallPageContainerPaddingRight != null ? Number(props.socialMediaWallPageContainerPaddingRight) : null;
-  const containerPaddingBottom = props?.socialMediaWallPageContainerPaddingBottom != null ? Number(props.socialMediaWallPageContainerPaddingBottom) : null;
-  const containerPaddingLeft = props?.socialMediaWallPageContainerPaddingLeft != null ? Number(props.socialMediaWallPageContainerPaddingLeft) : null;
-  const containerMarginTop = props?.socialMediaWallPageContainerMarginTop != null ? Number(props.socialMediaWallPageContainerMarginTop) : null;
-  const containerMarginBottom = props?.socialMediaWallPageContainerMarginBottom != null ? Number(props.socialMediaWallPageContainerMarginBottom) : null;
+  const containerPaddingTop =
+    props?.socialMediaWallPageContainerPaddingTop != null
+      ? Number(props.socialMediaWallPageContainerPaddingTop)
+      : null;
+  const containerPaddingRight =
+    props?.socialMediaWallPageContainerPaddingRight != null
+      ? Number(props.socialMediaWallPageContainerPaddingRight)
+      : null;
+  const containerPaddingBottom =
+    props?.socialMediaWallPageContainerPaddingBottom != null
+      ? Number(props.socialMediaWallPageContainerPaddingBottom)
+      : null;
+  const containerPaddingLeft =
+    props?.socialMediaWallPageContainerPaddingLeft != null
+      ? Number(props.socialMediaWallPageContainerPaddingLeft)
+      : null;
+  const containerMarginTop =
+    props?.socialMediaWallPageContainerMarginTop != null
+      ? Number(props.socialMediaWallPageContainerMarginTop)
+      : null;
+  const containerMarginBottom =
+    props?.socialMediaWallPageContainerMarginBottom != null
+      ? Number(props.socialMediaWallPageContainerMarginBottom)
+      : null;
   const pageContainerBgStyle =
-    pageContainerBgStyleBase || containerPaddingTop != null || containerPaddingRight != null || containerPaddingBottom != null || containerPaddingLeft != null || containerMarginTop != null || containerMarginBottom != null
+    pageContainerBgStyleBase ||
+    containerPaddingTop != null ||
+    containerPaddingRight != null ||
+    containerPaddingBottom != null ||
+    containerPaddingLeft != null ||
+    containerMarginTop != null ||
+    containerMarginBottom != null
       ? {
           ...(pageContainerBgStyleBase || {}),
-          ...(containerPaddingTop != null && containerPaddingTop >= 0 ? { paddingTop: `${containerPaddingTop}px` } : {}),
-          ...(containerPaddingRight != null && containerPaddingRight >= 0 ? { paddingRight: `${containerPaddingRight}px` } : {}),
-          ...(containerPaddingBottom != null && containerPaddingBottom >= 0 ? { paddingBottom: `${containerPaddingBottom}px` } : {}),
-          ...(containerPaddingLeft != null && containerPaddingLeft >= 0 ? { paddingLeft: `${containerPaddingLeft}px` } : {}),
-          ...(containerMarginTop != null && containerMarginTop >= 0 ? { marginTop: `${containerMarginTop}px` } : {}),
-          ...(containerMarginBottom != null && containerMarginBottom >= 0 ? { marginBottom: `${containerMarginBottom}px` } : {}),
+          ...(containerPaddingTop != null && containerPaddingTop >= 0
+            ? { paddingTop: `${containerPaddingTop}px` }
+            : {}),
+          ...(containerPaddingRight != null && containerPaddingRight >= 0
+            ? { paddingRight: `${containerPaddingRight}px` }
+            : {}),
+          ...(containerPaddingBottom != null && containerPaddingBottom >= 0
+            ? { paddingBottom: `${containerPaddingBottom}px` }
+            : {}),
+          ...(containerPaddingLeft != null && containerPaddingLeft >= 0
+            ? { paddingLeft: `${containerPaddingLeft}px` }
+            : {}),
+          ...(containerMarginTop != null && containerMarginTop >= 0
+            ? { marginTop: `${containerMarginTop}px` }
+            : {}),
+          ...(containerMarginBottom != null && containerMarginBottom >= 0
+            ? { marginBottom: `${containerMarginBottom}px` }
+            : {}),
         }
       : undefined;
 
+  const layoutModeRaw = safeString(props?.socialMediaWallLayoutMode).toLowerCase();
+  const layoutMode = ["grid", "masonry", "carousel"].includes(layoutModeRaw)
+    ? layoutModeRaw
+    : "masonry";
+  const cardGapRaw = Number(props?.socialMediaWallCardGap);
+  const cardGap = clamp(
+    Number.isFinite(cardGapRaw) && cardGapRaw >= 0
+      ? Math.floor(cardGapRaw)
+      : DEFAULT_CARD_GAP,
+    0,
+    48,
+  );
+  const colDesktop = clamp(
+    toPositiveInt(props?.socialMediaWallColumnsDesktop, 5),
+    1,
+    8,
+  );
+  const colLaptop = clamp(
+    toPositiveInt(props?.socialMediaWallColumnsLaptop, 4),
+    1,
+    8,
+  );
+  const colTablet = clamp(
+    toPositiveInt(props?.socialMediaWallColumnsTablet, 3),
+    1,
+    6,
+  );
+  const colMobile = clamp(
+    toPositiveInt(props?.socialMediaWallColumnsMobile, 1),
+    1,
+    4,
+  );
+
+  const showPlatformIcon = props?.socialMediaWallShowPlatformIcon !== false;
+  const showPlatformLabel = props?.socialMediaWallShowPlatformLabel !== false;
+  const showHandle = props?.socialMediaWallShowHandle !== false;
+  const showDate = props?.socialMediaWallShowDate !== false;
+  const showCaption = props?.socialMediaWallShowCaption !== false;
+  const allowModal = props?.socialMediaWallAllowModal !== false;
+  const emptyStateMessage =
+    safeString(props?.socialMediaWallEmptyStateMessage) || DEFAULT_EMPTY_MESSAGE;
+
+  const globalPostLimit = clamp(
+    toPositiveInt(props?.socialMediaWallPostLimit, DEFAULT_POST_LIMIT),
+    1,
+    60,
+  );
+  const orderMode =
+    safeString(props?.socialMediaWallOrderMode).toLowerCase() === "platform-priority"
+      ? "platform-priority"
+      : "chronological";
+  const enableLivePosts = props?.socialMediaWallEnableLivePosts !== false;
+  const autoRefreshEnabled = props?.socialMediaWallAutoRefreshEnabled === true;
+  const refreshIntervalSec = clamp(
+    toPositiveInt(
+      props?.socialMediaWallRefreshIntervalSec,
+      DEFAULT_REFRESH_INTERVAL_SECONDS,
+    ),
+    30,
+    3600,
+  );
+
+  const platformConfigs = useMemo(() => {
+    const raw = Array.isArray(props?.socialMediaWallPlatforms)
+      ? props.socialMediaWallPlatforms
+      : [];
+    const normalized = raw
+      .map((item, index) => normalizePlatformConfig(item, index))
+      .filter(Boolean);
+    const dedup = new Map();
+    for (const item of normalized) {
+      dedup.set(item.platform, item);
+    }
+    if (dedup.size === 0) {
+      const defaults = [
+        { platform: "twitter", order: 1, active: true, feedMode: "both", postLimit: globalPostLimit, profileUrl: "" },
+        { platform: "facebook", order: 2, active: true, feedMode: "both", postLimit: globalPostLimit, profileUrl: "" },
+        { platform: "instagram", order: 3, active: true, feedMode: "both", postLimit: globalPostLimit, profileUrl: "" },
+        { platform: "youtube", order: 4, active: true, feedMode: "both", postLimit: globalPostLimit, profileUrl: "" },
+      ];
+      return defaults.map((item, index) => normalizePlatformConfig(item, index));
+    }
+    return Array.from(dedup.values()).sort((a, b) => a.order - b.order);
+  }, [props?.socialMediaWallPlatforms, globalPostLimit]);
+
+  const platformConfigMap = useMemo(() => {
+    const map = new Map();
+    platformConfigs.forEach((item) => {
+      map.set(item.platform, item);
+    });
+    return map;
+  }, [platformConfigs]);
+
+  const liveRequestPayload = useMemo(
+    () => ({
+      platformConfigs: platformConfigs.map((config) => ({
+        platform: config.platform,
+        active: config.active,
+        feedMode: config.feedMode,
+        visibility: config.visibility,
+        handle: config.handle,
+        accountId: config.accountId,
+        profileUrl: config.profileUrl,
+        postLimit: config.postLimit,
+        order: config.order,
+      })),
+      globalLimit: globalPostLimit,
+      orderMode,
+    }),
+    [platformConfigs, globalPostLimit, orderMode],
+  );
+
+  useEffect(() => {
+    if (!enableLivePosts) {
+      setLivePosts([]);
+      return () => {};
+    }
+
+    let mounted = true;
+    let timerId = null;
+
+    const loadLivePosts = async () => {
+      if (!mounted) return;
+      setLoadingLive(true);
+      try {
+        const response = await fetch("/api/public/social-wall", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(liveRequestPayload),
+        });
+        const payload = response.ok ? await response.json() : { livePosts: [] };
+        if (!mounted) return;
+        const fetchedPosts = Array.isArray(payload?.livePosts)
+          ? payload.livePosts.map((post) =>
+              normalizePost(post, {
+                fallbackSource: "live",
+                platformConfigMap,
+              }),
+            )
+          : [];
+        setLivePosts(fetchedPosts);
+      } catch {
+        if (mounted) setLivePosts([]);
+      } finally {
+        if (mounted) setLoadingLive(false);
+      }
+    };
+
+    loadLivePosts();
+    if (autoRefreshEnabled) {
+      timerId = setInterval(loadLivePosts, refreshIntervalSec * 1000);
+    }
+
+    return () => {
+      mounted = false;
+      if (timerId) clearInterval(timerId);
+    };
+  }, [
+    enableLivePosts,
+    autoRefreshEnabled,
+    refreshIntervalSec,
+    liveRequestPayload,
+    platformConfigMap,
+  ]);
+
+  const manualPosts = useMemo(() => {
+    const raw = Array.isArray(props?.socialMediaWallPosts) ? props.socialMediaWallPosts : [];
+    return raw
+      .map((post) =>
+        normalizePost(post, {
+          fallbackSource: "manual",
+          platformConfigMap,
+        }),
+      )
+      .filter((post) => post.active !== false);
+  }, [props?.socialMediaWallPosts, platformConfigMap]);
+
+  const mergedPosts = useMemo(() => {
+    const candidates = [];
+
+    for (const post of manualPosts) {
+      const config = platformConfigMap.get(post.platform);
+      if (config && !config.active) continue;
+      if (config?.feedMode === "live") continue;
+      if (post.visibility === "none") continue;
+      candidates.push(post);
+    }
+
+    for (const post of livePosts) {
+      const config = platformConfigMap.get(post.platform);
+      if (config && !config.active) continue;
+      if (config?.feedMode === "manual") continue;
+      if (post.visibility === "none") continue;
+      candidates.push(post);
+    }
+
+    const sorted = [...candidates];
+    if (orderMode === "platform-priority") {
+      sorted.sort((first, second) => {
+        const firstOrder = platformConfigMap.get(first.platform)?.order ?? 999;
+        const secondOrder = platformConfigMap.get(second.platform)?.order ?? 999;
+        if (firstOrder !== secondOrder) return firstOrder - secondOrder;
+        return compareByDateDesc(first, second);
+      });
+    } else {
+      sorted.sort(compareByDateDesc);
+    }
+
+    const perPlatformCounter = new Map();
+    const filtered = [];
+    for (const post of sorted) {
+      const perPlatformLimit = platformConfigMap.get(post.platform)?.postLimit ?? 999;
+      const current = perPlatformCounter.get(post.platform) || 0;
+      if (current >= perPlatformLimit) continue;
+      perPlatformCounter.set(post.platform, current + 1);
+      filtered.push(post);
+      if (filtered.length >= globalPostLimit) break;
+    }
+    return filtered;
+  }, [manualPosts, livePosts, platformConfigMap, orderMode, globalPostLimit]);
+
+  const modalPost = selectedPost
+    ? normalizePost(selectedPost, {
+        fallbackSource: selectedPost?.source || "manual",
+        platformConfigMap,
+      })
+    : null;
+
+  const handleCardClick = (post) => {
+    if (!allowModal) return;
+    setSelectedPost(post);
+    setModalOpen(true);
+  };
+
+  const renderPostCard = (post) => {
+    const imageSources = getPostImageSources(post);
+    const image = imageSources.image;
+    const isVideo = post.mediaType === "video";
+    const isDirectVideo = isVideo && isDirectVideoUrl(post.videoUrl);
+    const cardClickable = allowModal;
+    const showMedia = post.mediaType !== "text";
+    const cardLayout = layoutMode === "carousel" ? "carousel" : layoutMode;
+    return (
+      <PostCard
+        key={post.id}
+        onClick={() => handleCardClick(post)}
+        data-clickable={cardClickable ? "true" : "false"}
+        data-visibility={post.visibility}
+        $layout={cardLayout}
+        $gap={cardGap}
+      >
+        {post.source === "live" && <LiveBadge>LIVE</LiveBadge>}
+
+        {showMedia && (
+          <MediaArea>
+            {isDirectVideo ? (
+              <video
+                controls={false}
+                muted
+                playsInline
+                preload="metadata"
+                poster={image}
+                src={post.videoUrl}
+              />
+            ) : image ? (
+              <picture>
+                {imageSources.mobile ? (
+                  <source media="(max-width: 767px)" srcSet={imageSources.mobile} />
+                ) : null}
+                <img
+                  src={image}
+                  alt={post.caption || post.username || post.platformLabel}
+                  loading="lazy"
+                />
+              </picture>
+            ) : (
+              <div style={{ minHeight: 140 }} />
+            )}
+            {isVideo && (
+              <VideoOverlay>
+                <PlayGlyph />
+              </VideoOverlay>
+            )}
+          </MediaArea>
+        )}
+
+        <PostBody>
+          <PostHeader>
+            {showPlatformIcon && (
+              <PlatformBadge $bg={post.platformColor}>
+                <PlatformIcon
+                  platform={post.platform}
+                  size={16}
+                  color={post.platformColor}
+                />
+              </PlatformBadge>
+            )}
+            <HeaderMeta>
+              {post.username && <div className="source">{post.username}</div>}
+              {showHandle && post.handle && <div className="handle">{post.handle}</div>}
+            </HeaderMeta>
+            {showPlatformLabel && (
+              <PlatformTag $color={post.platformColor}>{post.platformLabel}</PlatformTag>
+            )}
+          </PostHeader>
+
+          {showCaption && post.caption && <PostCaption>{post.caption}</PostCaption>}
+          {showCaption && !post.caption && (
+            <PostCaption style={{ opacity: 0.72 }}>
+              {post.mediaType === "text"
+                ? "Text post"
+                : "Media post from the connected social feed."}
+            </PostCaption>
+          )}
+
+          <Footer>
+            {showDate && <FooterDate>{post.date || "Date unavailable"}</FooterDate>}
+            <FooterLiveType>{post.mediaType}</FooterLiveType>
+          </Footer>
+        </PostBody>
+      </PostCard>
+    );
+  };
+
   return (
     <>
-      <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
+      <FullWidthBackground className={sectionClassNameFinal} style={sectionBgStyleFinal}>
         <PageContainer style={pageContainerBgStyle}>
-          {/* Title */}
           {(titleEnabled || subTitleEnabled) && (
             <Row gutter={[16, 16]}>
               <Col span={24} className="mb-4">
@@ -444,83 +1116,69 @@ export default function SocialMediaWall(props) {
             </Row>
           )}
 
-          {/* Masonry Posts grid */}
-          {allPosts.length > 0 && (
-            <MasonryGrid>
-              {allPosts.map((post, idx) => {
-                const platform = (post?.platform ?? "").toString().trim().toLowerCase();
-                const username = (post?.username ?? "").toString().trim();
-                const caption = (post?.caption ?? "").toString().trim();
-                const imageSources = getPostImageSources(post);
-                const image = imageSources.image;
-                const date = (post?.date ?? "").toString().trim();
-                const platformLabel = PLATFORM_LABELS[platform] || platform;
-                const platformColor = PLATFORM_COLORS[platform] || "#666";
+          {mergedPosts.length > 0 &&
+            (layoutMode === "carousel" ? (
+              <CarouselTrack $gap={cardGap}>
+                {mergedPosts.map((post) => renderPostCard(post))}
+              </CarouselTrack>
+            ) : (
+              <PostsLayout
+                $layout={layoutMode}
+                $gap={cardGap}
+                $colsDesktop={colDesktop}
+                $colsLaptop={colLaptop}
+                $colsTablet={colTablet}
+                $colsMobile={colMobile}
+              >
+                {mergedPosts.map((post) => renderPostCard(post))}
+              </PostsLayout>
+            ))}
 
-                const isLive = post?.source === "live";
+          {loadingLive && mergedPosts.length === 0 && (
+            <>
+              {layoutMode === "carousel" ? (
+                <CarouselTrack $gap={cardGap}>
+                  {Array.from({ length: Math.min(globalPostLimit, 6) }).map((_, index) => (
+                    <SkeletonCard key={`skeleton-${index}`} $gap={cardGap}>
+                      <div className="block media" />
+                      <div className="body">
+                        <div className="block line" style={{ width: "60%" }} />
+                        <div className="block line" style={{ width: "100%" }} />
+                        <div className="block line" style={{ width: "84%" }} />
+                      </div>
+                    </SkeletonCard>
+                  ))}
+                </CarouselTrack>
+              ) : (
+                <PostsLayout
+                  $layout={layoutMode}
+                  $gap={cardGap}
+                  $colsDesktop={colDesktop}
+                  $colsLaptop={colLaptop}
+                  $colsTablet={colTablet}
+                  $colsMobile={colMobile}
+                >
+                  {Array.from({ length: Math.min(globalPostLimit, 6) }).map((_, index) => (
+                    <SkeletonCard key={`skeleton-${index}`} $gap={cardGap}>
+                      <div className="block media" />
+                      <div className="body">
+                        <div className="block line" style={{ width: "60%" }} />
+                        <div className="block line" style={{ width: "100%" }} />
+                        <div className="block line" style={{ width: "84%" }} />
+                      </div>
+                    </SkeletonCard>
+                  ))}
+                </PostsLayout>
+              )}
+            </>
+          )}
 
-                return (
-                  <PostCard
-                    key={idx}
-                    onClick={() => {
-                      setSelectedPost(post);
-                      setModalOpen(true);
-                    }}
-                  >
-                    {isLive && <LiveBadge>LIVE</LiveBadge>}
-
-                    {/* Post image (natural height) */}
-                    {image && (
-                      <PostImage>
-                        <picture>
-                          {imageSources.mobile ? (
-                            <source
-                              media="(max-width: 767px)"
-                              srcSet={imageSources.mobile}
-                            />
-                          ) : null}
-                          <img
-                            loading="lazy"
-                            src={image}
-                            alt={caption || username || platformLabel}
-                          />
-                        </picture>
-                      </PostImage>
-                    )}
-
-                    <PostBody>
-                      {/* Centered platform icon */}
-                      <PlatformIconWrap>
-                        <PlatformIcon platform={platform} size={28} color={platformColor} />
-                      </PlatformIconWrap>
-
-                      {/* Username */}
-                      {username && <PostUsername>{username}</PostUsername>}
-
-                      {/* Caption */}
-                      {caption && <PostCaption>{caption}</PostCaption>}
-
-                      {/* Footer: small icon + name + date */}
-                      <PostFooter>
-                        <PlatformBadge $bgColor={`${platformColor}14`}>
-                          <PlatformIcon platform={platform} size={14} color={platformColor} />
-                        </PlatformBadge>
-                        <FooterMeta>
-                          {username && <span className="footer-name">{username}</span>}
-                          {username && date && <span className="footer-sep">|</span>}
-                          {date && <span className="footer-date">{date}</span>}
-                        </FooterMeta>
-                      </PostFooter>
-                    </PostBody>
-                  </PostCard>
-                );
-              })}
-            </MasonryGrid>
+          {!loadingLive && mergedPosts.length === 0 && (
+            <EmptyState>{emptyStateMessage}</EmptyState>
           )}
         </PageContainer>
       </FullWidthBackground>
 
-      {/* Post detail modal */}
       <ModalScrollBody
         open={modalOpen}
         onCancel={() => {
@@ -529,61 +1187,91 @@ export default function SocialMediaWall(props) {
         }}
         centered
         footer={null}
-        width={600}
+        width={640}
         destroyOnClose
         data-lenis-prevent
       >
-        {selectedPost && (() => {
-          const platform = (selectedPost.platform ?? "").toString().trim().toLowerCase();
-          const username = (selectedPost.username ?? "").toString().trim();
-          const caption = (selectedPost.caption ?? "").toString().trim();
-          const imageSources = getPostImageSources(selectedPost);
-          const image = imageSources.image;
-          const date = (selectedPost.date ?? "").toString().trim();
-          const postUrl = (selectedPost.postUrl ?? "").toString().trim();
-          const platformLabel = PLATFORM_LABELS[platform] || platform;
-          const platformColor = PLATFORM_COLORS[platform] || "#666";
-
-          return (
-            <div data-lenis-prevent>
-              {image && (
-                <ModalImage>
+        {modalPost && (
+          <div data-lenis-prevent>
+            {(modalPost.mediaType === "image" || modalPost.mediaType === "video") && (
+              <ModalMedia>
+                {modalPost.mediaType === "video" && isDirectVideoUrl(modalPost.videoUrl) ? (
+                  <video
+                    src={modalPost.videoUrl}
+                    poster={modalPost.image}
+                    controls
+                    preload="metadata"
+                  />
+                ) : modalPost.image ? (
                   <picture>
-                    {imageSources.mobile ? (
-                      <source
-                        media="(max-width: 767px)"
-                        srcSet={imageSources.mobile}
-                      />
+                    {modalPost.imageMobile ? (
+                      <source media="(max-width: 767px)" srcSet={modalPost.imageMobile} />
                     ) : null}
-                    <img src={image} alt={caption || username || platformLabel} />
+                    <img
+                      src={modalPost.image}
+                      alt={
+                        modalPost.caption || modalPost.username || modalPost.platformLabel
+                      }
+                    />
                   </picture>
-                </ModalImage>
+                ) : null}
+              </ModalMedia>
+            )}
+            <ModalContent>
+              <ModalHeader>
+                <PlatformBadge $bg={modalPost.platformColor} $size={38}>
+                  <PlatformIcon
+                    platform={modalPost.platform}
+                    size={20}
+                    color={modalPost.platformColor}
+                  />
+                </PlatformBadge>
+                <ModalMeta>
+                  <div className="title">
+                    {modalPost.username || modalPost.platformLabel}
+                  </div>
+                  <div className="subtitle">
+                    {modalPost.date || "Date unavailable"}
+                    {modalPost.handle ? ` • ${modalPost.handle}` : ""}
+                  </div>
+                </ModalMeta>
+                <PlatformTag $color={modalPost.platformColor}>
+                  {modalPost.platformLabel}
+                </PlatformTag>
+              </ModalHeader>
+
+              {(modalPost.caption || modalPost.text) && (
+                <ModalText>{modalPost.caption || modalPost.text}</ModalText>
               )}
-              <ModalContent>
-                <ModalHeader>
-                  <PlatformBadge $bgColor={`${platformColor}14`} style={{ width: 36, height: 36 }}>
-                    <PlatformIcon platform={platform} size={20} color={platformColor} />
-                  </PlatformBadge>
-                  <ModalMeta>
-                    {username && <div className="modal-username">{username}</div>}
-                    {date && <div className="modal-date">{date}</div>}
-                  </ModalMeta>
-                  {platformLabel && (
-                    <ModalPlatformTag $color={platformColor}>{platformLabel}</ModalPlatformTag>
-                  )}
-                </ModalHeader>
-                {caption && <ModalCaption>{caption}</ModalCaption>}
-                {postUrl && (
-                  <ViewOriginalBtn href={postUrl} target="_blank" rel="noopener noreferrer">
-                    <PlatformIcon platform={platform} size={16} color="#fff" />
-                    View on {platformLabel}
-                  </ViewOriginalBtn>
-                )}
-              </ModalContent>
-            </div>
-          );
-        })()}
+
+              {modalPost.postUrl && (
+                <ViewOriginalBtn
+                  href={modalPost.postUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  $color={modalPost.platformColor}
+                >
+                  <PlatformIcon
+                    platform={modalPost.platform}
+                    size={14}
+                    color="#fff"
+                  />
+                  View on {modalPost.platformLabel}
+                </ViewOriginalBtn>
+              )}
+            </ModalContent>
+          </div>
+        )}
       </ModalScrollBody>
     </>
+  );
+}
+
+function PlayGlyph() {
+  return (
+    <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+      <circle cx="32" cy="32" r="30" fill="rgba(0,0,0,0.55)" />
+      <path d="M26 21.5L46 32L26 42.5V21.5Z" fill="#fff" />
+    </svg>
   );
 }
