@@ -1,6 +1,5 @@
-import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
-import Donation from "@/models/Donation";
+import DonateNowSubmission from "@/models/DonateNowSubmission";
 import ThemeConfig from "@/models/ThemeConfig";
 import { decrypt, parseResponse } from "@/lib/ccavenue";
 import { sendDonationReceipt } from "@/lib/email";
@@ -45,7 +44,7 @@ export async function POST(req) {
 
     // Update donation in database
     await connectDB();
-    const donation = await Donation.findOne({ orderId });
+    const donation = await DonateNowSubmission.findOne({ orderId });
     if (donation) {
       donation.status = status;
       donation.payment = {

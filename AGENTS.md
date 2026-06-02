@@ -73,6 +73,7 @@ Models in `models/`:
 - `ContactSubmission`
 - `Subscriber`
 - `Donation`
+- `DonateNowSubmission`
 - `Event`
 - `EventRegistration`
 - `VolunteersFeedbackSubmission`
