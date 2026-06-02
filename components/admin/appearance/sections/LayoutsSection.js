@@ -7,7 +7,6 @@ import {
   InputNumber,
   Row,
   Select,
-  Switch,
   Tabs,
   Typography,
 } from "antd";
@@ -56,24 +55,12 @@ export default function LayoutsSection() {
           </Form.Item>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Form.Item name="mobileFontSize" label="Mobile font size override">
-            <InputNumber min={0} max={40} style={{ width: "100%" }} />
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Form.Item name="mobileSectionSpacing" label="Mobile section spacing">
-            <Input placeholder="e.g. 16px" />
-          </Form.Item>
-        </Col>
-      </Row>
-      <Row gutter={[16, 0]}>
-        <Col xs={24} sm={12} lg={6}>
           <Form.Item
-            name="hideSectionOnMobile"
-            label="Hide section on mobile"
-            valuePropName="checked"
+            name="mobileFontSize"
+            label="Mobile font size override (px)"
+            tooltip="Base font size on screens ≤767px. Set to 0 to use the desktop base font size."
           >
-            <Switch />
+            <InputNumber min={0} max={40} style={{ width: "100%" }} />
           </Form.Item>
         </Col>
       </Row>

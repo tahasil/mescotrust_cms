@@ -82,6 +82,9 @@ function buildThemeCssVars(theme) {
     ...set("--heading-font", t.headingFont || t.bodyFont),
     ...set("--button-font", t.buttonFont || t.bodyFont),
     ...set("--font-size", t.baseFontSize != null ? `${t.baseFontSize}px` : undefined),
+    // Mobile font-size override (Appearance → Layouts). 0/empty means "no override";
+    // globals.css falls back to --font-size when --mobile-font-size is unset.
+    ...set("--mobile-font-size", t.mobileFontSize ? `${t.mobileFontSize}px` : undefined),
     ...set("--line-height", t.lineHeight),
     ...set("--letter-spacing", t.letterSpacing != null ? `${t.letterSpacing}px` : undefined),
     ...set("--font-weight", t.fontWeightNormal),

@@ -115,8 +115,6 @@ export const appearanceInitialValues = {
   direction: "ltr",
 
   mobileFontSize: 0,
-  mobileSectionSpacing: "",
-  hideSectionOnMobile: false,
 
   // Effects (smooth scroll + scroll-fade) — match THEME_DEFAULTS in lib/layoutData.js
   smoothScrollEnabled: true,

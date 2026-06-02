@@ -38,6 +38,15 @@ body {
   background-color: var(--bg-color);
 }
 
+/* Mobile font-size override (Appearance → Layouts). Applies only when
+   --mobile-font-size is set; otherwise falls back to the base --font-size. */
+@media (max-width: 767px) {
+  html,
+  body {
+    font-size: var(--mobile-font-size, var(--font-size));
+  }
+}
+
 /* Fade-in scroll animation — driven by CSS custom properties from theme settings */
 /* Mobile first: 60% of configured distance, shorter duration */
 .fadeEffects {
