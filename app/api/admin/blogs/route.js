@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import Blog from "@/models/Blog";
 import { normalizeSlug } from "@/lib/slug";
 import { syncMediaUsageForBlog } from "@/lib/media/usageTracker";
+import { revalidateBlogs } from "@/lib/revalidateContent";
 
 export async function GET(req) {
   const session = await requireAuth(req);
@@ -64,6 +65,7 @@ export async function POST(req) {
       updatedBy: session.email || "",
     });
     await syncMediaUsageForBlog(blog);
+    revalidateBlogs(blog.slug);
     return NextResponse.json(blog);
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });

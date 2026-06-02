@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/db";
 import Event from "@/models/Event";
 import { normalizeSlug } from "@/lib/slug";
 import { clearUsageForRef, syncMediaUsageForEvent } from "@/lib/media/usageTracker";
+import { revalidateEvents } from "@/lib/revalidateContent";
 
 function parseOptionalDate(v) {
   if (v === null || v === undefined || v === "") return null;
@@ -94,6 +95,7 @@ export async function PUT(req, { params }) {
 
     await doc.save();
     await syncMediaUsageForEvent(doc);
+    revalidateEvents(doc.slug);
     return NextResponse.json(doc);
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -113,6 +115,7 @@ export async function DELETE(req, { params }) {
     const doc = await Event.findByIdAndDelete(id);
     if (!doc) return NextResponse.json({ error: "Not found" }, { status: 404 });
     await clearUsageForRef("event", id);
+    revalidateEvents(doc.slug);
     return NextResponse.json({ deleted: true });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });

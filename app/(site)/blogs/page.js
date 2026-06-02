@@ -96,7 +96,7 @@ const getBlogListingData = unstable_cache(
     };
   },
   ["blog-listing-page-data"],
-  { revalidate: 60 },
+  { revalidate: 60, tags: ["blogs"] },
 );
 
 export default async function BlogListPage({ searchParams }) {

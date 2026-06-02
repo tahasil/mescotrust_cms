@@ -49,7 +49,7 @@ const getEventsListingData = unstable_cache(
     return { total, items };
   },
   ["events-listing-page-data"],
-  { revalidate: 60 },
+  { revalidate: 60, tags: ["events"] },
 );
 
 export async function generateMetadata() {
