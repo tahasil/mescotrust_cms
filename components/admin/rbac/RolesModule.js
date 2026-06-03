@@ -27,7 +27,6 @@ import { canAccessMenu, hasPermission, isSuperAdmin } from "@/lib/rbac/clientPer
 const EDITOR_BLOCKED_PERMISSION_KEYS = new Set([
   "components.create",
   "forms.create",
-  "sliders.create",
   "popups.create",
 ]);
 
