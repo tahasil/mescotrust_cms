@@ -9,20 +9,64 @@ import { getTheme } from "@/lib/layoutData";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+function parseKeywordList(raw) {
+  const input = String(raw || "").trim();
+  if (!input) return undefined;
+  const list = input
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean);
+  return list.length > 0 ? list : undefined;
+}
+
+function getGlobalMetaImage(theme) {
+  const candidates = [
+    theme?.defaultMetaImage,
+    theme?.seoImage,
+    theme?.ogImage,
+    theme?.socialShareImage,
+    theme?.logoLightUrl,
+    theme?.logoImageUrl,
+    theme?.logoMobileUrl,
+    theme?.logoDarkUrl,
+    theme?.faviconUrl,
+  ];
+  for (const candidate of candidates) {
+    const value = String(candidate || "").trim();
+    if (value) return value;
+  }
+  return "";
+}
+
 export async function generateMetadata() {
   const theme = await getTheme();
   const siteName = String(theme?.siteTitle ?? "").trim();
+  const defaultMetaTitle = String(theme?.defaultMetaTitle || "").trim();
+  const defaultMetaDescription = String(theme?.defaultMetaDescription || "").trim();
+  const defaultMetaKeywords = parseKeywordList(theme?.defaultMetaKeywords);
+  const defaultMetaImage = getGlobalMetaImage(theme);
   const faviconUrl = String(theme?.faviconUrl || "").trim();
+  const resolvedTitle = defaultMetaTitle || siteName || "Mesco Trust";
+  const resolvedDescription = defaultMetaDescription || "Content management system";
+  const titleTemplateBase = siteName || resolvedTitle;
 
   return {
     metadataBase: new URL(getSiteUrl()),
     title: {
-      default: siteName,
-      template: `%s | ${siteName}`,
+      default: resolvedTitle,
+      template: `%s | ${titleTemplateBase}`,
     },
-    description: "Content management system",
+    description: resolvedDescription,
+    ...(defaultMetaKeywords ? { keywords: defaultMetaKeywords } : {}),
     openGraph: {
+      title: resolvedTitle,
+      description: resolvedDescription,
       siteName,
+      ...(defaultMetaImage
+        ? {
+            images: [{ url: defaultMetaImage, alt: resolvedTitle }],
+          }
+        : {}),
     },
     ...(faviconUrl
       ? {

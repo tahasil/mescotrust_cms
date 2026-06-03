@@ -4,25 +4,18 @@ import { connectDB } from "@/lib/db";
 import Page from "@/models/Page";
 import Component from "@/models/Component";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
+import { getPageSeoMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
-  try {
-    await connectDB();
-    const page = await Page.findOne({ slug: "home", status: "published" }).lean();
-    if (!page) return {};
-    const title = page.meta?.metaTitle || page.title || undefined;
-    const description = page.meta?.metaDescription || undefined;
-    return {
-      ...(title && { title }),
-      ...(description && { description }),
-      alternates: { canonical: "/" },
-      openGraph: { title, description, type: "website", url: "/" },
-    };
-  } catch {
-    return {};
-  }
+  return getPageSeoMetadata({
+    slug: "home",
+    fallbackTitle: "Home",
+    fallbackDescription: "Welcome to Mesco Trust",
+    fallbackCanonical: "/",
+    fallbackOpenGraphUrl: "/",
+  });
 }
 
 function HomeSkeleton() {

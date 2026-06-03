@@ -78,6 +78,7 @@ export function getGlobalFallbackImageFromTheme(theme: Record<string, unknown> |
   if (!theme) return "";
 
   const candidates = [
+    theme.defaultMetaImage,
     theme.seoImage,
     theme.ogImage,
     theme.socialShareImage,

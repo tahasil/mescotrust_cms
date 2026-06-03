@@ -112,6 +112,7 @@ export default function AdminEventEditPage() {
           status: data.status,
           metaTitle: data.meta?.metaTitle,
           metaDescription: data.meta?.metaDescription,
+          metaKeywords: data.meta?.metaKeywords,
         });
       } catch {
         message.error("Failed to load event");
@@ -149,6 +150,7 @@ export default function AdminEventEditPage() {
           meta: {
             metaTitle: values.metaTitle,
             metaDescription: values.metaDescription,
+            metaKeywords: values.metaKeywords,
           },
         }),
       });
@@ -261,6 +263,15 @@ export default function AdminEventEditPage() {
               extra="Used for social sharing description when available."
             >
               <Input.TextArea rows={2} />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12} xl={6}>
+            <Form.Item
+              name="metaKeywords"
+              label="Meta keywords"
+              extra="Comma separated. Example: education, scholarship, ngo"
+            >
+              <Input />
             </Form.Item>
           </Col>
 

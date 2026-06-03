@@ -236,6 +236,10 @@ const initialFormValues = {
   headScripts: "",
   footerScripts: "",
   googleAnalyticsId: "",
+  defaultMetaTitle: "",
+  defaultMetaDescription: "",
+  defaultMetaKeywords: "",
+  defaultMetaImage: "",
   layoutWidth: 1200,
   defaultLocale: "en",
   direction: "ltr",
@@ -736,37 +740,94 @@ export default function AdminThemePage() {
       ),
       children: (
         <div style={{ paddingBlock: 8 }}>
-          <Form.Item name="customCss" label="Custom CSS">
-            <Input.TextArea
-              rows={6}
-              placeholder=".my-class { color: red; }"
-              style={{ fontFamily: "monospace", fontSize: 12 }}
-            />
-          </Form.Item>
-          <Form.Item name="customJs" label="Custom JS">
-            <Input.TextArea
-              rows={4}
-              placeholder="JavaScript"
-              style={{ fontFamily: "monospace", fontSize: 12 }}
-            />
-          </Form.Item>
-          <Form.Item name="headScripts" label="Head Scripts">
-            <Input.TextArea
-              rows={3}
-              placeholder="<script>...</script>"
-              style={{ fontFamily: "monospace", fontSize: 12 }}
-            />
-          </Form.Item>
-          <Form.Item name="footerScripts" label="Footer Scripts">
-            <Input.TextArea
-              rows={3}
-              placeholder="<script>...</script>"
-              style={{ fontFamily: "monospace", fontSize: 12 }}
-            />
-          </Form.Item>
-          <Form.Item name="googleAnalyticsId" label="Google Analytics ID">
-            <Input placeholder="G-XXXXXXXXXX" />
-          </Form.Item>
+          <Collapse
+            defaultActiveKey={["global-seo-performance"]}
+            size="small"
+            items={[
+              {
+                key: "global-seo-performance",
+                label: "Global SEO & Performance",
+                children: (
+                  <Row gutter={[16, 0]}>
+                    <Col xs={24}>
+                      <Form.Item name="defaultMetaTitle" label="Default Meta Title">
+                        <Input placeholder="Default title for pages without page-level SEO title" />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24}>
+                      <Form.Item name="defaultMetaDescription" label="Default Meta Description">
+                        <Input.TextArea
+                          rows={2}
+                          placeholder="Default description fallback for pages without page-level SEO description"
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24}>
+                      <Form.Item
+                        name="defaultMetaKeywords"
+                        label="Default Meta Keywords"
+                        extra="Comma separated. Example: education, ngo, charity"
+                      >
+                        <Input placeholder="keyword 1, keyword 2, keyword 3" />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24}>
+                      <Form.Item
+                        name="defaultMetaImage"
+                        label="Default Meta Image"
+                        extra="Used as default Open Graph / social image when page-level image is not available."
+                      >
+                        <MediaPickerInput
+                          placeholder="/media/..."
+                          showVariants={false}
+                          hintText="Recommended: 1200x630"
+                        />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                ),
+              },
+              {
+                key: "custom-code-integrations",
+                label: "Custom Code & Integrations",
+                children: (
+                  <>
+                    <Form.Item name="customCss" label="Custom CSS">
+                      <Input.TextArea
+                        rows={6}
+                        placeholder=".my-class { color: red; }"
+                        style={{ fontFamily: "monospace", fontSize: 12 }}
+                      />
+                    </Form.Item>
+                    <Form.Item name="customJs" label="Custom JS">
+                      <Input.TextArea
+                        rows={4}
+                        placeholder="JavaScript"
+                        style={{ fontFamily: "monospace", fontSize: 12 }}
+                      />
+                    </Form.Item>
+                    <Form.Item name="headScripts" label="Head Scripts">
+                      <Input.TextArea
+                        rows={3}
+                        placeholder="Raw JavaScript (without <script> wrapper)"
+                        style={{ fontFamily: "monospace", fontSize: 12 }}
+                      />
+                    </Form.Item>
+                    <Form.Item name="footerScripts" label="Footer Scripts">
+                      <Input.TextArea
+                        rows={3}
+                        placeholder="Raw JavaScript (without <script> wrapper)"
+                        style={{ fontFamily: "monospace", fontSize: 12 }}
+                      />
+                    </Form.Item>
+                    <Form.Item name="googleAnalyticsId" label="Google Analytics ID">
+                      <Input placeholder="G-XXXXXXXXXX" />
+                    </Form.Item>
+                  </>
+                ),
+              },
+            ]}
+          />
         </div>
       ),
     },

@@ -80,7 +80,11 @@ export default function AdminPageNewPage() {
             : toUrlSlug(values.slug || ""),
           status: values.status,
           layout: layoutToSave,
-          meta: { metaTitle: values.metaTitle, metaDescription: values.metaDescription },
+          meta: {
+            metaTitle: values.metaTitle,
+            metaDescription: values.metaDescription,
+            metaKeywords: values.metaKeywords,
+          },
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -212,6 +216,13 @@ export default function AdminPageNewPage() {
                     </Form.Item>
                     <Form.Item name="metaDescription" label="Meta description">
                       <Input.TextArea rows={2} />
+                    </Form.Item>
+                    <Form.Item
+                      name="metaKeywords"
+                      label="Meta keywords"
+                      extra="Comma separated. Example: education, scholarship, ngo"
+                    >
+                      <Input />
                     </Form.Item>
                   </>
                 ),

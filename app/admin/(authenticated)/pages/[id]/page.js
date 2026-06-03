@@ -79,6 +79,7 @@ export default function AdminPageEditPage() {
           status: data.status,
           metaTitle: data.meta?.metaTitle,
           metaDescription: data.meta?.metaDescription,
+          metaKeywords: data.meta?.metaKeywords,
         });
         setSlugManuallyEdited(false);
       } catch (e) {
@@ -138,7 +139,11 @@ export default function AdminPageEditPage() {
           slug: fullSlug,
           status: values.status,
           layout: layoutToSave,
-          meta: { metaTitle: values.metaTitle, metaDescription: values.metaDescription },
+          meta: {
+            metaTitle: values.metaTitle,
+            metaDescription: values.metaDescription,
+            metaKeywords: values.metaKeywords,
+          },
         }),
       });
       if (!res.ok) {
@@ -281,6 +286,13 @@ export default function AdminPageEditPage() {
                     </Form.Item>
                     <Form.Item name="metaDescription" label="Meta description">
                       <Input.TextArea rows={2} />
+                    </Form.Item>
+                    <Form.Item
+                      name="metaKeywords"
+                      label="Meta keywords"
+                      extra="Comma separated. Example: education, scholarship, ngo"
+                    >
+                      <Input />
                     </Form.Item>
                   </>
                 ),

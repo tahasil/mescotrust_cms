@@ -57,6 +57,7 @@ export default function AdminBlogEditPage() {
           tags: Array.isArray(postData.tags) ? postData.tags : [],
           metaTitle: postData.meta?.metaTitle,
           metaDescription: postData.meta?.metaDescription,
+          metaKeywords: postData.meta?.metaKeywords,
         });
       } catch {
         message.error("Failed to load post");
@@ -81,6 +82,7 @@ export default function AdminBlogEditPage() {
           meta: {
             metaTitle: values.metaTitle,
             metaDescription: values.metaDescription,
+            metaKeywords: values.metaKeywords,
           },
         }),
       });
@@ -195,6 +197,16 @@ export default function AdminBlogEditPage() {
               className="mb-0"
             >
               <Input.TextArea rows={2} />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12} xl={12}>
+            <Form.Item
+              name="metaKeywords"
+              label="Meta keywords"
+              extra="Comma separated. Example: education, scholarship, ngo"
+              className="mb-0"
+            >
+              <Input />
             </Form.Item>
           </Col>
 

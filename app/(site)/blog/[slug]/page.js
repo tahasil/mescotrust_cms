@@ -11,6 +11,7 @@ import {
 } from "@/helpers/socialShare";
 import Blog from "@/models/Blog";
 import ThemeConfig from "@/models/ThemeConfig";
+import { extractGlobalSeoFromTheme, parseMetaKeywords } from "@/lib/seo";
 import SafeHtml from "@/components/cms/SafeHtml";
 import { FullWidthBackground, MainTitle, PageContainer } from "@/styles/Theme";
 import BlogSidebarFull from "@/components/blog/BlogSidebarFull";
@@ -36,7 +37,7 @@ const getThemeForBlogDetail = cache(async () => {
   })
     .sort({ updatedAt: -1 })
     .select(
-      "blogCommentsEnabled logoLightUrl logoImageUrl logoMobileUrl logoDarkUrl faviconUrl seoImage ogImage socialShareImage",
+      "blogCommentsEnabled logoLightUrl logoImageUrl logoMobileUrl logoDarkUrl faviconUrl seoImage ogImage socialShareImage defaultMetaTitle defaultMetaDescription defaultMetaKeywords defaultMetaImage",
     )
     .lean();
 });
@@ -44,17 +45,21 @@ const getThemeForBlogDetail = cache(async () => {
 function getBlogShareMeta(post, themeDoc, slug) {
   const siteUrl = getSiteUrl();
   const canonicalUrl = buildCanonicalUrl(siteUrl, `/blog/${slug}`);
+  const globalSeo = extractGlobalSeoFromTheme(themeDoc);
   const globalFallbackImage = toAbsoluteUrl(
     getGlobalFallbackImageFromTheme(themeDoc),
     siteUrl,
   );
+  const metaTitle = String(post?.meta?.metaTitle || "").trim();
+  const metaDescription = String(post?.meta?.metaDescription || "").trim();
+  const titleFromContent = String(post?.title || "").trim();
 
   const shareMeta = resolveShareMetadata({
     canonicalUrl,
-    title: post?.title,
-    metaTitle: post?.meta?.metaTitle,
+    title: titleFromContent,
+    metaTitle,
     description: post?.description,
-    metaDescription: post?.meta?.metaDescription,
+    metaDescription,
     shortDescription: post?.shortDescription,
     excerpt: post?.excerpt,
     featuredImageDesktop: post?.featuredImageDesktop,
@@ -66,9 +71,10 @@ function getBlogShareMeta(post, themeDoc, slug) {
 
   return {
     canonicalUrl,
-    title: shareMeta.title || String(post?.title || ""),
-    description: shareMeta.description || "",
-    image: toAbsoluteUrl(shareMeta.image, siteUrl),
+    title: metaTitle || globalSeo.title || shareMeta.title || titleFromContent,
+    description: metaDescription || globalSeo.description || shareMeta.description || "",
+    image: toAbsoluteUrl(shareMeta.image || globalSeo.image, siteUrl),
+    keywords: parseMetaKeywords(post?.meta?.metaKeywords) || globalSeo.keywords,
   };
 }
 
@@ -107,6 +113,7 @@ export async function generateMetadata({ params }) {
     return {
       title: shareMeta.title,
       description: shareMeta.description,
+      ...(shareMeta.keywords?.length ? { keywords: shareMeta.keywords } : {}),
       alternates: { canonical: `/blog/${slug}` },
       openGraph,
       twitter: {

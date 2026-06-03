@@ -290,6 +290,10 @@ const themeConfigSchema = new mongoose.Schema(
     headScripts: { type: String, default: "" },
     footerScripts: { type: String, default: "" },
     googleAnalyticsId: { type: String, default: "" },
+    defaultMetaTitle: { type: String, default: "" },
+    defaultMetaDescription: { type: String, default: "" },
+    defaultMetaKeywords: { type: String, default: "" },
+    defaultMetaImage: { type: String, default: "" },
 
     // ─── Layout & locale ───────────────────────────────────────
     layoutWidth: { type: Number, default: 1200 },

@@ -11,6 +11,7 @@ import {
 } from "@/helpers/socialShare";
 import Event from "@/models/Event";
 import ThemeConfig from "@/models/ThemeConfig";
+import { extractGlobalSeoFromTheme, parseMetaKeywords } from "@/lib/seo";
 import { FullWidthBackground, PageContainer } from "@/styles/Theme";
 import EventContent from "@/components/events/EventContent";
 import {
@@ -36,7 +37,7 @@ const getThemeForEventDetail = cache(async () => {
   })
     .sort({ updatedAt: -1 })
     .select(
-      "logoLightUrl logoImageUrl logoMobileUrl logoDarkUrl faviconUrl seoImage ogImage socialShareImage",
+      "logoLightUrl logoImageUrl logoMobileUrl logoDarkUrl faviconUrl seoImage ogImage socialShareImage defaultMetaTitle defaultMetaDescription defaultMetaKeywords defaultMetaImage",
     )
     .lean();
 });
@@ -44,18 +45,22 @@ const getThemeForEventDetail = cache(async () => {
 function getEventShareMeta(event, themeDoc, slug) {
   const siteUrl = getSiteUrl();
   const canonicalUrl = buildCanonicalUrl(siteUrl, `/events/${slug}`);
+  const globalSeo = extractGlobalSeoFromTheme(themeDoc);
   const globalFallbackImage = toAbsoluteUrl(
     getGlobalFallbackImageFromTheme(themeDoc),
     siteUrl,
   );
+  const metaTitle = String(event?.meta?.metaTitle || "").trim();
+  const metaDescription = String(event?.meta?.metaDescription || "").trim();
+  const titleFromContent = String(event?.title || "").trim();
   const { desktop, mobile } = getEventImageSources(event || {});
 
   const shareMeta = resolveShareMetadata({
     canonicalUrl,
-    title: event?.title,
-    metaTitle: event?.meta?.metaTitle,
+    title: titleFromContent,
+    metaTitle,
     description: event?.description,
-    metaDescription: event?.meta?.metaDescription,
+    metaDescription,
     shortDescription: event?.shortDescription,
     excerpt: event?.excerpt,
     featuredImageDesktop: event?.featuredImageDesktop || desktop,
@@ -67,9 +72,10 @@ function getEventShareMeta(event, themeDoc, slug) {
 
   return {
     canonicalUrl,
-    title: shareMeta.title || String(event?.title || ""),
-    description: shareMeta.description || "",
-    image: toAbsoluteUrl(shareMeta.image, siteUrl),
+    title: metaTitle || globalSeo.title || shareMeta.title || titleFromContent,
+    description: metaDescription || globalSeo.description || shareMeta.description || "",
+    image: toAbsoluteUrl(shareMeta.image || globalSeo.image, siteUrl),
+    keywords: parseMetaKeywords(event?.meta?.metaKeywords) || globalSeo.keywords,
   };
 }
 
@@ -106,6 +112,7 @@ export async function generateMetadata({ params }) {
     return {
       title: shareMeta.title,
       description: shareMeta.description,
+      ...(shareMeta.keywords?.length ? { keywords: shareMeta.keywords } : {}),
       alternates: { canonical: `/events/${slug}` },
       openGraph,
       twitter: {
