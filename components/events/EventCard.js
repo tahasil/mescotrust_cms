@@ -87,7 +87,11 @@ export default function EventCard({ event }) {
             {event.title}
           </Link>
         </h2>
-        <EventMeta event={event} style={{ marginBottom: 10, fontSize: 13 }} />
+        <EventMeta
+          event={event}
+          showIcons
+          style={{ marginBottom: 10, fontSize: 13 }}
+        />
         {desc ? (
           <p
             style={{

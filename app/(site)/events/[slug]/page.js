@@ -12,9 +12,12 @@ import {
 import Event from "@/models/Event";
 import ThemeConfig from "@/models/ThemeConfig";
 import { FullWidthBackground, PageContainer } from "@/styles/Theme";
-import EventMeta from "@/components/events/EventMeta";
 import EventContent from "@/components/events/EventContent";
-import { getEventImageSources } from "@/components/events/eventDisplay";
+import {
+  formatEventDateRange,
+  getEventImageSources,
+  isEventPast,
+} from "@/components/events/eventDisplay";
 import EventsSidebarFull from "@/components/events/EventsSidebarFull";
 import MediaImage from "@/components/shared/MediaImage";
 import SocialShare from "@/components/common/SocialShare";
@@ -90,10 +93,12 @@ export async function generateMetadata({ params }) {
       type: "website",
       ...(shareMeta.image
         ? {
-            images: [{
-              url: shareMeta.image,
-              alt: shareMeta.title,
-            }],
+            images: [
+              {
+                url: shareMeta.image,
+                alt: shareMeta.title,
+              },
+            ],
           }
         : {}),
     };
@@ -172,6 +177,15 @@ async function EventDetail({ slug }) {
   };
 
   const regLink = (event.eventLink || "").trim();
+  const isPastEvent = isEventPast(event);
+  const isRegistrationOpen = Boolean(regLink) && !isPastEvent;
+  const shortDescription = (event.description || "").trim();
+  const fullDescription = (event.content || "").trim();
+  const eventDateRange = formatEventDateRange(event.startDate, event.endDate);
+  const eventMode = event.isOnline ? "Online" : "In-person";
+  const venue = event.isOnline
+    ? "Online event"
+    : (event.location || "").trim() || "Venue to be announced";
 
   return (
     <>
@@ -207,22 +221,13 @@ async function EventDetail({ slug }) {
                 className="events-detail-meta-row"
                 style={{
                   display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
+                  justifyContent: "flex-end",
+                  alignItems: "center",
                   gap: 16,
                   marginBottom: 24,
                   flexWrap: "wrap",
                 }}
               >
-                <EventMeta
-                  event={event}
-                  showIcons
-                  style={{
-                    marginBottom: 0,
-                    fontSize: 15,
-                    color: "rgba(0,0,0,0.45)",
-                  }}
-                />
                 <SocialShare
                   canonicalUrl={shareMeta.canonicalUrl}
                   title={shareMeta.title}
@@ -266,42 +271,112 @@ async function EventDetail({ slug }) {
                 </figure>
               ) : null}
 
-              {regLink ? (
-                <p style={{ margin: "0 0 24px 0" }}>
-                  <a
-                    href={regLink}
-                    rel="noopener noreferrer"
-                    style={{
-                      display: "inline-block",
-                      padding: "12px 24px",
-                      borderRadius: 999,
-                      background:
-                        "var(--gradient-color, linear-gradient(90deg, #CF372F 0%, #691C18 100%))",
-                      color: "#fff",
-                      fontWeight: 500,
-                      fontSize: 14,
-                      textDecoration: "none",
-                    }}
-                  >
-                    Register Now
-                  </a>
+              <section
+                style={{
+                  marginBottom: 26,
+                  border: "1px solid rgba(0,0,0,0.08)",
+                  borderRadius: 12,
+                  background: "rgba(0,0,0,0.015)",
+                  padding: 18,
+                }}
+              >
+                <h2
+                  style={{
+                    margin: "0 0 14px 0",
+                    fontSize: 18,
+                    lineHeight: 1.3,
+                    fontWeight: 700,
+                  }}
+                >
+                  Event Information
+                </h2>
+                <dl
+                  className="events-detail-info-grid"
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "minmax(120px, 180px) 1fr",
+                    rowGap: 10,
+                    columnGap: 14,
+                    margin: 0,
+                  }}
+                >
+                  <dt style={{ color: "rgba(0,0,0,0.6)", fontWeight: 600 }}>
+                    Date
+                  </dt>
+                  <dd style={{ margin: 0, color: "rgba(0,0,0,0.82)" }}>
+                    {eventDateRange || "To be announced"}
+                  </dd>
+
+                  <dt style={{ color: "rgba(0,0,0,0.6)", fontWeight: 600 }}>
+                    Time
+                  </dt>
+                  <dd style={{ margin: 0, color: "rgba(0,0,0,0.82)" }}>
+                    {(event.time || "").trim() || "To be announced"}
+                  </dd>
+
+                  <dt style={{ color: "rgba(0,0,0,0.6)", fontWeight: 600 }}>
+                    Mode
+                  </dt>
+                  <dd style={{ margin: 0, color: "rgba(0,0,0,0.82)" }}>
+                    {eventMode}
+                  </dd>
+
+                  <dt style={{ color: "rgba(0,0,0,0.6)", fontWeight: 600 }}>
+                    Venue
+                  </dt>
+                  <dd style={{ margin: 0, color: "rgba(0,0,0,0.82)" }}>
+                    {venue}
+                  </dd>
+
+                  <dt style={{ color: "rgba(0,0,0,0.6)", fontWeight: 600 }}>
+                    Registration
+                  </dt>
+                  <dd style={{ margin: 0, color: "rgba(0,0,0,0.82)" }}>
+                    {isRegistrationOpen ? (
+                      <a
+                        href={regLink}
+                        rel="noopener noreferrer"
+                        style={{
+                          color: "var(--primary-color, #8b1a1a)",
+                          fontWeight: 600,
+                          textDecoration: "none",
+                        }}
+                      >
+                        Open registration form
+                      </a>
+                    ) : regLink ? (
+                      "Registration closed"
+                    ) : (
+                      "Not available"
+                    )}
+                  </dd>
+                </dl>
+              </section>
+
+              {shortDescription ? (
+                <p
+                  style={{
+                    fontSize: 17,
+                    lineHeight: 1.65,
+                    color: "rgba(0,0,0,0.66)",
+                    margin: "0 0 20px",
+                    whiteSpace: "pre-line",
+                  }}
+                >
+                  {shortDescription}
                 </p>
               ) : null}
 
-              {event.description?.trim() ? (
-                <p
-                  style={{
-                    fontSize: 18,
-                    lineHeight: 1.6,
-                    color: "rgba(0,0,0,0.6)",
-                    marginBottom: 24,
-                    whiteSpace: "pre-line",
-                    fontStyle: "italic",
-                  }}
-                >
-                  {event.description.trim()}
-                </p>
-              ) : null}
+              <h2
+                style={{
+                  margin: "0 0 14px",
+                  fontSize: 22,
+                  lineHeight: 1.3,
+                  fontWeight: 700,
+                }}
+              >
+                Description
+              </h2>
 
               <div
                 style={{
@@ -314,7 +389,17 @@ async function EventDetail({ slug }) {
                   overflow: "hidden",
                 }}
               >
-                <EventContent html={event.content} />
+                {fullDescription ? (
+                  <EventContent html={fullDescription} />
+                ) : shortDescription ? (
+                  <p style={{ margin: 0, whiteSpace: "pre-line" }}>
+                    {shortDescription}
+                  </p>
+                ) : (
+                  <p style={{ margin: 0, color: "rgba(0,0,0,0.55)" }}>
+                    Description will be updated soon.
+                  </p>
+                )}
               </div>
 
               {event.tags?.length > 0 ? (
@@ -359,7 +444,10 @@ async function EventDetail({ slug }) {
               </p>
             </article>
 
-            <div style={{ width: 320, flexShrink: 0 }} className="events-detail-sidebar">
+            <div
+              style={{ width: 320, flexShrink: 0 }}
+              className="events-detail-sidebar"
+            >
               <EventsSidebarFull currentSlug={slug} />
             </div>
           </div>
@@ -387,6 +475,12 @@ async function EventDetail({ slug }) {
           }
           .events-detail-sidebar { margin-top: 28px !important; }
         }
+        @media (max-width: 640px) {
+          .events-detail-info-grid {
+            grid-template-columns: 1fr !important;
+            row-gap: 4px !important;
+          }
+        }
         @media (max-width: 480px) {
           .events-detail-title { font-size: 20px !important; }
           .events-detail-article { font-size: 15px; }
@@ -399,4 +493,3 @@ async function EventDetail({ slug }) {
 export default function EventDetailPage({ params }) {
   return <EventDetail slug={params.slug} />;
 }
-

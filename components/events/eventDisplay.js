@@ -46,3 +46,35 @@ export function formatLocationLine(event) {
   const loc = (event?.location || "").trim();
   return loc || "";
 }
+
+function getStartOfTodayUtc(baseDate = new Date()) {
+  return new Date(
+    Date.UTC(
+      baseDate.getUTCFullYear(),
+      baseDate.getUTCMonth(),
+      baseDate.getUTCDate(),
+    ),
+  );
+}
+
+function toValidDate(value) {
+  if (!value) return null;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+/**
+ * Mirrors events listing logic:
+ * - if endDate exists, event is past when endDate < start of today (UTC)
+ * - otherwise fallback to startDate for past detection
+ */
+export function isEventPast(event, baseDate = new Date()) {
+  const todayStart = getStartOfTodayUtc(baseDate);
+  const endDate = toValidDate(event?.endDate);
+  if (endDate) return endDate < todayStart;
+
+  const startDate = toValidDate(event?.startDate);
+  if (startDate) return startDate < todayStart;
+
+  return false;
+}

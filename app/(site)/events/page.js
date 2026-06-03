@@ -9,44 +9,107 @@ import EventsSidebarFull from "@/components/events/EventsSidebarFull";
 
 export const dynamic = "force-dynamic";
 
-const PAGE_SIZE = 9;
+const ACTIVE_PAGE_SIZE = 9;
+const PAST_PAGE_SIZE = 6;
+
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function getStartOfTodayUtc() {
+  const now = new Date();
+  return new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
+}
+
+function buildSearchCondition(q) {
+  if (!q) return null;
+  const query = escapeRegex(q);
+  return {
+    $or: [
+      { title: { $regex: query, $options: "i" } },
+      { description: { $regex: query, $options: "i" } },
+      { content: { $regex: query, $options: "i" } },
+    ],
+  };
+}
+
+function buildActiveDateCondition(todayStart) {
+  return {
+    $or: [
+      { endDate: { $gte: todayStart } },
+      { endDate: null, startDate: { $gte: todayStart } },
+      { endDate: null, startDate: null },
+    ],
+  };
+}
+
+function buildPastDateCondition(todayStart) {
+  return {
+    $or: [
+      { endDate: { $lt: todayStart } },
+      { endDate: null, startDate: { $lt: todayStart } },
+    ],
+  };
+}
+
+function buildFilter({ q, todayStart, visibility }) {
+  const andConditions = [{ status: "published" }];
+  const searchCondition = buildSearchCondition(q);
+  if (searchCondition) andConditions.push(searchCondition);
+  if (visibility === "active") {
+    andConditions.push(buildActiveDateCondition(todayStart));
+  } else if (visibility === "past") {
+    andConditions.push(buildPastDateCondition(todayStart));
+  }
+  return andConditions.length === 1
+    ? andConditions[0]
+    : { $and: andConditions };
+}
+
+function buildEventsHref({ page, pastPage, sortMode, q }) {
+  const params = new URLSearchParams();
+  params.set("page", String(Math.max(1, page || 1)));
+  params.set("pastPage", String(Math.max(1, pastPage || 1)));
+  params.set("sort", sortMode === "recent" ? "recent" : "upcoming");
+  if (q) params.set("q", q);
+  return `/events?${params.toString()}`;
+}
 
 const getEventsListingData = unstable_cache(
-  async (page, sortMode, q) => {
+  async (activePage, pastPage, sortMode, q) => {
     await connectDB();
-    const filter = { status: "published" };
-    if (q) {
-      const query = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      filter.$or = [
-        {
-          title: {
-            $regex: query,
-            $options: "i",
-          },
-        },
-        {
-          description: {
-            $regex: query,
-            $options: "i",
-          },
-        },
-      ];
-    }
-    const sort =
+    const todayStart = getStartOfTodayUtc();
+    const activeFilter = buildFilter({ q, todayStart, visibility: "active" });
+    const pastFilter = buildFilter({ q, todayStart, visibility: "past" });
+    const activeSort =
       sortMode === "recent"
         ? { updatedAt: -1, startDate: -1 }
-        : { startDate: 1, updatedAt: -1 };
+        : { startDate: 1, endDate: 1, updatedAt: -1 };
+    const pastSort = { endDate: -1, startDate: -1, updatedAt: -1 };
 
-    const [total, items] = await Promise.all([
-      Event.countDocuments(filter),
-      Event.find(filter)
-        .sort(sort)
-        .skip((page - 1) * PAGE_SIZE)
-        .limit(PAGE_SIZE)
+    const [activeTotal, activeItems, pastTotal, pastItems] = await Promise.all([
+      Event.countDocuments(activeFilter),
+      Event.find(activeFilter)
+        .sort(activeSort)
+        .skip((activePage - 1) * ACTIVE_PAGE_SIZE)
+        .limit(ACTIVE_PAGE_SIZE)
+        .lean(),
+      Event.countDocuments(pastFilter),
+      Event.find(pastFilter)
+        .sort(pastSort)
+        .skip((pastPage - 1) * PAST_PAGE_SIZE)
+        .limit(PAST_PAGE_SIZE)
         .lean(),
     ]);
 
-    return { total, items };
+    return {
+      activeTotal,
+      activeItems,
+      pastTotal,
+      pastItems,
+    };
   },
   ["events-listing-page-data"],
   { revalidate: 60 },
@@ -64,30 +127,37 @@ export async function generateMetadata() {
 
 export default async function EventsListPage({ searchParams }) {
   const page = Math.max(1, Number(searchParams?.page) || 1);
+  const pastPage = Math.max(1, Number(searchParams?.pastPage) || 1);
   const sortMode = searchParams?.sort === "recent" ? "recent" : "upcoming";
   const q = (searchParams?.q || "").trim();
 
-  let items = [];
-  let total = 0;
+  let activeItems = [];
+  let activeTotal = 0;
+  let pastItems = [];
+  let pastTotal = 0;
 
   try {
-    const data = await getEventsListingData(page, sortMode, q);
-    items = data.items || [];
-    total = data.total || 0;
+    const data = await getEventsListingData(page, pastPage, sortMode, q);
+    activeItems = data.activeItems || [];
+    activeTotal = data.activeTotal || 0;
+    pastItems = data.pastItems || [];
+    pastTotal = data.pastTotal || 0;
   } catch {
     // leave empty
   }
 
-  const totalPages = Math.ceil(total / PAGE_SIZE);
-  const list = JSON.parse(JSON.stringify(items));
+  const activeTotalPages = Math.ceil(activeTotal / ACTIVE_PAGE_SIZE);
+  const pastTotalPages = Math.ceil(pastTotal / PAST_PAGE_SIZE);
+  const activeList = JSON.parse(JSON.stringify(activeItems));
+  const pastList = JSON.parse(JSON.stringify(pastItems));
 
   return (
     <FullWidthBackground className="customInnerHero" suppressHydrationWarning>
       <PageContainer className="pt-0" suppressHydrationWarning>
         <div className="events-layout" style={{ display: "flex", gap: 40 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <EventList items={list} />
-            {totalPages > 1 && (
+            <EventList items={activeList} />
+            {activeTotalPages > 1 && (
               <nav
                 style={{
                   display: "flex",
@@ -99,7 +169,12 @@ export default async function EventsListPage({ searchParams }) {
               >
                 {page > 1 && (
                   <Link
-                    href={`/events?page=${page - 1}&sort=${sortMode}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
+                    href={buildEventsHref({
+                      page: page - 1,
+                      pastPage,
+                      sortMode,
+                      q,
+                    })}
                     style={{
                       padding: "8px 16px",
                       border: "1px solid rgba(0,0,0,0.12)",
@@ -120,11 +195,16 @@ export default async function EventsListPage({ searchParams }) {
                     color: "rgba(0,0,0,0.45)",
                   }}
                 >
-                  Page {page} of {totalPages}
+                  Page {page} of {activeTotalPages}
                 </span>
-                {page < totalPages && (
+                {page < activeTotalPages && (
                   <Link
-                    href={`/events?page=${page + 1}&sort=${sortMode}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
+                    href={buildEventsHref({
+                      page: page + 1,
+                      pastPage,
+                      sortMode,
+                      q,
+                    })}
                     style={{
                       padding: "8px 16px",
                       border: "1px solid rgba(0,0,0,0.12)",
@@ -140,6 +220,111 @@ export default async function EventsListPage({ searchParams }) {
                 )}
               </nav>
             )}
+
+            <section
+              style={{
+                marginTop: 64,
+                paddingTop: 36,
+                borderTop: "1px solid rgba(0,0,0,0.08)",
+              }}
+            >
+              <h3
+                style={{
+                  margin: "0 0 10px 0",
+                  fontSize: 22,
+                  lineHeight: 1.25,
+                  fontWeight: 700,
+                }}
+              >
+                Past Events
+              </h3>
+              <p
+                style={{
+                  margin: "0 0 18px 0",
+                  color: "rgba(0,0,0,0.55)",
+                  fontSize: 14,
+                }}
+              >
+                Recently concluded events are available below.
+              </p>
+              {pastList.length > 0 ? (
+                <EventList items={pastList} />
+              ) : (
+                <p
+                  style={{
+                    color: "rgba(0,0,0,0.35)",
+                    textAlign: "center",
+                    padding: "30px 0",
+                  }}
+                >
+                  No past events found.
+                </p>
+              )}
+
+              {pastTotalPages > 1 && (
+                <nav
+                  style={{
+                    display: "flex",
+                    gap: 8,
+                    justifyContent: "center",
+                    marginTop: 24,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  {pastPage > 1 && (
+                    <Link
+                      href={buildEventsHref({
+                        page,
+                        pastPage: pastPage - 1,
+                        sortMode,
+                        q,
+                      })}
+                      style={{
+                        padding: "8px 16px",
+                        border: "1px solid rgba(0,0,0,0.12)",
+                        borderRadius: 8,
+                        textDecoration: "none",
+                        fontSize: 14,
+                        color: "rgba(0,0,0,0.65)",
+                        background: "#fff",
+                      }}
+                    >
+                      Previous
+                    </Link>
+                  )}
+                  <span
+                    style={{
+                      padding: "8px 16px",
+                      fontSize: 14,
+                      color: "rgba(0,0,0,0.45)",
+                    }}
+                  >
+                    Page {pastPage} of {pastTotalPages}
+                  </span>
+                  {pastPage < pastTotalPages && (
+                    <Link
+                      href={buildEventsHref({
+                        page,
+                        pastPage: pastPage + 1,
+                        sortMode,
+                        q,
+                      })}
+                      style={{
+                        padding: "8px 16px",
+                        border: "1px solid rgba(0,0,0,0.12)",
+                        borderRadius: 8,
+                        textDecoration: "none",
+                        fontSize: 14,
+                        color: "rgba(0,0,0,0.65)",
+                        background: "#fff",
+                      }}
+                    >
+                      Next
+                    </Link>
+                  )}
+                </nav>
+              )}
+            </section>
           </div>
 
           <div style={{ width: 320, flexShrink: 0 }} className="events-sidebar">

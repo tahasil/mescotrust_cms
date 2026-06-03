@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Button,
+  DatePicker,
   Form,
   Input,
   Space,
@@ -16,9 +17,12 @@ import {
 } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import Link from "next/link";
+import dayjs from "dayjs";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { ThemeAdminCard } from "@/styles/Theme";
+
+const { RangePicker } = DatePicker;
 
 function slugify(text) {
   return (text || "")
@@ -29,6 +33,16 @@ function slugify(text) {
     .replace(/[^a-z0-9-]/g, "")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
+}
+
+function toIsoStringOrNull(dateVal) {
+  if (!dateVal || !dayjs.isDayjs(dateVal) || !dateVal.isValid()) return null;
+  return dateVal.toDate().toISOString();
+}
+
+function toTimeText(dateVal) {
+  if (!dateVal || !dayjs.isDayjs(dateVal) || !dateVal.isValid()) return "";
+  return dateVal.format("HH:mm");
 }
 
 export default function AdminEventNewPage() {
@@ -47,8 +61,11 @@ export default function AdminEventNewPage() {
   const onFinish = async (values) => {
     setSaving(true);
     try {
-      const startT = (values.startTime || "").toString().trim();
-      const endT = (values.endTime || "").toString().trim();
+      const [startDateValue, endDateValue] = Array.isArray(values.eventDateRange)
+        ? values.eventDateRange
+        : [];
+      const startT = toTimeText(startDateValue);
+      const endT = toTimeText(endDateValue);
       const timeStr =
         startT && endT ? `${startT} - ${endT}` : startT || endT || "";
 
@@ -61,8 +78,8 @@ export default function AdminEventNewPage() {
           content: values.content || "",
           featuredImageDesktop: values.featuredImageDesktop || "",
           featuredImageMobile: values.featuredImageMobile || "",
-          startDate: values.startDate || null,
-          endDate: values.endDate || null,
+          startDate: toIsoStringOrNull(startDateValue),
+          endDate: toIsoStringOrNull(endDateValue),
           time: timeStr,
           location: values.isOnline ? "" : values.location || "",
           isOnline: !!values.isOnline,
@@ -147,49 +164,28 @@ export default function AdminEventNewPage() {
               <Input placeholder="https://..." />
             </Form.Item>
           </Col>
-
           <Col xs={24} sm={12} xl={6}>
-            <Form.Item name="startDate" label="Start date">
-              <Input type="date" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} xl={6}>
-            <Form.Item name="endDate" label="End date">
-              <Input type="date" />
+            <Form.Item name="location" label="Location">
+              <Input
+                disabled={isOnline}
+                placeholder={isOnline ? "Online event" : "Venue or address"}
+              />
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} xl={6}>
-            <Form.Item name="startTime" label="Start time">
-              <Input type="time" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} xl={6}>
-            <Form.Item name="endTime" label="End time">
-              <Input type="time" />
+          <Col xs={24} sm={12} xl={12}>
+            <Form.Item name="eventDateRange" label="Event date & time range">
+              <RangePicker
+                showTime={{ format: "HH:mm" }}
+                format="DD-MM-YYYY HH:mm"
+                style={{ width: "100%" }}
+                placeholder={["Start date & time", "End date & time"]}
+              />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12} xl={6}>
             <Form.Item name="isOnline" label="Online event" valuePropName="checked">
               <Switch />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} xl={6}>
-            <Form.Item
-              noStyle
-              shouldUpdate={(prev, cur) => prev.isOnline !== cur.isOnline}
-            >
-              {({ getFieldValue }) =>
-                getFieldValue("isOnline") ? (
-                  <Form.Item label="Location">
-                    <Input disabled placeholder="Online event" />
-                  </Form.Item>
-                ) : (
-                  <Form.Item name="location" label="Location">
-                    <Input placeholder="Venue or address" />
-                  </Form.Item>
-                )
-              }
             </Form.Item>
           </Col>
 
@@ -237,7 +233,6 @@ export default function AdminEventNewPage() {
                       <Card title="Desktop Image" size="small">
                         <Form.Item
                           name="featuredImageDesktop"
-                          extra="Primary image for social sharing previews."
                           style={{ marginBottom: 0 }}
                         >
                           <MediaPickerInput
@@ -253,14 +248,13 @@ export default function AdminEventNewPage() {
                       <Card title="Mobile Image" size="small">
                         <Form.Item
                           name="featuredImageMobile"
-                          extra="Used as social sharing fallback image when desktop image is missing."
                           style={{ marginBottom: 0 }}
                         >
                           <MediaPickerInput
                             placeholder="/media/..."
                             uiVariant="stacked"
                             showVariants={false}
-                            hintText="Optional for mobile"
+                            hintText="Recommended: 1200x600"
                           />
                         </Form.Item>
                       </Card>

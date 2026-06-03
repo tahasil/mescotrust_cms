@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Button,
+  DatePicker,
   Form,
   Input,
   Space,
@@ -16,15 +17,38 @@ import {
 } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import Link from "next/link";
+import dayjs from "dayjs";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { ThemeAdminCard } from "@/styles/Theme";
 
-function toDateInput(v) {
+const { RangePicker } = DatePicker;
+
+function toDateTimeValue(v, fallbackTime = "") {
   if (!v) return undefined;
-  const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return undefined;
-  return d.toISOString().slice(0, 10);
+  const base = dayjs(v);
+  if (!base.isValid()) return undefined;
+
+  const match = fallbackTime
+    .toString()
+    .trim()
+    .match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return base;
+
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (
+    Number.isNaN(hours) ||
+    Number.isNaN(minutes) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59
+  ) {
+    return base;
+  }
+
+  return base.hour(hours).minute(minutes).second(0).millisecond(0);
 }
 
 function parseTimeRangeString(s) {
@@ -36,6 +60,16 @@ function parseTimeRangeString(s) {
     .filter(Boolean);
   if (parts.length >= 2) return { start: parts[0], end: parts[1] };
   return { start: raw, end: "" };
+}
+
+function toIsoStringOrNull(dateVal) {
+  if (!dateVal || !dayjs.isDayjs(dateVal) || !dateVal.isValid()) return null;
+  return dateVal.toDate().toISOString();
+}
+
+function toTimeText(dateVal) {
+  if (!dateVal || !dayjs.isDayjs(dateVal) || !dateVal.isValid()) return "";
+  return dateVal.format("HH:mm");
 }
 
 export default function AdminEventEditPage() {
@@ -59,6 +93,8 @@ export default function AdminEventEditPage() {
         }
         const data = await res.json();
         const tr = parseTimeRangeString(data.time);
+        const startDateValue = toDateTimeValue(data.startDate, tr.start);
+        const endDateValue = toDateTimeValue(data.endDate, tr.end);
         form.setFieldsValue({
           title: data.title,
           slug: data.slug,
@@ -66,10 +102,10 @@ export default function AdminEventEditPage() {
           content: data.content,
           featuredImageDesktop: data.featuredImageDesktop,
           featuredImageMobile: data.featuredImageMobile,
-          startDate: toDateInput(data.startDate),
-          endDate: toDateInput(data.endDate),
-          startTime: tr.start,
-          endTime: tr.end,
+          eventDateRange:
+            startDateValue || endDateValue
+              ? [startDateValue || null, endDateValue || null]
+              : undefined,
           location: data.location,
           isOnline: !!data.isOnline,
           eventLink: data.eventLink,
@@ -88,8 +124,11 @@ export default function AdminEventEditPage() {
   const onFinish = async (values) => {
     setSaving(true);
     try {
-      const startT = (values.startTime || "").toString().trim();
-      const endT = (values.endTime || "").toString().trim();
+      const [startDateValue, endDateValue] = Array.isArray(values.eventDateRange)
+        ? values.eventDateRange
+        : [];
+      const startT = toTimeText(startDateValue);
+      const endT = toTimeText(endDateValue);
       const timeStr =
         startT && endT ? `${startT} - ${endT}` : startT || endT || "";
       const res = await fetch(`/api/admin/events/${id}`, {
@@ -101,8 +140,8 @@ export default function AdminEventEditPage() {
           content: values.content || "",
           featuredImageDesktop: values.featuredImageDesktop || "",
           featuredImageMobile: values.featuredImageMobile || "",
-          startDate: values.startDate || null,
-          endDate: values.endDate || null,
+          startDate: toIsoStringOrNull(startDateValue),
+          endDate: toIsoStringOrNull(endDateValue),
           time: timeStr,
           location: values.isOnline ? "" : values.location || "",
           isOnline: !!values.isOnline,
@@ -177,25 +216,23 @@ export default function AdminEventEditPage() {
               <Input placeholder="https://..." />
             </Form.Item>
           </Col>
+          <Col xs={24} sm={12} xl={6}>
+            <Form.Item name="location" label="Location">
+              <Input
+                disabled={isOnline}
+                placeholder={isOnline ? "Online event" : "Venue or address"}
+              />
+            </Form.Item>
+          </Col>
 
-          <Col xs={24} sm={12} xl={6}>
-            <Form.Item name="startDate" label="Start date">
-              <Input type="date" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} xl={6}>
-            <Form.Item name="endDate" label="End date">
-              <Input type="date" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} xl={6}>
-            <Form.Item name="startTime" label="Start time">
-              <Input type="time" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} xl={6}>
-            <Form.Item name="endTime" label="End time">
-              <Input type="time" />
+          <Col xs={24} sm={12} xl={12}>
+            <Form.Item name="eventDateRange" label="Event date & time range">
+              <RangePicker
+                showTime={{ format: "HH:mm" }}
+                format="DD-MM-YYYY HH:mm"
+                style={{ width: "100%" }}
+                placeholder={["Start date & time", "End date & time"]}
+              />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12} xl={6}>
@@ -205,25 +242,6 @@ export default function AdminEventEditPage() {
               valuePropName="checked"
             >
               <Switch />
-            </Form.Item>
-          </Col>
-
-          <Col xs={24} sm={12} xl={6}>
-            <Form.Item
-              noStyle
-              shouldUpdate={(prev, cur) => prev.isOnline !== cur.isOnline}
-            >
-              {({ getFieldValue }) =>
-                getFieldValue("isOnline") ? (
-                  <Form.Item label="Location">
-                    <Input disabled placeholder="Online event" />
-                  </Form.Item>
-                ) : (
-                  <Form.Item name="location" label="Location">
-                    <Input placeholder="Venue or address" />
-                  </Form.Item>
-                )
-              }
             </Form.Item>
           </Col>
 
@@ -271,7 +289,6 @@ export default function AdminEventEditPage() {
                       <Card title="Desktop Image" size="small">
                         <Form.Item
                           name="featuredImageDesktop"
-                          extra="Primary image for social sharing previews."
                           style={{ marginBottom: 0 }}
                         >
                           <MediaPickerInput
@@ -287,14 +304,13 @@ export default function AdminEventEditPage() {
                       <Card title="Mobile Image" size="small">
                         <Form.Item
                           name="featuredImageMobile"
-                          extra="Used as social sharing fallback image when desktop image is missing."
                           style={{ marginBottom: 0 }}
                         >
                           <MediaPickerInput
                             placeholder="/media/..."
                             uiVariant="stacked"
                             showVariants={false}
-                            hintText="Optional for mobile"
+                            hintText="Recommended: 1200x600"
                           />
                         </Form.Item>
                       </Card>
