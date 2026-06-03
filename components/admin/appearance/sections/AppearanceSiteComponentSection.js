@@ -24,7 +24,7 @@ import {
 } from "@/components/admin/appearance/local/manageSectionData";
 import { fetchAppearanceTitleAndColorsConfigMap } from "@/components/admin/appearance/local/titleAndColorsConfig";
 import {
-  buildThemeColorOptions,
+  buildThemeColorOptionsSafe,
   buildThemePaletteData,
 } from "@/lib/themeColors";
 import { ensureMailto, normalizeTargetFromItem } from "@/lib/linkUtils";
@@ -133,8 +133,17 @@ function buildHeaderSnapshot(theme) {
     navItemBackground: theme?.navItemBackground ?? "",
     navItemHoverBackground: theme?.navItemHoverBackground ?? "",
     navItems: Array.isArray(theme?.navItems) ? theme.navItems : [],
+    logoType: theme?.logoType ?? "",
+    logoImageUrl: theme?.logoImageUrl ?? "",
+    logoDarkUrl: theme?.logoDarkUrl ?? "",
     headerVolunteerLabel: theme?.headerVolunteerLabel ?? "",
     headerVolunteerHref: theme?.headerVolunteerHref ?? "",
+    headerVolunteerIconUrl: theme?.headerVolunteerIconUrl ?? "",
+    headerDonateLabel: theme?.headerDonateLabel ?? "",
+    headerDonateHref: theme?.headerDonateHref ?? "",
+    headerDonateIconUrl: theme?.headerDonateIconUrl ?? "",
+    headerDonateBgColorKey: theme?.headerDonateBgColorKey ?? "",
+    headerDonateTextColorKey: theme?.headerDonateTextColorKey ?? "",
     headerBgColorKey: theme?.headerBgColorKey ?? "",
     headerMobileMenuHeaderBgColorKey:
       theme?.headerMobileMenuHeaderBgColorKey ?? "",
@@ -368,7 +377,7 @@ export default function AppearanceSiteComponentSection({
           : {};
       const paletteData = buildThemePaletteData(theme);
       setThemePaletteData(paletteData);
-      setThemeColorOptions(buildThemeColorOptions(theme));
+      setThemeColorOptions(buildThemeColorOptionsSafe(theme));
 
       if (componentId === "Header") {
         let headerTheme = { ...theme, ...headerThemeData, navItems: [] };
