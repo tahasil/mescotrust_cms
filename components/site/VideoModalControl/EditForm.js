@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import { buildThemeColorOptionsSafe } from "@/lib/themeColors";
 import {
   Form,
   Input,
@@ -180,14 +181,7 @@ function normalizeItemsForForm(rawItems) {
 }
 
 function buildThemeColorOptions(theme = {}) {
-  const palette =
-    theme?.frontendUiColors && typeof theme.frontendUiColors === "object"
-      ? theme.frontendUiColors
-      : theme?.themePalette && typeof theme.themePalette === "object"
-        ? theme.themePalette
-        : {};
-  const names = Object.keys(palette).sort();
-  return names.map((name) => ({ label: name, value: name }));
+  return buildThemeColorOptionsSafe(theme);
 }
 
 function applyFormValues(form, data = {}) {

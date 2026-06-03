@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import { buildThemeColorOptionsSafe } from "@/lib/themeColors";
 import { Form, Input, message, Spin, Collapse, Row, Col, InputNumber, Switch, Select } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
@@ -138,18 +139,7 @@ function normalizeMarqueesFromData(data = {}) {
 }
 
 function buildThemeColorOptions(theme = {}) {
-  const palette =
-    theme?.themePalette && typeof theme.themePalette === "object"
-      ? theme.themePalette
-      : {};
-  const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
-  const names = [
-    ...new Set([
-      ...Object.keys(palette),
-      ...customColors.map((c) => String(c?.name || "").trim()).filter(Boolean),
-    ]),
-  ].sort();
-  return names.map((name) => ({ label: name, value: name }));
+  return buildThemeColorOptionsSafe(theme);
 }
 
 function buildInitialValues(data = {}) {

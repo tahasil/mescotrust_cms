@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { buildThemeColorOptionsSafe } from "@/lib/themeColors";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -82,15 +83,7 @@ function normalizeColorString(value) {
 }
 
 function buildThemeColorOptions(paletteData = {}) {
-  const paletteKeys = Object.keys(paletteData?.themePalette || {});
-  const customKeys = Array.isArray(paletteData?.colors)
-    ? paletteData.colors
-        .map((item) => String(item?.name || "").trim())
-        .filter(Boolean)
-    : [];
-  return Array.from(new Set([...paletteKeys, ...customKeys]))
-    .sort((a, b) => a.localeCompare(b))
-    .map((key) => ({ label: key, value: key }));
+  return buildThemeColorOptionsSafe(paletteData);
 }
 
 function resolveThemeColorFromPalette(paletteData, key) {

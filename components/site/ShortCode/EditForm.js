@@ -6,6 +6,7 @@ import {
   forwardRef,
   useImperativeHandle,
 } from "react";
+import { buildThemeColorOptionsSafe } from "@/lib/themeColors";
 import { Collapse, Form, Input, Select, Spin, message } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
@@ -46,12 +47,7 @@ function normalizeAlign(value, fallback = "left") {
 }
 
 function buildThemeColorOptions(theme = {}) {
-  const palette =
-    theme?.themePalette && typeof theme.themePalette === "object"
-      ? theme.themePalette
-      : {};
-  const names = Object.keys(palette).sort();
-  return names.map((name) => ({ label: name, value: name }));
+  return buildThemeColorOptionsSafe(theme);
 }
 
 function applyFormValues(form, data = {}) {
