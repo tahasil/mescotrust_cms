@@ -1,23 +1,15 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import {
-  Form,
-  Input,
-  Row,
-  Col,
-  Collapse,
-  message,
-  Spin,
-  Select,
-  Switch,
-  InputNumber,
-  Button,
-  Divider,
-} from "antd";
-import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
+import { Form, Input, Row, Col, Collapse, message, Spin, Select, Switch, InputNumber } from "antd";
+import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import SortableFormList from "@/components/admin/SortableFormList";
+import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
+import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/SocialMediaWall";
+const PREFIX = "socialMediaWall";
 
 const PLATFORM_OPTIONS = [
   { label: "X (Twitter)", value: "twitter" },
@@ -65,10 +57,9 @@ function normalizePostLimit(value) {
   return Math.min(60, Math.floor(num));
 }
 
-function normalizeSpacing(value) {
-  const num = Number(value);
-  if (!Number.isFinite(num) || num < 0) return 64;
-  return Math.min(240, Math.floor(num));
+function normalizeLayoutMode(value) {
+  const mode = safeString(value).toLowerCase();
+  return ["grid", "masonry", "carousel"].includes(mode) ? mode : "masonry";
 }
 
 function SocialMediaWallEditForm(
@@ -84,6 +75,8 @@ function SocialMediaWallEditForm(
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [themeColorOptions, setThemeColorOptions] = useState(themeColorOptionsProp);
+  const [reorderMovedIndex, setReorderMovedIndex] = useState(-1);
+  const [reorderDirection, setReorderDirection] = useState("up");
   const themeFetchedForColorsRef = useRef(false);
   const isPageBlock = source === "page";
 
@@ -95,29 +88,49 @@ function SocialMediaWallEditForm(
     setLoading(true);
 
     const setFormAndColors = (data, theme) => {
+      const spacingValue = Number(data?.socialMediaWallSectionSpacing);
+      const normalizedForSection = {
+        ...(data || {}),
+        ...((
+          data?.socialMediaWallSectionBgType !== "image" &&
+          data?.socialMediaWallSectionBgType !== "color" &&
+          safeString(data?.socialMediaWallSectionBgColorKey)
+        )
+          ? { socialMediaWallSectionBgType: "color" }
+          : {}),
+        ...(
+          data?.socialMediaWallSectionPaddingTop == null &&
+          data?.socialMediaWallSectionPaddingBottom == null &&
+          Number.isFinite(spacingValue) &&
+          spacingValue >= 0
+            ? {
+                socialMediaWallSectionPaddingTop: Math.floor(spacingValue),
+                socialMediaWallSectionPaddingBottom: Math.floor(spacingValue),
+              }
+            : {}
+        ),
+      };
+
       const platforms = Array.isArray(data?.socialMediaWallPlatforms)
         ? data.socialMediaWallPlatforms.map((item, index) => normalizePlatform(item, index))
         : [];
 
       form.setFieldsValue({
+        ...getManageSectionInitialValues(PREFIX, normalizedForSection),
         socialMediaWallEnabled: data?.socialMediaWallEnabled !== false,
         mainTitle: safeString(data?.mainTitle || "Social Media Wall") || "Social Media Wall",
         subTitle: safeString(data?.subTitle),
+        titleColorKey: safeString(data?.titleColorKey),
+        socialMediaWallTitleEnabled: data?.socialMediaWallTitleEnabled !== false,
+        socialMediaWallSubTitleEnabled: data?.socialMediaWallSubTitleEnabled !== false,
+        socialMediaWallSubTitleColorKey: safeString(data?.socialMediaWallSubTitleColorKey),
         socialMediaWallPlatforms:
           platforms.length > 0
             ? platforms
             : DEFAULT_PLATFORMS.map((item, index) => normalizePlatform(item, index)),
         socialMediaWallPostLimit: normalizePostLimit(data?.socialMediaWallPostLimit),
-        socialMediaWallLayoutMode: ["grid", "masonry", "carousel"].includes(
-          safeString(data?.socialMediaWallLayoutMode).toLowerCase(),
-        )
-          ? safeString(data?.socialMediaWallLayoutMode).toLowerCase()
-          : "masonry",
+        socialMediaWallLayoutMode: normalizeLayoutMode(data?.socialMediaWallLayoutMode),
         socialMediaWallShowPlatformIcon: data?.socialMediaWallShowPlatformIcon !== false,
-        socialMediaWallSectionBgColorKey: safeString(
-          data?.socialMediaWallSectionBgColorKey,
-        ),
-        socialMediaWallSectionSpacing: normalizeSpacing(data?.socialMediaWallSectionSpacing),
       });
 
       if (theme) {
@@ -170,27 +183,23 @@ function SocialMediaWallEditForm(
           : [];
 
         const payload = {
+          ...getManageSectionPayload(PREFIX, values),
           socialMediaWallEnabled: values?.socialMediaWallEnabled !== false,
           mainTitle: safeString(values?.mainTitle || "Social Media Wall") || "Social Media Wall",
           subTitle: safeString(values?.subTitle),
+          titleColorKey: safeString(values?.titleColorKey),
+          socialMediaWallTitleEnabled: values?.socialMediaWallTitleEnabled !== false,
+          socialMediaWallSubTitleEnabled: values?.socialMediaWallSubTitleEnabled !== false,
+          socialMediaWallSubTitleColorKey: safeString(values?.socialMediaWallSubTitleColorKey),
 
           socialMediaWallPlatforms: platforms,
           socialMediaWallPostLimit: normalizePostLimit(values?.socialMediaWallPostLimit),
-          socialMediaWallLayoutMode: ["grid", "masonry", "carousel"].includes(
-            safeString(values?.socialMediaWallLayoutMode).toLowerCase(),
-          )
-            ? safeString(values?.socialMediaWallLayoutMode).toLowerCase()
-            : "masonry",
+          socialMediaWallLayoutMode: normalizeLayoutMode(values?.socialMediaWallLayoutMode),
           socialMediaWallShowPlatformIcon: values?.socialMediaWallShowPlatformIcon !== false,
-
-          socialMediaWallSectionBgColorKey: safeString(
-            values?.socialMediaWallSectionBgColorKey,
-          ),
-          socialMediaWallSectionSpacing: normalizeSpacing(values?.socialMediaWallSectionSpacing),
+          // Disable legacy spacing override so Manage Section spacing is the single source.
+          socialMediaWallSectionSpacing: -1,
 
           // Internal defaults retained to keep frontend behavior stable.
-          socialMediaWallTitleEnabled: true,
-          socialMediaWallSubTitleEnabled: true,
           socialMediaWallEnableLivePosts: true,
           socialMediaWallOrderMode: "platform-priority",
         };
@@ -233,181 +242,131 @@ function SocialMediaWallEditForm(
   return (
     <Form form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={["general", "platforms", "display"]}
+        defaultActiveKey={["platforms"]}
         items={[
           {
-            key: "general",
-            label: "Section 1: General Settings",
+            key: "manage-section",
+            label: "Manage Section",
             children: (
-              <Row gutter={[16, 16]}>
-                <Col span={8}>
+              <>
+                <div style={{ marginBottom: 16 }}>
                   <Form.Item
                     name="socialMediaWallEnabled"
-                    label="Enable Component"
+                    label="Enable component"
                     valuePropName="checked"
+                    style={{ marginBottom: 0 }}
                   >
                     <Switch />
                   </Form.Item>
-                </Col>
-                <Col span={16}>
-                  <Form.Item
-                    name="mainTitle"
-                    label="Section Title"
-                    rules={[{ required: true, message: "Section title is required" }]}
-                  >
-                    <Input placeholder="Social Media Wall" size="large" />
-                  </Form.Item>
-                </Col>
-                <Col span={24}>
-                  <Form.Item name="subTitle" label="Section Subtitle (optional)">
-                    <Input placeholder="Follow us on social media" size="large" />
-                  </Form.Item>
-                </Col>
-              </Row>
+                </div>
+                <ManageSectionFields prefix={PREFIX} form={form} themeColorOptions={themeColorOptions} />
+              </>
+            ),
+          },
+          {
+            key: "title-colors",
+            label: "Title & Colors",
+            children: (
+              <TitleAndColorsSection
+                form={form}
+                themeColorOptions={themeColorOptions}
+                {...getTitleAndColorsConfig("SocialMediaWall")}
+              />
             ),
           },
           {
             key: "platforms",
-            label: "Section 2: Social Platforms",
+            label: "Manage Platforms",
             children: (
-              <Form.List name="socialMediaWallPlatforms">
-                {(fields, { add, remove }) => (
-                  <>
-                    {fields.map((field, index) => (
-                      <div
-                        key={field.key}
-                        style={{
-                          border: "1px solid #f0f0f0",
-                          borderRadius: 10,
-                          padding: 14,
-                          marginBottom: 12,
-                        }}
-                      >
+              <>
+                <Row gutter={[16, 16]}>
+                  <Col span={8}>
+                    <Form.Item name="socialMediaWallPostLimit" label="Posts to show">
+                      <InputNumber min={1} max={60} style={{ width: "100%" }} size="large" />
+                    </Form.Item>
+                  </Col>
+                  <Col span={8}>
+                    <Form.Item name="socialMediaWallLayoutMode" label="Layout style">
+                      <Select options={LAYOUT_OPTIONS} size="large" />
+                    </Form.Item>
+                  </Col>
+                  <Col span={8}>
+                    <Form.Item
+                      name="socialMediaWallShowPlatformIcon"
+                      label="Show platform icon"
+                      valuePropName="checked"
+                    >
+                      <Switch />
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Form.List name="socialMediaWallPlatforms">
+                  {(fields, { add, remove, move }) => (
+                    <SortableFormList
+                      fields={fields}
+                      add={add}
+                      remove={remove}
+                      move={move}
+                      itemLabel="Platform"
+                      addButtonText="Add platform"
+                      defaultAddPayload={{
+                        platform: "twitter",
+                        profileUrl: "",
+                        active: true,
+                        order: 1,
+                      }}
+                      reorderMovedIndex={reorderMovedIndex}
+                      reorderDirection={reorderDirection}
+                      onMoveWithTransition={(from, to) => {
+                        setReorderDirection(to < from ? "up" : "down");
+                        setReorderMovedIndex(to);
+                        setTimeout(() => setReorderMovedIndex(-1), 400);
+                      }}
+                      renderItemContent={(name, restField) => (
                         <Row gutter={[16, 16]}>
-                          <Col span={6}>
+                          <Col span={12}>
                             <Form.Item
-                              {...field}
-                              name={[field.name, "platform"]}
-                              label="Platform Name"
+                              {...restField}
+                              name={[name, "platform"]}
+                              label="Platform"
                               rules={[{ required: true, message: "Platform is required" }]}
                             >
                               <Select options={PLATFORM_OPTIONS} size="large" />
                             </Form.Item>
                           </Col>
-                          <Col span={10}>
+                          <Col span={12}>
                             <Form.Item
-                              {...field}
-                              name={[field.name, "profileUrl"]}
-                              label="Profile/Page/Channel URL"
+                              {...restField}
+                              name={[name, "profileUrl"]}
+                              label="Profile URL"
                             >
                               <Input placeholder="https://..." size="large" />
                             </Form.Item>
                           </Col>
-                          <Col span={4}>
+                          <Col span={12}>
                             <Form.Item
-                              {...field}
-                              name={[field.name, "active"]}
+                              {...restField}
+                              name={[name, "active"]}
                               label="Active"
                               valuePropName="checked"
                             >
                               <Switch />
                             </Form.Item>
                           </Col>
-                          <Col span={3}>
+                          <Col span={12}>
                             <Form.Item
-                              {...field}
-                              name={[field.name, "order"]}
-                              label="Display Order"
+                              {...restField}
+                              name={[name, "order"]}
+                              label="Display order"
                             >
                               <InputNumber min={1} max={99} style={{ width: "100%" }} size="large" />
                             </Form.Item>
                           </Col>
-                          <Col span={1} style={{ display: "flex", alignItems: "end" }}>
-                            <Button
-                              danger
-                              type="text"
-                              icon={<DeleteOutlined />}
-                              onClick={() => remove(field.name)}
-                              aria-label={`Remove platform ${index + 1}`}
-                            />
-                          </Col>
                         </Row>
-                      </div>
-                    ))}
-
-                    <Button
-                      type="dashed"
-                      icon={<PlusOutlined />}
-                      onClick={() =>
-                        add({
-                          platform: "twitter",
-                          profileUrl: "",
-                          active: true,
-                          order: fields.length + 1,
-                        })
-                      }
-                      block
-                    >
-                      Add Platform
-                    </Button>
-                  </>
-                )}
-              </Form.List>
-            ),
-          },
-          {
-            key: "display",
-            label: "Section 3: Display Settings",
-            children: (
-              <Row gutter={[16, 16]}>
-                <Col span={8}>
-                  <Form.Item name="socialMediaWallPostLimit" label="Number of Posts to Show">
-                    <InputNumber min={1} max={60} style={{ width: "100%" }} size="large" />
-                  </Form.Item>
-                </Col>
-                <Col span={8}>
-                  <Form.Item name="socialMediaWallLayoutMode" label="Layout Style">
-                    <Select options={LAYOUT_OPTIONS} size="large" />
-                  </Form.Item>
-                </Col>
-                <Col span={8}>
-                  <Form.Item
-                    name="socialMediaWallShowPlatformIcon"
-                    label="Show Platform Icon"
-                    valuePropName="checked"
-                  >
-                    <Switch />
-                  </Form.Item>
-                </Col>
-              </Row>
-            ),
-          },
-          {
-            key: "styling",
-            label: "Section 4: Styling (Optional)",
-            children: (
-              <>
-                <Row gutter={[16, 16]}>
-                  <Col span={12}>
-                    <Form.Item name="socialMediaWallSectionBgColorKey" label="Background Color">
-                      <Select
-                        allowClear
-                        options={themeColorOptions}
-                        placeholder="Select theme color"
-                        size="large"
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item name="socialMediaWallSectionSpacing" label="Section Spacing (px)">
-                      <InputNumber min={0} max={240} style={{ width: "100%" }} size="large" />
-                    </Form.Item>
-                  </Col>
-                </Row>
-                <Divider style={{ margin: "4px 0 0" }} />
-                <div style={{ marginTop: 10, color: "rgba(0,0,0,0.5)", fontSize: 12 }}>
-                  Technical integrations are handled internally and are not shown here.
-                </div>
+                      )}
+                    />
+                  )}
+                </Form.List>
               </>
             ),
           },

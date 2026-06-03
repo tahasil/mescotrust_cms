@@ -616,7 +616,6 @@ export default function SocialMediaWall(props) {
   const [loadingLive, setLoadingLive] = useState(false);
 
   const componentEnabled = props?.socialMediaWallEnabled !== false;
-  if (!componentEnabled) return null;
 
   const titleEnabled = props?.socialMediaWallTitleEnabled !== false;
   const subTitleEnabled = props?.socialMediaWallSubTitleEnabled !== false;
@@ -888,7 +887,7 @@ export default function SocialMediaWall(props) {
   );
 
   useEffect(() => {
-    if (!enableLivePosts) {
+    if (!componentEnabled || !enableLivePosts) {
       setLivePosts([]);
       return () => {};
     }
@@ -933,6 +932,7 @@ export default function SocialMediaWall(props) {
       if (timerId) clearInterval(timerId);
     };
   }, [
+    componentEnabled,
     enableLivePosts,
     autoRefreshEnabled,
     refreshIntervalSec,
@@ -1098,6 +1098,8 @@ export default function SocialMediaWall(props) {
       </PostCard>
     );
   };
+
+  if (!componentEnabled) return null;
 
   return (
     <>
