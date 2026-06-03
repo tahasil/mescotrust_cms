@@ -9,6 +9,12 @@ import Component from "@/models/Component";
 import { isAdmin } from "@/lib/permissions";
 import { getRegistryIdsFromDisk } from "@/lib/getRegistryIdsFromDisk";
 import { normalizeThemeColorCollections } from "@/lib/themeColorFallbacks";
+import AppearanceColorConfig from "@/models/AppearanceColorConfig";
+import {
+  APPEARANCE_COLOR_QUERY,
+  APPEARANCE_ADMIN_UI_FIELDS,
+  APPEARANCE_ADMIN_SIDEBAR_FIELDS,
+} from "@/lib/appearanceColors";
 
 export const dynamic = "force-dynamic";
 
@@ -731,6 +737,37 @@ export async function PUT(req) {
         syncColorsToThemeJs(paletteForSync, colorsForSync, themePath);
       } catch (syncErr) {
         console.error("Theme.js sync colors:", syncErr);
+      }
+
+      // Keep AppearanceColorConfig (the frontend-authoritative color store that
+      // getSiteSettingsLean applies) in sync with the just-saved palette, so colors
+      // added / edited / removed in the admin apply on the public site immediately.
+      // Previously this only happened lazily on the next frontend read, which lagged
+      // and could leave the site showing a stale palette (the "colors not applied"
+      // symptom). This is the deterministic, authoritative write.
+      try {
+        const fullPalette =
+          theme.themePalette && typeof theme.themePalette === "object"
+            ? theme.themePalette.toObject?.() || theme.themePalette
+            : {};
+        const adminUiColors = {};
+        for (const f of APPEARANCE_ADMIN_UI_FIELDS) adminUiColors[f] = theme[f];
+        const adminSidebarUiColors = {};
+        for (const f of APPEARANCE_ADMIN_SIDEBAR_FIELDS) adminSidebarUiColors[f] = theme[f];
+        await AppearanceColorConfig.findOneAndUpdate(
+          APPEARANCE_COLOR_QUERY,
+          {
+            $set: {
+              frontendUiColors: { ...fullPalette },
+              themePalette: { ...fullPalette },
+              adminUiColors,
+              adminSidebarUiColors,
+            },
+          },
+          { upsert: true, new: true, setDefaultsOnInsert: true, strict: false },
+        );
+      } catch (colorCfgErr) {
+        console.error("AppearanceColorConfig palette sync:", colorCfgErr);
       }
     }
 
