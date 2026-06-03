@@ -32,13 +32,6 @@ function escapeJsString(value) {
   return String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }
 
-/** Regex for a single-line color in Theme.js (key: "var(--theme-...) */
-const THEME_COLOR_LINE_RE = /^\s{4}([a-zA-Z_][a-zA-Z0-9_]*):\s*"var\(--theme-/;
-/** Multi-line key only (e.g. "    gradient:") */
-const THEME_COLOR_KEY_ONLY_RE = /^\s{4}[a-zA-Z_][a-zA-Z0-9_]*:\s*$/;
-/** Continuation line (e.g. 6 spaces + "var(--theme-...) */
-const THEME_COLOR_CONTINUATION_RE = /^\s{6}"var\(--theme-/;
-
 /**
  * Sync only admin palette + custom colors to styles/Theme.js. No built-in palette keys.
  */
@@ -58,17 +51,16 @@ function syncColorsToThemeJs(paletteColors, colors, themePath) {
   }
 
   let content = fs.readFileSync(themePath, "utf8");
-  const marker = "  },\n  fonts:";
-  if (!content.includes(marker)) return;
-
-  const lines = content.split("\n");
-  const filtered = lines.filter((line) => {
-    if (line.match(THEME_COLOR_LINE_RE)) return false;
-    if (line.match(THEME_COLOR_KEY_ONLY_RE)) return false;
-    if (line.match(THEME_COLOR_CONTINUATION_RE)) return false;
-    return true;
-  });
-  content = filtered.join("\n");
+  const endMarker = "  },\n  fonts:";
+  // Only ever rewrite the `colors: { ... }` object body. Earlier this filtered
+  // color-shaped lines across the WHOLE file, which deleted unrelated 4-space
+  // declarations elsewhere (e.g. a styled-component's `transition:` line). Scope
+  // strictly to the block between `colors: {` and the `},\n  fonts:` marker.
+  const startMatch = content.match(/\n[ \t]*colors:\s*\{\n/);
+  if (!startMatch) return;
+  const bodyStart = startMatch.index + startMatch[0].length;
+  const endIdx = content.indexOf(endMarker, bodyStart);
+  if (endIdx === -1) return;
 
   const linesToAdd = [];
   for (const [name, value] of byName) {
@@ -80,8 +72,8 @@ function syncColorsToThemeJs(paletteColors, colors, themePath) {
     linesToAdd.push(`    ${camelKey}: "var(${cssVar}, ${escaped})",`);
   }
 
-  const insert = linesToAdd.length ? linesToAdd.join("\n") + "\n" + marker : marker;
-  content = content.replace(marker, insert);
+  const newBody = linesToAdd.length ? linesToAdd.join("\n") + "\n" : "";
+  content = content.slice(0, bodyStart) + newBody + content.slice(endIdx);
   fs.writeFileSync(themePath, content, "utf8");
 }
 
