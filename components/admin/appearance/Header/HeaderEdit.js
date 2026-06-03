@@ -22,8 +22,7 @@ import {
   SECTION_SETTINGS_SCHEMA,
 } from "./HeaderSchemas";
 import {
-  buildThemeColorOptions,
-  normalizeThemePalette,
+  buildThemeColorOptionsSafe,
 } from "@/lib/themeColors";
 
 /** Pure helper: convert API menu items to header nav items (no server imports). */
@@ -318,11 +317,14 @@ function HeaderEditForm(
           };
         }
 
-        const palette = normalizeThemePalette(theme);
-        const paletteOptions = buildThemeColorOptions({ themePalette: palette });
+        // Include the custom palette AND the default/legacy theme colors (and a
+        // built-in fallback) so the color pickers are never empty / "No data".
+        const paletteOptions = buildThemeColorOptionsSafe(theme);
         setThemeColorOptions(paletteOptions);
         setThemePaletteKeyOptions(paletteOptions);
       } catch {
+        setThemeColorOptions(buildThemeColorOptionsSafe({}));
+        setThemePaletteKeyOptions(buildThemeColorOptionsSafe({}));
         message.error("Failed to load header");
       } finally {
         setLoading(false);

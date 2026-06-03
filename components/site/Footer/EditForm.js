@@ -8,6 +8,7 @@ import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
+import { buildThemeColorOptionsSafe } from "@/lib/themeColors";
 
 /**
  * Edit form for Footer — used in page builder drawer or component edit.
@@ -55,12 +56,9 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
         fetch("/api/theme", { cache: "no-store" })
           .then((res) => (res.ok ? res.json() : {}))
           .then((theme) => {
-            const palette = theme?.themePalette || {};
-            const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
-            const names = [...new Set([...Object.keys(palette), ...customColors.map((c) => c?.name).filter(Boolean)])].sort();
-            setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
+            setThemeColorOptions(buildThemeColorOptionsSafe(theme));
           })
-          .catch(() => {})
+          .catch(() => setThemeColorOptions(buildThemeColorOptionsSafe({})))
           .finally(() => setLoading(false));
       } else {
         setLoading(false);
@@ -96,12 +94,12 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
           footerCopyrightBarColorKey: footer?.footerCopyrightBarColorKey != null ? String(footer.footerCopyrightBarColorKey).trim() : "",
           ...getManageSectionInitialValues("footer", footer),
         });
-        const palette = theme?.themePalette || {};
-        const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
-        const names = [...new Set([...Object.keys(palette), ...customColors.map((c) => c?.name).filter(Boolean)])].sort();
-        setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
+        setThemeColorOptions(buildThemeColorOptionsSafe(theme));
       })
-      .catch(() => message.error("Failed to load Footer"))
+      .catch(() => {
+        setThemeColorOptions(buildThemeColorOptionsSafe({}));
+        message.error("Failed to load Footer");
+      })
       .finally(() => setLoading(false));
   }, [isPageBlock, initialDataProp]);
 
