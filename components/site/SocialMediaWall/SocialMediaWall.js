@@ -198,6 +198,29 @@ function compareByDateDesc(first, second) {
   return 0;
 }
 
+function arePlatformConfigsEqual(first = [], second = []) {
+  if (!Array.isArray(first) || !Array.isArray(second)) return false;
+  if (first.length !== second.length) return false;
+  for (let i = 0; i < first.length; i += 1) {
+    const a = first[i] || {};
+    const b = second[i] || {};
+    if (
+      safeString(a.platform) !== safeString(b.platform) ||
+      Boolean(a.active !== false) !== Boolean(b.active !== false) ||
+      toPositiveInt(a.order, i + 1) !== toPositiveInt(b.order, i + 1) ||
+      normalizeFeedMode(a.feedMode) !== normalizeFeedMode(b.feedMode) ||
+      normalizeVisibility(a.visibility) !== normalizeVisibility(b.visibility) ||
+      toPositiveInt(a.postLimit, DEFAULT_POST_LIMIT) !==
+        toPositiveInt(b.postLimit, DEFAULT_POST_LIMIT) ||
+      safeString(a.handle) !== safeString(b.handle) ||
+      safeString(a.profileUrl) !== safeString(b.profileUrl)
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
 function PlatformIcon({ platform, size = 20, color }) {
   const fill = color || PLATFORM_META[platform]?.color || "#666";
   const iconSize = Number(size) || 20;
@@ -319,22 +342,24 @@ const PostCard = styled.article`
   break-inside: avoid;
   width: 100%;
   margin-bottom: ${(props) => (props.$layout === "masonry" ? `${props.$gap}px` : 0)};
-  border-radius: 14px;
+  border-radius: 18px;
   overflow: hidden;
   background: #fff;
-  border: 1px solid rgba(16, 24, 40, 0.1);
-  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 8px 26px rgba(15, 23, 42, 0.06);
   transition:
-    transform 0.28s ease,
-    box-shadow 0.28s ease;
+    transform 0.24s ease,
+    box-shadow 0.24s ease,
+    border-color 0.24s ease;
 
   &[data-clickable="true"] {
     cursor: pointer;
   }
 
   &[data-clickable="true"]:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 28px rgba(16, 24, 40, 0.14);
+    transform: translateY(-5px);
+    border-color: rgba(15, 23, 42, 0.16);
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.16);
   }
 
   &[data-visibility="none"] {
@@ -358,14 +383,55 @@ const PostCard = styled.article`
 const MediaArea = styled.div`
   position: relative;
   width: 100%;
-  background: linear-gradient(135deg, #f6f8ff 0%, #eef2ff 100%);
-  min-height: 140px;
+  height: 246px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 10% 12%, rgba(226, 232, 240, 0.94), rgba(241, 245, 249, 0.96)),
+    linear-gradient(145deg, #f8fafc 0%, #eef2f7 100%);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+
+  picture {
+    width: 100%;
+    height: 100%;
+    display: flex;
+  }
 
   img,
   video {
     width: 100%;
-    height: auto;
+    height: 100%;
+    object-fit: contain;
+    object-position: center center;
     display: block;
+    background: transparent;
+  }
+
+  .placeholder {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    color: rgba(15, 23, 42, 0.42);
+    font-size: 12px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  @media (max-width: 1199px) {
+    height: 230px;
+  }
+
+  @media (max-width: 991px) {
+    height: 220px;
+  }
+
+  @media (max-width: 767px) {
+    height: 206px;
+  }
+
+  @media (max-width: 575px) {
+    height: 192px;
   }
 `;
 
@@ -376,7 +442,7 @@ const VideoOverlay = styled.div`
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.2), transparent 45%);
+  background: linear-gradient(to top, rgba(2, 6, 23, 0.24), rgba(2, 6, 23, 0.04) 48%);
   svg {
     width: 46px;
     height: 46px;
@@ -386,27 +452,28 @@ const VideoOverlay = styled.div`
 
 const LiveBadge = styled.span`
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 12px;
+  right: 12px;
   z-index: 2;
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-radius: 999px;
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.04em;
   color: #fff;
   background: #e02424;
+  box-shadow: 0 8px 18px rgba(224, 36, 36, 0.24);
 `;
 
 const PostBody = styled.div`
-  padding: 14px 14px 12px;
+  padding: 16px 16px 14px;
 `;
 
 const PostHeader = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 `;
 
 const PlatformBadge = styled.div`
@@ -424,16 +491,17 @@ const HeaderMeta = styled.div`
   min-width: 0;
   flex: 1;
   .source {
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 700;
     color: rgba(16, 24, 40, 0.9);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .handle {
+    margin-top: 2px;
     font-size: 12px;
-    color: rgba(16, 24, 40, 0.56);
+    color: rgba(16, 24, 40, 0.58);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -444,9 +512,9 @@ const PlatformTag = styled.span`
   flex-shrink: 0;
   font-size: 11px;
   line-height: 1;
-  font-weight: 600;
+  font-weight: 700;
   border-radius: 999px;
-  padding: 7px 10px;
+  padding: 7px 12px;
   color: ${(props) => props.$color || "#5E6470"};
   background: ${(props) => (props.$color ? `${props.$color}1A` : "rgba(0,0,0,0.06)")};
 `;
@@ -454,15 +522,15 @@ const PlatformTag = styled.span`
 const PostCaption = styled.p`
   margin: 0;
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.65;
   color: rgba(16, 24, 40, 0.72);
   word-break: break-word;
   white-space: pre-wrap;
 `;
 
 const Footer = styled.div`
-  margin-top: 12px;
-  padding-top: 10px;
+  margin-top: 14px;
+  padding-top: 12px;
   border-top: 1px solid rgba(16, 24, 40, 0.08);
   display: flex;
   align-items: center;
@@ -471,7 +539,7 @@ const Footer = styled.div`
 `;
 
 const FooterDate = styled.span`
-  font-size: 12px;
+  font-size: 13px;
   color: rgba(16, 24, 40, 0.55);
 `;
 
@@ -479,7 +547,7 @@ const FooterLiveType = styled.span`
   font-size: 11px;
   color: rgba(16, 24, 40, 0.6);
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.06em;
 `;
 
 const EmptyState = styled.div`
@@ -504,7 +572,19 @@ const SkeletonCard = styled.div`
     animation: pulse 1.2s linear infinite;
   }
   .media {
-    height: 160px;
+    height: 246px;
+    @media (max-width: 1199px) {
+      height: 230px;
+    }
+    @media (max-width: 991px) {
+      height: 220px;
+    }
+    @media (max-width: 767px) {
+      height: 206px;
+    }
+    @media (max-width: 575px) {
+      height: 192px;
+    }
   }
   .line {
     height: 12px;
@@ -528,66 +608,217 @@ const SkeletonCard = styled.div`
 `;
 
 const ModalScrollBody = styled(ThemeModal)`
+  .ant-modal {
+    width: min(940px, calc(100vw - 24px)) !important;
+    max-width: 940px;
+    top: 18px;
+  }
+  .ant-modal-content {
+    border-radius: 24px;
+    overflow: hidden;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: 0 26px 80px rgba(2, 6, 23, 0.28);
+    padding: 0;
+  }
   .ant-modal-body {
-    max-height: 82vh;
+    max-height: calc(100vh - 56px);
     overflow-y: auto;
     overscroll-behavior: contain;
     padding: 0;
   }
   .ant-modal-close {
-    background: #d6d9dd !important;
-    top: 8px !important;
-    right: 8px !important;
+    background: rgba(255, 255, 255, 0.94) !important;
+    border: 1px solid rgba(15, 23, 42, 0.12) !important;
+    color: rgba(15, 23, 42, 0.7) !important;
+    width: 36px !important;
+    height: 36px !important;
+    top: 14px !important;
+    right: 14px !important;
     border-radius: 999px !important;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+    &:hover {
+      background: #fff !important;
+      color: rgba(2, 6, 23, 0.95) !important;
+    }
+  }
+`;
+
+const ModalPanel = styled.div`
+  display: grid;
+  grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+  min-height: 420px;
+
+  @media (max-width: 991px) {
+    grid-template-columns: 1fr;
+    min-height: 0;
   }
 `;
 
 const ModalMedia = styled.div`
+  position: relative;
   width: 100%;
-  background: #f0f2f5;
+  min-height: 100%;
+  background:
+    radial-gradient(circle at 15% 12%, #f1f5f9 0%, #e2e8f0 54%, #cbd5e1 100%),
+    linear-gradient(155deg, #e2e8f0 0%, #f8fafc 100%);
+  border-right: 1px solid rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+
+  @media (max-width: 991px) {
+    border-right: 0;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    min-height: 280px;
+  }
+
+  picture {
+    width: 100%;
+    height: 100%;
+    display: flex;
+  }
+
   img,
   video {
     width: 100%;
-    height: auto;
+    height: 100%;
+    max-height: 430px;
+    object-fit: contain;
+    object-position: center center;
+    border-radius: 14px;
+    background: #fff;
     display: block;
+  }
+
+  .placeholder {
+    width: 100%;
+    min-height: 240px;
+    border-radius: 14px;
+    border: 1px dashed rgba(15, 23, 42, 0.22);
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgba(15, 23, 42, 0.58);
   }
 `;
 
 const ModalContent = styled.div`
-  padding: 20px 20px 24px;
+  padding: 30px 30px 28px;
+  min-width: 0;
+
+  @media (max-width: 767px) {
+    padding: 20px 18px 20px;
+  }
 `;
 
 const ModalHeader = styled.div`
   display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 18px;
 `;
 
 const ModalMeta = styled.div`
   flex: 1;
   min-width: 0;
   .title {
-    font-size: 15px;
-    font-weight: 600;
-    color: rgba(16, 24, 40, 0.9);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: 30px;
+    line-height: 1.15;
+    font-weight: 700;
+    color: #0f172a;
+    word-break: break-word;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    letter-spacing: 0.01em;
+    padding-right: 10px;
+    @media (max-width: 1199px) {
+      font-size: 26px;
+    }
+    @media (max-width: 767px) {
+      font-size: 22px;
+      text-transform: none;
+    }
   }
   .subtitle {
-    font-size: 12px;
-    color: rgba(16, 24, 40, 0.58);
+    font-size: 20px;
+    line-height: 1.25;
+    font-weight: 700;
+    color: #ef4444;
+    word-break: break-word;
+    @media (max-width: 1199px) {
+      font-size: 18px;
+    }
+    @media (max-width: 767px) {
+      font-size: 16px;
+    }
   }
 `;
 
+const ModalFacts = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 2px 0 18px;
+`;
+
+const ModalFact = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(15, 23, 42, 0.72);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(248, 250, 252, 0.9);
+  border-radius: 999px;
+  padding: 7px 12px;
+`;
+
 const ModalText = styled.p`
-  margin: 0 0 18px;
-  font-size: 14px;
-  line-height: 1.7;
+  margin: 0 0 22px;
+  font-size: 19px;
+  line-height: 1.68;
   color: rgba(16, 24, 40, 0.75);
   white-space: pre-wrap;
   word-break: break-word;
+  @media (max-width: 1199px) {
+    font-size: 17px;
+  }
+  @media (max-width: 767px) {
+    font-size: 15px;
+  }
+`;
+
+const ModalActions = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+`;
+
+const ModalGhostButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  border: 1px solid rgba(15, 23, 42, 0.2);
+  color: rgba(15, 23, 42, 0.84);
+  background: #fff;
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    border-color: rgba(15, 23, 42, 0.38);
+    color: #0f172a;
+    background: #f8fafc;
+  }
 `;
 
 const ViewOriginalBtn = styled.a`
@@ -597,7 +828,7 @@ const ViewOriginalBtn = styled.a`
   padding: 9px 16px;
   border-radius: 999px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: none;
   color: #fff;
   border: 1px solid ${(props) => props.$color || "var(--primary-color, #1677ff)"};
@@ -614,6 +845,7 @@ export default function SocialMediaWall(props) {
   const [selectedPost, setSelectedPost] = useState(null);
   const [livePosts, setLivePosts] = useState([]);
   const [loadingLive, setLoadingLive] = useState(false);
+  const [runtimePlatformConfigs, setRuntimePlatformConfigs] = useState([]);
 
   const componentEnabled = props?.socialMediaWallEnabled !== false;
 
@@ -837,9 +1069,12 @@ export default function SocialMediaWall(props) {
   );
 
   const platformConfigs = useMemo(() => {
-    const raw = Array.isArray(props?.socialMediaWallPlatforms)
-      ? props.socialMediaWallPlatforms
-      : [];
+    const raw =
+      Array.isArray(runtimePlatformConfigs) && runtimePlatformConfigs.length > 0
+        ? runtimePlatformConfigs
+        : Array.isArray(props?.socialMediaWallPlatforms)
+          ? props.socialMediaWallPlatforms
+          : [];
     const normalized = raw
       .map((item, index) => normalizePlatformConfig(item, index))
       .filter(Boolean);
@@ -857,7 +1092,7 @@ export default function SocialMediaWall(props) {
       return defaults.map((item, index) => normalizePlatformConfig(item, index));
     }
     return Array.from(dedup.values()).sort((a, b) => a.order - b.order);
-  }, [props?.socialMediaWallPlatforms, globalPostLimit]);
+  }, [runtimePlatformConfigs, props?.socialMediaWallPlatforms, globalPostLimit]);
 
   const platformConfigMap = useMemo(() => {
     const map = new Map();
@@ -871,14 +1106,11 @@ export default function SocialMediaWall(props) {
     () => ({
       platformConfigs: platformConfigs.map((config) => ({
         platform: config.platform,
-        active: config.active,
         feedMode: config.feedMode,
         visibility: config.visibility,
         handle: config.handle,
-        accountId: config.accountId,
         profileUrl: config.profileUrl,
         postLimit: config.postLimit,
-        order: config.order,
       })),
       globalLimit: globalPostLimit,
       orderMode,
@@ -906,6 +1138,19 @@ export default function SocialMediaWall(props) {
         });
         const payload = response.ok ? await response.json() : { livePosts: [] };
         if (!mounted) return;
+        const responsePlatformConfigs = Array.isArray(payload?.platformConfigs)
+          ? payload.platformConfigs
+              .map((item, index) => normalizePlatformConfig(item, index))
+              .filter(Boolean)
+              .sort((a, b) => a.order - b.order)
+          : [];
+        if (responsePlatformConfigs.length > 0) {
+          setRuntimePlatformConfigs((prev) =>
+            arePlatformConfigsEqual(prev, responsePlatformConfigs)
+              ? prev
+              : responsePlatformConfigs,
+          );
+        }
         const fetchedPosts = Array.isArray(payload?.livePosts)
           ? payload.livePosts.map((post) =>
               normalizePost(post, {
