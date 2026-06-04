@@ -128,6 +128,62 @@ function normalizeAdditionalFieldValue(fieldType, value) {
   return String(value ?? "");
 }
 
+function logDonorLookupClientDebug(stage, payload = {}) {
+  if (process.env.NODE_ENV === "production") return;
+  // Debug helper for lookup diagnostics in browser console.
+  console.info("[donor-lookup-ui]", stage, payload);
+}
+
+const DONOR_TYPE_OPTIONS = [
+  { label: "New Donor", value: "new" },
+  { label: "Existing Donor", value: "existing" },
+];
+
+const DONOR_PROFILE_FIELD_KEYS = [
+  "name",
+  "pan",
+  "email",
+  "mobile",
+  "address",
+  "city",
+  "state",
+  "country",
+  "pincode",
+];
+
+const REQUIRED_LOOKUP_AUTOFILL_FIELDS = [
+  "name",
+  "pan",
+  "email",
+  "mobile",
+  "address",
+  "city",
+  "state",
+  "country",
+  "pincode",
+];
+
+function getInitialLookupState() {
+  return {
+    loading: false,
+    found: false,
+    verified: false,
+    verificationToken: "",
+    requiresPanLast4: false,
+    masked: null,
+    matchedSubmissionId: "",
+    lastDonation: null,
+  };
+}
+
+function getInitialVerificationState() {
+  return {
+    email: "",
+    mobile: "",
+    panLast4: "",
+  };
+}
+
 export default function DonateNow(props = {}) {
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
@@ -203,29 +259,62 @@ export default function DonateNow(props = {}) {
   const [selectedPurposeId, setSelectedPurposeId] = useState(
     defaultPurposeId || getDefaultPurposeValue(selectablePurposes),
   );
+  const [donorType, setDonorType] = useState("");
   const [fieldValues, setFieldValues] = useState(() =>
     getInitialFieldValues(fieldConfig),
   );
   const [additionalFieldValues, setAdditionalFieldValues] = useState({});
   const [amountTouched, setAmountTouched] = useState(false);
-  const [lookupState, setLookupState] = useState({
-    loading: false,
-    found: false,
-    masked: null,
-    matchedSubmissionId: "",
-    lastDonation: null,
-  });
+  const [lookupState, setLookupState] = useState(() => getInitialLookupState());
+  const [verificationValues, setVerificationValues] = useState(() =>
+    getInitialVerificationState(),
+  );
+  const [verifyingDonor, setVerifyingDonor] = useState(false);
+
+  const isExistingDonor = donorType === "existing";
+  const isNewDonor = donorType === "new";
+  const isDonorTypeSelected = isExistingDonor || isNewDonor;
+  const canUseMainFormFields =
+    isDonorTypeSelected &&
+    (!isExistingDonor || (lookupState.found && lookupState.verified));
+  const lookupAutofillFields = useMemo(
+    () =>
+      [...new Set([...lookupSettings.reusableFields, ...REQUIRED_LOOKUP_AUTOFILL_FIELDS])],
+    [lookupSettings.reusableFields],
+  );
 
   useEffect(() => {
     setSelectedPurposeId(
       defaultPurposeId || getDefaultPurposeValue(selectablePurposes),
     );
+    setDonorType("");
     setFieldValues(getInitialFieldValues(fieldConfig));
     setAdditionalFieldValues({});
     setAmountTouched(false);
+    setLookupState(getInitialLookupState());
+    setVerificationValues(getInitialVerificationState());
+    setVerifyingDonor(false);
     setErrors({});
     previousPurposeIdRef.current = "";
   }, [defaultPurposeId, selectablePurposes, fieldConfig]);
+
+  useEffect(() => {
+    if (lookupTimerRef.current) {
+      window.clearTimeout(lookupTimerRef.current);
+    }
+    setLookupState(getInitialLookupState());
+    setVerificationValues(getInitialVerificationState());
+    setVerifyingDonor(false);
+    setFieldValues((previous) => {
+      const defaults = getInitialFieldValues(fieldConfig);
+      const next = { ...previous };
+      next.lookup = defaults.lookup ?? "";
+      DONOR_PROFILE_FIELD_KEYS.forEach((fieldKey) => {
+        next[fieldKey] = defaults[fieldKey] ?? "";
+      });
+      return next;
+    });
+  }, [donorType, fieldConfig]);
 
   const selectedPurpose = useMemo(
     () =>
@@ -449,7 +538,33 @@ export default function DonateNow(props = {}) {
     }
   };
 
+  const isBaseFieldVisible = (fieldKey) => {
+    if (fieldKey === "lookup") return isExistingDonor;
+    if (!isDonorTypeSelected) return false;
+    if (isExistingDonor && !lookupState.found) return false;
+    return !hiddenFields.has(fieldKey);
+  };
+
+  const handleDonorTypeChange = (nextDonorType) => {
+    setDonorType(nextDonorType || "");
+    setErrors((previous) => {
+      const next = { ...previous };
+      delete next.donorType;
+      delete next.lookup;
+      delete next.donorVerification;
+      delete next.verifyEmail;
+      delete next.verifyMobile;
+      delete next.verifyPanLast4;
+      return next;
+    });
+  };
+
   const handleFieldValue = (fieldKey, nextValue) => {
+    if (fieldKey === "lookup") {
+      setLookupState(getInitialLookupState());
+      setVerificationValues(getInitialVerificationState());
+      setVerifyingDonor(false);
+    }
     setFieldValues((previous) => ({ ...previous, [fieldKey]: nextValue }));
     if (errors[fieldKey]) {
       setErrors((previous) => ({ ...previous, [fieldKey]: "" }));
@@ -467,7 +582,33 @@ export default function DonateNow(props = {}) {
     }
   };
 
+  const handleVerificationValue = (fieldKey, nextValue) => {
+    setVerificationValues((previous) => ({ ...previous, [fieldKey]: nextValue }));
+    const errorKeyMap = {
+      email: "verifyEmail",
+      mobile: "verifyMobile",
+      panLast4: "verifyPanLast4",
+    };
+    const errorKey = errorKeyMap[fieldKey];
+    setErrors((previous) => {
+      const next = { ...previous };
+      if (errorKey) delete next[errorKey];
+      delete next.donorVerification;
+      return next;
+    });
+  };
+
+  const getLookupValidationError = (lookupValue, required = false) =>
+    getFieldValidationError(
+      "lookup",
+      lookupValue,
+      fieldConfig.lookup || DONATE_NOW_BASE_FIELDS[0],
+      required,
+    );
+
   const lookupAllowed = (lookupValue) => {
+    if (!isExistingDonor || !lookupSettings.enabled) return false;
+
     const trimmed = normalizeText(lookupValue);
     if (!trimmed || trimmed.length < lookupSettings.minimumCharacters)
       return false;
@@ -483,76 +624,248 @@ export default function DonateNow(props = {}) {
     );
   };
 
-  const performLookup = async (lookupValue) => {
-    if (!lookupSettings.enabled || !lookupAllowed(lookupValue)) return;
+  const performLookup = async (lookupValue, options = {}) => {
+    const { showValidationError = false } = options;
+    const trimmedLookup = normalizeText(lookupValue);
+    if (!isExistingDonor || !lookupSettings.enabled) return;
+    if (!trimmedLookup) {
+      setLookupState(getInitialLookupState());
+      if (showValidationError) {
+        setErrors((previous) => ({
+          ...previous,
+          lookup:
+            getLookupValidationError(trimmedLookup, true) ||
+            "Email / Mobile No. is required",
+        }));
+      }
+      return;
+    }
+
+    const lookupValidationError = getLookupValidationError(trimmedLookup);
+    if (lookupValidationError) {
+      setLookupState(getInitialLookupState());
+      if (showValidationError) {
+        setErrors((previous) => ({ ...previous, lookup: lookupValidationError }));
+      }
+      return;
+    }
+    if (!lookupAllowed(trimmedLookup)) return;
 
     setLookupState((previous) => ({ ...previous, loading: true }));
+    setErrors((previous) => ({ ...previous, lookup: "" }));
     try {
-      const include = Array.isArray(lookupSettings.reusableFields)
-        ? lookupSettings.reusableFields.join(",")
-        : "";
-      const res = await fetch(
-        `/api/payment/donor-lookup?q=${encodeURIComponent(
-          lookupValue,
-        )}&include=${encodeURIComponent(include)}`,
-      );
-      const data = await res.json();
-      if (!res.ok || !data?.found || !data?.donor) {
-        setLookupState({
-          loading: false,
-          found: false,
-          masked: null,
-          matchedSubmissionId: "",
-          lastDonation: null,
+      const include = lookupAutofillFields.join(",");
+      const url = `/api/payment/donor-lookup?q=${encodeURIComponent(
+        trimmedLookup,
+      )}&include=${encodeURIComponent(include)}`;
+      const res = await fetch(url);
+      let data = null;
+      try {
+        data = await res.json();
+      } catch (parseError) {
+        logDonorLookupClientDebug("response-parse-failed", {
+          lookupValue: trimmedLookup,
+          status: res.status,
+          statusText: res.statusText,
+          parseError: parseError?.message || "",
         });
+      }
+
+      logDonorLookupClientDebug("response", {
+        lookupValue: trimmedLookup,
+        ok: res.ok,
+        status: res.status,
+        payload: data,
+      });
+
+      if (!res.ok) {
+        setLookupState(getInitialLookupState());
+        setErrors((previous) => ({
+          ...previous,
+          lookup: "Lookup request failed. Please try again.",
+        }));
+        return;
+      }
+      if (!data?.found || !data?.donorMasked) {
+        setLookupState(getInitialLookupState());
+        setVerificationValues(getInitialVerificationState());
+        setErrors((previous) => ({
+          ...previous,
+          lookup:
+            copy.donorNotFoundMessage ||
+            "No donor found for this email / mobile.",
+        }));
         return;
       }
 
       setLookupState({
         loading: false,
         found: true,
+        verified: false,
+        verificationToken: String(data.verificationToken || ""),
+        requiresPanLast4: Boolean(data.requiresPanLast4),
         masked: data.masked || null,
         matchedSubmissionId: String(data.matchedSubmissionId || ""),
         lastDonation: data.lastDonation || null,
       });
 
-      if (lookupSettings.autoFillEnabled) {
-        setFieldValues((previous) => {
-          const next = { ...previous };
-          lookupSettings.reusableFields.forEach((fieldKey) => {
-            if (!DONATE_NOW_BASE_FIELDS.some((field) => field.key === fieldKey))
-              return;
-            const incoming = String(data?.donor?.[fieldKey] ?? "").trim();
-            if (incoming) next[fieldKey] = incoming;
-          });
-          return next;
+      setFieldValues((previous) => {
+        const next = { ...previous };
+        lookupAutofillFields.forEach((fieldKey) => {
+          if (!DONATE_NOW_BASE_FIELDS.some((field) => field.key === fieldKey))
+            return;
+          const incoming = String(data?.donorMasked?.[fieldKey] ?? "").trim();
+          if (incoming) next[fieldKey] = incoming;
         });
-      }
+        return next;
+      });
+      setVerificationValues(getInitialVerificationState());
 
       if (copy.donorFoundMessage) {
         notification.success({
           message: "Returning donor found",
-          description: copy.donorFoundMessage,
+          description:
+            "Donor identified. Verify your identity to unlock full details.",
           placement: "bottomRight",
         });
       }
     } catch (error) {
-      setLookupState({
-        loading: false,
-        found: false,
-        masked: null,
-        matchedSubmissionId: "",
-        lastDonation: null,
+      logDonorLookupClientDebug("request-failed", {
+        lookupValue: trimmedLookup,
+        message: error?.message || "",
       });
+      setLookupState(getInitialLookupState());
+      setErrors((previous) => ({
+        ...previous,
+        lookup: "Lookup request failed. Please try again.",
+      }));
+    }
+  };
+
+  const verifyExistingDonor = async () => {
+    if (!lookupState.found || lookupState.verified || verifyingDonor) return;
+
+    const verifyEmail = normalizeText(verificationValues.email).toLowerCase();
+    const verifyMobile = normalizeText(verificationValues.mobile);
+    const verifyPanLast4 = normalizeText(verificationValues.panLast4).toUpperCase();
+    const nextErrors = {};
+
+    if (!isValidEmail(verifyEmail)) {
+      nextErrors.verifyEmail = "Please enter a valid email";
+    }
+    if (!isValidPhone(verifyMobile)) {
+      nextErrors.verifyMobile = "Please enter a valid mobile number";
+    }
+    if (lookupState.requiresPanLast4) {
+      if (!/^[A-Z0-9]{4}$/.test(verifyPanLast4)) {
+        nextErrors.verifyPanLast4 = "Enter last 4 PAN characters";
+      }
+    }
+
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors((previous) => ({ ...previous, ...nextErrors }));
+      return;
+    }
+    if (!lookupState.verificationToken) {
+      setErrors((previous) => ({
+        ...previous,
+        donorVerification: "Verification expired. Please lookup again.",
+      }));
+      return;
+    }
+
+    setVerifyingDonor(true);
+    try {
+      const response = await fetch("/api/payment/donor-lookup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: lookupState.verificationToken,
+          email: verifyEmail,
+          mobile: verifyMobile,
+          panLast4: verifyPanLast4,
+          include: lookupAutofillFields.join(","),
+        }),
+      });
+      const data = await response.json();
+      logDonorLookupClientDebug("verify-response", {
+        ok: response.ok,
+        status: response.status,
+        payload: data,
+      });
+
+      if (!response.ok || !data?.verified || !data?.donor) {
+        setErrors((previous) => ({
+          ...previous,
+          donorVerification:
+            data?.error ||
+            "Verification failed. Please check your details and try again.",
+        }));
+        setVerifyingDonor(false);
+        return;
+      }
+
+      setLookupState((previous) => ({
+        ...previous,
+        loading: false,
+        found: true,
+        verified: true,
+        matchedSubmissionId:
+          String(data?.matchedSubmissionId || "") || previous.matchedSubmissionId,
+      }));
+
+      setFieldValues((previous) => {
+        const next = { ...previous };
+        lookupAutofillFields.forEach((fieldKey) => {
+          if (!DONATE_NOW_BASE_FIELDS.some((field) => field.key === fieldKey))
+            return;
+          const incoming = String(data?.donor?.[fieldKey] ?? "").trim();
+          if (incoming) next[fieldKey] = incoming;
+        });
+        return next;
+      });
+
+      setErrors((previous) => {
+        const next = { ...previous };
+        delete next.donorVerification;
+        delete next.verifyEmail;
+        delete next.verifyMobile;
+        delete next.verifyPanLast4;
+        return next;
+      });
+      notification.success({
+        message: "Verification complete",
+        description: "Full donor details unlocked. You can review and update.",
+        placement: "bottomRight",
+      });
+    } catch (error) {
+      logDonorLookupClientDebug("verify-request-failed", {
+        message: error?.message || "",
+      });
+      setErrors((previous) => ({
+        ...previous,
+        donorVerification: "Verification failed. Please try again.",
+      }));
+    } finally {
+      setVerifyingDonor(false);
     }
   };
 
   const scheduleLookup = (nextLookupValue) => {
+    if (!isExistingDonor || !lookupSettings.enabled) return;
     if (lookupTimerRef.current) {
       window.clearTimeout(lookupTimerRef.current);
     }
+
+    const trimmedLookup = normalizeText(nextLookupValue);
+    if (!trimmedLookup || getLookupValidationError(trimmedLookup)) {
+      setLookupState(getInitialLookupState());
+      return;
+    }
+    if (!lookupAllowed(trimmedLookup)) return;
+
     lookupTimerRef.current = window.setTimeout(() => {
-      performLookup(nextLookupValue);
+      performLookup(trimmedLookup);
     }, 600);
   };
 
@@ -565,12 +878,29 @@ export default function DonateNow(props = {}) {
   const validateBeforeSubmit = () => {
     const nextErrors = {};
 
+    if (!isDonorTypeSelected) {
+      nextErrors.donorType = "Please select donor type";
+    }
+
+    if (isExistingDonor) {
+      const lookupValue = normalizeText(fieldValues.lookup);
+      const lookupError = getLookupValidationError(lookupValue, true);
+      if (lookupError) {
+        nextErrors.lookup = lookupError;
+      } else if (!lookupState.found) {
+        nextErrors.lookup =
+          copy.donorNotFoundMessage ||
+          "Please identify the existing donor using email / mobile.";
+      }
+    }
+
     DONATE_NOW_BASE_FIELDS.forEach((baseField) => {
       const key = baseField.key;
       const config = fieldConfig[key] || baseField;
 
-      if (hiddenFields.has(key)) return;
+      if (!isBaseFieldVisible(key)) return;
       if (key === "purpose") return;
+      if (key === "lookup") return;
 
       const required = requiredFields.has(key);
       const validationError = getFieldValidationError(
@@ -586,23 +916,25 @@ export default function DonateNow(props = {}) {
       nextErrors.purpose = "Please select a purpose";
     }
 
-    additionalFields.forEach((extraField) => {
-      const currentValue = additionalFieldValues[extraField.key];
-      const normalized = normalizeText(currentValue);
-      const errorKey = `additional:${extraField.key}`;
+    if (canUseMainFormFields) {
+      additionalFields.forEach((extraField) => {
+        const currentValue = additionalFieldValues[extraField.key];
+        const normalized = normalizeText(currentValue);
+        const errorKey = `additional:${extraField.key}`;
 
-      if (extraField.required && !normalized) {
-        nextErrors[errorKey] = `${extraField.label} is required`;
-        return;
-      }
-      if (
-        extraField.type === "number" &&
-        normalized &&
-        Number.isNaN(Number(normalized))
-      ) {
-        nextErrors[errorKey] = `${extraField.label} must be a number`;
-      }
-    });
+        if (extraField.required && !normalized) {
+          nextErrors[errorKey] = `${extraField.label} is required`;
+          return;
+        }
+        if (
+          extraField.type === "number" &&
+          normalized &&
+          Number.isNaN(Number(normalized))
+        ) {
+          nextErrors[errorKey] = `${extraField.label} must be a number`;
+        }
+      });
+    }
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -624,7 +956,7 @@ export default function DonateNow(props = {}) {
       pincode: normalizeText(fieldValues.pincode),
     };
 
-    const lookupRaw = normalizeText(fieldValues.lookup);
+    const lookupRaw = isExistingDonor ? normalizeText(fieldValues.lookup) : "";
     const lookupMethod = lookupRaw.includes("@") ? "email" : "mobile";
     const additionalFieldsPayload = {};
     additionalFields.forEach((field) => {
@@ -648,6 +980,7 @@ export default function DonateNow(props = {}) {
       additionalFields: additionalFieldsPayload,
       termsAccepted: false,
       source: "DonateNow",
+      donorType: isExistingDonor ? "existing" : "new",
       pagePath:
         typeof window !== "undefined"
           ? `${window.location.pathname}${window.location.search}`
@@ -725,11 +1058,10 @@ export default function DonateNow(props = {}) {
   const renderBaseField = (baseField) => {
     const key = baseField.key;
     const config = fieldConfig[key] || baseField;
-    if (hiddenFields.has(key)) return null;
+    if (!isBaseFieldVisible(key)) return null;
 
-    const required = requiredFields.has(key);
-    const disabled =
-      disabledFields.has(key) || (key === "lookup" && lookupState.loading);
+    const required = key === "lookup" ? true : requiredFields.has(key);
+    const disabled = disabledFields.has(key) || !canUseMainFormFields;
     const value = fieldValues[key] ?? "";
     const placeholder = config.placeholder || "";
     const error = errors[key];
@@ -754,6 +1086,7 @@ export default function DonateNow(props = {}) {
                 label: purpose.name,
                 value: purpose.id,
               }))}
+              disabled={disabled}
             />
             {error ? <FieldError>{error}</FieldError> : null}
           </FieldWrap>
@@ -778,9 +1111,11 @@ export default function DonateNow(props = {}) {
               status={error ? "error" : ""}
               placeholder={placeholder}
               options={fieldOptions[key] || []}
-              disabled={disabled}
+              disabled={key === "lookup" ? lookupState.loading : disabled}
               onBlur={() => {
-                if (key === "lookup") performLookup(value);
+                if (key === "lookup") {
+                  performLookup(value, { showValidationError: true });
+                }
               }}
             />
             {error ? <FieldError>{error}</FieldError> : null}
@@ -831,19 +1166,19 @@ export default function DonateNow(props = {}) {
             }
             value={value}
             placeholder={placeholder}
-            disabled={disabled}
+            disabled={key === "lookup" ? lookupState.loading : disabled}
             onChange={(event) => {
               handleFieldValue(key, event.target.value);
               if (key === "amount") {
                 setAmountTouched(true);
               }
-              if (key === "lookup" && lookupSettings.enabled) {
+              if (key === "lookup" && isExistingDonor && lookupSettings.enabled) {
                 scheduleLookup(event.target.value);
               }
             }}
             onBlur={() => {
-              if (key === "lookup" && lookupSettings.enabled) {
-                performLookup(value);
+              if (key === "lookup" && isExistingDonor && lookupSettings.enabled) {
+                performLookup(value, { showValidationError: true });
               }
             }}
           />
@@ -885,7 +1220,9 @@ export default function DonateNow(props = {}) {
                   <PanelSubTitle>{copy.formSubtitle}</PanelSubTitle>
                 ) : null}
 
-                {lookupState.found && lookupSettings.showMaskedPreview ? (
+                {isExistingDonor &&
+                lookupState.found &&
+                lookupSettings.showMaskedPreview ? (
                   <LookupInfo>
                     <div className="lookup-title">
                       Returning donor recognized
@@ -911,82 +1248,109 @@ export default function DonateNow(props = {}) {
                 ) : null}
 
                 <Row gutter={[20, 10]}>
+                  <Col xs={24} md={24}>
+                    <FieldWrap>
+                      <FieldLabel>
+                        Donor Type
+                        <span className="req">*</span>
+                      </FieldLabel>
+                      <FieldSelect
+                        size="large"
+                        value={donorType || undefined}
+                        onChange={handleDonorTypeChange}
+                        status={errors.donorType ? "error" : ""}
+                        placeholder="Select donor type"
+                        options={DONOR_TYPE_OPTIONS}
+                      />
+                      {errors.donorType ? (
+                        <FieldError>{errors.donorType}</FieldError>
+                      ) : null}
+                    </FieldWrap>
+                  </Col>
+
                   {DONATE_NOW_BASE_FIELDS.map((fieldDef) =>
                     renderBaseField(fieldDef),
                   )}
 
-                  {additionalFields.map((extraField) => {
-                    const errorKey = `additional:${extraField.key}`;
-                    const error = errors[errorKey];
-                    const isSelect = extraField.type === "select";
-                    const currentValue =
-                      additionalFieldValues[extraField.key] ??
-                      extraField.defaultValue ??
-                      "";
-                    const options = String(extraField.optionsCsv || "")
-                      .split(",")
-                      .map((item) => item.trim())
-                      .filter(Boolean);
+                  {canUseMainFormFields
+                    ? additionalFields.map((extraField) => {
+                        const errorKey = `additional:${extraField.key}`;
+                        const error = errors[errorKey];
+                        const isSelect = extraField.type === "select";
+                        const currentValue =
+                          additionalFieldValues[extraField.key] ??
+                          extraField.defaultValue ??
+                          "";
+                        const options = String(extraField.optionsCsv || "")
+                          .split(",")
+                          .map((item) => item.trim())
+                          .filter(Boolean);
 
-                    return (
-                      <Col key={extraField.key} xs={24} md={12}>
-                        <FieldWrap>
-                          <FieldLabel>
-                            {extraField.label}
-                            {extraField.required ? (
-                              <span className="req">*</span>
-                            ) : null}
-                          </FieldLabel>
-                          {isSelect ? (
-                            <FieldSelect
-                              size="large"
-                              value={currentValue || undefined}
-                              onChange={(nextValue) =>
-                                handleAdditionalValue(extraField.key, nextValue)
-                              }
-                              options={options.map((option) => ({
-                                label: option,
-                                value: option,
-                              }))}
-                              placeholder={
-                                extraField.placeholder ||
-                                `Select ${extraField.label}`
-                              }
-                              disabled={extraField.disabled}
-                            />
-                          ) : extraField.type === "textarea" ? (
-                            <FieldTextArea
-                              value={currentValue}
-                              onChange={(event) =>
-                                handleAdditionalValue(
-                                  extraField.key,
-                                  event.target.value,
-                                )
-                              }
-                              placeholder={extraField.placeholder}
-                              disabled={extraField.disabled}
-                            />
-                          ) : (
-                            <FieldInput
-                              type={
-                                extraField.type === "number" ? "number" : "text"
-                              }
-                              value={currentValue}
-                              onChange={(event) =>
-                                handleAdditionalValue(
-                                  extraField.key,
-                                  event.target.value,
-                                )
-                              }
-                              placeholder={extraField.placeholder}
-                              disabled={extraField.disabled}
-                            />
-                          )}
-                          {error ? <FieldError>{error}</FieldError> : null}
-                        </FieldWrap>
-                      </Col>
-                    );
-                  })}
+                        return (
+                          <Col key={extraField.key} xs={24} md={12}>
+                            <FieldWrap>
+                              <FieldLabel>
+                                {extraField.label}
+                                {extraField.required ? (
+                                  <span className="req">*</span>
+                                ) : null}
+                              </FieldLabel>
+                              {isSelect ? (
+                                <FieldSelect
+                                  size="large"
+                                  value={currentValue || undefined}
+                                  onChange={(nextValue) =>
+                                    handleAdditionalValue(
+                                      extraField.key,
+                                      nextValue,
+                                    )
+                                  }
+                                  options={options.map((option) => ({
+                                    label: option,
+                                    value: option,
+                                  }))}
+                                  placeholder={
+                                    extraField.placeholder ||
+                                    `Select ${extraField.label}`
+                                  }
+                                  disabled={extraField.disabled}
+                                />
+                              ) : extraField.type === "textarea" ? (
+                                <FieldTextArea
+                                  value={currentValue}
+                                  onChange={(event) =>
+                                    handleAdditionalValue(
+                                      extraField.key,
+                                      event.target.value,
+                                    )
+                                  }
+                                  placeholder={extraField.placeholder}
+                                  disabled={extraField.disabled}
+                                />
+                              ) : (
+                                <FieldInput
+                                  type={
+                                    extraField.type === "number"
+                                      ? "number"
+                                      : "text"
+                                  }
+                                  value={currentValue}
+                                  onChange={(event) =>
+                                    handleAdditionalValue(
+                                      extraField.key,
+                                      event.target.value,
+                                    )
+                                  }
+                                  placeholder={extraField.placeholder}
+                                  disabled={extraField.disabled}
+                                />
+                              )}
+                              {error ? <FieldError>{error}</FieldError> : null}
+                            </FieldWrap>
+                          </Col>
+                        );
+                      })
+                    : null}
                 </Row>
 
                 <ButtonRow>
@@ -1005,7 +1369,11 @@ export default function DonateNow(props = {}) {
                       background: donateButtonBg,
                       color: donateButtonText,
                     }}
-                    disabled={submitting}
+                    disabled={
+                      submitting ||
+                      !isDonorTypeSelected ||
+                      (isExistingDonor && !lookupState.found)
+                    }
                     onClick={handleSubmit}
                   >
                     {submitting

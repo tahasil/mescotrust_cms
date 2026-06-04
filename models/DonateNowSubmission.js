@@ -58,6 +58,12 @@ const donateNowSubmissionSchema = new mongoose.Schema(
     purposeRuleSnapshot: { type: Object, default: {} },
     paymentSettingsSnapshot: { type: Object, default: {} },
     lookup: { type: lookupSchema, default: () => ({}) },
+    donorType: {
+      type: String,
+      enum: ["new", "existing"],
+      default: "new",
+      index: true,
+    },
     source: { type: String, default: "DonateNow", trim: true },
     pagePath: { type: String, default: "", trim: true },
     payment: { type: paymentSchema, default: () => ({}) },

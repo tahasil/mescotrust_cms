@@ -80,6 +80,10 @@ export async function POST(req) {
     const studentsCount = toSafeString(body?.studentsCount);
     const interestMoney = toSafeString(body?.interestMoney || "No");
     const pagePath = toSafeString(body?.pagePath);
+    const donorType =
+      toSafeString(body?.donorType).toLowerCase() === "existing"
+        ? "existing"
+        : "new";
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
     const redirectUrl = `${siteUrl}/api/payment/callback`;
@@ -109,6 +113,7 @@ export async function POST(req) {
           ? body.paymentSettingsSnapshot
           : {},
       lookup: lookupMeta,
+      donorType,
       source: toSafeString(body?.source || "DonateNow"),
       pagePath,
       status: "pending",
