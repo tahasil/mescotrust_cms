@@ -9,6 +9,31 @@ import { buildPublishedSlugFilter, toPublishedPageShape } from "@/lib/pagePublic
 
 export const dynamic = "force-dynamic";
 
+// This route serves frontend CMS pages that the middleware rewrites here
+// (e.g. /media/* — see middleware.js). It previously had no generateMetadata,
+// so those pages rendered with a bare default <title> and no canonical/og tags.
+// Mirror the catch-all [...slug] route's metadata. The slug here is the original
+// public path (e.g. "media/image-gallery"), so canonical/og URLs stay correct.
+export async function generateMetadata({ params }) {
+  const slug = Array.isArray(params.slug) ? params.slug.join("/") : params.slug;
+  try {
+    await connectDB();
+    const page = await Page.findOne(buildPublishedSlugFilter(slug)).lean();
+    if (!page) return {};
+    const livePage = toPublishedPageShape(page);
+    const title = livePage.meta?.metaTitle || livePage.title;
+    const description = livePage.meta?.metaDescription || undefined;
+    return {
+      title,
+      description,
+      alternates: { canonical: `/${slug}` },
+      openGraph: { title, description, url: `/${slug}`, type: "website" },
+    };
+  } catch {
+    return {};
+  }
+}
+
 function ContentSkeleton() {
   return (
     <div>
