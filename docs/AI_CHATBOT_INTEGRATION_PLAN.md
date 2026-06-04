@@ -1,4 +1,4 @@
-# AI Chatbot Integration Plan (Codebase-Aligned, Gap-Fixed)
+Ôªø# AI Chatbot Integration Plan (Codebase-Aligned, Gap-Fixed)
 
 ## Status
 Planning only. No implementation included in this document.
@@ -18,15 +18,17 @@ Planning only. No implementation included in this document.
 
 ## 2) Gap Review (What Was Missing Before and How It Is Fixed in This Plan)
 - Gap: plan previously mixed branch-specific RBAC assumptions.
-- Fix: final RBAC is role-based only (`Admin + Editor allowed`, `Author denied`) for AI chatbot management.
+- Fix: final RBAC is role-based only and now explicitly frozen as Admin-only management.
 - Gap: previous route-rule scope was over-extended (prefix/wildcard) versus current branch patterns.
 - Fix: v1 visibility rules use normalized exact route matching first; prefix/wildcard moved to future enhancement.
 - Gap: AI response source was not explicit enough.
 - Fix: dedicated message pipeline is now defined (FAQ first, AI fallback, then escalation).
 - Gap: immediate frontend reflection strategy needed codebase-compatible mechanism.
-- Fix: use popup-proven model (`no-store` + localStorage event + re-fetch on route/focus/visibility).
+- Fix: use popup-proven model (`no-store` + localStorage event + re-fetch on route/focus/visibility + safety polling).
 - Gap: notification behavior needed alignment with existing contact/email flow.
 - Fix: escalation uses existing `/api/contact` and existing email service path, with configurable recipient overrides in chatbot settings.
+- Gap: no-hardcoded-content requirement was partial.
+- Fix: fallback/timeout/error/escalation prompt messages are now DB-managed fields.
 
 ## 3) Final Architecture Decisions
 - Widget type: floating chatbot launcher + chat panel.
@@ -35,6 +37,7 @@ Planning only. No implementation included in this document.
 - If AI provider unavailable: FAQ + fallback + escalation only.
 - Real-time definition (v1): request/response HTTP chat (no streaming/WebSocket in v1).
 - No hardcoded chatbot content on frontend. All content comes from DB settings.
+- RBAC decision freeze (v1): chatbot management is `Admin only` (menu/page/admin APIs).
 
 ## 4) Data Model Plan
 - New model: `models/AIChatbotSettings.js` (singleton document).
@@ -46,11 +49,12 @@ Planning only. No implementation included in this document.
 - `avatarUrl`
 - `position` (`bottom-right` | `bottom-left`)
 - `appearance` (theme tokens like bubble/bg/text/button colors, border radius)
+- `messages`: `{ fallbackMessage, timeoutMessage, errorMessage, escalationPromptMessage }`
 - `faqs[]`: `{ id, question, answer, enabled, order }`
 - `quickActions[]`: `{ id, label, actionType, value, enabled, order }`
 - `escalation`: `{ enabled, mode, ctaLabel, contactRoute }`
 - `emailNotifications`: `{ enabled, recipients[], subjectPrefix }`
-- `visibilityBehavior`: `{ enabledOnDesktop, enabledOnMobile, includeRoutes[] }`
+- `visibilityBehavior`: `{ enabledOnDesktop, enabledOnMobile, includeRoutes[], defaultState, autoOpenEnabled, autoOpenDelayMs, autoOpenOncePerSession }`
 - `ai`: `{ enabled, provider, model, temperature, maxTokens, timeoutMs }`
 - audit: `updatedBy`, `updatedAt` (timestamps)
 
@@ -60,12 +64,15 @@ Planning only. No implementation included in this document.
 - Validation baseline:
 - `name`: 2-60 chars
 - `welcomeMessage`: 10-500 chars
+- `messages.*`: non-empty bounded text fields (e.g. 5-500 chars)
 - `faqs`: max 50, unique normalized question text
 - `quickActions`: max 20, valid `actionType` and value format
 - `emailNotifications.recipients`: max 20 valid emails
 - `position`: enum `bottom-right | bottom-left`
 - `escalation.mode`: enum `redirect_contact | inline_capture | both`
 - `includeRoutes`: normalized route format (exact paths, deduplicated)
+- `defaultState`: enum `minimized | open`
+- `autoOpenDelayMs`: 0-15000
 - Sanitize all free text before save/response.
 
 ## 6) Admin API Plan
@@ -73,8 +80,8 @@ Planning only. No implementation included in this document.
 - `PUT /api/admin/ai-chatbot`
 - Handler contract:
 - call `requireAuth(req)` first
-- enforce `isAdmin(session) || isEditor(session)`
-- reject Author/other roles with `403`
+- enforce `isAdmin(session)`
+- reject non-admin roles with `403`
 - use upsert singleton by `settingsKey: "default"`
 - return normalized payload
 - set dynamic/no-cache headers
@@ -88,9 +95,13 @@ Planning only. No implementation included in this document.
 - input: `{ message, sessionId?, page?, locale? }`
 - output: `{ reply, source, quickActions?, escalation? }`
 - apply rate limit via existing `createRateLimiter` pattern
+- message length guardrails (e.g. min 1, max 1000 chars)
+- provider token/output cap enforcement from settings
+- prompt-injection and unsafe-content fallback rules
+- basic PII redaction in logs for message payloads
 - apply safe fallback response on errors/timeouts
 
-## 8) AI Response Source (Direct Answer to ìResponsive kaha se de raha hai?î)
+## 8) AI Response Source (Direct Answer to ‚ÄúResponsive kaha se de raha hai?‚Äù)
 - Chat response generation pipeline:
 - Step 1: normalize user message.
 - Step 2: match against enabled FAQ/intent phrases in DB.
@@ -98,6 +109,7 @@ Planning only. No implementation included in this document.
 - Step 4: if no FAQ match and AI is enabled/configured, call provider adapter (`source: "ai"`).
 - Step 5: if AI call fails/unavailable, return fallback + escalation prompt (`source: "fallback"`).
 - Step 6: if escalation triggers are met, show contact CTA or inline contact capture.
+- Note: fallback/timeout/error/escalation prompt messages are read from DB `messages` fields, not hardcoded.
 
 ## 9) Frontend Widget Plan
 - New component: `components/layout/AIChatbotWidget.js`.
@@ -120,6 +132,8 @@ Planning only. No implementation included in this document.
 - fetch config with `no-store`
 - re-fetch on route change, focus, visibility change
 - listen to `storage` key `chatbot_config_updated_at` for cross-tab sync
+- same-tab immediate update via post-save local state refresh/custom event
+- safety poll interval fallback (e.g. every 5s) to avoid stale config
 
 ## 10) Admin UI Plan (`/admin/ai-chatbot`)
 - Add sidebar item in `components/admin/AdminLayoutClient.js`: `AI Chatbot`.
@@ -139,6 +153,11 @@ Planning only. No implementation included in this document.
 - validate before save
 - show field-level errors
 - after successful save, write localStorage key `chatbot_config_updated_at`
+- Avatar upload/change contract:
+- use existing media picker (`MediaPickerInput`)
+- allow image only (`png`, `jpg/jpeg`, `webp`, `gif`)
+- enforce max upload size as per media settings
+- validate avatar URL/media reference before save
 
 ## 11) Escalation and Email Plan
 - Escalation submit path (v1): reuse existing `POST /api/contact`.
@@ -151,13 +170,15 @@ Planning only. No implementation included in this document.
 - preserve existing best-effort email behavior (no hard failure to user flow)
 
 ## 12) RBAC and Security Plan
-- Menu visibility: show AI Chatbot item only to Admin/Editor.
-- Page access: Author redirected/blocked by existing middleware + route-level guard.
-- API access: enforce role checks in handlers for all chatbot admin endpoints.
+- Menu visibility: show AI Chatbot item only to Admin.
+- Page access: non-admin users are redirected/blocked by middleware + route-level guard.
+- API access: enforce admin-only checks in handlers for all chatbot admin endpoints.
 - Public message API hardening:
 - rate limiting
 - input length limits
 - safe output fallback on provider failure
+- provider timeout + retry boundaries
+- denylist for unsafe prompt categories and escalation fallback
 - Same-origin protections already enforced globally for state-changing API methods.
 
 ## 13) Requirement Coverage Checklist
@@ -181,6 +202,20 @@ Planning only. No implementation included in this document.
 - CMS-consistent UI: covered.
 - No hardcoded chatbot content/config: covered.
 
-## 14) Non-Implementation Deliverable Output
+## 14) Seed Defaults Plan (Required Intents)
+- Initial DB defaults (editable from admin after first save):
+- welcome message example: `Hi, how can I help you today? Are you looking to donate, volunteer, or learn about our scholarships?`
+- FAQ seed intents:
+- donation help
+- volunteer help
+- scholarship information
+- contact escalation help
+- quick action seed buttons:
+- `Donate`
+- `Volunteer`
+- `Scholarships`
+- `Contact Support`
+
+## 15) Non-Implementation Deliverable Output
 - Planning document path: `docs/AI_CHATBOT_INTEGRATION_PLAN.md`
 - This file is the updated, branch-aligned, gap-fixed execution plan.
