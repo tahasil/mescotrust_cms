@@ -15,9 +15,12 @@ import { extractGlobalSeoFromTheme, parseMetaKeywords } from "@/lib/seo";
 import { FullWidthBackground, PageContainer } from "@/styles/Theme";
 import EventContent from "@/components/events/EventContent";
 import {
+  formatEventDayDate,
   formatEventDateRange,
+  getEventStartTimeText,
   getEventImageSources,
   isEventPast,
+  isEventStarted,
 } from "@/components/events/eventDisplay";
 import EventsSidebarFull from "@/components/events/EventsSidebarFull";
 import MediaImage from "@/components/shared/MediaImage";
@@ -185,7 +188,17 @@ async function EventDetail({ slug }) {
 
   const regLink = (event.eventLink || "").trim();
   const isPastEvent = isEventPast(event);
-  const isRegistrationOpen = Boolean(regLink) && !isPastEvent;
+  const hasEventStarted = isEventStarted(event);
+  const isRegistrationOpen =
+    Boolean(regLink) && hasEventStarted && !isPastEvent;
+  const eventTime = (event.time || "").trim();
+  const eventStartTime = getEventStartTimeText(eventTime);
+  const registrationOpenDate = formatEventDayDate(event.startDate);
+  const registrationOpenLabel = registrationOpenDate
+    ? eventStartTime
+      ? `${registrationOpenDate} at ${eventStartTime}`
+      : registrationOpenDate
+    : "the start date";
   const shortDescription = (event.description || "").trim();
   const fullDescription = (event.content || "").trim();
   const eventDateRange = formatEventDateRange(event.startDate, event.endDate);
@@ -318,7 +331,7 @@ async function EventDetail({ slug }) {
                     Time
                   </dt>
                   <dd style={{ margin: 0, color: "rgba(0,0,0,0.82)" }}>
-                    {(event.time || "").trim() || "To be announced"}
+                    {eventTime || "To be announced"}
                   </dd>
 
                   <dt style={{ color: "rgba(0,0,0,0.6)", fontWeight: 600 }}>
@@ -352,7 +365,9 @@ async function EventDetail({ slug }) {
                         Open registration form
                       </a>
                     ) : regLink ? (
-                      "Registration closed"
+                      hasEventStarted
+                        ? "Registration closed"
+                        : `Registration opens on ${registrationOpenLabel}`
                     ) : (
                       "Not available"
                     )}
