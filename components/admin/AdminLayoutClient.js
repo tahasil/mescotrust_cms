@@ -35,6 +35,7 @@ import {
   MessageOutlined,
   DollarOutlined,
   CloseOutlined,
+  RobotOutlined,
 } from "@ant-design/icons";
 import { signOut } from "next-auth/react";
 
@@ -92,6 +93,15 @@ const baseMenuItems = [
     label: (
       <Link href="/admin/popups" style={linkStyle}>
         Popups
+      </Link>
+    ),
+  },
+  {
+    key: "/admin/ai-chatbot",
+    icon: <RobotOutlined />,
+    label: (
+      <Link href="/admin/ai-chatbot" style={linkStyle}>
+        AI Chatbot
       </Link>
     ),
   },
@@ -578,7 +588,9 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
       eventsGroup,
     ].filter(Boolean);
   } else if (userRole !== "Admin") {
-    menuItems = baseMenuItems.filter((item) => item.key !== "/admin/users");
+    menuItems = baseMenuItems.filter(
+      (item) => item.key !== "/admin/users" && item.key !== "/admin/ai-chatbot",
+    );
   }
   const selectedMenuKey = String(pathname || "").startsWith("/admin/popups/")
     ? "/admin/popups"

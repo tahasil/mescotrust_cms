@@ -4,6 +4,7 @@ import { Fragment } from "react";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import * as SiteComponents from "@/components/site";
 import RoutePopupHost from "@/components/layout/RoutePopupHost";
+import AIChatbotWidget from "@/components/layout/AIChatbotWidget";
 
 const hasHeaderBlock = (layout) =>
   Array.isArray(layout) && layout.some((b) => (b?.baseComponent || b?.componentId?.baseComponent) === "Header");
@@ -342,6 +343,7 @@ export default function PublicShell({
   return (
     <div className="public-site" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <RoutePopupHost />
+      <AIChatbotWidget />
       {beforeRenderOrder.map((id, index) =>
         id === "__fallback_header__"
           ? <Fragment key={`fallback-header-${index}`}>{fallbackHeader}</Fragment>

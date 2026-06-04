@@ -3,8 +3,29 @@ import { connectDB } from "@/lib/db";
 import ContactSubmission from "@/models/ContactSubmission";
 import { sendContactNotification, sendContactAutoReply } from "@/lib/email";
 import { createRateLimiter, getClientIp } from "@/lib/rateLimit";
+import {
+  getAiChatbotSettingsRaw,
+  getChatbotNotificationOverrides,
+} from "@/lib/aiChatbotService";
 
 const checkRateLimit = createRateLimiter({ windowMs: 60_000, max: 5 });
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function normalizeNotificationOverrides(raw) {
+  const input = raw && typeof raw === "object" ? raw : {};
+  const recipientsInput = Array.isArray(input.recipients) ? input.recipients : [];
+  const recipients = recipientsInput
+    .map((item) => String(item || "").trim().toLowerCase())
+    .filter(Boolean)
+    .filter((email) => EMAIL_RE.test(email))
+    .slice(0, 20);
+  const subjectPrefix = String(input.subjectPrefix || "").trim().slice(0, 80);
+  if (!recipients.length && !subjectPrefix) return null;
+  return {
+    recipients,
+    subjectPrefix,
+  };
+}
 
 export async function POST(req) {
   const clientId = getClientIp(req);
@@ -33,7 +54,18 @@ export async function POST(req) {
     });
 
     try {
-      await sendContactNotification(submission);
+      const explicitOverrides = normalizeNotificationOverrides(body.notificationOverrides);
+      let effectiveOverrides = explicitOverrides;
+      if (!effectiveOverrides && String(body.source || "") === "chatbot-widget") {
+        try {
+          const chatbotSettings = await getAiChatbotSettingsRaw();
+          effectiveOverrides = getChatbotNotificationOverrides(chatbotSettings);
+        } catch {
+          effectiveOverrides = null;
+        }
+      }
+
+      await sendContactNotification(submission, effectiveOverrides || {});
       await sendContactAutoReply(submission);
     } catch (e) {
       console.error("Email send failed:", e);

@@ -121,7 +121,13 @@ export async function middleware(req) {
     return NextResponse.redirect(url);
   }
 
-  const adminOnlyPaths = ["/admin/users", "/admin/theme", "/api/admin/users"];
+  const adminOnlyPaths = [
+    "/admin/users",
+    "/admin/theme",
+    "/admin/ai-chatbot",
+    "/api/admin/users",
+    "/api/admin/ai-chatbot",
+  ];
   if (token.role !== "Admin" && adminOnlyPaths.some((p) => pathname.startsWith(p))) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Forbidden: Admin only" }, { status: 403 });

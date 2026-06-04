@@ -64,6 +64,7 @@ Models in `models/`:
 - `Component`
 - `SiteComponentMeta`
 - `ThemeConfig`
+- `AIChatbotSettings`
 - `Menu`
 - `User`
 - `Media`
@@ -94,7 +95,7 @@ Key public groups:
 
 Key admin groups:
 - Pages, blogs, categories, comments, components, site-components, menus
-- Media, contacts, users, subscribers, donations, events, event-registrations, volunteers-feedback, fonts
+- Media, contacts, users, subscribers, donations, events, event-registrations, volunteers-feedback, fonts, ai-chatbot
 
 Use `docs/API.md` for endpoint behavior and request/response contracts.
 
@@ -228,11 +229,17 @@ Key implementation files:
 - `middleware.js`
 - `lib/auth.js`
 - `lib/apiAuth.js`
+- `lib/aiChatbotService.js`
+- `lib/aiChatbotValidation.js`
 - `lib/layoutData.js`
 - `components/cms/ComponentRenderer.js`
 - `components/layout/PublicShell.js`
+- `components/layout/AIChatbotWidget.js`
 - `lib/siteComponentRegistry.js`
 - `components/site/index.js`
+- `app/api/admin/ai-chatbot/route.js`
+- `app/api/public/ai-chatbot/config/route.js`
+- `app/api/public/chatbot/message/route.js`
 - `app/api/admin/site-components/route.js`
 - `app/admin/(authenticated)/components/[id]/edit/page.js`
 
