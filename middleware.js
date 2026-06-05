@@ -3,6 +3,9 @@ import { NextResponse } from "next/server";
 
 const adminPathPrefix = "/admin";
 const loginPath = "/admin/login";
+const CSRF_ORIGIN_EXEMPT_PATHS = new Set([
+  "/api/payment/callback",
+]);
 
 const LOGIN_WINDOW_MS = 60_000;
 const LOGIN_MAX = 10;
@@ -55,15 +58,39 @@ function isStateChanging(method) {
   return method === "POST" || method === "PUT" || method === "PATCH" || method === "DELETE";
 }
 
-function checkSameOrigin(req) {
+function isCsrfExemptPath(pathname) {
+  return CSRF_ORIGIN_EXEMPT_PATHS.has(pathname);
+}
+
+function checkSameOrigin(req, pathname) {
+  if (isCsrfExemptPath(pathname)) return true;
+
   const origin = req.headers.get("origin");
   const host = req.headers.get("host");
-  if (!origin) return true;
+  const requestProto =
+    req.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() ||
+    req.nextUrl.protocol.replace(":", "");
+
+  if (!origin) {
+    const referer = req.headers.get("referer");
+    if (referer) {
+      try {
+        const refererUrl = new URL(referer);
+        return (
+          refererUrl.host === host &&
+          refererUrl.protocol.replace(":", "") === requestProto
+        );
+      } catch {
+        return false;
+      }
+    }
+
+    const secFetchSite = req.headers.get("sec-fetch-site");
+    if (!secFetchSite) return false;
+    return secFetchSite === "same-origin" || secFetchSite === "same-site" || secFetchSite === "none";
+  }
   try {
     const originUrl = new URL(origin);
-    const requestProto =
-      req.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() ||
-      req.nextUrl.protocol.replace(":", "");
     return (
       originUrl.host === host &&
       originUrl.protocol.replace(":", "") === requestProto
@@ -101,7 +128,7 @@ export async function middleware(req) {
   }
 
   if (pathname.startsWith("/api/") && isStateChanging(req.method)) {
-    if (!checkSameOrigin(req)) {
+    if (!checkSameOrigin(req, pathname)) {
       return NextResponse.json({ error: "Forbidden: cross-origin request" }, { status: 403 });
     }
   }
