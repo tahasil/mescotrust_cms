@@ -365,7 +365,7 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
                                 </Card>
                               </Col>
                               <Col span={24}>
-                                <Card size="small" title="Mobile Image">
+                                <Card size="small" title="Mobile Image (Optional)">
                                   <Form.Item
                                     {...restField}
                                     name={[name, "bgImageUrlMobile"]}
