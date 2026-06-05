@@ -652,7 +652,15 @@ export default function DonateNow(props = {}) {
     if (!lookupAllowed(trimmedLookup)) return;
 
     setLookupState((previous) => ({ ...previous, loading: true }));
-    setErrors((previous) => ({ ...previous, lookup: "" }));
+    setErrors((previous) => {
+      const next = { ...previous };
+      delete next.lookup;
+      delete next.donorVerification;
+      delete next.verifyEmail;
+      delete next.verifyMobile;
+      delete next.verifyPanLast4;
+      return next;
+    });
     try {
       const include = lookupAutofillFields.join(",");
       const url = `/api/payment/donor-lookup?q=${encodeURIComponent(
@@ -684,6 +692,14 @@ export default function DonateNow(props = {}) {
           ...previous,
           lookup: "Lookup request failed. Please try again.",
         }));
+        setFieldValues((previous) => {
+          const defaults = getInitialFieldValues(fieldConfig);
+          const next = { ...previous };
+          DONOR_PROFILE_FIELD_KEYS.forEach((fieldKey) => {
+            next[fieldKey] = defaults[fieldKey] ?? "";
+          });
+          return next;
+        });
         return;
       }
       if (!data?.found || !data?.donorMasked) {
@@ -695,6 +711,14 @@ export default function DonateNow(props = {}) {
             copy.donorNotFoundMessage ||
             "No donor found for this email / mobile.",
         }));
+        setFieldValues((previous) => {
+          const defaults = getInitialFieldValues(fieldConfig);
+          const next = { ...previous };
+          DONOR_PROFILE_FIELD_KEYS.forEach((fieldKey) => {
+            next[fieldKey] = defaults[fieldKey] ?? "";
+          });
+          return next;
+        });
         return;
       }
 
@@ -739,6 +763,14 @@ export default function DonateNow(props = {}) {
         ...previous,
         lookup: "Lookup request failed. Please try again.",
       }));
+      setFieldValues((previous) => {
+        const defaults = getInitialFieldValues(fieldConfig);
+        const next = { ...previous };
+        DONOR_PROFILE_FIELD_KEYS.forEach((fieldKey) => {
+          next[fieldKey] = defaults[fieldKey] ?? "";
+        });
+        return next;
+      });
     }
   };
 
@@ -758,7 +790,7 @@ export default function DonateNow(props = {}) {
     }
     if (lookupState.requiresPanLast4) {
       if (!/^[A-Z0-9]{4}$/.test(verifyPanLast4)) {
-        nextErrors.verifyPanLast4 = "Enter last 4 PAN characters";
+        nextErrors.verifyPanLast4 = "Enter first 4 PAN characters";
       }
     }
 
@@ -891,7 +923,15 @@ export default function DonateNow(props = {}) {
         nextErrors.lookup =
           copy.donorNotFoundMessage ||
           "Please identify the existing donor using email / mobile.";
+      } else if (!lookupState.verified) {
+        nextErrors.donorVerification =
+          "Please complete donor verification to unlock and edit full details.";
       }
+    }
+
+    if (isExistingDonor && !lookupState.verified) {
+      setErrors(nextErrors);
+      return false;
     }
 
     DONATE_NOW_BASE_FIELDS.forEach((baseField) => {
@@ -1272,6 +1312,94 @@ export default function DonateNow(props = {}) {
                     renderBaseField(fieldDef),
                   )}
 
+                  {isExistingDonor && lookupState.found && !lookupState.verified ? (
+                    <Col xs={24} md={24}>
+                      <VerificationPanel>
+                        <h4>Verify Identity to Unlock Full Details</h4>
+                        <p>
+                          For security, donor details are masked. Verify with
+                          registered contact details to reveal and edit.
+                        </p>
+                        <Row gutter={[12, 8]}>
+                          <Col xs={24} md={12}>
+                            <FieldLabel>
+                              Verification Email
+                              <span className="req">*</span>
+                            </FieldLabel>
+                            <FieldInput
+                              type="email"
+                              value={verificationValues.email}
+                              placeholder="Enter registered email"
+                              onChange={(event) =>
+                                handleVerificationValue(
+                                  "email",
+                                  event.target.value,
+                                )
+                              }
+                            />
+                            {errors.verifyEmail ? (
+                              <FieldError>{errors.verifyEmail}</FieldError>
+                            ) : null}
+                          </Col>
+                          <Col xs={24} md={12}>
+                            <FieldLabel>
+                              Verification Mobile
+                              <span className="req">*</span>
+                            </FieldLabel>
+                            <FieldInput
+                              type="text"
+                              inputMode="numeric"
+                              value={verificationValues.mobile}
+                              placeholder="Enter registered mobile"
+                              onChange={(event) =>
+                                handleVerificationValue(
+                                  "mobile",
+                                  event.target.value,
+                                )
+                              }
+                            />
+                            {errors.verifyMobile ? (
+                              <FieldError>{errors.verifyMobile}</FieldError>
+                            ) : null}
+                          </Col>
+                          {lookupState.requiresPanLast4 ? (
+                            <Col xs={24} md={12}>
+                              <FieldLabel>
+                                PAN Start 4
+                                <span className="req">*</span>
+                              </FieldLabel>
+                              <FieldInput
+                                type="text"
+                                maxLength={4}
+                                value={verificationValues.panLast4}
+                                placeholder="First 4 PAN characters"
+                                onChange={(event) =>
+                                  handleVerificationValue(
+                                    "panLast4",
+                                    event.target.value.toUpperCase(),
+                                  )
+                                }
+                              />
+                              {errors.verifyPanLast4 ? (
+                                <FieldError>{errors.verifyPanLast4}</FieldError>
+                              ) : null}
+                            </Col>
+                          ) : null}
+                        </Row>
+                        {errors.donorVerification ? (
+                          <FieldError>{errors.donorVerification}</FieldError>
+                        ) : null}
+                        <VerifyButton
+                          type="button"
+                          disabled={verifyingDonor}
+                          onClick={verifyExistingDonor}
+                        >
+                          {verifyingDonor ? "Verifying..." : "Verify & Unlock"}
+                        </VerifyButton>
+                      </VerificationPanel>
+                    </Col>
+                  ) : null}
+
                   {canUseMainFormFields
                     ? additionalFields.map((extraField) => {
                         const errorKey = `additional:${extraField.key}`;
@@ -1372,7 +1500,8 @@ export default function DonateNow(props = {}) {
                     disabled={
                       submitting ||
                       !isDonorTypeSelected ||
-                      (isExistingDonor && !lookupState.found)
+                      (isExistingDonor &&
+                        (!lookupState.found || !lookupState.verified))
                     }
                     onClick={handleSubmit}
                   >
@@ -1546,6 +1675,43 @@ const LookupInfo = styled.div`
     font-size: 12px;
     color: #1f2920;
     line-height: 1.5;
+  }
+`;
+
+const VerificationPanel = styled.div`
+  margin-bottom: 16px;
+  padding: 14px 14px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(207, 55, 47, 0.25);
+  background: rgba(207, 55, 47, 0.05);
+  h4 {
+    margin: 0 0 6px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #7f1f1b;
+  }
+  p {
+    margin: 0 0 12px;
+    color: rgba(0, 0, 0, 0.72);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+`;
+
+const VerifyButton = styled.button`
+  margin-top: 10px;
+  min-height: 40px;
+  border-radius: 999px;
+  border: 1px solid ${getColor("primary")};
+  background: #ffffff;
+  color: ${getColor("primary")};
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
   }
 `;
 

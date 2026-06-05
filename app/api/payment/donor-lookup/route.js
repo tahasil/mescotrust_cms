@@ -2,7 +2,7 @@ import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import DonateNowSubmission from "@/models/DonateNowSubmission";
-import { maskEmail, maskMobile } from "@/lib/donateNowConfig";
+import { maskMobile } from "@/lib/donateNowConfig";
 
 const SAFE_REUSABLE_FIELDS = [
   "name",
@@ -95,6 +95,23 @@ function maskTail(value = "", keepLast = 4) {
   return `${"*".repeat(Math.max(4, raw.length - keepLast))}${raw.slice(-keepLast)}`;
 }
 
+function maskEmailStrict(value = "") {
+  const email = toTrimmedString(value).toLowerCase();
+  if (!email.includes("@")) return "";
+  const [local, domain] = email.split("@");
+  if (!local || !domain) return "";
+
+  const tldMatch = domain.match(/(\.[^.]+)$/);
+  const tld = tldMatch ? tldMatch[1] : "";
+  const domainMain = tld ? domain.slice(0, -tld.length) : domain;
+  const maskedLocal =
+    local.length <= 2
+      ? `${local[0] || "*"}*`
+      : `${local.slice(0, 2)}${"*".repeat(Math.max(2, local.length - 2))}`;
+  const maskedDomain = "*".repeat(Math.max(6, domainMain.length));
+  return `${maskedLocal}@${maskedDomain}${tld || ""}`;
+}
+
 function maskName(value = "") {
   const name = toTrimmedString(value);
   if (!name) return "";
@@ -124,7 +141,7 @@ function maskAddress(value = "") {
 function maskByField(fieldKey, value) {
   const normalized = toTrimmedString(value);
   if (!normalized) return "";
-  if (fieldKey === "email") return maskEmail(normalized);
+  if (fieldKey === "email") return maskEmailStrict(normalized);
   if (fieldKey === "mobile") return maskMobile(normalized);
   if (fieldKey === "pan") return maskPan(normalized);
   if (fieldKey === "name") return maskName(normalized);
@@ -267,7 +284,7 @@ export async function GET(req) {
       verificationToken,
       matchedStatus: toTrimmedString(donation?.status || ""),
       masked: {
-        email: maskEmail(donation?.donor?.email || ""),
+        email: maskEmailStrict(donation?.donor?.email || ""),
         mobile: maskMobile(donation?.donor?.mobile || ""),
       },
       matchedSubmissionId: String(donation?._id || ""),
@@ -344,7 +361,7 @@ export async function POST(req) {
       );
     });
     const panRequired = donorPan.length >= 4;
-    const panMatch = !panRequired || donorPan.slice(-4) === panLast4;
+    const panMatch = !panRequired || donorPan.slice(0, 4) === panLast4;
 
     if (!emailMatch || !mobileMatch || !panMatch) {
       logLookupDebug("verify-failed", {
@@ -357,7 +374,7 @@ export async function POST(req) {
         {
           verified: false,
           error:
-            "Verification failed. Please check email, mobile and PAN last 4 digits.",
+            "Verification failed. Please check email, mobile and PAN first 4 digits.",
         },
         { status: 401 },
       );
