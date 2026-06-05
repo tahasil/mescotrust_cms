@@ -17,6 +17,7 @@ import {
 } from "antd";
 import {
   DeleteOutlined,
+  FileTextOutlined,
   PictureOutlined,
   SearchOutlined,
   UploadOutlined,
@@ -85,7 +86,11 @@ export default function MediaPickerInput({
   showVariants = true,
   uiVariant = "default",
   hintText = "",
+  mediaType = "image",
 }) {
+  const normalizedMediaType =
+    mediaType === "document" || mediaType === "all" ? mediaType : "image";
+  const isDocumentMode = normalizedMediaType === "document";
   const parsed = useMemo(() => parseMediaValue(value), [value]);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -122,8 +127,10 @@ export default function MediaPickerInput({
         const params = new URLSearchParams({
           page: String(nextPage),
           limit: String(pageSize),
-          type: "image",
         });
+        if (normalizedMediaType !== "all") {
+          params.set("type", normalizedMediaType);
+        }
         if (query) params.set("q", query);
         const res = await fetch(`/api/admin/media?${params.toString()}`);
         const data = await readJson(res);
@@ -136,7 +143,7 @@ export default function MediaPickerInput({
         setLoading(false);
       }
     },
-    [page, query],
+    [normalizedMediaType, page, query],
   );
 
   useEffect(() => {
@@ -197,7 +204,9 @@ export default function MediaPickerInput({
       const data = await readJson(res);
       if (!res.ok) throw new Error(data.error || "Upload failed");
       onSuccess?.(data);
-      message.success("Image uploaded");
+      message.success(
+        normalizedMediaType === "document" ? "Document uploaded" : "Image uploaded",
+      );
       setPage(1);
       fetchLibrary(1);
     } catch (err) {
@@ -229,6 +238,24 @@ export default function MediaPickerInput({
     return String(value || "").trim();
   }, [mediaId, size, format, value]);
   const isStacked = uiVariant === "stacked";
+  const activeMediaMimeType = String(activeMedia?.mimeType || "").toLowerCase();
+  const activeMediaIsImage = activeMediaMimeType.startsWith("image/");
+  const previewLooksPdf = /\.pdf(?:[?#].*)?$/i.test(String(previewSrc || ""));
+  const canShowImagePreview =
+    Boolean(previewSrc) &&
+    !isDocumentMode &&
+    (activeMedia ? activeMediaIsImage : !previewLooksPdf);
+  const documentPreviewName =
+    activeMedia?.originalName ||
+    activeMedia?.title ||
+    String(value || "").trim() ||
+    "Selected document";
+  const uploadAccept =
+    normalizedMediaType === "document"
+      ? ".pdf,application/pdf"
+      : normalizedMediaType === "all"
+        ? "image/*,.svg,.pdf,application/pdf"
+        : "image/*,.svg";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -247,7 +274,7 @@ export default function MediaPickerInput({
               justifyContent: "center",
             }}
           >
-            {previewSrc ? (
+            {canShowImagePreview ? (
               <img
                 src={previewSrc}
                 alt="Selected media preview"
@@ -259,6 +286,31 @@ export default function MediaPickerInput({
                   background: "#fff",
                 }}
               />
+            ) : previewSrc ? (
+              <div
+                style={{
+                  width: "100%",
+                  minHeight: 120,
+                  borderRadius: 6,
+                  background: "#fff",
+                  border: "1px dashed #d9d9d9",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: 12,
+                  textAlign: "center",
+                  gap: 6,
+                }}
+              >
+                <FileTextOutlined style={{ fontSize: 22, color: "#8c8c8c" }} />
+                <Typography.Text
+                  type="secondary"
+                  style={{ fontSize: 12, wordBreak: "break-word" }}
+                >
+                  {documentPreviewName}
+                </Typography.Text>
+              </div>
             ) : (
               <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -343,7 +395,7 @@ export default function MediaPickerInput({
               disabled={!allowManual}
             />
             <Button
-              icon={<PictureOutlined />}
+              icon={isDocumentMode ? <FileTextOutlined /> : <PictureOutlined />}
               onClick={() => setLibraryOpen(true)}
               type="default"
             >
@@ -398,17 +450,35 @@ export default function MediaPickerInput({
                 maxWidth: 260,
               }}
             >
-              <img
-                src={previewSrc}
-                alt="Selected media preview"
-                style={{
-                  width: "100%",
-                  maxHeight: 110,
-                  objectFit: "contain",
-                  borderRadius: 6,
-                  background: "#fff",
-                }}
-              />
+              {canShowImagePreview ? (
+                <img
+                  src={previewSrc}
+                  alt="Selected media preview"
+                  style={{
+                    width: "100%",
+                    maxHeight: 110,
+                    objectFit: "contain",
+                    borderRadius: 6,
+                    background: "#fff",
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: "100%",
+                    minHeight: 72,
+                    borderRadius: 6,
+                    background: "#fff",
+                    border: "1px dashed #d9d9d9",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: 8,
+                  }}
+                >
+                  <FileTextOutlined style={{ fontSize: 22, color: "#8c8c8c" }} />
+                </div>
+              )}
               {activeMedia ? (
                 <Typography.Text
                   type="secondary"
@@ -448,7 +518,7 @@ export default function MediaPickerInput({
             style={{ width: 300, maxWidth: "100%" }}
           />
           <Upload
-            accept="image/*,.svg"
+            accept={uploadAccept}
             showUploadList={false}
             customRequest={onUpload}
             disabled={uploading}
@@ -458,7 +528,7 @@ export default function MediaPickerInput({
               loading={uploading}
               type="primary"
             >
-              Upload image
+              {normalizedMediaType === "document" ? "Upload document" : "Upload image"}
             </Button>
           </Upload>
         </div>
@@ -468,7 +538,13 @@ export default function MediaPickerInput({
             <Spin />
           </div>
         ) : items.length === 0 ? (
-          <Empty description="No images found" />
+          <Empty
+            description={
+              normalizedMediaType === "document"
+                ? "No documents found"
+                : "No images found"
+            }
+          />
         ) : (
           <>
             <div
@@ -479,7 +555,9 @@ export default function MediaPickerInput({
               }}
             >
               {items.map((item) => {
-                const thumb = getImagePreview(item);
+                const itemMimeType = String(item?.mimeType || "").toLowerCase();
+                const itemIsImage = itemMimeType.startsWith("image/");
+                const thumb = itemIsImage ? getImagePreview(item) : "";
                 const isActive = String(item?._id || "") === mediaId;
                 return (
                   <button
@@ -514,7 +592,7 @@ export default function MediaPickerInput({
                           style={{ width: "100%", height: "100%", objectFit: "cover" }}
                         />
                       ) : (
-                        <PictureOutlined style={{ fontSize: 24, color: "#999" }} />
+                        <FileTextOutlined style={{ fontSize: 24, color: "#999" }} />
                       )}
                     </div>
                     <Typography.Text
@@ -525,7 +603,9 @@ export default function MediaPickerInput({
                       }}
                       ellipsis={{ tooltip: item.originalName || item.title }}
                     >
-                      {item.originalName || item.title || "Image"}
+                      {item.originalName ||
+                        item.title ||
+                        (itemIsImage ? "Image" : "Document")}
                     </Typography.Text>
                   </button>
                 );

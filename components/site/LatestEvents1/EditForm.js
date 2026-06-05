@@ -22,8 +22,13 @@ import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/ma
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/LatestEvents1";
-const ALLOWED_BUTTON_LINK_EXTENSIONS_RE =
-  /\.(pdf|jpe?g|png|svg|webp)(?:[?#].*)?$/i;
+const REQUIRED_IMAGE_WIDTH = 600;
+const REQUIRED_IMAGE_HEIGHT = 455;
+const REQUIRED_IMAGE_DIMENSIONS_TEXT =
+  `${REQUIRED_IMAGE_WIDTH} \u00D7 ${REQUIRED_IMAGE_HEIGHT} px`;
+const ALLOWED_BUTTON_LINK_EXTENSIONS_RE = /\.pdf(?:[?#].*)?$/i;
+const MEDIA_ROUTE_LINK_RE = /^\/media\/([0-9a-fA-F]{24})(?:\?.*)?$/i;
+const mediaMimeTypeCache = new Map();
 
 function isValidHttpUrl(value) {
   try {
@@ -34,61 +39,115 @@ function isValidHttpUrl(value) {
   }
 }
 
-function isMediaRouteLink(value) {
-  return /^\/media\/[0-9a-fA-F]{24}(?:\?.*)?$/i.test(String(value || "").trim());
+function parseMediaIdFromLink(value) {
+  const match = String(value || "").trim().match(MEDIA_ROUTE_LINK_RE);
+  return match ? String(match[1] || "").trim() : "";
 }
 
-function hasUnsupportedFileExtension(value) {
-  const raw = String(value || "").trim();
-  if (!raw) return false;
-  const withoutQuery = raw.split("?")[0].split("#")[0];
-  const extMatch = withoutQuery.match(/\.([a-zA-Z0-9]+)$/);
-  if (!extMatch) return false;
-  return !ALLOWED_BUTTON_LINK_EXTENSIONS_RE.test(raw);
-}
-
-function validateButtonLink(_, value) {
+async function validateButtonLink(_, value) {
   const link = String(value || "").trim();
   if (!link) return Promise.resolve();
 
-  if (isMediaRouteLink(link)) return Promise.resolve();
+  const mediaId = parseMediaIdFromLink(link);
+  if (mediaId) {
+    let mimeType = mediaMimeTypeCache.get(mediaId);
+    if (!mimeType) {
+      try {
+        const res = await fetch(`/api/admin/media/${mediaId}`, { cache: "no-store" });
+        const data = await res.json();
+        if (!res.ok) {
+          return Promise.reject(
+            new Error(data?.error || "Unable to validate selected document."),
+          );
+        }
+        mimeType = String(data?.mimeType || "").toLowerCase().trim();
+        mediaMimeTypeCache.set(mediaId, mimeType);
+      } catch {
+        return Promise.reject(new Error("Unable to validate selected document."));
+      }
+    }
+    if (!mimeType || mimeType.startsWith("image/")) {
+      return Promise.reject(
+        new Error("Button link must be a document. Select a PDF from Media Library."),
+      );
+    }
+    return Promise.resolve();
+  }
 
-  if (hasUnsupportedFileExtension(link)) {
+  if (link.startsWith("/")) {
+    if (ALLOWED_BUTTON_LINK_EXTENSIONS_RE.test(link)) return Promise.resolve();
     return Promise.reject(
-      new Error("Allowed file formats: .pdf, .jpg, .jpeg, .png, .svg, .webp"),
+      new Error("Use a PDF document path (e.g. /uploads/file.pdf) or /media/<id>."),
     );
   }
 
-  if (link.startsWith("/")) return Promise.resolve();
-  if (isValidHttpUrl(link)) return Promise.resolve();
+  if (isValidHttpUrl(link) && ALLOWED_BUTTON_LINK_EXTENSIONS_RE.test(link)) {
+    return Promise.resolve();
+  }
 
   return Promise.reject(
-    new Error("Enter a valid URL/path. Use /path, http(s)://..., or /media/<id>"),
+    new Error("Enter a valid document link. Use /media/<id> or a .pdf URL/path."),
   );
 }
 
 function normalizeItem(it) {
-  const desktopImage =
-    it?.imageUrlDesktop != null
-      ? String(it.imageUrlDesktop).trim()
-      : it?.imageUrl != null
-        ? String(it.imageUrl).trim()
-        : "";
-  const mobileImage =
-    it?.imageUrlMobile != null ? String(it.imageUrlMobile).trim() : "";
+  const imageUrlCandidates = [it?.imageUrlDesktop, it?.imageUrl, it?.imageUrlMobile];
+  const imageUrl =
+    imageUrlCandidates
+      .map((candidate) => (candidate != null ? String(candidate).trim() : ""))
+      .find(Boolean) || "";
   return {
-    imageUrlDesktop: desktopImage,
-    imageUrlMobile: mobileImage,
-    imageUrl: desktopImage,
+    imageUrlDesktop: imageUrl,
+    imageUrlMobile: "",
+    imageUrl,
     date: it?.date != null ? String(it.date).trim() : "",
     title: it?.title != null ? String(it.title).trim() : "",
     description: it?.description != null ? String(it.description).trim() : "",
     buttonText: it?.buttonText != null ? String(it.buttonText).trim() : "Read Post",
-    buttonLink: it?.buttonLink != null ? String(it.buttonLink).trim() : "/",
+    buttonLink:
+      it?.buttonLink != null && String(it.buttonLink).trim() !== "/"
+        ? String(it.buttonLink).trim()
+        : "",
     buttonOpenInNewTab:
       Boolean(it?.buttonOpenInNewTab ?? it?.openInNewTab) ||
       String(it?.target || it?.buttonTarget || "").toLowerCase() === "_blank",
   };
+}
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+async function validateLatestEventsImageDimensions(_, value) {
+  const imageUrl = String(value || "").trim();
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (width === REQUIRED_IMAGE_WIDTH && height === REQUIRED_IMAGE_HEIGHT) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(
+        `Image must be exactly ${REQUIRED_IMAGE_DIMENSIONS_TEXT}. Selected image is ${width} \u00D7 ${height} px.`,
+      ),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(
+        `Unable to validate image size. Please select an image of ${REQUIRED_IMAGE_DIMENSIONS_TEXT}.`,
+      ),
+    );
+  }
 }
 
 /**
@@ -261,25 +320,15 @@ function LatestEvents1EditForm(
                           <Form.Item
                             {...restField}
                             name={[name, "imageUrlDesktop"]}
-                            label="Desktop Image"
+                            label="Image"
+                            className="latest-events1-image-field"
+                            rules={[{ validator: validateLatestEventsImageDimensions }]}
                           >
                             <MediaPickerInput
                               placeholder="/images/news-1.png"
                               uiVariant="stacked"
-                              hintText="Recommended for desktop/tablet"
-                            />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item
-                            {...restField}
-                            name={[name, "imageUrlMobile"]}
-                            label="Mobile Image"
-                          >
-                            <MediaPickerInput
-                              placeholder="/images/news-1-mobile.png"
-                              uiVariant="stacked"
-                              hintText="Optional. Desktop image will be used if empty."
+                              showVariants={false}
+                              hintText={`Recommended size: ${REQUIRED_IMAGE_DIMENSIONS_TEXT}`}
                             />
                           </Form.Item>
                         </Col>
@@ -307,13 +356,14 @@ function LatestEvents1EditForm(
                           <Form.Item
                             {...restField}
                             name={[name, "buttonLink"]}
-                            label="Button link"
+                            label="Button document link"
                             rules={[{ validator: validateButtonLink }]}
                           >
                             <MediaPickerInput
-                              placeholder="/ or /media/... or https://..."
+                              placeholder="/media/<id> or /uploads/file.pdf or https://...pdf"
                               showVariants={false}
-                              hintText="Supports: internal paths, media library images, and file URLs (.pdf, .jpg, .jpeg, .png, .svg, .webp)."
+                              mediaType="document"
+                              hintText="Supports documents only (PDF)."
                             />
                           </Form.Item>
                         </Col>
@@ -337,6 +387,12 @@ function LatestEvents1EditForm(
           },
         ]}
       />
+      <style jsx global>{`
+        .latest-events1-image-field .ant-form-item-explain-error {
+          font-size: 12px;
+          line-height: 1.35;
+        }
+      `}</style>
     </Form>
   );
 }
