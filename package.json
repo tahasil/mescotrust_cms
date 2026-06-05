@@ -10,7 +10,8 @@
     "seed": "node scripts/seed.js",
     "check-db": "node scripts/check-db.js",
     "seed-subscribe": "node scripts/seed-subscribe-from-mescotrust.js",
-    "backup-db": "node scripts/backup-db.js"
+    "backup-db": "node scripts/backup-db.js",
+    "sync-missing-media": "node scripts/sync-missing-media.js"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.0",
