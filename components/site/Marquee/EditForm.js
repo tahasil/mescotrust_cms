@@ -10,6 +10,50 @@ import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
+const RECOMMENDED_MARQUEE_IMAGE_WIDTH = 190;
+const RECOMMENDED_MARQUEE_IMAGE_HEIGHT = 154;
+const RECOMMENDED_MARQUEE_IMAGE_DIMENSIONS_TEXT =
+  `${RECOMMENDED_MARQUEE_IMAGE_WIDTH} \u00D7 ${RECOMMENDED_MARQUEE_IMAGE_HEIGHT} px`;
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+async function validateMarqueeImageDimensions(_, value) {
+  const imageUrl = String(value || "").trim();
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (
+      width === RECOMMENDED_MARQUEE_IMAGE_WIDTH &&
+      height === RECOMMENDED_MARQUEE_IMAGE_HEIGHT
+    ) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(
+        `Image must be ${RECOMMENDED_MARQUEE_IMAGE_DIMENSIONS_TEXT}. Selected image is ${width} \u00D7 ${height} px.`,
+      ),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(
+        `Unable to validate image size. Please select an image of ${RECOMMENDED_MARQUEE_IMAGE_DIMENSIONS_TEXT}.`,
+      ),
+    );
+  }
+}
+
 /**
  * Edit form for Marquee — used in page builder drawer or component edit.
  * When source="page": data from block.props (pages collection); save updates layout only, not components collection.
@@ -173,7 +217,7 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                     move={move}
                     itemLabel="Item"
                     addButtonText="Add item"
-                    defaultAddPayload={{ urlDesktop: "", urlMobile: "", url: "", alt: "" }}
+                    defaultAddPayload={{ urlDesktop: "", url: "", alt: "" }}
                     reorderMovedIndex={reorderMovedIndex}
                     reorderDirection={reorderDirection}
                     onMoveWithTransition={(from, to) => {
@@ -184,20 +228,19 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                     renderItemContent={(name, restField) => (
                       <Row gutter={[16, 16]}>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "urlDesktop"]} label="Desktop Image" rules={[{ required: true, message: "Required" }]}>
+                          <Form.Item
+                            {...restField}
+                            name={[name, "urlDesktop"]}
+                            label="Image"
+                            rules={[
+                              { required: true, message: "Required" },
+                              { validator: validateMarqueeImageDimensions },
+                            ]}
+                          >
                             <MediaPickerInput
                               placeholder="/images/partner-1.png"
                               uiVariant="stacked"
-                              hintText="Recommended for desktop/tablet"
-                            />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "urlMobile"]} label="Mobile Image">
-                            <MediaPickerInput
-                              placeholder="/images/partner-1-mobile.png"
-                              uiVariant="stacked"
-                              hintText="Optional. Desktop image will be used if empty."
+                              hintText={`Recommended size: ${RECOMMENDED_MARQUEE_IMAGE_DIMENSIONS_TEXT}`}
                             />
                           </Form.Item>
                         </Col>

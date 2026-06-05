@@ -275,7 +275,6 @@ function fetchHomeHero() {
 export default function HomeHero(props) {
   const [theme, setTheme] = useState(null);
   const [themeResolved, setThemeResolved] = useState(false);
-  const [isMobileView, setIsMobileView] = useState(false);
   const [slideAspectRatios, setSlideAspectRatios] = useState({});
   const fromPage =
     (Array.isArray(props?.homeHeroSlides) && props.homeHeroSlides.length > 0) ||
@@ -294,19 +293,6 @@ export default function HomeHero(props) {
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, [fromPage]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(max-width: 767px)");
-    const update = () => setIsMobileView(mq.matches);
-    update();
-    if (typeof mq.addEventListener === "function") {
-      mq.addEventListener("change", update);
-      return () => mq.removeEventListener("change", update);
-    }
-    mq.addListener(update);
-    return () => mq.removeListener(update);
-  }, []);
 
   const slides =
     Array.isArray(props?.homeHeroSlides) && props.homeHeroSlides.length > 0
@@ -386,7 +372,6 @@ export default function HomeHero(props) {
   const resolveSlideBgImage = (slide) => {
     const desktop = slide?.bgImageUrlDesktop || slide?.bgImageUrl || "";
     const mobile = slide?.bgImageUrlMobile || "";
-    if (isMobileView) return mobile || desktop;
     return desktop || mobile;
   };
 
@@ -415,7 +400,7 @@ export default function HomeHero(props) {
     return () => {
       cancelled = true;
     };
-  }, [normalizedSlides, isMobileView, slideAspectRatios]);
+  }, [normalizedSlides, slideAspectRatios]);
 
   if (normalizedSlides.length === 0) {
     // Reserve hero space until client-side HomeHero defaults finish loading,
