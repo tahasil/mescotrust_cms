@@ -656,7 +656,9 @@ export default function Header({
           >
             {logoType === "image" && logoImage ? (
               <img
-                loading="lazy"
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
                 src={logoImage}
                 alt={title}
                 className="img-fluid"
@@ -765,7 +767,8 @@ export default function Header({
                 <IconWrap>
                   {volunteerIconUrl ? (
                     <img
-                      loading="lazy"
+                      loading="eager"
+                      decoding="async"
                       src={volunteerIconUrl}
                       alt={volunteerLabel}
                     />
@@ -782,7 +785,12 @@ export default function Header({
                 {donateLabel}
                 <IconWrap>
                   {donateIconUrl ? (
-                    <img loading="lazy" src={donateIconUrl} alt={donateLabel} />
+                    <img
+                      loading="eager"
+                      decoding="async"
+                      src={donateIconUrl}
+                      alt={donateLabel}
+                    />
                   ) : null}
                 </IconWrap>
               </BtnDonate>

@@ -235,15 +235,22 @@ function fetchHomeHero() {
  */
 export default function HomeHero(props) {
   const [theme, setTheme] = useState(null);
+  const [themeResolved, setThemeResolved] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
   const fromPage =
     (Array.isArray(props?.homeHeroSlides) && props.homeHeroSlides.length > 0) ||
     (Array.isArray(props?.slides) && props.slides.length > 0);
 
   useEffect(() => {
-    if (fromPage) return;
-    fetchHomeHero().then(setTheme);
-    const onFocus = () => fetchHomeHero().then((t) => t != null && setTheme(t));
+    if (fromPage) {
+      setThemeResolved(true);
+      return;
+    }
+    fetchHomeHero()
+      .then(setTheme)
+      .finally(() => setThemeResolved(true));
+    const onFocus = () =>
+      fetchHomeHero().then((t) => t != null && setTheme(t));
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, [fromPage]);
@@ -338,7 +345,18 @@ export default function HomeHero(props) {
     return desktop || mobile;
   };
 
-  if (normalizedSlides.length === 0) return null;
+  if (normalizedSlides.length === 0) {
+    // Reserve hero space until client-side HomeHero defaults finish loading,
+    // preventing a large first-load layout shift.
+    if (!fromPage && !themeResolved) {
+      return (
+        <HomeFluidContainer data-component="HomeHero" aria-hidden="true">
+          <SliderSection />
+        </HomeFluidContainer>
+      );
+    }
+    return null;
+  }
 
   const slideContent =
     normalizedSlides.length === 1 ? (

@@ -1,10 +1,19 @@
 import { headers } from "next/headers";
 import Script from "next/script";
+import dynamicImport from "next/dynamic";
 import { getLayoutData } from "@/lib/layoutData";
 import PublicShell from "@/components/layout/PublicShell";
-import SmoothScroll from "@/components/cms/SmoothScroll";
-import CookieConsent from "@/components/site/CookieConsent";
-import PageTransitionLoader from "@/components/site/PageTransitionLoader";
+
+const SmoothScroll = dynamicImport(() => import("@/components/cms/SmoothScroll"), {
+  ssr: false,
+});
+const CookieConsent = dynamicImport(() => import("@/components/site/CookieConsent"), {
+  ssr: false,
+});
+const PageTransitionLoader = dynamicImport(
+  () => import("@/components/site/PageTransitionLoader"),
+  { ssr: false }
+);
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -176,7 +185,7 @@ export default async function SiteLayout({ children }) {
       {safeFooterScripts && <script dangerouslySetInnerHTML={{ __html: safeFooterScripts }} />}
       <Script
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        strategy="afterInteractive"
+        strategy="lazyOnload"
       />
       <CookieConsent />
     </>

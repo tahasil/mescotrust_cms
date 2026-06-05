@@ -2,7 +2,7 @@
 
 import { Fragment } from "react";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
-import * as SiteComponents from "@/components/site";
+import * as SiteComponents from "@/components/site/publicComponents";
 import RoutePopupHost from "@/components/layout/RoutePopupHost";
 
 const hasHeaderBlock = (layout) =>

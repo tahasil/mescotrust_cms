@@ -75,9 +75,10 @@ export const Logo = styled.a`
   flex-shrink: 0;
   img {
     display: block;
-    height: auto;
-    max-height: 44px;
-    width: auto;
+    height: 44px;
+    width: clamp(120px, 11vw, 170px);
+    object-fit: contain;
+    object-position: left center;
   }
 `;
 
@@ -311,10 +312,8 @@ export const IconWrap = styled.span`
   background: #fff;
   border-radius: 50%;
   img {
-    max-width: 100%;
-    max-height: 100%;
-    width: auto;
-    height: auto;
+    width: 16px;
+    height: 16px;
     object-fit: contain;
     display: block;
     vertical-align: middle;
