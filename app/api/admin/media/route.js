@@ -23,6 +23,10 @@ function sanitizeName(name) {
     .replace(/-+/g, "-");
 }
 
+function escapeRegex(value) {
+  return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export async function GET(req) {
   const session = await requireAuth(req);
   if (session instanceof NextResponse) return session;
@@ -33,7 +37,7 @@ export async function GET(req) {
     const page = Math.max(1, Number(searchParams.get("page")) || 1);
     const limit = Math.min(50, Math.max(1, Number(searchParams.get("limit")) || 20));
     const skip = (page - 1) * limit;
-    const q = (searchParams.get("q") || searchParams.get("search") || "").trim();
+    const q = (searchParams.get("q") || searchParams.get("search") || "").trim().slice(0, 120);
     const status = (searchParams.get("status") || "").trim();
     const type = (searchParams.get("type") || "").trim();
     const month = (searchParams.get("month") || "").trim();
@@ -41,12 +45,13 @@ export async function GET(req) {
 
     const filter = {};
     if (q) {
+      const safeQ = escapeRegex(q);
       filter.$or = [
-        { title: { $regex: q, $options: "i" } },
-        { fileName: { $regex: q, $options: "i" } },
-        { filename: { $regex: q, $options: "i" } },
-        { originalName: { $regex: q, $options: "i" } },
-        { altText: { $regex: q, $options: "i" } },
+        { title: { $regex: safeQ, $options: "i" } },
+        { fileName: { $regex: safeQ, $options: "i" } },
+        { filename: { $regex: safeQ, $options: "i" } },
+        { originalName: { $regex: safeQ, $options: "i" } },
+        { altText: { $regex: safeQ, $options: "i" } },
       ];
     }
     if (status) filter.status = status;

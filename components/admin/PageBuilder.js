@@ -1503,6 +1503,7 @@ const PREVIEW_API_PATH = {
 function mapThemeToHeaderProps(theme) {
   return {
     siteTitle: theme.siteTitle ?? "",
+    logoUrl: theme.logoUrl ?? "",
     logoType: theme.logoType ?? "text",
     logoImageUrl: theme.logoLightUrl || theme.logoImageUrl || "",
     logoLightUrl: theme.logoLightUrl || theme.logoImageUrl || "",

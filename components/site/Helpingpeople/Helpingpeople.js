@@ -7,6 +7,7 @@ import {
   MainTitle,
   PageContainer,
 } from "@/styles/Theme";
+import SafeHtml from "@/components/cms/SafeHtml";
 
 /**
  * Site component: Helpingpeople (Helping People).
@@ -220,13 +221,9 @@ export default function Helpingpeople(props) {
                   wordWrap: "break-word",
                   ...(textColor ? { color: textColor } : {}),
                 }}
-                dangerouslySetInnerHTML={{
-                  __html: paragraph
-                    .replace(/<span[^>]*>/gi, "")
-                    .replace(/<\/span>/gi, "")
-                    .replace(/&nbsp;/gi, " "),
-                }}
-              />
+              >
+                <SafeHtml html={paragraph} />
+              </div>
             )}
           </Col>
           <Col

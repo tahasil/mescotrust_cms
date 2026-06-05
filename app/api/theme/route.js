@@ -257,7 +257,7 @@ const DEFAULTS = {
 };
 
 const THEME_FIELDS = [
-  "siteTitle", "tagline", "logoType", "logoLightUrl", "logoMobileUrl", "logoDarkUrl", "logoImageUrl", "faviconUrl", "footerCopyrightText",
+  "siteTitle", "tagline", "logoType", "logoUrl", "logoLightUrl", "logoMobileUrl", "logoDarkUrl", "logoImageUrl", "faviconUrl", "footerCopyrightText",
   "primaryColor", "secondaryColor", "bodyBackground", "sectionBackground", "cardBackground", "headerBackground", "footerBackground",
   "headingColor", "paragraphColor", "linkColor", "hoverColor", "mutedTextColor", "borderColor", "dividerColor", "inputBorderColor", "colors",
   "headingFont", "bodyFont", "buttonFont", "baseFontSize", "h1Size", "h2Size", "h3Size", "h4Size", "h5Size", "h6Size",
@@ -309,6 +309,7 @@ const HEADER_COMPONENT_OVERRIDE_KEYS = new Set([
   "menuName",
   "navItems",
   "logoType",
+  "logoUrl",
   "logoLightUrl",
   "logoMobileUrl",
   "logoDarkUrl",

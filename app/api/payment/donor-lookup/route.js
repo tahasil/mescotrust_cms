@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import DonateNowSubmission from "@/models/DonateNowSubmission";
 import { maskMobile } from "@/lib/donateNowConfig";
+import { createRateLimiter, getClientIp } from "@/lib/rateLimit";
 
 const SAFE_REUSABLE_FIELDS = [
   "name",
@@ -17,6 +18,8 @@ const SAFE_REUSABLE_FIELDS = [
 ];
 
 const VERIFICATION_TTL_MS = 10 * 60 * 1000;
+const checkLookupRateLimit = createRateLimiter({ windowMs: 60_000, max: 20 });
+const checkVerifyRateLimit = createRateLimiter({ windowMs: 60_000, max: 12 });
 
 function toTrimmedString(value) {
   return String(value ?? "").trim();
@@ -202,6 +205,13 @@ function logLookupDebug(stage, payload = {}) {
  */
 export async function GET(req) {
   try {
+    if (!checkLookupRateLimit(getClientIp(req))) {
+      return NextResponse.json(
+        { found: false, donor: null, error: "Too many requests" },
+        { status: 429 },
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const q = toTrimmedString(searchParams.get("q"));
     const include = getReusableFieldKeys(searchParams.get("include"));
@@ -307,6 +317,13 @@ export async function GET(req) {
  */
 export async function POST(req) {
   try {
+    if (!checkVerifyRateLimit(getClientIp(req))) {
+      return NextResponse.json(
+        { verified: false, error: "Too many requests. Please try again." },
+        { status: 429 },
+      );
+    }
+
     const body = await req.json();
     const token = toTrimmedString(body?.token);
     const email = toTrimmedString(body?.email).toLowerCase();

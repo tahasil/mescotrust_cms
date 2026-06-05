@@ -15,6 +15,7 @@ export const NAVBAR_SCHEMA = [
 /** Logo image URLs and type – editable in Header drawer. */
 export const LOGO_LINK_SCHEMA = [
   { key: "logoType", type: "select", label: "Logo type", options: [{ value: "text", label: "Text" }, { value: "image", label: "Image" }] },
+  { key: "logoUrl", type: "url", label: "Logo click URL" },
   { key: "logoLightUrl", type: "image", label: "Logo image URL (desktop/light)" },
   { key: "logoMobileUrl", type: "image", label: "Logo image URL (mobile)" },
   { key: "logoDarkUrl", type: "image", label: "Logo image URL (dark mode)" },

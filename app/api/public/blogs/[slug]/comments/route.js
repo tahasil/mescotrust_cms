@@ -4,8 +4,10 @@ import Blog from "@/models/Blog";
 import BlogComment from "@/models/BlogComment";
 import ThemeConfig from "@/models/ThemeConfig";
 import { unstable_cache } from "next/cache";
+import { createRateLimiter, getClientIp } from "@/lib/rateLimit";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const checkRateLimit = createRateLimiter({ windowMs: 60_000, max: 10 });
 
 const THEME_QUERY = {
   $or: [{ themeKey: "default" }, { themeKey: { $exists: false } }],
@@ -51,6 +53,10 @@ export async function GET(req, { params }) {
 /** POST — submit a new comment (pending approval) */
 export async function POST(req, { params }) {
   try {
+    if (!checkRateLimit(getClientIp(req))) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
+
     const slug = params.slug;
     const body = await req.json();
     const name = (body.name || "").trim();

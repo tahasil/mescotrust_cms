@@ -27,6 +27,19 @@ function resolveThemeColor(theme, key) {
   return "";
 }
 
+function sanitizeInlineScript(value) {
+  return String(value || "").replace(/<\/script/gi, "<\\/script");
+}
+
+function sanitizeInlineStyle(value) {
+  return String(value || "").replace(/<\/style/gi, "<\\/style");
+}
+
+function safeNumber(value, fallback) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
 export default async function SiteLayout({ children }) {
   const headersList = headers();
   const pathname = headersList.get("x-pathname") || headersList.get("X-Pathname") || "/";
@@ -43,6 +56,18 @@ export default async function SiteLayout({ children }) {
   const footerBgKey = theme.footerBgColorKey ?? "";
   const footerTextKey = theme.footerTextColorKey ?? "";
   const footerCopyrightBarKey = theme.footerCopyrightBarColorKey ?? "";
+  const safeFooterScripts = sanitizeInlineScript(theme.footerScripts);
+  const safeRootVarsCss = sanitizeInlineStyle(`:root {
+        --layout-width: ${safeNumber(theme.layoutWidth, 1200)}px;
+        --smooth-scroll-enabled: ${theme.smoothScrollEnabled !== false ? "1" : "0"};
+        --smooth-scroll-duration: ${safeNumber(theme.smoothScrollDuration, 1.4)};
+        --smooth-scroll-wheel: ${safeNumber(theme.smoothScrollWheelMultiplier, 1)};
+        --smooth-scroll-touch: ${safeNumber(theme.smoothScrollTouchMultiplier, 1.2)};
+        --fade-enabled: ${theme.fadeAnimationEnabled !== false ? "1" : "0"};
+        --fade-duration: ${safeNumber(theme.fadeAnimationDuration, 1)}s;
+        --fade-distance: ${safeNumber(theme.fadeAnimationDistance, 20)}vh;
+        --fade-threshold: ${safeNumber(theme.fadeAnimationThreshold, 0.1)};
+      }`);
 
   return (
     <>
@@ -147,18 +172,8 @@ export default async function SiteLayout({ children }) {
       >
         {children}
       </PublicShell>
-      <style dangerouslySetInnerHTML={{ __html: `:root {
-        --layout-width: ${Number(theme.layoutWidth)}px;
-        --smooth-scroll-enabled: ${theme.smoothScrollEnabled !== false ? "1" : "0"};
-        --smooth-scroll-duration: ${Number(theme.smoothScrollDuration)};
-        --smooth-scroll-wheel: ${Number(theme.smoothScrollWheelMultiplier)};
-        --smooth-scroll-touch: ${Number(theme.smoothScrollTouchMultiplier)};
-        --fade-enabled: ${theme.fadeAnimationEnabled !== false ? "1" : "0"};
-        --fade-duration: ${Number(theme.fadeAnimationDuration)}s;
-        --fade-distance: ${Number(theme.fadeAnimationDistance)}vh;
-        --fade-threshold: ${Number(theme.fadeAnimationThreshold)};
-      }` }} />
-      {theme.footerScripts && <script dangerouslySetInnerHTML={{ __html: theme.footerScripts }} />}
+      <style dangerouslySetInnerHTML={{ __html: safeRootVarsCss }} />
+      {safeFooterScripts && <script dangerouslySetInnerHTML={{ __html: safeFooterScripts }} />}
       <Script
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         strategy="afterInteractive"

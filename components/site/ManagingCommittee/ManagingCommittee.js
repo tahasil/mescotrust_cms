@@ -7,6 +7,7 @@ import {
   MainTitle,
   PageContainer,
 } from "@/styles/Theme";
+import SafeHtml from "@/components/cms/SafeHtml";
 
 /**
  * Site component: ManagingCommittee.
@@ -127,8 +128,9 @@ export default function ManagingCommittee(props) {
                   wordWrap: "break-word",
                   ...(textColor ? { color: textColor } : {}),
                 }}
-                dangerouslySetInnerHTML={{ __html: paragraph.replace(/<span[^>]*>/gi, "").replace(/<\/span>/gi, "").replace(/&nbsp;/gi, " ") }}
-              />
+              >
+                <SafeHtml html={paragraph} />
+              </div>
             )}
           </Col>
         </Row>

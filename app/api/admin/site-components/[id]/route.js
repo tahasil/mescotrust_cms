@@ -7,6 +7,21 @@ import SiteComponentMeta from "@/models/SiteComponentMeta";
 import Page from "@/models/Page";
 import { SITE_COMPONENT_IDS } from "@/lib/siteComponentRegistry";
 
+const COMPONENT_ID_RE = /^[A-Za-z][A-Za-z0-9]*$/;
+
+function isValidComponentId(value) {
+  return COMPONENT_ID_RE.test(String(value || ""));
+}
+
+function resolveWithin(baseDir, ...segments) {
+  const base = path.resolve(baseDir);
+  const resolved = path.resolve(base, ...segments);
+  if (resolved !== base && !resolved.startsWith(`${base}${path.sep}`)) {
+    throw new Error("Unsafe filesystem path");
+  }
+  return resolved;
+}
+
 /** Remove blocks with baseComponent === componentId from layout (and from nested Section layouts). */
 function filterLayoutBlocks(layout, componentId) {
   if (!Array.isArray(layout)) return [];
@@ -35,7 +50,7 @@ export async function GET(req, { params }) {
   if (session instanceof NextResponse) return session;
 
   const id = (params?.id || "").trim();
-  if (!id) {
+  if (!id || !isValidComponentId(id)) {
     return NextResponse.json({ error: "Invalid component id" }, { status: 400 });
   }
 
@@ -69,7 +84,7 @@ export async function PUT(req, { params }) {
   if (session instanceof NextResponse) return session;
 
   const id = (params?.id || "").trim();
-  if (!id) {
+  if (!id || !isValidComponentId(id)) {
     return NextResponse.json(
       { error: "Invalid component id" },
       { status: 400 },
@@ -121,7 +136,7 @@ export async function DELETE(req, { params }) {
   if (session instanceof NextResponse) return session;
 
   const id = (params?.id || "").trim();
-  if (!id) {
+  if (!id || !isValidComponentId(id)) {
     return NextResponse.json(
       { error: "Invalid component id" },
       { status: 400 },
@@ -137,8 +152,9 @@ export async function DELETE(req, { params }) {
   try {
     await connectDB();
     const root = process.cwd();
-    const registryPath = path.join(root, "lib", "siteComponentRegistry.js");
-    const indexPath = path.join(root, "components", "site", "index.js");
+    const registryPath = resolveWithin(root, "lib", "siteComponentRegistry.js");
+    const siteDir = resolveWithin(root, "components", "site");
+    const indexPath = resolveWithin(siteDir, "index.js");
 
     // Remove from lib/siteComponentRegistry.js
     let registryContent = readFileSync(registryPath, "utf8");
@@ -183,8 +199,8 @@ export async function DELETE(req, { params }) {
     );
 
     // Delete component: folder (new 3-file structure) or single file (legacy)
-    const componentFolder = path.join(root, "components", "site", id);
-    const componentFile = path.join(root, "components", "site", `${id}.js`);
+    const componentFolder = resolveWithin(siteDir, id);
+    const componentFile = resolveWithin(siteDir, `${id}.js`);
     if (existsSync(componentFolder)) {
       try {
         rmSync(componentFolder, { recursive: true });

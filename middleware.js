@@ -60,7 +60,14 @@ function checkSameOrigin(req) {
   const host = req.headers.get("host");
   if (!origin) return true;
   try {
-    return new URL(origin).host === host;
+    const originUrl = new URL(origin);
+    const requestProto =
+      req.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() ||
+      req.nextUrl.protocol.replace(":", "");
+    return (
+      originUrl.host === host &&
+      originUrl.protocol.replace(":", "") === requestProto
+    );
   } catch {
     return false;
   }
