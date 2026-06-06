@@ -6,6 +6,46 @@ import FormSubmission from "@/models/FormSubmission";
 import { canAccessFormBuilder } from "@/lib/forms/access";
 import { FORM_DEFAULTS } from "@/lib/forms/constants";
 
+function normalizeSubmissionSettings(input) {
+  const source = input && typeof input === "object" ? input : {};
+  return {
+    resetOnSuccess:
+      source.resetOnSuccess == null
+        ? FORM_DEFAULTS.submissionSettings.resetOnSuccess
+        : Boolean(source.resetOnSuccess),
+    notifyOnSuccess:
+      source.notifyOnSuccess == null
+        ? FORM_DEFAULTS.submissionSettings.notifyOnSuccess
+        : Boolean(source.notifyOnSuccess),
+    notifyOnError:
+      source.notifyOnError == null
+        ? FORM_DEFAULTS.submissionSettings.notifyOnError
+        : Boolean(source.notifyOnError),
+  };
+}
+
+function normalizeStyleSettings(input) {
+  const source = input && typeof input === "object" ? input : {};
+  const defaults = FORM_DEFAULTS.styleSettings || {};
+  return {
+    inputBorderColor: String(source.inputBorderColor || defaults.inputBorderColor).trim(),
+    inputFocusColor: String(source.inputFocusColor || defaults.inputFocusColor).trim(),
+    inputErrorColor: String(source.inputErrorColor || defaults.inputErrorColor).trim(),
+    buttonBgColor: String(source.buttonBgColor || defaults.buttonBgColor).trim(),
+    buttonHoverColor: String(source.buttonHoverColor || defaults.buttonHoverColor).trim(),
+    buttonFocusColor: String(source.buttonFocusColor || defaults.buttonFocusColor).trim(),
+    buttonTextColor: String(source.buttonTextColor || defaults.buttonTextColor).trim(),
+    checkboxColor: String(source.checkboxColor || defaults.checkboxColor).trim(),
+    radioColor: String(source.radioColor || defaults.radioColor).trim(),
+    switchColor: String(source.switchColor || defaults.switchColor).trim(),
+    requiredIndicatorColor: String(
+      source.requiredIndicatorColor || defaults.requiredIndicatorColor,
+    ).trim(),
+    successMessageColor: String(source.successMessageColor || defaults.successMessageColor).trim(),
+    errorMessageColor: String(source.errorMessageColor || defaults.errorMessageColor).trim(),
+  };
+}
+
 function toDetail(doc) {
   const schema = doc.formSchema || { sections: [], questions: [] };
   return {
@@ -14,6 +54,8 @@ function toDetail(doc) {
     name: doc.name,
     submitLabel: String(doc.submitLabel || FORM_DEFAULTS.submitLabel),
     successMessage: String(doc.successMessage || FORM_DEFAULTS.successMessage),
+    submissionSettings: normalizeSubmissionSettings(doc.submissionSettings),
+    styleSettings: normalizeStyleSettings(doc.styleSettings),
     status: doc.status,
     shortcode: doc.shortcode,
     shortcodeAlt: doc.shortcodeAlt || "",
@@ -84,6 +126,12 @@ export async function PUT(req, { params }) {
     const nextSuccessMessage = String(
       body?.successMessage ?? form.successMessage ?? FORM_DEFAULTS.successMessage,
     ).trim();
+    const nextSubmissionSettings = normalizeSubmissionSettings(
+      body?.submissionSettings ?? form.submissionSettings,
+    );
+    const nextStyleSettings = normalizeStyleSettings(
+      body?.styleSettings ?? form.styleSettings,
+    );
 
     if (!nextSubmitLabel) {
       return NextResponse.json({ error: "submitLabel is required" }, { status: 400 });
@@ -95,6 +143,8 @@ export async function PUT(req, { params }) {
     form.name = nextName;
     form.submitLabel = nextSubmitLabel;
     form.successMessage = nextSuccessMessage;
+    form.submissionSettings = nextSubmissionSettings;
+    form.styleSettings = nextStyleSettings;
     form.updatedBy = String(session?.id || "");
     await form.save();
 

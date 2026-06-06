@@ -4,13 +4,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import {
-  Alert,
   Button,
   Card,
   Col,
   Divider,
+  Drawer,
+  Dropdown,
   Empty,
   Input,
+  List,
   Modal,
   Popconfirm,
   Row,
@@ -24,18 +26,20 @@ import {
 } from "antd";
 import {
   ArrowLeftOutlined,
+  CheckOutlined,
   CopyOutlined,
   DeleteOutlined,
   DownOutlined,
   DragOutlined,
+  EditOutlined,
   EyeOutlined,
   PlusOutlined,
   SaveOutlined,
   UpOutlined,
-  UnorderedListOutlined,
 } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { normalizeFieldName } from "@/lib/forms/fieldName";
+import { FORM_DEFAULTS } from "@/lib/forms/constants";
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -62,13 +66,61 @@ const SPAN_OPTIONS = [
   { value: 3, label: "3 Columns" },
   { value: 4, label: "4 Columns" },
 ];
-const FORM_SUBMIT_LABEL_DEFAULT = "Submit";
-const FORM_SUCCESS_MESSAGE_DEFAULT = "Thank you for your response.";
+const FORM_SUBMIT_LABEL_DEFAULT = FORM_DEFAULTS.submitLabel;
+const FORM_SUCCESS_MESSAGE_DEFAULT = FORM_DEFAULTS.successMessage;
+const DEFAULT_SUBMISSION_SETTINGS = {
+  ...FORM_DEFAULTS.submissionSettings,
+};
+const DEFAULT_STYLE_SETTINGS = {
+  ...FORM_DEFAULTS.styleSettings,
+};
+const FORM_COLOR_FIELDS = [
+  { key: "inputBorderColor", label: "Input border color" },
+  { key: "inputFocusColor", label: "Input focus color" },
+  { key: "inputErrorColor", label: "Input validation/error color" },
+  { key: "buttonBgColor", label: "Button background color" },
+  { key: "buttonHoverColor", label: "Button hover color" },
+  { key: "buttonFocusColor", label: "Button focus color" },
+  { key: "buttonTextColor", label: "Button text color" },
+  { key: "checkboxColor", label: "Checkbox color" },
+  { key: "radioColor", label: "Radio button color" },
+  { key: "switchColor", label: "Switch color" },
+  { key: "requiredIndicatorColor", label: "Required field indicator color" },
+  { key: "successMessageColor", label: "Success message color" },
+  { key: "errorMessageColor", label: "Error message color" },
+];
+const SUBMISSION_SWITCH_FIELDS = [
+  { key: "resetOnSuccess", label: "Reset on success" },
+  { key: "notifyOnSuccess", label: "Success notify" },
+  { key: "notifyOnError", label: "Error notify" },
+];
 const STATUS_COLORS = {
   draft: "default",
   published: "green",
   archived: "orange",
 };
+
+function normalizeOptionValue(value) {
+  return String(value ?? "").trim();
+}
+
+function buildThemeColorOptions(theme = {}) {
+  const palette = theme?.themePalette || {};
+  const custom = Array.isArray(theme?.colors) ? theme.colors : [];
+  const names = [
+    ...new Set([
+      ...Object.keys(palette),
+      ...custom.map((entry) => normalizeOptionValue(entry?.name)).filter(Boolean),
+    ]),
+  ].sort();
+  return names.map((name) => ({ label: name, value: name }));
+}
+
+function getShortcodeSnippet(shortcode) {
+  const value = String(shortcode || "").trim();
+  if (!value) return "";
+  return `[form shortcode="${value}"]`;
+}
 
 function createId() {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -89,6 +141,47 @@ function normalizeSpan(value, fallback = 4) {
   if (n < 1) return 1;
   if (n > 4) return 4;
   return Math.round(n);
+}
+
+function normalizeSubmissionSettings(input) {
+  const source = input && typeof input === "object" ? input : {};
+  return {
+    resetOnSuccess:
+      source.resetOnSuccess == null
+        ? DEFAULT_SUBMISSION_SETTINGS.resetOnSuccess
+        : Boolean(source.resetOnSuccess),
+    notifyOnSuccess:
+      source.notifyOnSuccess == null
+        ? DEFAULT_SUBMISSION_SETTINGS.notifyOnSuccess
+        : Boolean(source.notifyOnSuccess),
+    notifyOnError:
+      source.notifyOnError == null
+        ? DEFAULT_SUBMISSION_SETTINGS.notifyOnError
+        : Boolean(source.notifyOnError),
+  };
+}
+
+function normalizeStyleSettings(input) {
+  const source = input && typeof input === "object" ? input : {};
+  return {
+    inputBorderColor: String(source.inputBorderColor || DEFAULT_STYLE_SETTINGS.inputBorderColor),
+    inputFocusColor: String(source.inputFocusColor || DEFAULT_STYLE_SETTINGS.inputFocusColor),
+    inputErrorColor: String(source.inputErrorColor || DEFAULT_STYLE_SETTINGS.inputErrorColor),
+    buttonBgColor: String(source.buttonBgColor || DEFAULT_STYLE_SETTINGS.buttonBgColor),
+    buttonHoverColor: String(source.buttonHoverColor || DEFAULT_STYLE_SETTINGS.buttonHoverColor),
+    buttonFocusColor: String(source.buttonFocusColor || DEFAULT_STYLE_SETTINGS.buttonFocusColor),
+    buttonTextColor: String(source.buttonTextColor || DEFAULT_STYLE_SETTINGS.buttonTextColor),
+    checkboxColor: String(source.checkboxColor || DEFAULT_STYLE_SETTINGS.checkboxColor),
+    radioColor: String(source.radioColor || DEFAULT_STYLE_SETTINGS.radioColor),
+    switchColor: String(source.switchColor || DEFAULT_STYLE_SETTINGS.switchColor),
+    requiredIndicatorColor: String(
+      source.requiredIndicatorColor || DEFAULT_STYLE_SETTINGS.requiredIndicatorColor,
+    ),
+    successMessageColor: String(
+      source.successMessageColor || DEFAULT_STYLE_SETTINGS.successMessageColor,
+    ),
+    errorMessageColor: String(source.errorMessageColor || DEFAULT_STYLE_SETTINGS.errorMessageColor),
+  };
 }
 
 function normalizeSchema(input) {
@@ -204,15 +297,22 @@ export default function FormBuilderEditorPage() {
   const [saving, setSaving] = useState(false);
   const [actionLoading, setActionLoading] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [editDrawerOpen, setEditDrawerOpen] = useState(false);
   const [formMeta, setFormMeta] = useState(null);
   const [formName, setFormName] = useState("");
   const [submitLabel, setSubmitLabel] = useState(FORM_SUBMIT_LABEL_DEFAULT);
   const [successMessage, setSuccessMessage] = useState(FORM_SUCCESS_MESSAGE_DEFAULT);
+  const [submissionSettings, setSubmissionSettings] = useState(DEFAULT_SUBMISSION_SETTINGS);
+  const [styleSettings, setStyleSettings] = useState(DEFAULT_STYLE_SETTINGS);
+  const [themeColorOptions, setThemeColorOptions] = useState([]);
   const [schema, setSchema] = useState({ sections: [], questions: [] });
+  const themeFetchedForColorsRef = useRef(false);
   const initialRef = useRef({
     name: "",
     submitLabel: FORM_SUBMIT_LABEL_DEFAULT,
     successMessage: FORM_SUCCESS_MESSAGE_DEFAULT,
+    submissionSettingsJson: JSON.stringify(DEFAULT_SUBMISSION_SETTINGS),
+    styleSettingsJson: JSON.stringify(DEFAULT_STYLE_SETTINGS),
     schemaJson: "",
   });
   const sensors = useSensors(
@@ -236,6 +336,8 @@ export default function FormBuilderEditorPage() {
         String(data?.submitLabel || "").trim() || FORM_SUBMIT_LABEL_DEFAULT;
       const nextSuccessMessage =
         String(data?.successMessage || "").trim() || FORM_SUCCESS_MESSAGE_DEFAULT;
+      const nextSubmissionSettings = normalizeSubmissionSettings(data?.submissionSettings);
+      const nextStyleSettings = normalizeStyleSettings(data?.styleSettings);
       setFormMeta({
         formId: String(data?.formId || formId),
         status: String(data?.status || "draft"),
@@ -246,11 +348,15 @@ export default function FormBuilderEditorPage() {
       setFormName(nextName);
       setSubmitLabel(nextSubmitLabel);
       setSuccessMessage(nextSuccessMessage);
+      setSubmissionSettings(nextSubmissionSettings);
+      setStyleSettings(nextStyleSettings);
       setSchema(nextSchema);
       initialRef.current = {
         name: nextName,
         submitLabel: nextSubmitLabel,
         successMessage: nextSuccessMessage,
+        submissionSettingsJson: JSON.stringify(nextSubmissionSettings),
+        styleSettingsJson: JSON.stringify(nextStyleSettings),
         schemaJson: JSON.stringify(nextSchema),
       };
     } catch (err) {
@@ -265,20 +371,52 @@ export default function FormBuilderEditorPage() {
   }, [loadForm]);
 
   useEffect(() => {
+    if (themeFetchedForColorsRef.current) return;
+    themeFetchedForColorsRef.current = true;
+    fetch("/api/theme", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : {}))
+      .then((theme) => {
+        setThemeColorOptions(buildThemeColorOptions(theme));
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
     if (searchParams.get("preview") === "1") {
       setPreviewOpen(true);
     }
   }, [searchParams]);
 
   const schemaJson = useMemo(() => JSON.stringify(schema), [schema]);
+  const submissionSettingsJson = useMemo(
+    () => JSON.stringify(normalizeSubmissionSettings(submissionSettings)),
+    [submissionSettings],
+  );
+  const styleSettingsJson = useMemo(
+    () => JSON.stringify(normalizeStyleSettings(styleSettings)),
+    [styleSettings],
+  );
   const isDirty =
     String(formName || "").trim() !== initialRef.current.name ||
     String(submitLabel || "").trim() !== initialRef.current.submitLabel ||
     String(successMessage || "").trim() !== initialRef.current.successMessage ||
+    submissionSettingsJson !== initialRef.current.submissionSettingsJson ||
+    styleSettingsJson !== initialRef.current.styleSettingsJson ||
     schemaJson !== initialRef.current.schemaJson;
 
   const sortedSections = useMemo(() => sortByOrder(schema.sections), [schema.sections]);
   const sortedQuestions = useMemo(() => sortByOrder(schema.questions), [schema.questions]);
+  const styleSettingsColorOptions = useMemo(() => {
+    const existing = new Set(
+      themeColorOptions.map((entry) => normalizeOptionValue(entry?.value).toLowerCase()),
+    );
+    const extra = FORM_COLOR_FIELDS.map((field) => normalizeOptionValue(styleSettings?.[field.key]))
+      .filter(Boolean)
+      .filter((value) => !existing.has(value.toLowerCase()))
+      .sort((a, b) => a.localeCompare(b))
+      .map((value) => ({ label: value, value }));
+    return [...themeColorOptions, ...extra];
+  }, [themeColorOptions, styleSettings]);
 
   const applySchema = useCallback((updater) => {
     setSchema((prev) => normalizeSchema(updater(prev)));
@@ -291,12 +429,23 @@ export default function FormBuilderEditorPage() {
       String(submitLabel || "").trim() || FORM_SUBMIT_LABEL_DEFAULT;
     const nextSuccessMessage =
       String(successMessage || "").trim() || FORM_SUCCESS_MESSAGE_DEFAULT;
+    const nextSubmissionSettings = normalizeSubmissionSettings(submissionSettings);
+    const nextStyleSettings = normalizeStyleSettings(styleSettings);
     const nameChanged = nextName !== initialRef.current.name;
     const submitLabelChanged = nextSubmitLabel !== initialRef.current.submitLabel;
     const successMessageChanged = nextSuccessMessage !== initialRef.current.successMessage;
+    const submissionSettingsChanged =
+      JSON.stringify(nextSubmissionSettings) !== initialRef.current.submissionSettingsJson;
+    const styleSettingsChanged =
+      JSON.stringify(nextStyleSettings) !== initialRef.current.styleSettingsJson;
     const currentSchemaJson = JSON.stringify(schema);
     const schemaChanged = currentSchemaJson !== initialRef.current.schemaJson;
-    const metaChanged = nameChanged || submitLabelChanged || successMessageChanged;
+    const metaChanged =
+      nameChanged ||
+      submitLabelChanged ||
+      successMessageChanged ||
+      submissionSettingsChanged ||
+      styleSettingsChanged;
 
     if (!metaChanged && !schemaChanged) {
       message.info("No changes to save");
@@ -313,6 +462,8 @@ export default function FormBuilderEditorPage() {
             name: nextName,
             submitLabel: nextSubmitLabel,
             successMessage: nextSuccessMessage,
+            submissionSettings: nextSubmissionSettings,
+            styleSettings: nextStyleSettings,
           }),
         });
         const data = await res.json().catch(() => ({}));
@@ -361,14 +512,34 @@ export default function FormBuilderEditorPage() {
   };
 
   const copyShortcode = async () => {
-    const shortcode = String(formMeta?.shortcode || "").trim();
-    if (!shortcode) return;
+    const snippet = getShortcodeSnippet(formMeta?.shortcode);
+    if (!snippet) return;
     try {
-      await navigator.clipboard.writeText(shortcode);
+      await navigator.clipboard.writeText(snippet);
       message.success("Shortcode copied");
     } catch {
       message.error("Copy failed");
     }
+  };
+
+  const handleLifecycleDropdownAction = (action) => {
+    if (action === "archive") {
+      Modal.confirm({
+        title: "Archive this form?",
+        okText: "Archive",
+        okType: "danger",
+        onOk: () => runLifecycleAction("archive"),
+      });
+      return;
+    }
+    runLifecycleAction(action);
+  };
+
+  const setStyleColor = (key, value) => {
+    setStyleSettings((prev) => ({
+      ...normalizeStyleSettings(prev),
+      [key]: normalizeOptionValue(value),
+    }));
   };
 
   const addSection = () => {
@@ -579,13 +750,6 @@ export default function FormBuilderEditorPage() {
     }));
   };
 
-  const lifecyclePrimary = useMemo(() => {
-    const status = formMeta?.status;
-    if (status === "published") return { action: "unpublish", label: "Unpublish" };
-    if (status === "archived") return { action: "unpublish", label: "Restore Draft" };
-    return { action: "publish", label: "Publish" };
-  }, [formMeta?.status]);
-
   const onSectionDragEnd = ({ active, over }) => {
     if (!over || active.id === over.id) return;
     applySchema((prev) => {
@@ -633,6 +797,25 @@ export default function FormBuilderEditorPage() {
     });
   };
 
+  const lifecycleMenuItems = [
+    {
+      key: "publish",
+      label: "Publish",
+      disabled: formMeta?.status === "published",
+    },
+    {
+      key: "unpublish",
+      label: "Unpublish",
+      disabled: formMeta?.status !== "published",
+    },
+    {
+      key: "archive",
+      label: "Archive",
+      disabled: formMeta?.status === "archived",
+      danger: true,
+    },
+  ];
+
   if (loading) {
     return (
       <ThemeAdminCard title="Form Builder Editor">
@@ -669,37 +852,36 @@ export default function FormBuilderEditorPage() {
       )}
       extra={(
         <Space wrap>
-          <Link href={`/admin/form-builder/${encodeURIComponent(formMeta.formId)}/submissions`}>
-            <Button icon={<UnorderedListOutlined />}>Submissions</Button>
-          </Link>
           <Button
             icon={<CopyOutlined />}
             onClick={copyShortcode}
             disabled={!formMeta.shortcode}
-          >
-            Copy shortcode
-          </Button>
+            aria-label="Copy shortcode"
+            title="Copy shortcode"
+          />
           <Button icon={<EyeOutlined />} onClick={() => setPreviewOpen(true)}>
             Preview
           </Button>
-          <Popconfirm
-            title="Archive this form?"
-            disabled={formMeta.status === "archived"}
-            onConfirm={() => runLifecycleAction("archive")}
+          <Dropdown
+            menu={{
+              items: lifecycleMenuItems,
+              onClick: ({ key }) => handleLifecycleDropdownAction(key),
+            }}
+            trigger={["click"]}
+            disabled={Boolean(actionLoading)}
           >
-            <Button
-              danger
-              disabled={formMeta.status === "archived"}
-              loading={actionLoading === "archive"}
-            >
-              Archive
+            <Button loading={Boolean(actionLoading)}>
+              <Space size={6}>
+                <span>Status Action</span>
+                <DownOutlined />
+              </Space>
             </Button>
-          </Popconfirm>
+          </Dropdown>
           <Button
-            loading={actionLoading === lifecyclePrimary.action}
-            onClick={() => runLifecycleAction(lifecyclePrimary.action)}
+            icon={<EditOutlined />}
+            onClick={() => setEditDrawerOpen(true)}
           >
-            {lifecyclePrimary.label}
+            Edit
           </Button>
           <Button
             type="primary"
@@ -714,55 +896,6 @@ export default function FormBuilderEditorPage() {
       )}
     >
       <Space direction="vertical" size={16} style={{ width: "100%" }}>
-        <Alert
-          type={isDirty ? "warning" : "success"}
-          showIcon
-          message={isDirty ? "You have unsaved changes" : "All changes saved"}
-          description={(
-            <Space size={16} wrap>
-              <Typography.Text>
-                Shortcode: <Typography.Text code>{formMeta.shortcode || "-"}</Typography.Text>
-              </Typography.Text>
-              <Typography.Text type="secondary">
-                Drag and drop is enabled for section cards and question cards.
-              </Typography.Text>
-            </Space>
-          )}
-        />
-
-        <Card size="small" title="Form Title">
-          <Input
-            value={formName}
-            maxLength={120}
-            placeholder="Form title"
-            onChange={(e) => setFormName(e.target.value)}
-          />
-        </Card>
-
-        <Card size="small" title="Submission Settings">
-          <Row gutter={[12, 12]}>
-            <Col xs={24} md={12}>
-              <Typography.Text type="secondary">Submit button text</Typography.Text>
-              <Input
-                value={submitLabel}
-                maxLength={60}
-                placeholder={FORM_SUBMIT_LABEL_DEFAULT}
-                onChange={(e) => setSubmitLabel(e.target.value)}
-              />
-            </Col>
-            <Col xs={24} md={12}>
-              <Typography.Text type="secondary">Success message</Typography.Text>
-              <Input.TextArea
-                rows={2}
-                value={successMessage}
-                maxLength={300}
-                placeholder={FORM_SUCCESS_MESSAGE_DEFAULT}
-                onChange={(e) => setSuccessMessage(e.target.value)}
-              />
-            </Col>
-          </Row>
-        </Card>
-
         <Space>
           <Button icon={<PlusOutlined />} onClick={addSection}>
             Add Section
@@ -1047,6 +1180,115 @@ export default function FormBuilderEditorPage() {
           </SortableContext>
         </DndContext>
       </Space>
+
+      <Drawer
+        title="Edit Form Settings"
+        placement="right"
+        width={Math.min(
+          520,
+          typeof window !== "undefined" ? window.innerWidth * 0.9 : 520,
+        )}
+        open={editDrawerOpen}
+        onClose={() => setEditDrawerOpen(false)}
+        extra={(
+          <Button
+            type="primary"
+            icon={<CheckOutlined />}
+            onClick={() => {
+              setEditDrawerOpen(false);
+              message.success("Settings updated. Click Save to persist changes.");
+            }}
+          >
+            Update
+          </Button>
+        )}
+      >
+        <Space direction="vertical" size={16} style={{ width: "100%" }}>
+          <Card size="small" title="Form Title">
+            <Input
+              value={formName}
+              maxLength={120}
+              placeholder="Form title"
+              onChange={(e) => setFormName(e.target.value)}
+            />
+          </Card>
+
+          <Card size="small" title="Submission Settings">
+            <Space direction="vertical" size={12} style={{ width: "100%" }}>
+              <div>
+                <Typography.Text type="secondary">Submit button text</Typography.Text>
+                <Input
+                  value={submitLabel}
+                  maxLength={60}
+                  placeholder={FORM_SUBMIT_LABEL_DEFAULT}
+                  onChange={(e) => setSubmitLabel(e.target.value)}
+                />
+              </div>
+              <div>
+                <Typography.Text type="secondary">Success message</Typography.Text>
+                <Input.TextArea
+                  rows={2}
+                  value={successMessage}
+                  maxLength={300}
+                  placeholder={FORM_SUCCESS_MESSAGE_DEFAULT}
+                  onChange={(e) => setSuccessMessage(e.target.value)}
+                />
+              </div>
+              <List
+                size="small"
+                bordered
+                split
+                dataSource={SUBMISSION_SWITCH_FIELDS}
+                renderItem={(item) => (
+                  <List.Item
+                    actions={[
+                      <Switch
+                        key={item.key}
+                        checked={Boolean(submissionSettings?.[item.key])}
+                        onChange={(checked) =>
+                          setSubmissionSettings((prev) => ({
+                            ...normalizeSubmissionSettings(prev),
+                            [item.key]: checked,
+                          }))
+                        }
+                      />,
+                    ]}
+                  >
+                    <Typography.Text type="secondary">{item.label}</Typography.Text>
+                  </List.Item>
+                )}
+              />
+            </Space>
+          </Card>
+
+          <Card size="small" title="Colors">
+            <List
+              size="small"
+              bordered
+              split
+              dataSource={FORM_COLOR_FIELDS}
+              renderItem={(field) => (
+                <List.Item
+                  actions={[
+                    <Select
+                      key={field.key}
+                      size="small"
+                      value={normalizeOptionValue(styleSettings?.[field.key]) || undefined}
+                      options={styleSettingsColorOptions}
+                      placeholder="From theme (default)"
+                      style={{ width: 180 }}
+                      allowClear
+                      onChange={(value) => setStyleColor(field.key, value)}
+                    />,
+                  ]}
+                >
+                  <Typography.Text type="secondary">{field.label}</Typography.Text>
+                </List.Item>
+              )}
+            />
+          </Card>
+        </Space>
+      </Drawer>
 
       <Modal
         title="Form Preview (Schema)"

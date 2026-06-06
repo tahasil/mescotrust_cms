@@ -21,9 +21,17 @@ import {
   notification,
 } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
+import { FORM_DEFAULTS } from "@/lib/forms/constants";
+import { getColor } from "@/styles/Theme";
 
 const { Paragraph, Text, Title } = Typography;
 const DATE_FORMAT = "YYYY-MM-DD";
+const DEFAULT_SUBMISSION_SETTINGS = {
+  ...FORM_DEFAULTS.submissionSettings,
+};
+const DEFAULT_STYLE_SETTINGS = {
+  ...FORM_DEFAULTS.styleSettings,
+};
 
 function normalizeText(value, fallback = "") {
   return String(value ?? fallback).trim();
@@ -104,6 +112,71 @@ function normalizeExtension(value) {
   const ext = normalizeText(value).toLowerCase();
   if (!ext) return "";
   return ext.startsWith(".") ? ext : `.${ext}`;
+}
+
+function normalizeSubmissionSettings(input) {
+  const source = input && typeof input === "object" ? input : {};
+  return {
+    resetOnSuccess:
+      source.resetOnSuccess == null
+        ? DEFAULT_SUBMISSION_SETTINGS.resetOnSuccess
+        : Boolean(source.resetOnSuccess),
+    notifyOnSuccess:
+      source.notifyOnSuccess == null
+        ? DEFAULT_SUBMISSION_SETTINGS.notifyOnSuccess
+        : Boolean(source.notifyOnSuccess),
+    notifyOnError:
+      source.notifyOnError == null
+        ? DEFAULT_SUBMISSION_SETTINGS.notifyOnError
+        : Boolean(source.notifyOnError),
+  };
+}
+
+function normalizeStyleSettings(input) {
+  const source = input && typeof input === "object" ? input : {};
+  return {
+    inputBorderColor: String(source.inputBorderColor || DEFAULT_STYLE_SETTINGS.inputBorderColor),
+    inputFocusColor: String(source.inputFocusColor || DEFAULT_STYLE_SETTINGS.inputFocusColor),
+    inputErrorColor: String(source.inputErrorColor || DEFAULT_STYLE_SETTINGS.inputErrorColor),
+    buttonBgColor: String(source.buttonBgColor || DEFAULT_STYLE_SETTINGS.buttonBgColor),
+    buttonHoverColor: String(source.buttonHoverColor || DEFAULT_STYLE_SETTINGS.buttonHoverColor),
+    buttonFocusColor: String(source.buttonFocusColor || DEFAULT_STYLE_SETTINGS.buttonFocusColor),
+    buttonTextColor: String(source.buttonTextColor || DEFAULT_STYLE_SETTINGS.buttonTextColor),
+    checkboxColor: String(source.checkboxColor || DEFAULT_STYLE_SETTINGS.checkboxColor),
+    radioColor: String(source.radioColor || DEFAULT_STYLE_SETTINGS.radioColor),
+    switchColor: String(source.switchColor || DEFAULT_STYLE_SETTINGS.switchColor),
+    requiredIndicatorColor: String(
+      source.requiredIndicatorColor || DEFAULT_STYLE_SETTINGS.requiredIndicatorColor,
+    ),
+    successMessageColor: String(
+      source.successMessageColor || DEFAULT_STYLE_SETTINGS.successMessageColor,
+    ),
+    errorMessageColor: String(source.errorMessageColor || DEFAULT_STYLE_SETTINGS.errorMessageColor),
+  };
+}
+
+function isLiteralCssColor(value) {
+  const text = normalizeText(value).toLowerCase();
+  if (!text) return false;
+  if (text.startsWith("#")) return true;
+  if (/^(rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch|color)\(/.test(text)) return true;
+  if (/^(var|color-mix)\(/.test(text)) return true;
+  return [
+    "transparent",
+    "inherit",
+    "initial",
+    "unset",
+    "revert",
+    "currentcolor",
+  ].includes(text);
+}
+
+function resolveThemeColorValue(value) {
+  const text = normalizeText(value);
+  if (!text) return undefined;
+  if (isLiteralCssColor(text)) return text;
+  const resolved = normalizeText(getColor(text));
+  return resolved || text;
 }
 
 function resolveMaxFileSizeBytes(rules = {}) {
@@ -351,7 +424,7 @@ const FormShell = styled.div`
   }
 
   .ant-form-item-label > label.ant-form-item-required::before {
-    color: #cf372f !important;
+    color: var(--form-required-indicator-color, #cf372f) !important;
   }
 
   .ant-input,
@@ -359,7 +432,7 @@ const FormShell = styled.div`
   .ant-picker {
     min-height: 52px;
     border-radius: 10px !important;
-    border-color: rgba(5, 5, 5, 0.1) !important;
+    border-color: var(--form-input-border-color, #d9d9d9) !important;
     box-shadow: none !important;
     font-size: 14px;
   }
@@ -368,8 +441,8 @@ const FormShell = styled.div`
   .ant-input-focused,
   .ant-select-focused .ant-select-selector,
   .ant-picker-focused {
-    border-color: #cf372f !important;
-    box-shadow: 0 0 0 2px rgba(207, 55, 47, 0.1) !important;
+    border-color: var(--form-input-focus-color, #cf372f) !important;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--form-input-focus-color, #cf372f) 20%, transparent) !important;
   }
 
   .ant-select-selector {
@@ -419,15 +492,63 @@ const FormShell = styled.div`
   .ant-form-item-explain-error {
     margin-top: 6px;
     font-size: 12px;
-    color: #cf372f;
+    color: var(--form-error-message-color, #cf372f);
   }
 
-  .form-submit-btn {
+  .ant-form-item-has-error .ant-input,
+  .ant-form-item-has-error .ant-select-selector,
+  .ant-form-item-has-error .ant-picker {
+    border-color: var(--form-input-error-color, #cf372f) !important;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--form-input-error-color, #cf372f) 20%, transparent) !important;
+  }
+
+  .form-submit-btn.ant-btn.ant-btn-primary {
     border-radius: 28px;
     min-height: 48px;
     font-size: 14px;
     font-weight: 700;
     padding-inline: 20px;
+    background: var(--form-button-bg-color, #cf372f) !important;
+    border-color: var(--form-button-bg-color, #cf372f) !important;
+    color: var(--form-button-text-color, #ffffff) !important;
+  }
+
+  .form-submit-btn.ant-btn.ant-btn-primary:hover,
+  .form-submit-btn.ant-btn.ant-btn-primary:focus {
+    background: var(--form-button-hover-color, #b42f29) !important;
+    border-color: var(--form-button-hover-color, #b42f29) !important;
+  }
+
+  .form-submit-btn.ant-btn.ant-btn-primary:focus-visible {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--form-button-focus-color, #cf372f) 25%, transparent) !important;
+  }
+
+  .ant-checkbox-checked .ant-checkbox-inner,
+  .ant-checkbox-indeterminate .ant-checkbox-inner:after {
+    background-color: var(--form-checkbox-color, #cf372f) !important;
+    border-color: var(--form-checkbox-color, #cf372f) !important;
+  }
+
+  .ant-checkbox-wrapper:hover .ant-checkbox-inner,
+  .ant-checkbox:hover .ant-checkbox-inner {
+    border-color: var(--form-checkbox-color, #cf372f) !important;
+  }
+
+  .ant-radio-checked .ant-radio-inner {
+    border-color: var(--form-radio-color, #cf372f) !important;
+    background-color: #fff !important;
+  }
+
+  .ant-radio-checked .ant-radio-inner:after {
+    background-color: var(--form-radio-color, #cf372f) !important;
+  }
+
+  .ant-radio-wrapper:hover .ant-radio-inner {
+    border-color: var(--form-radio-color, #cf372f) !important;
+  }
+
+  .ant-switch.ant-switch-checked {
+    background: var(--form-switch-color, #cf372f) !important;
   }
 `;
 
@@ -494,6 +615,8 @@ export default function FormEmbed(props = {}) {
             successMessage: normalizeText(
               data?.defaults?.successMessage || "Thank you for your response.",
             ),
+            submissionSettings: normalizeSubmissionSettings(data?.defaults?.submissionSettings),
+            styleSettings: normalizeStyleSettings(data?.defaults?.styleSettings),
           },
         };
         setRuntimeForm(normalized);
@@ -536,6 +659,46 @@ export default function FormEmbed(props = {}) {
   }, [orderedSections, orderedQuestions]);
 
   const submitLabel = submitLabelOverride || runtimeForm?.defaults?.submitLabel || "Submit";
+  const runtimeSubmissionSettings = useMemo(
+    () => normalizeSubmissionSettings(runtimeForm?.defaults?.submissionSettings),
+    [runtimeForm?.defaults?.submissionSettings],
+  );
+  const runtimeStyleSettings = useMemo(
+    () => normalizeStyleSettings(runtimeForm?.defaults?.styleSettings),
+    [runtimeForm?.defaults?.styleSettings],
+  );
+  const resolvedStyleSettings = useMemo(
+    () => ({
+      inputBorderColor: resolveThemeColorValue(runtimeStyleSettings.inputBorderColor),
+      inputFocusColor: resolveThemeColorValue(runtimeStyleSettings.inputFocusColor),
+      inputErrorColor: resolveThemeColorValue(runtimeStyleSettings.inputErrorColor),
+      buttonBgColor: resolveThemeColorValue(runtimeStyleSettings.buttonBgColor),
+      buttonHoverColor: resolveThemeColorValue(runtimeStyleSettings.buttonHoverColor),
+      buttonFocusColor: resolveThemeColorValue(runtimeStyleSettings.buttonFocusColor),
+      buttonTextColor: resolveThemeColorValue(runtimeStyleSettings.buttonTextColor),
+      checkboxColor: resolveThemeColorValue(runtimeStyleSettings.checkboxColor),
+      radioColor: resolveThemeColorValue(runtimeStyleSettings.radioColor),
+      switchColor: resolveThemeColorValue(runtimeStyleSettings.switchColor),
+      requiredIndicatorColor: resolveThemeColorValue(runtimeStyleSettings.requiredIndicatorColor),
+      successMessageColor: resolveThemeColorValue(runtimeStyleSettings.successMessageColor),
+      errorMessageColor: resolveThemeColorValue(runtimeStyleSettings.errorMessageColor),
+    }),
+    [runtimeStyleSettings],
+  );
+
+  function showErrorNotification(description, title = "Submission failed") {
+    if (!runtimeSubmissionSettings.notifyOnError) return;
+    notification.error({
+      message: title,
+      description,
+      placement: "bottomRight",
+      styles: resolvedStyleSettings.errorMessageColor
+        ? {
+            body: { color: resolvedStyleSettings.errorMessageColor },
+          }
+        : undefined,
+    });
+  }
 
   async function uploadFile(question, file) {
     const currentFormId = normalizeText(runtimeForm?.formId);
@@ -665,26 +828,31 @@ export default function FormEmbed(props = {}) {
         runtimeForm?.defaults?.successMessage ||
         "Thank you for your response.";
 
-      notification.success({
-        message: "Success",
-        description: successText,
-        placement: "bottomRight",
-      });
+      if (runtimeSubmissionSettings.notifyOnSuccess) {
+        notification.success({
+          message: "Success",
+          description: successText,
+          placement: "bottomRight",
+          styles: resolvedStyleSettings.successMessageColor
+            ? {
+                body: { color: resolvedStyleSettings.successMessageColor },
+              }
+            : undefined,
+        });
+      }
 
-      const resetValues = buildInitialValues(orderedQuestions, prefillByFieldName);
-      form.resetFields();
-      form.setFieldsValue(resetValues);
-      setUploadFileLists(buildUploadFileLists(resetValues));
+      if (runtimeSubmissionSettings.resetOnSuccess) {
+        const resetValues = buildInitialValues(orderedQuestions, prefillByFieldName);
+        form.resetFields();
+        form.setFieldsValue(resetValues);
+        setUploadFileLists(buildUploadFileLists(resetValues));
+      }
 
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event("new-form-submission"));
       }
     } catch (err) {
-      notification.error({
-        message: "Submission failed",
-        description: err?.message || "Failed to submit form",
-        placement: "bottomRight",
-      });
+      showErrorNotification(err?.message || "Failed to submit form");
     } finally {
       setSubmitting(false);
     }
@@ -802,11 +970,7 @@ export default function FormEmbed(props = {}) {
               beforeUpload={(file) => {
                 const error = validateUploadFile(question, file, currentFileList.length);
                 if (error) {
-                  notification.error({
-                    message: "Upload failed",
-                    description: error,
-                    placement: "bottomRight",
-                  });
+                  showErrorNotification(error, "Upload failed");
                   return Upload.LIST_IGNORE;
                 }
                 return true;
@@ -840,11 +1004,7 @@ export default function FormEmbed(props = {}) {
                 if (fileList.some((entry) => entry.status === "error")) {
                   const fileError = normalizeText(fileList.find((entry) => entry.status === "error")?.error?.message);
                   if (fileError) {
-                    notification.error({
-                      message: "Upload failed",
-                      description: fileError,
-                      placement: "bottomRight",
-                    });
+                    showErrorNotification(fileError, "Upload failed");
                   }
                 }
               }}
@@ -885,7 +1045,23 @@ export default function FormEmbed(props = {}) {
   }
 
   return (
-    <FormShell>
+    <FormShell
+      style={{
+        "--form-input-border-color": resolvedStyleSettings.inputBorderColor,
+        "--form-input-focus-color": resolvedStyleSettings.inputFocusColor,
+        "--form-input-error-color": resolvedStyleSettings.inputErrorColor,
+        "--form-button-bg-color": resolvedStyleSettings.buttonBgColor,
+        "--form-button-hover-color": resolvedStyleSettings.buttonHoverColor,
+        "--form-button-focus-color": resolvedStyleSettings.buttonFocusColor,
+        "--form-button-text-color": resolvedStyleSettings.buttonTextColor,
+        "--form-checkbox-color": resolvedStyleSettings.checkboxColor,
+        "--form-radio-color": resolvedStyleSettings.radioColor,
+        "--form-switch-color": resolvedStyleSettings.switchColor,
+        "--form-required-indicator-color": resolvedStyleSettings.requiredIndicatorColor,
+        "--form-success-message-color": resolvedStyleSettings.successMessageColor,
+        "--form-error-message-color": resolvedStyleSettings.errorMessageColor,
+      }}
+    >
       {heading ? (
         <Title level={4} style={{ marginTop: 0 }}>
           {heading}
@@ -899,11 +1075,10 @@ export default function FormEmbed(props = {}) {
         requiredMark
         onFinish={handleSubmit}
         onFinishFailed={() => {
-          notification.error({
-            message: "Please review required fields",
-            description: "Some fields are invalid. Please fix the errors and try again.",
-            placement: "bottomRight",
-          });
+          showErrorNotification(
+            "Some fields are invalid. Please fix the errors and try again.",
+            "Please review required fields",
+          );
         }}
       >
         {orderedSections.map((section, sectionIndex) => {

@@ -52,6 +52,34 @@ const formQuestionSchema = new mongoose.Schema(
   { _id: false },
 );
 
+const formSubmissionSettingsSchema = new mongoose.Schema(
+  {
+    resetOnSuccess: { type: Boolean, default: true },
+    notifyOnSuccess: { type: Boolean, default: true },
+    notifyOnError: { type: Boolean, default: true },
+  },
+  { _id: false },
+);
+
+const formStyleSettingsSchema = new mongoose.Schema(
+  {
+    inputBorderColor: { type: String, trim: true, default: "#d9d9d9" },
+    inputFocusColor: { type: String, trim: true, default: "#cf372f" },
+    inputErrorColor: { type: String, trim: true, default: "#cf372f" },
+    buttonBgColor: { type: String, trim: true, default: "#cf372f" },
+    buttonHoverColor: { type: String, trim: true, default: "#b42f29" },
+    buttonFocusColor: { type: String, trim: true, default: "#cf372f" },
+    buttonTextColor: { type: String, trim: true, default: "#ffffff" },
+    checkboxColor: { type: String, trim: true, default: "#cf372f" },
+    radioColor: { type: String, trim: true, default: "#cf372f" },
+    switchColor: { type: String, trim: true, default: "#cf372f" },
+    requiredIndicatorColor: { type: String, trim: true, default: "#cf372f" },
+    successMessageColor: { type: String, trim: true, default: "#126f15" },
+    errorMessageColor: { type: String, trim: true, default: "#cf372f" },
+  },
+  { _id: false },
+);
+
 const formSchema = new mongoose.Schema(
   {
     formId: { type: String, required: true, unique: true, trim: true, immutable: true },
@@ -63,6 +91,8 @@ const formSchema = new mongoose.Schema(
       trim: true,
       default: "Thank you for your response.",
     },
+    submissionSettings: { type: formSubmissionSettingsSchema, default: () => ({}) },
+    styleSettings: { type: formStyleSettingsSchema, default: () => ({}) },
     status: { type: String, enum: FORM_STATUSES, default: "draft", index: true },
     shortcode: { type: String, required: true, unique: true, trim: true, immutable: true },
     shortcodeAlt: {

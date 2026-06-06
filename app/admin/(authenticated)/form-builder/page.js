@@ -21,6 +21,12 @@ const STATUS_COLORS = {
   archived: "orange",
 };
 
+function getShortcodeSnippet(shortcode) {
+  const value = String(shortcode || "").trim();
+  if (!value) return "";
+  return `[form shortcode="${value}"]`;
+}
+
 export default function FormBuilderListPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -111,26 +117,31 @@ export default function FormBuilderListPage() {
         dataIndex: "shortcode",
         key: "shortcode",
         width: 220,
-        render: (shortcode) => (
+        render: (shortcode) => {
+          const shortCodeValue = String(shortcode || "").trim();
+          const snippet = getShortcodeSnippet(shortCodeValue);
+          return (
           <Space size={8}>
-            <Typography.Text code>{shortcode}</Typography.Text>
+            <Typography.Text code>{shortCodeValue}</Typography.Text>
             <Button
-              type="link"
+              type="text"
               size="small"
               icon={<CopyOutlined />}
+              disabled={!snippet}
+              aria-label="Copy shortcode"
+              title="Copy shortcode"
               onClick={async () => {
                 try {
-                  await navigator.clipboard.writeText(shortcode);
+                  await navigator.clipboard.writeText(snippet);
                   message.success("Shortcode copied");
                 } catch {
                   message.error("Copy failed");
                 }
               }}
-            >
-              Copy
-            </Button>
+            />
           </Space>
-        ),
+        );
+        },
       },
       {
         title: "Status",

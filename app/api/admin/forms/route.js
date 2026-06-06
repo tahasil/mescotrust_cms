@@ -111,6 +111,8 @@ export async function POST(req) {
           name,
           submitLabel: FORM_DEFAULTS.submitLabel,
           successMessage: FORM_DEFAULTS.successMessage,
+          submissionSettings: FORM_DEFAULTS.submissionSettings,
+          styleSettings: FORM_DEFAULTS.styleSettings,
           status: "draft",
           shortcode,
           shortcodeAlt,
