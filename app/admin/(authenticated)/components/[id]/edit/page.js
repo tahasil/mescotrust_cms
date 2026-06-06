@@ -5,8 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import {
   Form,
   Input,
-  Select,
-  Switch,
   Button,
   Card,
   Collapse,
@@ -41,11 +39,6 @@ const HeaderPreview = dynamic(() => import("@/components/site/Header"), {
 const FooterPreview = dynamic(() => import("@/components/site/Footer"), {
   ssr: false,
 });
-
-const POSITION_OPTIONS = [
-  { value: "before", label: "Above content (e.g. header)" },
-  { value: "after", label: "Below content (e.g. footer)" },
-];
 
 const LOGO_TYPE_OPTIONS = [
   { value: "text", label: "Text (site title)" },
@@ -83,7 +76,6 @@ export default function AdminComponentEditPage() {
   const [editingDisplayName, setEditingDisplayName] = useState(false);
   const [hoveringName, setHoveringName] = useState(false);
   const displayNameValue = Form.useWatch("displayName", form);
-  const globalOn = Form.useWatch("global", form);
   const isHeader = record?.componentId === "Header";
   const isFooter = record?.componentId === "Footer";
   const isHomeHero = record?.componentId === "HomeHero";
@@ -801,29 +793,6 @@ export default function AdminComponentEditPage() {
             flexWrap: "wrap",
           }}
         >
-          {record?.componentId !== "Header" && record?.componentId !== "Footer" && (
-            <>
-              <span style={{ fontSize: 14, color: "#666" }}>Show on all pages</span>
-              <Form.Item name="global" noStyle valuePropName="checked">
-                <Switch />
-              </Form.Item>
-            </>
-          )}
-          {globalOn &&
-            record?.componentId !== "Header" &&
-            record?.componentId !== "Footer" && (
-              <Form.Item
-                name="position"
-                label={null}
-                style={{ marginBottom: 0 }}
-              >
-                <Select
-                  options={POSITION_OPTIONS}
-                  style={{ minWidth: 200 }}
-                  placeholder="Position (when global)"
-                />
-              </Form.Item>
-            )}
           {hasEditForm && (
             <Button
               type="default"

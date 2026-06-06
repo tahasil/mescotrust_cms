@@ -44,6 +44,7 @@ const formQuestionSchema = new mongoose.Schema(
     description: { type: String, default: "", trim: true },
     fieldName: { type: String, default: "", trim: true },
     required: { type: Boolean, default: false },
+    span: { type: Number, required: true, default: 4, min: 1, max: 4 },
     options: { type: [formQuestionOptionSchema], default: [] },
     order: { type: Number, required: true, default: 0 },
     rules: { type: mongoose.Schema.Types.Mixed, default: {} },
@@ -55,6 +56,13 @@ const formSchema = new mongoose.Schema(
   {
     formId: { type: String, required: true, unique: true, trim: true, immutable: true },
     name: { type: String, required: true, trim: true, default: "Untitled Form" },
+    submitLabel: { type: String, required: true, trim: true, default: "Submit" },
+    successMessage: {
+      type: String,
+      required: true,
+      trim: true,
+      default: "Thank you for your response.",
+    },
     status: { type: String, enum: FORM_STATUSES, default: "draft", index: true },
     shortcode: { type: String, required: true, unique: true, trim: true, immutable: true },
     shortcodeAlt: {

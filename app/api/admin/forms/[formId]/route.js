@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import Form from "@/models/Form";
 import FormSubmission from "@/models/FormSubmission";
 import { canAccessFormBuilder } from "@/lib/forms/access";
+import { FORM_DEFAULTS } from "@/lib/forms/constants";
 
 function toDetail(doc) {
   const schema = doc.formSchema || { sections: [], questions: [] };
@@ -11,6 +12,8 @@ function toDetail(doc) {
     _id: doc._id,
     formId: doc.formId,
     name: doc.name,
+    submitLabel: String(doc.submitLabel || FORM_DEFAULTS.submitLabel),
+    successMessage: String(doc.successMessage || FORM_DEFAULTS.successMessage),
     status: doc.status,
     shortcode: doc.shortcode,
     shortcodeAlt: doc.shortcodeAlt || "",
@@ -73,11 +76,25 @@ export async function PUT(req, { params }) {
       );
     }
 
-    const nextName = String(body?.name || "").trim();
-    if (!nextName) {
-      return NextResponse.json({ error: "name is required" }, { status: 400 });
+    const nextName = String(body?.name || form.name || "").trim();
+    if (!nextName) return NextResponse.json({ error: "name is required" }, { status: 400 });
+    const nextSubmitLabel = String(
+      body?.submitLabel ?? form.submitLabel ?? FORM_DEFAULTS.submitLabel,
+    ).trim();
+    const nextSuccessMessage = String(
+      body?.successMessage ?? form.successMessage ?? FORM_DEFAULTS.successMessage,
+    ).trim();
+
+    if (!nextSubmitLabel) {
+      return NextResponse.json({ error: "submitLabel is required" }, { status: 400 });
     }
+    if (!nextSuccessMessage) {
+      return NextResponse.json({ error: "successMessage is required" }, { status: 400 });
+    }
+
     form.name = nextName;
+    form.submitLabel = nextSubmitLabel;
+    form.successMessage = nextSuccessMessage;
     form.updatedBy = String(session?.id || "");
     await form.save();
 

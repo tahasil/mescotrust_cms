@@ -56,6 +56,14 @@ const QUESTION_TYPE_OPTIONS = [
 ];
 
 const OPTION_TYPE_SET = new Set(["single_choice", "multiple_choice"]);
+const SPAN_OPTIONS = [
+  { value: 1, label: "1 Column" },
+  { value: 2, label: "2 Columns" },
+  { value: 3, label: "3 Columns" },
+  { value: 4, label: "4 Columns" },
+];
+const FORM_SUBMIT_LABEL_DEFAULT = "Submit";
+const FORM_SUCCESS_MESSAGE_DEFAULT = "Thank you for your response.";
 const STATUS_COLORS = {
   draft: "default",
   published: "green",
@@ -73,6 +81,14 @@ function sortByOrder(items) {
   return [...(Array.isArray(items) ? items : [])].sort(
     (a, b) => Number(a?.order || 0) - Number(b?.order || 0),
   );
+}
+
+function normalizeSpan(value, fallback = 4) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  if (n < 1) return 1;
+  if (n > 4) return 4;
+  return Math.round(n);
 }
 
 function normalizeSchema(input) {
@@ -123,6 +139,7 @@ function normalizeSchema(input) {
       description: String(question?.description || ""),
       fieldName: normalizedFieldName,
       required: type === "divider" ? false : Boolean(question?.required),
+      span: type === "divider" ? 4 : normalizeSpan(question?.span, 4),
       options,
       rules: question?.rules && typeof question.rules === "object" ? question.rules : {},
       order: idx,
@@ -189,8 +206,15 @@ export default function FormBuilderEditorPage() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [formMeta, setFormMeta] = useState(null);
   const [formName, setFormName] = useState("");
+  const [submitLabel, setSubmitLabel] = useState(FORM_SUBMIT_LABEL_DEFAULT);
+  const [successMessage, setSuccessMessage] = useState(FORM_SUCCESS_MESSAGE_DEFAULT);
   const [schema, setSchema] = useState({ sections: [], questions: [] });
-  const initialRef = useRef({ name: "", schemaJson: "" });
+  const initialRef = useRef({
+    name: "",
+    submitLabel: FORM_SUBMIT_LABEL_DEFAULT,
+    successMessage: FORM_SUCCESS_MESSAGE_DEFAULT,
+    schemaJson: "",
+  });
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
@@ -208,6 +232,10 @@ export default function FormBuilderEditorPage() {
       if (!res.ok) throw new Error(data?.error || "Failed to load form");
       const nextSchema = normalizeSchema(data?.schema || data?.formSchema);
       const nextName = String(data?.name || "").trim() || "Untitled Form";
+      const nextSubmitLabel =
+        String(data?.submitLabel || "").trim() || FORM_SUBMIT_LABEL_DEFAULT;
+      const nextSuccessMessage =
+        String(data?.successMessage || "").trim() || FORM_SUCCESS_MESSAGE_DEFAULT;
       setFormMeta({
         formId: String(data?.formId || formId),
         status: String(data?.status || "draft"),
@@ -216,9 +244,13 @@ export default function FormBuilderEditorPage() {
         updatedAt: data?.updatedAt || "",
       });
       setFormName(nextName);
+      setSubmitLabel(nextSubmitLabel);
+      setSuccessMessage(nextSuccessMessage);
       setSchema(nextSchema);
       initialRef.current = {
         name: nextName,
+        submitLabel: nextSubmitLabel,
+        successMessage: nextSuccessMessage,
         schemaJson: JSON.stringify(nextSchema),
       };
     } catch (err) {
@@ -241,6 +273,8 @@ export default function FormBuilderEditorPage() {
   const schemaJson = useMemo(() => JSON.stringify(schema), [schema]);
   const isDirty =
     String(formName || "").trim() !== initialRef.current.name ||
+    String(submitLabel || "").trim() !== initialRef.current.submitLabel ||
+    String(successMessage || "").trim() !== initialRef.current.successMessage ||
     schemaJson !== initialRef.current.schemaJson;
 
   const sortedSections = useMemo(() => sortByOrder(schema.sections), [schema.sections]);
@@ -253,25 +287,36 @@ export default function FormBuilderEditorPage() {
   const saveChanges = async () => {
     if (!formMeta?.formId) return;
     const nextName = String(formName || "").trim() || "Untitled Form";
+    const nextSubmitLabel =
+      String(submitLabel || "").trim() || FORM_SUBMIT_LABEL_DEFAULT;
+    const nextSuccessMessage =
+      String(successMessage || "").trim() || FORM_SUCCESS_MESSAGE_DEFAULT;
     const nameChanged = nextName !== initialRef.current.name;
+    const submitLabelChanged = nextSubmitLabel !== initialRef.current.submitLabel;
+    const successMessageChanged = nextSuccessMessage !== initialRef.current.successMessage;
     const currentSchemaJson = JSON.stringify(schema);
     const schemaChanged = currentSchemaJson !== initialRef.current.schemaJson;
+    const metaChanged = nameChanged || submitLabelChanged || successMessageChanged;
 
-    if (!nameChanged && !schemaChanged) {
+    if (!metaChanged && !schemaChanged) {
       message.info("No changes to save");
       return;
     }
 
     setSaving(true);
     try {
-      if (nameChanged) {
+      if (metaChanged) {
         const res = await fetch(`/api/admin/forms/${encodeURIComponent(formMeta.formId)}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: nextName }),
+          body: JSON.stringify({
+            name: nextName,
+            submitLabel: nextSubmitLabel,
+            successMessage: nextSuccessMessage,
+          }),
         });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data?.error || "Failed to update form title");
+        if (!res.ok) throw new Error(data?.error || "Failed to update form settings");
       }
 
       if (schemaChanged) {
@@ -396,6 +441,7 @@ export default function FormBuilderEditorPage() {
         description: "",
         fieldName,
         required: false,
+        span: 4,
         options: [],
         rules: {},
         order: questions.length,
@@ -413,8 +459,10 @@ export default function FormBuilderEditorPage() {
         if (type === "divider") {
           next.fieldName = "";
           next.required = false;
+          next.span = 4;
           next.options = [];
         } else {
+          next.span = normalizeSpan(next.span, 4);
           if (!String(next.fieldName || "").trim()) {
             next.fieldName = ensureUniqueFieldName(prev, next.label || "question", fieldKey);
           } else {
@@ -691,6 +739,30 @@ export default function FormBuilderEditorPage() {
           />
         </Card>
 
+        <Card size="small" title="Submission Settings">
+          <Row gutter={[12, 12]}>
+            <Col xs={24} md={12}>
+              <Typography.Text type="secondary">Submit button text</Typography.Text>
+              <Input
+                value={submitLabel}
+                maxLength={60}
+                placeholder={FORM_SUBMIT_LABEL_DEFAULT}
+                onChange={(e) => setSubmitLabel(e.target.value)}
+              />
+            </Col>
+            <Col xs={24} md={12}>
+              <Typography.Text type="secondary">Success message</Typography.Text>
+              <Input.TextArea
+                rows={2}
+                value={successMessage}
+                maxLength={300}
+                placeholder={FORM_SUCCESS_MESSAGE_DEFAULT}
+                onChange={(e) => setSuccessMessage(e.target.value)}
+              />
+            </Col>
+          </Row>
+        </Card>
+
         <Space>
           <Button icon={<PlusOutlined />} onClick={addSection}>
             Add Section
@@ -801,6 +873,16 @@ export default function FormBuilderEditorPage() {
                                     {...attributes}
                                     {...listeners}
                                   />
+                                  <Select
+                                    size="small"
+                                    value={normalizeSpan(question.span, 4)}
+                                    style={{ width: 118 }}
+                                    options={SPAN_OPTIONS}
+                                    disabled={question.type === "divider"}
+                                    onChange={(value) =>
+                                      updateQuestion(question.fieldKey, { span: normalizeSpan(value, 4) })
+                                    }
+                                  />
                                   <Button
                                     size="small"
                                     icon={<UpOutlined />}
@@ -828,7 +910,7 @@ export default function FormBuilderEditorPage() {
                               )}
                             >
                       <Row gutter={[12, 12]}>
-                        <Col xs={24} md={12}>
+                        <Col xs={24} md={8}>
                           <Typography.Text type="secondary">Label</Typography.Text>
                           <Input
                             value={question.label}
@@ -837,7 +919,7 @@ export default function FormBuilderEditorPage() {
                             }
                           />
                         </Col>
-                        <Col xs={24} md={12}>
+                        <Col xs={24} md={8}>
                           <Typography.Text type="secondary">Type</Typography.Text>
                           <Select
                             value={question.type}
@@ -848,7 +930,7 @@ export default function FormBuilderEditorPage() {
                             }
                           />
                         </Col>
-                        <Col xs={24} md={12}>
+                        <Col xs={24} md={8}>
                           <Typography.Text type="secondary">Field name</Typography.Text>
                           <Input
                             value={question.fieldName}
@@ -860,7 +942,7 @@ export default function FormBuilderEditorPage() {
                             }
                           />
                         </Col>
-                        <Col xs={24} md={12}>
+                        <Col xs={24} md={8}>
                           <Typography.Text type="secondary">Section</Typography.Text>
                           <Select
                             value={question.sectionId}
@@ -874,7 +956,7 @@ export default function FormBuilderEditorPage() {
                             }
                           />
                         </Col>
-                        <Col xs={24} md={12}>
+                        <Col xs={24} md={8}>
                           <Space>
                             <Typography.Text type="secondary">Required</Typography.Text>
                             <Switch
@@ -905,7 +987,7 @@ export default function FormBuilderEditorPage() {
                             <Typography.Text strong>Options</Typography.Text>
                             {(question.options || []).map((option, optionIndex) => (
                               <Row key={`${question.fieldKey}_${optionIndex}`} gutter={8}>
-                                <Col xs={24} md={10}>
+                                <Col xs={24} md={8}>
                                   <Input
                                     value={option.label}
                                     placeholder="Option label"
@@ -916,7 +998,7 @@ export default function FormBuilderEditorPage() {
                                     }
                                   />
                                 </Col>
-                                <Col xs={24} md={10}>
+                                <Col xs={24} md={8}>
                                   <Input
                                     value={option.key}
                                     placeholder="Option key"
@@ -927,7 +1009,7 @@ export default function FormBuilderEditorPage() {
                                     }
                                   />
                                 </Col>
-                                <Col xs={24} md={4}>
+                                <Col xs={24} md={8}>
                                   <Button
                                     danger
                                     block

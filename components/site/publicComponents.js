@@ -49,3 +49,4 @@ export { default as ImageSlider } from "./ImageSlider/ImageSlider";
 export { default as EventRegistrationForm } from "./EventRegistrationForm/EventRegistrationForm";
 export { default as SocialMediaWall } from "./SocialMediaWall/SocialMediaWall";
 export { default as FormEmbed } from "./FormEmbed/FormEmbed";
+export { default as ShortCode } from "./ShortCode/ShortCode";

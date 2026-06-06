@@ -109,6 +109,8 @@ export async function POST(req) {
         const created = await Form.create({
           formId,
           name,
+          submitLabel: FORM_DEFAULTS.submitLabel,
+          successMessage: FORM_DEFAULTS.successMessage,
           status: "draft",
           shortcode,
           shortcodeAlt,
@@ -133,4 +135,3 @@ export async function POST(req) {
     return NextResponse.json({ error: err.message || "Failed to create form" }, { status: 500 });
   }
 }
-

@@ -263,6 +263,16 @@ function getDefaultPropsForNewSiteComponent(componentId) {
         submitLabel: "",
         successMessage: "",
       };
+    case "ShortCode":
+      return {
+        ...base,
+        shortCodeSourceType: "manual",
+        shortCodeSelectedForm: "",
+        shortCodeSelectedSlider: "",
+        shortCodeSelectedPopup: "",
+        shortCodeSelectedComponent: "",
+        shortcode: "",
+      };
     default:
       return base;
   }

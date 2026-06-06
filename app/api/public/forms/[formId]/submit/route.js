@@ -100,7 +100,7 @@ export async function POST(req, { params }) {
 
     const form = await Form.findOne(
       { formId, status: "published" },
-      { formId: 1, schemaVersion: 1, formSchema: 1 },
+      { formId: 1, schemaVersion: 1, formSchema: 1, successMessage: 1 },
     ).lean();
     if (!form) {
       return NextResponse.json({ error: "Form not found or not published" }, { status: 404 });
@@ -108,9 +108,10 @@ export async function POST(req, { params }) {
 
     const body = await req.json().catch(() => ({}));
     const honeypot = normalizeText(body?.website || body?.formTrap);
+    const successMessage = normalizeText(form?.successMessage || FORM_DEFAULTS.successMessage);
     if (honeypot) {
       return NextResponse.json(
-        { success: true, submissionId: null, message: FORM_DEFAULTS.successMessage },
+        { success: true, submissionId: null, message: successMessage },
         { status: 201 },
       );
     }
@@ -197,7 +198,7 @@ export async function POST(req, { params }) {
         success: true,
         formId,
         submissionId: String(submission._id),
-        message: FORM_DEFAULTS.successMessage,
+        message: successMessage,
       },
       {
         status: 201,

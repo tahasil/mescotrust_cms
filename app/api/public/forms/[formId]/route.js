@@ -14,8 +14,8 @@ function toPublicForm(doc) {
     schema: formSchema,
     formSchema,
     defaults: {
-      submitLabel: FORM_DEFAULTS.submitLabel,
-      successMessage: FORM_DEFAULTS.successMessage,
+      submitLabel: String(doc?.submitLabel || FORM_DEFAULTS.submitLabel),
+      successMessage: String(doc?.successMessage || FORM_DEFAULTS.successMessage),
     },
   };
 }
@@ -37,6 +37,8 @@ export async function GET(req, { params }) {
         status: 1,
         shortcode: 1,
         schemaVersion: 1,
+        submitLabel: 1,
+        successMessage: 1,
         formSchema: 1,
       },
     ).lean();
@@ -52,4 +54,3 @@ export async function GET(req, { params }) {
     return NextResponse.json({ error: err.message || "Failed to load form" }, { status: 500 });
   }
 }
-
