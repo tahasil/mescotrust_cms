@@ -20,7 +20,6 @@ import {
   Space,
   Spin,
   Switch,
-  Tag,
   Typography,
   message,
 } from "antd";
@@ -94,12 +93,11 @@ const SUBMISSION_SWITCH_FIELDS = [
   { key: "notifyOnSuccess", label: "Success notify" },
   { key: "notifyOnError", label: "Error notify" },
 ];
-const STATUS_COLORS = {
-  draft: "default",
-  published: "green",
-  archived: "orange",
-};
-
+const SUBMIT_BUTTON_ALIGNMENT_OPTIONS = [
+  { value: "left", label: "Left" },
+  { value: "center", label: "Center" },
+  { value: "right", label: "Right" },
+];
 function normalizeOptionValue(value) {
   return String(value ?? "").trim();
 }
@@ -145,6 +143,11 @@ function normalizeSpan(value, fallback = 4) {
 
 function normalizeSubmissionSettings(input) {
   const source = input && typeof input === "object" ? input : {};
+  const submitButtonAlignment = String(source.submitButtonAlignment || "").trim().toLowerCase();
+  const normalizedSubmitButtonAlignment =
+    submitButtonAlignment === "center" || submitButtonAlignment === "right"
+      ? submitButtonAlignment
+      : DEFAULT_SUBMISSION_SETTINGS.submitButtonAlignment;
   return {
     resetOnSuccess:
       source.resetOnSuccess == null
@@ -158,6 +161,7 @@ function normalizeSubmissionSettings(input) {
       source.notifyOnError == null
         ? DEFAULT_SUBMISSION_SETTINGS.notifyOnError
         : Boolean(source.notifyOnError),
+    submitButtonAlignment: normalizedSubmitButtonAlignment,
   };
 }
 
@@ -192,6 +196,7 @@ function normalizeSchema(input) {
       ? rawSections.map((section, idx) => ({
           sectionId: String(section?.sectionId || createId()),
           title: String(section?.title || `Section ${idx + 1}`),
+          showTitle: section?.showTitle == null ? true : Boolean(section.showTitle),
           description: String(section?.description || ""),
           order: idx,
         }))
@@ -199,6 +204,7 @@ function normalizeSchema(input) {
           {
             sectionId: createId(),
             title: "Section 1",
+            showTitle: true,
             description: "",
             order: 0,
           },
@@ -552,6 +558,7 @@ export default function FormBuilderEditorPage() {
           {
             sectionId: createId(),
             title: `Section ${sections.length + 1}`,
+            showTitle: true,
             description: "",
             order: sections.length,
           },
@@ -839,15 +846,9 @@ export default function FormBuilderEditorPage() {
       title={(
         <Space size={10} wrap>
           <Link href="/admin/form-builder">
-            <Button icon={<ArrowLeftOutlined />}>Back</Button>
+            <Button icon={<ArrowLeftOutlined />} aria-label="Back" title="Back" />
           </Link>
-          <Typography.Text strong>
-            {formMeta.formId}
-          </Typography.Text>
-          <Tag color={STATUS_COLORS[formMeta.status] || "default"}>{formMeta.status}</Tag>
-          <Typography.Text type="secondary">
-            schema v{formMeta.schemaVersion}
-          </Typography.Text>
+          <Typography.Text strong>{normalizeOptionValue(formName) || "Form"}</Typography.Text>
         </Space>
       )}
       extra={(
@@ -935,6 +936,13 @@ export default function FormBuilderEditorPage() {
                         placeholder="Section title"
                         onChange={(e) =>
                           updateSection(section.sectionId, { title: e.target.value })
+                        }
+                      />
+                      <Typography.Text type="secondary">Show title</Typography.Text>
+                      <Switch
+                        checked={section.showTitle !== false}
+                        onChange={(checked) =>
+                          updateSection(section.sectionId, { showTitle: checked })
                         }
                       />
                     </Space>
@@ -1244,6 +1252,20 @@ export default function FormBuilderEditorPage() {
                   onChange={(e) => setSuccessMessage(e.target.value)}
                 />
               </div>
+              <div>
+                <Typography.Text type="secondary">Submit button alignment</Typography.Text>
+                <Select
+                  style={{ width: "100%" }}
+                  value={submissionSettings?.submitButtonAlignment || "left"}
+                  options={SUBMIT_BUTTON_ALIGNMENT_OPTIONS}
+                  onChange={(value) =>
+                    setSubmissionSettings((prev) => ({
+                      ...normalizeSubmissionSettings(prev),
+                      submitButtonAlignment: value,
+                    }))
+                  }
+                />
+              </div>
               <List
                 size="small"
                 bordered
@@ -1309,14 +1331,22 @@ export default function FormBuilderEditorPage() {
       >
         <Space direction="vertical" size={12} style={{ width: "100%" }}>
           <Typography.Text>
-            <strong>{formName}</strong> ({formMeta.formId})
+            <strong>{formName}</strong>
           </Typography.Text>
           {sortedSections.map((section, sectionIndex) => {
             const sectionQuestions = sortedQuestions.filter(
               (question) => question.sectionId === section.sectionId,
             );
             return (
-              <Card key={section.sectionId} size="small" title={`${sectionIndex + 1}. ${section.title || "Untitled section"}`}>
+              <Card
+                key={section.sectionId}
+                size="small"
+                title={
+                  section.showTitle === false
+                    ? `Section ${sectionIndex + 1}`
+                    : `${sectionIndex + 1}. ${section.title || "Untitled section"}`
+                }
+              >
                 <Space direction="vertical" size={8} style={{ width: "100%" }}>
                   {section.description ? (
                     <Typography.Text type="secondary">{section.description}</Typography.Text>

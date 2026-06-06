@@ -20,6 +20,7 @@ const formSectionSchema = new mongoose.Schema(
   {
     sectionId: { type: String, required: true, trim: true, immutable: true },
     title: { type: String, default: "", trim: true },
+    showTitle: { type: Boolean, default: true },
     description: { type: String, default: "", trim: true },
     order: { type: Number, required: true, default: 0 },
   },
@@ -57,6 +58,12 @@ const formSubmissionSettingsSchema = new mongoose.Schema(
     resetOnSuccess: { type: Boolean, default: true },
     notifyOnSuccess: { type: Boolean, default: true },
     notifyOnError: { type: Boolean, default: true },
+    submitButtonAlignment: {
+      type: String,
+      enum: ["left", "center", "right"],
+      default: "left",
+      trim: true,
+    },
   },
   { _id: false },
 );

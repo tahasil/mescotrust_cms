@@ -5,6 +5,11 @@ import { FORM_DEFAULTS } from "@/lib/forms/constants";
 
 function normalizeSubmissionSettings(input) {
   const source = input && typeof input === "object" ? input : {};
+  const submitButtonAlignment = String(source.submitButtonAlignment || "").trim().toLowerCase();
+  const normalizedSubmitButtonAlignment =
+    submitButtonAlignment === "center" || submitButtonAlignment === "right"
+      ? submitButtonAlignment
+      : FORM_DEFAULTS.submissionSettings.submitButtonAlignment;
   return {
     resetOnSuccess:
       source.resetOnSuccess == null
@@ -18,6 +23,7 @@ function normalizeSubmissionSettings(input) {
       source.notifyOnError == null
         ? FORM_DEFAULTS.submissionSettings.notifyOnError
         : Boolean(source.notifyOnError),
+    submitButtonAlignment: normalizedSubmitButtonAlignment,
   };
 }
 

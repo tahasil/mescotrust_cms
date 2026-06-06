@@ -116,6 +116,11 @@ function normalizeExtension(value) {
 
 function normalizeSubmissionSettings(input) {
   const source = input && typeof input === "object" ? input : {};
+  const submitButtonAlignment = normalizeText(source.submitButtonAlignment).toLowerCase();
+  const normalizedSubmitButtonAlignment =
+    submitButtonAlignment === "center" || submitButtonAlignment === "right"
+      ? submitButtonAlignment
+      : DEFAULT_SUBMISSION_SETTINGS.submitButtonAlignment;
   return {
     resetOnSuccess:
       source.resetOnSuccess == null
@@ -129,6 +134,7 @@ function normalizeSubmissionSettings(input) {
       source.notifyOnError == null
         ? DEFAULT_SUBMISSION_SETTINGS.notifyOnError
         : Boolean(source.notifyOnError),
+    submitButtonAlignment: normalizedSubmitButtonAlignment,
   };
 }
 
@@ -667,6 +673,12 @@ export default function FormEmbed(props = {}) {
     () => normalizeStyleSettings(runtimeForm?.defaults?.styleSettings),
     [runtimeForm?.defaults?.styleSettings],
   );
+  const submitButtonJustifyContent = useMemo(() => {
+    const alignment = normalizeText(runtimeSubmissionSettings?.submitButtonAlignment).toLowerCase();
+    if (alignment === "center") return "center";
+    if (alignment === "right") return "flex-end";
+    return "flex-start";
+  }, [runtimeSubmissionSettings?.submitButtonAlignment]);
   const resolvedStyleSettings = useMemo(
     () => ({
       inputBorderColor: resolveThemeColorValue(runtimeStyleSettings.inputBorderColor),
@@ -1083,11 +1095,12 @@ export default function FormEmbed(props = {}) {
           const sectionId = normalizeText(section?.sectionId);
           const sectionQuestions = questionsBySection.get(sectionId) || [];
           const sectionTitle = normalizeText(section?.title);
+          const showSectionTitle = section?.showTitle == null ? true : Boolean(section.showTitle);
           const sectionDescription = normalizeText(section?.description);
 
           return (
             <div key={sectionId || `section_${sectionIndex}`} style={{ marginBottom: 20 }}>
-              {sectionTitle ? (
+              {showSectionTitle && sectionTitle ? (
                 <Title level={5} className="form-section-title">
                   {sectionTitle}
                 </Title>
@@ -1102,15 +1115,17 @@ export default function FormEmbed(props = {}) {
           );
         })}
 
-        <Button
-          htmlType="submit"
-          type="primary"
-          loading={submitting}
-          disabled={submitting}
-          className="form-submit-btn"
-        >
-          {submitLabel}
-        </Button>
+        <div style={{ display: "flex", justifyContent: submitButtonJustifyContent }}>
+          <Button
+            htmlType="submit"
+            type="primary"
+            loading={submitting}
+            disabled={submitting}
+            className="form-submit-btn"
+          >
+            {submitLabel}
+          </Button>
+        </div>
       </Form>
     </FormShell>
   );

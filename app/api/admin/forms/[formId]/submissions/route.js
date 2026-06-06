@@ -24,8 +24,9 @@ function parseDate(value, { endOfDay = false } = {}) {
   if (!value) return null;
   const raw = normalizeText(value);
   const date = new Date(raw);
-  if (endOfDay && /^\d{4}-\d{2}-\d{2}$/.test(raw)) {
-    date.setUTCHours(23, 59, 59, 999);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    if (endOfDay) date.setUTCHours(23, 59, 59, 999);
+    else date.setUTCHours(0, 0, 0, 0);
   }
   return Number.isNaN(date.getTime()) ? null : date;
 }
@@ -36,8 +37,11 @@ function parseQuery(url) {
   const limit = Math.min(100, Math.max(1, Number(searchParams.get("limit")) || 20));
   const search = normalizeText(searchParams.get("search"));
   const isRead = parseBooleanFilter(searchParams.get("isRead") || "all");
-  const dateFrom = parseDate(searchParams.get("dateFrom"));
-  const dateTo = parseDate(searchParams.get("dateTo"), { endOfDay: true });
+  let dateFrom = parseDate(searchParams.get("dateFrom"));
+  let dateTo = parseDate(searchParams.get("dateTo"), { endOfDay: true });
+  if (dateFrom && dateTo && dateFrom > dateTo) {
+    [dateFrom, dateTo] = [dateTo, dateFrom];
+  }
   const sort = normalizeText(searchParams.get("sort") || "createdAt_desc");
   return {
     page,

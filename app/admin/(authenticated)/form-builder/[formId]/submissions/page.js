@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import dayjs from "dayjs";
 import {
   Button,
+  DatePicker,
   Descriptions,
   Empty,
   Input,
@@ -36,9 +38,18 @@ const SORT_OPTIONS = [
   { value: "createdAt_desc", label: "Newest first" },
   { value: "createdAt_asc", label: "Oldest first" },
 ];
+const DATE_API_FORMAT = "YYYY-MM-DD";
+const DATE_DISPLAY_FORMAT = "DD-MM-YYYY";
 
 function normalizeText(value, fallback = "") {
   return String(value ?? fallback).trim();
+}
+
+function toDateValue(value) {
+  const text = normalizeText(value);
+  if (!text) return null;
+  const parsed = dayjs(text, DATE_API_FORMAT, true);
+  return parsed.isValid() ? parsed : null;
 }
 
 function toSearchSummary(payload) {
@@ -52,7 +63,7 @@ function toSearchSummary(payload) {
   });
 
   return entries
-    .slice(0, 3)
+    .slice(0, 2)
     .map(([key, value]) => `${key}: ${typeof value === "string" ? value : JSON.stringify(value)}`)
     .join(" | ");
 }
@@ -253,19 +264,6 @@ export default function FormSubmissionsPage() {
         render: (payload) => <span>{toSearchSummary(payload)}</span>,
       },
       {
-        title: "Source",
-        key: "source",
-        width: 200,
-        render: (_, row) => (
-          <Space direction="vertical" size={0}>
-            <Typography.Text>{normalizeText(row.source) || "-"}</Typography.Text>
-            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-              {normalizeText(row.pagePath) || "-"}
-            </Typography.Text>
-          </Space>
-        ),
-      },
-      {
         title: "Actions",
         key: "actions",
         width: 120,
@@ -300,10 +298,9 @@ export default function FormSubmissionsPage() {
       title={
         <Space wrap>
           <Link href={`/admin/form-builder/${encodeURIComponent(formId)}/edit`}>
-            <Button icon={<ArrowLeftOutlined />}>Back to Editor</Button>
+            <Button icon={<ArrowLeftOutlined />} aria-label="Back" title="Back" />
           </Link>
-          <Typography.Text strong>{formId || "Form"}</Typography.Text>
-          {formName ? <Typography.Text type="secondary">{formName}</Typography.Text> : null}
+          <Typography.Text strong>{formName || "Form"}</Typography.Text>
         </Space>
       }
       extra={
@@ -327,15 +324,33 @@ export default function FormSubmissionsPage() {
             onChange={setIsRead}
           />
           <Select style={{ width: 140 }} options={SORT_OPTIONS} value={sort} onChange={setSort} />
-          <Input
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(normalizeText(e.target.value))}
+          <DatePicker
+            style={{ width: 140 }}
+            format={DATE_DISPLAY_FORMAT}
+            placeholder="dd-mm-yyyy"
+            value={toDateValue(dateFrom)}
+            allowClear
+            onChange={(value) =>
+              setDateFrom(value && value.isValid() ? value.format(DATE_API_FORMAT) : "")
+            }
+            disabledDate={(current) => {
+              const to = toDateValue(dateTo);
+              return Boolean(to && current && current.endOf("day").isAfter(to.endOf("day")));
+            }}
           />
-          <Input
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(normalizeText(e.target.value))}
+          <DatePicker
+            style={{ width: 140 }}
+            format={DATE_DISPLAY_FORMAT}
+            placeholder="dd-mm-yyyy"
+            value={toDateValue(dateTo)}
+            allowClear
+            onChange={(value) =>
+              setDateTo(value && value.isValid() ? value.format(DATE_API_FORMAT) : "")
+            }
+            disabledDate={(current) => {
+              const from = toDateValue(dateFrom);
+              return Boolean(from && current && current.startOf("day").isBefore(from.startOf("day")));
+            }}
           />
           <Button icon={<ReloadOutlined />} onClick={() => fetchList(page)}>
             Refresh
@@ -381,7 +396,6 @@ export default function FormSubmissionsPage() {
         ) : (
           <Space direction="vertical" size={16} style={{ width: "100%" }}>
             <Descriptions bordered size="small" column={2}>
-              <Descriptions.Item label="Form ID">{detailItem.formId}</Descriptions.Item>
               <Descriptions.Item label="Schema Version">v{detailItem.schemaVersion}</Descriptions.Item>
               <Descriptions.Item label="Status">
                 {detailItem.isRead ? <Tag color="green">Read</Tag> : <Tag color="orange">Unread</Tag>}
