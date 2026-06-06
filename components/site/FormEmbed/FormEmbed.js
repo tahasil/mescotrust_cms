@@ -939,15 +939,13 @@ export default function FormEmbed(props = {}) {
           ) : null}
 
           {type === "single_choice" ? (
-            <Radio.Group disabled={submitting}>
-              <Space direction="vertical">
-                {options.map((option) => (
-                  <Radio key={option.key} value={option.key}>
-                    {option.label || option.key}
-                  </Radio>
-                ))}
-              </Space>
-            </Radio.Group>
+            <Radio.Group
+              disabled={submitting}
+              options={options.map((option) => ({
+                label: option.label || option.key,
+                value: option.key,
+              }))}
+            />
           ) : null}
 
           {type === "multiple_choice" ? (

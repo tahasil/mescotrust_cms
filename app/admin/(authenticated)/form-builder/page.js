@@ -7,10 +7,9 @@ import {
   CopyOutlined,
   DeleteOutlined,
   EditOutlined,
-  EyeOutlined,
+  FileDoneOutlined,
   PlusOutlined,
   ReloadOutlined,
-  UnorderedListOutlined,
 } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { formatDateTime } from "@/lib/formatDate";
@@ -110,7 +109,6 @@ export default function FormBuilderListPage() {
 
   const columns = useMemo(
     () => [
-      { title: "Form ID", dataIndex: "formId", key: "formId", width: 140 },
       { title: "Name", dataIndex: "name", key: "name" },
       {
         title: "Shortcode",
@@ -153,7 +151,7 @@ export default function FormBuilderListPage() {
       {
         title: "Actions",
         key: "actions",
-        width: 300,
+        width: 260,
         render: (_, record) => (
           <Space size={6}>
             <Button
@@ -167,15 +165,7 @@ export default function FormBuilderListPage() {
             <Button
               type="link"
               size="small"
-              icon={<EyeOutlined />}
-              href={`/admin/form-builder/${encodeURIComponent(record.formId)}/edit?preview=1`}
-            >
-              Preview
-            </Button>
-            <Button
-              type="link"
-              size="small"
-              icon={<UnorderedListOutlined />}
+              icon={<FileDoneOutlined />}
               href={`/admin/form-builder/${encodeURIComponent(record.formId)}/submissions`}
             >
               Submissions
@@ -187,9 +177,14 @@ export default function FormBuilderListPage() {
               okType="danger"
               onConfirm={() => onDelete(record.formId)}
             >
-              <Button type="link" size="small" danger icon={<DeleteOutlined />}>
-                Delete
-              </Button>
+              <Button
+                type="link"
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+                aria-label="Delete form"
+                title="Delete"
+              />
             </Popconfirm>
           </Space>
         ),

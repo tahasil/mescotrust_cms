@@ -991,6 +991,12 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
         /* Inject admin loader color as CSS variable */
         :root {
           --admin-loader-color: ${at.adminLoaderColor};
+          --admin-text-color: ${at.adminTextColor};
+          --admin-border-color: ${at.adminBorderColor};
+          --admin-cta-bg-color: ${at.adminCtaBgColor};
+          --admin-cta-text-color: ${at.adminCtaTextColor};
+          --admin-cta-hover-bg-color: ${at.adminCtaHoverBgColor || at.adminCtaBgColor};
+          --admin-cta-hover-text-color: ${at.adminCtaHoverTextColor || at.adminCtaTextColor};
         }
 
         /* Override Ant Design Spin color globally for admin */
@@ -1001,6 +1007,153 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
         }
         .admin-content .ant-spin {
           color: ${at.adminLoaderColor} !important;
+        }
+
+        /* Admin form controls default colors (content + drawers + modals + popovers) */
+        .admin-content .ant-input,
+        .admin-content .ant-input-affix-wrapper,
+        .admin-content .ant-input-number,
+        .admin-content .ant-select-selector,
+        .admin-content .ant-picker,
+        .ant-drawer .ant-input,
+        .ant-drawer .ant-input-affix-wrapper,
+        .ant-drawer .ant-input-number,
+        .ant-drawer .ant-select-selector,
+        .ant-drawer .ant-picker,
+        .ant-modal-root .ant-input,
+        .ant-modal-root .ant-input-affix-wrapper,
+        .ant-modal-root .ant-input-number,
+        .ant-modal-root .ant-select-selector,
+        .ant-modal-root .ant-picker,
+        .ant-popover .ant-input,
+        .ant-popover .ant-input-affix-wrapper,
+        .ant-popover .ant-input-number,
+        .ant-popover .ant-select-selector,
+        .ant-popover .ant-picker {
+          border-color: ${at.adminBorderColor} !important;
+          color: ${at.adminTextColor} !important;
+        }
+
+        .admin-content .ant-form-item-label > label,
+        .ant-drawer .ant-form-item-label > label,
+        .ant-modal-root .ant-form-item-label > label,
+        .ant-popover .ant-form-item-label > label,
+        .admin-content .ant-typography,
+        .ant-drawer .ant-typography,
+        .ant-modal-root .ant-typography,
+        .ant-popover .ant-typography,
+        .admin-content .ant-select-selection-item,
+        .admin-content .ant-select-selection-placeholder,
+        .ant-drawer .ant-select-selection-item,
+        .ant-drawer .ant-select-selection-placeholder,
+        .ant-modal-root .ant-select-selection-item,
+        .ant-modal-root .ant-select-selection-placeholder,
+        .ant-popover .ant-select-selection-item,
+        .ant-popover .ant-select-selection-placeholder {
+          color: ${at.adminTextColor} !important;
+        }
+
+        .admin-content .ant-input:hover,
+        .admin-content .ant-input-affix-wrapper:hover,
+        .admin-content .ant-input-number:hover,
+        .admin-content .ant-select:hover .ant-select-selector,
+        .admin-content .ant-picker:hover,
+        .ant-drawer .ant-input:hover,
+        .ant-drawer .ant-input-affix-wrapper:hover,
+        .ant-drawer .ant-input-number:hover,
+        .ant-drawer .ant-select:hover .ant-select-selector,
+        .ant-drawer .ant-picker:hover,
+        .ant-modal-root .ant-input:hover,
+        .ant-modal-root .ant-input-affix-wrapper:hover,
+        .ant-modal-root .ant-input-number:hover,
+        .ant-modal-root .ant-select:hover .ant-select-selector,
+        .ant-modal-root .ant-picker:hover,
+        .ant-popover .ant-input:hover,
+        .ant-popover .ant-input-affix-wrapper:hover,
+        .ant-popover .ant-input-number:hover,
+        .ant-popover .ant-select:hover .ant-select-selector,
+        .ant-popover .ant-picker:hover {
+          border-color: ${at.adminCtaBgColor} !important;
+        }
+
+        .admin-content .ant-input:focus,
+        .admin-content .ant-input-focused,
+        .admin-content .ant-input-affix-wrapper:focus,
+        .admin-content .ant-input-affix-wrapper-focused,
+        .admin-content .ant-input-number-focused,
+        .admin-content .ant-select-focused .ant-select-selector,
+        .admin-content .ant-picker-focused,
+        .ant-drawer .ant-input:focus,
+        .ant-drawer .ant-input-focused,
+        .ant-drawer .ant-input-affix-wrapper:focus,
+        .ant-drawer .ant-input-affix-wrapper-focused,
+        .ant-drawer .ant-input-number-focused,
+        .ant-drawer .ant-select-focused .ant-select-selector,
+        .ant-drawer .ant-picker-focused,
+        .ant-modal-root .ant-input:focus,
+        .ant-modal-root .ant-input-focused,
+        .ant-modal-root .ant-input-affix-wrapper:focus,
+        .ant-modal-root .ant-input-affix-wrapper-focused,
+        .ant-modal-root .ant-input-number-focused,
+        .ant-modal-root .ant-select-focused .ant-select-selector,
+        .ant-modal-root .ant-picker-focused,
+        .ant-popover .ant-input:focus,
+        .ant-popover .ant-input-focused,
+        .ant-popover .ant-input-affix-wrapper:focus,
+        .ant-popover .ant-input-affix-wrapper-focused,
+        .ant-popover .ant-input-number-focused,
+        .ant-popover .ant-select-focused .ant-select-selector,
+        .ant-popover .ant-picker-focused {
+          border-color: ${at.adminCtaBgColor} !important;
+          box-shadow: 0 0 0 2px color-mix(in srgb, ${at.adminCtaBgColor} 18%, transparent) !important;
+        }
+
+        .admin-content .ant-btn:not(.ant-btn-primary):not(.ant-btn-link):not(.ant-btn-text),
+        .ant-drawer .ant-btn:not(.ant-btn-primary):not(.ant-btn-link):not(.ant-btn-text),
+        .ant-modal-root .ant-btn:not(.ant-btn-primary):not(.ant-btn-link):not(.ant-btn-text),
+        .ant-popover .ant-btn:not(.ant-btn-primary):not(.ant-btn-link):not(.ant-btn-text) {
+          border-color: ${at.adminBorderColor} !important;
+          color: ${at.adminTextColor} !important;
+        }
+
+        .admin-content .ant-btn:not(.ant-btn-primary):not(.ant-btn-link):not(.ant-btn-text):hover,
+        .ant-drawer .ant-btn:not(.ant-btn-primary):not(.ant-btn-link):not(.ant-btn-text):hover,
+        .ant-modal-root .ant-btn:not(.ant-btn-primary):not(.ant-btn-link):not(.ant-btn-text):hover,
+        .ant-popover .ant-btn:not(.ant-btn-primary):not(.ant-btn-link):not(.ant-btn-text):hover {
+          border-color: ${at.adminCtaBgColor} !important;
+          color: ${at.adminCtaBgColor} !important;
+        }
+
+        .admin-content .ant-switch.ant-switch-checked,
+        .ant-drawer .ant-switch.ant-switch-checked,
+        .ant-modal-root .ant-switch.ant-switch-checked,
+        .ant-popover .ant-switch.ant-switch-checked {
+          background: ${at.adminCtaBgColor} !important;
+        }
+
+        .admin-content .ant-checkbox-checked .ant-checkbox-inner,
+        .admin-content .ant-checkbox-indeterminate .ant-checkbox-inner:after,
+        .ant-drawer .ant-checkbox-checked .ant-checkbox-inner,
+        .ant-drawer .ant-checkbox-indeterminate .ant-checkbox-inner:after,
+        .ant-modal-root .ant-checkbox-checked .ant-checkbox-inner,
+        .ant-modal-root .ant-checkbox-indeterminate .ant-checkbox-inner:after,
+        .ant-popover .ant-checkbox-checked .ant-checkbox-inner,
+        .ant-popover .ant-checkbox-indeterminate .ant-checkbox-inner:after {
+          background-color: ${at.adminCtaBgColor} !important;
+          border-color: ${at.adminCtaBgColor} !important;
+        }
+
+        .admin-content .ant-radio-checked .ant-radio-inner,
+        .ant-drawer .ant-radio-checked .ant-radio-inner,
+        .ant-modal-root .ant-radio-checked .ant-radio-inner,
+        .ant-popover .ant-radio-checked .ant-radio-inner {
+          border-color: ${at.adminCtaBgColor} !important;
+        }
+        .admin-content .ant-radio-checked .ant-radio-inner:after,
+        .ant-drawer .ant-radio-checked .ant-radio-inner:after,
+        .ant-modal-root .ant-radio-checked .ant-radio-inner:after,
+        .ant-popover .ant-radio-checked .ant-radio-inner:after {
+          background-color: ${at.adminCtaBgColor} !important;
         }
 
         /* Admin CTA button override — covers content, drawers, modals, popovers */

@@ -1090,8 +1090,18 @@ export default function FormBuilderEditorPage() {
                           />
                         </Col>
                         <Col xs={24} md={8}>
-                          <Space>
-                            <Typography.Text type="secondary">Required</Typography.Text>
+                          <Typography.Text type="secondary">&nbsp;</Typography.Text>
+                          <div
+                            style={{
+                              minHeight: 32,
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 10,
+                            }}
+                          >
+                            <Typography.Text type="secondary" style={{ margin: 0 }}>
+                              Required
+                            </Typography.Text>
                             <Switch
                               checked={question.required}
                               disabled={question.type === "divider"}
@@ -1099,7 +1109,7 @@ export default function FormBuilderEditorPage() {
                                 updateQuestion(question.fieldKey, { required: checked })
                               }
                             />
-                          </Space>
+                          </div>
                         </Col>
                         <Col xs={24}>
                           <Typography.Text type="secondary">Description</Typography.Text>
