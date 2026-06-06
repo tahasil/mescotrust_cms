@@ -77,6 +77,10 @@ Models in `models/`:
 - `Event`
 - `EventRegistration`
 - `VolunteersFeedbackSubmission`
+- `Form`
+- `FormSubmission`
+- `SubmissionFile`
+- `FormCounter`
 
 For field-level schema details, use `docs/TECHNICAL_DESIGN.md`.
 

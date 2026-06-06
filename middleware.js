@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 const adminPathPrefix = "/admin";
 const loginPath = "/admin/login";
+const FORM_BUILDER_PATH_PREFIXES = ["/admin/form-builder", "/api/admin/forms"];
 const CSRF_ORIGIN_EXEMPT_PATHS = new Set([
   "/api/payment/callback",
 ]);
@@ -34,6 +35,10 @@ function getIp(req) {
 
 function isAdminRoute(pathname) {
   return pathname.startsWith(adminPathPrefix) || pathname.startsWith("/api/admin");
+}
+
+function isFormBuilderPath(pathname) {
+  return FORM_BUILDER_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
 function isAuthorAllowedAdminPath(pathname) {
@@ -159,6 +164,16 @@ export async function middleware(req) {
   if (token.role !== "Admin" && adminOnlyPaths.some((p) => pathname.startsWith(p))) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Forbidden: Admin only" }, { status: 403 });
+    }
+    const url = req.nextUrl.clone();
+    url.pathname = "/admin";
+    url.searchParams.set("forbidden", "1");
+    return NextResponse.redirect(url);
+  }
+
+  if (isFormBuilderPath(pathname) && token.role !== "Admin" && token.role !== "Editor") {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Forbidden: Form Builder access requires Admin or Editor role" }, { status: 403 });
     }
     const url = req.nextUrl.clone();
     url.pathname = "/admin";

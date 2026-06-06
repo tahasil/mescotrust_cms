@@ -78,6 +78,15 @@ const baseMenuItems = [
     ),
   },
   {
+    key: "/admin/form-builder",
+    icon: <FileTextOutlined />,
+    label: (
+      <Link href="/admin/form-builder" style={linkStyle}>
+        Form Builder
+      </Link>
+    ),
+  },
+  {
     key: "/admin/sliders",
     icon: <AppstoreOutlined />,
     label: (
@@ -582,6 +591,8 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
   }
   const selectedMenuKey = String(pathname || "").startsWith("/admin/popups/")
     ? "/admin/popups"
+    : String(pathname || "").startsWith("/admin/form-builder/")
+      ? "/admin/form-builder"
     : pathname;
 
   const fetchNotifications = useCallback(() => {
@@ -603,8 +614,11 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
       fetch("/api/admin/event-registrations?limit=20").then((r) =>
         r.ok ? r.json() : { items: [] },
       ),
+      fetch("/api/admin/forms/submissions/unread?limit=10").then((r) =>
+        r.ok ? r.json() : { items: [] },
+      ),
     ])
-      .then(([contacts, donations, subscribers, eventRegs]) => {
+      .then(([contacts, donations, subscribers, eventRegs, formSubmissions]) => {
         const notifs = [];
         (contacts.items || []).forEach((c) => {
           if (!c.isRead) {
@@ -658,6 +672,23 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
             });
           }
         });
+        (formSubmissions.items || []).forEach((submission) => {
+          const payload = submission?.payloadByFieldNameSnapshot || {};
+          const identity =
+            payload?.name ||
+            payload?.full_name ||
+            payload?.email ||
+            payload?.phone ||
+            "New response";
+          notifs.push({
+            id: submission._id,
+            type: "form-submission",
+            icon: <FileTextOutlined style={{ color: "#13c2c2" }} />,
+            title: `New form submission (${submission.formId}): ${identity}`,
+            time: submission.createdAt,
+            link: `/admin/form-builder/${encodeURIComponent(submission.formId)}/submissions`,
+          });
+        });
         notifs.sort((a, b) => new Date(b.time) - new Date(a.time));
         const sliced = notifs.slice(0, 10);
         if (
@@ -679,10 +710,12 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
     const handleNewSubmission = () => setTimeout(fetchNotifications, 500);
     window.addEventListener("new-contact-submission", handleNewSubmission);
     window.addEventListener("new-donation", handleNewSubmission);
+    window.addEventListener("new-form-submission", handleNewSubmission);
     return () => {
       clearInterval(interval);
       window.removeEventListener("new-contact-submission", handleNewSubmission);
       window.removeEventListener("new-donation", handleNewSubmission);
+      window.removeEventListener("new-form-submission", handleNewSubmission);
     };
   }, [fetchNotifications]);
 
@@ -780,7 +813,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
           <div style={{ textAlign: "center", padding: "10px 16px" }}>
             <Typography.Link
               onClick={() => setNotifOpen(false)}
-              href="/admin/contacts"
+              href="/admin/form-builder"
               style={{ fontSize: 13 }}
             >
               View all

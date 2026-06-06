@@ -252,6 +252,17 @@ function getDefaultPropsForNewSiteComponent(componentId) {
         homeHero2Autoplay: true,
         homeHero2Draggable: true,
       };
+    case "FormEmbed":
+      return {
+        ...base,
+        mode: "formId",
+        formId: "",
+        shortcode: "",
+        heading: "",
+        description: "",
+        submitLabel: "",
+        successMessage: "",
+      };
     default:
       return base;
   }
