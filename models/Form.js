@@ -60,8 +60,15 @@ const formSubmissionSettingsSchema = new mongoose.Schema(
     notifyOnError: { type: Boolean, default: true },
     submitButtonAlignment: {
       type: String,
-      enum: ["left", "center", "right"],
+      enum: ["left", "center", "right", "full-width"],
       default: "left",
+      trim: true,
+    },
+    captchaEnabled: { type: Boolean, default: false },
+    captchaType: {
+      type: String,
+      enum: ["alphanumeric", "math", "checkbox_v2"],
+      default: "alphanumeric",
       trim: true,
     },
   },

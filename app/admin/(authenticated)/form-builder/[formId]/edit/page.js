@@ -97,6 +97,12 @@ const SUBMIT_BUTTON_ALIGNMENT_OPTIONS = [
   { value: "left", label: "Left" },
   { value: "center", label: "Center" },
   { value: "right", label: "Right" },
+  { value: "full-width", label: "Full-Width" },
+];
+const CAPTCHA_TYPE_OPTIONS = [
+  { value: "alphanumeric", label: "Alphanumeric Text" },
+  { value: "math", label: "Basic Math" },
+  { value: "checkbox_v2", label: "Google reCAPTCHA (V2)" },
 ];
 function normalizeOptionValue(value) {
   return String(value ?? "").trim();
@@ -144,10 +150,17 @@ function normalizeSpan(value, fallback = 4) {
 function normalizeSubmissionSettings(input) {
   const source = input && typeof input === "object" ? input : {};
   const submitButtonAlignment = String(source.submitButtonAlignment || "").trim().toLowerCase();
+  const captchaType = String(source.captchaType || "").trim().toLowerCase();
   const normalizedSubmitButtonAlignment =
-    submitButtonAlignment === "center" || submitButtonAlignment === "right"
+    submitButtonAlignment === "center" ||
+    submitButtonAlignment === "right" ||
+    submitButtonAlignment === "full-width"
       ? submitButtonAlignment
       : DEFAULT_SUBMISSION_SETTINGS.submitButtonAlignment;
+  const normalizedCaptchaType =
+    captchaType === "math" || captchaType === "checkbox_v2" || captchaType === "alphanumeric"
+      ? captchaType
+      : DEFAULT_SUBMISSION_SETTINGS.captchaType;
   return {
     resetOnSuccess:
       source.resetOnSuccess == null
@@ -162,6 +175,11 @@ function normalizeSubmissionSettings(input) {
         ? DEFAULT_SUBMISSION_SETTINGS.notifyOnError
         : Boolean(source.notifyOnError),
     submitButtonAlignment: normalizedSubmitButtonAlignment,
+    captchaEnabled:
+      source.captchaEnabled == null
+        ? DEFAULT_SUBMISSION_SETTINGS.captchaEnabled
+        : Boolean(source.captchaEnabled),
+    captchaType: normalizedCaptchaType,
   };
 }
 
@@ -1233,15 +1251,48 @@ export default function FormBuilderEditorPage() {
 
           <Card size="small" title="Submission Settings">
             <Space direction="vertical" size={12} style={{ width: "100%" }}>
-              <div>
-                <Typography.Text type="secondary">Submit button text</Typography.Text>
-                <Input
-                  value={submitLabel}
-                  maxLength={60}
-                  placeholder={FORM_SUBMIT_LABEL_DEFAULT}
-                  onChange={(e) => setSubmitLabel(e.target.value)}
-                />
-              </div>
+              <List
+                size="small"
+                bordered
+                split
+                dataSource={[
+                  { key: "submitLabel", label: "Submit Button Text" },
+                  { key: "submitButtonAlignment", label: "Button Align" },
+                ]}
+                renderItem={(item) => (
+                  <List.Item
+                    actions={[
+                      item.key === "submitLabel" ? (
+                        <Input
+                          key={item.key}
+                          size="small"
+                          value={submitLabel}
+                          maxLength={60}
+                          style={{ width: 220 }}
+                          placeholder="Button Text"
+                          onChange={(e) => setSubmitLabel(e.target.value)}
+                        />
+                      ) : (
+                        <Select
+                          key={item.key}
+                          size="small"
+                          style={{ width: 220 }}
+                          value={submissionSettings?.submitButtonAlignment || "left"}
+                          options={SUBMIT_BUTTON_ALIGNMENT_OPTIONS}
+                          onChange={(value) =>
+                            setSubmissionSettings((prev) => ({
+                              ...normalizeSubmissionSettings(prev),
+                              submitButtonAlignment: value,
+                            }))
+                          }
+                        />
+                      ),
+                    ]}
+                  >
+                    <Typography.Text type="secondary">{item.label}</Typography.Text>
+                  </List.Item>
+                )}
+              />
               <div>
                 <Typography.Text type="secondary">Success message</Typography.Text>
                 <Input.TextArea
@@ -1250,20 +1301,6 @@ export default function FormBuilderEditorPage() {
                   maxLength={300}
                   placeholder={FORM_SUCCESS_MESSAGE_DEFAULT}
                   onChange={(e) => setSuccessMessage(e.target.value)}
-                />
-              </div>
-              <div>
-                <Typography.Text type="secondary">Submit button alignment</Typography.Text>
-                <Select
-                  style={{ width: "100%" }}
-                  value={submissionSettings?.submitButtonAlignment || "left"}
-                  options={SUBMIT_BUTTON_ALIGNMENT_OPTIONS}
-                  onChange={(value) =>
-                    setSubmissionSettings((prev) => ({
-                      ...normalizeSubmissionSettings(prev),
-                      submitButtonAlignment: value,
-                    }))
-                  }
                 />
               </div>
               <List
@@ -1290,6 +1327,65 @@ export default function FormBuilderEditorPage() {
                   </List.Item>
                 )}
               />
+            </Space>
+          </Card>
+
+          <Card size="small" title="Captcha">
+            <Space direction="vertical" size={12} style={{ width: "100%" }}>
+              <List
+                size="small"
+                bordered
+                split
+                dataSource={[{ key: "captchaEnabled", label: "Captcha Activation" }]}
+                renderItem={(item) => (
+                  <List.Item
+                    actions={[
+                      <Switch
+                        key={item.key}
+                        checked={Boolean(submissionSettings?.captchaEnabled)}
+                        onChange={(checked) =>
+                          setSubmissionSettings((prev) => ({
+                            ...normalizeSubmissionSettings(prev),
+                            captchaEnabled: checked,
+                          }))
+                        }
+                      />,
+                    ]}
+                  >
+                    <Typography.Text type="secondary">{item.label}</Typography.Text>
+                  </List.Item>
+                )}
+              />
+
+              {submissionSettings?.captchaEnabled ? (
+                <List
+                  size="small"
+                  bordered
+                  split
+                  dataSource={[{ key: "captchaType", label: "Captcha Type" }]}
+                  renderItem={(item) => (
+                    <List.Item
+                      actions={[
+                        <Select
+                          key={item.key}
+                          size="small"
+                          style={{ width: 220 }}
+                          value={submissionSettings?.captchaType || "alphanumeric"}
+                          options={CAPTCHA_TYPE_OPTIONS}
+                          onChange={(value) =>
+                            setSubmissionSettings((prev) => ({
+                              ...normalizeSubmissionSettings(prev),
+                              captchaType: value,
+                            }))
+                          }
+                        />,
+                      ]}
+                    >
+                      <Typography.Text type="secondary">{item.label}</Typography.Text>
+                    </List.Item>
+                  )}
+                />
+              ) : null}
             </Space>
           </Card>
 

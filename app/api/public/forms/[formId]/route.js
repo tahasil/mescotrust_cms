@@ -6,10 +6,17 @@ import { FORM_DEFAULTS } from "@/lib/forms/constants";
 function normalizeSubmissionSettings(input) {
   const source = input && typeof input === "object" ? input : {};
   const submitButtonAlignment = String(source.submitButtonAlignment || "").trim().toLowerCase();
+  const captchaType = String(source.captchaType || "").trim().toLowerCase();
   const normalizedSubmitButtonAlignment =
-    submitButtonAlignment === "center" || submitButtonAlignment === "right"
+    submitButtonAlignment === "center" ||
+    submitButtonAlignment === "right" ||
+    submitButtonAlignment === "full-width"
       ? submitButtonAlignment
       : FORM_DEFAULTS.submissionSettings.submitButtonAlignment;
+  const normalizedCaptchaType =
+    captchaType === "math" || captchaType === "checkbox_v2" || captchaType === "alphanumeric"
+      ? captchaType
+      : FORM_DEFAULTS.submissionSettings.captchaType;
   return {
     resetOnSuccess:
       source.resetOnSuccess == null
@@ -24,6 +31,11 @@ function normalizeSubmissionSettings(input) {
         ? FORM_DEFAULTS.submissionSettings.notifyOnError
         : Boolean(source.notifyOnError),
     submitButtonAlignment: normalizedSubmitButtonAlignment,
+    captchaEnabled:
+      source.captchaEnabled == null
+        ? FORM_DEFAULTS.submissionSettings.captchaEnabled
+        : Boolean(source.captchaEnabled),
+    captchaType: normalizedCaptchaType,
   };
 }
 

@@ -6,6 +6,7 @@ import FormSubmission from "@/models/FormSubmission";
 import SubmissionFile from "@/models/SubmissionFile";
 import { FORM_DEFAULTS } from "@/lib/forms/constants";
 import { validateSubmissionAndBuild } from "@/lib/forms/runtimeValidation";
+import { validateCaptchaSubmission } from "@/lib/forms/captcha";
 import { createRateLimiter, getClientIp } from "@/lib/rateLimit";
 
 const checkRateLimit = createRateLimiter({ windowMs: 60_000, max: 8 });
@@ -100,7 +101,7 @@ export async function POST(req, { params }) {
 
     const form = await Form.findOne(
       { formId, status: "published" },
-      { formId: 1, schemaVersion: 1, formSchema: 1, successMessage: 1 },
+      { formId: 1, schemaVersion: 1, formSchema: 1, successMessage: 1, submissionSettings: 1 },
     ).lean();
     if (!form) {
       return NextResponse.json({ error: "Form not found or not published" }, { status: 404 });
@@ -113,6 +114,30 @@ export async function POST(req, { params }) {
       return NextResponse.json(
         { success: true, submissionId: null, message: successMessage },
         { status: 201 },
+      );
+    }
+
+    const captchaValidation = await validateCaptchaSubmission({
+      formId,
+      submissionSettings: form?.submissionSettings,
+      captchaToken: body?.captcha?.token || body?.captchaToken,
+      captchaResponse:
+        body?.captcha?.response !== undefined ? body.captcha.response : body?.captchaResponse,
+      remoteIp: clientId,
+    });
+    if (!captchaValidation.valid) {
+      const message = normalizeText(captchaValidation?.message || "Captcha validation failed");
+      return NextResponse.json(
+        {
+          error: message,
+          captcha: {
+            required: true,
+            invalid: true,
+            refresh: Boolean(captchaValidation?.requiresRefresh),
+            message,
+          },
+        },
+        { status: 400 },
       );
     }
 

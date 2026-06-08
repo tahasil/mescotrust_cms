@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dayjs from "dayjs";
+import Image from "next/image";
 import styled from "styled-components";
 import {
   Alert,
@@ -32,6 +33,7 @@ const DEFAULT_SUBMISSION_SETTINGS = {
 const DEFAULT_STYLE_SETTINGS = {
   ...FORM_DEFAULTS.styleSettings,
 };
+const CAPTCHA_TYPES = new Set(["alphanumeric", "math", "checkbox_v2"]);
 
 function normalizeText(value, fallback = "") {
   return String(value ?? fallback).trim();
@@ -117,10 +119,16 @@ function normalizeExtension(value) {
 function normalizeSubmissionSettings(input) {
   const source = input && typeof input === "object" ? input : {};
   const submitButtonAlignment = normalizeText(source.submitButtonAlignment).toLowerCase();
+  const captchaType = normalizeText(source.captchaType).toLowerCase();
   const normalizedSubmitButtonAlignment =
-    submitButtonAlignment === "center" || submitButtonAlignment === "right"
+    submitButtonAlignment === "center" ||
+    submitButtonAlignment === "right" ||
+    submitButtonAlignment === "full-width"
       ? submitButtonAlignment
       : DEFAULT_SUBMISSION_SETTINGS.submitButtonAlignment;
+  const normalizedCaptchaType = CAPTCHA_TYPES.has(captchaType)
+    ? captchaType
+    : DEFAULT_SUBMISSION_SETTINGS.captchaType;
   return {
     resetOnSuccess:
       source.resetOnSuccess == null
@@ -135,6 +143,11 @@ function normalizeSubmissionSettings(input) {
         ? DEFAULT_SUBMISSION_SETTINGS.notifyOnError
         : Boolean(source.notifyOnError),
     submitButtonAlignment: normalizedSubmitButtonAlignment,
+    captchaEnabled:
+      source.captchaEnabled == null
+        ? DEFAULT_SUBMISSION_SETTINGS.captchaEnabled
+        : Boolean(source.captchaEnabled),
+    captchaType: normalizedCaptchaType,
   };
 }
 
@@ -193,6 +206,22 @@ function resolveMaxFileSizeBytes(rules = {}) {
     return Math.round(maxSizeMB * 1024 * 1024);
   }
   return null;
+}
+
+function normalizeCaptchaChallenge(input, fallbackType = DEFAULT_SUBMISSION_SETTINGS.captchaType) {
+  const source = input && typeof input === "object" ? input : {};
+  const rawType = normalizeText(source?.type).toLowerCase();
+  const type = CAPTCHA_TYPES.has(rawType) ? rawType : fallbackType;
+  return {
+    type,
+    provider: normalizeText(source?.provider).toLowerCase(),
+    siteKey: normalizeText(source?.siteKey),
+    token: normalizeText(source?.token),
+    prompt: normalizeText(source?.prompt),
+    placeholder: normalizeText(source?.placeholder),
+    imageDataUri: normalizeText(source?.imageDataUri),
+    expiresInSeconds: Number(source?.expiresInSeconds || 0),
+  };
 }
 
 function buildInitialValues(questions, prefillByFieldName = {}) {
@@ -529,6 +558,40 @@ const FormShell = styled.div`
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--form-button-focus-color, #cf372f) 25%, transparent) !important;
   }
 
+  .form-submit-actions {
+    width: min(100%, 420px);
+    max-width: 100%;
+  }
+
+  .form-captcha-wrap {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .form-captcha-image {
+    display: block;
+    width: min(100%, 220px) !important;
+    height: auto !important;
+    max-width: 100%;
+  }
+
+  .form-google-recaptcha {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  @media (max-width: 768px) {
+    .form-submit-actions {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+
+    .form-captcha-image {
+      width: min(100%, 200px) !important;
+    }
+  }
+
   .ant-checkbox-checked .ant-checkbox-inner,
   .ant-checkbox-indeterminate .ant-checkbox-inner:after {
     background-color: var(--form-checkbox-color, #cf372f) !important;
@@ -578,6 +641,12 @@ export default function FormEmbed(props = {}) {
   const [submitting, setSubmitting] = useState(false);
   const [uploadingByFieldKey, setUploadingByFieldKey] = useState({});
   const [uploadFileLists, setUploadFileLists] = useState({});
+  const [captchaChallenge, setCaptchaChallenge] = useState(null);
+  const [captchaValue, setCaptchaValue] = useState("");
+  const [captchaError, setCaptchaError] = useState("");
+  const [captchaLoading, setCaptchaLoading] = useState(false);
+  const recaptchaContainerRef = useRef(null);
+  const recaptchaWidgetIdRef = useRef(null);
 
   const target = useMemo(
     () =>
@@ -604,6 +673,10 @@ export default function FormEmbed(props = {}) {
       setRuntimeError("");
       setRuntimeForm(null);
       setUploadFileLists({});
+      setCaptchaChallenge(null);
+      setCaptchaValue("");
+      setCaptchaError("");
+      recaptchaWidgetIdRef.current = null;
 
       try {
         const res = await fetch(target.url, { cache: "no-store" });
@@ -673,12 +746,22 @@ export default function FormEmbed(props = {}) {
     () => normalizeStyleSettings(runtimeForm?.defaults?.styleSettings),
     [runtimeForm?.defaults?.styleSettings],
   );
+  const submitButtonAlignment = normalizeText(
+    runtimeSubmissionSettings?.submitButtonAlignment,
+  ).toLowerCase();
+  const submitButtonIsFullWidth = submitButtonAlignment === "full-width";
   const submitButtonJustifyContent = useMemo(() => {
-    const alignment = normalizeText(runtimeSubmissionSettings?.submitButtonAlignment).toLowerCase();
-    if (alignment === "center") return "center";
-    if (alignment === "right") return "flex-end";
+    if (submitButtonAlignment === "center") return "center";
+    if (submitButtonAlignment === "right") return "flex-end";
     return "flex-start";
-  }, [runtimeSubmissionSettings?.submitButtonAlignment]);
+  }, [submitButtonAlignment]);
+  const submitActionAlignItems = useMemo(() => {
+    if (submitButtonAlignment === "center") return "center";
+    if (submitButtonAlignment === "right") return "flex-end";
+    return "flex-start";
+  }, [submitButtonAlignment]);
+  const captchaEnabled = Boolean(runtimeSubmissionSettings?.captchaEnabled);
+  const captchaType = normalizeText(runtimeSubmissionSettings?.captchaType).toLowerCase() || "alphanumeric";
   const resolvedStyleSettings = useMemo(
     () => ({
       inputBorderColor: resolveThemeColorValue(runtimeStyleSettings.inputBorderColor),
@@ -697,6 +780,152 @@ export default function FormEmbed(props = {}) {
     }),
     [runtimeStyleSettings],
   );
+  const loadGoogleRecaptchaScript = useCallback(async () => {
+    if (typeof window === "undefined") return null;
+    if (window.grecaptcha?.render) return window.grecaptcha;
+
+    const scriptId = "google-recaptcha-api-script";
+    const existing = document.getElementById(scriptId);
+    if (existing) {
+      await new Promise((resolve, reject) => {
+        if (window.grecaptcha?.render) {
+          resolve();
+          return;
+        }
+        existing.addEventListener("load", resolve, { once: true });
+        existing.addEventListener("error", reject, { once: true });
+      });
+      return window.grecaptcha;
+    }
+
+    await new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.id = scriptId;
+      script.src = "https://www.google.com/recaptcha/api.js?render=explicit";
+      script.async = true;
+      script.defer = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("Failed to load Google reCAPTCHA script"));
+      document.head.appendChild(script);
+    });
+    return window.grecaptcha;
+  }, []);
+
+  const resetGoogleRecaptcha = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const grecaptcha = window.grecaptcha;
+    if (!grecaptcha) return;
+    const widgetId = recaptchaWidgetIdRef.current;
+    if (widgetId != null) {
+      grecaptcha.reset(widgetId);
+    } else {
+      grecaptcha.reset();
+    }
+    setCaptchaValue("");
+  }, []);
+
+  const loadCaptchaChallenge = useCallback(async () => {
+    const currentFormId = normalizeText(runtimeForm?.formId);
+    if (!captchaEnabled || !currentFormId) {
+      setCaptchaChallenge(null);
+      setCaptchaValue("");
+      setCaptchaError("");
+      recaptchaWidgetIdRef.current = null;
+      return;
+    }
+
+    setCaptchaLoading(true);
+    setCaptchaError("");
+    setCaptchaValue("");
+
+    try {
+      const res = await fetch(
+        `/api/public/forms/${encodeURIComponent(currentFormId)}/captcha`,
+        { cache: "no-store" },
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || "Failed to load captcha");
+      const challenge = normalizeCaptchaChallenge(data?.captcha, captchaType);
+      const isGoogleCheckbox =
+        challenge?.type === "checkbox_v2" && challenge?.provider === "google_recaptcha";
+      if (isGoogleCheckbox && !challenge?.siteKey) {
+        throw new Error("Google reCAPTCHA site key is not configured.");
+      }
+      if (!isGoogleCheckbox && !challenge?.token) {
+        throw new Error("Captcha challenge is unavailable right now.");
+      }
+      setCaptchaChallenge(challenge);
+    } catch (err) {
+      setCaptchaChallenge(null);
+      setCaptchaError(normalizeText(err?.message || "Failed to load captcha"));
+    } finally {
+      setCaptchaLoading(false);
+    }
+  }, [captchaEnabled, captchaType, runtimeForm?.formId]);
+
+  useEffect(() => {
+    if (!captchaEnabled) {
+      setCaptchaChallenge(null);
+      setCaptchaValue("");
+      setCaptchaError("");
+      recaptchaWidgetIdRef.current = null;
+      return;
+    }
+    loadCaptchaChallenge();
+  }, [captchaEnabled, loadCaptchaChallenge]);
+
+  useEffect(() => {
+    const challenge = captchaChallenge;
+    const shouldRenderGoogle =
+      captchaEnabled &&
+      captchaType === "checkbox_v2" &&
+      normalizeText(challenge?.provider) === "google_recaptcha" &&
+      Boolean(challenge?.siteKey);
+
+    if (!shouldRenderGoogle) {
+      recaptchaWidgetIdRef.current = null;
+      return;
+    }
+
+    let cancelled = false;
+    async function mountGoogleRecaptcha() {
+      try {
+        const grecaptcha = await loadGoogleRecaptchaScript();
+        if (!grecaptcha || cancelled) return;
+        await new Promise((resolve) => grecaptcha.ready(resolve));
+        if (cancelled || !recaptchaContainerRef.current) return;
+
+        if (recaptchaWidgetIdRef.current != null) {
+          grecaptcha.reset(recaptchaWidgetIdRef.current);
+          return;
+        }
+
+        const widgetId = grecaptcha.render(recaptchaContainerRef.current, {
+          sitekey: challenge.siteKey,
+          size: typeof window !== "undefined" && window.innerWidth <= 480 ? "compact" : "normal",
+          callback: (token) => {
+            setCaptchaValue(normalizeText(token));
+            setCaptchaError("");
+          },
+          "expired-callback": () => setCaptchaValue(""),
+          "error-callback": () => {
+            setCaptchaValue("");
+            setCaptchaError("Google reCAPTCHA failed. Please try again.");
+          },
+        });
+        recaptchaWidgetIdRef.current = widgetId;
+      } catch {
+        if (!cancelled) {
+          setCaptchaError("Failed to load Google reCAPTCHA.");
+        }
+      }
+    }
+
+    mountGoogleRecaptcha();
+    return () => {
+      cancelled = true;
+    };
+  }, [captchaChallenge, captchaEnabled, captchaType, loadGoogleRecaptchaScript]);
 
   function showErrorNotification(description, title = "Submission failed") {
     if (!runtimeSubmissionSettings.notifyOnError) return;
@@ -769,6 +998,31 @@ export default function FormEmbed(props = {}) {
 
   async function handleSubmit(values) {
     if (!runtimeForm?.formId || submitting) return;
+
+    if (captchaEnabled) {
+      if (captchaLoading) {
+        setCaptchaError("Captcha challenge is loading. Please wait a moment.");
+        return;
+      }
+
+      if (captchaType === "checkbox_v2") {
+        if (!normalizeText(captchaValue)) {
+          setCaptchaError("Please complete Google reCAPTCHA.");
+          return;
+        }
+      } else if (!normalizeText(captchaValue)) {
+        setCaptchaError("Please complete the captcha challenge.");
+        return;
+      } else {
+        const captchaToken = normalizeText(captchaChallenge?.token);
+        if (!captchaToken) {
+          setCaptchaError("Captcha challenge is unavailable. Please refresh and try again.");
+          return;
+        }
+      }
+    }
+
+    setCaptchaError("");
     setSubmitting(true);
 
     const pagePath =
@@ -816,11 +1070,32 @@ export default function FormEmbed(props = {}) {
           answersByFieldKey,
           source: "FormEmbed",
           pagePath,
+          captcha: captchaEnabled
+            ? {
+                token: normalizeText(captchaChallenge?.token),
+                response: normalizeText(captchaValue),
+              }
+            : undefined,
         }),
       });
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
+        if (res.status === 400 && data?.captcha?.invalid) {
+          const captchaMessage = normalizeText(
+            data?.captcha?.message || data?.error || "Captcha validation failed",
+          );
+          setCaptchaError(captchaMessage);
+          if (data?.captcha?.refresh) {
+            if (captchaType === "checkbox_v2") {
+              resetGoogleRecaptcha();
+            } else {
+              await loadCaptchaChallenge();
+            }
+          }
+          throw new Error(captchaMessage);
+        }
+
         if (res.status === 400 && Array.isArray(data?.errors)) {
           form.setFields(
             data.errors
@@ -833,6 +1108,7 @@ export default function FormEmbed(props = {}) {
         }
         throw new Error(data?.error || "Failed to submit form");
       }
+      setCaptchaError("");
 
       const successText =
         successMessageOverride ||
@@ -858,6 +1134,15 @@ export default function FormEmbed(props = {}) {
         form.resetFields();
         form.setFieldsValue(resetValues);
         setUploadFileLists(buildUploadFileLists(resetValues));
+      }
+
+      if (captchaEnabled) {
+        setCaptchaValue("");
+        if (captchaType === "checkbox_v2") {
+          resetGoogleRecaptcha();
+        } else {
+          await loadCaptchaChallenge();
+        }
       }
 
       if (typeof window !== "undefined") {
@@ -1038,6 +1323,88 @@ export default function FormEmbed(props = {}) {
     );
   }
 
+  function renderCaptchaControl() {
+    if (!captchaEnabled) return null;
+
+    const challenge = captchaChallenge;
+    const challengeType = normalizeText(challenge?.type || captchaType).toLowerCase();
+    const isGoogleRecaptcha =
+      challengeType === "checkbox_v2" &&
+      normalizeText(challenge?.provider) === "google_recaptcha";
+    const challengePrompt =
+      normalizeText(challenge?.prompt) ||
+      (challengeType === "checkbox_v2" ? "I am not a robot" : "Complete captcha challenge");
+
+    return (
+      <div className="form-captcha-wrap">
+        <Space direction="vertical" size={8} style={{ width: "100%" }}>
+          {challengeType !== "checkbox_v2" ? <Text strong>{challengePrompt}</Text> : null}
+          {challengeType === "alphanumeric" && challenge?.imageDataUri ? (
+            <Image
+              src={challenge.imageDataUri}
+              alt="Captcha challenge"
+              width={220}
+              height={68}
+              className="form-captcha-image"
+              unoptimized
+              style={{ borderRadius: 8, border: "1px solid #e5e7eb" }}
+            />
+          ) : null}
+          {challengeType === "checkbox_v2" ? (
+            <>
+              <Text strong>{challengePrompt}</Text>
+              {isGoogleRecaptcha ? (
+                <div
+                  ref={recaptchaContainerRef}
+                  className="form-google-recaptcha"
+                  style={{ minHeight: 78 }}
+                />
+              ) : (
+                <Text type="danger">
+                  Google reCAPTCHA is not configured. Please add site key and secret key.
+                </Text>
+              )}
+            </>
+          ) : (
+            <Input
+              size="large"
+              value={captchaValue}
+              disabled={submitting || captchaLoading || !challenge?.token}
+              placeholder={challenge?.placeholder || "Enter captcha"}
+              onChange={(event) => {
+                setCaptchaValue(event.target.value);
+                setCaptchaError("");
+              }}
+            />
+          )}
+          <Space size={8} wrap>
+            <Button
+              size="small"
+              onClick={() => {
+                if (challengeType === "checkbox_v2") {
+                  resetGoogleRecaptcha();
+                  setCaptchaError("");
+                  loadCaptchaChallenge();
+                } else {
+                  loadCaptchaChallenge();
+                }
+              }}
+              loading={captchaLoading}
+              disabled={submitting}
+            >
+              Refresh Captcha
+            </Button>
+          </Space>
+          {captchaError ? (
+            <Text type="danger" style={{ marginTop: -2 }}>
+              {captchaError}
+            </Text>
+          ) : null}
+        </Space>
+      </div>
+    );
+  }
+
   if (runtimeLoading) {
     return (
       <div style={{ minHeight: 160, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -1116,15 +1483,28 @@ export default function FormEmbed(props = {}) {
         })}
 
         <div style={{ display: "flex", justifyContent: submitButtonJustifyContent }}>
+          <div
+            className="form-submit-actions"
+            style={{
+              width: submitButtonIsFullWidth ? "100%" : undefined,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: submitActionAlignItems,
+              gap: 12,
+            }}
+          >
+            {renderCaptchaControl()}
           <Button
             htmlType="submit"
             type="primary"
             loading={submitting}
             disabled={submitting}
             className="form-submit-btn"
+            style={submitButtonIsFullWidth ? { width: "100%" } : undefined}
           >
             {submitLabel}
           </Button>
+          </div>
         </div>
       </Form>
     </FormShell>
