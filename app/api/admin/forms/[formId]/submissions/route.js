@@ -4,32 +4,20 @@ import { connectDB } from "@/lib/db";
 import Form from "@/models/Form";
 import FormSubmission from "@/models/FormSubmission";
 import { canAccessFormBuilder } from "@/lib/forms/access";
-
-function normalizeText(value, fallback = "") {
-  return String(value ?? fallback).trim();
-}
-
-function escapeRegex(value) {
-  return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function parseBooleanFilter(value) {
-  const normalized = normalizeText(value).toLowerCase();
-  if (normalized === "true") return true;
-  if (normalized === "false") return false;
-  return null;
-}
-
-function parseDate(value, { endOfDay = false } = {}) {
-  if (!value) return null;
-  const raw = normalizeText(value);
-  const date = new Date(raw);
-  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
-    if (endOfDay) date.setUTCHours(23, 59, 59, 999);
-    else date.setUTCHours(0, 0, 0, 0);
-  }
-  return Number.isNaN(date.getTime()) ? null : date;
-}
+import {
+  buildSubmissionExportColumns,
+  buildSubmissionFilter,
+  buildSubmissionSnapshot,
+  getOrderedFormQuestions,
+  getQuestionLabel,
+  getSubmissionSortOrder,
+  normalizeDateRange,
+  normalizeText,
+  parseBooleanFilter,
+  parseDate,
+  parseSubmissionSort,
+  resolveSnapshotQuestions,
+} from "@/lib/forms/submissionUtils";
 
 function parseQuery(url) {
   const { searchParams } = new URL(url);
@@ -37,24 +25,16 @@ function parseQuery(url) {
   const limit = Math.min(100, Math.max(1, Number(searchParams.get("limit")) || 20));
   const search = normalizeText(searchParams.get("search"));
   const isRead = parseBooleanFilter(searchParams.get("isRead") || "all");
-  let dateFrom = parseDate(searchParams.get("dateFrom"));
-  let dateTo = parseDate(searchParams.get("dateTo"), { endOfDay: true });
-  if (dateFrom && dateTo && dateFrom > dateTo) {
-    [dateFrom, dateTo] = [dateTo, dateFrom];
-  }
-  const sort = normalizeText(searchParams.get("sort") || "createdAt_desc");
-  return {
-    page,
-    limit,
-    search,
-    isRead,
-    dateFrom,
-    dateTo,
-    sort,
-  };
+
+  const parsedFrom = parseDate(searchParams.get("dateFrom"));
+  const parsedTo = parseDate(searchParams.get("dateTo"), { endOfDay: true });
+  const { dateFrom, dateTo } = normalizeDateRange(parsedFrom, parsedTo);
+
+  const sort = parseSubmissionSort(searchParams.get("sort"));
+  return { page, limit, search, isRead, dateFrom, dateTo, sort };
 }
 
-function toListItem(doc) {
+function toListItem(doc, snapshotQuestions) {
   return {
     _id: doc._id,
     formId: doc.formId,
@@ -63,6 +43,21 @@ function toListItem(doc) {
     source: doc.source || "",
     pagePath: doc.pagePath || "",
     payloadByFieldNameSnapshot: doc.payloadByFieldNameSnapshot || {},
+    snapshot: buildSubmissionSnapshot(doc, snapshotQuestions),
+  };
+}
+
+function buildSnapshotColumns(snapshotQuestions) {
+  const [primary, secondary] = Array.isArray(snapshotQuestions) ? snapshotQuestions : [];
+  return {
+    primary: {
+      key: normalizeText(primary?.fieldKey),
+      label: primary ? getQuestionLabel(primary, "Column 1") : "Column 1",
+    },
+    secondary: {
+      key: normalizeText(secondary?.fieldKey),
+      label: secondary ? getQuestionLabel(secondary, "Column 2") : "Column 2",
+    },
   };
 }
 
@@ -81,28 +76,31 @@ export async function GET(req, { params }) {
       return NextResponse.json({ error: "formId is required" }, { status: 400 });
     }
 
-    const form = await Form.findOne({ formId }, { _id: 1, name: 1, formId: 1 }).lean();
+    const form = await Form.findOne(
+      { formId },
+      {
+        _id: 1,
+        name: 1,
+        formId: 1,
+        "formSchema.questions.fieldKey": 1,
+        "formSchema.questions.fieldName": 1,
+        "formSchema.questions.label": 1,
+        "formSchema.questions.type": 1,
+        "formSchema.questions.order": 1,
+      },
+    ).lean();
     if (!form) {
       return NextResponse.json({ error: "Form not found" }, { status: 404 });
     }
 
     const { page, limit, search, isRead, dateFrom, dateTo, sort } = parseQuery(req.url);
-    const filter = { formId };
-
-    if (typeof isRead === "boolean") {
-      filter.isRead = isRead;
-    }
-    if (search) {
-      filter.searchText = { $regex: escapeRegex(search), $options: "i" };
-    }
-    if (dateFrom || dateTo) {
-      filter.createdAt = {};
-      if (dateFrom) filter.createdAt.$gte = dateFrom;
-      if (dateTo) filter.createdAt.$lte = dateTo;
-    }
-
-    const sortOrder = sort === "createdAt_asc" ? 1 : -1;
+    const filter = buildSubmissionFilter({ formId, isRead, search, dateFrom, dateTo });
+    const sortOrder = getSubmissionSortOrder(sort);
     const skip = (page - 1) * limit;
+
+    const questions = getOrderedFormQuestions(form.formSchema);
+    const snapshotQuestions = resolveSnapshotQuestions(questions);
+    const exportColumns = buildSubmissionExportColumns(questions);
 
     const [items, total] = await Promise.all([
       FormSubmission.find(
@@ -115,6 +113,7 @@ export async function GET(req, { params }) {
           source: 1,
           pagePath: 1,
           payloadByFieldNameSnapshot: 1,
+          payloadByFieldKey: 1,
         },
       )
         .sort({ createdAt: sortOrder })
@@ -129,8 +128,13 @@ export async function GET(req, { params }) {
         form: {
           formId: form.formId,
           name: form.name,
+          snapshotColumns: buildSnapshotColumns(snapshotQuestions),
+          exportColumns: exportColumns.map((column) => ({
+            key: column.key,
+            label: column.label,
+          })),
         },
-        items: (items || []).map(toListItem),
+        items: (items || []).map((item) => toListItem(item, snapshotQuestions)),
         total,
         page,
         totalPages: Math.ceil(total / limit),

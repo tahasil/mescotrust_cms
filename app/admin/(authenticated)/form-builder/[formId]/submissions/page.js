@@ -8,6 +8,7 @@ import {
   Button,
   DatePicker,
   Descriptions,
+  Dropdown,
   Empty,
   Input,
   Modal,
@@ -22,6 +23,7 @@ import {
 import {
   ArrowLeftOutlined,
   DeleteOutlined,
+  DownloadOutlined,
   EyeOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
@@ -38,8 +40,15 @@ const SORT_OPTIONS = [
   { value: "createdAt_desc", label: "Newest first" },
   { value: "createdAt_asc", label: "Oldest first" },
 ];
+
 const DATE_API_FORMAT = "YYYY-MM-DD";
 const DATE_DISPLAY_FORMAT = "DD-MM-YYYY";
+
+const EXPORT_MENU_ITEMS = [
+  { key: "csv_filtered", label: "Export as CSV" },
+  { key: "xlsx_all", label: "Export as Excel (All)" },
+  { key: "custom", label: "Custom Export" },
+];
 
 function normalizeText(value, fallback = "") {
   return String(value ?? fallback).trim();
@@ -50,22 +59,6 @@ function toDateValue(value) {
   if (!text) return null;
   const parsed = dayjs(text, DATE_API_FORMAT, true);
   return parsed.isValid() ? parsed : null;
-}
-
-function toSearchSummary(payload) {
-  if (!payload || typeof payload !== "object") return "-";
-  const entries = Object.entries(payload).filter(([, value]) => {
-    if (value === null || value === undefined) return false;
-    if (typeof value === "string") return Boolean(value.trim());
-    if (Array.isArray(value)) return value.length > 0;
-    if (typeof value === "object") return Object.keys(value).length > 0;
-    return true;
-  });
-
-  return entries
-    .slice(0, 2)
-    .map(([key, value]) => `${key}: ${typeof value === "string" ? value : JSON.stringify(value)}`)
-    .join(" | ");
 }
 
 function renderSubmissionValue(value) {
@@ -101,6 +94,36 @@ function renderSubmissionValue(value) {
   return text || "-";
 }
 
+function parseFilenameFromDisposition(value) {
+  const text = normalizeText(value);
+  if (!text) return "";
+  const utfMatch = text.match(/filename\*=UTF-8''([^;]+)/i);
+  if (utfMatch?.[1]) return decodeURIComponent(utfMatch[1]);
+  const basicMatch = text.match(/filename="?([^"]+)"?/i);
+  return normalizeText(basicMatch?.[1]);
+}
+
+function saveBlob(blob, fileName) {
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = fileName || "form-submissions-export";
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.URL.revokeObjectURL(url);
+}
+
+function triggerUrlDownload(url, fileName) {
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  if (fileName) anchor.download = fileName;
+  anchor.rel = "noopener noreferrer";
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+}
+
 export default function FormSubmissionsPage() {
   const params = useParams();
   const formId = normalizeText(params?.formId);
@@ -111,6 +134,11 @@ export default function FormSubmissionsPage() {
   const [page, setPage] = useState(1);
   const [limit] = useState(20);
   const [formName, setFormName] = useState("");
+  const [snapshotColumns, setSnapshotColumns] = useState({
+    primary: { label: "Email" },
+    secondary: { label: "Phone Number" },
+  });
+  const [exportColumns, setExportColumns] = useState([]);
 
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -122,6 +150,12 @@ export default function FormSubmissionsPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailItem, setDetailItem] = useState(null);
+
+  const [exportingType, setExportingType] = useState("");
+  const [customExportOpen, setCustomExportOpen] = useState(false);
+  const [customColumns, setCustomColumns] = useState([]);
+  const [customDateFrom, setCustomDateFrom] = useState("");
+  const [customDateTo, setCustomDateTo] = useState("");
 
   const fetchList = useCallback(
     async (nextPage = page) => {
@@ -148,6 +182,22 @@ export default function FormSubmissionsPage() {
         setItems(Array.isArray(data?.items) ? data.items : []);
         setTotal(Number(data?.total) || 0);
         setFormName(normalizeText(data?.form?.name));
+        setSnapshotColumns({
+          primary: {
+            label: normalizeText(data?.form?.snapshotColumns?.primary?.label, "Email"),
+          },
+          secondary: {
+            label: normalizeText(data?.form?.snapshotColumns?.secondary?.label, "Phone Number"),
+          },
+        });
+        const nextExportColumns = Array.isArray(data?.form?.exportColumns) ? data.form.exportColumns : [];
+        setExportColumns(nextExportColumns);
+        setCustomColumns((prev) => {
+          if (!prev.length) return nextExportColumns.map((column) => column.key);
+          const available = new Set(nextExportColumns.map((column) => column.key));
+          const retained = prev.filter((key) => available.has(key));
+          return retained.length > 0 ? retained : nextExportColumns.map((column) => column.key);
+        });
       } catch (err) {
         message.error(err?.message || "Failed to load submissions");
         setItems([]);
@@ -181,31 +231,34 @@ export default function FormSubmissionsPage() {
     [formId],
   );
 
-  const openDetail = async (submission) => {
-    setDetailOpen(true);
-    setDetailLoading(true);
-    try {
-      const res = await fetch(
-        `/api/admin/forms/${encodeURIComponent(formId)}/submissions/${encodeURIComponent(submission._id)}`,
-        { cache: "no-store" },
-      );
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || "Failed to load submission detail");
-      setDetailItem(data);
+  const openDetail = useCallback(
+    async (submission) => {
+      setDetailOpen(true);
+      setDetailLoading(true);
+      try {
+        const res = await fetch(
+          `/api/admin/forms/${encodeURIComponent(formId)}/submissions/${encodeURIComponent(submission._id)}`,
+          { cache: "no-store" },
+        );
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data?.error || "Failed to load submission detail");
+        setDetailItem(data);
 
-      if (!submission.isRead) {
-        await patchReadState(submission._id, true);
-        fetchList(page);
+        if (!submission.isRead) {
+          await patchReadState(submission._id, true);
+          fetchList(page);
+        }
+      } catch (err) {
+        message.error(err?.message || "Failed to load submission detail");
+        setDetailItem(null);
+      } finally {
+        setDetailLoading(false);
       }
-    } catch (err) {
-      message.error(err?.message || "Failed to load submission detail");
-      setDetailItem(null);
-    } finally {
-      setDetailLoading(false);
-    }
-  };
+    },
+    [fetchList, formId, page, patchReadState],
+  );
 
-  const deleteSubmission = async (submissionId) => {
+  const deleteSubmission = useCallback(async (submissionId) => {
     try {
       const res = await fetch(
         `/api/admin/forms/${encodeURIComponent(formId)}/submissions/${encodeURIComponent(submissionId)}`,
@@ -220,7 +273,68 @@ export default function FormSubmissionsPage() {
     } catch (err) {
       message.error(err?.message || "Failed to delete submission");
     }
-  };
+  }, [fetchList, formId, page]);
+
+  const runExport = useCallback(
+    async ({ type, columns, dateFrom: exportDateFrom, dateTo: exportDateTo }) => {
+      if (!formId) return;
+      try {
+        setExportingType(type);
+        const payload = { type };
+        if (type === "csv_filtered") {
+          payload.filters = { search, isRead, sort, dateFrom, dateTo };
+          payload.format = "csv";
+        } else if (type === "xlsx_all") {
+          payload.format = "xlsx";
+        } else if (type === "custom") {
+          payload.format = "xlsx";
+          payload.columns = Array.isArray(columns) ? columns : [];
+          payload.dateFrom = exportDateFrom || "";
+          payload.dateTo = exportDateTo || "";
+          payload.sort = sort;
+        }
+
+        const res = await fetch(
+          `/api/admin/forms/${encodeURIComponent(formId)}/submissions/export`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          },
+        );
+
+        const contentType = normalizeText(res.headers.get("content-type")).toLowerCase();
+        if (!res.ok) {
+          const errorPayload = contentType.includes("application/json")
+            ? await res.json().catch(() => ({}))
+            : {};
+          throw new Error(errorPayload?.error || "Failed to export submissions");
+        }
+
+        if (contentType.includes("application/json")) {
+          const data = await res.json().catch(() => ({}));
+          if (!data?.downloadUrl) {
+            throw new Error("Export file URL is missing");
+          }
+          triggerUrlDownload(data.downloadUrl, data.fileName);
+          message.success("Large export is ready. Download started.");
+          return;
+        }
+
+        const blob = await res.blob();
+        const fileName =
+          parseFilenameFromDisposition(res.headers.get("content-disposition")) ||
+          `form-submissions-${type === "xlsx_all" || type === "custom" ? "all" : "filtered"}.${type === "csv_filtered" ? "csv" : "xlsx"}`;
+        saveBlob(blob, fileName);
+        message.success("Export downloaded");
+      } catch (err) {
+        message.error(err?.message || "Failed to export submissions");
+      } finally {
+        setExportingType("");
+      }
+    },
+    [dateFrom, dateTo, formId, isRead, search, sort],
+  );
 
   const columns = useMemo(
     () => [
@@ -257,29 +371,31 @@ export default function FormSubmissionsPage() {
           ),
       },
       {
-        title: "Snapshot",
-        dataIndex: "payloadByFieldNameSnapshot",
-        key: "summary",
+        title: snapshotColumns?.primary?.label || "Email",
+        key: "snapshotPrimary",
+        width: 220,
         ellipsis: true,
-        render: (payload) => <span>{toSearchSummary(payload)}</span>,
+        render: (_, record) => normalizeText(record?.snapshot?.primary?.value, "-"),
+      },
+      {
+        title: snapshotColumns?.secondary?.label || "Phone Number",
+        key: "snapshotSecondary",
+        width: 220,
+        ellipsis: true,
+        render: (_, record) => normalizeText(record?.snapshot?.secondary?.value, "-"),
       },
       {
         title: "Actions",
         key: "actions",
-        width: 120,
+        width: 140,
         render: (_, row) => (
           <Space>
-            <Button
-              type="link"
-              size="small"
-              icon={<EyeOutlined />}
-              onClick={() => openDetail(row)}
-            >
+            <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => openDetail(row)}>
               View
             </Button>
             <Popconfirm
               title="Delete this submission?"
-              description="This action cannot be undone."
+              description="The record will be soft-deleted and removed from the default listing."
               okText="Delete"
               okType="danger"
               onConfirm={() => deleteSubmission(row._id)}
@@ -290,7 +406,24 @@ export default function FormSubmissionsPage() {
         ),
       },
     ],
-    [fetchList, openDetail, page, patchReadState],
+    [
+      deleteSubmission,
+      fetchList,
+      openDetail,
+      page,
+      patchReadState,
+      snapshotColumns?.primary?.label,
+      snapshotColumns?.secondary?.label,
+    ],
+  );
+
+  const customColumnOptions = useMemo(
+    () =>
+      exportColumns.map((column) => ({
+        label: column.label,
+        value: column.key,
+      })),
+    [exportColumns],
   );
 
   return (
@@ -317,12 +450,7 @@ export default function FormSubmissionsPage() {
             }}
             onSearch={(value) => setSearch(normalizeText(value))}
           />
-          <Select
-            style={{ width: 120 }}
-            options={READ_FILTER_OPTIONS}
-            value={isRead}
-            onChange={setIsRead}
-          />
+          <Select style={{ width: 120 }} options={READ_FILTER_OPTIONS} value={isRead} onChange={setIsRead} />
           <Select style={{ width: 140 }} options={SORT_OPTIONS} value={sort} onChange={setSort} />
           <DatePicker
             style={{ width: 140 }}
@@ -352,6 +480,23 @@ export default function FormSubmissionsPage() {
               return Boolean(from && current && current.startOf("day").isBefore(from.startOf("day")));
             }}
           />
+          <Dropdown
+            menu={{
+              items: EXPORT_MENU_ITEMS,
+              onClick: ({ key }) => {
+                if (key === "custom") {
+                  setCustomExportOpen(true);
+                  return;
+                }
+                runExport({ type: key });
+              },
+            }}
+            trigger={["click"]}
+          >
+            <Button icon={<DownloadOutlined />} loading={Boolean(exportingType)}>
+              Export
+            </Button>
+          </Dropdown>
           <Button icon={<ReloadOutlined />} onClick={() => fetchList(page)}>
             Refresh
           </Button>
@@ -435,7 +580,7 @@ export default function FormSubmissionsPage() {
               ) : null}
               <Popconfirm
                 title="Delete this submission?"
-                description="This action cannot be undone."
+                description="The record will be soft-deleted and removed from the default listing."
                 okText="Delete"
                 okType="danger"
                 onConfirm={() => deleteSubmission(detailItem._id)}
@@ -447,6 +592,57 @@ export default function FormSubmissionsPage() {
             </Space>
           </Space>
         )}
+      </Modal>
+
+      <Modal
+        title="Custom Export"
+        open={customExportOpen}
+        onCancel={() => setCustomExportOpen(false)}
+        onOk={async () => {
+          if (!customColumns.length) {
+            message.warning("Select at least one column for custom export");
+            return;
+          }
+          await runExport({
+            type: "custom",
+            columns: customColumns,
+            dateFrom: customDateFrom,
+            dateTo: customDateTo,
+          });
+          setCustomExportOpen(false);
+        }}
+        confirmLoading={exportingType === "custom"}
+        okText="Export"
+      >
+        <Space direction="vertical" size={16} style={{ width: "100%" }}>
+          <div>
+            <Typography.Text strong>Columns</Typography.Text>
+            <Select
+              mode="multiple"
+              style={{ width: "100%", marginTop: 8 }}
+              placeholder="Select columns"
+              value={customColumns}
+              options={customColumnOptions}
+              maxTagCount="responsive"
+              onChange={setCustomColumns}
+            />
+          </div>
+          <div>
+            <Typography.Text strong>Date Range</Typography.Text>
+            <DatePicker.RangePicker
+              style={{ width: "100%", marginTop: 8 }}
+              format={DATE_DISPLAY_FORMAT}
+              value={[toDateValue(customDateFrom), toDateValue(customDateTo)]}
+              allowClear
+              onChange={(value) => {
+                const from = value?.[0];
+                const to = value?.[1];
+                setCustomDateFrom(from && from.isValid() ? from.format(DATE_API_FORMAT) : "");
+                setCustomDateTo(to && to.isValid() ? to.format(DATE_API_FORMAT) : "");
+              }}
+            />
+          </div>
+        </Space>
       </Modal>
     </ThemeAdminCard>
   );

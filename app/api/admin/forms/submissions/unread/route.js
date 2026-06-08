@@ -18,7 +18,7 @@ export async function GET(req) {
     const limit = Math.min(50, Math.max(1, Number(searchParams.get("limit")) || 10));
 
     const items = await FormSubmission.find(
-      { isRead: false },
+      { isRead: false, isDeleted: { $ne: true } },
       {
         _id: 1,
         formId: 1,

@@ -1,19 +1,11 @@
-import { promises as fs } from "fs";
-import path from "path";
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Form from "@/models/Form";
 import FormSubmission from "@/models/FormSubmission";
-import SubmissionFile from "@/models/SubmissionFile";
 import { canAccessFormBuilder } from "@/lib/forms/access";
-
-const PUBLIC_ROOT = path.resolve(process.cwd(), "public");
-
-function normalizeText(value, fallback = "") {
-  return String(value ?? fallback).trim();
-}
+import { normalizeText } from "@/lib/forms/submissionUtils";
 
 function isValidObjectId(value) {
   return mongoose.Types.ObjectId.isValid(value);
@@ -25,6 +17,7 @@ function toDetail(doc) {
     formId: doc.formId,
     schemaVersion: doc.schemaVersion,
     isRead: Boolean(doc.isRead),
+    isDeleted: Boolean(doc.isDeleted),
     source: doc.source || "",
     pagePath: doc.pagePath || "",
     fieldSnapshot: doc.fieldSnapshot || {},
@@ -32,27 +25,9 @@ function toDetail(doc) {
     payloadByFieldNameSnapshot: doc.payloadByFieldNameSnapshot || {},
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
+    deletedAt: doc.deletedAt || null,
+    deletedBy: doc.deletedBy || "",
   };
-}
-
-async function removeStoredFile(storagePath) {
-  const raw = normalizeText(storagePath).replace(/\\/g, "/");
-  if (!raw) return;
-
-  const absolutePath = path.resolve(
-    path.isAbsolute(raw) ? raw : path.join(PUBLIC_ROOT, raw),
-  );
-  if (!absolutePath.startsWith(PUBLIC_ROOT)) {
-    return;
-  }
-
-  try {
-    await fs.unlink(absolutePath);
-  } catch (err) {
-    if (err?.code !== "ENOENT") {
-      throw err;
-    }
-  }
 }
 
 export async function GET(req, { params }) {
@@ -80,12 +55,13 @@ export async function GET(req, { params }) {
     }
 
     const submission = await FormSubmission.findOne(
-      { _id: submissionId, formId },
+      { _id: submissionId, formId, isDeleted: { $ne: true } },
       {
         _id: 1,
         formId: 1,
         schemaVersion: 1,
         isRead: 1,
+        isDeleted: 1,
         source: 1,
         pagePath: 1,
         fieldSnapshot: 1,
@@ -93,6 +69,8 @@ export async function GET(req, { params }) {
         payloadByFieldNameSnapshot: 1,
         createdAt: 1,
         updatedAt: 1,
+        deletedAt: 1,
+        deletedBy: 1,
       },
     ).lean();
 
@@ -136,7 +114,7 @@ export async function PATCH(req, { params }) {
     }
 
     const submission = await FormSubmission.findOneAndUpdate(
-      { _id: submissionId, formId },
+      { _id: submissionId, formId, isDeleted: { $ne: true } },
       { $set: { isRead: body.isRead } },
       { new: true },
     ).lean();
@@ -173,24 +151,29 @@ export async function DELETE(req, { params }) {
       return NextResponse.json({ error: "Invalid submissionId" }, { status: 400 });
     }
 
-    const submission = await FormSubmission.findOne({ _id: submissionId, formId }, { _id: 1 }).lean();
+    const now = new Date();
+    const submission = await FormSubmission.findOneAndUpdate(
+      { _id: submissionId, formId, isDeleted: { $ne: true } },
+      {
+        $set: {
+          isDeleted: true,
+          deletedAt: now,
+          deletedBy: normalizeText(session?.id),
+          updatedAt: now,
+        },
+      },
+      { new: true },
+    ).lean();
+
     if (!submission) {
       return NextResponse.json({ error: "Submission not found" }, { status: 404 });
     }
 
-    const linkedFiles = await SubmissionFile.find(
-      { formId, submissionId },
-      { _id: 1, storagePath: 1 },
-    ).lean();
-
-    for (const file of linkedFiles || []) {
-      await removeStoredFile(file?.storagePath);
-    }
-
-    await SubmissionFile.deleteMany({ formId, submissionId });
-    await FormSubmission.deleteOne({ _id: submissionId, formId });
-
-    return NextResponse.json({ deleted: true });
+    return NextResponse.json({
+      deleted: true,
+      softDeleted: true,
+      submission: toDetail(submission),
+    });
   } catch (err) {
     return NextResponse.json(
       { error: err?.message || "Failed to delete submission" },

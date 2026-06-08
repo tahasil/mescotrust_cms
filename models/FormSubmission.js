@@ -9,6 +9,9 @@ const formSubmissionSchema = new mongoose.Schema(
     payloadByFieldNameSnapshot: { type: mongoose.Schema.Types.Mixed, required: true, default: {} },
     searchText: { type: String, default: "", trim: true },
     isRead: { type: Boolean, default: false, index: true },
+    isDeleted: { type: Boolean, default: false, index: true },
+    deletedAt: { type: Date, default: null },
+    deletedBy: { type: String, default: "", trim: true },
     source: { type: String, default: "", trim: true },
     pagePath: { type: String, default: "", trim: true },
   },
@@ -17,6 +20,7 @@ const formSubmissionSchema = new mongoose.Schema(
 
 formSubmissionSchema.index({ formId: 1, createdAt: -1 });
 formSubmissionSchema.index({ formId: 1, isRead: 1, createdAt: -1 });
+formSubmissionSchema.index({ formId: 1, isDeleted: 1, createdAt: -1 });
 formSubmissionSchema.index({ searchText: "text" });
 
 module.exports =
