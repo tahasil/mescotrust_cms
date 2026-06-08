@@ -31,6 +31,26 @@ All API routes live under `/api/`. The convention is:
 | GET | `/media/[id]?size=desktop&format=auto` | Stable media delivery endpoint (AVIF/WebP/fallback) |
 | GET | `/api/health` | Database connectivity check (200 or 503) |
 
+### FAQ Chatbot public endpoints
+
+All FAQ chatbot public endpoints are read-only and return `Cache-Control: no-store`.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/public/faq-chatbot/config` | Returns safe chatbot config for widget rendering |
+| GET | `/api/public/faq-chatbot/root-options` | Returns active root-level question options |
+| GET | `/api/public/faq-chatbot/node/[id]` | Returns selected node + child questions + terminal answers |
+| GET | `/api/public/faq-chatbot/search?q=...&page=1&pageSize=20` | Returns ranked question-only search results |
+
+`GET /api/public/faq-chatbot/search` notes:
+- `q` is required for meaningful results; minimum length is `2`.
+- Results are always question nodes (never direct answer nodes).
+- Response shape:
+  - `results: [{ questionNodeId, questionText, pathText, score }]`
+  - `matchedCount`
+  - `pagination: { page, pageSize, totalPages, totalResults }`
+  - `noResultsFoundMessage` (non-null only when no matches)
+
 ## Admin APIs
 
 All admin APIs require authentication via JWT (enforced by middleware and `requireAuth`).
@@ -73,6 +93,42 @@ All admin APIs require authentication via JWT (enforced by middleware and `requi
 | GET/PUT/DELETE | `/api/admin/users/[id]` | Admin only | Read/update/delete user |
 | PUT | `/api/theme` | Admin only | Update theme configuration |
 | GET/POST/DELETE | `/api/admin/fonts` | Admin, Editor | List/upload/delete custom fonts |
+
+### FAQ Chatbot admin endpoints
+
+All FAQ chatbot admin endpoints are `Admin` only.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/admin/faq-chatbot` | Returns config + flat nodes + computed tree payload |
+| PUT | `/api/admin/faq-chatbot` | Saves settings and/or full tree with optimistic concurrency |
+| POST | `/api/admin/faq-chatbot/rebuild-search-index` | Forces full search index rebuild and returns summary |
+| POST | `/api/admin/faq-chatbot/nodes` | Creates a single question/answer node (granular mutation) |
+| PATCH | `/api/admin/faq-chatbot/nodes/[id]` | Updates node text and/or parent/order (granular mutation) |
+| DELETE | `/api/admin/faq-chatbot/nodes/[id]` | Deletes a node (question subtree or single answer) |
+
+Concurrency and conflicts:
+- Mutating endpoints require `treeVersion` in request body.
+- If client `treeVersion` is stale, API returns `409` with:
+  - `code: "FAQ_CHATBOT_VERSION_CONFLICT"`
+  - `currentTreeVersion`
+
+Granular node mutation request notes:
+- `POST /nodes` body:
+  - `treeVersion` (required)
+  - `type: "question" | "answer"`
+  - `text` (required)
+  - `parentNodeId` (required for `answer`, optional for `question`)
+  - `order` (optional)
+- `PATCH /nodes/[id]` body:
+  - `treeVersion` (required)
+  - one or more of: `text`, `parentNodeId`, `order`
+- `DELETE /nodes/[id]` body:
+  - `treeVersion` (required)
+
+Search index telemetry:
+- Config payload includes `searchIndexStatus` with last rebuild source/time, row counts, duration, and auto-repair count.
+- Config payload also includes `searchMetricsStatus` with query volume, fallback/indexed usage counts, no-result count, latency totals/average, and last-query snapshot fields.
 
 ## Form Builder (Phase 1)
 

@@ -13,7 +13,9 @@
     "backup-db": "node scripts/backup-db.js",
     "sync-missing-media": "node scripts/sync-missing-media.js",
     "form-upload-cleanup": "node scripts/form-upload-cleanup.js",
-    "form-builder-qa": "node scripts/form-builder-qa.js"
+    "form-builder-qa": "node scripts/form-builder-qa.js",
+    "faq-chatbot-search-eval": "node scripts/faq-chatbot-search-eval.js",
+    "faq-chatbot-visual-qa": "node scripts/faq-chatbot-visual-qa.js"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.0",
@@ -44,6 +46,7 @@
   "devDependencies": {
     "dotenv": "^16.4.5",
     "eslint": "^8.57.0",
-    "eslint-config-next": "14.2.18"
+    "eslint-config-next": "14.2.18",
+    "playwright-core": "^1.60.0"
   }
 }

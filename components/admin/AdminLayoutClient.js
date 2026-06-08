@@ -78,6 +78,15 @@ const baseMenuItems = [
     ),
   },
   {
+    key: "/admin/faq-chatbot",
+    icon: <MessageOutlined />,
+    label: (
+      <Link href="/admin/faq-chatbot" style={linkStyle}>
+        FAQ Chatbot
+      </Link>
+    ),
+  },
+  {
     key: "/admin/form-builder",
     icon: <FileTextOutlined />,
     label: (
@@ -587,7 +596,9 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
       eventsGroup,
     ].filter(Boolean);
   } else if (userRole !== "Admin") {
-    menuItems = baseMenuItems.filter((item) => item.key !== "/admin/users");
+    menuItems = baseMenuItems.filter(
+      (item) => item.key !== "/admin/users" && item.key !== "/admin/faq-chatbot",
+    );
   }
   const selectedMenuKey = String(pathname || "").startsWith("/admin/popups/")
     ? "/admin/popups"

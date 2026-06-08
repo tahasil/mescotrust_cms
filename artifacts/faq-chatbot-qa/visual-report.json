@@ -1,0 +1,35 @@
+{
+  "generatedAtIso": "2026-06-08T13:25:18.251Z",
+  "baseUrl": "http://127.0.0.1:3000",
+  "mode": "compare",
+  "results": [
+    {
+      "key": "open",
+      "status": "PASS",
+      "diffPercent": 0,
+      "meanAbsDiff": 0,
+      "maxDiffPercent": 12,
+      "maxMeanAbsDiff": 20,
+      "diffImage": "D:\\tahasil-projects\\mescotrust_cms\\artifacts\\faq-chatbot-qa\\diffs\\open.diff.png"
+    },
+    {
+      "key": "thinking1",
+      "status": "PASS",
+      "diffPercent": 0,
+      "meanAbsDiff": 0,
+      "maxDiffPercent": 12,
+      "maxMeanAbsDiff": 20,
+      "diffImage": "D:\\tahasil-projects\\mescotrust_cms\\artifacts\\faq-chatbot-qa\\diffs\\thinking1.diff.png"
+    },
+    {
+      "key": "thinking2",
+      "status": "PASS",
+      "diffPercent": 0,
+      "meanAbsDiff": 0,
+      "maxDiffPercent": 12,
+      "maxMeanAbsDiff": 20,
+      "diffImage": "D:\\tahasil-projects\\mescotrust_cms\\artifacts\\faq-chatbot-qa\\diffs\\thinking2.diff.png"
+    }
+  ],
+  "passed": true
+}
