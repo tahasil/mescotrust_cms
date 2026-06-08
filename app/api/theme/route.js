@@ -144,7 +144,6 @@ const DEFAULTS = {
   headerDonateLabel: "",
   headerDonateHref: "",
   headerDonateIconUrl: "",
-  headerDonateIconUrlMobile: "",
   headerBgColorKey: "headerBg",
   headerCtaBgColorKey: "headerCta",
   headerCtaTextColorKey: "primary",
@@ -266,7 +265,7 @@ const THEME_FIELDS = [
   "buttonRadius", "cardRadius", "inputRadius", "cardShadow", "buttonShadow",
   "headerLayout", "headerSticky", "headerTransparent",
   "headerVolunteerLabel", "headerVolunteerHref", "headerVolunteerIconUrl", "headerVolunteerIconUrlMobile",
-  "headerDonateLabel", "headerDonateHref", "headerDonateIconUrl", "headerDonateIconUrlMobile",
+  "headerDonateLabel", "headerDonateHref", "headerDonateIconUrl",
   "headerBgColorKey", "headerCtaBgColorKey", "headerCtaTextColorKey", "headerDonateBgColorKey", "headerDonateTextColorKey",
   "megaMenu", "dropdownStyle", "mobileMenuStyle",
   "footerLogoUrl", "footerAddress", "footerEmail", "footerPhone", "footerCol1Links", "footerCol2Links",
@@ -321,16 +320,12 @@ const HEADER_COMPONENT_OVERRIDE_KEYS = new Set([
   "headerDonateLabel",
   "headerDonateHref",
   "headerDonateIconUrl",
-  "headerDonateIconUrlMobile",
+  "headerVolunteerHrefTarget",
   "headerBgColorKey",
   "headerCtaBgColorKey",
   "headerCtaTextColorKey",
   "headerDonateBgColorKey",
   "headerDonateTextColorKey",
-  "volunteerModalTitle",
-  "volunteerModalBtnBg",
-  "volunteerModalBtnText",
-  "volunteerModalCancelColor",
   "_sectionBg",
   "_containerType",
   "_sectionPadding",
@@ -357,6 +352,34 @@ const HEADER_COMPONENT_OVERRIDE_KEYS = new Set([
   "headerPageContainerMarginTop",
   "headerPageContainerMarginBottom",
   "_disableFadeAnimation",
+]);
+const REMOVED_HEADER_COMPONENT_KEYS = new Set([
+  "headerDonateIconUrlMobile",
+  "volunteerModalTitle",
+  "volunteerModalSuccessTitle",
+  "volunteerModalSuccessDescription",
+  "volunteerModalErrorTitle",
+  "volunteerModalNameLabel",
+  "volunteerModalEmailLabel",
+  "volunteerModalSubjectLabel",
+  "volunteerModalMessageLabel",
+  "volunteerModalNamePlaceholder",
+  "volunteerModalEmailPlaceholder",
+  "volunteerModalSubjectPlaceholder",
+  "volunteerModalMessagePlaceholder",
+  "volunteerModalCancelLabel",
+  "volunteerModalSendLabel",
+  "volunteerModalSendingLabel",
+  "volunteerModalNameRequiredMessage",
+  "volunteerModalEmailRequiredMessage",
+  "volunteerModalEmailInvalidMessage",
+  "volunteerModalSubjectRequiredMessage",
+  "volunteerModalSubjectMinMessage",
+  "volunteerModalMessageRequiredMessage",
+  "volunteerModalMessageMinMessage",
+  "volunteerModalBtnBg",
+  "volunteerModalBtnText",
+  "volunteerModalCancelColor",
 ]);
 const FOOTER_COMPONENT_OVERRIDE_KEYS = new Set([
   "footerLogoUrl",
@@ -423,6 +446,9 @@ function pickPreferredComponentDocs(components, { preferLayout = false } = {}) {
 }
 
 function shouldMergeComponentProp(baseComponent, key) {
+  if (baseComponent === "Header" && REMOVED_HEADER_COMPONENT_KEYS.has(key)) {
+    return false;
+  }
   if (!THEME_CONFIG_OWNED_KEYS.has(key)) return true;
   if (baseComponent === "Header") {
     return HEADER_COMPONENT_OVERRIDE_KEYS.has(key);
@@ -436,6 +462,10 @@ function shouldMergeComponentProp(baseComponent, key) {
 function normalizeTheme(theme) {
   if (!theme) return normalizeThemeColorCollections({ ...DEFAULTS });
   const out = { ...DEFAULTS, ...theme };
+  if (!out.headerDonateIconUrl && out.headerDonateIconUrlMobile) {
+    out.headerDonateIconUrl = out.headerDonateIconUrlMobile;
+  }
+  delete out.headerDonateIconUrlMobile;
   if (!out.bodyFont && out.fontFamily) out.bodyFont = out.fontFamily;
   if (!out.headingFont && out.headingFontFamily) out.headingFont = out.headingFontFamily;
   if (out.baseFontSize == null && out.fontSize != null) out.baseFontSize = out.fontSize;

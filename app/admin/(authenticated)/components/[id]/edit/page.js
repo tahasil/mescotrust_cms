@@ -1569,6 +1569,10 @@ function HeaderPreviewBlock({ form, themePaletteData, themeHeaderSnapshot }) {
     "";
   const volunteerHref =
     Form.useWatch("headerVolunteerHref", form) || s?.headerVolunteerHref || "";
+  const volunteerHrefTarget =
+    Form.useWatch("headerVolunteerHrefTarget", form) ||
+    s?.headerVolunteerHrefTarget ||
+    "_self";
   const volunteerIconUrl =
     Form.useWatch("headerVolunteerIconUrl", form) ||
     s?.headerVolunteerIconUrl ||
@@ -1803,6 +1807,7 @@ function HeaderPreviewBlock({ form, themePaletteData, themeHeaderSnapshot }) {
         logoDarkUrl=""
         volunteerLabel={volunteerLabel}
         volunteerHref={volunteerHref}
+        volunteerHrefTarget={volunteerHrefTarget}
         volunteerIconUrl={volunteerIconUrl || undefined}
         volunteerIconUrlMobile={volunteerIconUrlMobile || undefined}
         donateLabel={donateLabel}

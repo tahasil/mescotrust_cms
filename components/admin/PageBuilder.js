@@ -1532,6 +1532,7 @@ function mapThemeToHeaderProps(theme) {
     logoDarkUrl: theme.logoDarkUrl ?? "",
     volunteerLabel: theme.headerVolunteerLabel ?? "",
     volunteerHref: theme.headerVolunteerHref ?? "",
+    volunteerHrefTarget: theme.headerVolunteerHrefTarget ?? "_self",
     volunteerIconUrl: theme.headerVolunteerIconUrl ?? "",
     volunteerIconUrlMobile: theme.headerVolunteerIconUrlMobile ?? "",
     donateLabel: theme.headerDonateLabel ?? "",

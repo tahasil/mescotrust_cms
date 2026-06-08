@@ -1,17 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, Fragment } from "react";
-import { Row, Col, notification } from "antd";
-import styled from "styled-components";
-import { useFormState, useFormStatus } from "react-dom";
-import { submitContact } from "@/app/actions/contact";
-import { getColor } from "@/styles/Theme";
-import {
-  hasMinText,
-  isValidEmail,
-  isValidName,
-  normalizeText,
-} from "@/lib/formValidation";
 import {
   HeaderWrapper,
   HeaderMainWrapper,
@@ -164,7 +153,6 @@ const ChevronDown = () => (
   </svg>
 );
 
-/* ── Modal Styled Components ── */
 const SearchIcon = () => (
   <svg
     width="18"
@@ -182,147 +170,6 @@ const SearchIcon = () => (
   </svg>
 );
 
-const ModalOverlay = styled.div`
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  opacity: ${(p) => (p.$open ? 1 : 0)};
-  pointer-events: ${(p) => (p.$open ? "auto" : "none")};
-  transition: opacity 0.25s ease;
-`;
-const ModalCard = styled.div`
-  background: #fff;
-  border-radius: 16px;
-  padding: 32px;
-  width: 100%;
-  max-width: 600px;
-  position: relative;
-  transform: ${(p) => (p.$open ? "translateY(0)" : "translateY(20px)")};
-  transition: transform 0.25s ease;
-  @media (max-width: 576px) {
-    padding: 24px;
-  }
-`;
-const ModalCloseBtn = styled.button`
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: none;
-  font-size: 20px;
-  cursor: pointer;
-  color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background 0.2s;
-  &:hover {
-    background: rgba(0, 0, 0, 0.05);
-  }
-`;
-const ModalTitle = styled.h2`
-  font-size: 22px;
-  font-weight: 700;
-  margin: 0 0 24px 0;
-  padding-right: 40px;
-`;
-const ModalFormGroup = styled.div`
-  margin-bottom: 16px;
-  .mlabel {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 600;
-    font-size: 14px;
-  }
-  .mreq {
-    color: #cf372f;
-  }
-  .mfield {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1px solid rgba(0, 0, 0, 0.12);
-    border-radius: 8px;
-    font-size: 14px;
-    outline: none;
-    background: #fff;
-    box-sizing: border-box;
-    transition: border-color 0.2s;
-    &:focus {
-      border-color: rgba(0, 0, 0, 0.3);
-    }
-    &::placeholder {
-      color: rgba(0, 0, 0, 0.3);
-    }
-  }
-  textarea.mfield {
-    resize: vertical;
-    min-height: 100px;
-  }
-`;
-const ModalBtnRow = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 8px;
-`;
-const ModalCancelBtn = styled.button`
-  padding: 10px 28px;
-  border: 1px solid;
-  border-radius: 24px;
-  font-size: 14px;
-  font-weight: 600;
-  background: transparent;
-  cursor: pointer;
-  transition: opacity 0.2s;
-  &:hover {
-    opacity: 0.7;
-  }
-`;
-const ModalSendBtn = styled.button`
-  padding: 10px 28px;
-  border: none;
-  border-radius: 24px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.2s;
-  &:hover {
-    opacity: 0.85;
-  }
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-`;
-
-function ModalSubmitButton({
-  bgColor,
-  textColor,
-  sendLabel = "",
-  sendingLabel = "",
-}) {
-  const { pending } = useFormStatus();
-  return (
-    <ModalSendBtn
-      type="submit"
-      disabled={pending}
-      style={{
-        background: bgColor || getColor("primary") || "var(--theme-primary)",
-        color: textColor || getColor("white") || "var(--theme-white)",
-      }}
-    >
-      {pending ? sendingLabel : sendLabel}
-    </ModalSendBtn>
-  );
-}
 
 export default function Header({
   menuItems = [],
@@ -355,11 +202,11 @@ export default function Header({
   volunteerLabel = "",
   donateLabel = "",
   volunteerHref = "",
+  volunteerHrefTarget = "_self",
   donateHref = "",
   volunteerIconUrl = "",
   volunteerIconUrlMobile,
   donateIconUrl = "",
-  donateIconUrlMobile,
   preview = false,
   headerBgValue = "",
   headerCtaBgValue = "",
@@ -372,126 +219,35 @@ export default function Header({
   sectionBorderStyle = "",
   sectionBorderColor = "",
   sectionShadow = "",
-  /* Modal props */
-  volunteerModalTitle = "",
-  volunteerModalSuccessTitle = "",
-  volunteerModalSuccessDescription = "",
-  volunteerModalErrorTitle = "",
-  volunteerModalNameLabel = "",
-  volunteerModalEmailLabel = "",
-  volunteerModalSubjectLabel = "",
-  volunteerModalMessageLabel = "",
-  volunteerModalNamePlaceholder = "",
-  volunteerModalEmailPlaceholder = "",
-  volunteerModalSubjectPlaceholder = "",
-  volunteerModalMessagePlaceholder = "",
-  volunteerModalCancelLabel = "",
-  volunteerModalSendLabel = "",
-  volunteerModalSendingLabel = "",
-  volunteerModalNameRequiredMessage = "",
-  volunteerModalEmailRequiredMessage = "",
-  volunteerModalEmailInvalidMessage = "",
-  volunteerModalSubjectRequiredMessage = "",
-  volunteerModalSubjectMinMessage = "",
-  volunteerModalMessageRequiredMessage = "",
-  volunteerModalMessageMinMessage = "",
-  volunteerModalBtnBg = "",
-  volunteerModalBtnText = "",
-  volunteerModalCancelColor = "",
 }) {
-  /* Resolve modal color keys to actual CSS color values */
-  const resolvedModalBtnBg = volunteerModalBtnBg
-    ? getColor(volunteerModalBtnBg) || volunteerModalBtnBg
-    : getColor("primary") || "var(--theme-primary)";
-  const resolvedModalBtnText = volunteerModalBtnText
-    ? getColor(volunteerModalBtnText) || volunteerModalBtnText
-    : getColor("white") || "var(--theme-white)";
-  const resolvedModalCancelColor = volunteerModalCancelColor
-    ? getColor(volunteerModalCancelColor) || volunteerModalCancelColor
-    : getColor("primary") || "var(--theme-primary)";
-
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openAccordion, setOpenAccordion] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchItems, setSearchItems] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState("");
-  const [modalErrors, setModalErrors] = useState({});
-  const modalFormRef = useRef(null);
   const searchInputRef = useRef(null);
-  const [modalState, modalFormAction] = useFormState(submitContact, null);
-
-  /* Listen for global event so other buttons can open this modal */
-  useEffect(() => {
-    const handleOpen = () => setModalOpen(true);
-    window.addEventListener("open-volunteer-modal", handleOpen);
-    const handleHash = () => {
-      if (window.location.hash === "#volunteer-modal") {
-        setModalOpen(true);
-        history.replaceState(
-          null,
-          "",
-          window.location.pathname + window.location.search,
-        );
-      }
-    };
-    window.addEventListener("hashchange", handleHash);
-    handleHash();
-    return () => {
-      window.removeEventListener("open-volunteer-modal", handleOpen);
-      window.removeEventListener("hashchange", handleHash);
-    };
-  }, []);
 
   useEffect(() => {
-    if (!modalState) return;
-    if (modalState.success) {
-      if (volunteerModalSuccessTitle || volunteerModalSuccessDescription) {
-        notification.success({
-          message: volunteerModalSuccessTitle,
-          description: volunteerModalSuccessDescription,
-          placement: "bottomRight",
-        });
-      }
-      modalFormRef.current?.reset();
-      setModalErrors({});
-      setModalOpen(false);
-      window.dispatchEvent(new Event("new-contact-submission"));
-    } else if (modalState.error) {
-      if (volunteerModalErrorTitle || modalState.error) {
-        notification.error({
-          message: volunteerModalErrorTitle,
-          description: modalState.error,
-          placement: "bottomRight",
-        });
-      }
-    }
-  }, [
-    modalState,
-    volunteerModalSuccessTitle,
-    volunteerModalSuccessDescription,
-    volunteerModalErrorTitle,
-  ]);
-
-  useEffect(() => {
-    if (modalOpen || searchOpen) {
+    if (searchOpen) {
       document.documentElement.style.overflow = "hidden";
       return () => {
         document.documentElement.style.overflow = "";
       };
     }
-  }, [modalOpen, searchOpen]);
+  }, [searchOpen]);
   const [scrolled, setScrolled] = useState(false);
 
   const items = cmsMenuToHeaderItems(menuItems);
   const logoImage = logoLightUrl || logoImageUrl;
   const logoUrlMobile = logoMobileUrl || logoImage;
   const logoHref = String(logoUrl || "").trim();
+  const volunteerHrefValue = String(volunteerHref || "").trim();
+  const volunteerTarget =
+    String(volunteerHrefTarget || "").trim() === "_blank" ? "_blank" : "_self";
   const title = siteTitle ?? "";
   const volunteerIconMobile = volunteerIconUrlMobile ?? volunteerIconUrl;
-  const donateIconMobile = donateIconUrlMobile ?? donateIconUrl;
 
   useEffect(() => {
     const onScroll = () =>
@@ -585,33 +341,6 @@ export default function Header({
     setOpenAccordion((prev) => (prev === label ? null : label));
   };
 
-  const handleModalSubmit = (event) => {
-    const formData = new FormData(event.currentTarget);
-    const name = normalizeText(formData.get("name"));
-    const email = normalizeText(formData.get("email"));
-    const subject = normalizeText(formData.get("subject"));
-    const body = normalizeText(formData.get("message"));
-    const nextErrors = {};
-    if (!name) nextErrors.name = volunteerModalNameRequiredMessage || "";
-    if (name && !isValidName(name))
-      nextErrors.name = volunteerModalNameRequiredMessage || "";
-    if (!email) nextErrors.email = volunteerModalEmailRequiredMessage || "";
-    if (email && !isValidEmail(email))
-      nextErrors.email = volunteerModalEmailInvalidMessage || "";
-    if (!subject) nextErrors.subject = volunteerModalSubjectRequiredMessage || "";
-    if (subject && !hasMinText(subject, 3))
-      nextErrors.subject = volunteerModalSubjectMinMessage || "";
-    if (!body) nextErrors.message = volunteerModalMessageRequiredMessage || "";
-    if (body && !hasMinText(body, 5))
-      nextErrors.message = volunteerModalMessageMinMessage || "";
-    if (Object.keys(nextErrors).length > 0) {
-      event.preventDefault();
-      setModalErrors(nextErrors);
-      return;
-    }
-    setModalErrors({});
-  };
-
   const trimmedSearchQuery = searchQuery.trim();
   const hasMinSearchChars = trimmedSearchQuery.length >= 2;
   const resultLabel = (type) => {
@@ -623,6 +352,8 @@ export default function Header({
   };
   const hasSearchAction =
     headerSearchEnabled === true && String(headerSearchLabel || "").trim() !== "";
+  const hasVolunteerAction =
+    (volunteerLabel || volunteerHrefValue) && volunteerHrefValue;
   const noResultsText = headerSearchNoResultsMessage
     ? headerSearchNoResultsMessage.replace("{query}", trimmedSearchQuery)
     : "";
@@ -750,18 +481,13 @@ export default function Header({
                 {headerSearchLabel}
               </SearchBtn>
             )}
-            {(volunteerLabel || volunteerHref) && (
+            {hasVolunteerAction && (
               <BtnVolunteer
-                as="button"
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setModalOpen(true);
-                }}
+                href={volunteerHrefValue}
+                target={volunteerTarget}
+                rel={volunteerTarget === "_blank" ? "noopener noreferrer" : undefined}
                 $headerCtaBgValue={headerCtaBgValue}
                 $headerCtaTextValue={headerCtaTextValue}
-                style={{ cursor: "pointer" }}
-                // href="#volunteer-modal"
               >
                 {volunteerLabel}
                 <IconWrap>
@@ -920,17 +646,16 @@ export default function Header({
               {headerSearchLabel}
             </MobileBtnSearch>
           )}
-          {(volunteerLabel || volunteerHref) && (
+          {hasVolunteerAction && (
             <MobileBtnVolunteer
-              as="button"
-              type="button"
+              href={volunteerHrefValue}
+              target={volunteerTarget}
+              rel={volunteerTarget === "_blank" ? "noopener noreferrer" : undefined}
               onClick={() => {
                 closeMobile();
-                setModalOpen(true);
               }}
               $headerCtaBgValue={headerCtaBgValue}
               $headerCtaTextValue={headerCtaTextValue}
-              style={{ cursor: "pointer" }}
             >
               <IconWrap>
                 {volunteerIconMobile ? (
@@ -952,10 +677,10 @@ export default function Header({
               $headerDonateTextValue={headerDonateTextValue}
             >
               <IconWrap>
-                {donateIconMobile ? (
+                {donateIconUrl ? (
                   <img
                     loading="lazy"
-                    src={donateIconMobile}
+                    src={donateIconUrl}
                     alt={donateLabel}
                   />
                 ) : null}
@@ -1031,159 +756,6 @@ export default function Header({
           </SearchResults>
         </SearchPanel>
       </SearchOverlay>
-      {/* Volunteer Modal */}
-      <ModalOverlay $open={modalOpen} onClick={() => setModalOpen(false)}>
-        <ModalCard $open={modalOpen} onClick={(e) => e.stopPropagation()}>
-          <ModalCloseBtn onClick={() => setModalOpen(false)}>
-            &#x2715;
-          </ModalCloseBtn>
-          <ModalTitle>{volunteerModalTitle}</ModalTitle>
-          <form
-            ref={modalFormRef}
-            action={modalFormAction}
-            onSubmit={handleModalSubmit}
-            noValidate
-          >
-            <input type="hidden" name="page" value="volunteer-modal" />
-            <input type="hidden" name="source" value="header-volunteer" />
-            <input type="hidden" name="phone" value="" />
-            <Row gutter={[16, 0]}>
-              <Col xs={24} sm={12}>
-                <ModalFormGroup>
-                  <label className="mlabel">
-                    {volunteerModalNameLabel} <span className="mreq">*</span>
-                  </label>
-                  <input
-                    name="name"
-                    required
-                    className="mfield"
-                    placeholder={volunteerModalNamePlaceholder}
-                    onChange={() =>
-                      Object.prototype.hasOwnProperty.call(modalErrors, "name") &&
-                      setModalErrors((prev) => ({ ...prev, name: "" }))
-                    }
-                    style={
-                      Object.prototype.hasOwnProperty.call(modalErrors, "name")
-                        ? { borderColor: "#cf372f" }
-                        : undefined
-                    }
-                  />
-                  {Object.prototype.hasOwnProperty.call(modalErrors, "name") &&
-                  modalErrors.name ? (
-                    <div
-                      style={{ marginTop: 6, fontSize: 12, color: "#cf372f" }}
-                    >
-                      {modalErrors.name}
-                    </div>
-                  ) : null}
-                </ModalFormGroup>
-              </Col>
-              <Col xs={24} sm={12}>
-                <ModalFormGroup>
-                  <label className="mlabel">
-                    {volunteerModalEmailLabel} <span className="mreq">*</span>
-                  </label>
-                  <input
-                    name="email"
-                    type="email"
-                    required
-                    className="mfield"
-                    placeholder={volunteerModalEmailPlaceholder}
-                    onChange={() =>
-                      Object.prototype.hasOwnProperty.call(modalErrors, "email") &&
-                      setModalErrors((prev) => ({ ...prev, email: "" }))
-                    }
-                    style={
-                      Object.prototype.hasOwnProperty.call(modalErrors, "email")
-                        ? { borderColor: "#cf372f" }
-                        : undefined
-                    }
-                  />
-                  {Object.prototype.hasOwnProperty.call(modalErrors, "email") &&
-                  modalErrors.email ? (
-                    <div
-                      style={{ marginTop: 6, fontSize: 12, color: "#cf372f" }}
-                    >
-                      {modalErrors.email}
-                    </div>
-                  ) : null}
-                </ModalFormGroup>
-              </Col>
-            </Row>
-            <ModalFormGroup>
-              <label className="mlabel">
-                {volunteerModalSubjectLabel} <span className="mreq">*</span>
-              </label>
-              <input
-                name="subject"
-                required
-                className="mfield"
-                placeholder={volunteerModalSubjectPlaceholder}
-                onChange={() =>
-                  Object.prototype.hasOwnProperty.call(modalErrors, "subject") &&
-                  setModalErrors((prev) => ({ ...prev, subject: "" }))
-                }
-                style={
-                  Object.prototype.hasOwnProperty.call(modalErrors, "subject")
-                    ? { borderColor: "#cf372f" }
-                    : undefined
-                }
-              />
-              {Object.prototype.hasOwnProperty.call(modalErrors, "subject") &&
-              modalErrors.subject ? (
-                <div style={{ marginTop: 6, fontSize: 12, color: "#cf372f" }}>
-                  {modalErrors.subject}
-                </div>
-              ) : null}
-            </ModalFormGroup>
-            <ModalFormGroup>
-              <label className="mlabel">
-                {volunteerModalMessageLabel} <span className="mreq">*</span>
-              </label>
-              <textarea
-                name="message"
-                required
-                className="mfield"
-                placeholder={volunteerModalMessagePlaceholder}
-                rows={4}
-                onChange={() =>
-                  Object.prototype.hasOwnProperty.call(modalErrors, "message") &&
-                  setModalErrors((prev) => ({ ...prev, message: "" }))
-                }
-                style={
-                  Object.prototype.hasOwnProperty.call(modalErrors, "message")
-                    ? { borderColor: "#cf372f" }
-                    : undefined
-                }
-              />
-              {Object.prototype.hasOwnProperty.call(modalErrors, "message") &&
-              modalErrors.message ? (
-                <div style={{ marginTop: 6, fontSize: 12, color: "#cf372f" }}>
-                  {modalErrors.message}
-                </div>
-              ) : null}
-            </ModalFormGroup>
-            <ModalBtnRow>
-              <ModalCancelBtn
-                type="button"
-                style={{
-                  color: resolvedModalCancelColor,
-                  borderColor: resolvedModalCancelColor,
-                }}
-                onClick={() => setModalOpen(false)}
-              >
-                {volunteerModalCancelLabel}
-              </ModalCancelBtn>
-              <ModalSubmitButton
-                bgColor={resolvedModalBtnBg}
-                textColor={resolvedModalBtnText}
-                sendLabel={volunteerModalSendLabel}
-                sendingLabel={volunteerModalSendingLabel}
-              />
-            </ModalBtnRow>
-          </form>
-        </ModalCard>
-      </ModalOverlay>
     </>
   );
 }

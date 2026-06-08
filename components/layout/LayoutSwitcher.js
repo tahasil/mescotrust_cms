@@ -32,6 +32,7 @@ export default function LayoutSwitcher({ children, data, theme, logoUrl, initial
       headerLayout={theme?.headerLayout || "default"}
       headerVolunteerLabel={theme?.headerVolunteerLabel}
       headerVolunteerHref={theme?.headerVolunteerHref}
+      headerVolunteerHrefTarget={theme?.headerVolunteerHrefTarget ?? "_self"}
       headerVolunteerIconUrl={theme?.headerVolunteerIconUrl}
       headerDonateLabel={theme?.headerDonateLabel}
       headerDonateHref={theme?.headerDonateHref}

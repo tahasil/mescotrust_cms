@@ -122,6 +122,7 @@ export default async function SiteLayout({ children }) {
         headerLayout={theme.headerLayout}
         headerVolunteerLabel={theme.headerVolunteerLabel}
         headerVolunteerHref={theme.headerVolunteerHref}
+        headerVolunteerHrefTarget={theme.headerVolunteerHrefTarget ?? "_self"}
         headerVolunteerIconUrl={theme.headerVolunteerIconUrl}
         headerVolunteerIconUrlMobile={theme.headerVolunteerIconUrlMobile ?? ""}
         headerDonateLabel={theme.headerDonateLabel}

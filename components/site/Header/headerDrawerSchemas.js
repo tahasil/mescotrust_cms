@@ -31,69 +31,29 @@ export const MENU_SCHEMA = [
   { key: "navItemHoverBackground", type: "themeColorOnly", label: "Nav item hover background" },
 ];
 
-/** Volunteer & Donate button labels, links, icons and styles – editable in Header drawer. */
+/** Custom button settings shown in Header drawer. */
 export const CUSTOM_BUTTONS_SCHEMA = [
-  { key: "headerSearchEnabled", type: "boolean", label: "Show search button" },
-  { key: "headerSearchLabel", type: "text", label: "Search button label" },
-  { key: "headerSearchOpenAriaLabel", type: "text", label: "Search button aria-label" },
-  { key: "headerSearchPlaceholder", type: "text", label: "Search input placeholder" },
-  { key: "headerSearchDialogLabel", type: "text", label: "Search dialog label" },
-  { key: "headerSearchInputAriaLabel", type: "text", label: "Search input aria-label" },
-  { key: "headerSearchCloseAriaLabel", type: "text", label: "Search close aria-label" },
-  { key: "headerSearchMinCharsMessage", type: "text", label: "Search min-characters message" },
-  { key: "headerSearchLoadingMessage", type: "text", label: "Search loading message" },
-  { key: "headerSearchNoResultsMessage", type: "text", label: "Search no-results message (use {query})" },
-  { key: "headerSearchErrorMessage", type: "text", label: "Search error message" },
-  { key: "headerSearchResultTypePageLabel", type: "text", label: "Result label: Page" },
-  { key: "headerSearchResultTypeBlogLabel", type: "text", label: "Result label: Blog" },
-  { key: "headerSearchResultTypeEventLabel", type: "text", label: "Result label: Event" },
-  { key: "headerSearchFallbackTitle", type: "text", label: "Fallback result title" },
-  { key: "headerSearchFallbackMeta", type: "text", label: "Fallback result meta text" },
-  { key: "headerVolunteerLabel", type: "text", label: "Volunteer button label" },
-  { key: "headerVolunteerHref", type: "url", label: "Volunteer button link" },
-  { key: "headerVolunteerIconUrl", type: "image", label: "Volunteer icon URL (desktop)" },
-  { key: "headerVolunteerIconUrlMobile", type: "image", label: "Volunteer icon URL (mobile)" },
-  { key: "headerDonateLabel", type: "text", label: "Donate button label" },
-  { key: "headerDonateHref", type: "url", label: "Donate button link" },
-  { key: "headerDonateIconUrl", type: "image", label: "Donate icon URL (desktop)" },
-  { key: "headerDonateIconUrlMobile", type: "image", label: "Donate icon URL (mobile)" },
-];
-
-/** Volunteer modal – form that opens when clicking Volunteer button. */
-export const VOLUNTEER_MODAL_SCHEMA = [
-  { key: "volunteerModalTitle", type: "text", label: "Modal title" },
-  { key: "volunteerModalSuccessTitle", type: "text", label: "Success notification title" },
-  { key: "volunteerModalSuccessDescription", type: "text", label: "Success notification text" },
-  { key: "volunteerModalErrorTitle", type: "text", label: "Error notification title" },
-  { key: "volunteerModalNameLabel", type: "text", label: "Name field label" },
-  { key: "volunteerModalEmailLabel", type: "text", label: "Email field label" },
-  { key: "volunteerModalSubjectLabel", type: "text", label: "Subject field label" },
-  { key: "volunteerModalMessageLabel", type: "text", label: "Message field label" },
-  { key: "volunteerModalNamePlaceholder", type: "text", label: "Name placeholder" },
-  { key: "volunteerModalEmailPlaceholder", type: "text", label: "Email placeholder" },
-  { key: "volunteerModalSubjectPlaceholder", type: "text", label: "Subject placeholder" },
-  { key: "volunteerModalMessagePlaceholder", type: "text", label: "Message placeholder" },
-  { key: "volunteerModalCancelLabel", type: "text", label: "Cancel button label" },
-  { key: "volunteerModalSendLabel", type: "text", label: "Send button label" },
-  { key: "volunteerModalSendingLabel", type: "text", label: "Sending button label" },
-  { key: "volunteerModalNameRequiredMessage", type: "text", label: "Name required message" },
-  { key: "volunteerModalEmailRequiredMessage", type: "text", label: "Email required message" },
-  { key: "volunteerModalEmailInvalidMessage", type: "text", label: "Email invalid message" },
-  { key: "volunteerModalSubjectRequiredMessage", type: "text", label: "Subject required message" },
-  { key: "volunteerModalSubjectMinMessage", type: "text", label: "Subject min-length message" },
-  { key: "volunteerModalMessageRequiredMessage", type: "text", label: "Message required message" },
-  { key: "volunteerModalMessageMinMessage", type: "text", label: "Message min-length message" },
-  { key: "volunteerModalBtnBg", type: "themeColorOnly", label: "Send button background" },
-  { key: "volunteerModalBtnText", type: "themeColorOnly", label: "Send button text color" },
-  { key: "volunteerModalCancelColor", type: "themeColorOnly", label: "Cancel button color" },
+  { key: "headerSearchEnabled", type: "boolean", label: "Show Search Button" },
+  { key: "headerSearchLabel", type: "text", label: "Search Button Label" },
+  { key: "headerSearchPlaceholder", type: "text", label: "Search Input Placeholder" },
+  { key: "headerVolunteerHref", type: "url", label: "Volunteer Button Link" },
+  {
+    key: "headerVolunteerHrefTarget",
+    type: "select",
+    label: "Volunteer Button Target",
+    options: [
+      { value: "_self", label: "Same Tab" },
+      { value: "_blank", label: "New Tab" },
+    ],
+  },
+  { key: "headerDonateIconUrl", type: "image", label: "Donate Icon" },
 ];
 
 export const HEADER_FIELD_GROUPS = [
   { label: "Logo and link", keys: ["logoType", "logoLightUrl", "logoMobileUrl", "logoDarkUrl", "logoTitle", "logoTagline", "logoUrl", "logoColor", "logoFontSize", "taglineFontSize", "sectionsOrder"] },
   { label: "Menu", keys: ["menuPosition", "navColor", "navFontSize", "navFontWeight", "navHoverColor", "navItemBackground", "navItemHoverBackground"] },
   { label: "Navbar (Bootstrap)", keys: ["navbarExpand", "navbarFixed", "navbarSticky", "collapseOnSelect", "navbarMobileMenu", "navbarOffcanvasPlacement"] },
-  { label: "Custom buttons", keys: ["headerSearchEnabled", "headerSearchLabel", "headerSearchOpenAriaLabel", "headerSearchPlaceholder", "headerSearchDialogLabel", "headerSearchInputAriaLabel", "headerSearchCloseAriaLabel", "headerSearchMinCharsMessage", "headerSearchLoadingMessage", "headerSearchNoResultsMessage", "headerSearchErrorMessage", "headerSearchResultTypePageLabel", "headerSearchResultTypeBlogLabel", "headerSearchResultTypeEventLabel", "headerSearchFallbackTitle", "headerSearchFallbackMeta", "headerVolunteerLabel", "headerVolunteerHref", "headerVolunteerIconUrl", "headerVolunteerIconUrlMobile", "headerDonateLabel", "headerDonateHref", "headerDonateIconUrl", "headerDonateIconUrlMobile"] },
-  { label: "Volunteer modal", keys: ["volunteerModalTitle", "volunteerModalSuccessTitle", "volunteerModalSuccessDescription", "volunteerModalErrorTitle", "volunteerModalNameLabel", "volunteerModalEmailLabel", "volunteerModalSubjectLabel", "volunteerModalMessageLabel", "volunteerModalNamePlaceholder", "volunteerModalEmailPlaceholder", "volunteerModalSubjectPlaceholder", "volunteerModalMessagePlaceholder", "volunteerModalCancelLabel", "volunteerModalSendLabel", "volunteerModalSendingLabel", "volunteerModalNameRequiredMessage", "volunteerModalEmailRequiredMessage", "volunteerModalEmailInvalidMessage", "volunteerModalSubjectRequiredMessage", "volunteerModalSubjectMinMessage", "volunteerModalMessageRequiredMessage", "volunteerModalMessageMinMessage", "volunteerModalBtnBg", "volunteerModalBtnText", "volunteerModalCancelColor"] },
+  { label: "Custom buttons", keys: ["headerSearchEnabled", "headerSearchLabel", "headerSearchPlaceholder", "headerVolunteerHref", "headerVolunteerHrefTarget", "headerDonateIconUrl"] },
 ];
 
 export const SECTION_SETTINGS_SCHEMA = [

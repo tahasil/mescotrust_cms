@@ -38,42 +38,17 @@ const HEADER_DEFAULTS = {
   logoImageUrl: "",
   headerVolunteerLabel: "",
   headerVolunteerHref: "",
+  headerVolunteerHrefTarget: "_self",
   headerVolunteerIconUrl: "",
   headerVolunteerIconUrlMobile: "",
   headerDonateLabel: "",
   headerDonateHref: "",
   headerDonateIconUrl: "",
-  headerDonateIconUrlMobile: "",
   headerBgColorKey: "headerBg",
   headerCtaBgColorKey: "headerCta",
   headerCtaTextColorKey: "primary",
   headerDonateBgColorKey: "gradient",
   headerDonateTextColorKey: "white",
-  volunteerModalTitle: "",
-  volunteerModalSuccessTitle: "",
-  volunteerModalSuccessDescription: "",
-  volunteerModalErrorTitle: "",
-  volunteerModalNameLabel: "",
-  volunteerModalEmailLabel: "",
-  volunteerModalSubjectLabel: "",
-  volunteerModalMessageLabel: "",
-  volunteerModalNamePlaceholder: "",
-  volunteerModalEmailPlaceholder: "",
-  volunteerModalSubjectPlaceholder: "",
-  volunteerModalMessagePlaceholder: "",
-  volunteerModalCancelLabel: "",
-  volunteerModalSendLabel: "",
-  volunteerModalSendingLabel: "",
-  volunteerModalNameRequiredMessage: "",
-  volunteerModalEmailRequiredMessage: "",
-  volunteerModalEmailInvalidMessage: "",
-  volunteerModalSubjectRequiredMessage: "",
-  volunteerModalSubjectMinMessage: "",
-  volunteerModalMessageRequiredMessage: "",
-  volunteerModalMessageMinMessage: "",
-  volunteerModalBtnBg: "",
-  volunteerModalBtnText: "",
-  volunteerModalCancelColor: "",
   _sectionBg: "",
   _containerType: "container",
   _sectionPadding: "",
@@ -83,10 +58,47 @@ const HEADER_DEFAULTS = {
   _sectionShadow: "",
 };
 
+const REMOVED_HEADER_KEYS = new Set([
+  "headerDonateIconUrlMobile",
+  "volunteerModalTitle",
+  "volunteerModalSuccessTitle",
+  "volunteerModalSuccessDescription",
+  "volunteerModalErrorTitle",
+  "volunteerModalNameLabel",
+  "volunteerModalEmailLabel",
+  "volunteerModalSubjectLabel",
+  "volunteerModalMessageLabel",
+  "volunteerModalNamePlaceholder",
+  "volunteerModalEmailPlaceholder",
+  "volunteerModalSubjectPlaceholder",
+  "volunteerModalMessagePlaceholder",
+  "volunteerModalCancelLabel",
+  "volunteerModalSendLabel",
+  "volunteerModalSendingLabel",
+  "volunteerModalNameRequiredMessage",
+  "volunteerModalEmailRequiredMessage",
+  "volunteerModalEmailInvalidMessage",
+  "volunteerModalSubjectRequiredMessage",
+  "volunteerModalSubjectMinMessage",
+  "volunteerModalMessageRequiredMessage",
+  "volunteerModalMessageMinMessage",
+  "volunteerModalBtnBg",
+  "volunteerModalBtnText",
+  "volunteerModalCancelColor",
+]);
+
 function normalizeHeaderProps(input) {
   const payload = input && typeof input === "object" ? input : {};
   const out = { ...HEADER_DEFAULTS, ...payload };
+  if (!out.headerDonateIconUrl && payload?.headerDonateIconUrlMobile) {
+    out.headerDonateIconUrl = String(payload.headerDonateIconUrlMobile || "").trim();
+  }
+  for (const key of REMOVED_HEADER_KEYS) {
+    delete out[key];
+  }
   out.headerSearchEnabled = out.headerSearchEnabled === true;
+  out.headerVolunteerHrefTarget =
+    String(out.headerVolunteerHrefTarget || "").trim() === "_blank" ? "_blank" : "_self";
   out.menuName = String(out.menuName || "").trim();
   out.navItems = Array.isArray(out.navItems) ? out.navItems : [];
   for (const [key, value] of Object.entries(out)) {

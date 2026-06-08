@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Select, Collapse, message } from "antd";
+import { Form, Select, Collapse, Switch, message } from "antd";
 import { renderSchemaField, enrichSchema } from "@/components/admin/schemaFormUtils";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
@@ -11,7 +11,6 @@ import {
   LOGO_LINK_SCHEMA,
   MENU_SCHEMA,
   CUSTOM_BUTTONS_SCHEMA,
-  VOLUNTEER_MODAL_SCHEMA,
   HEADER_FIELD_GROUPS,
   SECTION_SETTINGS_SCHEMA,
 } from "./headerDrawerSchemas";
@@ -121,41 +120,20 @@ function HeaderEditForm(
         if (theme?.headerSearchFallbackMeta != null) flat.headerSearchFallbackMeta = theme.headerSearchFallbackMeta;
         if (theme?.headerVolunteerLabel != null) flat.headerVolunteerLabel = theme.headerVolunteerLabel;
         if (theme?.headerVolunteerHref != null) flat.headerVolunteerHref = theme.headerVolunteerHref;
+        if (theme?.headerVolunteerHrefTarget != null) flat.headerVolunteerHrefTarget = theme.headerVolunteerHrefTarget;
         if (theme?.headerVolunteerIconUrl != null) flat.headerVolunteerIconUrl = theme.headerVolunteerIconUrl;
         if (theme?.headerVolunteerIconUrlMobile != null) flat.headerVolunteerIconUrlMobile = theme.headerVolunteerIconUrlMobile;
         if (theme?.headerDonateLabel != null) flat.headerDonateLabel = theme.headerDonateLabel;
         if (theme?.headerDonateHref != null) flat.headerDonateHref = theme.headerDonateHref;
-        if (theme?.headerDonateIconUrl != null) flat.headerDonateIconUrl = theme.headerDonateIconUrl;
-        if (theme?.headerDonateIconUrlMobile != null) flat.headerDonateIconUrlMobile = theme.headerDonateIconUrlMobile;
+        if (theme?.headerDonateIconUrl != null) {
+          flat.headerDonateIconUrl = theme.headerDonateIconUrl;
+        } else if (theme?.headerDonateIconUrlMobile != null) {
+          flat.headerDonateIconUrl = theme.headerDonateIconUrlMobile;
+        }
         if (theme?.headerCtaBgColorKey != null) flat.headerCtaBgColorKey = theme.headerCtaBgColorKey;
         if (theme?.headerCtaTextColorKey != null) flat.headerCtaTextColorKey = theme.headerCtaTextColorKey;
         if (theme?.headerDonateBgColorKey != null) flat.headerDonateBgColorKey = theme.headerDonateBgColorKey;
         if (theme?.headerDonateTextColorKey != null) flat.headerDonateTextColorKey = theme.headerDonateTextColorKey;
-        if (theme?.volunteerModalTitle != null) flat.volunteerModalTitle = theme.volunteerModalTitle;
-        if (theme?.volunteerModalSuccessTitle != null) flat.volunteerModalSuccessTitle = theme.volunteerModalSuccessTitle;
-        if (theme?.volunteerModalSuccessDescription != null) flat.volunteerModalSuccessDescription = theme.volunteerModalSuccessDescription;
-        if (theme?.volunteerModalErrorTitle != null) flat.volunteerModalErrorTitle = theme.volunteerModalErrorTitle;
-        if (theme?.volunteerModalNameLabel != null) flat.volunteerModalNameLabel = theme.volunteerModalNameLabel;
-        if (theme?.volunteerModalEmailLabel != null) flat.volunteerModalEmailLabel = theme.volunteerModalEmailLabel;
-        if (theme?.volunteerModalSubjectLabel != null) flat.volunteerModalSubjectLabel = theme.volunteerModalSubjectLabel;
-        if (theme?.volunteerModalMessageLabel != null) flat.volunteerModalMessageLabel = theme.volunteerModalMessageLabel;
-        if (theme?.volunteerModalNamePlaceholder != null) flat.volunteerModalNamePlaceholder = theme.volunteerModalNamePlaceholder;
-        if (theme?.volunteerModalEmailPlaceholder != null) flat.volunteerModalEmailPlaceholder = theme.volunteerModalEmailPlaceholder;
-        if (theme?.volunteerModalSubjectPlaceholder != null) flat.volunteerModalSubjectPlaceholder = theme.volunteerModalSubjectPlaceholder;
-        if (theme?.volunteerModalMessagePlaceholder != null) flat.volunteerModalMessagePlaceholder = theme.volunteerModalMessagePlaceholder;
-        if (theme?.volunteerModalCancelLabel != null) flat.volunteerModalCancelLabel = theme.volunteerModalCancelLabel;
-        if (theme?.volunteerModalSendLabel != null) flat.volunteerModalSendLabel = theme.volunteerModalSendLabel;
-        if (theme?.volunteerModalSendingLabel != null) flat.volunteerModalSendingLabel = theme.volunteerModalSendingLabel;
-        if (theme?.volunteerModalNameRequiredMessage != null) flat.volunteerModalNameRequiredMessage = theme.volunteerModalNameRequiredMessage;
-        if (theme?.volunteerModalEmailRequiredMessage != null) flat.volunteerModalEmailRequiredMessage = theme.volunteerModalEmailRequiredMessage;
-        if (theme?.volunteerModalEmailInvalidMessage != null) flat.volunteerModalEmailInvalidMessage = theme.volunteerModalEmailInvalidMessage;
-        if (theme?.volunteerModalSubjectRequiredMessage != null) flat.volunteerModalSubjectRequiredMessage = theme.volunteerModalSubjectRequiredMessage;
-        if (theme?.volunteerModalSubjectMinMessage != null) flat.volunteerModalSubjectMinMessage = theme.volunteerModalSubjectMinMessage;
-        if (theme?.volunteerModalMessageRequiredMessage != null) flat.volunteerModalMessageRequiredMessage = theme.volunteerModalMessageRequiredMessage;
-        if (theme?.volunteerModalMessageMinMessage != null) flat.volunteerModalMessageMinMessage = theme.volunteerModalMessageMinMessage;
-        if (theme?.volunteerModalBtnBg != null) flat.volunteerModalBtnBg = theme.volunteerModalBtnBg;
-        if (theme?.volunteerModalBtnText != null) flat.volunteerModalBtnText = theme.volunteerModalBtnText;
-        if (theme?.volunteerModalCancelColor != null) flat.volunteerModalCancelColor = theme.volunteerModalCancelColor;
         if (theme?.menuName != null) flat.menuName = theme.menuName;
         if (theme?.navItems != null) flat.navItems = theme.navItems;
         Object.assign(flat, getManageSectionInitialValues("header", theme));
@@ -290,7 +268,6 @@ function HeaderEditForm(
     ...LOGO_LINK_SCHEMA,
     ...MENU_SCHEMA,
     ...CUSTOM_BUTTONS_SCHEMA,
-    ...VOLUNTEER_MODAL_SCHEMA,
     ...SECTION_SETTINGS_SCHEMA,
   ];
   const rawWithKeyOpts = raw.map((f) =>
@@ -300,6 +277,27 @@ function HeaderEditForm(
   const byKey = Object.fromEntries((Array.isArray(schema) ? schema : rawWithKeyOpts).map((f) => [f.key, f]));
 
   const renderField = (field) => renderSchemaField(field, themeColorOptions);
+  const renderSearchToggleRow = () => {
+    const searchField = byKey.headerSearchEnabled;
+    if (!searchField) return null;
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "4px 0 12px",
+          borderBottom: "1px solid rgba(0,0,0,0.06)",
+          marginBottom: 16,
+        }}
+      >
+        <span style={{ color: "rgba(0,0,0,0.88)" }}>{searchField.label}</span>
+        <Form.Item name="headerSearchEnabled" valuePropName="checked" noStyle>
+          <Switch />
+        </Form.Item>
+      </div>
+    );
+  };
 
   const headerItems = [
     {
@@ -332,7 +330,13 @@ function HeaderEditForm(
               />
             </Form.Item>
           )}
-          {grp.keys.map((k) => (byKey[k] ? renderField(byKey[k]) : null)).filter(Boolean)}
+          {grp.label === "Custom buttons" && renderSearchToggleRow()}
+          {grp.keys
+            .map((k) => {
+              if (grp.label === "Custom buttons" && k === "headerSearchEnabled") return null;
+              return byKey[k] ? renderField(byKey[k]) : null;
+            })
+            .filter(Boolean)}
         </>
       ),
     })),
