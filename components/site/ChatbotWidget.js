@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import DOMPurify from "isomorphic-dompurify";
 import {
   ArrowLeftOutlined,
@@ -52,6 +52,20 @@ function dedupeQuestions(items) {
   return out;
 }
 
+function htmlToText(input) {
+  const raw = String(input || "").trim();
+  if (!raw) return "";
+  if (typeof window !== "undefined") {
+    const node = document.createElement("div");
+    node.innerHTML = raw;
+    return String(node.textContent || node.innerText || "")
+      .replace(/\s+\n/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+  return raw.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
 function ContactAction({ href, label, target, onClick, accentColor }) {
   return (
     <a
@@ -100,6 +114,12 @@ export default function ChatbotWidget() {
   const [searchResults, setSearchResults] = useState([]);
   const [searchError, setSearchError] = useState("");
   const [typing, setTyping] = useState(false);
+  const [streamedBotText, setStreamedBotText] = useState("");
+  const [botReplyText, setBotReplyText] = useState("");
+  const [streamingMode, setStreamingMode] = useState(null);
+  const chatScrollRef = useRef(null);
+  const touchStartYRef = useRef(0);
+  const activeStreamRef = useRef({ runId: 0, timer: null });
 
   const sendEvent = useCallback(
     async (eventType, payload = {}) => {
@@ -122,6 +142,97 @@ export default function ChatbotWidget() {
     },
     [sessionId],
   );
+
+  const scrollToBottom = useCallback((behavior = "smooth") => {
+    const node = chatScrollRef.current;
+    if (!node) return;
+    node.scrollTo({ top: node.scrollHeight, behavior });
+  }, []);
+
+  const cancelActiveStream = useCallback(() => {
+    const current = activeStreamRef.current;
+    current.runId += 1;
+    if (current.timer) {
+      clearInterval(current.timer);
+      current.timer = null;
+    }
+    setTyping(false);
+    setStreamingMode(null);
+    setStreamedBotText("");
+  }, []);
+
+  const streamText = useCallback(
+    (text, mode = "reply", onDone) => {
+      const fullText = String(text || "").trim();
+      cancelActiveStream();
+      if (!settings?.enableTypingAnimation || !fullText) {
+        if (typeof onDone === "function") onDone();
+        return;
+      }
+
+      const chars = Array.from(fullText);
+      const total = chars.length;
+      const targetDurationMs = Math.max(700, Math.min(5000, total * 22));
+      const intervalMs = 16;
+      const totalTicks = Math.max(1, Math.ceil(targetDurationMs / intervalMs));
+      const step = Math.min(24, Math.max(1, Math.ceil(total / totalTicks)));
+
+      setTyping(true);
+      setStreamingMode(mode);
+      setStreamedBotText("");
+      const current = activeStreamRef.current;
+      const runId = current.runId + 1;
+      current.runId = runId;
+      let index = 0;
+
+      current.timer = setInterval(() => {
+        if (activeStreamRef.current.runId !== runId) return;
+        index = Math.min(total, index + step);
+        const partial = chars.slice(0, index).join("");
+        setStreamedBotText(partial);
+        scrollToBottom("auto");
+        if (index >= total) {
+          clearInterval(current.timer);
+          current.timer = null;
+          setTyping(false);
+          setStreamingMode(null);
+          if (typeof onDone === "function") onDone();
+          setTimeout(() => scrollToBottom("smooth"), 0);
+        }
+      }, intervalMs);
+    },
+    [cancelActiveStream, scrollToBottom, settings?.enableTypingAnimation],
+  );
+
+  const handleWheelContain = useCallback((event) => {
+    const node = chatScrollRef.current;
+    if (!node) return;
+    const deltaY = Number(event.deltaY || 0);
+    const atTop = node.scrollTop <= 0;
+    const atBottom = node.scrollTop + node.clientHeight >= node.scrollHeight - 1;
+    if ((deltaY < 0 && atTop) || (deltaY > 0 && atBottom)) {
+      event.preventDefault();
+    }
+    event.stopPropagation();
+  }, []);
+
+  const handleTouchStartContain = useCallback((event) => {
+    touchStartYRef.current = Number(event.touches?.[0]?.clientY || 0);
+  }, []);
+
+  const handleTouchMoveContain = useCallback((event) => {
+    const node = chatScrollRef.current;
+    if (!node) return;
+    const currentY = Number(event.touches?.[0]?.clientY || 0);
+    const deltaY = touchStartYRef.current - currentY;
+    touchStartYRef.current = currentY;
+    const atTop = node.scrollTop <= 0;
+    const atBottom = node.scrollTop + node.clientHeight >= node.scrollHeight - 1;
+    if ((deltaY < 0 && atTop) || (deltaY > 0 && atBottom)) {
+      event.preventDefault();
+    }
+    event.stopPropagation();
+  }, []);
 
   const loadBootstrap = useCallback(async () => {
     setLoading(true);
@@ -173,14 +284,33 @@ export default function ChatbotWidget() {
     loadBootstrap();
   }, [loadBootstrap]);
 
+  useEffect(() => {
+    if (!open) return;
+    scrollToBottom("auto");
+  }, [open, current, searchResults, searchError, streamedBotText, lastSubmittedQuery, scrollToBottom]);
+
+  useEffect(
+    () => () => {
+      const current = activeStreamRef.current;
+      current.runId += 1;
+      if (current.timer) clearInterval(current.timer);
+    },
+    [],
+  );
+
   const openNode = useCallback(
-    async (id, { track = true, pushHistory = true } = {}) => {
+    async (id, { track = true, pushHistory = true, userText = "" } = {}) => {
       if (!id) return;
       try {
+        cancelActiveStream();
+        setTyping(true);
+        setStreamingMode("loading");
+        setStreamedBotText("");
         setSearchError("");
         setSearchResults([]);
-        setLastSubmittedQuery("");
+        setBotReplyText("");
         setQuery("");
+        if (userText) setLastSubmittedQuery(String(userText));
         const url = `/api/public/chatbot/faqs/${id}${track ? "" : "?track=false"}`;
         const res = await fetch(url);
         const data = await res.json().catch(() => ({}));
@@ -188,35 +318,29 @@ export default function ChatbotWidget() {
           throw new Error(extractApiError(data, "Failed to load question"));
         }
 
-        const applyResult = () => {
-          setCurrent(data.data || null);
-          sendEvent("question_click", {
-            questionId: String(data?.data?.node?._id || id),
-            questionTitle: String(data?.data?.node?.question || ""),
-            depth: Number(data?.data?.breadcrumb?.length || 0),
+        setCurrent(data.data || null);
+        sendEvent("question_click", {
+          questionId: String(data?.data?.node?._id || id),
+          questionTitle: String(data?.data?.node?.question || ""),
+          depth: Number(data?.data?.breadcrumb?.length || 0),
+        });
+        if (pushHistory) {
+          setHistory((prev) => {
+            if (prev[prev.length - 1] === String(id)) return prev;
+            return [...prev, String(id)];
           });
-          if (pushHistory) {
-            setHistory((prev) => {
-              if (prev[prev.length - 1] === String(id)) return prev;
-              return [...prev, String(id)];
-            });
-          }
-        };
-
-        if (settings?.enableTypingAnimation) {
-          setTyping(true);
-          setTimeout(() => {
-            applyResult();
-            setTyping(false);
-          }, 220);
-        } else {
-          applyResult();
         }
+
+        const answerText = htmlToText(data?.data?.node?.answerHtml || "");
+        streamText(answerText, "node");
       } catch (err) {
+        setTyping(false);
+        setStreamingMode(null);
+        setStreamedBotText("");
         setSearchError(err.message || "Failed to load");
       }
     },
-    [sendEvent, settings?.enableTypingAnimation],
+    [cancelActiveStream, sendEvent, streamText],
   );
 
   const runSearch = useCallback(async () => {
@@ -230,10 +354,16 @@ export default function ChatbotWidget() {
     }
 
     try {
+      cancelActiveStream();
       setSearching(true);
+      setTyping(true);
+      setStreamingMode("loading");
+      setStreamedBotText("");
       setSearchError("");
       setCurrent(null);
       setLastSubmittedQuery(text);
+      setBotReplyText("");
+      setSearchResults([]);
       const params = new URLSearchParams({
         q: text,
         page: "1",
@@ -245,25 +375,40 @@ export default function ChatbotWidget() {
         throw new Error(extractApiError(data, "Search failed"));
       }
       const items = Array.isArray(data?.data?.items) ? data.data.items : [];
-      setSearchResults(dedupeQuestions(items));
+      const dedupedItems = dedupeQuestions(items);
       setQuery("");
       sendEvent("search_submit", { query: text, resultCount: items.length });
+      const responseText =
+        dedupedItems.length > 0
+          ? `I found ${dedupedItems.length} related question${dedupedItems.length > 1 ? "s" : ""}. Please choose one below.`
+          : "I could not find an exact answer. Please try another keyword or choose from suggested questions.";
+      streamText(responseText, "search", () => {
+        setBotReplyText(responseText);
+        setSearchResults(dedupedItems);
+      });
       if (items.length === 0) {
         sendEvent("search_no_result", { query: text });
         setSearchError("Didn't find your answer?");
       }
     } catch (err) {
+      setTyping(false);
+      setStreamingMode(null);
+      setStreamedBotText("");
       setSearchResults([]);
+      setBotReplyText("");
       setSearchError(err.message || "Search failed");
     } finally {
       setSearching(false);
     }
-  }, [query, sendEvent, settings]);
+  }, [cancelActiveStream, query, sendEvent, settings, streamText]);
 
   const onBack = async () => {
+    cancelActiveStream();
     if (history.length <= 1) {
       setCurrent(null);
       setHistory([]);
+      setBotReplyText("");
+      setLastSubmittedQuery("");
       return;
     }
     const next = history.slice(0, -1);
@@ -272,21 +417,25 @@ export default function ChatbotWidget() {
   };
 
   const onHome = () => {
+    cancelActiveStream();
     setCurrent(null);
     setHistory([]);
     setSearchResults([]);
     setSearchError("");
+    setBotReplyText("");
     setLastSubmittedQuery("");
     setQuery("");
   };
 
   const toggleOpen = () => {
     if (!open) {
+      cancelActiveStream();
       setOpen(true);
       setOpenedAt(Date.now());
       sendEvent("chat_open");
       return;
     }
+    cancelActiveStream();
     setOpen(false);
     setExpanded(false);
     const durationSeconds =
@@ -376,7 +525,7 @@ export default function ChatbotWidget() {
         <div key={String(item._id)} style={{ display: "flex", justifyContent: "flex-end" }}>
           <button
             type="button"
-            onClick={() => openNode(item._id)}
+            onClick={() => openNode(item._id, { userText: item.question })}
             style={{
               border: "none",
               borderRadius: 999,
@@ -444,6 +593,7 @@ export default function ChatbotWidget() {
           display: open ? "flex" : "none",
           flexDirection: "column",
           overflow: "hidden",
+          overscrollBehavior: "contain",
           fontSize: Number(settings.fontSize || 14),
           transition:
             "top 240ms ease, right 240ms ease, bottom 240ms ease, left 240ms ease, width 240ms ease, height 240ms ease, max-height 240ms ease, border-radius 220ms ease",
@@ -540,7 +690,22 @@ export default function ChatbotWidget() {
           </div>
         </div>
 
-        <div style={{ flex: 1, overflowY: "auto", padding: "14px 14px 8px", background: "#fff" }}>
+        <div
+          ref={chatScrollRef}
+          onWheel={handleWheelContain}
+          onTouchStart={handleTouchStartContain}
+          onTouchMove={handleTouchMoveContain}
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            padding: "14px 14px 8px",
+            background: "#fff",
+            scrollBehavior: "smooth",
+            overscrollBehaviorY: "contain",
+            WebkitOverflowScrolling: "touch",
+            touchAction: "pan-y",
+          }}
+        >
           {settings.enableBreadcrumb && current?.breadcrumb?.length > 0 ? (
             <div style={{ fontSize: 12, marginBottom: 8, color: "#999" }}>
               {current.breadcrumb.map((item, index) => (
@@ -581,9 +746,21 @@ export default function ChatbotWidget() {
                 padding: "10px 13px",
                 border: `1px solid ${settings.borderColor || "#ededed"}`,
                 maxWidth: "95%",
+                whiteSpace: "pre-wrap",
               }}
             >
-              Typing...
+              {streamedBotText ? (
+                streamedBotText
+              ) : (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  <span>{streamingMode === "node" ? "Typing" : "Thinking"}</span>
+                  <span className="chatbot-typing-dots" aria-hidden>
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                </span>
+              )}
             </div>
           ) : null}
 
@@ -619,9 +796,10 @@ export default function ChatbotWidget() {
                   padding: "10px 13px",
                   border: `1px solid ${settings.borderColor || "#ededed"}`,
                   maxWidth: "95%",
+                  whiteSpace: "pre-wrap",
                 }}
               >
-                Here are matching questions:
+                {botReplyText || "Here are matching questions:"}
               </div>
               {renderChoiceChips(searchResults)}
             </>
@@ -639,7 +817,7 @@ export default function ChatbotWidget() {
                 maxWidth: "95%",
               }}
             >
-              Searching...
+              Thinking...
             </div>
           ) : null}
 
@@ -775,6 +953,38 @@ export default function ChatbotWidget() {
       </div>
 
       <style>{`
+        .public-site .chatbot-typing-dots {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+        }
+        .public-site .chatbot-typing-dots i {
+          width: 5px;
+          height: 5px;
+          border-radius: 999px;
+          background: currentColor;
+          opacity: 0.35;
+          transform: translateY(0);
+          animation: chatbotTypingPulse 1s infinite ease-in-out;
+          display: inline-block;
+        }
+        .public-site .chatbot-typing-dots i:nth-child(2) {
+          animation-delay: 0.12s;
+        }
+        .public-site .chatbot-typing-dots i:nth-child(3) {
+          animation-delay: 0.24s;
+        }
+        @keyframes chatbotTypingPulse {
+          0%, 80%, 100% {
+            opacity: 0.35;
+            transform: translateY(0);
+          }
+          40% {
+            opacity: 1;
+            transform: translateY(-2px);
+          }
+        }
+
         @media (max-width: 1024px) {
           .public-site [data-chatbot-window][data-chatbot-expanded="false"] {
             right: 16px !important;
