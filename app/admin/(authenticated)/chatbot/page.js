@@ -1,14 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Button,
+  Collapse,
   Col,
+  Divider,
   Drawer,
   Form,
   Input,
   InputNumber,
+  List,
   Modal,
   Row,
   Select,
@@ -20,6 +23,7 @@ import {
   message,
 } from "antd";
 import {
+  CheckOutlined,
   AppstoreAddOutlined,
   CopyOutlined,
   DeleteOutlined,
@@ -27,19 +31,11 @@ import {
   SaveOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
+import { ThemeColorInput } from "@/components/admin/schemaFormUtils";
 import { ThemeAdminCard } from "@/styles/Theme";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
-
-function sanitizeSlug(input) {
-  return String(input || "")
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-}
+import { LIST_HEADER_STYLE } from "@/lib/titleAndColorsConfig";
 
 function reorderArray(list, fromIndex, toIndex) {
   const next = [...list];
@@ -110,6 +106,24 @@ const CONTACT_ACTION_TYPE_OPTIONS = [
   { label: "Donation Page", value: "donation" },
   { label: "Custom", value: "custom" },
 ];
+const ROOT_PARENT_VALUE = "__ROOT__";
+const SETTINGS_COLLAPSE_STYLE = {
+  border: "1px solid #e8e8e8",
+  borderRadius: 10,
+  overflow: "hidden",
+};
+const SETTINGS_SECTION_BOX_STYLE = {
+  border: "1px solid #e8e8e8",
+  borderRadius: 10,
+  padding: 14,
+  display: "flex",
+  flexDirection: "column",
+  gap: 14,
+};
+const SETTINGS_ROW_LABEL_STYLE = {
+  fontSize: 14,
+  color: "rgba(0,0,0,0.75)",
+};
 
 export default function AdminChatbotPage() {
   const [loading, setLoading] = useState(true);
@@ -119,9 +133,11 @@ export default function AdminChatbotPage() {
   const [selectedId, setSelectedId] = useState(null);
   const [mode, setMode] = useState("edit");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [themeColorOptions, setThemeColorOptions] = useState([]);
   const [isAdminRole, setIsAdminRole] = useState(true);
   const [faqForm] = Form.useForm();
   const [settingsForm] = Form.useForm();
+  const hasAutoSelectedInitialNode = useRef(false);
   const answerHtml = Form.useWatch("answerHtml", faqForm);
 
   const faqById = useMemo(() => {
@@ -133,6 +149,27 @@ export default function AdminChatbotPage() {
   }, [faqItems]);
 
   const treeData = useMemo(() => buildTree(faqItems), [faqItems]);
+  const faqPathLabelById = useMemo(() => {
+    const byId = new Map();
+    faqItems.forEach((item) => {
+      byId.set(String(item._id), item);
+    });
+    const out = new Map();
+    faqItems.forEach((item) => {
+      const chain = [String(item.question || "").trim()];
+      let cursor = item.parentId ? String(item.parentId) : null;
+      let guard = 0;
+      while (cursor && guard < 25) {
+        const parent = byId.get(cursor);
+        if (!parent) break;
+        chain.unshift(String(parent.question || "").trim());
+        cursor = parent.parentId ? String(parent.parentId) : null;
+        guard += 1;
+      }
+      out.set(String(item._id), chain.filter(Boolean).join(" / "));
+    });
+    return out;
+  }, [faqItems]);
 
   const loadFaqs = useCallback(async () => {
     const res = await fetch("/api/admin/chatbot/faqs?includeInactive=true&page=1&limit=5000");
@@ -142,10 +179,16 @@ export default function AdminChatbotPage() {
     }
     const items = Array.isArray(data?.data?.items) ? data.data.items : [];
     setFaqItems(items);
-    if (!selectedId && items.length > 0) {
+    if (
+      !hasAutoSelectedInitialNode.current &&
+      !selectedId &&
+      items.length > 0 &&
+      mode !== "create"
+    ) {
       setSelectedId(String(items[0]._id));
+      hasAutoSelectedInitialNode.current = true;
     }
-  }, [selectedId]);
+  }, [mode, selectedId]);
 
   const loadSettings = useCallback(async () => {
     const res = await fetch("/api/admin/chatbot/settings");
@@ -176,12 +219,48 @@ export default function AdminChatbotPage() {
     }
   }, []);
 
+  const loadThemeColorOptions = useCallback(async () => {
+    try {
+      const res = await fetch("/api/theme", { cache: "no-store" });
+      const theme = await res.json().catch(() => ({}));
+      if (!res.ok || !theme || typeof theme !== "object") {
+        setThemeColorOptions([]);
+        return;
+      }
+      const palette = theme.themePalette || {};
+      const customColors = Array.isArray(theme.colors) ? theme.colors : [];
+      const options = [];
+      Object.entries(palette).forEach(([name, value]) => {
+        const nextValue = String(value || "").trim();
+        if (!nextValue) return;
+        options.push({ label: name, value: nextValue });
+      });
+      customColors.forEach((item) => {
+        if (!item?.name || item?.value == null) return;
+        const nextValue = String(item.value).trim();
+        if (!nextValue) return;
+        options.push({ label: String(item.name), value: nextValue });
+      });
+      const seen = new Set();
+      const deduped = options.filter((item) => {
+        const key = String(item.value || "").toLowerCase();
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      setThemeColorOptions(deduped);
+    } catch {
+      setThemeColorOptions([]);
+    }
+  }, []);
+
   useEffect(() => {
     let ignore = false;
     (async () => {
       setLoading(true);
       try {
         await Promise.all([loadFaqs(), loadSettings(), loadSessionRole()]);
+        await loadThemeColorOptions();
       } catch (err) {
         if (!ignore) message.error(err.message || "Failed to load chatbot module");
       } finally {
@@ -191,7 +270,7 @@ export default function AdminChatbotPage() {
     return () => {
       ignore = true;
     };
-  }, [loadFaqs, loadSettings, loadSessionRole]);
+  }, [loadFaqs, loadSettings, loadSessionRole, loadThemeColorOptions]);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -200,28 +279,32 @@ export default function AdminChatbotPage() {
     setMode("edit");
     faqForm.setFieldsValue({
       question: node.question || "",
-      slug: node.slug || "",
       answerHtml: node.answerHtml || "",
       keywords: Array.isArray(node.keywords) ? node.keywords : [],
       tags: Array.isArray(node.tags) ? node.tags : [],
       synonyms: Array.isArray(node.synonyms) ? node.synonyms : [],
-      icon: node.icon || "",
+      showNeedMoreInfo: Boolean(node.showNeedMoreInfo),
       status: node.status || "active",
       sortOrder: Number(node.sortOrder || 0),
-      parentId: node.parentId ? String(node.parentId) : null,
+      parentId: node.parentId ? String(node.parentId) : ROOT_PARENT_VALUE,
     });
   }, [faqById, faqForm, selectedId]);
 
   const parentOptions = useMemo(() => {
     const descendants = selectedId ? collectDescendantIds(faqItems, selectedId) : new Set();
-    return faqItems
+    const options = faqItems
       .filter((item) => String(item._id) !== String(selectedId || "") && !descendants.has(String(item._id)))
-      .sort((a, b) => String(a.question || "").localeCompare(String(b.question || "")))
+      .sort((a, b) =>
+        String(faqPathLabelById.get(String(a._id)) || a.question || "").localeCompare(
+          String(faqPathLabelById.get(String(b._id)) || b.question || ""),
+        ),
+      )
       .map((item) => ({
-        label: item.question,
+        label: faqPathLabelById.get(String(item._id)) || item.question,
         value: String(item._id),
       }));
-  }, [faqItems, selectedId]);
+    return [{ label: "Root question (New)", value: ROOT_PARENT_VALUE }, ...options];
+  }, [faqItems, faqPathLabelById, selectedId]);
 
   const startCreate = (parentId = null) => {
     setMode("create");
@@ -229,15 +312,14 @@ export default function AdminChatbotPage() {
     faqForm.resetFields();
     faqForm.setFieldsValue({
       question: "",
-      slug: "",
       answerHtml: "",
       keywords: [],
       tags: [],
       synonyms: [],
-      icon: "",
+      showNeedMoreInfo: false,
       status: "active",
       sortOrder: 0,
-      parentId,
+      parentId: parentId ? String(parentId) : ROOT_PARENT_VALUE,
     });
   };
 
@@ -247,14 +329,12 @@ export default function AdminChatbotPage() {
       const payload = {
         ...values,
         question: String(values.question || "").trim(),
-        slug: String(values.slug || "").trim(),
         answerHtml: String(values.answerHtml || "").trim(),
         keywords: Array.isArray(values.keywords) ? values.keywords : [],
         tags: Array.isArray(values.tags) ? values.tags : [],
         synonyms: Array.isArray(values.synonyms) ? values.synonyms : [],
-        parentId: values.parentId || null,
+        parentId: values.parentId && values.parentId !== ROOT_PARENT_VALUE ? values.parentId : null,
       };
-      if (!payload.slug) delete payload.slug;
 
       setSavingFaq(true);
       const endpoint =
@@ -473,6 +553,27 @@ export default function AdminChatbotPage() {
     }
   };
 
+  const renderSettingsSwitchList = (items, headerLabel = "Options") => (
+    <List
+      header={<span style={LIST_HEADER_STYLE}>{headerLabel}</span>}
+      size="small"
+      bordered
+      split
+      dataSource={items}
+      renderItem={(item) => (
+        <List.Item
+          actions={[
+            <Form.Item key={item.name} name={item.name} valuePropName="checked" noStyle>
+              <Switch />
+            </Form.Item>,
+          ]}
+        >
+          <span style={SETTINGS_ROW_LABEL_STYLE}>{item.label}</span>
+        </List.Item>
+      )}
+    />
+  );
+
   return (
     <>
       <ThemeAdminCard
@@ -481,7 +582,7 @@ export default function AdminChatbotPage() {
         extra={
           <Space wrap>
             <Button icon={<PlusOutlined />} onClick={() => startCreate(null)}>
-              Add Root Question
+              Add Question
             </Button>
             <Button
               icon={<AppstoreAddOutlined />}
@@ -524,7 +625,7 @@ export default function AdminChatbotPage() {
                 <Tree
                   draggable
                   blockNode
-                  defaultExpandAll
+                  defaultExpandAll={false}
                   selectedKeys={selectedId ? [String(selectedId)] : []}
                   onSelect={(keys) => {
                     const id = keys?.[0] ? String(keys[0]) : null;
@@ -540,10 +641,11 @@ export default function AdminChatbotPage() {
           <Col xs={24} lg={15}>
             <div
               style={{
-                border: "1px solid #f0f0f0",
+                border: `1px solid ${mode === "create" ? "#91caff" : "#f0f0f0"}`,
                 borderRadius: 12,
                 minHeight: 520,
                 padding: 16,
+                background: mode === "create" ? "#f8fbff" : "#fff",
               }}
             >
               <Space
@@ -554,8 +656,11 @@ export default function AdminChatbotPage() {
                 }}
               >
                 <Typography.Title level={5} style={{ margin: 0 }}>
-                  {mode === "create" ? "Create Question" : "Edit Question"}
+                  {mode === "create" ? "Add Question" : "Edit Question"}
                 </Typography.Title>
+                <Tag color={mode === "create" ? "processing" : "default"}>
+                  {mode === "create" ? "ADD MODE" : "EDIT MODE"}
+                </Tag>
                 <Space>
                   {mode === "edit" && selectedId ? (
                     <Switch
@@ -590,32 +695,26 @@ export default function AdminChatbotPage() {
                 </Space>
               </Space>
 
+              <Alert
+                type={mode === "create" ? "info" : "success"}
+                showIcon
+                style={{ marginBottom: 12 }}
+                message={
+                  mode === "create"
+                    ? "You are adding a new question. Fill details and click Create."
+                    : "You are editing an existing question. Update details and click Update."
+                }
+              />
+
               <Form form={faqForm} layout="vertical">
                 <Row gutter={12}>
-                  <Col xs={24} md={12}>
+                  <Col xs={24}>
                     <Form.Item
                       name="question"
                       label="Question Title"
                       rules={[{ required: true, message: "Question title is required" }]}
                     >
-                      <Input
-                        placeholder="Enter question title"
-                        onChange={(e) => {
-                          if (mode === "create") {
-                            const slug = sanitizeSlug(e.target.value);
-                            faqForm.setFieldValue("slug", slug);
-                          }
-                        }}
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <Form.Item
-                      name="slug"
-                      label="Slug"
-                      rules={[{ required: true, message: "Slug is required" }]}
-                    >
-                      <Input placeholder="question-slug" />
+                      <Input placeholder="Enter question title" />
                     </Form.Item>
                   </Col>
                 </Row>
@@ -623,11 +722,7 @@ export default function AdminChatbotPage() {
                 <Row gutter={12}>
                   <Col xs={24} md={12}>
                     <Form.Item name="parentId" label="Parent Question">
-                      <Select
-                        allowClear
-                        placeholder="Root question"
-                        options={parentOptions}
-                      />
+                      <Select options={parentOptions} />
                     </Form.Item>
                   </Col>
                   <Col xs={24} md={6}>
@@ -647,8 +742,12 @@ export default function AdminChatbotPage() {
                   </Col>
                 </Row>
 
-                <Form.Item name="icon" label="Icon">
-                  <Input placeholder="icon name or URL" />
+                <Form.Item
+                  name="showNeedMoreInfo"
+                  label='Show "Need more info?" for this question'
+                  valuePropName="checked"
+                >
+                  <Switch />
                 </Form.Item>
 
                 <Row gutter={12}>
@@ -688,7 +787,7 @@ export default function AdminChatbotPage() {
                     loading={savingFaq}
                     onClick={onFaqSubmit}
                   >
-                    {mode === "create" ? "Create Question" : "Save Changes"}
+                    {mode === "create" ? "Create" : "Update"}
                   </Button>
                   <Button onClick={() => (selectedId ? setMode("edit") : startCreate(null))}>
                     Reset
@@ -707,337 +806,344 @@ export default function AdminChatbotPage() {
         onClose={() => setSettingsOpen(false)}
         destroyOnClose={false}
         extra={
-          <Space>
-            <Button onClick={() => setSettingsOpen(false)}>Cancel</Button>
-            <Button type="primary" loading={savingSettings} onClick={onSettingsSubmit}>
-              Save
-            </Button>
-          </Space>
+          <Button
+            type="primary"
+            icon={<CheckOutlined />}
+            loading={savingSettings}
+            onClick={onSettingsSubmit}
+          >
+            Update
+          </Button>
         }
       >
-        <Form layout="vertical" form={settingsForm}>
-          <Typography.Title level={5}>General</Typography.Title>
-          <Row gutter={12}>
-            <Col xs={24} md={8}>
-              <Form.Item name="enabled" label="Enable Chatbot" valuePropName="checked">
-                <Switch />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={8}>
-              <Form.Item name="position" label="Position">
-                <Select
-                  options={[
-                    { label: "Left", value: "left" },
-                    { label: "Right", value: "right" },
-                  ]}
-                />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={8}>
-              <Form.Item name="fontSize" label="Font Size">
-                <InputNumber min={12} max={22} style={{ width: "100%" }} />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Form.Item name="botName" label="Bot Name">
-            <Input />
-          </Form.Item>
-          <Form.Item name="welcomeMessage" label="Welcome Message">
-            <Input />
-          </Form.Item>
-          <Form.Item name="welcomeSubtitle" label="Welcome Subtitle">
-            <Input />
-          </Form.Item>
-          <Form.Item name="avatarMediaId" label="Avatar">
-            <MediaPickerInput placeholder="/media/..." />
-          </Form.Item>
-
-          <Typography.Title level={5}>Appearance</Typography.Title>
-          <Row gutter={12}>
-            <Col xs={24} md={12}>
-              <Form.Item name="borderRadius" label="Border Radius">
-                <InputNumber min={0} max={28} style={{ width: "100%" }} />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Alert
-                type="info"
-                showIcon
-                message="Chat width and height are now automatic for responsive screens."
-              />
-            </Col>
-          </Row>
-          <Row gutter={12}>
-            <Col xs={24} md={12}>
-              <Form.Item name="headerColor" label="Header Color">
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item name="chatBackgroundColor" label="Chat Background">
-                <Input />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={12}>
-            <Col xs={24} md={12}>
-              <Form.Item name="botMessageBubbleColor" label="Bot Bubble Color">
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item name="botMessageTextColor" label="Bot Text Color">
-                <Input />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={12}>
-            <Col xs={24} md={12}>
-              <Form.Item name="userMessageBubbleColor" label="User Bubble Color">
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item name="userMessageTextColor" label="User Text Color">
-                <Input />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={12}>
-            <Col xs={24} md={12}>
-              <Form.Item name="quickOptionButtonColor" label="Quick Option Button Color">
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item
-                name="quickOptionButtonTextColor"
-                label="Quick Option Button Text Color"
-              >
-                <Input />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={12}>
-            <Col xs={24} md={12}>
-              <Form.Item name="linkAccentColor" label="Link/Button Accent Color">
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item name="borderColor" label="Border Color">
-                <Input />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Typography.Title level={5}>Features</Typography.Title>
-          <Row gutter={12}>
-            <Col xs={12} md={8}>
-              <Form.Item name="enableSearch" label="Enable Search" valuePropName="checked">
-                <Switch />
-              </Form.Item>
-            </Col>
-            <Col xs={12} md={8}>
-              <Form.Item name="enableBreadcrumb" label="Enable Breadcrumb" valuePropName="checked">
-                <Switch />
-              </Form.Item>
-            </Col>
-            <Col xs={12} md={8}>
-              <Form.Item name="enableHomeButton" label="Enable Home" valuePropName="checked">
-                <Switch />
-              </Form.Item>
-            </Col>
-            <Col xs={12} md={8}>
-              <Form.Item name="enableBackButton" label="Enable Back" valuePropName="checked">
-                <Switch />
-              </Form.Item>
-            </Col>
-            <Col xs={12} md={8}>
-              <Form.Item
-                name="enableRelatedQuestions"
-                label="Enable Related Questions"
-                valuePropName="checked"
-              >
-                <Switch />
-              </Form.Item>
-            </Col>
-            <Col xs={12} md={8}>
-              <Form.Item
-                name="enableTypingAnimation"
-                label="Enable Typing Animation"
-                valuePropName="checked"
-              >
-                <Switch />
-              </Form.Item>
-            </Col>
-            <Col xs={12} md={8}>
-              <Form.Item
-                name="enableContactBlock"
-                label="Enable Contact Block"
-                valuePropName="checked"
-              >
-                <Switch />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Typography.Title level={5}>Search</Typography.Title>
-          <Row gutter={12}>
-            <Col xs={24} md={12}>
-              <Form.Item name="minSearchChars" label="Minimum Search Characters">
-                <InputNumber min={1} max={10} style={{ width: "100%" }} />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item name="maxSearchResults" label="Maximum Search Results">
-                <InputNumber min={1} max={30} style={{ width: "100%" }} />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Form.Item name="searchEnabledFieldKeys" label="Search Enabled Fields">
-            <Select mode="multiple" options={SEARCH_FIELD_OPTIONS} />
-          </Form.Item>
-
-          <Typography.Title level={5}>Welcome Screen</Typography.Title>
-          <Form.Item name="welcomeBannerMediaId" label="Banner Image (Optional)">
-            <MediaPickerInput placeholder="/media/..." />
-          </Form.Item>
-          <Row gutter={12}>
-            <Col xs={24} md={12}>
-              <Form.Item name="featuredQuestionIds" label="Featured Questions">
-                <Select
-                  mode="multiple"
-                  options={faqItems.map((item) => ({
-                    label: item.question,
-                    value: String(item._id),
-                  }))}
-                />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item name="popularQuestionIds" label="Popular Questions">
-                <Select
-                  mode="multiple"
-                  options={faqItems.map((item) => ({
-                    label: item.question,
-                    value: String(item._id),
-                  }))}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Typography.Title level={5}>Contact Actions</Typography.Title>
-          <Form.List name="contactActions">
-            {(fields, { add, remove }) => (
-              <>
-                {fields.map((field, index) => (
-                  <div
-                    key={field.key}
-                    style={{
-                      border: "1px solid #f0f0f0",
-                      borderRadius: 10,
-                      padding: 12,
-                      marginBottom: 10,
-                    }}
-                  >
+        <Form layout="vertical" form={settingsForm} size="large">
+          <Collapse
+            defaultActiveKey={["general", "appearance"]}
+            style={SETTINGS_COLLAPSE_STYLE}
+            items={[
+              {
+                key: "general",
+                label: "General",
+                children: (
+                  <div style={SETTINGS_SECTION_BOX_STYLE}>
+                    {renderSettingsSwitchList([{ name: "enabled", label: "Enable chatbot" }], "Status")}
                     <Row gutter={12}>
-                      <Col xs={24} md={10}>
-                        <Form.Item
-                          {...field}
-                          name={[field.name, "label"]}
-                          label="Label"
-                          rules={[{ required: true, message: "Label is required" }]}
-                        >
-                          <Input />
-                        </Form.Item>
-                      </Col>
-                      <Col xs={24} md={14}>
-                        <Form.Item
-                          {...field}
-                          name={[field.name, "url"]}
-                          label="URL"
-                          rules={[{ required: true, message: "URL is required" }]}
-                        >
-                          <Input />
-                        </Form.Item>
-                      </Col>
-                    </Row>
-                    <Row gutter={12}>
-                      <Col xs={24} md={8}>
-                        <Form.Item {...field} name={[field.name, "id"]} label="ID">
-                          <Input placeholder={`action-${index + 1}`} />
-                        </Form.Item>
-                      </Col>
-                      <Col xs={24} md={8}>
-                        <Form.Item {...field} name={[field.name, "actionType"]} label="Type">
-                          <Select options={CONTACT_ACTION_TYPE_OPTIONS} />
-                        </Form.Item>
-                      </Col>
-                      <Col xs={24} md={8}>
-                        <Form.Item {...field} name={[field.name, "icon"]} label="Icon">
-                          <Input placeholder="phone/mail/link" />
-                        </Form.Item>
-                      </Col>
-                    </Row>
-                    <Row gutter={12}>
-                      <Col xs={24} md={8}>
-                        <Form.Item {...field} name={[field.name, "target"]} label="Target">
+                      <Col xs={24} md={12}>
+                        <Form.Item name="position" label="Position">
                           <Select
                             options={[
-                              { label: "Same Tab", value: "_self" },
-                              { label: "New Tab", value: "_blank" },
+                              { label: "Left", value: "left" },
+                              { label: "Right", value: "right" },
                             ]}
                           />
                         </Form.Item>
                       </Col>
-                      <Col xs={24} md={8}>
-                        <Form.Item {...field} name={[field.name, "sortOrder"]} label="Sort Order">
-                          <InputNumber min={0} style={{ width: "100%" }} />
-                        </Form.Item>
-                      </Col>
-                      <Col xs={24} md={8}>
-                        <Form.Item
-                          {...field}
-                          name={[field.name, "enabled"]}
-                          label="Enabled"
-                          valuePropName="checked"
-                        >
-                          <Switch />
+                      <Col xs={24} md={12}>
+                        <Form.Item name="fontSize" label="Font Size">
+                          <InputNumber min={12} max={22} style={{ width: "100%" }} />
                         </Form.Item>
                       </Col>
                     </Row>
-                    <Button
-                      danger
-                      icon={<DeleteOutlined />}
-                      onClick={() => remove(field.name)}
-                    >
-                      Remove Action
-                    </Button>
+                    <Divider style={{ margin: "0 0 4px" }} />
+                    <Form.Item name="botName" label="Bot Name">
+                      <Input />
+                    </Form.Item>
+                    <Form.Item name="welcomeMessage" label="Welcome Message">
+                      <Input />
+                    </Form.Item>
+                    <Form.Item name="welcomeSubtitle" label="Welcome Subtitle">
+                      <Input />
+                    </Form.Item>
+                    <Form.Item name="avatarMediaId" label="Avatar">
+                      <MediaPickerInput placeholder="/media/..." />
+                    </Form.Item>
                   </div>
-                ))}
-                <Button
-                  type="dashed"
-                  onClick={() =>
-                    add({
-                      id: "",
-                      actionType: "custom",
-                      label: "",
-                      url: "",
-                      icon: "",
-                      target: "_self",
-                      enabled: true,
-                      sortOrder: 0,
-                    })
-                  }
-                  icon={<PlusOutlined />}
-                >
-                  Add Contact Action
-                </Button>
-              </>
-            )}
-          </Form.List>
+                ),
+              },
+              {
+                key: "appearance",
+                label: "Appearance",
+                children: (
+                  <div style={SETTINGS_SECTION_BOX_STYLE}>
+                    <Alert
+                      type="info"
+                      showIcon
+                      message="Chat width and height are now automatic for responsive screens."
+                    />
+                    <Row gutter={12}>
+                      <Col xs={24} md={12}>
+                        <Form.Item name="borderRadius" label="Border Radius">
+                          <InputNumber min={0} max={28} style={{ width: "100%" }} />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                    <Typography.Text style={LIST_HEADER_STYLE}>Color Theme</Typography.Text>
+                    <Row gutter={12}>
+                      <Col xs={24} md={12}>
+                        <Form.Item name="headerColor" label="Header Color">
+                          <ThemeColorInput themeColorOptions={themeColorOptions} />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item name="chatBackgroundColor" label="Chat Background">
+                          <ThemeColorInput themeColorOptions={themeColorOptions} />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item name="borderColor" label="Border Color">
+                          <ThemeColorInput themeColorOptions={themeColorOptions} />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item name="linkAccentColor" label="Link/Button Accent Color">
+                          <ThemeColorInput themeColorOptions={themeColorOptions} />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                    <Typography.Text style={LIST_HEADER_STYLE}>Message Bubbles</Typography.Text>
+                    <Row gutter={12}>
+                      <Col xs={24} md={12}>
+                        <Form.Item name="botMessageBubbleColor" label="Bot Bubble Color">
+                          <ThemeColorInput themeColorOptions={themeColorOptions} />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item name="botMessageTextColor" label="Bot Text Color">
+                          <ThemeColorInput themeColorOptions={themeColorOptions} />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item name="userMessageBubbleColor" label="User Bubble Color">
+                          <ThemeColorInput themeColorOptions={themeColorOptions} />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item name="userMessageTextColor" label="User Text Color">
+                          <ThemeColorInput themeColorOptions={themeColorOptions} />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item name="quickOptionButtonColor" label="Quick Option Button Color">
+                          <ThemeColorInput themeColorOptions={themeColorOptions} />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          name="quickOptionButtonTextColor"
+                          label="Quick Option Button Text Color"
+                        >
+                          <ThemeColorInput themeColorOptions={themeColorOptions} />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  </div>
+                ),
+              },
+              {
+                key: "features",
+                label: "Features",
+                children: (
+                  <div style={SETTINGS_SECTION_BOX_STYLE}>
+                    {renderSettingsSwitchList(
+                      [
+                        { name: "enableSearch", label: "Enable Search" },
+                        { name: "enableBreadcrumb", label: "Enable Breadcrumb" },
+                        { name: "enableHomeButton", label: "Enable Home" },
+                        { name: "enableBackButton", label: "Enable Back" },
+                        { name: "enableRelatedQuestions", label: "Enable Related Questions" },
+                        { name: "enableTypingAnimation", label: "Enable Typing Animation" },
+                        { name: "enableContactBlock", label: "Enable Contact Block" },
+                      ],
+                      "Toggle Features",
+                    )}
+                  </div>
+                ),
+              },
+              {
+                key: "search",
+                label: "Search",
+                children: (
+                  <div style={SETTINGS_SECTION_BOX_STYLE}>
+                    <Row gutter={12}>
+                      <Col xs={24} md={12}>
+                        <Form.Item name="minSearchChars" label="Minimum Search Characters">
+                          <InputNumber min={1} max={10} style={{ width: "100%" }} />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item name="maxSearchResults" label="Maximum Search Results">
+                          <InputNumber min={1} max={30} style={{ width: "100%" }} />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                    <Form.Item name="searchEnabledFieldKeys" label="Search Enabled Fields">
+                      <Select mode="multiple" options={SEARCH_FIELD_OPTIONS} />
+                    </Form.Item>
+                  </div>
+                ),
+              },
+              {
+                key: "welcome",
+                label: "Welcome Screen",
+                children: (
+                  <div style={SETTINGS_SECTION_BOX_STYLE}>
+                    <Form.Item name="welcomeBannerMediaId" label="Banner Image (Optional)">
+                      <MediaPickerInput placeholder="/media/..." />
+                    </Form.Item>
+                    <Row gutter={12}>
+                      <Col xs={24} md={12}>
+                        <Form.Item name="featuredQuestionIds" label="Featured Questions">
+                          <Select
+                            mode="multiple"
+                            options={faqItems.map((item) => ({
+                              label: faqPathLabelById.get(String(item._id)) || item.question,
+                              value: String(item._id),
+                            }))}
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item name="popularQuestionIds" label="Popular Questions">
+                          <Select
+                            mode="multiple"
+                            options={faqItems.map((item) => ({
+                              label: faqPathLabelById.get(String(item._id)) || item.question,
+                              value: String(item._id),
+                            }))}
+                          />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  </div>
+                ),
+              },
+              {
+                key: "contact-actions",
+                label: "Contact Actions",
+                children: (
+                  <div style={SETTINGS_SECTION_BOX_STYLE}>
+                    <Form.List name="contactActions">
+                      {(fields, { add, remove }) => (
+                        <>
+                          {fields.map((field, index) => (
+                            <div
+                              key={field.key}
+                              style={{
+                                border: "1px solid #e8e8e8",
+                                borderRadius: 10,
+                                padding: 12,
+                                background: "#fff",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  marginBottom: 10,
+                                }}
+                              >
+                                <Typography.Text strong>{`Action ${index + 1}`}</Typography.Text>
+                                <Form.Item
+                                  {...field}
+                                  name={[field.name, "enabled"]}
+                                  valuePropName="checked"
+                                  noStyle
+                                >
+                                  <Switch />
+                                </Form.Item>
+                              </div>
+                              <Row gutter={12}>
+                                <Col xs={24} md={10}>
+                                  <Form.Item
+                                    {...field}
+                                    name={[field.name, "label"]}
+                                    label="Label"
+                                    rules={[{ required: true, message: "Label is required" }]}
+                                  >
+                                    <Input />
+                                  </Form.Item>
+                                </Col>
+                                <Col xs={24} md={14}>
+                                  <Form.Item
+                                    {...field}
+                                    name={[field.name, "url"]}
+                                    label="URL"
+                                    rules={[{ required: true, message: "URL is required" }]}
+                                  >
+                                    <Input />
+                                  </Form.Item>
+                                </Col>
+                              </Row>
+                              <Row gutter={12}>
+                                <Col xs={24} md={8}>
+                                  <Form.Item {...field} name={[field.name, "id"]} label="ID">
+                                    <Input placeholder={`action-${index + 1}`} />
+                                  </Form.Item>
+                                </Col>
+                                <Col xs={24} md={8}>
+                                  <Form.Item {...field} name={[field.name, "actionType"]} label="Type">
+                                    <Select options={CONTACT_ACTION_TYPE_OPTIONS} />
+                                  </Form.Item>
+                                </Col>
+                                <Col xs={24} md={8}>
+                                  <Form.Item {...field} name={[field.name, "icon"]} label="Icon">
+                                    <Input placeholder="phone/mail/link" />
+                                  </Form.Item>
+                                </Col>
+                              </Row>
+                              <Row gutter={12}>
+                                <Col xs={24} md={12}>
+                                  <Form.Item {...field} name={[field.name, "target"]} label="Target">
+                                    <Select
+                                      options={[
+                                        { label: "Same Tab", value: "_self" },
+                                        { label: "New Tab", value: "_blank" },
+                                      ]}
+                                    />
+                                  </Form.Item>
+                                </Col>
+                                <Col xs={24} md={12}>
+                                  <Form.Item
+                                    {...field}
+                                    name={[field.name, "sortOrder"]}
+                                    label="Sort Order"
+                                  >
+                                    <InputNumber min={0} style={{ width: "100%" }} />
+                                  </Form.Item>
+                                </Col>
+                              </Row>
+                              <Button danger icon={<DeleteOutlined />} onClick={() => remove(field.name)}>
+                                Remove Action
+                              </Button>
+                            </div>
+                          ))}
+                          <Button
+                            type="dashed"
+                            onClick={() =>
+                              add({
+                                id: "",
+                                actionType: "custom",
+                                label: "",
+                                url: "",
+                                icon: "",
+                                target: "_self",
+                                enabled: true,
+                                sortOrder: 0,
+                              })
+                            }
+                            icon={<PlusOutlined />}
+                          >
+                            Add Contact Action
+                          </Button>
+                        </>
+                      )}
+                    </Form.List>
+                  </div>
+                ),
+              },
+            ]}
+          />
         </Form>
       </Drawer>
     </>

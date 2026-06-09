@@ -66,6 +66,15 @@ function htmlToText(input) {
   return raw.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 }
 
+function hasRenderableHtml(input) {
+  const text = String(input || "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text.length > 0;
+}
+
 function ContactAction({ href, label, target, onClick, accentColor }) {
   return (
     <a
@@ -117,6 +126,7 @@ export default function ChatbotWidget() {
   const [streamedBotText, setStreamedBotText] = useState("");
   const [botReplyText, setBotReplyText] = useState("");
   const [streamingMode, setStreamingMode] = useState(null);
+  const [nodeResponseReadyId, setNodeResponseReadyId] = useState(null);
   const chatScrollRef = useRef(null);
   const touchStartYRef = useRef(0);
   const activeStreamRef = useRef({ runId: 0, timer: null });
@@ -287,7 +297,16 @@ export default function ChatbotWidget() {
   useEffect(() => {
     if (!open) return;
     scrollToBottom("auto");
-  }, [open, current, searchResults, searchError, streamedBotText, lastSubmittedQuery, scrollToBottom]);
+  }, [
+    open,
+    current,
+    searchResults,
+    searchError,
+    streamedBotText,
+    lastSubmittedQuery,
+    nodeResponseReadyId,
+    scrollToBottom,
+  ]);
 
   useEffect(
     () => () => {
@@ -309,6 +328,7 @@ export default function ChatbotWidget() {
         setSearchError("");
         setSearchResults([]);
         setBotReplyText("");
+        setNodeResponseReadyId(null);
         setQuery("");
         if (userText) setLastSubmittedQuery(String(userText));
         const url = `/api/public/chatbot/faqs/${id}${track ? "" : "?track=false"}`;
@@ -332,7 +352,10 @@ export default function ChatbotWidget() {
         }
 
         const answerText = htmlToText(data?.data?.node?.answerHtml || "");
-        streamText(answerText, "node");
+        const responseNodeId = String(data?.data?.node?._id || id || "");
+        streamText(answerText, "node", () => {
+          setNodeResponseReadyId(responseNodeId);
+        });
       } catch (err) {
         setTyping(false);
         setStreamingMode(null);
@@ -361,6 +384,7 @@ export default function ChatbotWidget() {
       setStreamedBotText("");
       setSearchError("");
       setCurrent(null);
+      setNodeResponseReadyId(null);
       setLastSubmittedQuery(text);
       setBotReplyText("");
       setSearchResults([]);
@@ -423,6 +447,7 @@ export default function ChatbotWidget() {
     setSearchResults([]);
     setSearchError("");
     setBotReplyText("");
+    setNodeResponseReadyId(null);
     setLastSubmittedQuery("");
     setQuery("");
   };
@@ -457,12 +482,26 @@ export default function ChatbotWidget() {
       .sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0));
   }, [settings?.contactActions]);
 
+  const contactOnlyActions = useMemo(() => {
+    const filtered = activeActions.filter((action) => {
+      const type = String(action?.actionType || "").toLowerCase();
+      const label = String(action?.label || "").toLowerCase();
+      return type === "contact" || label.includes("contact");
+    });
+    if (filtered.length > 0) return filtered;
+    return activeActions.slice(0, 1);
+  }, [activeActions]);
+
   const anchorGap = 16;
   const accentColor = settings?.themeColor || "#ff8a00";
   const chipBg = settings?.quickOptionButtonColor || "#ff8a00";
   const chipColor = settings?.quickOptionButtonTextColor || "#ffffff";
 
   if (loading || !settings || settings.enabled === false) return null;
+  const currentNodeId = String(current?.node?._id || "");
+  const isCurrentNodeResponseReady = Boolean(currentNodeId) && nodeResponseReadyId === currentNodeId;
+  const nodeAnswerHtml = String(current?.node?.answerHtml || "");
+  const hasNodeAnswer = hasRenderableHtml(nodeAnswerHtml);
 
   const collapsedWindowStyle = {
     top: "auto",
@@ -488,13 +527,13 @@ export default function ChatbotWidget() {
 
   const windowSizeStyle = expanded ? expandedWindowStyle : collapsedWindowStyle;
 
-  const renderContactActions = () => {
-    if (!settings.enableContactBlock || activeActions.length === 0) return null;
+  const renderContactActions = (actions = contactOnlyActions) => {
+    if (!settings.enableContactBlock || !Array.isArray(actions) || actions.length === 0) return null;
     return (
       <div style={{ marginTop: 12 }}>
-        <div style={{ marginBottom: 8, fontWeight: 600, color: "#555" }}>Need human support?</div>
+        <div style={{ marginBottom: 8, fontWeight: 600, color: "#555" }}>Need more info?</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-          {activeActions.map((action) => (
+          {actions.map((action) => (
             <ContactAction
               key={action.id}
               href={action.url}
@@ -823,31 +862,37 @@ export default function ChatbotWidget() {
 
           {!typing && !searchResults.length && current?.node ? (
             <>
-              <div
-                style={{
-                  display: "inline-block",
-                  background: settings.botMessageBubbleColor || "#f7f7f7",
-                  color: settings.botMessageTextColor || "#202020",
-                  borderRadius: 16,
-                  padding: "12px 14px",
-                  border: `1px solid ${settings.borderColor || "#ededed"}`,
-                  maxWidth: "95%",
-                  lineHeight: 1.5,
-                }}
-                // eslint-disable-next-line react/no-danger
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(current.node.answerHtml || ""),
-                }}
-              />
-              {renderChoiceChips(dedupeQuestions(current.children || []))}
-              {(!current.children || current.children.length === 0) && renderContactActions()}
+              {hasNodeAnswer && isCurrentNodeResponseReady ? (
+                <div
+                  style={{
+                    display: "inline-block",
+                    background: settings.botMessageBubbleColor || "#f7f7f7",
+                    color: settings.botMessageTextColor || "#202020",
+                    borderRadius: 16,
+                    padding: "12px 14px",
+                    border: `1px solid ${settings.borderColor || "#ededed"}`,
+                    maxWidth: "95%",
+                    lineHeight: 1.5,
+                  }}
+                  // eslint-disable-next-line react/no-danger
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(nodeAnswerHtml),
+                  }}
+                />
+              ) : null}
+              {isCurrentNodeResponseReady ? renderChoiceChips(dedupeQuestions(current.children || [])) : null}
+              {isCurrentNodeResponseReady && current?.node?.showNeedMoreInfo
+                ? renderContactActions(contactOnlyActions)
+                : null}
             </>
           ) : null}
 
           {!typing && searchError ? (
             <div style={{ marginTop: 12, color: "#cf1322", fontWeight: 500 }}>
               {searchError}
-              {searchError.toLowerCase().includes("didn't find") ? renderContactActions() : null}
+              {searchError.toLowerCase().includes("didn't find")
+                ? renderContactActions(contactOnlyActions)
+                : null}
             </div>
           ) : null}
         </div>
