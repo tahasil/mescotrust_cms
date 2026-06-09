@@ -4,6 +4,7 @@ import { Fragment } from "react";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import * as SiteComponents from "@/components/site/publicComponents";
 import RoutePopupHost from "@/components/layout/RoutePopupHost";
+import ChatbotWidget from "@/components/site/ChatbotWidget";
 
 const hasHeaderBlock = (layout) =>
   Array.isArray(layout) && layout.some((b) => (b?.baseComponent || b?.componentId?.baseComponent) === "Header");
@@ -362,6 +363,7 @@ export default function PublicShell({
       {!hasGlobalFooter && useSiteFooterForLayout && layoutWithoutFooterBlocks(customFooterLayout).length > 0 && (
         <ComponentRenderer layout={layoutWithoutFooterBlocks(customFooterLayout)} />
       )}
+      <ChatbotWidget />
     </div>
   );
 }

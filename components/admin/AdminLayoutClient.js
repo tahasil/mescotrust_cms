@@ -216,6 +216,15 @@ const baseMenuItems = [
     ),
   },
   {
+    key: "/admin/chatbot",
+    icon: <MessageOutlined />,
+    label: (
+      <Link href="/admin/chatbot" style={linkStyle}>
+        Chatbot
+      </Link>
+    ),
+  },
+  {
     key: "/admin/theme",
     icon: <BgColorsOutlined />,
     label: (

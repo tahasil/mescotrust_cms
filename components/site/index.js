@@ -3,7 +3,7 @@
  * EDITABLE_SITE_EDIT_FORMS: drawer content lives in component; PageBuilder only calls these.
  * PageBuilder → save to pages. Components edit page → save to components collection.
  */
-export { default as Header, HeaderEditForm } from "./Header";
+export { default as Header, HeaderEditForm } from "./Header/index";
 export { default as Footer, FooterEditForm } from "./Footer/index";
 export { default as HomeHero, HomeHeroEditForm } from "./HomeHero/index";
 export { default as Marquee, MarqueeEditForm } from "./Marquee/index";
