@@ -36,11 +36,6 @@ const { TextArea } = Input;
 const { Text } = Typography;
 const TREE_ROOT_KEY = "__root__";
 
-function createNodeId(type) {
-  const prefix = type === "answer" ? "a" : "q";
-  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-}
-
 function extractMediaIdFromUrl(url) {
   const value = String(url || "").trim();
   if (!value) return "";
@@ -355,6 +350,7 @@ export default function FAQChatbotPage() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsDirty, setSettingsDirty] = useState(false);
   const [nodeModalForm] = Form.useForm();
+  const [nodeSubmitting, setNodeSubmitting] = useState(false);
   const [treeVersion, setTreeVersion] = useState(1);
   const [nodeCount, setNodeCount] = useState(0);
   const [indexStatus, setIndexStatus] = useState(null);
@@ -512,11 +508,63 @@ export default function FAQChatbotPage() {
     nodeModalForm.resetFields();
   };
 
+  const createNodeViaApi = useCallback(
+    async ({ type, parentNodeId, text }) => {
+      const safeType = type === "answer" ? "answer" : "question";
+      const safeParentNodeId = parentNodeId || null;
+      const safeText = String(text || "").trim();
+      const siblingCount = nodes.filter(
+        (item) => (item.parentNodeId || null) === safeParentNodeId,
+      ).length;
+
+      const res = await fetch("/api/admin/faq-chatbot/nodes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          treeVersion,
+          type: safeType,
+          parentNodeId: safeParentNodeId,
+          text: safeText,
+          order: siblingCount,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (res.status === 409) {
+          message.error("Version conflict. Reloaded latest data.");
+          await loadData();
+          return false;
+        }
+        message.error(data?.error || "Failed to create node");
+        return false;
+      }
+
+      syncFromServer(data, { syncSettingsForm: !settingsDirty });
+      const createdNodeId = String(data?.createdNodeId || "").trim();
+      if (createdNodeId) {
+        setSelectedNodeId(createdNodeId);
+      }
+      if (safeParentNodeId) {
+        setExpandedKeys((prev) => Array.from(new Set([...prev, safeParentNodeId])));
+      }
+      message.success(safeType === "answer" ? "Answer created successfully" : "Question created successfully");
+      return true;
+    },
+    [loadData, nodes, settingsDirty, syncFromServer, treeVersion],
+  );
+
   const handleNodeModalSubmit = async () => {
+    setNodeSubmitting(true);
     try {
       const values = await nodeModalForm.validateFields();
       const textValue = String(values?.text || "").trim();
-      if (!textValue) return;
+      if (!textValue) {
+        nodeModalForm.setFields([
+          { name: "text", errors: ["Text is required"] },
+        ]);
+        message.error("Question text is required");
+        return;
+      }
 
       if (nodeModalState.mode === "edit") {
         setNodes((prev) =>
@@ -531,39 +579,37 @@ export default function FAQChatbotPage() {
           ),
         );
         setTreeDirty(true);
+        message.success(nodeModalState.nodeType === "answer" ? "Answer updated" : "Question updated");
         handleNodeModalCancel();
         return;
       }
 
       const newNodeType = nodeModalState.nodeType === "answer" ? "answer" : "question";
       const parentNodeId = nodeModalState.parentNodeId || null;
-      setNodes((prev) => {
-        const siblingCount = prev.filter(
-          (item) => (item.parentNodeId || null) === parentNodeId,
-        ).length;
-        const newNode = {
-          nodeId: createNodeId(newNodeType),
-          parentNodeId,
-          rootNodeId: "",
-          type: newNodeType,
-          questionText: newNodeType === "question" ? textValue : "",
-          answerText: newNodeType === "answer" ? textValue : "",
-          depth: 0,
-          order: siblingCount,
-          pathNodeIds: [],
-          pathText: "",
-          isActive: true,
-        };
-        const next = normalizeNodeOrders([...prev, newNode]);
-        setNodeCount(next.length);
-        setSelectedNodeId(newNode.nodeId);
-        setTreeDirty(true);
-        return next;
+      const created = await createNodeViaApi({
+        type: newNodeType,
+        parentNodeId,
+        text: textValue,
       });
-      handleNodeModalCancel();
+      if (created) {
+        handleNodeModalCancel();
+      }
     } catch (err) {
-      if (err?.errorFields) return;
+      if (err?.errorFields?.length) {
+        const firstError = err.errorFields[0];
+        const firstMessage = Array.isArray(firstError?.errors) ? firstError.errors[0] : "";
+        if (firstMessage) {
+          message.error(firstMessage);
+        } else {
+          message.error("Please fix validation errors and try again.");
+        }
+        return;
+      }
+      // eslint-disable-next-line no-console
+      console.error("FAQ node submit failed", err);
       message.error("Failed to save node");
+    } finally {
+      setNodeSubmitting(false);
     }
   };
 
@@ -1354,6 +1400,7 @@ export default function FAQChatbotPage() {
         open={nodeModalState.open}
         onCancel={handleNodeModalCancel}
         onOk={handleNodeModalSubmit}
+        confirmLoading={nodeSubmitting}
         okText={nodeModalState.mode === "edit" ? "Update" : "Create"}
         destroyOnClose
       >
