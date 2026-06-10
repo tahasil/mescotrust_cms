@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import DOMPurify from "isomorphic-dompurify";
+import styled, { keyframes } from "styled-components";
 import {
   ArrowLeftOutlined,
   ArrowUpOutlined,
@@ -11,6 +12,90 @@ import {
   HomeOutlined,
   MessageOutlined,
 } from "@ant-design/icons";
+
+const chatbotTypingPulse = keyframes`
+  0%, 80%, 100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+`;
+
+const ChatbotWidgetRoot = styled.div`
+  @media (max-width: 1024px) {
+    [data-chatbot-window][data-chatbot-expanded="false"] {
+      right: 16px !important;
+      left: auto !important;
+      bottom: 16px !important;
+      width: min(430px, calc(100vw - 32px)) !important;
+      height: min(74vh, calc(100vh - 96px)) !important;
+      max-height: calc(100vh - 32px) !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    [data-chatbot-window][data-chatbot-expanded="false"] {
+      top: auto !important;
+      right: 16px !important;
+      left: auto !important;
+      bottom: 16px !important;
+      width: calc(100vw - 32px) !important;
+      height: min(72vh, calc(100vh - 96px)) !important;
+      max-height: calc(100vh - 32px) !important;
+      border-radius: 16px !important;
+    }
+
+    [data-chatbot-window][data-chatbot-expanded="true"] {
+      top: 16px !important;
+      right: 16px !important;
+      bottom: 16px !important;
+      left: 16px !important;
+      width: auto !important;
+      height: auto !important;
+      max-height: none !important;
+      border-radius: 12px !important;
+    }
+
+    [data-chatbot-launcher] {
+      right: 16px !important;
+      bottom: 16px !important;
+    }
+  }
+`;
+
+const TypingStatus = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+`;
+
+const TypingDots = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+`;
+
+const TypingDot = styled.i`
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.35;
+  transform: translateY(0);
+  animation: ${chatbotTypingPulse} 1s infinite ease-in-out;
+  display: inline-block;
+
+  &:nth-child(2) {
+    animation-delay: 0.12s;
+  }
+
+  &:nth-child(3) {
+    animation-delay: 0.24s;
+  }
+`;
 
 function resolveMediaSrc(value) {
   const raw = String(value || "").trim();
@@ -634,7 +719,7 @@ export default function ChatbotWidget() {
   );
 
   return (
-    <>
+    <ChatbotWidgetRoot>
       <button
         type="button"
         onClick={toggleOpen}
@@ -858,22 +943,16 @@ export default function ChatbotWidget() {
               {streamedBotText ? (
                 streamedBotText
               ) : (
-                <span
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
+                <TypingStatus>
                   <span>
                     {streamingMode === "node" ? "Typing" : "Thinking"}
                   </span>
-                  <span className="chatbot-typing-dots" aria-hidden>
-                    <i />
-                    <i />
-                    <i />
-                  </span>
-                </span>
+                  <TypingDots aria-hidden>
+                    <TypingDot />
+                    <TypingDot />
+                    <TypingDot />
+                  </TypingDots>
+                </TypingStatus>
               )}
             </div>
           ) : null}
@@ -1101,79 +1180,6 @@ export default function ChatbotWidget() {
         </div>
       </div>
 
-      <style>{`
-        .public-site .chatbot-typing-dots {
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-        }
-        .public-site .chatbot-typing-dots i {
-          width: 5px;
-          height: 5px;
-          border-radius: 999px;
-          background: currentColor;
-          opacity: 0.35;
-          transform: translateY(0);
-          animation: chatbotTypingPulse 1s infinite ease-in-out;
-          display: inline-block;
-        }
-        .public-site .chatbot-typing-dots i:nth-child(2) {
-          animation-delay: 0.12s;
-        }
-        .public-site .chatbot-typing-dots i:nth-child(3) {
-          animation-delay: 0.24s;
-        }
-        @keyframes chatbotTypingPulse {
-          0%, 80%, 100% {
-            opacity: 0.35;
-            transform: translateY(0);
-          }
-          40% {
-            opacity: 1;
-            transform: translateY(-2px);
-          }
-        }
-
-        @media (max-width: 1024px) {
-          .public-site [data-chatbot-window][data-chatbot-expanded="false"] {
-            right: 16px !important;
-            left: auto !important;
-            bottom: 16px !important;
-            width: min(430px, calc(100vw - 32px)) !important;
-            height: min(74vh, calc(100vh - 96px)) !important;
-            max-height: calc(100vh - 32px) !important;
-          }
-        }
-
-        @media (max-width: 768px) {
-          .public-site [data-chatbot-window][data-chatbot-expanded="false"] {
-            top: auto !important;
-            right: 16px !important;
-            left: auto !important;
-            bottom: 16px !important;
-            width: calc(100vw - 32px) !important;
-            height: min(72vh, calc(100vh - 96px)) !important;
-            max-height: calc(100vh - 32px) !important;
-            border-radius: 16px !important;
-          }
-
-          .public-site [data-chatbot-window][data-chatbot-expanded="true"] {
-            top: 16px !important;
-            right: 16px !important;
-            bottom: 16px !important;
-            left: 16px !important;
-            width: auto !important;
-            height: auto !important;
-            max-height: none !important;
-            border-radius: 12px !important;
-          }
-
-          .public-site [data-chatbot-launcher] {
-            right: 16px !important;
-            bottom: 16px !important;
-          }
-        }
-      `}</style>
-    </>
+    </ChatbotWidgetRoot>
   );
 }
