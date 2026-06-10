@@ -6,7 +6,6 @@ import {
   Button,
   Collapse,
   Col,
-  Divider,
   Drawer,
   Form,
   Input,
@@ -113,12 +112,27 @@ const SETTINGS_COLLAPSE_STYLE = {
   overflow: "hidden",
 };
 const SETTINGS_SECTION_BOX_STYLE = {
-  border: "1px solid #e8e8e8",
-  borderRadius: 10,
-  padding: 14,
   display: "flex",
   flexDirection: "column",
-  gap: 14,
+  gap: 10,
+};
+const SETTINGS_CARD_STYLE = {
+  border: "1px solid #e8e8e8",
+  borderRadius: 10,
+  background: "#fff",
+  overflow: "hidden",
+};
+const SETTINGS_CARD_HEADER_STYLE = {
+  ...LIST_HEADER_STYLE,
+  display: "block",
+  padding: "10px 12px",
+  borderBottom: "1px solid #f0f0f0",
+};
+const SETTINGS_CARD_BODY_STYLE = {
+  padding: 10,
+  display: "flex",
+  flexDirection: "column",
+  gap: 8,
 };
 const SETTINGS_ROW_LABEL_STYLE = {
   fontSize: 14,
@@ -135,10 +149,10 @@ export default function AdminChatbotPage() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [themeColorOptions, setThemeColorOptions] = useState([]);
   const [isAdminRole, setIsAdminRole] = useState(true);
+  const [answerEditorValue, setAnswerEditorValue] = useState("");
   const [faqForm] = Form.useForm();
   const [settingsForm] = Form.useForm();
   const hasAutoSelectedInitialNode = useRef(false);
-  const answerHtml = Form.useWatch("answerHtml", faqForm);
 
   const faqById = useMemo(() => {
     const map = new Map();
@@ -278,10 +292,11 @@ export default function AdminChatbotPage() {
     if (!selectedId) return;
     const node = faqById.get(String(selectedId));
     if (!node) return;
+    const nextAnswerHtml = String(node.answerHtml || "");
     setMode("edit");
     faqForm.setFieldsValue({
       question: node.question || "",
-      answerHtml: node.answerHtml || "",
+      answerHtml: nextAnswerHtml,
       keywords: Array.isArray(node.keywords) ? node.keywords : [],
       tags: Array.isArray(node.tags) ? node.tags : [],
       synonyms: Array.isArray(node.synonyms) ? node.synonyms : [],
@@ -290,6 +305,7 @@ export default function AdminChatbotPage() {
       sortOrder: Number(node.sortOrder || 0),
       parentId: node.parentId ? String(node.parentId) : ROOT_PARENT_VALUE,
     });
+    setAnswerEditorValue(nextAnswerHtml);
   }, [faqById, faqForm, selectedId]);
 
   const parentOptions = useMemo(() => {
@@ -312,6 +328,7 @@ export default function AdminChatbotPage() {
     setMode("create");
     setSelectedId(null);
     faqForm.resetFields();
+    setAnswerEditorValue("");
     faqForm.setFieldsValue({
       question: "",
       answerHtml: "",
@@ -331,7 +348,7 @@ export default function AdminChatbotPage() {
       const payload = {
         ...values,
         question: String(values.question || "").trim(),
-        answerHtml: String(values.answerHtml || "").trim(),
+        answerHtml: String(values.answerHtml ?? answerEditorValue ?? "").trim(),
         keywords: Array.isArray(values.keywords) ? values.keywords : [],
         tags: Array.isArray(values.tags) ? values.tags : [],
         synonyms: Array.isArray(values.synonyms) ? values.synonyms : [],
@@ -354,6 +371,7 @@ export default function AdminChatbotPage() {
         throw new Error(extractApiError(data, "Failed to save FAQ"));
       }
       const savedId = String(data?.data?._id || "");
+      setAnswerEditorValue(String(data?.data?.answerHtml || payload.answerHtml || ""));
       await loadFaqs();
       if (savedId) setSelectedId(savedId);
       setMode("edit");
@@ -514,10 +532,17 @@ export default function AdminChatbotPage() {
 
   const onSettingsSubmit = async () => {
     try {
-      const values = await settingsForm.validateFields();
-      const enabledFieldKeys = Array.isArray(values.searchEnabledFieldKeys)
-        ? values.searchEnabledFieldKeys
+      const validatedValues = await settingsForm.validateFields();
+      const allValues = settingsForm.getFieldsValue(true);
+      const values = { ...allValues, ...validatedValues };
+
+      const rawSearchFieldKeys = values.searchEnabledFieldKeys;
+      let enabledFieldKeys = Array.isArray(rawSearchFieldKeys)
+        ? rawSearchFieldKeys.map((key) => String(key || "").trim()).filter(Boolean)
         : [];
+      if (enabledFieldKeys.length === 0) {
+        enabledFieldKeys = SEARCH_FIELD_OPTIONS.map((item) => item.value);
+      }
       const searchEnabledFields = SEARCH_FIELD_OPTIONS.reduce((acc, item) => {
         acc[item.value] = enabledFieldKeys.includes(item.value);
         return acc;
@@ -525,6 +550,7 @@ export default function AdminChatbotPage() {
 
       const payload = {
         ...values,
+        themeColor: values.linkAccentColor || values.themeColor || "",
         searchEnabledFields,
         contactActions: (values.contactActions || []).map((action, index) => ({
           ...action,
@@ -566,6 +592,7 @@ export default function AdminChatbotPage() {
     <List
       header={<span style={LIST_HEADER_STYLE}>{headerLabel}</span>}
       size="small"
+      style={SETTINGS_CARD_STYLE}
       bordered
       split
       dataSource={items}
@@ -581,6 +608,13 @@ export default function AdminChatbotPage() {
         </List.Item>
       )}
     />
+  );
+
+  const renderSettingsCard = (title, children) => (
+    <div style={SETTINGS_CARD_STYLE}>
+      {title ? <span style={SETTINGS_CARD_HEADER_STYLE}>{title}</span> : null}
+      <div style={SETTINGS_CARD_BODY_STYLE}>{children}</div>
+    </div>
   );
 
   return (
@@ -782,8 +816,11 @@ export default function AdminChatbotPage() {
                 </Form.Item>
                 <Form.Item label="Answer (Rich Text)">
                   <RichTextEditor
-                    value={answerHtml}
-                    onChange={(value) => faqForm.setFieldValue("answerHtml", value)}
+                    value={answerEditorValue}
+                    onChange={(value) => {
+                      setAnswerEditorValue(String(value || ""));
+                      faqForm.setFieldValue("answerHtml", value);
+                    }}
                     placeholder="Write predefined answer"
                     minHeight={220}
                   />
@@ -811,7 +848,6 @@ export default function AdminChatbotPage() {
       <Drawer
         title="Chatbot Settings"
         open={settingsOpen}
-        width={620}
         onClose={() => setSettingsOpen(false)}
         destroyOnClose={false}
         extra={
@@ -825,7 +861,7 @@ export default function AdminChatbotPage() {
           </Button>
         }
       >
-        <Form layout="vertical" form={settingsForm} size="large">
+        <Form layout="vertical" form={settingsForm} size="middle" className="chatbot-settings-form">
           <Collapse
             defaultActiveKey={["general", "appearance"]}
             style={SETTINGS_COLLAPSE_STYLE}
@@ -836,8 +872,9 @@ export default function AdminChatbotPage() {
                 children: (
                   <div style={SETTINGS_SECTION_BOX_STYLE}>
                     {renderSettingsSwitchList([{ name: "enabled", label: "Enable chatbot" }], "Status")}
-                    <Row gutter={12}>
-                      <Col xs={24} md={12}>
+                    {renderSettingsCard(
+                      "General Settings",
+                      <>
                         <Form.Item name="position" label="Position">
                           <Select
                             options={[
@@ -846,26 +883,23 @@ export default function AdminChatbotPage() {
                             ]}
                           />
                         </Form.Item>
-                      </Col>
-                      <Col xs={24} md={12}>
                         <Form.Item name="fontSize" label="Font Size">
                           <InputNumber min={12} max={22} style={{ width: "100%" }} />
                         </Form.Item>
-                      </Col>
-                    </Row>
-                    <Divider style={{ margin: "0 0 4px" }} />
-                    <Form.Item name="botName" label="Bot Name">
-                      <Input />
-                    </Form.Item>
-                    <Form.Item name="welcomeMessage" label="Welcome Message">
-                      <Input />
-                    </Form.Item>
-                    <Form.Item name="welcomeSubtitle" label="Welcome Subtitle">
-                      <Input />
-                    </Form.Item>
-                    <Form.Item name="avatarMediaId" label="Avatar">
-                      <MediaPickerInput placeholder="/media/..." />
-                    </Form.Item>
+                        <Form.Item name="botName" label="Bot Name">
+                          <Input />
+                        </Form.Item>
+                        <Form.Item name="welcomeMessage" label="Welcome Message">
+                          <Input />
+                        </Form.Item>
+                        <Form.Item name="welcomeSubtitle" label="Welcome Subtitle">
+                          <Input />
+                        </Form.Item>
+                        <Form.Item name="avatarMediaId" label="Avatar">
+                          <MediaPickerInput placeholder="/media/..." />
+                        </Form.Item>
+                      </>,
+                    )}
                   </div>
                 ),
               },
@@ -874,77 +908,89 @@ export default function AdminChatbotPage() {
                 label: "Appearance",
                 children: (
                   <div style={SETTINGS_SECTION_BOX_STYLE}>
-                    <Alert
-                      type="info"
-                      showIcon
-                      message="Chat width and height are now automatic for responsive screens."
-                    />
-                    <Row gutter={12}>
-                      <Col xs={24} md={12}>
+                    {renderSettingsCard(
+                      "Layout",
+                      <>
+                        <Form.Item name="width" label="Chat Width (Desktop)">
+                          <InputNumber min={320} max={640} style={{ width: "100%" }} />
+                        </Form.Item>
+                        <Form.Item name="height" label="Chat Height (Desktop)">
+                          <InputNumber min={420} max={900} style={{ width: "100%" }} />
+                        </Form.Item>
                         <Form.Item name="borderRadius" label="Border Radius">
                           <InputNumber min={0} max={28} style={{ width: "100%" }} />
                         </Form.Item>
-                      </Col>
-                    </Row>
-                    <Typography.Text style={LIST_HEADER_STYLE}>Color Theme</Typography.Text>
-                    <Row gutter={12}>
-                      <Col xs={24} md={12}>
+                        <Form.Item name="contentPadding" label="Content Padding">
+                          <InputNumber min={8} max={28} style={{ width: "100%" }} />
+                        </Form.Item>
+                        <Form.Item name="footerPadding" label="Footer Padding">
+                          <InputNumber min={8} max={24} style={{ width: "100%" }} />
+                        </Form.Item>
+                        <Form.Item name="elementGap" label="Element Gap">
+                          <InputNumber min={4} max={20} style={{ width: "100%" }} />
+                        </Form.Item>
+                      </>,
+                    )}
+                    {renderSettingsCard(
+                      "Color Theme",
+                      <>
                         <Form.Item name="headerColor" label="Header Color">
                           <ThemeColorInput themeColorOptions={themeColorOptions} />
                         </Form.Item>
-                      </Col>
-                      <Col xs={24} md={12}>
                         <Form.Item name="chatBackgroundColor" label="Chat Background">
                           <ThemeColorInput themeColorOptions={themeColorOptions} />
                         </Form.Item>
-                      </Col>
-                      <Col xs={24} md={12}>
                         <Form.Item name="borderColor" label="Border Color">
                           <ThemeColorInput themeColorOptions={themeColorOptions} />
                         </Form.Item>
-                      </Col>
-                      <Col xs={24} md={12}>
                         <Form.Item name="linkAccentColor" label="Link/Button Accent Color">
                           <ThemeColorInput themeColorOptions={themeColorOptions} />
                         </Form.Item>
-                      </Col>
-                    </Row>
-                    <Typography.Text style={LIST_HEADER_STYLE}>Message Bubbles</Typography.Text>
-                    <Row gutter={12}>
-                      <Col xs={24} md={12}>
+                      </>,
+                    )}
+                    {renderSettingsCard(
+                      "Message Bubbles",
+                      <>
                         <Form.Item name="botMessageBubbleColor" label="Bot Bubble Color">
                           <ThemeColorInput themeColorOptions={themeColorOptions} />
                         </Form.Item>
-                      </Col>
-                      <Col xs={24} md={12}>
                         <Form.Item name="botMessageTextColor" label="Bot Text Color">
                           <ThemeColorInput themeColorOptions={themeColorOptions} />
                         </Form.Item>
-                      </Col>
-                      <Col xs={24} md={12}>
                         <Form.Item name="userMessageBubbleColor" label="User Bubble Color">
                           <ThemeColorInput themeColorOptions={themeColorOptions} />
                         </Form.Item>
-                      </Col>
-                      <Col xs={24} md={12}>
                         <Form.Item name="userMessageTextColor" label="User Text Color">
                           <ThemeColorInput themeColorOptions={themeColorOptions} />
                         </Form.Item>
-                      </Col>
-                      <Col xs={24} md={12}>
                         <Form.Item name="quickOptionButtonColor" label="Quick Option Button Color">
                           <ThemeColorInput themeColorOptions={themeColorOptions} />
                         </Form.Item>
-                      </Col>
-                      <Col xs={24} md={12}>
                         <Form.Item
                           name="quickOptionButtonTextColor"
                           label="Quick Option Button Text Color"
                         >
                           <ThemeColorInput themeColorOptions={themeColorOptions} />
                         </Form.Item>
-                      </Col>
-                    </Row>
+                      </>,
+                    )}
+                    {renderSettingsCard(
+                      "Shadows",
+                      <>
+                        <Form.Item name="launcherShadow" label="Launcher Shadow">
+                          <Input placeholder="e.g. 0 10px 26px rgba(0,0,0,0.25)" />
+                        </Form.Item>
+                        <Form.Item name="windowShadow" label="Window Shadow">
+                          <Input placeholder="e.g. 0 14px 38px rgba(0,0,0,0.22)" />
+                        </Form.Item>
+                        <Form.Item name="bubbleShadow" label="Message Bubble Shadow">
+                          <Input placeholder="e.g. 0 3px 10px rgba(0,0,0,0.08)" />
+                        </Form.Item>
+                        <Form.Item name="chipShadow" label="Chip/Button Shadow">
+                          <Input placeholder="e.g. 0 3px 10px rgba(0,0,0,0.08)" />
+                        </Form.Item>
+                      </>,
+                    )}
                   </div>
                 ),
               },
@@ -973,21 +1019,20 @@ export default function AdminChatbotPage() {
                 label: "Search",
                 children: (
                   <div style={SETTINGS_SECTION_BOX_STYLE}>
-                    <Row gutter={12}>
-                      <Col xs={24} md={12}>
+                    {renderSettingsCard(
+                      "Search Settings",
+                      <>
                         <Form.Item name="minSearchChars" label="Minimum Search Characters">
                           <InputNumber min={1} max={10} style={{ width: "100%" }} />
                         </Form.Item>
-                      </Col>
-                      <Col xs={24} md={12}>
                         <Form.Item name="maxSearchResults" label="Maximum Search Results">
                           <InputNumber min={1} max={30} style={{ width: "100%" }} />
                         </Form.Item>
-                      </Col>
-                    </Row>
-                    <Form.Item name="searchEnabledFieldKeys" label="Search Enabled Fields">
-                      <Select mode="multiple" options={SEARCH_FIELD_OPTIONS} />
-                    </Form.Item>
+                        <Form.Item name="searchEnabledFieldKeys" label="Search Enabled Fields">
+                          <Select mode="multiple" options={SEARCH_FIELD_OPTIONS} />
+                        </Form.Item>
+                      </>,
+                    )}
                   </div>
                 ),
               },
@@ -996,11 +1041,12 @@ export default function AdminChatbotPage() {
                 label: "Welcome Screen",
                 children: (
                   <div style={SETTINGS_SECTION_BOX_STYLE}>
-                    <Form.Item name="welcomeBannerMediaId" label="Banner Image (Optional)">
-                      <MediaPickerInput placeholder="/media/..." />
-                    </Form.Item>
-                    <Row gutter={12}>
-                      <Col xs={24} md={12}>
+                    {renderSettingsCard(
+                      "Welcome Content",
+                      <>
+                        <Form.Item name="welcomeBannerMediaId" label="Banner Image (Optional)">
+                          <MediaPickerInput placeholder="/media/..." />
+                        </Form.Item>
                         <Form.Item name="featuredQuestionIds" label="Featured Questions">
                           <Select
                             mode="multiple"
@@ -1010,8 +1056,6 @@ export default function AdminChatbotPage() {
                             }))}
                           />
                         </Form.Item>
-                      </Col>
-                      <Col xs={24} md={12}>
                         <Form.Item name="popularQuestionIds" label="Popular Questions">
                           <Select
                             mode="multiple"
@@ -1021,8 +1065,8 @@ export default function AdminChatbotPage() {
                             }))}
                           />
                         </Form.Item>
-                      </Col>
-                    </Row>
+                      </>,
+                    )}
                   </div>
                 ),
               },
@@ -1035,35 +1079,30 @@ export default function AdminChatbotPage() {
                       {(fields, { add, remove }) => (
                         <>
                           {fields.map((field, index) => (
-                            <div
-                              key={field.key}
-                              style={{
-                                border: "1px solid #e8e8e8",
-                                borderRadius: 10,
-                                padding: 12,
-                                background: "#fff",
-                              }}
-                            >
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "space-between",
-                                  marginBottom: 10,
-                                }}
-                              >
-                                <Typography.Text strong>{`Action ${index + 1}`}</Typography.Text>
-                                <Form.Item
-                                  {...field}
-                                  name={[field.name, "enabled"]}
-                                  valuePropName="checked"
-                                  noStyle
-                                >
-                                  <Switch />
-                                </Form.Item>
-                              </div>
-                              <Row gutter={12}>
-                                <Col xs={24} md={10}>
+                            <div key={field.key}>
+                              {renderSettingsCard(
+                                `Action ${index + 1}`,
+                                <>
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "space-between",
+                                      paddingBottom: 8,
+                                      marginBottom: 8,
+                                      borderBottom: "1px solid #f0f0f0",
+                                    }}
+                                  >
+                                    <span style={SETTINGS_ROW_LABEL_STYLE}>Enable action</span>
+                                    <Form.Item
+                                      {...field}
+                                      name={[field.name, "enabled"]}
+                                      valuePropName="checked"
+                                      noStyle
+                                    >
+                                      <Switch />
+                                    </Form.Item>
+                                  </div>
                                   <Form.Item
                                     {...field}
                                     name={[field.name, "label"]}
@@ -1072,8 +1111,6 @@ export default function AdminChatbotPage() {
                                   >
                                     <Input />
                                   </Form.Item>
-                                </Col>
-                                <Col xs={24} md={14}>
                                   <Form.Item
                                     {...field}
                                     name={[field.name, "url"]}
@@ -1082,27 +1119,15 @@ export default function AdminChatbotPage() {
                                   >
                                     <Input />
                                   </Form.Item>
-                                </Col>
-                              </Row>
-                              <Row gutter={12}>
-                                <Col xs={24} md={8}>
                                   <Form.Item {...field} name={[field.name, "id"]} label="ID">
                                     <Input placeholder={`action-${index + 1}`} />
                                   </Form.Item>
-                                </Col>
-                                <Col xs={24} md={8}>
                                   <Form.Item {...field} name={[field.name, "actionType"]} label="Type">
                                     <Select options={CONTACT_ACTION_TYPE_OPTIONS} />
                                   </Form.Item>
-                                </Col>
-                                <Col xs={24} md={8}>
                                   <Form.Item {...field} name={[field.name, "icon"]} label="Icon">
                                     <Input placeholder="phone/mail/link" />
                                   </Form.Item>
-                                </Col>
-                              </Row>
-                              <Row gutter={12}>
-                                <Col xs={24} md={12}>
                                   <Form.Item {...field} name={[field.name, "target"]} label="Target">
                                     <Select
                                       options={[
@@ -1111,20 +1136,18 @@ export default function AdminChatbotPage() {
                                       ]}
                                     />
                                   </Form.Item>
-                                </Col>
-                                <Col xs={24} md={12}>
-                                  <Form.Item
-                                    {...field}
-                                    name={[field.name, "sortOrder"]}
-                                    label="Sort Order"
-                                  >
+                                  <Form.Item {...field} name={[field.name, "sortOrder"]} label="Sort Order">
                                     <InputNumber min={0} style={{ width: "100%" }} />
                                   </Form.Item>
-                                </Col>
-                              </Row>
-                              <Button danger icon={<DeleteOutlined />} onClick={() => remove(field.name)}>
-                                Remove Action
-                              </Button>
+                                  <Button
+                                    danger
+                                    icon={<DeleteOutlined />}
+                                    onClick={() => remove(field.name)}
+                                  >
+                                    Remove Action
+                                  </Button>
+                                </>,
+                              )}
                             </div>
                           ))}
                           <Button
@@ -1155,6 +1178,27 @@ export default function AdminChatbotPage() {
           />
         </Form>
       </Drawer>
+      <style jsx global>{`
+        .chatbot-settings-form .ant-form-item {
+          margin-bottom: 10px;
+        }
+
+        .chatbot-settings-form .ant-form-item-label {
+          padding-bottom: 4px;
+        }
+
+        .chatbot-settings-form .ant-list-item {
+          padding-top: 8px;
+          padding-bottom: 8px;
+        }
+
+        .chatbot-settings-form .ant-select-selector,
+        .chatbot-settings-form .ant-input,
+        .chatbot-settings-form .ant-input-number,
+        .chatbot-settings-form .ant-picker {
+          border-radius: 8px;
+        }
+      `}</style>
     </>
   );
 }

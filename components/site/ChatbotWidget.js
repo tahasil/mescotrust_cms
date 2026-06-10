@@ -34,6 +34,11 @@ const ChatbotWidgetRoot = styled.div`
       height: min(74vh, calc(100vh - 96px)) !important;
       max-height: calc(100vh - 32px) !important;
     }
+
+    [data-chatbot-window][data-chatbot-expanded="false"][data-chatbot-position="left"] {
+      left: 16px !important;
+      right: auto !important;
+    }
   }
 
   @media (max-width: 768px) {
@@ -46,6 +51,11 @@ const ChatbotWidgetRoot = styled.div`
       height: min(72vh, calc(100vh - 96px)) !important;
       max-height: calc(100vh - 32px) !important;
       border-radius: 16px !important;
+    }
+
+    [data-chatbot-window][data-chatbot-expanded="false"][data-chatbot-position="left"] {
+      left: 16px !important;
+      right: auto !important;
     }
 
     [data-chatbot-window][data-chatbot-expanded="true"] {
@@ -62,6 +72,11 @@ const ChatbotWidgetRoot = styled.div`
     [data-chatbot-launcher] {
       right: 16px !important;
       bottom: 16px !important;
+    }
+
+    [data-chatbot-launcher][data-chatbot-position="left"] {
+      left: 16px !important;
+      right: auto !important;
     }
   }
 `;
@@ -120,13 +135,13 @@ const ContactActionLink = styled.a`
 `;
 
 const HeaderBar = styled.div`
-  padding: 12px 14px;
+  padding: ${(p) => p.$padding || "12px 14px"};
   border-bottom: 1px solid ${(p) => p.$borderColor || "#f0f0f0"};
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: ${(p) => p.$headerColor || "#1677ff"};
-  gap: 10px;
+  gap: ${(p) => `${p.$gap || 10}px`};
 `;
 
 const HeaderTitle = styled.div`
@@ -171,12 +186,46 @@ const HeaderActionButton = styled.button`
 const ChatBody = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 14px 14px 8px;
+  padding: ${(p) =>
+    `${p.$contentPadding || 14}px ${p.$contentPadding || 14}px ${
+      p.$contentPaddingBottom || 8
+    }px`};
   background: ${(p) => p.$chatBackgroundColor || "#fff"};
   scroll-behavior: smooth;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.28) transparent;
+
+  &::-webkit-scrollbar {
+    width: 2px;
+    height: 2px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.28);
+    border-radius: 999px;
+  }
+
+  &:hover::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.42);
+  }
+`;
+
+const WelcomeBannerImage = styled.img`
+  width: 100%;
+  max-height: 140px;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 12px;
+  border: 1px solid ${(p) => p.$borderColor || "#ededed"};
+  margin-bottom: 10px;
+  display: block;
 `;
 
 const BotMessageBubble = styled.div`
@@ -186,6 +235,7 @@ const BotMessageBubble = styled.div`
   border-radius: 16px;
   padding: ${(p) => p.$padding || "10px 13px"};
   border: 1px solid ${(p) => p.$borderColor || "#ededed"};
+  box-shadow: ${(p) => p.$bubbleShadow || "none"};
   max-width: 95%;
   white-space: ${(p) => p.$whiteSpace || "normal"};
   line-height: ${(p) => p.$lineHeight || "normal"};
@@ -205,28 +255,31 @@ const UserMessageBubble = styled.div`
   display: inline-block;
   background: ${(p) => p.$bg || "#1677ff"};
   color: ${(p) => p.$text || "#ffffff"};
+  border: 1px solid ${(p) => p.$borderColor || "rgba(0,0,0,0.08)"};
   border-radius: 16px;
   padding: 10px 13px;
   max-width: 92%;
   line-height: 1.4;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  box-shadow: ${(p) => p.$bubbleShadow || "0 3px 10px rgba(0, 0, 0, 0.08)"};
 `;
 
 const ChoiceChipButton = styled.button`
-  border: 1px solid ${(p) => p.$borderColor || "transparent"};
+  border: 1.5px solid ${(p) => p.$tone || "#3d5afe"};
   border-radius: 999px;
-  padding: 10px 16px;
-  max-width: 90%;
+  padding: 7.5px 14px;
+  max-width: 100%;
   cursor: pointer;
-  background: ${(p) => p.$bg || "#ff8a00"};
-  color: ${(p) => p.$text || "#ffffff"};
+  background: ${(p) => p.$bg || "#ffffff"};
+  color: ${(p) => p.$text || p.$tone || "#3d5afe"};
   font-weight: 600;
-  text-align: left;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  font-size: ${(p) => `${p.$fontSize || 12}px`};
+  text-align: center;
+  line-height: 1.25;
+  box-shadow: ${(p) => p.$chipShadow || "none"};
   transition: filter 140ms ease, transform 120ms ease;
 
   &:hover {
-    filter: brightness(0.96);
+    filter: brightness(0.94);
   }
 
   &:active {
@@ -260,10 +313,10 @@ const NavActionButton = styled.button`
 const ComposerWrap = styled.div`
   border: 1px solid ${(p) => p.$borderColor || "#e8e8e8"};
   border-radius: 18px;
-  padding: 8px 10px;
+  padding: ${(p) => `${p.$paddingY || 8}px ${p.$paddingX || 10}px`};
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: ${(p) => `${p.$gap || 8}px`};
   background: ${(p) => p.$chatBackgroundColor || "#fff"};
 `;
 
@@ -286,7 +339,7 @@ const SendButton = styled.button`
   border-radius: 50%;
   border: none;
   background: ${(p) => (p.$disabled ? "#ececec" : p.$accentColor || "#1677ff")};
-  color: ${(p) => (p.$disabled ? "#a9a9a9" : "#fff")};
+  color: ${(p) => (p.$disabled ? "#a9a9a9" : p.$textColor || "#fff")};
   cursor: ${(p) => (p.$disabled ? "default" : "pointer")};
   display: inline-flex;
   align-items: center;
@@ -305,16 +358,17 @@ const SendButton = styled.button`
 const LauncherButton = styled.button`
   position: fixed;
   bottom: ${(p) => p.$anchorGap || 16}px;
-  right: ${(p) => p.$anchorGap || 16}px;
+  right: ${(p) => (p.$position === "left" ? "auto" : `${p.$anchorGap || 16}px`)};
+  left: ${(p) => (p.$position === "left" ? `${p.$anchorGap || 16}px` : "auto")};
   z-index: 3000;
   width: 62px;
   height: 62px;
   border-radius: 50%;
   border: 3px solid rgba(255, 255, 255, 0.9);
   background: ${(p) => p.$accentColor || "#1677ff"};
-  color: #fff;
+  color: ${(p) => p.$iconColor || "#fff"};
   cursor: pointer;
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.25);
+  box-shadow: ${(p) => p.$launcherShadow || "0 10px 26px rgba(0, 0, 0, 0.25)"};
   display: ${(p) => (p.$hidden ? "none" : "inline-flex")};
   align-items: center;
   justify-content: center;
@@ -711,13 +765,17 @@ export default function ChatbotWidget() {
         setBotReplyText("");
         setNodeResponseReadyId(null);
         setQuery("");
-        if (userText) setLastSubmittedQuery(String(userText));
         const url = `/api/public/chatbot/faqs/${id}${track ? "" : "?track=false"}`;
         const res = await fetch(url);
         const data = await res.json().catch(() => ({}));
         if (!res.ok || !data?.success) {
           throw new Error(extractApiError(data, "Failed to load question"));
         }
+
+        const resolvedUserText = String(
+          userText || data?.data?.node?.question || "",
+        ).trim();
+        if (resolvedUserText) setLastSubmittedQuery(resolvedUserText);
 
         setCurrent(data.data || null);
         sendEvent("question_click", {
@@ -790,7 +848,9 @@ export default function ChatbotWidget() {
       const responseText =
         dedupedItems.length > 0
           ? `I found ${dedupedItems.length} related question${dedupedItems.length > 1 ? "s" : ""}. Please choose one below.`
-          : "I could not find an exact answer. Please try another keyword or choose from suggested questions.";
+          : settings?.enableRelatedQuestions === false
+            ? "I could not find an exact answer. Please use the Need more info option below."
+            : "I could not find an exact answer. Please try another keyword or choose from suggested questions.";
       streamText(responseText, "search", () => {
         setBotReplyText(responseText);
         setSearchResults(dedupedItems);
@@ -902,6 +962,7 @@ export default function ChatbotWidget() {
   );
 
   const anchorGap = 16;
+  const position = settings?.position === "left" ? "left" : "right";
   const accentColor =
     settings?.linkAccentColor || settings?.themeColor || "#1677ff";
   const headerColor = settings?.headerColor || accentColor;
@@ -913,15 +974,39 @@ export default function ChatbotWidget() {
   const borderColor = settings?.borderColor || "#e8e8e8";
   const chatBackgroundColor = settings?.chatBackgroundColor || "#ffffff";
   const botBubbleBg = settings?.botMessageBubbleColor || "#f7f7f7";
-  const botBubbleText = settings?.botMessageTextColor || "#202020";
+  const botBubbleText =
+    settings?.botMessageTextColor || getReadableTextColor(botBubbleBg, "#ffffff", "#202020");
   const userBubbleBg =
     settings?.userMessageBubbleColor || settings?.quickOptionButtonColor || accentColor;
   const userBubbleText =
     settings?.userMessageTextColor ||
     settings?.quickOptionButtonTextColor ||
-    "#ffffff";
-  const chipBg = settings?.quickOptionButtonColor || accentColor;
-  const chipColor = settings?.quickOptionButtonTextColor || "#ffffff";
+    getReadableTextColor(userBubbleBg, "#ffffff", "#111111");
+  const rawChipTone = settings?.quickOptionButtonColor || accentColor;
+  const chipBg = chatBackgroundColor || "#ffffff";
+  const normalizedChipTone = parseHexColor(rawChipTone);
+  const normalizedChipBg = parseHexColor(chipBg);
+  const chipTone =
+    normalizedChipTone &&
+    normalizedChipBg &&
+    normalizedChipTone === normalizedChipBg
+      ? accentColor || borderColor
+      : rawChipTone;
+  const chipColor = settings?.quickOptionButtonTextColor || chipTone;
+  const chipFontSize = Math.max(10, Number(settings?.fontSize || 14) - 2);
+  const showRelatedQuestions = settings?.enableRelatedQuestions !== false;
+  const welcomeBannerSrc = resolveMediaSrc(settings?.welcomeBannerMediaId);
+  const desiredWidth = Math.max(320, Number(settings?.width || 420));
+  const desiredHeight = Math.max(420, Number(settings?.height || 620));
+  const contentPadding = Math.max(8, Number(settings?.contentPadding || 14));
+  const footerPadding = Math.max(8, Number(settings?.footerPadding || 10));
+  const elementGap = Math.max(4, Number(settings?.elementGap || 8));
+  const launcherShadow = String(settings?.launcherShadow || "0 10px 26px rgba(0,0,0,0.25)");
+  const windowShadow = String(settings?.windowShadow || "0 14px 38px rgba(0,0,0,0.22)");
+  const bubbleShadow = String(settings?.bubbleShadow || "0 3px 10px rgba(0,0,0,0.08)");
+  const chipShadow = String(settings?.chipShadow || "none");
+  const launcherIconColor = getReadableTextColor(accentColor, "#ffffff", "#111111");
+  const sendButtonTextColor = getReadableTextColor(accentColor, "#ffffff", "#111111");
 
   if (loading || !settings || settings.enabled === false) return null;
   const currentNodeId = String(current?.node?._id || "");
@@ -932,11 +1017,11 @@ export default function ChatbotWidget() {
 
   const collapsedWindowStyle = {
     top: "auto",
-    left: "auto",
-    right: anchorGap,
+    left: position === "left" ? anchorGap : "auto",
+    right: position === "left" ? "auto" : anchorGap,
     bottom: anchorGap,
-    width: "min(420px, calc(100vw - 32px))",
-    height: "min(78vh, 620px)",
+    width: `min(${desiredWidth}px, calc(100vw - 32px))`,
+    height: `min(78vh, ${desiredHeight}px)`,
     maxHeight: "calc(100vh - 32px)",
     borderRadius: Math.max(12, Number(settings.borderRadius || 22)),
   };
@@ -962,11 +1047,11 @@ export default function ChatbotWidget() {
         : fallbackNeedMoreInfoActions;
 
     return (
-      <div style={{ marginTop: 12 }}>
-        <div style={{ marginBottom: 8, fontWeight: 600, color: botBubbleText }}>
+      <div style={{ marginTop: contentPadding - 2 }}>
+        <div style={{ marginBottom: elementGap, fontWeight: 600, color: botBubbleText }}>
           Need more info?
         </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: elementGap }}>
           {resolvedActions.map((action) => (
             <ContactAction
               key={action.id}
@@ -996,26 +1081,25 @@ export default function ChatbotWidget() {
     <div
       style={{
         display: "flex",
-        flexDirection: "column",
-        gap: 10,
-        marginTop: 12,
+        flexWrap: "wrap",
+        gap: elementGap + 2,
+        marginTop: contentPadding - 2,
+        marginBottom: Math.max(4, Math.round((contentPadding - 2) * 0.75)),
       }}
     >
       {(items || []).map((item) => (
-        <div
+        <ChoiceChipButton
           key={String(item._id)}
-          style={{ display: "flex", justifyContent: "flex-end" }}
+          type="button"
+          onClick={() => openNode(item._id, { userText: item.question })}
+          $bg={chipBg}
+          $text={chipColor}
+          $tone={chipTone}
+          $chipShadow={chipShadow}
+          $fontSize={chipFontSize}
         >
-          <ChoiceChipButton
-            type="button"
-            onClick={() => openNode(item._id, { userText: item.question })}
-            $bg={chipBg}
-            $text={chipColor}
-            $borderColor={borderColor}
-          >
-            {item.question}
-          </ChoiceChipButton>
-        </div>
+          {item.question}
+        </ChoiceChipButton>
       ))}
     </div>
   );
@@ -1027,8 +1111,12 @@ export default function ChatbotWidget() {
         onClick={toggleOpen}
         aria-label="Open support chat"
         data-chatbot-launcher
+        data-chatbot-position={position}
         $anchorGap={anchorGap}
+        $position={position}
         $accentColor={accentColor}
+        $launcherShadow={launcherShadow}
+        $iconColor={launcherIconColor}
         $hidden={open}
       >
         <MessageOutlined style={{ fontSize: 24 }} />
@@ -1049,7 +1137,7 @@ export default function ChatbotWidget() {
           background: chatBackgroundColor,
           border: `1px solid ${borderColor}`,
           borderRadius: windowSizeStyle.borderRadius,
-          boxShadow: "0 14px 38px rgba(0,0,0,0.22)",
+          boxShadow: windowShadow,
           display: open ? "flex" : "none",
           flexDirection: "column",
           overflow: "hidden",
@@ -1060,13 +1148,19 @@ export default function ChatbotWidget() {
         }}
         data-chatbot-window
         data-chatbot-expanded={expanded ? "true" : "false"}
+        data-chatbot-position={position}
       >
-        <HeaderBar $headerColor={headerColor} $borderColor={borderColor}>
+        <HeaderBar
+          $headerColor={headerColor}
+          $borderColor={borderColor}
+          $gap={elementGap + 2}
+          $padding={`${Math.max(10, contentPadding - 2)}px ${contentPadding}px`}
+        >
           <div
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 10,
+              gap: elementGap + 2,
               minWidth: 0,
             }}
           >
@@ -1079,7 +1173,11 @@ export default function ChatbotWidget() {
                   height: 34,
                   borderRadius: "50%",
                   border: `1px solid ${borderColor}`,
-                  objectFit: "cover",
+                  objectFit: "contain",
+                  objectPosition: "center",
+                  background: "#fff",
+                  padding: 2,
+                  display: "block",
                 }}
               />
             ) : (
@@ -1108,7 +1206,7 @@ export default function ChatbotWidget() {
               </HeaderStatus>
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: elementGap }}>
             <HeaderActionButton
               type="button"
               onClick={() => setExpanded((prev) => !prev)}
@@ -1139,9 +1237,11 @@ export default function ChatbotWidget() {
           onTouchStart={handleTouchStartContain}
           onTouchMove={handleTouchMoveContain}
           $chatBackgroundColor={chatBackgroundColor}
+          $contentPadding={contentPadding}
+          $contentPaddingBottom={Math.max(8, contentPadding - 6)}
         >
           {settings.enableBreadcrumb && current?.breadcrumb?.length > 0 ? (
-            <div style={{ fontSize: 12, marginBottom: 8, color: botBubbleText }}>
+            <div style={{ fontSize: 12, marginBottom: elementGap, color: botBubbleText }}>
               {current.breadcrumb.map((item, index) => (
                 <span key={String(item._id)}>
                   {index > 0 ? " / " : ""}
@@ -1151,15 +1251,20 @@ export default function ChatbotWidget() {
             </div>
           ) : null}
 
-          {!typing && !current?.node && !!lastSubmittedQuery ? (
+          {!!lastSubmittedQuery ? (
             <div
               style={{
                 display: "flex",
                 justifyContent: "flex-end",
-                marginBottom: 10,
+                marginBottom: elementGap + 2,
               }}
             >
-              <UserMessageBubble $bg={userBubbleBg} $text={userBubbleText}>
+              <UserMessageBubble
+                $bg={userBubbleBg}
+                $text={userBubbleText}
+                $borderColor={borderColor}
+                $bubbleShadow={bubbleShadow}
+              >
                 {lastSubmittedQuery}
               </UserMessageBubble>
             </div>
@@ -1171,6 +1276,7 @@ export default function ChatbotWidget() {
               $text={botBubbleText}
               $borderColor={borderColor}
               $accentColor={accentColor}
+              $bubbleShadow={bubbleShadow}
               $whiteSpace="pre-wrap"
             >
               {streamedBotText ? (
@@ -1195,18 +1301,26 @@ export default function ChatbotWidget() {
           !searchResults.length &&
           !lastSubmittedQuery ? (
             <>
+              {welcomeBannerSrc ? (
+                <WelcomeBannerImage
+                  src={welcomeBannerSrc}
+                  alt={`${settings.botName || "Chatbot"} welcome banner`}
+                  $borderColor={borderColor}
+                />
+              ) : null}
               <BotMessageBubble
                 $bg={botBubbleBg}
                 $text={botBubbleText}
                 $borderColor={borderColor}
                 $accentColor={accentColor}
+                $bubbleShadow={bubbleShadow}
                 $padding="12px 14px"
                 $lineHeight="1.5"
               >
                 <div style={{ fontWeight: 700 }}>{settings.welcomeMessage}</div>
                 <div>{settings.welcomeSubtitle}</div>
               </BotMessageBubble>
-              {renderChoiceChips(quickOptions)}
+              {showRelatedQuestions ? renderChoiceChips(quickOptions) : null}
             </>
           ) : null}
 
@@ -1217,11 +1331,12 @@ export default function ChatbotWidget() {
                 $text={botBubbleText}
                 $borderColor={borderColor}
                 $accentColor={accentColor}
+                $bubbleShadow={bubbleShadow}
                 $whiteSpace="pre-wrap"
               >
                 {botReplyText || "Here are matching questions:"}
               </BotMessageBubble>
-              {renderChoiceChips(searchResults)}
+              {showRelatedQuestions ? renderChoiceChips(searchResults) : null}
             </>
           ) : null}
 
@@ -1231,6 +1346,7 @@ export default function ChatbotWidget() {
               $text={botBubbleText}
               $borderColor={borderColor}
               $accentColor={accentColor}
+              $bubbleShadow={bubbleShadow}
             >
               Thinking...
             </BotMessageBubble>
@@ -1244,6 +1360,7 @@ export default function ChatbotWidget() {
                   $text={botBubbleText}
                   $borderColor={borderColor}
                   $accentColor={accentColor}
+                  $bubbleShadow={bubbleShadow}
                   $padding="12px 14px"
                   $lineHeight="1.5"
                   // eslint-disable-next-line react/no-danger
@@ -1252,7 +1369,7 @@ export default function ChatbotWidget() {
                   }}
                 />
               ) : null}
-              {isCurrentNodeResponseReady
+              {showRelatedQuestions && isCurrentNodeResponseReady
                 ? renderChoiceChips(dedupeQuestions(current.children || []))
                 : null}
               {isCurrentNodeResponseReady && current?.node?.showNeedMoreInfo
@@ -1262,7 +1379,7 @@ export default function ChatbotWidget() {
           ) : null}
 
           {!typing && searchError ? (
-            <div style={{ marginTop: 12, color: "#cf1322", fontWeight: 500 }}>
+            <div style={{ marginTop: contentPadding - 2, color: "#cf1322", fontWeight: 500 }}>
               {searchError}
             </div>
           ) : null}
@@ -1279,6 +1396,7 @@ export default function ChatbotWidget() {
               $text={botBubbleText}
               $borderColor={borderColor}
               $accentColor={accentColor}
+              $bubbleShadow={bubbleShadow}
               $whiteSpace="pre-wrap"
             >
               {botReplyText}
@@ -1298,7 +1416,7 @@ export default function ChatbotWidget() {
         <div
           style={{
             borderTop: `1px solid ${borderColor}`,
-            padding: "10px 12px",
+            padding: `${footerPadding}px ${Math.max(10, footerPadding + 2)}px`,
             background: chatBackgroundColor,
           }}
         >
@@ -1307,7 +1425,7 @@ export default function ChatbotWidget() {
               style={{
                 display: "flex",
                 justifyContent: "space-between",
-                marginBottom: 8,
+                marginBottom: elementGap,
               }}
             >
               <NavActionButton
@@ -1333,7 +1451,13 @@ export default function ChatbotWidget() {
             </div>
           )}
 
-          <ComposerWrap $borderColor={borderColor} $chatBackgroundColor={chatBackgroundColor}>
+          <ComposerWrap
+            $borderColor={borderColor}
+            $chatBackgroundColor={chatBackgroundColor}
+            $paddingY={Math.max(6, footerPadding - 2)}
+            $paddingX={Math.max(8, footerPadding)}
+            $gap={elementGap}
+          >
             <ComposerInput
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -1366,6 +1490,7 @@ export default function ChatbotWidget() {
                 !String(query || "").trim()
               }
               $accentColor={accentColor}
+              $textColor={sendButtonTextColor}
             >
               <ArrowUpOutlined />
             </SendButton>

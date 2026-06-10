@@ -6,43 +6,78 @@ import {
   getSettings,
   okPayload,
 } from "@/lib/chatbot/service";
+import { CHATBOT_DEFAULT_SETTINGS } from "@/lib/chatbot/constants";
 
 export const dynamic = "force-dynamic";
 
 function toPublicSettings(settings) {
-  const source = settings && typeof settings === "object" ? settings : {};
+  const source =
+    settings && typeof settings === "object"
+      ? { ...CHATBOT_DEFAULT_SETTINGS, ...settings }
+      : { ...CHATBOT_DEFAULT_SETTINGS };
+  const normalizedSearchFields = {
+    ...CHATBOT_DEFAULT_SETTINGS.searchEnabledFields,
+    ...(source.searchEnabledFields && typeof source.searchEnabledFields === "object"
+      ? source.searchEnabledFields
+      : {}),
+  };
+  const hasAtLeastOneSearchField = Object.values(normalizedSearchFields).some(Boolean);
+
   return {
     enabled: source.enabled !== false,
-    botName: source.botName || "MESCO Help Desk",
-    welcomeMessage: source.welcomeMessage || "Welcome to MESCO Trust",
-    welcomeSubtitle: source.welcomeSubtitle || "How can we help you today?",
+    botName: source.botName || CHATBOT_DEFAULT_SETTINGS.botName,
+    welcomeMessage: source.welcomeMessage || CHATBOT_DEFAULT_SETTINGS.welcomeMessage,
+    welcomeSubtitle: source.welcomeSubtitle || CHATBOT_DEFAULT_SETTINGS.welcomeSubtitle,
     avatarMediaId: source.avatarMediaId || "",
-    themeColor: source.themeColor || "#1677ff",
+    themeColor: source.themeColor || CHATBOT_DEFAULT_SETTINGS.themeColor,
     position: source.position === "left" ? "left" : "right",
-    width: Number(source.width || 360),
-    height: Number(source.height || 560),
-    borderRadius: Number(source.borderRadius || 16),
-    headerColor: source.headerColor || "#1677ff",
-    chatBackgroundColor: source.chatBackgroundColor || "#ffffff",
-    botMessageBubbleColor: source.botMessageBubbleColor || "#f5f5f5",
-    botMessageTextColor: source.botMessageTextColor || "#1f1f1f",
-    userMessageBubbleColor: source.userMessageBubbleColor || "#1677ff",
-    userMessageTextColor: source.userMessageTextColor || "#ffffff",
-    quickOptionButtonColor: source.quickOptionButtonColor || "#f0f5ff",
-    quickOptionButtonTextColor: source.quickOptionButtonTextColor || "#0958d9",
-    linkAccentColor: source.linkAccentColor || "#1677ff",
-    borderColor: source.borderColor || "#e8e8e8",
-    fontSize: Number(source.fontSize || 14),
+    width: Number(source.width || CHATBOT_DEFAULT_SETTINGS.width),
+    height: Number(source.height || CHATBOT_DEFAULT_SETTINGS.height),
+    borderRadius: Number(source.borderRadius || CHATBOT_DEFAULT_SETTINGS.borderRadius),
+    headerColor: source.headerColor || CHATBOT_DEFAULT_SETTINGS.headerColor,
+    chatBackgroundColor:
+      source.chatBackgroundColor || CHATBOT_DEFAULT_SETTINGS.chatBackgroundColor,
+    botMessageBubbleColor:
+      source.botMessageBubbleColor || CHATBOT_DEFAULT_SETTINGS.botMessageBubbleColor,
+    botMessageTextColor:
+      source.botMessageTextColor || CHATBOT_DEFAULT_SETTINGS.botMessageTextColor,
+    userMessageBubbleColor:
+      source.userMessageBubbleColor || CHATBOT_DEFAULT_SETTINGS.userMessageBubbleColor,
+    userMessageTextColor:
+      source.userMessageTextColor || CHATBOT_DEFAULT_SETTINGS.userMessageTextColor,
+    quickOptionButtonColor:
+      source.quickOptionButtonColor || CHATBOT_DEFAULT_SETTINGS.quickOptionButtonColor,
+    quickOptionButtonTextColor:
+      source.quickOptionButtonTextColor ||
+      CHATBOT_DEFAULT_SETTINGS.quickOptionButtonTextColor,
+    linkAccentColor: source.linkAccentColor || CHATBOT_DEFAULT_SETTINGS.linkAccentColor,
+    borderColor: source.borderColor || CHATBOT_DEFAULT_SETTINGS.borderColor,
+    launcherShadow: source.launcherShadow || CHATBOT_DEFAULT_SETTINGS.launcherShadow,
+    windowShadow: source.windowShadow || CHATBOT_DEFAULT_SETTINGS.windowShadow,
+    bubbleShadow: source.bubbleShadow || CHATBOT_DEFAULT_SETTINGS.bubbleShadow,
+    chipShadow: source.chipShadow || CHATBOT_DEFAULT_SETTINGS.chipShadow,
+    contentPadding: Math.max(
+      8,
+      Number(source.contentPadding || CHATBOT_DEFAULT_SETTINGS.contentPadding),
+    ),
+    footerPadding: Math.max(
+      8,
+      Number(source.footerPadding || CHATBOT_DEFAULT_SETTINGS.footerPadding),
+    ),
+    elementGap: Math.max(
+      4,
+      Number(source.elementGap || CHATBOT_DEFAULT_SETTINGS.elementGap),
+    ),
+    fontSize: Number(source.fontSize || CHATBOT_DEFAULT_SETTINGS.fontSize),
     enableSearch: source.enableSearch !== false,
-    minSearchChars: Math.max(1, Number(source.minSearchChars || 2)),
-    maxSearchResults: Math.max(1, Number(source.maxSearchResults || 8)),
-    searchEnabledFields: source.searchEnabledFields || {
-      title: true,
-      answer: true,
-      keywords: true,
-      tags: true,
-      synonyms: true,
-    },
+    minSearchChars: Math.max(1, Number(source.minSearchChars || CHATBOT_DEFAULT_SETTINGS.minSearchChars)),
+    maxSearchResults: Math.max(
+      1,
+      Number(source.maxSearchResults || CHATBOT_DEFAULT_SETTINGS.maxSearchResults),
+    ),
+    searchEnabledFields: hasAtLeastOneSearchField
+      ? normalizedSearchFields
+      : { ...CHATBOT_DEFAULT_SETTINGS.searchEnabledFields },
     enableBreadcrumb: source.enableBreadcrumb !== false,
     enableHomeButton: source.enableHomeButton !== false,
     enableBackButton: source.enableBackButton !== false,

@@ -41,6 +41,13 @@ const chatbotSettingsSchema = new mongoose.Schema(
     quickOptionButtonTextColor: { type: String, default: "#0958d9" },
     linkAccentColor: { type: String, default: "#1677ff" },
     borderColor: { type: String, default: "#e8e8e8" },
+    launcherShadow: { type: String, default: "0 10px 26px rgba(0,0,0,0.25)" },
+    windowShadow: { type: String, default: "0 14px 38px rgba(0,0,0,0.22)" },
+    bubbleShadow: { type: String, default: "0 3px 10px rgba(0,0,0,0.08)" },
+    chipShadow: { type: String, default: "0 3px 10px rgba(0,0,0,0.08)" },
+    contentPadding: { type: Number, default: 14 },
+    footerPadding: { type: Number, default: 10 },
+    elementGap: { type: Number, default: 8 },
     fontSize: { type: Number, default: 14 },
     enableSearch: { type: Boolean, default: true },
     minSearchChars: { type: Number, default: 2 },
@@ -66,6 +73,33 @@ const chatbotSettingsSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-module.exports =
-  (mongoose.models && mongoose.models.ChatbotSettings) ||
-  mongoose.model("ChatbotSettings", chatbotSettingsSchema);
+const existingModel = mongoose.models && mongoose.models.ChatbotSettings;
+if (existingModel) {
+  const additiveFields = {};
+  if (!existingModel.schema.path("launcherShadow")) {
+    additiveFields.launcherShadow = { type: String, default: "0 10px 26px rgba(0,0,0,0.25)" };
+  }
+  if (!existingModel.schema.path("windowShadow")) {
+    additiveFields.windowShadow = { type: String, default: "0 14px 38px rgba(0,0,0,0.22)" };
+  }
+  if (!existingModel.schema.path("bubbleShadow")) {
+    additiveFields.bubbleShadow = { type: String, default: "0 3px 10px rgba(0,0,0,0.08)" };
+  }
+  if (!existingModel.schema.path("chipShadow")) {
+    additiveFields.chipShadow = { type: String, default: "0 3px 10px rgba(0,0,0,0.08)" };
+  }
+  if (!existingModel.schema.path("contentPadding")) {
+    additiveFields.contentPadding = { type: Number, default: 14 };
+  }
+  if (!existingModel.schema.path("footerPadding")) {
+    additiveFields.footerPadding = { type: Number, default: 10 };
+  }
+  if (!existingModel.schema.path("elementGap")) {
+    additiveFields.elementGap = { type: Number, default: 8 };
+  }
+  if (Object.keys(additiveFields).length > 0) {
+    existingModel.schema.add(additiveFields);
+  }
+}
+
+module.exports = existingModel || mongoose.model("ChatbotSettings", chatbotSettingsSchema);
