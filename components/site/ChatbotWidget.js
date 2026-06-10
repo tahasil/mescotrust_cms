@@ -1005,8 +1005,8 @@ export default function ChatbotWidget() {
   const windowShadow = String(settings?.windowShadow || "0 14px 38px rgba(0,0,0,0.22)");
   const bubbleShadow = String(settings?.bubbleShadow || "0 3px 10px rgba(0,0,0,0.08)");
   const chipShadow = String(settings?.chipShadow || "none");
-  const launcherIconColor = getReadableTextColor(accentColor, "#ffffff", "#111111");
-  const sendButtonTextColor = getReadableTextColor(accentColor, "#ffffff", "#111111");
+  const launcherIconColor = "#ffffff";
+  const sendButtonTextColor = "#ffffff";
 
   if (loading || !settings || settings.enabled === false) return null;
   const currentNodeId = String(current?.node?._id || "");
