@@ -172,7 +172,9 @@ export default function AdminChatbotPage() {
   }, [faqItems]);
 
   const loadFaqs = useCallback(async () => {
-    const res = await fetch("/api/admin/chatbot/faqs?includeInactive=true&page=1&limit=5000");
+    const res = await fetch("/api/admin/chatbot/faqs?includeInactive=true&page=1&limit=5000", {
+      cache: "no-store",
+    });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data?.success) {
       throw new Error(extractApiError(data, "Failed to load FAQs"));
@@ -191,7 +193,7 @@ export default function AdminChatbotPage() {
   }, [mode, selectedId]);
 
   const loadSettings = useCallback(async () => {
-    const res = await fetch("/api/admin/chatbot/settings");
+    const res = await fetch("/api/admin/chatbot/settings", { cache: "no-store" });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data?.success) {
       throw new Error(extractApiError(data, "Failed to load settings"));
@@ -543,6 +545,13 @@ export default function AdminChatbotPage() {
         throw new Error(extractApiError(data, "Failed to save settings"));
       }
       await loadSettings();
+      if (typeof window !== "undefined") {
+        const stamp = String(Date.now());
+        window.localStorage.setItem("chatbotSettingsUpdatedAt", stamp);
+        window.dispatchEvent(
+          new CustomEvent("chatbot-settings-updated", { detail: { at: stamp } }),
+        );
+      }
       setSettingsOpen(false);
       message.success("Chatbot settings saved");
     } catch (err) {

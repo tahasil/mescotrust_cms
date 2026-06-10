@@ -97,6 +97,259 @@ const TypingDot = styled.i`
   }
 `;
 
+const ContactActionLink = styled.a`
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 11px;
+  border-radius: 999px;
+  border: 1px solid ${(p) => p.$accentColor || "#1677ff"};
+  color: ${(p) => p.$accentColor || "#1677ff"};
+  font-weight: 600;
+  font-size: 12px;
+  transition: filter 140ms ease, transform 120ms ease;
+
+  &:hover {
+    filter: brightness(0.92);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+`;
+
+const HeaderBar = styled.div`
+  padding: 12px 14px;
+  border-bottom: 1px solid ${(p) => p.$borderColor || "#f0f0f0"};
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: ${(p) => p.$headerColor || "#1677ff"};
+  gap: 10px;
+`;
+
+const HeaderTitle = styled.div`
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: ${(p) => p.$headerTextColor || "#fff"};
+`;
+
+const HeaderStatus = styled.div`
+  font-size: 12px;
+  color: ${(p) => p.$headerSubTextColor || "rgba(255,255,255,0.8)"};
+`;
+
+const HeaderActionButton = styled.button`
+  border: none;
+  background: transparent;
+  color: ${(p) => p.$headerTextColor || "#fff"};
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 8px;
+  transition: background-color 120ms ease, opacity 120ms ease;
+
+  &:hover {
+    background: ${(p) =>
+      p.$headerTextColor === "#111111"
+        ? "rgba(17,17,17,0.08)"
+        : "rgba(255,255,255,0.14)"};
+  }
+
+  &:active {
+    opacity: 0.85;
+  }
+`;
+
+const ChatBody = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 14px 8px;
+  background: ${(p) => p.$chatBackgroundColor || "#fff"};
+  scroll-behavior: smooth;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+`;
+
+const BotMessageBubble = styled.div`
+  display: inline-block;
+  background: ${(p) => p.$bg || "#f7f7f7"};
+  color: ${(p) => p.$text || "#202020"};
+  border-radius: 16px;
+  padding: ${(p) => p.$padding || "10px 13px"};
+  border: 1px solid ${(p) => p.$borderColor || "#ededed"};
+  max-width: 95%;
+  white-space: ${(p) => p.$whiteSpace || "normal"};
+  line-height: ${(p) => p.$lineHeight || "normal"};
+
+  a {
+    color: ${(p) => p.$accentColor || "#1677ff"};
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  a:hover {
+    filter: brightness(0.9);
+  }
+`;
+
+const UserMessageBubble = styled.div`
+  display: inline-block;
+  background: ${(p) => p.$bg || "#1677ff"};
+  color: ${(p) => p.$text || "#ffffff"};
+  border-radius: 16px;
+  padding: 10px 13px;
+  max-width: 92%;
+  line-height: 1.4;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+`;
+
+const ChoiceChipButton = styled.button`
+  border: 1px solid ${(p) => p.$borderColor || "transparent"};
+  border-radius: 999px;
+  padding: 10px 16px;
+  max-width: 90%;
+  cursor: pointer;
+  background: ${(p) => p.$bg || "#ff8a00"};
+  color: ${(p) => p.$text || "#ffffff"};
+  font-weight: 600;
+  text-align: left;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  transition: filter 140ms ease, transform 120ms ease;
+
+  &:hover {
+    filter: brightness(0.96);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+`;
+
+const NavActionButton = styled.button`
+  border: none;
+  background: transparent;
+  color: ${(p) => p.$accentColor || "#1677ff"};
+  cursor: ${(p) => (p.$disabled ? "default" : "pointer")};
+  opacity: ${(p) => (p.$disabled ? 0.45 : 1)};
+  display: ${(p) => (p.$visible ? "inline-flex" : "none")};
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 2px 4px;
+  transition: filter 140ms ease, transform 120ms ease;
+
+  &:hover {
+    filter: ${(p) => (p.$disabled ? "none" : "brightness(0.92)")};
+  }
+
+  &:active {
+    transform: ${(p) => (p.$disabled ? "none" : "translateY(1px)")};
+  }
+`;
+
+const ComposerWrap = styled.div`
+  border: 1px solid ${(p) => p.$borderColor || "#e8e8e8"};
+  border-radius: 18px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: ${(p) => p.$chatBackgroundColor || "#fff"};
+`;
+
+const ComposerInput = styled.input`
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: ${(p) => p.$textColor || "#222"};
+  background: transparent;
+
+  &::placeholder {
+    color: ${(p) => p.$placeholderColor || "rgba(34,34,34,0.55)"};
+  }
+`;
+
+const SendButton = styled.button`
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: ${(p) => (p.$disabled ? "#ececec" : p.$accentColor || "#1677ff")};
+  color: ${(p) => (p.$disabled ? "#a9a9a9" : "#fff")};
+  cursor: ${(p) => (p.$disabled ? "default" : "pointer")};
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: filter 140ms ease, transform 120ms ease;
+
+  &:hover {
+    filter: ${(p) => (p.$disabled ? "none" : "brightness(0.94)")};
+  }
+
+  &:active {
+    transform: ${(p) => (p.$disabled ? "none" : "translateY(1px)")};
+  }
+`;
+
+const LauncherButton = styled.button`
+  position: fixed;
+  bottom: ${(p) => p.$anchorGap || 16}px;
+  right: ${(p) => p.$anchorGap || 16}px;
+  z-index: 3000;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  background: ${(p) => p.$accentColor || "#1677ff"};
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.25);
+  display: ${(p) => (p.$hidden ? "none" : "inline-flex")};
+  align-items: center;
+  justify-content: center;
+  transition: filter 140ms ease, transform 120ms ease;
+
+  &:hover {
+    filter: brightness(0.94);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+`;
+
+function parseHexColor(value) {
+  const raw = String(value || "").trim().toLowerCase();
+  const short = raw.match(/^#([0-9a-f]{3})$/i);
+  if (short) {
+    const chars = short[1];
+    return `#${chars[0]}${chars[0]}${chars[1]}${chars[1]}${chars[2]}${chars[2]}`;
+  }
+  if (/^#([0-9a-f]{6})$/i.test(raw)) return raw;
+  return "";
+}
+
+function getReadableTextColor(background, lightColor = "#ffffff", darkColor = "#111111") {
+  const hex = parseHexColor(background);
+  if (!hex) return darkColor;
+  const r = Number.parseInt(hex.slice(1, 3), 16);
+  const g = Number.parseInt(hex.slice(3, 5), 16);
+  const b = Number.parseInt(hex.slice(5, 7), 16);
+  const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  return luminance > 0.62 ? darkColor : lightColor;
+}
+
 function resolveMediaSrc(value) {
   const raw = String(value || "").trim();
   if (!raw) return "";
@@ -165,26 +418,15 @@ function hasRenderableHtml(input) {
 
 function ContactAction({ href, label, target, onClick, accentColor }) {
   return (
-    <a
+    <ContactActionLink
       href={href}
       target={target || "_self"}
       rel={target === "_blank" ? "noreferrer" : undefined}
       onClick={onClick}
-      style={{
-        textDecoration: "none",
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "7px 11px",
-        borderRadius: 999,
-        border: `1px solid ${accentColor}`,
-        color: accentColor,
-        fontWeight: 600,
-        fontSize: 12,
-      }}
+      $accentColor={accentColor}
     >
       {label}
-    </a>
+    </ContactActionLink>
   );
 }
 
@@ -336,15 +578,28 @@ export default function ChatbotWidget() {
     event.stopPropagation();
   }, []);
 
+  const refreshSettings = useCallback(async () => {
+    try {
+      const settingsRes = await fetch("/api/public/chatbot/settings", {
+        cache: "no-store",
+      });
+      const settingsData = await settingsRes.json().catch(() => ({}));
+      if (!settingsRes.ok || !settingsData?.success) return;
+      setSettings(settingsData.data || null);
+    } catch {
+      // best effort live refresh
+    }
+  }, []);
+
   const loadBootstrap = useCallback(async () => {
     setLoading(true);
     try {
       const [settingsRes, rootsRes, featuredRes, popularRes] =
         await Promise.all([
-          fetch("/api/public/chatbot/settings"),
-          fetch("/api/public/chatbot/faqs/root"),
-          fetch("/api/public/chatbot/featured"),
-          fetch("/api/public/chatbot/popular"),
+          fetch("/api/public/chatbot/settings", { cache: "no-store" }),
+          fetch("/api/public/chatbot/faqs/root", { cache: "no-store" }),
+          fetch("/api/public/chatbot/featured", { cache: "no-store" }),
+          fetch("/api/public/chatbot/popular", { cache: "no-store" }),
         ]);
 
       const [settingsData, rootsData, featuredData, popularData] =
@@ -393,6 +648,32 @@ export default function ChatbotWidget() {
   useEffect(() => {
     loadBootstrap();
   }, [loadBootstrap]);
+
+  useEffect(() => {
+    if (!open) return;
+    refreshSettings();
+    const timer = setInterval(() => {
+      refreshSettings();
+    }, 15000);
+    return () => clearInterval(timer);
+  }, [open, refreshSettings]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const onSettingsUpdated = () => {
+      refreshSettings();
+    };
+    const onStorage = (event) => {
+      if (event.key !== "chatbotSettingsUpdatedAt") return;
+      refreshSettings();
+    };
+    window.addEventListener("chatbot-settings-updated", onSettingsUpdated);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener("chatbot-settings-updated", onSettingsUpdated);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, [refreshSettings]);
 
   useEffect(() => {
     if (!open) return;
@@ -516,7 +797,7 @@ export default function ChatbotWidget() {
       });
       if (items.length === 0) {
         sendEvent("search_no_result", { query: text });
-        setSearchError("Didn't find your answer?");
+        setSearchError("");
       }
     } catch (err) {
       setTyping(false);
@@ -607,9 +888,39 @@ export default function ChatbotWidget() {
     return activeActions.slice(0, 1);
   }, [activeActions]);
 
+  const fallbackNeedMoreInfoActions = useMemo(
+    () => [
+      {
+        id: "default-contact-page",
+        actionType: "contact",
+        label: "Contact Us",
+        url: "/contact",
+        target: "_self",
+      },
+    ],
+    [],
+  );
+
   const anchorGap = 16;
-  const accentColor = settings?.themeColor || "#ff8a00";
-  const chipBg = settings?.quickOptionButtonColor || "#ff8a00";
+  const accentColor =
+    settings?.linkAccentColor || settings?.themeColor || "#1677ff";
+  const headerColor = settings?.headerColor || accentColor;
+  const headerTextColor = getReadableTextColor(headerColor);
+  const headerSubTextColor =
+    headerTextColor === "#111111"
+      ? "rgba(17,17,17,0.72)"
+      : "rgba(255,255,255,0.82)";
+  const borderColor = settings?.borderColor || "#e8e8e8";
+  const chatBackgroundColor = settings?.chatBackgroundColor || "#ffffff";
+  const botBubbleBg = settings?.botMessageBubbleColor || "#f7f7f7";
+  const botBubbleText = settings?.botMessageTextColor || "#202020";
+  const userBubbleBg =
+    settings?.userMessageBubbleColor || settings?.quickOptionButtonColor || accentColor;
+  const userBubbleText =
+    settings?.userMessageTextColor ||
+    settings?.quickOptionButtonTextColor ||
+    "#ffffff";
+  const chipBg = settings?.quickOptionButtonColor || accentColor;
   const chipColor = settings?.quickOptionButtonTextColor || "#ffffff";
 
   if (loading || !settings || settings.enabled === false) return null;
@@ -644,19 +955,19 @@ export default function ChatbotWidget() {
   const windowSizeStyle = expanded ? expandedWindowStyle : collapsedWindowStyle;
 
   const renderContactActions = (actions = contactOnlyActions) => {
-    if (
-      !settings.enableContactBlock ||
-      !Array.isArray(actions) ||
-      actions.length === 0
-    )
-      return null;
+    if (!settings.enableContactBlock) return null;
+    const resolvedActions =
+      Array.isArray(actions) && actions.length > 0
+        ? actions
+        : fallbackNeedMoreInfoActions;
+
     return (
       <div style={{ marginTop: 12 }}>
-        <div style={{ marginBottom: 8, fontWeight: 600, color: "#555" }}>
+        <div style={{ marginBottom: 8, fontWeight: 600, color: botBubbleText }}>
           Need more info?
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-          {actions.map((action) => (
+          {resolvedActions.map((action) => (
             <ContactAction
               key={action.id}
               href={action.url}
@@ -695,24 +1006,15 @@ export default function ChatbotWidget() {
           key={String(item._id)}
           style={{ display: "flex", justifyContent: "flex-end" }}
         >
-          <button
+          <ChoiceChipButton
             type="button"
             onClick={() => openNode(item._id, { userText: item.question })}
-            style={{
-              border: "none",
-              borderRadius: 999,
-              padding: "10px 16px",
-              maxWidth: "90%",
-              cursor: "pointer",
-              background: chipBg,
-              color: chipColor,
-              fontWeight: 600,
-              textAlign: "left",
-              boxShadow: "0 3px 10px rgba(0,0,0,0.08)",
-            }}
+            $bg={chipBg}
+            $text={chipColor}
+            $borderColor={borderColor}
           >
             {item.question}
-          </button>
+          </ChoiceChipButton>
         </div>
       ))}
     </div>
@@ -720,31 +1022,17 @@ export default function ChatbotWidget() {
 
   return (
     <ChatbotWidgetRoot>
-      <button
+      <LauncherButton
         type="button"
         onClick={toggleOpen}
         aria-label="Open support chat"
         data-chatbot-launcher
-        style={{
-          position: "fixed",
-          bottom: anchorGap,
-          right: anchorGap,
-          zIndex: 3000,
-          width: 62,
-          height: 62,
-          borderRadius: "50%",
-          border: "3px solid rgba(255,255,255,0.9)",
-          background: accentColor,
-          color: "#fff",
-          cursor: "pointer",
-          boxShadow: "0 10px 26px rgba(0,0,0,0.25)",
-          display: open ? "none" : "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
+        $anchorGap={anchorGap}
+        $accentColor={accentColor}
+        $hidden={open}
       >
         <MessageOutlined style={{ fontSize: 24 }} />
-      </button>
+      </LauncherButton>
 
       <div
         style={{
@@ -758,8 +1046,8 @@ export default function ChatbotWidget() {
           height: windowSizeStyle.height,
           maxHeight: windowSizeStyle.maxHeight,
           maxWidth: "calc(100vw - 32px)",
-          background: settings.chatBackgroundColor || "#fff",
-          border: `1px solid ${settings.borderColor || "#ececec"}`,
+          background: chatBackgroundColor,
+          border: `1px solid ${borderColor}`,
           borderRadius: windowSizeStyle.borderRadius,
           boxShadow: "0 14px 38px rgba(0,0,0,0.22)",
           display: open ? "flex" : "none",
@@ -773,17 +1061,7 @@ export default function ChatbotWidget() {
         data-chatbot-window
         data-chatbot-expanded={expanded ? "true" : "false"}
       >
-        <div
-          style={{
-            padding: "12px 14px",
-            borderBottom: `1px solid ${settings.borderColor || "#f0f0f0"}`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            background: "#fff",
-            gap: 10,
-          }}
-        >
+        <HeaderBar $headerColor={headerColor} $borderColor={borderColor}>
           <div
             style={{
               display: "flex",
@@ -800,6 +1078,7 @@ export default function ChatbotWidget() {
                   width: 34,
                   height: 34,
                   borderRadius: "50%",
+                  border: `1px solid ${borderColor}`,
                   objectFit: "cover",
                 }}
               />
@@ -809,8 +1088,8 @@ export default function ChatbotWidget() {
                   width: 34,
                   height: 34,
                   borderRadius: "50%",
-                  background: "linear-gradient(135deg,#ffa238,#ff7a00)",
-                  color: "#fff",
+                  background: accentColor,
+                  color: getReadableTextColor(accentColor),
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -821,35 +1100,19 @@ export default function ChatbotWidget() {
               </div>
             )}
             <div style={{ minWidth: 0 }}>
-              <div
-                style={{
-                  fontWeight: 500,
-                  fontSize: 16,
-                  lineHeight: 1,
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  color: "#111",
-                }}
-              >
+              <HeaderTitle $headerTextColor={headerTextColor}>
                 {settings.botName || "MESCO Help Desk"}
-              </div>
-              <div style={{ fontSize: 12, color: "#777" }}>Online</div>
+              </HeaderTitle>
+              <HeaderStatus $headerSubTextColor={headerSubTextColor}>
+                Online
+              </HeaderStatus>
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <button
+            <HeaderActionButton
               type="button"
               onClick={() => setExpanded((prev) => !prev)}
-              style={{
-                border: "none",
-                background: "transparent",
-                color: "#888",
-                cursor: "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+              $headerTextColor={headerTextColor}
               aria-label={expanded ? "Restore chat size" : "Expand chat"}
               title={expanded ? "Restore" : "Expand"}
             >
@@ -858,41 +1121,27 @@ export default function ChatbotWidget() {
               ) : (
                 <ExpandOutlined style={{ fontSize: 14 }} />
               )}
-            </button>
-            <button
+            </HeaderActionButton>
+            <HeaderActionButton
               type="button"
               onClick={toggleOpen}
-              style={{
-                border: "none",
-                background: "transparent",
-                color: "#888",
-                cursor: "pointer",
-              }}
+              $headerTextColor={headerTextColor}
               aria-label="Close chat"
             >
               <CloseOutlined style={{ fontSize: 16 }} />
-            </button>
+            </HeaderActionButton>
           </div>
-        </div>
+        </HeaderBar>
 
-        <div
+        <ChatBody
           ref={chatScrollRef}
           onWheel={handleWheelContain}
           onTouchStart={handleTouchStartContain}
           onTouchMove={handleTouchMoveContain}
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            padding: "14px 14px 8px",
-            background: "#fff",
-            scrollBehavior: "smooth",
-            overscrollBehaviorY: "contain",
-            WebkitOverflowScrolling: "touch",
-            touchAction: "pan-y",
-          }}
+          $chatBackgroundColor={chatBackgroundColor}
         >
           {settings.enableBreadcrumb && current?.breadcrumb?.length > 0 ? (
-            <div style={{ fontSize: 12, marginBottom: 8, color: "#999" }}>
+            <div style={{ fontSize: 12, marginBottom: 8, color: botBubbleText }}>
               {current.breadcrumb.map((item, index) => (
                 <span key={String(item._id)}>
                   {index > 0 ? " / " : ""}
@@ -910,35 +1159,19 @@ export default function ChatbotWidget() {
                 marginBottom: 10,
               }}
             >
-              <div
-                style={{
-                  display: "inline-block",
-                  background: settings.userMessageBubbleColor || chipBg,
-                  color: settings.userMessageTextColor || chipColor,
-                  borderRadius: 16,
-                  padding: "10px 13px",
-                  maxWidth: "92%",
-                  lineHeight: 1.4,
-                  boxShadow: "0 3px 10px rgba(0,0,0,0.08)",
-                }}
-              >
+              <UserMessageBubble $bg={userBubbleBg} $text={userBubbleText}>
                 {lastSubmittedQuery}
-              </div>
+              </UserMessageBubble>
             </div>
           ) : null}
 
           {typing ? (
-            <div
-              style={{
-                display: "inline-block",
-                background: settings.botMessageBubbleColor || "#f7f7f7",
-                color: settings.botMessageTextColor || "#202020",
-                borderRadius: 16,
-                padding: "10px 13px",
-                border: `1px solid ${settings.borderColor || "#ededed"}`,
-                maxWidth: "95%",
-                whiteSpace: "pre-wrap",
-              }}
+            <BotMessageBubble
+              $bg={botBubbleBg}
+              $text={botBubbleText}
+              $borderColor={borderColor}
+              $accentColor={accentColor}
+              $whiteSpace="pre-wrap"
             >
               {streamedBotText ? (
                 streamedBotText
@@ -954,7 +1187,7 @@ export default function ChatbotWidget() {
                   </TypingDots>
                 </TypingStatus>
               )}
-            </div>
+            </BotMessageBubble>
           ) : null}
 
           {!typing &&
@@ -962,75 +1195,57 @@ export default function ChatbotWidget() {
           !searchResults.length &&
           !lastSubmittedQuery ? (
             <>
-              <div
-                style={{
-                  display: "inline-block",
-                  background: settings.botMessageBubbleColor || "#f7f7f7",
-                  color: settings.botMessageTextColor || "#202020",
-                  borderRadius: 16,
-                  padding: "12px 14px",
-                  border: `1px solid ${settings.borderColor || "#ededed"}`,
-                  lineHeight: 1.5,
-                  maxWidth: "95%",
-                }}
+              <BotMessageBubble
+                $bg={botBubbleBg}
+                $text={botBubbleText}
+                $borderColor={borderColor}
+                $accentColor={accentColor}
+                $padding="12px 14px"
+                $lineHeight="1.5"
               >
                 <div style={{ fontWeight: 700 }}>{settings.welcomeMessage}</div>
                 <div>{settings.welcomeSubtitle}</div>
-              </div>
+              </BotMessageBubble>
               {renderChoiceChips(quickOptions)}
             </>
           ) : null}
 
           {!typing && searchResults.length > 0 ? (
             <>
-              <div
-                style={{
-                  display: "inline-block",
-                  background: settings.botMessageBubbleColor || "#f7f7f7",
-                  color: settings.botMessageTextColor || "#202020",
-                  borderRadius: 16,
-                  padding: "10px 13px",
-                  border: `1px solid ${settings.borderColor || "#ededed"}`,
-                  maxWidth: "95%",
-                  whiteSpace: "pre-wrap",
-                }}
+              <BotMessageBubble
+                $bg={botBubbleBg}
+                $text={botBubbleText}
+                $borderColor={borderColor}
+                $accentColor={accentColor}
+                $whiteSpace="pre-wrap"
               >
                 {botReplyText || "Here are matching questions:"}
-              </div>
+              </BotMessageBubble>
               {renderChoiceChips(searchResults)}
             </>
           ) : null}
 
           {!typing && searching ? (
-            <div
-              style={{
-                display: "inline-block",
-                background: settings.botMessageBubbleColor || "#f7f7f7",
-                color: settings.botMessageTextColor || "#202020",
-                borderRadius: 16,
-                padding: "10px 13px",
-                border: `1px solid ${settings.borderColor || "#ededed"}`,
-                maxWidth: "95%",
-              }}
+            <BotMessageBubble
+              $bg={botBubbleBg}
+              $text={botBubbleText}
+              $borderColor={borderColor}
+              $accentColor={accentColor}
             >
               Thinking...
-            </div>
+            </BotMessageBubble>
           ) : null}
 
           {!typing && !searchResults.length && current?.node ? (
             <>
               {hasNodeAnswer && isCurrentNodeResponseReady ? (
-                <div
-                  style={{
-                    display: "inline-block",
-                    background: settings.botMessageBubbleColor || "#f7f7f7",
-                    color: settings.botMessageTextColor || "#202020",
-                    borderRadius: 16,
-                    padding: "12px 14px",
-                    border: `1px solid ${settings.borderColor || "#ededed"}`,
-                    maxWidth: "95%",
-                    lineHeight: 1.5,
-                  }}
+                <BotMessageBubble
+                  $bg={botBubbleBg}
+                  $text={botBubbleText}
+                  $borderColor={borderColor}
+                  $accentColor={accentColor}
+                  $padding="12px 14px"
+                  $lineHeight="1.5"
                   // eslint-disable-next-line react/no-danger
                   dangerouslySetInnerHTML={{
                     __html: DOMPurify.sanitize(nodeAnswerHtml),
@@ -1049,17 +1264,42 @@ export default function ChatbotWidget() {
           {!typing && searchError ? (
             <div style={{ marginTop: 12, color: "#cf1322", fontWeight: 500 }}>
               {searchError}
-              {searchError.toLowerCase().includes("didn't find")
-                ? renderContactActions(contactOnlyActions)
-                : null}
             </div>
           ) : null}
-        </div>
+
+          {!typing &&
+          !searching &&
+          !current?.node &&
+          !!lastSubmittedQuery &&
+          !searchResults.length &&
+          !searchError &&
+          !!botReplyText ? (
+            <BotMessageBubble
+              $bg={botBubbleBg}
+              $text={botBubbleText}
+              $borderColor={borderColor}
+              $accentColor={accentColor}
+              $whiteSpace="pre-wrap"
+            >
+              {botReplyText}
+            </BotMessageBubble>
+          ) : null}
+
+          {!typing &&
+          !searching &&
+          !current?.node &&
+          !!lastSubmittedQuery &&
+          !searchResults.length &&
+          !searchError
+            ? renderContactActions(contactOnlyActions)
+            : null}
+        </ChatBody>
 
         <div
           style={{
-            borderTop: `1px solid ${settings.borderColor || "#f0f0f0"}`,
+            borderTop: `1px solid ${borderColor}`,
             padding: "10px 12px",
+            background: chatBackgroundColor,
           }}
         >
           {(settings.enableBackButton || settings.enableHomeButton) && (
@@ -1070,57 +1310,31 @@ export default function ChatbotWidget() {
                 marginBottom: 8,
               }}
             >
-              <button
+              <NavActionButton
                 type="button"
                 onClick={onBack}
                 disabled={!current?.node}
-                style={{
-                  border: "none",
-                  background: "transparent",
-                  color: accentColor,
-                  cursor: current?.node ? "pointer" : "default",
-                  opacity: current?.node ? 1 : 0.45,
-                  display: settings.enableBackButton ? "inline-flex" : "none",
-                  alignItems: "center",
-                  gap: 6,
-                  fontWeight: 600,
-                }}
+                $accentColor={accentColor}
+                $disabled={!current?.node}
+                $visible={settings.enableBackButton}
               >
                 <ArrowLeftOutlined />
                 Back
-              </button>
-              <button
+              </NavActionButton>
+              <NavActionButton
                 type="button"
                 onClick={onHome}
-                style={{
-                  border: "none",
-                  background: "transparent",
-                  color: accentColor,
-                  cursor: "pointer",
-                  display: settings.enableHomeButton ? "inline-flex" : "none",
-                  alignItems: "center",
-                  gap: 6,
-                  fontWeight: 600,
-                }}
+                $accentColor={accentColor}
+                $visible={settings.enableHomeButton}
               >
                 <HomeOutlined />
                 Home
-              </button>
+              </NavActionButton>
             </div>
           )}
 
-          <div
-            style={{
-              border: `1px solid ${settings.borderColor || "#e8e8e8"}`,
-              borderRadius: 18,
-              padding: "8px 10px",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              background: "#fff",
-            }}
-          >
-            <input
+          <ComposerWrap $borderColor={borderColor} $chatBackgroundColor={chatBackgroundColor}>
+            <ComposerInput
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => {
@@ -1135,48 +1349,27 @@ export default function ChatbotWidget() {
                   : "Search disabled"
               }
               disabled={!settings.enableSearch}
-              style={{
-                flex: 1,
-                border: "none",
-                outline: "none",
-                fontSize: 14,
-                color: "#222",
-                background: "transparent",
-              }}
+              $textColor={botBubbleText}
+              $placeholderColor={botBubbleText}
             />
-            <button
+            <SendButton
               type="button"
               onClick={runSearch}
+              $disabled={
+                !settings.enableSearch ||
+                searching ||
+                !String(query || "").trim()
+              }
               disabled={
                 !settings.enableSearch ||
                 searching ||
                 !String(query || "").trim()
               }
-              style={{
-                width: 30,
-                height: 30,
-                borderRadius: "50%",
-                border: "none",
-                background:
-                  !settings.enableSearch || !String(query || "").trim()
-                    ? "#ececec"
-                    : accentColor,
-                color:
-                  !settings.enableSearch || !String(query || "").trim()
-                    ? "#a9a9a9"
-                    : "#fff",
-                cursor:
-                  !settings.enableSearch || !String(query || "").trim()
-                    ? "default"
-                    : "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+              $accentColor={accentColor}
             >
               <ArrowUpOutlined />
-            </button>
-          </div>
+            </SendButton>
+          </ComposerWrap>
         </div>
       </div>
 

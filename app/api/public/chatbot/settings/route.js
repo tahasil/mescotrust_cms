@@ -68,7 +68,13 @@ export async function GET() {
   try {
     await connectDB();
     const settings = await getSettings({ bootstrap: true });
-    return NextResponse.json(okPayload(toPublicSettings(settings)));
+    return NextResponse.json(okPayload(toPublicSettings(settings)), {
+      headers: {
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
+    });
   } catch (err) {
     if (err instanceof ChatbotError) {
       return NextResponse.json(errorPayload(err.code, err.message, err.details), {
