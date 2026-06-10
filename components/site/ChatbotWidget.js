@@ -63,7 +63,10 @@ function htmlToText(input) {
       .replace(/\n{3,}/g, "\n\n")
       .trim();
   }
-  return raw.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  return raw
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function hasRenderableHtml(input) {
@@ -103,7 +106,8 @@ function ContactAction({ href, label, target, onClick, accentColor }) {
 export default function ChatbotWidget() {
   const [sessionId] = useState(() => {
     if (typeof window === "undefined") return `chat-${Date.now()}`;
-    if (typeof window.crypto?.randomUUID === "function") return window.crypto.randomUUID();
+    if (typeof window.crypto?.randomUUID === "function")
+      return window.crypto.randomUUID();
     return `chat-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
   });
 
@@ -134,7 +138,8 @@ export default function ChatbotWidget() {
   const sendEvent = useCallback(
     async (eventType, payload = {}) => {
       try {
-        const entryPage = typeof window !== "undefined" ? window.location.pathname : "";
+        const entryPage =
+          typeof window !== "undefined" ? window.location.pathname : "";
         await fetch("/api/public/chatbot/events", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -219,7 +224,8 @@ export default function ChatbotWidget() {
     if (!node) return;
     const deltaY = Number(event.deltaY || 0);
     const atTop = node.scrollTop <= 0;
-    const atBottom = node.scrollTop + node.clientHeight >= node.scrollHeight - 1;
+    const atBottom =
+      node.scrollTop + node.clientHeight >= node.scrollHeight - 1;
     if ((deltaY < 0 && atTop) || (deltaY > 0 && atBottom)) {
       event.preventDefault();
     }
@@ -237,7 +243,8 @@ export default function ChatbotWidget() {
     const deltaY = touchStartYRef.current - currentY;
     touchStartYRef.current = currentY;
     const atTop = node.scrollTop <= 0;
-    const atBottom = node.scrollTop + node.clientHeight >= node.scrollHeight - 1;
+    const atBottom =
+      node.scrollTop + node.clientHeight >= node.scrollHeight - 1;
     if ((deltaY < 0 && atTop) || (deltaY > 0 && atBottom)) {
       event.preventDefault();
     }
@@ -247,31 +254,39 @@ export default function ChatbotWidget() {
   const loadBootstrap = useCallback(async () => {
     setLoading(true);
     try {
-      const [settingsRes, rootsRes, featuredRes, popularRes] = await Promise.all([
-        fetch("/api/public/chatbot/settings"),
-        fetch("/api/public/chatbot/faqs/root"),
-        fetch("/api/public/chatbot/featured"),
-        fetch("/api/public/chatbot/popular"),
-      ]);
+      const [settingsRes, rootsRes, featuredRes, popularRes] =
+        await Promise.all([
+          fetch("/api/public/chatbot/settings"),
+          fetch("/api/public/chatbot/faqs/root"),
+          fetch("/api/public/chatbot/featured"),
+          fetch("/api/public/chatbot/popular"),
+        ]);
 
-      const [settingsData, rootsData, featuredData, popularData] = await Promise.all([
-        settingsRes.json().catch(() => ({})),
-        rootsRes.json().catch(() => ({})),
-        featuredRes.json().catch(() => ({})),
-        popularRes.json().catch(() => ({})),
-      ]);
+      const [settingsData, rootsData, featuredData, popularData] =
+        await Promise.all([
+          settingsRes.json().catch(() => ({})),
+          rootsRes.json().catch(() => ({})),
+          featuredRes.json().catch(() => ({})),
+          popularRes.json().catch(() => ({})),
+        ]);
 
       if (!settingsRes.ok || !settingsData?.success) {
-        throw new Error(extractApiError(settingsData, "Failed to load chatbot settings"));
+        throw new Error(
+          extractApiError(settingsData, "Failed to load chatbot settings"),
+        );
       }
       if (!rootsRes.ok || !rootsData?.success) {
-        throw new Error(extractApiError(rootsData, "Failed to load root questions"));
+        throw new Error(
+          extractApiError(rootsData, "Failed to load root questions"),
+        );
       }
 
       setSettings(settingsData.data || null);
       setRoots(Array.isArray(rootsData?.data) ? rootsData.data : []);
       setFeatured(
-        featuredRes.ok && featuredData?.success && Array.isArray(featuredData.data)
+        featuredRes.ok &&
+          featuredData?.success &&
+          Array.isArray(featuredData.data)
           ? featuredData.data
           : [],
       );
@@ -371,7 +386,9 @@ export default function ChatbotWidget() {
     const text = String(query || "").trim();
     if (!text) return;
     if (text.length < Number(settings.minSearchChars || 2)) {
-      setSearchError(`Please type at least ${settings.minSearchChars || 2} characters.`);
+      setSearchError(
+        `Please type at least ${settings.minSearchChars || 2} characters.`,
+      );
       setSearchResults([]);
       return;
     }
@@ -393,7 +410,9 @@ export default function ChatbotWidget() {
         page: "1",
         limit: String(settings.maxSearchResults || 8),
       });
-      const res = await fetch(`/api/public/chatbot/search?${params.toString()}`);
+      const res = await fetch(
+        `/api/public/chatbot/search?${params.toString()}`,
+      );
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data?.success) {
         throw new Error(extractApiError(data, "Search failed"));
@@ -464,7 +483,9 @@ export default function ChatbotWidget() {
     setOpen(false);
     setExpanded(false);
     const durationSeconds =
-      openedAt > 0 ? Math.max(0, Math.round((Date.now() - openedAt) / 1000)) : 0;
+      openedAt > 0
+        ? Math.max(0, Math.round((Date.now() - openedAt) / 1000))
+        : 0;
     sendEvent("chat_close", {
       durationSeconds,
       lastNodeId: String(current?.node?._id || ""),
@@ -472,13 +493,22 @@ export default function ChatbotWidget() {
   };
 
   const quickOptions = useMemo(() => {
-    return dedupeQuestions([...(featured || []), ...(popular || []), ...(roots || [])]).slice(0, 8);
+    return dedupeQuestions([
+      ...(featured || []),
+      ...(popular || []),
+      ...(roots || []),
+    ]).slice(0, 8);
   }, [featured, popular, roots]);
 
   const activeActions = useMemo(() => {
-    const actions = Array.isArray(settings?.contactActions) ? settings.contactActions : [];
+    const actions = Array.isArray(settings?.contactActions)
+      ? settings.contactActions
+      : [];
     return actions
-      .filter((action) => action && action.enabled !== false && action.label && action.url)
+      .filter(
+        (action) =>
+          action && action.enabled !== false && action.label && action.url,
+      )
       .sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0));
   }, [settings?.contactActions]);
 
@@ -499,7 +529,8 @@ export default function ChatbotWidget() {
 
   if (loading || !settings || settings.enabled === false) return null;
   const currentNodeId = String(current?.node?._id || "");
-  const isCurrentNodeResponseReady = Boolean(currentNodeId) && nodeResponseReadyId === currentNodeId;
+  const isCurrentNodeResponseReady =
+    Boolean(currentNodeId) && nodeResponseReadyId === currentNodeId;
   const nodeAnswerHtml = String(current?.node?.answerHtml || "");
   const hasNodeAnswer = hasRenderableHtml(nodeAnswerHtml);
 
@@ -528,10 +559,17 @@ export default function ChatbotWidget() {
   const windowSizeStyle = expanded ? expandedWindowStyle : collapsedWindowStyle;
 
   const renderContactActions = (actions = contactOnlyActions) => {
-    if (!settings.enableContactBlock || !Array.isArray(actions) || actions.length === 0) return null;
+    if (
+      !settings.enableContactBlock ||
+      !Array.isArray(actions) ||
+      actions.length === 0
+    )
+      return null;
     return (
       <div style={{ marginTop: 12 }}>
-        <div style={{ marginBottom: 8, fontWeight: 600, color: "#555" }}>Need more info?</div>
+        <div style={{ marginBottom: 8, fontWeight: 600, color: "#555" }}>
+          Need more info?
+        </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {actions.map((action) => (
             <ContactAction
@@ -559,9 +597,19 @@ export default function ChatbotWidget() {
   };
 
   const renderChoiceChips = (items) => (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 12 }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 10,
+        marginTop: 12,
+      }}
+    >
       {(items || []).map((item) => (
-        <div key={String(item._id)} style={{ display: "flex", justifyContent: "flex-end" }}>
+        <div
+          key={String(item._id)}
+          style={{ display: "flex", justifyContent: "flex-end" }}
+        >
           <button
             type="button"
             onClick={() => openNode(item._id, { userText: item.question })}
@@ -651,12 +699,24 @@ export default function ChatbotWidget() {
             gap: 10,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              minWidth: 0,
+            }}
+          >
             {settings.avatarMediaId ? (
               <img
                 src={resolveMediaSrc(settings.avatarMediaId)}
                 alt={settings.botName || "Bot"}
-                style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover" }}
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                }}
               />
             ) : (
               <div
@@ -678,8 +738,9 @@ export default function ChatbotWidget() {
             <div style={{ minWidth: 0 }}>
               <div
                 style={{
-                  fontWeight: 700,
-                  fontSize: 18,
+                  fontWeight: 500,
+                  fontSize: 16,
+                  lineHeight: 1,
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -688,7 +749,7 @@ export default function ChatbotWidget() {
               >
                 {settings.botName || "MESCO Help Desk"}
               </div>
-              <div style={{ fontSize: 13, color: "#777" }}>Online</div>
+              <div style={{ fontSize: 12, color: "#777" }}>Online</div>
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -708,9 +769,9 @@ export default function ChatbotWidget() {
               title={expanded ? "Restore" : "Expand"}
             >
               {expanded ? (
-                <CompressOutlined style={{ fontSize: 16 }} />
+                <CompressOutlined style={{ fontSize: 14 }} />
               ) : (
-                <ExpandOutlined style={{ fontSize: 16 }} />
+                <ExpandOutlined style={{ fontSize: 14 }} />
               )}
             </button>
             <button
@@ -724,7 +785,7 @@ export default function ChatbotWidget() {
               }}
               aria-label="Close chat"
             >
-              <CloseOutlined style={{ fontSize: 18 }} />
+              <CloseOutlined style={{ fontSize: 16 }} />
             </button>
           </div>
         </div>
@@ -757,7 +818,13 @@ export default function ChatbotWidget() {
           ) : null}
 
           {!typing && !current?.node && !!lastSubmittedQuery ? (
-            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 10 }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                marginBottom: 10,
+              }}
+            >
               <div
                 style={{
                   display: "inline-block",
@@ -791,8 +858,16 @@ export default function ChatbotWidget() {
               {streamedBotText ? (
                 streamedBotText
               ) : (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                  <span>{streamingMode === "node" ? "Typing" : "Thinking"}</span>
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                >
+                  <span>
+                    {streamingMode === "node" ? "Typing" : "Thinking"}
+                  </span>
                   <span className="chatbot-typing-dots" aria-hidden>
                     <i />
                     <i />
@@ -803,7 +878,10 @@ export default function ChatbotWidget() {
             </div>
           ) : null}
 
-          {!typing && !current?.node && !searchResults.length && !lastSubmittedQuery ? (
+          {!typing &&
+          !current?.node &&
+          !searchResults.length &&
+          !lastSubmittedQuery ? (
             <>
               <div
                 style={{
@@ -880,7 +958,9 @@ export default function ChatbotWidget() {
                   }}
                 />
               ) : null}
-              {isCurrentNodeResponseReady ? renderChoiceChips(dedupeQuestions(current.children || [])) : null}
+              {isCurrentNodeResponseReady
+                ? renderChoiceChips(dedupeQuestions(current.children || []))
+                : null}
               {isCurrentNodeResponseReady && current?.node?.showNeedMoreInfo
                 ? renderContactActions(contactOnlyActions)
                 : null}
@@ -897,9 +977,20 @@ export default function ChatbotWidget() {
           ) : null}
         </div>
 
-        <div style={{ borderTop: `1px solid ${settings.borderColor || "#f0f0f0"}`, padding: "10px 12px" }}>
+        <div
+          style={{
+            borderTop: `1px solid ${settings.borderColor || "#f0f0f0"}`,
+            padding: "10px 12px",
+          }}
+        >
           {(settings.enableBackButton || settings.enableHomeButton) && (
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginBottom: 8,
+              }}
+            >
               <button
                 type="button"
                 onClick={onBack}
@@ -959,7 +1050,11 @@ export default function ChatbotWidget() {
                   runSearch();
                 }
               }}
-              placeholder={settings.enableSearch ? "Write your message..." : "Search disabled"}
+              placeholder={
+                settings.enableSearch
+                  ? "Write your message..."
+                  : "Search disabled"
+              }
               disabled={!settings.enableSearch}
               style={{
                 flex: 1,
@@ -973,7 +1068,11 @@ export default function ChatbotWidget() {
             <button
               type="button"
               onClick={runSearch}
-              disabled={!settings.enableSearch || searching || !String(query || "").trim()}
+              disabled={
+                !settings.enableSearch ||
+                searching ||
+                !String(query || "").trim()
+              }
               style={{
                 width: 30,
                 height: 30,
@@ -983,9 +1082,14 @@ export default function ChatbotWidget() {
                   !settings.enableSearch || !String(query || "").trim()
                     ? "#ececec"
                     : accentColor,
-                color: !settings.enableSearch || !String(query || "").trim() ? "#a9a9a9" : "#fff",
+                color:
+                  !settings.enableSearch || !String(query || "").trim()
+                    ? "#a9a9a9"
+                    : "#fff",
                 cursor:
-                  !settings.enableSearch || !String(query || "").trim() ? "default" : "pointer",
+                  !settings.enableSearch || !String(query || "").trim()
+                    ? "default"
+                    : "pointer",
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
