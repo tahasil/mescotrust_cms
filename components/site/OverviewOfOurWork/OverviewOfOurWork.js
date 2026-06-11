@@ -154,13 +154,13 @@ const CardsWrapper = styled.div`
       flex-shrink: 0;
       margin-top: auto;
     }
-    button,
-    .ant-btn {
-      color: var(--button-color);
+    .cardLinkWrap .ant-btn,
+    .cardLinkWrap .ant-btn > span,
+    .cardLinkWrap .ant-btn .anticon {
+      color: var(--button-color) !important;
     }
-    button svg,
-    .ant-btn svg {
-      fill: var(--button-color);
+    .cardLinkWrap .ant-btn svg {
+      fill: currentColor !important;
     }
     @media (max-width: 768px) {
       padding: 32px 20px;
@@ -179,13 +179,14 @@ const CardsWrapper = styled.div`
       .cardBackground {
         opacity: 1;
       }
-      button,
-      .ant-btn {
+      .cardLinkWrap .ant-btn,
+      .cardLinkWrap .ant-btn > span,
+      .cardLinkWrap .ant-btn .anticon {
         color: var(--button-color) !important;
       }
-      svg {
+      .cardLinkWrap .ant-btn svg {
         rotate: 0deg !important;
-        fill: var(--button-color) !important;
+        fill: currentColor !important;
       }
       img:not(.cardBackground img):not(.cardIconImage) {
         filter: ${() =>
@@ -638,6 +639,7 @@ export default function OverviewOfOurWork(props) {
                             <ThemeButton
                               className="link"
                               type="button"
+                              color={buttonColor}
                               size="large"
                               icon={<ArrowRightOutlined />}
                               iconPosition="end"
