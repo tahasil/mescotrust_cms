@@ -13,6 +13,7 @@ import { isAdmin } from "@/lib/permissions";
 import { getRegistryIdsFromDisk } from "@/lib/getRegistryIdsFromDisk";
 import { normalizeThemeColorCollections } from "@/lib/themeColorFallbacks";
 import { validateOverviewOfOurWorkBackgroundImages } from "@/lib/overviewOfOurWorkImageValidation";
+import { validateWelcometoMESCOImage } from "@/lib/welcometoMESCOImageValidation";
 
 export const dynamic = "force-dynamic";
 
@@ -83,6 +84,16 @@ export async function PUT(req, { params }) {
     if (componentId === "OverviewOfOurWork") {
       const validationErrors =
         await validateOverviewOfOurWorkBackgroundImages(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "WelcometoMESCO") {
+      const validationErrors = await validateWelcometoMESCOImage(defaultProps);
       if (validationErrors.length > 0) {
         return NextResponse.json(
           { error: validationErrors[0] },

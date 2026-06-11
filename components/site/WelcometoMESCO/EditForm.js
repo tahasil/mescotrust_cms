@@ -20,6 +20,11 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/WelcometoMESCO";
 const PREFIX = "welcometoMESCO";
+const MIN_DESKTOP_IMAGE_WIDTH = 1042;
+const MIN_DESKTOP_IMAGE_HEIGHT = 1164;
+const MIN_DESKTOP_IMAGE_TEXT =
+  `${MIN_DESKTOP_IMAGE_WIDTH} \u00D7 ${MIN_DESKTOP_IMAGE_HEIGHT}`;
+const MIN_DESKTOP_IMAGE_ERROR_TEXT = `${MIN_DESKTOP_IMAGE_TEXT} pixels`;
 
 const FALLBACK_THEME_COLOR_KEYS = [
   "primary",
@@ -40,6 +45,38 @@ function normalizeStatItem(it) {
     label: it?.label != null ? String(it.label).trim() : "",
     iconImage: it?.iconImage != null ? String(it.iconImage).trim() : "",
   };
+}
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+async function validateWelcometoMESCODesktopImageDimensions(_, value) {
+  const imageUrl = String(value || "").trim();
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (width >= MIN_DESKTOP_IMAGE_WIDTH && height >= MIN_DESKTOP_IMAGE_HEIGHT) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(`Image size must be at least ${MIN_DESKTOP_IMAGE_ERROR_TEXT}.`),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(`Image size must be at least ${MIN_DESKTOP_IMAGE_ERROR_TEXT}.`),
+    );
+  }
 }
 
 /**
@@ -407,11 +444,17 @@ function WelcometoMESCOEditForm(
             children: (
               <Row gutter={[16, 16]}>
                 <Col span={24}>
-                  <Form.Item name="imageDesktop" label="Desktop Image">
+                  <Form.Item
+                    name="imageDesktop"
+                    label="Desktop Image"
+                    rules={[
+                      { validator: validateWelcometoMESCODesktopImageDimensions },
+                    ]}
+                  >
                     <MediaPickerInput
                       placeholder="e.g. /images/helping.png"
                       uiVariant="stacked"
-                      hintText="Recommended for desktop/tablet"
+                      hintText={`Required size: ${MIN_DESKTOP_IMAGE_TEXT}`}
                     />
                   </Form.Item>
                 </Col>
