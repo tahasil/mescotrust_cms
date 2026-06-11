@@ -11,18 +11,44 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/OverviewOfOurWork";
 const PREFIX = "overviewOfOurWork";
+const MIN_BG_IMAGE_WIDTH = 580;
+const MIN_BG_IMAGE_HEIGHT = 704;
+const MIN_BG_IMAGE_SIZE_TEXT =
+  `${MIN_BG_IMAGE_WIDTH} \u00D7 ${MIN_BG_IMAGE_HEIGHT} pixels`;
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+async function validateOverviewBackgroundImageDimensions(_, value) {
+  const imageUrl = String(value || "").trim();
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (width >= MIN_BG_IMAGE_WIDTH && height >= MIN_BG_IMAGE_HEIGHT) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(`Image size must be at least ${MIN_BG_IMAGE_SIZE_TEXT}.`),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(`Image size must be at least ${MIN_BG_IMAGE_SIZE_TEXT}.`),
+    );
+  }
+}
 
 function normalizeItem(it) {
-  const imageDesktop =
-    it?.imageUrlDesktop != null
-      ? String(it.imageUrlDesktop).trim()
-      : it?.imageUrl != null
-        ? String(it.imageUrl).trim()
-        : it?.image != null
-          ? String(it.image).trim()
-          : "";
-  const imageMobile =
-    it?.imageUrlMobile != null ? String(it.imageUrlMobile).trim() : "";
   const bgImageDesktop =
     it?.bgImageUrlDesktop != null
       ? String(it.bgImageUrlDesktop).trim()
@@ -30,16 +56,12 @@ function normalizeItem(it) {
         ? String(it.bgImageUrl).trim()
         : it?.bgImage != null
           ? String(it.bgImage).trim()
-          : "";
-  const bgImageMobile =
-    it?.bgImageUrlMobile != null ? String(it.bgImageUrlMobile).trim() : "";
+          : it?.bgImageUrlMobile != null
+            ? String(it.bgImageUrlMobile).trim()
+            : "";
   return {
     title: (it?.title != null ? String(it.title).trim() : "") || "Card",
-    imageUrlDesktop: imageDesktop,
-    imageUrlMobile: imageMobile,
-    imageUrl: imageDesktop,
     bgImageUrlDesktop: bgImageDesktop,
-    bgImageUrlMobile: bgImageMobile,
     bgImageUrl: bgImageDesktop,
     link: it?.link != null ? String(it.link).trim() : it?.url != null ? String(it.url).trim() : "",
     linkText: it?.linkText != null ? String(it.linkText).trim() : it?.buttonText != null ? String(it.buttonText).trim() : "",
@@ -56,7 +78,7 @@ function clamp(value, min, max, fallback) {
 
 /**
  * Edit form for Overview of Our Work (OverviewOfOurWork). All content from DB (components collection or page block props).
- * Manage Section + Title & Colors + Content (cards: add/edit/delete) — same drawer for component edit and Page Builder block edit.
+ * Manage Section + Title & Colors + Content (cards: add/edit/delete) - same drawer for component edit and Page Builder block edit.
  */
 function OverviewOfOurWorkEditForm(
   { source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [] },
@@ -318,7 +340,7 @@ function OverviewOfOurWorkEditForm(
                 <Form.Item
                   name="overviewOfOurWorkHoverOverlayOpacity"
                   label="Hover overlay opacity"
-                  tooltip="Opacity for card hover overlay (0–1). Default 0.5."
+                  tooltip="Opacity for card hover overlay (0-1). Default 0.5."
                   style={{ marginTop: 16 }}
                 >
                   <InputNumber
@@ -442,44 +464,29 @@ function OverviewOfOurWorkEditForm(
                             </Form.Item>
                           </Col>
                           <Col span={24}>
-                            <Form.Item {...restField} name={[name, "imageUrlDesktop"]} label="Desktop Foreground Image">
+                            <Form.Item
+                              {...restField}
+                              name={[name, "bgImageUrlDesktop"]}
+                              label="Desktop Background Image"
+                              rules={[{ validator: validateOverviewBackgroundImageDimensions }]}
+                            >
                               <MediaPickerInput
                                 placeholder="https://... or /images/..."
                                 uiVariant="stacked"
-                                hintText="Recommended for desktop/tablet"
+                                hintText={`Required size: ${MIN_BG_IMAGE_WIDTH} \u00D7 ${MIN_BG_IMAGE_HEIGHT}`}
                               />
                             </Form.Item>
                           </Col>
                           <Col span={24}>
-                            <Form.Item {...restField} name={[name, "imageUrlMobile"]} label="Mobile Foreground Image">
+                            <Form.Item
+                              {...restField}
+                              name={[name, "icon"]}
+                              label="Icon (image URL)"
+                            >
                               <MediaPickerInput
-                                placeholder="https://... or /images/..."
-                                uiVariant="stacked"
-                                hintText="Optional. Desktop image will be used if empty."
+                                placeholder="/images/icon.svg or https://..."
+                                hintText="Required size: 48 × 48"
                               />
-                            </Form.Item>
-                          </Col>
-                          <Col span={24}>
-                            <Form.Item {...restField} name={[name, "bgImageUrlDesktop"]} label="Desktop Background Image">
-                              <MediaPickerInput
-                                placeholder="https://... or /images/..."
-                                uiVariant="stacked"
-                                hintText="Recommended for desktop/tablet"
-                              />
-                            </Form.Item>
-                          </Col>
-                          <Col span={24}>
-                            <Form.Item {...restField} name={[name, "bgImageUrlMobile"]} label="Mobile Background Image">
-                              <MediaPickerInput
-                                placeholder="https://... or /images/..."
-                                uiVariant="stacked"
-                                hintText="Optional. Desktop image will be used if empty."
-                              />
-                            </Form.Item>
-                          </Col>
-                          <Col span={24}>
-                            <Form.Item {...restField} name={[name, "icon"]} label="Icon (image URL)">
-                              <MediaPickerInput placeholder="/images/icon.svg or https://..." />
                             </Form.Item>
                           </Col>
                         </Row>

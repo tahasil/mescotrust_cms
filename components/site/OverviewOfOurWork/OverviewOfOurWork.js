@@ -107,6 +107,10 @@ const CardsWrapper = styled.div`
     .cardIconWrap {
       width: 48px;
       height: 48px;
+      min-width: 48px;
+      min-height: 48px;
+      max-width: 48px;
+      max-height: 48px;
       margin: 0 auto 12px;
       display: block;
       position: relative;
@@ -324,25 +328,21 @@ export default function OverviewOfOurWork(props) {
   const cards = Array.isArray(rawItems)
     ? rawItems.map((it) => ({
         title: (it?.title ?? "").toString().trim() || "Card",
-        imageUrlDesktop: (
-          it?.imageUrlDesktop ?? it?.imageUrl ?? it?.image ?? ""
-        )
-          .toString()
-          .trim(),
-        imageUrlMobile: (it?.imageUrlMobile ?? "").toString().trim(),
-        imageUrl: (
-          it?.imageUrlDesktop ?? it?.imageUrl ?? it?.image ?? ""
-        )
-          .toString()
-          .trim(),
         bgImageUrlDesktop: (
-          it?.bgImageUrlDesktop ?? it?.bgImageUrl ?? it?.bgImage ?? ""
+          it?.bgImageUrlDesktop ??
+          it?.bgImageUrl ??
+          it?.bgImage ??
+          it?.bgImageUrlMobile ??
+          ""
         )
           .toString()
           .trim(),
-        bgImageUrlMobile: (it?.bgImageUrlMobile ?? "").toString().trim(),
         bgImageUrl: (
-          it?.bgImageUrlDesktop ?? it?.bgImageUrl ?? it?.bgImage ?? ""
+          it?.bgImageUrlDesktop ??
+          it?.bgImageUrl ??
+          it?.bgImage ??
+          it?.bgImageUrlMobile ??
+          ""
         )
           .toString()
           .trim(),
@@ -564,21 +564,13 @@ export default function OverviewOfOurWork(props) {
                       style={{ width: "100%", flex: 1 }}
                     >
                       <div className="cardBackground">
-                        {card.bgImageUrlDesktop || card.bgImageUrlMobile ? (
-                          <picture>
-                            {card.bgImageUrlMobile ? (
-                              <source
-                                media="(max-width: 767px)"
-                                srcSet={card.bgImageUrlMobile}
-                              />
-                            ) : null}
-                            <img
-                              loading="lazy"
-                              src={card.bgImageUrlDesktop || card.bgImageUrlMobile}
-                              alt=""
-                              aria-hidden
-                            />
-                          </picture>
+                        {card.bgImageUrlDesktop ? (
+                          <img
+                            loading="lazy"
+                            src={card.bgImageUrlDesktop}
+                            alt=""
+                            aria-hidden
+                          />
                         ) : null}
                       </div>
                       {card.icon &&
@@ -606,23 +598,6 @@ export default function OverviewOfOurWork(props) {
                             />
                           ) : null}
                         </span>
-                      ) : null}
-                      {card.imageUrlDesktop || card.imageUrlMobile ? (
-                        <picture>
-                          {card.imageUrlMobile ? (
-                            <source
-                              media="(max-width: 767px)"
-                              srcSet={card.imageUrlMobile}
-                            />
-                          ) : null}
-                          <img
-                            loading="lazy"
-                            className="m-auto"
-                            src={card.imageUrlDesktop || card.imageUrlMobile}
-                            alt={card.title}
-                            style={{ display: "block", margin: "0 auto" }}
-                          />
-                        </picture>
                       ) : null}
                       <h1
                         className="my-4"
