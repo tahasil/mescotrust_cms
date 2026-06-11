@@ -16,6 +16,12 @@ import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/ma
 
 const API_PATH = "/api/theme/VideoPlaying";
 const PREFIX = "videoPlaying";
+const MIN_COVER_IMAGE_WIDTH = 2164;
+const MIN_COVER_IMAGE_HEIGHT = 1200;
+const REQUIRED_COVER_IMAGE_HELPER_TEXT =
+  `${MIN_COVER_IMAGE_WIDTH} \u00D7 ${MIN_COVER_IMAGE_HEIGHT}`;
+const MIN_COVER_IMAGE_ERROR_TEXT =
+  `${REQUIRED_COVER_IMAGE_HELPER_TEXT} pixels`;
 
 const FALLBACK_THEME_COLOR_KEYS = [
   "primary",
@@ -29,6 +35,38 @@ const FALLBACK_THEME_COLOR_KEYS = [
   "borderColor",
   "gradient",
 ];
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+async function validateVideoPlayingCoverImageDimensions(_, value) {
+  const imageUrl = String(value || "").trim();
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (width >= MIN_COVER_IMAGE_WIDTH && height >= MIN_COVER_IMAGE_HEIGHT) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(`Image size must be at least ${MIN_COVER_IMAGE_ERROR_TEXT}.`),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(`Image size must be at least ${MIN_COVER_IMAGE_ERROR_TEXT}.`),
+    );
+  }
+}
 
 /**
  * Edit form for VideoPlaying. Editable fields:
@@ -62,8 +100,6 @@ function VideoPlayingEditForm(
             : data?.coverImage != null
               ? String(data.coverImage).trim()
               : "/images/player-cover.png",
-        coverImageMobile:
-          data?.coverImageMobile != null ? String(data.coverImageMobile).trim() : "",
         coverImage:
           data?.coverImageDesktop != null
             ? String(data.coverImageDesktop).trim()
@@ -124,8 +160,6 @@ function VideoPlayingEditForm(
             : values.coverImage != null
               ? String(values.coverImage).trim()
               : "/images/player-cover.png",
-        coverImageMobile:
-          values.coverImageMobile != null ? String(values.coverImageMobile).trim() : "",
         coverImage:
           values.coverImageDesktop != null
             ? String(values.coverImageDesktop).trim()
@@ -198,23 +232,12 @@ function VideoPlayingEditForm(
                   <Form.Item
                     name="coverImageDesktop"
                     label="Desktop Cover Image"
+                    rules={[{ validator: validateVideoPlayingCoverImageDimensions }]}
                   >
                     <MediaPickerInput
                       placeholder="e.g. /images/player-cover.png"
                       uiVariant="stacked"
-                      hintText="Recommended for desktop/tablet"
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={24}>
-                  <Form.Item
-                    name="coverImageMobile"
-                    label="Mobile Cover Image"
-                  >
-                    <MediaPickerInput
-                      placeholder="e.g. /images/player-cover-mobile.png"
-                      uiVariant="stacked"
-                      hintText="Optional. Desktop image will be used if empty."
+                      hintText={`Required size: ${REQUIRED_COVER_IMAGE_HELPER_TEXT}`}
                     />
                   </Form.Item>
                 </Col>

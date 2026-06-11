@@ -5,6 +5,7 @@ import Page from "@/models/Page";
 import { normalizeSlug } from "@/lib/slug";
 import { validateLayoutProps } from "@/lib/validateLayout";
 import { syncMediaUsageForPage } from "@/lib/media/usageTracker";
+import { sanitizeVideoPlayingLayout } from "@/lib/videoPlayingImageValidation";
 
 export async function GET(req) {
   const session = await requireAuth(req);
@@ -47,8 +48,12 @@ export async function POST(req) {
       return NextResponse.json({ error: "A page with this slug already exists" }, { status: 400 });
     }
 
-    if (Array.isArray(layout) && layout.length > 0) {
-      const validationErrors = await validateLayoutProps(layout);
+    const safeLayout = Array.isArray(layout)
+      ? sanitizeVideoPlayingLayout(layout)
+      : [];
+
+    if (safeLayout.length > 0) {
+      const validationErrors = await validateLayoutProps(safeLayout);
       if (validationErrors.length > 0) {
         return NextResponse.json({ error: `Layout validation: ${validationErrors.join("; ")}` }, { status: 400 });
       }
@@ -58,7 +63,7 @@ export async function POST(req) {
       title: title || "Untitled",
       slug,
       status: status || "draft",
-      layout: Array.isArray(layout) ? layout : [],
+      layout: safeLayout,
       meta: meta || {},
       ...(locale && { locale }),
       createdBy: session.email || "",

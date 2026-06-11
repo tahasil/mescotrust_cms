@@ -17,19 +17,26 @@ const HomeVideoWrapper = styled.div`
   background: ${() => getColor("black")};
   border-radius: 20px;
   overflow: hidden;
-  aspect-ratio: 16/9;
-  img,
-  iframe {
+  aspect-ratio: 2164 / 1200;
+  picture,
+  img {
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+  }
+  img {
+    object-fit: contain;
+    object-position: center;
+    background: ${() => getColor("black")};
   }
   iframe {
     position: absolute;
     top: 0;
     left: 0;
     border: none;
+    display: block;
+    width: 100%;
+    height: 100%;
   }
 `;
 
@@ -96,7 +103,6 @@ export default function VideoPlaying(props) {
   )
     .toString()
     .trim();
-  const coverImageMobile = (props?.coverImageMobile ?? "").toString().trim();
   const coverAlt = (props?.coverAlt ?? "Video cover").toString().trim();
 
   /* ── Section background ── */
@@ -175,12 +181,9 @@ export default function VideoPlaying(props) {
               ) : (
                 <>
                   <picture>
-                    {coverImageMobile ? (
-                      <source media="(max-width: 767px)" srcSet={coverImageMobile} />
-                    ) : null}
                     <img
                       loading="lazy"
-                      src={coverImageDesktop || coverImageMobile}
+                      src={coverImageDesktop}
                       alt={coverAlt}
                     />
                   </picture>

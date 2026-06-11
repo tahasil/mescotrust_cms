@@ -13,7 +13,8 @@
     "backup-db": "node scripts/backup-db.js",
     "sync-missing-media": "node scripts/sync-missing-media.js",
     "form-upload-cleanup": "node scripts/form-upload-cleanup.js",
-    "form-builder-qa": "node scripts/form-builder-qa.js"
+    "form-builder-qa": "node scripts/form-builder-qa.js",
+    "test:media-delivery": "node --test scripts/test-media-delivery.js"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.0",
