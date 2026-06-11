@@ -63,6 +63,7 @@ const mediaSchema = new mongoose.Schema(
     },
     errorMessage: { type: String, default: "" },
     generatedSizes: {
+      original: { type: mediaVariantSchema, default: () => ({}) },
       thumbnail: { type: mediaVariantSchema, default: () => ({}) },
       medium: { type: mediaVariantSchema, default: () => ({}) },
       large: { type: mediaVariantSchema, default: () => ({}) },

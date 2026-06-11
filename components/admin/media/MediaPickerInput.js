@@ -22,22 +22,26 @@ import {
   SearchOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
-import { readJson } from "./mediaUtils";
+import {
+  buildMediaVariantUrl,
+  normalizeMediaFormatParam,
+} from "@/lib/media/url";
+import { getSizeVariant, readJson } from "./mediaUtils";
 
 const SIZE_OPTIONS = [
   { value: "original", label: "Original" },
-  { value: "thumbnail", label: "Thumb" },
-  { value: "medium", label: "Medium" },
-  { value: "large", label: "Large" },
-  { value: "mobile", label: "Mobile" },
   { value: "desktop", label: "Desktop" },
+  { value: "large", label: "Large" },
+  { value: "medium", label: "Medium" },
+  { value: "mobile", label: "Mobile" },
+  { value: "thumbnail", label: "Thumb" },
 ];
 
 const FORMAT_OPTIONS = [
   { value: "auto", label: "Auto (AVIF/WebP/JPG)" },
   { value: "avif", label: "AVIF" },
   { value: "webp", label: "WebP" },
-  { value: "original", label: "JPG/Original" },
+  { value: "jpg", label: "JPG" },
 ];
 
 function parseMediaValue(value) {
@@ -50,24 +54,14 @@ function parseMediaValue(value) {
   const mediaId = String(match[1] || "");
   const params = new URLSearchParams(match[2] || "");
   const size = params.get("size") || "original";
-  const format = params.get("format") || "auto";
+  const format = normalizeMediaFormatParam(params.get("format") || "auto") || "auto";
   return { mediaId, size, format };
-}
-
-function buildMediaUrl(mediaId, size, format) {
-  const id = String(mediaId || "").trim();
-  if (!id) return "";
-  const params = new URLSearchParams();
-  if (size && size !== "original") params.set("size", size);
-  if (format && format !== "auto") params.set("format", format);
-  const query = params.toString();
-  return query ? `/media/${id}?${query}` : `/media/${id}`;
 }
 
 function getImagePreview(item) {
   if (!item) return "";
   const id = String(item?._id || "").trim();
-  if (id) return `/media/${id}?size=thumbnail&format=auto`;
+  if (id) return buildMediaVariantUrl(id, { size: "thumbnail", format: "auto" });
   return (
     item?.generatedSizes?.thumbnail?.jpgUrl ||
     item?.generatedSizes?.medium?.jpgUrl ||
@@ -175,10 +169,12 @@ export default function MediaPickerInput({
 
   const applyVariantUrl = useCallback(
     (targetMediaId, nextSize, nextFormat) => {
-      const nextUrl = buildMediaUrl(
+      const nextUrl = buildMediaVariantUrl(
         targetMediaId,
-        nextSize || "original",
-        nextFormat || "auto",
+        {
+          size: nextSize || "original",
+          format: normalizeMediaFormatParam(nextFormat || "auto") || "auto",
+        },
       );
       onChange?.(nextUrl);
     },
@@ -218,14 +214,9 @@ export default function MediaPickerInput({
   };
 
   const variantAvailability = useMemo(() => {
-    const sizes = activeMedia?.generatedSizes || {};
     const map = {};
     for (const option of SIZE_OPTIONS) {
-      if (option.value === "original") {
-        map[option.value] = true;
-        continue;
-      }
-      const sizeData = sizes[option.value] || {};
+      const sizeData = getSizeVariant(activeMedia, option.value);
       map[option.value] = Boolean(
         sizeData.jpgUrl || sizeData.webpUrl || sizeData.avifUrl,
       );
@@ -233,8 +224,33 @@ export default function MediaPickerInput({
     return map;
   }, [activeMedia]);
 
+  const activeSizeVariant = useMemo(
+    () => getSizeVariant(activeMedia, size),
+    [activeMedia, size],
+  );
+
+  useEffect(() => {
+    if (!mediaId || !activeMedia) return;
+    if (size === "original") return;
+    if (variantAvailability[size]) return;
+    setSize("original");
+    applyVariantUrl(mediaId, "original", format);
+  }, [
+    activeMedia,
+    applyVariantUrl,
+    format,
+    mediaId,
+    size,
+    variantAvailability,
+  ]);
+
   const previewSrc = useMemo(() => {
-    if (mediaId) return buildMediaUrl(mediaId, size, format);
+    if (mediaId) {
+      return buildMediaVariantUrl(mediaId, {
+        size: size || "original",
+        format: normalizeMediaFormatParam(format || "auto") || "auto",
+      });
+    }
     return String(value || "").trim();
   }, [mediaId, size, format, value]);
   const isStacked = uiVariant === "stacked";
@@ -363,6 +379,8 @@ export default function MediaPickerInput({
                     option.value === "original" || variantAvailability[option.value]
                       ? option.label
                       : `${option.label} (not generated)`,
+                  disabled:
+                    option.value !== "original" && !variantAvailability[option.value],
                 }))}
               />
               <Select
@@ -374,8 +392,8 @@ export default function MediaPickerInput({
                 style={{ minWidth: 190 }}
                 options={FORMAT_OPTIONS}
               />
-              {activeMedia?.webpUrl ? <Tag color="green">WebP</Tag> : null}
-              {activeMedia?.avifUrl ? <Tag color="purple">AVIF</Tag> : null}
+              {activeSizeVariant?.webpUrl ? <Tag color="green">WebP</Tag> : null}
+              {activeSizeVariant?.avifUrl ? <Tag color="purple">AVIF</Tag> : null}
             </Space>
           ) : null}
 
@@ -424,6 +442,8 @@ export default function MediaPickerInput({
                     option.value === "original" || variantAvailability[option.value]
                       ? option.label
                       : `${option.label} (not generated)`,
+                  disabled:
+                    option.value !== "original" && !variantAvailability[option.value],
                 }))}
               />
               <Select
@@ -435,8 +455,8 @@ export default function MediaPickerInput({
                 style={{ minWidth: 190 }}
                 options={FORMAT_OPTIONS}
               />
-              {activeMedia?.webpUrl ? <Tag color="green">WebP</Tag> : null}
-              {activeMedia?.avifUrl ? <Tag color="purple">AVIF</Tag> : null}
+              {activeSizeVariant?.webpUrl ? <Tag color="green">WebP</Tag> : null}
+              {activeSizeVariant?.avifUrl ? <Tag color="purple">AVIF</Tag> : null}
             </Space>
           ) : null}
 

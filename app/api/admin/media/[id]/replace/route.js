@@ -85,7 +85,8 @@ export async function POST(req, { params }) {
     media.ext = optimized.ext || media.ext;
     media.storageProvider = optimized.storageProvider || media.storageProvider || "local";
     media.storageKey = optimized.storageKey || media.storageKey;
-    media.publicUrl = optimized.publicUrl || `/media/${media._id}`;
+    media.publicUrl =
+      optimized.publicUrl || `/media/${media._id}?size=original&format=auto`;
     media.url = optimized.url || media.url;
     media.originalUrl = optimized.originalUrl || media.originalUrl || media.url;
     media.webpUrl = optimized.webpUrl || "";

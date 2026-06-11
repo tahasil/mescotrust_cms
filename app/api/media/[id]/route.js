@@ -53,12 +53,47 @@ function resolveContentType(urlOrKey, fallbackType) {
   return MIME_BY_EXT[ext] || fallbackType || "application/octet-stream";
 }
 
-async function readOriginalImageBuffer(media, req) {
-  const source = String(media?.originalUrl || media?.url || "").trim();
-  if (!source) return null;
+function resolveAutoFormat(req) {
+  const acceptHeader = String(req.headers.get("accept") || "").toLowerCase();
+  if (acceptHeader.includes("image/avif")) return "avif";
+  if (acceptHeader.includes("image/webp")) return "webp";
+  return "original";
+}
 
-  if (String(media?.storageProvider || "local").toLowerCase() === "local") {
-    const storageKey = toStorageKey(source);
+function resolveRequestedFormat(rawFormat, req) {
+  const format = String(rawFormat || "").toLowerCase().trim();
+  if (!format || format === "auto") return resolveAutoFormat(req);
+  if (format === "jpg" || format === "jpeg") return "original";
+  return format;
+}
+
+function getRequestedVariant(media, size) {
+  const requestedSize = normalizeRequestedSize(size);
+  if (!requestedSize) {
+    return {
+      jpgUrl: String(media?.originalUrl || media?.url || "").trim(),
+      webpUrl: String(media?.webpUrl || "").trim(),
+      avifUrl: String(media?.avifUrl || "").trim(),
+    };
+  }
+
+  const variant = media?.generatedSizes?.[requestedSize] || null;
+  if (!variant) return null;
+
+  return {
+    jpgUrl: String(variant?.jpgUrl || "").trim(),
+    webpUrl: String(variant?.webpUrl || "").trim(),
+    avifUrl: String(variant?.avifUrl || "").trim(),
+  };
+}
+
+async function readImageBufferFromSource(media, source, req) {
+  const sourceUrl = String(source || "").trim();
+  if (!sourceUrl) return null;
+
+  const storageProvider = String(media?.storageProvider || "local").toLowerCase();
+  if (storageProvider === "local" && !sourceUrl.startsWith("http")) {
+    const storageKey = toStorageKey(sourceUrl);
     if (storageKey) {
       const adapter = getStorageAdapter("local");
       if (typeof adapter?.toAbsolutePath === "function") {
@@ -70,9 +105,9 @@ async function readOriginalImageBuffer(media, req) {
   }
 
   try {
-    const target = source.startsWith("http")
-      ? source
-      : new URL(source, req.url).toString();
+    const target = sourceUrl.startsWith("http")
+      ? sourceUrl
+      : new URL(sourceUrl, req.url).toString();
     const response = await fetch(target, { cache: "no-store" });
     if (!response.ok) return null;
     return Buffer.from(await response.arrayBuffer());
@@ -81,18 +116,29 @@ async function readOriginalImageBuffer(media, req) {
   }
 }
 
-async function tryServeOriginalFormatResponse(media, size, format, req) {
+async function tryServeRequestedFormatResponse(media, size, format, req) {
   const requestedFormat = normalizeRequestedFormat(format);
-  const hasExplicitSize = Boolean(normalizeRequestedSize(size));
-  if (!requestedFormat || hasExplicitSize) return null;
+  if (!requestedFormat) return null;
   if (!isRasterImageMimeType(media?.mimeType)) return null;
 
-  const sourceBuffer = await readOriginalImageBuffer(media, req);
+  const variant = getRequestedVariant(media, size);
+  if (!variant) return null;
+
+  const storedRequestedUrl =
+    requestedFormat === "webp" ? variant.webpUrl : variant.avifUrl;
+  if (storedRequestedUrl) return null;
+
+  const conversionSource =
+    variant.jpgUrl ||
+    (requestedFormat === "webp" ? variant.avifUrl : variant.webpUrl);
+  if (!conversionSource) return null;
+
+  const sourceBuffer = await readImageBufferFromSource(media, conversionSource, req);
   if (!sourceBuffer) return null;
 
-  const sourceMimeType = String(media?.mimeType || "").toLowerCase().trim();
   const targetMimeType =
     requestedFormat === "webp" ? "image/webp" : "image/avif";
+  const sourceMimeType = resolveContentType(conversionSource, media?.mimeType);
 
   try {
     if (sourceMimeType === targetMimeType) {
@@ -165,15 +211,16 @@ export async function GET(req, { params }) {
 
     const { searchParams } = new URL(req.url);
     const size = String(searchParams.get("size") || "").trim();
-    const format = String(searchParams.get("format") || "auto").trim();
+    const rawFormat = String(searchParams.get("format") || "auto").trim();
+    const format = resolveRequestedFormat(rawFormat, req);
 
-    const originalFormatResponse = await tryServeOriginalFormatResponse(
+    const formatResponse = await tryServeRequestedFormatResponse(
       media,
       size,
       format,
       req,
     );
-    if (originalFormatResponse) return originalFormatResponse;
+    if (formatResponse) return formatResponse;
 
     const url = pickVariantUrl(media, size, format);
     if (!url) return NextResponse.json({ error: "No media file found" }, { status: 404 });

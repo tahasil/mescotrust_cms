@@ -31,6 +31,7 @@ import {
   dimensionsText,
   formatBytes,
   formatDate,
+  getSizeVariant,
   isImage,
   originalMediaUrl,
   previewUrl,
@@ -204,7 +205,7 @@ export default function MediaDetailsDrawer({
             size="small"
             dataSource={GENERATED_SIZE_ORDER}
             renderItem={([key, label]) => {
-              const size = item.generatedSizes?.[key] || {};
+              const size = getSizeVariant(item, key);
               const hasAny = Boolean(size.jpgUrl || size.webpUrl || size.avifUrl);
               return (
                 <List.Item>
@@ -218,7 +219,9 @@ export default function MediaDetailsDrawer({
                       </div>
                     </div>
                     <Space size={4}>
-                      <Tag color={size.jpgUrl ? "blue" : "default"}>JPG</Tag>
+                      <Tag color={size.jpgUrl ? "blue" : "default"}>
+                        {key === "original" ? "JPG/Original" : "JPG"}
+                      </Tag>
                       <Tag color={size.webpUrl ? "green" : "default"}>WebP</Tag>
                       <Tag color={size.avifUrl ? "purple" : "default"}>AVIF</Tag>
                     </Space>

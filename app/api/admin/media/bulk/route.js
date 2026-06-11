@@ -60,7 +60,10 @@ function applyOptimizedPatch(media, optimized, updatedBy) {
   media.ext = optimized.ext || media.ext || "";
   media.mimeType = optimized.mimeType || media.mimeType;
   media.url = optimized.url || media.url;
-  media.publicUrl = optimized.publicUrl || media.publicUrl || `/media/${media._id}`;
+  media.publicUrl =
+    optimized.publicUrl ||
+    media.publicUrl ||
+    `/media/${media._id}?size=original&format=auto`;
   media.originalUrl = optimized.originalUrl || media.originalUrl || media.url;
   media.webpUrl = optimized.webpUrl || "";
   media.avifUrl = optimized.avifUrl || "";

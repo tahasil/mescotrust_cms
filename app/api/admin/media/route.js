@@ -212,7 +212,8 @@ export async function POST(req) {
     draft.ext = optimized.ext || ext;
     draft.storageProvider = optimized.storageProvider || storageProvider;
     draft.storageKey = optimized.storageKey || draft.storageKey || "";
-    draft.publicUrl = optimized.publicUrl || `/media/${draft._id}`;
+    draft.publicUrl =
+      optimized.publicUrl || `/media/${draft._id}?size=original&format=auto`;
     draft.url = optimized.url || draft.url;
     draft.originalUrl = optimized.originalUrl || draft.originalUrl || draft.url;
     draft.webpUrl = optimized.webpUrl || "";

@@ -1,8 +1,10 @@
 import { formatDateTime } from "@/lib/formatDate";
+import { buildMediaVariantUrl } from "@/lib/media/url";
 
 export const PAGE_SIZE = 24;
 
 export const GENERATED_SIZE_ORDER = [
+  ["original", "Original"],
   ["thumbnail", "Thumb"],
   ["medium", "Medium"],
   ["large", "Large"],
@@ -39,28 +41,70 @@ export function monthLabel(monthValue) {
 function mediaProxyUrl(item, { size = "", format = "" } = {}) {
   const id = String(item?._id || "").trim();
   if (!id) return "";
-  const params = new URLSearchParams();
-  if (size) params.set("size", String(size));
-  if (format) params.set("format", String(format));
-  const query = params.toString();
-  return query ? `/media/${id}?${query}` : `/media/${id}`;
+  if (!size && !format) return `/media/${id}`;
+  return buildMediaVariantUrl(id, {
+    size: size || "original",
+    format: format || "auto",
+  });
+}
+
+export function getSizeVariant(item, key) {
+  if (!item) {
+    return {
+      width: 0,
+      height: 0,
+      size: 0,
+      jpgUrl: "",
+      webpUrl: "",
+      avifUrl: "",
+    };
+  }
+
+  if (String(key || "") === "original") {
+    return {
+      width: Number(item?.width) || 0,
+      height: Number(item?.height) || 0,
+      size: Number(item?.originalSize || item?.size) || 0,
+      jpgUrl: item?.originalUrl || item?.url || "",
+      webpUrl: item?.webpUrl || "",
+      avifUrl: item?.avifUrl || "",
+    };
+  }
+
+  const variant = item?.generatedSizes?.[key] || {};
+  return {
+    width: Number(variant?.width) || 0,
+    height: Number(variant?.height) || 0,
+    size: Number(variant?.size) || 0,
+    jpgUrl: variant?.jpgUrl || "",
+    webpUrl: variant?.webpUrl || "",
+    avifUrl: variant?.avifUrl || "",
+  };
 }
 
 export function previewUrl(item) {
   if (!isImage(item)) return "";
   const proxy = mediaProxyUrl(item, { size: "thumbnail", format: "auto" });
   if (proxy) return proxy;
+  const thumb = getSizeVariant(item, "thumbnail");
+  const medium = getSizeVariant(item, "medium");
+  const original = getSizeVariant(item, "original");
   return (
-    item?.generatedSizes?.thumbnail?.jpgUrl ||
-    item?.generatedSizes?.medium?.jpgUrl ||
-    item?.url ||
-    item?.originalUrl ||
+    thumb.jpgUrl ||
+    thumb.webpUrl ||
+    thumb.avifUrl ||
+    medium.jpgUrl ||
+    medium.webpUrl ||
+    medium.avifUrl ||
+    original.jpgUrl ||
+    original.webpUrl ||
+    original.avifUrl ||
     ""
   );
 }
 
 export function originalMediaUrl(item) {
-  const proxy = mediaProxyUrl(item, { size: "original", format: "original" });
+  const proxy = mediaProxyUrl(item, { size: "original", format: "jpg" });
   return proxy || item?.originalUrl || item?.url || "";
 }
 
