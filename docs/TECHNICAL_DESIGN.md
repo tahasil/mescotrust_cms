@@ -202,18 +202,21 @@ Metadata for site-level components (Header, Footer, HomeHero, etc.). Component I
 | filename / fileName | String | yes | Stored filename (legacy + normalized) |
 | originalName | String | yes | Original upload name |
 | mimeType | String | yes | MIME type |
-| size / originalSize | Number | yes | Original file size in bytes |
+| size | Number | yes | Final stored original-format file size in bytes |
+| originalSize | Number | yes | Source upload file size in bytes |
 | optimizedSize | Number | no | Best optimized variant size |
 | savingsPercentage | Number | no | Optimization savings percentage |
-| url | String | yes | Current default image URL (usually desktop fallback) |
+| url | String | yes | Current default original-format URL |
 | publicUrl | String | no | Stable media URL (`/media/:id`) |
 | originalUrl | String | no | Original upload URL |
 | webpUrl | String | no | WebP URL |
 | avifUrl | String | no | AVIF URL |
-| generatedSizes | Object | no | Variant map (`thumbnail`, `medium`, `large`, `mobile`, `desktop`) |
+| generatedSizes | Object | no | Variant map for new writes is single-key `original` (`jpgUrl`, `webpUrl`, `avifUrl`) |
 | alt / altText | String | no | Alt text (legacy + normalized) |
-| width | Number | no | Width |
-| height | Number | no | Height |
+| width / height | Number | no | Final output dimensions (same as `finalWidth`/`finalHeight`) |
+| originalWidth / originalHeight | Number | no | Source raster image dimensions before crop/resize |
+| cropX / cropY / cropWidth / cropHeight | Number | no | Confirmed crop rectangle in source-image pixels |
+| finalWidth / finalHeight | Number | no | Final persisted output dimensions after crop/resize |
 | storageProvider | String | no | `local` (active) or future provider |
 | storageKey | String | no | Provider file key/path |
 | status | String | no | `processing` \| `ready` \| `failed` |
@@ -223,6 +226,9 @@ Metadata for site-level components (Header, Footer, HomeHero, etc.). Component I
 | updatedAt | Date | auto | Timestamps |
 
 **Indexes:** `{ createdAt: -1 }`, `{ status: 1 }`, `{ "usedIn.refId": 1, "usedIn.type": 1 }`, text index on `title`, `fileName`, `altText`
+
+Raster processing note:
+- JPG derivatives are generated with deterministic alpha flattening on white (`#ffffff`) when the source has transparency.
 
 ### 2.8.1 MediaSettings
 
@@ -239,7 +245,6 @@ Single settings document keyed by `settingsKey: "default"`.
 | enableAVIF | Boolean | Generate AVIF variants |
 | enableLazyLoad | Boolean | Frontend lazy loading toggle |
 | cropMode | String | `none` \| `cover` \| `contain` |
-| widths | Object | Variant widths (thumbnail/medium/large/mobile/desktop) |
 | webpEffort | Number | WebP encoding effort |
 | avifEffort | Number | AVIF encoding effort |
 | maxUploadMB | Number | Max upload size in MB |
@@ -253,7 +258,7 @@ Tracks background bulk optimization jobs.
 
 | Field | Type | Description |
 |------|------|-------------|
-| jobType | String | `bulk_optimize` \| `regenerate_sizes` \| `convert_formats` |
+| jobType | String | `bulk_optimize` \| `convert_formats` |
 | status | String | `queued` \| `running` \| `completed` \| `failed` \| `cancelled` |
 | total / processed | Number | Progress counters |
 | success / failed / skipped | Number | Result counters |
@@ -379,7 +384,7 @@ Base URL: `/api`. Auth: public (no auth), admin (JWT via NextAuth + `requireAuth
 | GET | `/api/theme/home-hero` | Theme home-hero slice |
 | GET | `/api/theme/marquee` | Theme marquee slice |
 | POST | `/api/contact` | Submit contact form (rate-limited) |
-| GET | `/media/[id]` | Stable media delivery (supports `size` and `format` query params) |
+| GET | `/media/[id]` | Stable media delivery (`format=auto`: WebP -> AVIF -> original/JPG). Legacy size params resolve to original. |
 | POST | `/api/payment/initiate` | Create donation order, encrypt & return CCAvenue form data |
 | POST | `/api/payment/callback` | CCAvenue posts encrypted response here after payment |
 | GET | `/api/payment/donor-lookup` | Auto-fill: lookup previous donor by email or mobile |
@@ -557,5 +562,5 @@ After editing, bump the *Last updated* line at the end of the file.
 
 ---
 
-*Last updated: 2026-04-16 - added Media optimization schemas/endpoints (MediaSettings/MediaJob, media replace/jobs/settings/usage APIs), stable `/media/[id]` delivery, and usage-tracking notes.*
+*Last updated: 2026-06-18 - media flow updated to original-only generated size writes, crop-before-upload raster contract fields, and WebP-first auto-format media delivery fallback.*
 

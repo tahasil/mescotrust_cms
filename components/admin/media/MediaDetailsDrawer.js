@@ -152,10 +152,10 @@ export default function MediaDetailsDrawer({
                 onClick={onReplace}
                 disabled={!replaceFileList.length}
               >
-                Replace image
+                Replace file
               </Button>
               <Button danger icon={<DeleteOutlined />} onClick={onDelete}>
-                Delete image
+                Delete file
               </Button>
             </Space>
           </div>
@@ -183,13 +183,6 @@ export default function MediaDetailsDrawer({
               Re-optimize
             </Button>
             <Button
-              icon={<ReloadOutlined />}
-              onClick={() => onProcess("regenerate")}
-              loading={processingAction === "regenerate"}
-            >
-              Regenerate sizes
-            </Button>
-            <Button
               icon={<SwapOutlined />}
               onClick={() => onProcess("convert")}
               loading={processingAction === "convert"}
@@ -200,7 +193,7 @@ export default function MediaDetailsDrawer({
           </Space>
 
           <Divider style={{ margin: "14px 0" }} />
-          <Typography.Text strong>Generated sizes</Typography.Text>
+          <Typography.Text strong>Generated output</Typography.Text>
           <List
             size="small"
             dataSource={GENERATED_SIZE_ORDER}

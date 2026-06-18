@@ -35,8 +35,6 @@ export default function EventCard({ event }) {
           <MediaImage
             src={desktop}
             mobileSrc={mobile && mobile !== desktop ? mobile : ""}
-            variant="large"
-            mobileVariant="mobile"
             alt={event.title || "Event"}
             width={960}
             height={540}

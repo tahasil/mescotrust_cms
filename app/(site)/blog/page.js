@@ -230,8 +230,6 @@ export default async function BlogListPage({ searchParams }) {
                     <MediaImage
                       src={post.featuredImage}
                       mobileSrc={post.featuredImageMobile}
-                      variant="large"
-                      mobileVariant="mobile"
                       alt={post.title}
                       width={1200}
                       height={675}

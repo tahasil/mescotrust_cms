@@ -13,25 +13,23 @@ function makeMedia(overrides = {}) {
     webpUrl: "/uploads/original.webp",
     avifUrl: "/uploads/original.avif",
     generatedSizes: {
-      desktop: {
-        jpgUrl: "/uploads/desktop.jpg",
-        webpUrl: "",
-        avifUrl: "",
-      },
-      medium: {
-        jpgUrl: "/uploads/medium.jpg",
-        webpUrl: "/uploads/medium.webp",
-        avifUrl: "/uploads/medium.avif",
+      original: {
+        jpgUrl: "/uploads/original.jpg",
+        webpUrl: "/uploads/original.webp",
+        avifUrl: "/uploads/original.avif",
       },
     },
     ...overrides,
   };
 }
 
-test("normalizeRequestedSize treats 'original' as no explicit variant", () => {
+test("normalizeRequestedSize maps all values to original-only selection", () => {
   assert.equal(normalizeRequestedSize("original"), "");
   assert.equal(normalizeRequestedSize(" Original "), "");
-  assert.equal(normalizeRequestedSize("desktop"), "desktop");
+  assert.equal(normalizeRequestedSize("desktop"), "");
+  assert.equal(normalizeRequestedSize("medium"), "");
+  assert.equal(normalizeRequestedSize("thumbnail"), "");
+  assert.equal(normalizeRequestedSize("any-unknown-size"), "");
 });
 
 test("normalizeRequestedFormat only allows webp/avif for conversion path", () => {
@@ -47,44 +45,50 @@ test("original + webp uses original webp and keeps original variant", () => {
   assert.equal(url, "/uploads/original.webp");
 });
 
-test("explicit variant + missing webp does not fall back to root webp", () => {
+test("legacy size request still resolves to original delivery", () => {
   const media = makeMedia({
     generatedSizes: {
       desktop: {
         jpgUrl: "/uploads/desktop.jpg",
+        webpUrl: "/uploads/desktop.webp",
+        avifUrl: "/uploads/desktop.avif",
+      },
+    },
+  });
+
+  assert.equal(pickVariantUrl(media, "desktop", "webp"), "/uploads/original.webp");
+  assert.equal(pickVariantUrl(media, "medium", "avif"), "/uploads/original.avif");
+  assert.equal(pickVariantUrl(media, "thumbnail", "jpg"), "/uploads/original.jpg");
+});
+
+test("auto format fallback order is webp -> avif -> original/jpg", () => {
+  const media = makeMedia({
+    webpUrl: "",
+    generatedSizes: { original: { jpgUrl: "/uploads/original.jpg", webpUrl: "", avifUrl: "/uploads/original.avif" } },
+  });
+  assert.equal(pickVariantUrl(media, "original", "auto"), "/uploads/original.avif");
+
+  const mediaWithoutWebpOrAvif = makeMedia({
+    webpUrl: "",
+    avifUrl: "",
+    generatedSizes: { original: { jpgUrl: "/uploads/original.jpg", webpUrl: "", avifUrl: "" } },
+  });
+  assert.equal(pickVariantUrl(mediaWithoutWebpOrAvif, "desktop", "auto"), "/uploads/original.jpg");
+});
+
+test("explicit format fallback stays within original set", () => {
+  const media = makeMedia({
+    webpUrl: "",
+    avifUrl: "",
+    generatedSizes: {
+      original: {
+        jpgUrl: "/uploads/original.jpg",
         webpUrl: "",
         avifUrl: "",
       },
     },
   });
-
-  const url = pickVariantUrl(media, "desktop", "webp");
-  assert.equal(
-    url,
-    "/uploads/desktop.jpg",
-    "desktop webp fallback must remain in desktop variant",
-  );
-});
-
-test("explicit variant + missing avif/webp uses same-variant jpg fallback", () => {
-  const media = makeMedia({
-    generatedSizes: {
-      desktop: {
-        jpgUrl: "/uploads/desktop.jpg",
-        webpUrl: "",
-        avifUrl: "",
-      },
-    },
-    webpUrl: "/uploads/original.webp",
-    avifUrl: "/uploads/original.avif",
-  });
-
-  assert.equal(pickVariantUrl(media, "desktop", "avif"), "/uploads/desktop.jpg");
-  assert.equal(pickVariantUrl(media, "desktop", "auto"), "/uploads/desktop.jpg");
-});
-
-test("explicit variant with available format stays on that variant", () => {
-  const media = makeMedia();
-  const url = pickVariantUrl(media, "medium", "webp");
-  assert.equal(url, "/uploads/medium.webp");
+  assert.equal(pickVariantUrl(media, "desktop", "webp"), "/uploads/original.jpg");
+  assert.equal(pickVariantUrl(media, "mobile", "avif"), "/uploads/original.jpg");
+  assert.equal(pickVariantUrl(media, "large", "original"), "/uploads/original.jpg");
 });

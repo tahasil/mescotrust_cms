@@ -55,8 +55,8 @@ function resolveContentType(urlOrKey, fallbackType) {
 
 function resolveAutoFormat(req) {
   const acceptHeader = String(req.headers.get("accept") || "").toLowerCase();
-  if (acceptHeader.includes("image/avif")) return "avif";
   if (acceptHeader.includes("image/webp")) return "webp";
+  if (acceptHeader.includes("image/avif")) return "avif";
   return "original";
 }
 
@@ -69,11 +69,14 @@ function resolveRequestedFormat(rawFormat, req) {
 
 function getRequestedVariant(media, size) {
   const requestedSize = normalizeRequestedSize(size);
+  const originalVariant = media?.generatedSizes?.original || null;
   if (!requestedSize) {
     return {
-      jpgUrl: String(media?.originalUrl || media?.url || "").trim(),
-      webpUrl: String(media?.webpUrl || "").trim(),
-      avifUrl: String(media?.avifUrl || "").trim(),
+      jpgUrl: String(
+        originalVariant?.jpgUrl || media?.originalUrl || media?.url || "",
+      ).trim(),
+      webpUrl: String(media?.webpUrl || originalVariant?.webpUrl || "").trim(),
+      avifUrl: String(media?.avifUrl || originalVariant?.avifUrl || "").trim(),
     };
   }
 
@@ -81,9 +84,11 @@ function getRequestedVariant(media, size) {
   if (!variant) return null;
 
   return {
-    jpgUrl: String(variant?.jpgUrl || "").trim(),
-    webpUrl: String(variant?.webpUrl || "").trim(),
-    avifUrl: String(variant?.avifUrl || "").trim(),
+    jpgUrl: String(
+      variant?.jpgUrl || originalVariant?.jpgUrl || media?.originalUrl || "",
+    ).trim(),
+    webpUrl: String(variant?.webpUrl || media?.webpUrl || "").trim(),
+    avifUrl: String(variant?.avifUrl || media?.avifUrl || "").trim(),
   };
 }
 

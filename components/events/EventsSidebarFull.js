@@ -230,7 +230,6 @@ export default function EventsSidebarFull({ searchQuery, currentSlug }) {
                   <Link href={`/events/${ev.slug}`} className="img">
                     <MediaImage
                       src={pickImage(ev)}
-                      variant="thumbnail"
                       alt={ev.title || "Event"}
                       width={156}
                       height={136}
@@ -269,7 +268,6 @@ export default function EventsSidebarFull({ searchQuery, currentSlug }) {
                   <Link href={`/events/${ev.slug}`} className="img">
                     <MediaImage
                       src={pickImage(ev)}
-                      variant="thumbnail"
                       alt={ev.title || "Event"}
                       width={156}
                       height={136}

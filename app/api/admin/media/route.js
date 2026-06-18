@@ -10,6 +10,10 @@ import {
 import { getMediaSettings } from "@/lib/media/settings";
 import { optimizeAndStoreUpload } from "@/lib/media/processor";
 import { isSvgMimeType, sanitizeUploadedSvg } from "@/lib/media/svgSanitizer";
+import {
+  isCropContractError,
+  parseCropContractFromFormData,
+} from "@/lib/media/cropContract";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -160,6 +164,8 @@ export async function POST(req) {
       );
     }
 
+    const cropContract = parseCropContractFromFormData(formData, { mimeType });
+
     const maxUploadBytes = Number(settings.maxUploadMB || 20) * 1024 * 1024;
     if (file.size > maxUploadBytes) {
       return NextResponse.json(
@@ -203,6 +209,9 @@ export async function POST(req) {
       mediaId: String(draft._id),
       settings,
       storageProvider,
+      crop: cropContract.crop,
+      targetWidth: cropContract.targetWidth,
+      targetHeight: cropContract.targetHeight,
     });
 
     draft.filename = optimized.filename || draft.filename;
@@ -225,6 +234,14 @@ export async function POST(req) {
     draft.optimizedSize = optimized.optimizedSize || buffer.length;
     draft.savingsPercentage = optimized.savingsPercentage || 0;
     draft.generatedSizes = optimized.generatedSizes || {};
+    draft.originalWidth = optimized.originalWidth || 0;
+    draft.originalHeight = optimized.originalHeight || 0;
+    draft.cropX = optimized.cropX || 0;
+    draft.cropY = optimized.cropY || 0;
+    draft.cropWidth = optimized.cropWidth || 0;
+    draft.cropHeight = optimized.cropHeight || 0;
+    draft.finalWidth = optimized.finalWidth || 0;
+    draft.finalHeight = optimized.finalHeight || 0;
     draft.status = optimized.status || "ready";
     draft.errorMessage = optimized.errorMessage || "";
     draft.updatedBy = session.email || session.name || "";
@@ -232,6 +249,12 @@ export async function POST(req) {
 
     return NextResponse.json(draft, { status: 201 });
   } catch (err) {
+    if (isCropContractError(err)) {
+      return NextResponse.json(
+        { error: err.message, code: err.code },
+        { status: err.status || 400 },
+      );
+    }
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

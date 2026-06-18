@@ -14,7 +14,6 @@ import {
 const ALLOWED_ACTIONS = new Set([
   "delete",
   "optimize",
-  "regenerate",
   "convert",
   "export_metadata",
 ]);
@@ -69,6 +68,14 @@ function applyOptimizedPatch(media, optimized, updatedBy) {
   media.avifUrl = optimized.avifUrl || "";
   media.width = optimized.width || media.width || 0;
   media.height = optimized.height || media.height || 0;
+  media.originalWidth = optimized.originalWidth || media.originalWidth || 0;
+  media.originalHeight = optimized.originalHeight || media.originalHeight || 0;
+  media.cropX = optimized.cropX || 0;
+  media.cropY = optimized.cropY || 0;
+  media.cropWidth = optimized.cropWidth || 0;
+  media.cropHeight = optimized.cropHeight || 0;
+  media.finalWidth = optimized.finalWidth || media.finalWidth || media.width || 0;
+  media.finalHeight = optimized.finalHeight || media.finalHeight || media.height || 0;
   media.size = optimized.size || media.size || 0;
   media.originalSize = optimized.originalSize || media.originalSize || media.size || 0;
   media.optimizedSize = optimized.optimizedSize || media.optimizedSize || media.size || 0;
@@ -169,7 +176,7 @@ export async function POST(req) {
 
     let settings = null;
     let storageProvider = "local";
-    if (action === "optimize" || action === "regenerate" || action === "convert") {
+    if (action === "optimize" || action === "convert") {
       settings = await getMediaSettings();
       storageProvider = process.env.MEDIA_STORAGE_PROVIDER || "local";
     }

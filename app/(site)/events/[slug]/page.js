@@ -269,8 +269,6 @@ async function EventDetail({ slug }) {
                   <MediaImage
                     src={desktop}
                     mobileSrc={mobile && mobile !== desktop ? mobile : ""}
-                    variant="desktop"
-                    mobileVariant="mobile"
                     alt={event.title}
                     imgClassName="events-detail-banner-img"
                     width={1440}

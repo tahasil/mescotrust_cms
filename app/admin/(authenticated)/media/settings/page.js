@@ -22,13 +22,6 @@ const DEFAULTS = {
   enableAVIF: true,
   enableLazyLoad: true,
   cropMode: "none",
-  widths: {
-    thumbnail: 240,
-    medium: 640,
-    large: 1280,
-    mobile: 768,
-    desktop: 1440,
-  },
   avifEffort: 4,
   webpEffort: 4,
   maxUploadMB: 20,
@@ -50,7 +43,7 @@ export default function AdminMediaSettingsPage() {
       }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to load settings");
-      form.setFieldsValue({ ...DEFAULTS, ...data, widths: { ...DEFAULTS.widths, ...(data.widths || {}) } });
+      form.setFieldsValue({ ...DEFAULTS, ...data });
       setForbidden(false);
     } catch (err) {
       message.error(err.message || "Failed to load settings");
@@ -66,10 +59,7 @@ export default function AdminMediaSettingsPage() {
   const onFinish = async (values) => {
     setSaving(true);
     try {
-      const payload = {
-        ...values,
-        widths: { ...DEFAULTS.widths, ...(values.widths || {}) },
-      };
+      const payload = { ...values };
       const res = await fetch("/api/admin/media/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -86,7 +76,6 @@ export default function AdminMediaSettingsPage() {
       form.setFieldsValue({
         ...DEFAULTS,
         ...data,
-        widths: { ...DEFAULTS.widths, ...(data.widths || {}) },
       });
     } catch (err) {
       message.error(err.message || "Failed to save settings");
@@ -192,35 +181,6 @@ export default function AdminMediaSettingsPage() {
           </Col>
         </Row>
 
-        <Row gutter={16}>
-          <Col xs={24} md={8}>
-            <Form.Item name={["widths", "thumbnail"]} label="Thumbnail width">
-              <InputNumber min={64} max={2048} style={{ width: "100%" }} />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={8}>
-            <Form.Item name={["widths", "medium"]} label="Medium width">
-              <InputNumber min={128} max={2560} style={{ width: "100%" }} />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={8}>
-            <Form.Item name={["widths", "large"]} label="Large width">
-              <InputNumber min={256} max={3840} style={{ width: "100%" }} />
-            </Form.Item>
-          </Col>
-        </Row>
-        <Row gutter={16}>
-          <Col xs={24} md={8}>
-            <Form.Item name={["widths", "mobile"]} label="Mobile width">
-              <InputNumber min={320} max={2048} style={{ width: "100%" }} />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={8}>
-            <Form.Item name={["widths", "desktop"]} label="Desktop width">
-              <InputNumber min={640} max={5120} style={{ width: "100%" }} />
-            </Form.Item>
-          </Col>
-        </Row>
       </Form>
     </ThemeAdminCard>
   );

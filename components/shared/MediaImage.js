@@ -6,14 +6,6 @@ import {
   normalizeMediaFormatParam,
 } from "@/lib/media/url";
 
-const RESPONSIVE_SIZE_VARIANTS = [
-  ["thumbnail", 240],
-  ["medium", 640],
-  ["mobile", 768],
-  ["large", 1280],
-  ["desktop", 1440],
-];
-
 function normalizeLoading({ priority, loading }) {
   if (priority) return "eager";
   const l = String(loading || "").toLowerCase();
@@ -23,14 +15,6 @@ function normalizeLoading({ priority, loading }) {
 
 function normalizeFormat(format) {
   return normalizeMediaFormatParam(format || "auto") || "auto";
-}
-
-function buildResponsiveSrcSet(src, format) {
-  if (!isMediaRouteUrl(src)) return "";
-  const fmt = normalizeFormat(format);
-  return RESPONSIVE_SIZE_VARIANTS.map(
-    ([size, width]) => `${buildMediaUrl(src, { size, format: fmt })} ${width}w`,
-  ).join(", ");
 }
 
 export default function MediaImage({
@@ -46,17 +30,16 @@ export default function MediaImage({
   sizes = "100vw",
   priority = false,
   loading = "lazy",
-  variant = "",
-  mobileVariant = "",
   format = "auto",
 }) {
+  const normalizedFormat = normalizeFormat(format);
   const resolvedSrc = buildMediaUrl(src, {
-    size: variant || undefined,
-    format: format || undefined,
+    size: "original",
+    format: normalizedFormat,
   });
   const normalizedResolvedSrc = ensureMediaVariantParams(resolvedSrc, {
     defaultSize: "original",
-    defaultFormat: normalizeFormat(format),
+    defaultFormat: normalizedFormat,
   });
 
   if (!normalizedResolvedSrc) return null;
@@ -64,26 +47,15 @@ export default function MediaImage({
   const resolvedMobileSrc = mobileSrc
     ? ensureMediaVariantParams(
         buildMediaUrl(mobileSrc, {
-          size: mobileVariant || undefined,
-          format: format || undefined,
+          size: "original",
+          format: normalizedFormat,
         }),
         {
-          defaultSize: mobileVariant || "original",
-          defaultFormat: normalizeFormat(format),
+          defaultSize: "original",
+          defaultFormat: normalizedFormat,
         },
       )
-    : mobileVariant
-      ? ensureMediaVariantParams(
-          buildMediaUrl(src, {
-            size: mobileVariant,
-            format: format || undefined,
-          }),
-          {
-            defaultSize: mobileVariant,
-            defaultFormat: normalizeFormat(format),
-          },
-        )
-      : "";
+    : "";
 
   const effectiveLoading = normalizeLoading({ priority, loading });
 
@@ -100,67 +72,6 @@ export default function MediaImage({
           style={imgStyle}
         />
       </picture>
-    );
-  }
-
-  const normalizedFormat = normalizeFormat(format);
-  const canRenderResponsivePicture =
-    isMediaRouteUrl(normalizedResolvedSrc) && !resolvedMobileSrc;
-
-  if (canRenderResponsivePicture) {
-    const jpgFallbackSrc = buildMediaUrl(normalizedResolvedSrc, {
-      size: variant || undefined,
-      format: "jpg",
-    });
-    const normalizedJpgFallbackSrc = ensureMediaVariantParams(jpgFallbackSrc, {
-      defaultSize: variant || "original",
-      defaultFormat: "jpg",
-    });
-    const jpgSrcSet = buildResponsiveSrcSet(normalizedResolvedSrc, "jpg");
-
-    if (normalizedFormat === "auto") {
-      const avifSrcSet = buildResponsiveSrcSet(normalizedResolvedSrc, "avif");
-      const webpSrcSet = buildResponsiveSrcSet(normalizedResolvedSrc, "webp");
-      return (
-        <picture className={className} style={style}>
-          <source type="image/avif" srcSet={avifSrcSet} sizes={sizes} />
-          <source type="image/webp" srcSet={webpSrcSet} sizes={sizes} />
-          <img
-            src={normalizedJpgFallbackSrc || normalizedResolvedSrc}
-            srcSet={jpgSrcSet}
-            sizes={sizes}
-            alt={alt}
-            className={imgClassName}
-            loading={effectiveLoading}
-            decoding="async"
-            style={imgStyle}
-          />
-        </picture>
-      );
-    }
-
-    const explicitSrc = ensureMediaVariantParams(
-      buildMediaUrl(normalizedResolvedSrc, {
-        size: variant || undefined,
-        format: normalizedFormat,
-      }),
-      {
-        defaultSize: variant || "original",
-        defaultFormat: normalizedFormat,
-      },
-    );
-    const explicitSrcSet = buildResponsiveSrcSet(normalizedResolvedSrc, normalizedFormat);
-    return (
-      <img
-        src={explicitSrc || normalizedResolvedSrc}
-        srcSet={explicitSrcSet || undefined}
-        sizes={sizes}
-        alt={alt}
-        className={imgClassName || className}
-        loading={effectiveLoading}
-        decoding="async"
-        style={imgStyle || style}
-      />
     );
   }
 

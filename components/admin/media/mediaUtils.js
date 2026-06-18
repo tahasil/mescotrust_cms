@@ -5,11 +5,6 @@ export const PAGE_SIZE = 24;
 
 export const GENERATED_SIZE_ORDER = [
   ["original", "Original"],
-  ["thumbnail", "Thumb"],
-  ["medium", "Medium"],
-  ["large", "Large"],
-  ["mobile", "Mobile"],
-  ["desktop", "Desktop"],
 ];
 
 export function isImage(item) {
@@ -61,13 +56,14 @@ export function getSizeVariant(item, key) {
   }
 
   if (String(key || "") === "original") {
+    const originalVariant = item?.generatedSizes?.original || {};
     return {
-      width: Number(item?.width) || 0,
-      height: Number(item?.height) || 0,
-      size: Number(item?.originalSize || item?.size) || 0,
-      jpgUrl: item?.originalUrl || item?.url || "",
-      webpUrl: item?.webpUrl || "",
-      avifUrl: item?.avifUrl || "",
+      width: Number(item?.finalWidth || item?.width || originalVariant?.width) || 0,
+      height: Number(item?.finalHeight || item?.height || originalVariant?.height) || 0,
+      size: Number(originalVariant?.size || item?.size || item?.originalSize) || 0,
+      jpgUrl: originalVariant?.jpgUrl || item?.originalUrl || item?.url || "",
+      webpUrl: item?.webpUrl || originalVariant?.webpUrl || "",
+      avifUrl: item?.avifUrl || originalVariant?.avifUrl || "",
     };
   }
 
@@ -84,18 +80,10 @@ export function getSizeVariant(item, key) {
 
 export function previewUrl(item) {
   if (!isImage(item)) return "";
-  const proxy = mediaProxyUrl(item, { size: "thumbnail", format: "auto" });
+  const proxy = mediaProxyUrl(item, { size: "original", format: "auto" });
   if (proxy) return proxy;
-  const thumb = getSizeVariant(item, "thumbnail");
-  const medium = getSizeVariant(item, "medium");
   const original = getSizeVariant(item, "original");
   return (
-    thumb.jpgUrl ||
-    thumb.webpUrl ||
-    thumb.avifUrl ||
-    medium.jpgUrl ||
-    medium.webpUrl ||
-    medium.avifUrl ||
     original.jpgUrl ||
     original.webpUrl ||
     original.avifUrl ||

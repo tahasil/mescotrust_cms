@@ -37,6 +37,14 @@ const mediaSchema = new mongoose.Schema(
     alt: { type: String, default: "" },
     width: { type: Number, default: 0 },
     height: { type: Number, default: 0 },
+    originalWidth: { type: Number, default: 0 },
+    originalHeight: { type: Number, default: 0 },
+    cropX: { type: Number, default: 0 },
+    cropY: { type: Number, default: 0 },
+    cropWidth: { type: Number, default: 0 },
+    cropHeight: { type: Number, default: 0 },
+    finalWidth: { type: Number, default: 0 },
+    finalHeight: { type: Number, default: 0 },
     uploadedBy: { type: String, default: "" },
 
     // New media optimization fields
@@ -64,11 +72,6 @@ const mediaSchema = new mongoose.Schema(
     errorMessage: { type: String, default: "" },
     generatedSizes: {
       original: { type: mediaVariantSchema, default: () => ({}) },
-      thumbnail: { type: mediaVariantSchema, default: () => ({}) },
-      medium: { type: mediaVariantSchema, default: () => ({}) },
-      large: { type: mediaVariantSchema, default: () => ({}) },
-      mobile: { type: mediaVariantSchema, default: () => ({}) },
-      desktop: { type: mediaVariantSchema, default: () => ({}) },
     },
     usedIn: { type: [mediaUsageSchema], default: [] },
     createdBy: { type: String, default: "" },
@@ -89,6 +92,14 @@ mediaSchema.pre("validate", function syncLegacyAndNew(next) {
 
   if (!this.originalSize && this.size) this.originalSize = this.size;
   if (!this.size && this.originalSize) this.size = this.originalSize;
+
+  if (!this.finalWidth && this.width) this.finalWidth = this.width;
+  if (!this.finalHeight && this.height) this.finalHeight = this.height;
+  if (!this.width && this.finalWidth) this.width = this.finalWidth;
+  if (!this.height && this.finalHeight) this.height = this.finalHeight;
+
+  if (!this.originalWidth && this.width) this.originalWidth = this.width;
+  if (!this.originalHeight && this.height) this.originalHeight = this.height;
 
   if (!this.title) this.title = this.originalName || this.fileName || "";
   next();
