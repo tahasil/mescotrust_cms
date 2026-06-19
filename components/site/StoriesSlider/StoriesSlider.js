@@ -12,8 +12,8 @@ import {
   SubTitle,
 } from "@/styles/Theme";
 
-const REQUIRED_STORY_IMAGE_WIDTH = 375;
-const REQUIRED_STORY_IMAGE_HEIGHT = 500;
+const REQUIRED_STORY_IMAGE_WIDTH = 400;
+const REQUIRED_STORY_IMAGE_HEIGHT = 450;
 
 /* ── Styled Components ── */
 const SliderWrapper = styled.div`
@@ -35,7 +35,7 @@ const SliderWrapper = styled.div`
 
   .slide-image {
     width: 100%;
-    aspect-ratio: 3 / 4;
+    aspect-ratio: 400 / 450;
     height: auto;
     background: rgba(0, 0, 0, 0.04);
     border-radius: 16px;
