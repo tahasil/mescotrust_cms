@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { Row, Col } from "antd";
 import { ArrowRightOutlined } from "@ant-design/icons";
-import styled from "styled-components";
+import styled, { createGlobalStyle } from "styled-components";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
@@ -126,12 +126,12 @@ const GalleryCardArrow = styled.span`
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: ${(p) => p.$color || getColor("primary")};
+  background: ${(p) => p.$bgColor || getColor("primary")};
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1;
-  color: #fff;
+  color: ${(p) => p.$iconColor || "#fff"};
   font-size: 16px;
   opacity: 0;
   transform: translateY(8px);
@@ -145,6 +145,23 @@ const GalleryCardArrow = styled.span`
 /* Hidden container for lightGallery items */
 const HiddenGallery = styled.div`
   display: none;
+`;
+
+const GalleryLightboxNavStyle = createGlobalStyle`
+  .lg-prev,
+  .lg-next {
+    ${(p) =>
+      p.$bgColor
+        ? `background-color: ${p.$bgColor} !important;`
+        : ""}
+    ${(p) => (p.$iconColor ? `color: ${p.$iconColor} !important;` : "")}
+    border-radius: 999px;
+  }
+
+  .lg-prev:hover:not(.disabled),
+  .lg-next:hover:not(.disabled) {
+    ${(p) => (p.$iconColor ? `color: ${p.$iconColor} !important;` : "")}
+  }
 `;
 
 function normalizeGalleryImage(img) {
@@ -237,6 +254,17 @@ export default function PhotoGallery(props) {
   const accentColor = accentColorKey
     ? getColor(accentColorKey)
     : getColor("primary");
+  const navButtonBgKey = (props?.photoGalleryNavButtonBgColorKey ?? "")
+    .toString()
+    .trim();
+  const navButtonBgColor = navButtonBgKey
+    ? getColor(navButtonBgKey)
+    : accentColor;
+  const navArrowKey = (props?.photoGalleryNavArrowColorKey ?? "")
+    .toString()
+    .trim();
+  const navArrowColor = navArrowKey ? getColor(navArrowKey) : "#fff";
+  const hasLightboxNavOverride = Boolean(navButtonBgKey || navArrowKey);
   const tabBgKey = (props?.photoGalleryTabBgColorKey ?? "").toString().trim();
   const tabBgColor = tabBgKey ? getColor(tabBgKey) : undefined;
   const tabTextKey = (props?.photoGalleryTabTextColorKey ?? "")
@@ -510,6 +538,12 @@ export default function PhotoGallery(props) {
 
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
+      {hasLightboxNavOverride ? (
+        <GalleryLightboxNavStyle
+          $bgColor={navButtonBgKey ? navButtonBgColor : ""}
+          $iconColor={navArrowKey ? navArrowColor : ""}
+        />
+      ) : null}
       <PageContainer style={pageContainerBgStyle}>
         <GalleryTabs>
           {tabs.map((tab) => (
@@ -552,7 +586,10 @@ export default function PhotoGallery(props) {
                     {item.images.length} photos
                   </GalleryCardCount>
                 )}
-                <GalleryCardArrow $color={accentColor}>
+                <GalleryCardArrow
+                  $bgColor={navButtonBgColor}
+                  $iconColor={navArrowColor}
+                >
                   <ArrowRightOutlined />
                 </GalleryCardArrow>
               </GalleryCard>

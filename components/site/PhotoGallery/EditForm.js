@@ -78,6 +78,8 @@ function applyFormValues(form, data) {
     : ["All", "Education", "Medical", "Events", "Community"];
   form.setFieldsValue({
     photoGalleryAccentColorKey: data?.photoGalleryAccentColorKey ?? "",
+    photoGalleryNavButtonBgColorKey: data?.photoGalleryNavButtonBgColorKey ?? "",
+    photoGalleryNavArrowColorKey: data?.photoGalleryNavArrowColorKey ?? "",
     photoGalleryTabBgColorKey: data?.photoGalleryTabBgColorKey ?? "",
     photoGalleryTabTextColorKey: data?.photoGalleryTabTextColorKey ?? "",
     photoGalleryTabBorderColorKey: data?.photoGalleryTabBorderColorKey ?? "",
@@ -156,6 +158,8 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
       const values = form.getFieldsValue(true);
       const payload = {
         photoGalleryAccentColorKey: values.photoGalleryAccentColorKey ?? "",
+        photoGalleryNavButtonBgColorKey: values.photoGalleryNavButtonBgColorKey ?? "",
+        photoGalleryNavArrowColorKey: values.photoGalleryNavArrowColorKey ?? "",
         photoGalleryTabBgColorKey: values.photoGalleryTabBgColorKey ?? "",
         photoGalleryTabTextColorKey: values.photoGalleryTabTextColorKey ?? "",
         photoGalleryTabBorderColorKey: values.photoGalleryTabBorderColorKey ?? "",
