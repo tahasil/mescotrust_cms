@@ -115,7 +115,6 @@ export default function BlogSidebar({ currentSlug, commentCounts }) {
               <Link href={`/blog/${post.slug}`} className="rp-image">
                 <MediaImage
                   src={post.featuredImage}
-                  variant="thumbnail"
                   alt={post.title}
                   width={160}
                   height={140}

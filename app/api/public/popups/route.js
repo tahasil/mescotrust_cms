@@ -18,7 +18,7 @@ function resolvePopupImageUrl(rawUrl) {
     /^\/media\/([a-fA-F0-9]{24})(?:$|[/?#])/,
   );
   if (directMediaMatch?.[1]) {
-    return `/api/media/${directMediaMatch[1]}?format=original`;
+    return `/api/media/${directMediaMatch[1]}?size=original&format=jpg`;
   }
 
   try {
@@ -27,7 +27,7 @@ function resolvePopupImageUrl(rawUrl) {
       /^\/media\/([a-fA-F0-9]{24})(?:$|[/?#])/,
     );
     if (mediaPathMatch?.[1]) {
-      return `/api/media/${mediaPathMatch[1]}?format=original`;
+      return `/api/media/${mediaPathMatch[1]}?size=original&format=jpg`;
     }
   } catch {}
 

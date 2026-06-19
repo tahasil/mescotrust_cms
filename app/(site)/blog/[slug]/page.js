@@ -279,8 +279,6 @@ async function PostContent({ slug }) {
                   <MediaImage
                     src={post.featuredImage}
                     mobileSrc={post.featuredImageMobile}
-                    variant="desktop"
-                    mobileVariant="mobile"
                     alt={post.title}
                     imgClassName="blog-detail-banner-img"
                     width={1440}

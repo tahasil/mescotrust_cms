@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { requireAuth } from "@/lib/apiAuth";
+import { isAdmin } from "@/lib/permissions";
 import { connectDB } from "@/lib/db";
 import MediaJob from "@/models/MediaJob";
 
 export async function GET(req, { params }) {
   const session = await requireAuth(req);
   if (session instanceof NextResponse) return session;
+  if (!isAdmin(session)) {
+    return NextResponse.json({ error: "Forbidden: Admin only" }, { status: 403 });
+  }
 
   const id = params.jobId;
   if (!mongoose.Types.ObjectId.isValid(id)) {

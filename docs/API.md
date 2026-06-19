@@ -28,7 +28,7 @@ All API routes live under `/api/`. The convention is:
 | GET | `/api/public/menus?name=header` | Menu by name (e.g. header, footer) |
 | GET | `/api/public/search?q=term` | Search pages and posts by title/slug/excerpt |
 | GET | `/api/theme` | Active theme configuration |
-| GET | `/media/[id]?size=desktop&format=auto` | Stable media delivery endpoint (AVIF/WebP/fallback) |
+| GET | `/media/[id]?size=original&format=auto` | Stable media delivery endpoint (`format=auto` prefers WebP, then AVIF, then original/JPG). Legacy size names are accepted and resolved to original. |
 | GET | `/api/health` | Database connectivity check (200 or 503) |
 
 ## Admin APIs
@@ -52,9 +52,9 @@ All admin APIs require authentication via JWT (enforced by middleware and `requi
 | GET | `/api/admin/media/usage?mediaId=<id>` | Admin, Editor | Where-used references for media |
 | GET | `/api/admin/media/settings` | Admin, Editor | Read media optimization settings |
 | PUT | `/api/admin/media/settings` | Admin only | Update media optimization settings |
-| GET | `/api/admin/media/jobs` | Admin, Editor | List media optimization jobs |
+| GET | `/api/admin/media/jobs` | Admin only | List media optimization jobs |
 | POST | `/api/admin/media/jobs` | Admin only | Start media optimization job |
-| GET | `/api/admin/media/jobs/[jobId]` | Admin, Editor | Job progress/details |
+| GET | `/api/admin/media/jobs/[jobId]` | Admin only | Job progress/details |
 | POST | `/api/admin/media/jobs/[jobId]/cancel` | Admin only | Cancel running media job |
 | GET/POST | `/api/admin/menus` | Admin, Editor | List/create menus |
 | GET/PUT | `/api/admin/menus/[name]` | Admin, Editor | Read/update menu by name |
@@ -73,6 +73,39 @@ All admin APIs require authentication via JWT (enforced by middleware and `requi
 | GET/PUT/DELETE | `/api/admin/users/[id]` | Admin only | Read/update/delete user |
 | PUT | `/api/theme` | Admin only | Update theme configuration |
 | GET/POST/DELETE | `/api/admin/fonts` | Admin, Editor | List/upload/delete custom fonts |
+
+### Media Upload / Replace Contract
+
+`POST /api/admin/media` and `POST /api/admin/media/[id]/replace` share the same contract for raster images.
+
+Request (`multipart/form-data`):
+- `file` (required)
+- `crop` (required for raster images): JSON string `{ "x": number, "y": number, "width": number, "height": number }`
+- `width`, `height` (optional; if one is sent, both are required)
+- `title` (optional)
+- `altText` (optional)
+
+Raster MIME types requiring crop confirmation:
+- `image/jpeg`, `image/jpg`, `image/png`, `image/webp`, `image/avif`
+
+Non-raster bypass:
+- `image/svg+xml`, `application/pdf` (crop payload not required)
+
+Validation/error responses (`400`):
+- `CROP_CONFIRMATION_REQUIRED`
+- `INVALID_CROP_PAYLOAD`
+- `WIDTH_HEIGHT_BOTH_REQUIRED`
+- `INVALID_DIMENSIONS`
+- `DIMENSIONS_EXCEED_SOURCE`
+
+Processing contract for new raster uploads/replacements:
+- Single-size only (`generatedSizes.original` is written for new records)
+- Output formats are generated from confirmed crop result:
+  - `original`
+  - `jpg`
+  - `webp`
+  - `avif`
+- JPG generation uses deterministic alpha flattening on white (`#ffffff`) for transparent inputs.
 
 ## Form Builder (Phase 1)
 

@@ -7,7 +7,6 @@ import { formatDateTime } from "@/lib/formatDate";
 
 const JOB_LABELS = {
   bulk_optimize: "Bulk Optimize",
-  regenerate_sizes: "Regenerate Sizes",
   convert_formats: "Convert Formats",
 };
 
@@ -100,13 +99,6 @@ export default function AdminMediaBulkOptimizePage() {
             disabled={Boolean(runningJobId)}
           >
             Convert Missing Formats
-          </Button>
-          <Button
-            onClick={() => startJob("regenerate_sizes")}
-            loading={starting}
-            disabled={Boolean(runningJobId)}
-          >
-            Regenerate Sizes
           </Button>
           <Button
             type="primary"

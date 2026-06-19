@@ -11,6 +11,7 @@ node_modules
 
 # Uploads
 # public/uploads/
+backup/uploads-snapshots/*.zip
 
 # Debug / IDE
 .DS_Store

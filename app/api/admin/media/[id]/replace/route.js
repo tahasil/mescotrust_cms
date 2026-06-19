@@ -11,6 +11,10 @@ import {
 import { getMediaSettings } from "@/lib/media/settings";
 import { optimizeAndStoreUpload } from "@/lib/media/processor";
 import { isSvgMimeType, sanitizeUploadedSvg } from "@/lib/media/svgSanitizer";
+import {
+  isCropContractError,
+  parseCropContractFromFormData,
+} from "@/lib/media/cropContract";
 
 function sanitizeOriginalName(name) {
   return String(name || "upload")
@@ -53,6 +57,8 @@ export async function POST(req, { params }) {
       );
     }
 
+    const cropContract = parseCropContractFromFormData(formData, { mimeType });
+
     const bytes = await file.arrayBuffer();
     let buffer = Buffer.from(bytes);
     if (isSvgMimeType(mimeType)) {
@@ -72,6 +78,10 @@ export async function POST(req, { params }) {
       mediaId: String(media._id),
       settings,
       storageProvider,
+      crop: cropContract.crop,
+      targetWidth: cropContract.targetWidth,
+      targetHeight: cropContract.targetHeight,
+      rotation: cropContract.rotationDegrees,
     });
 
     media.title = title !== null && title !== undefined ? String(title) : media.title;
@@ -85,7 +95,8 @@ export async function POST(req, { params }) {
     media.ext = optimized.ext || media.ext;
     media.storageProvider = optimized.storageProvider || media.storageProvider || "local";
     media.storageKey = optimized.storageKey || media.storageKey;
-    media.publicUrl = optimized.publicUrl || `/media/${media._id}`;
+    media.publicUrl =
+      optimized.publicUrl || `/media/${media._id}?size=original&format=auto`;
     media.url = optimized.url || media.url;
     media.originalUrl = optimized.originalUrl || media.originalUrl || media.url;
     media.webpUrl = optimized.webpUrl || "";
@@ -97,6 +108,14 @@ export async function POST(req, { params }) {
     media.width = optimized.width || media.width || 0;
     media.height = optimized.height || media.height || 0;
     media.generatedSizes = optimized.generatedSizes || {};
+    media.originalWidth = optimized.originalWidth || 0;
+    media.originalHeight = optimized.originalHeight || 0;
+    media.cropX = optimized.cropX || 0;
+    media.cropY = optimized.cropY || 0;
+    media.cropWidth = optimized.cropWidth || 0;
+    media.cropHeight = optimized.cropHeight || 0;
+    media.finalWidth = optimized.finalWidth || 0;
+    media.finalHeight = optimized.finalHeight || 0;
     media.status = optimized.status || "ready";
     media.errorMessage = optimized.errorMessage || "";
     media.updatedBy = session.email || session.name || "";
@@ -104,6 +123,12 @@ export async function POST(req, { params }) {
     await media.save();
     return NextResponse.json(media);
   } catch (err) {
+    if (isCropContractError(err)) {
+      return NextResponse.json(
+        { error: err.message, code: err.code },
+        { status: err.status || 400 },
+      );
+    }
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
