@@ -81,6 +81,7 @@ export async function POST(req, { params }) {
       crop: cropContract.crop,
       targetWidth: cropContract.targetWidth,
       targetHeight: cropContract.targetHeight,
+      rotation: cropContract.rotationDegrees,
     });
 
     media.title = title !== null && title !== undefined ? String(title) : media.title;

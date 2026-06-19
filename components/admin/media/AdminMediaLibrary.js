@@ -36,6 +36,7 @@ import { isRasterUploadFile } from "./rasterMedia";
 import {
   PAGE_SIZE,
   dimensionsText,
+  effectiveDisplaySize,
   formatBytes,
   formatDate,
   isImage,
@@ -51,6 +52,9 @@ const { Dragger } = Upload;
 function appendCropContractToFormData(formData, cropContract) {
   if (!cropContract?.crop) return;
   formData.append("crop", JSON.stringify(cropContract.crop));
+  if (Number.isFinite(cropContract.rotationDegrees)) {
+    formData.append("rotation", String(cropContract.rotationDegrees));
+  }
   if (Number.isInteger(cropContract.width)) {
     formData.append("width", String(cropContract.width));
   }
@@ -740,7 +744,7 @@ export default function AdminMediaLibrary() {
                     <div className={styles.cardName} title={item.originalName}>
                       {item.originalName}
                     </div>
-                    <div className={styles.cardInfo}>{formatBytes(item.size)}</div>
+                    <div className={styles.cardInfo}>{formatBytes(effectiveDisplaySize(item))}</div>
                     <div className={styles.cardInfo}>{dimensionsText(item)}</div>
                     {Number(item.savingsPercentage) > 0 ? (
                       <Tag color="green">{Number(item.savingsPercentage).toFixed(1)}% saved</Tag>
@@ -789,7 +793,7 @@ export default function AdminMediaLibrary() {
               {
                 title: "Size",
                 width: 120,
-                render: (_, item) => formatBytes(item.size),
+                render: (_, item) => formatBytes(effectiveDisplaySize(item)),
               },
               {
                 title: "Dimensions",

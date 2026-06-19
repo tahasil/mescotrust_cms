@@ -57,6 +57,9 @@ function getImagePreview(item) {
 function appendCropContractToFormData(formData, cropContract) {
   if (!cropContract?.crop) return;
   formData.append("crop", JSON.stringify(cropContract.crop));
+  if (Number.isFinite(cropContract.rotationDegrees)) {
+    formData.append("rotation", String(cropContract.rotationDegrees));
+  }
   if (Number.isInteger(cropContract.width)) {
     formData.append("width", String(cropContract.width));
   }

@@ -32,7 +32,26 @@ function loadImageDimensions(src) {
   });
 }
 
-function renderCropPreview({ src, cropPixels, width, height, mimeType }) {
+function getRadianAngle(degreeValue) {
+  return (Number(degreeValue || 0) * Math.PI) / 180;
+}
+
+function rotateSize(width, height, rotation) {
+  const rotRad = getRadianAngle(rotation);
+  return {
+    width: Math.abs(Math.cos(rotRad) * width) + Math.abs(Math.sin(rotRad) * height),
+    height: Math.abs(Math.sin(rotRad) * width) + Math.abs(Math.cos(rotRad) * height),
+  };
+}
+
+function normalizeRotationDegrees(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return 0;
+  const wrapped = ((numeric % 360) + 360) % 360;
+  return Number(wrapped.toFixed(2));
+}
+
+function renderCropPreview({ src, cropPixels, width, height, rotation, mimeType }) {
   return new Promise((resolve, reject) => {
     if (!src || !cropPixels || !width || !height) {
       reject(new Error("Preview input missing"));
@@ -40,6 +59,24 @@ function renderCropPreview({ src, cropPixels, width, height, mimeType }) {
     }
     const image = new window.Image();
     image.onload = () => {
+      const rotatedCanvas = document.createElement("canvas");
+      const { width: rotatedWidth, height: rotatedHeight } = rotateSize(
+        image.width,
+        image.height,
+        rotation,
+      );
+      rotatedCanvas.width = Math.max(1, Math.floor(rotatedWidth));
+      rotatedCanvas.height = Math.max(1, Math.floor(rotatedHeight));
+      const rotatedContext = rotatedCanvas.getContext("2d");
+      if (!rotatedContext) {
+        reject(new Error("Preview context unavailable"));
+        return;
+      }
+
+      rotatedContext.translate(rotatedCanvas.width / 2, rotatedCanvas.height / 2);
+      rotatedContext.rotate(getRadianAngle(rotation));
+      rotatedContext.drawImage(image, -image.width / 2, -image.height / 2);
+
       const canvas = document.createElement("canvas");
       canvas.width = width;
       canvas.height = height;
@@ -48,17 +85,7 @@ function renderCropPreview({ src, cropPixels, width, height, mimeType }) {
         reject(new Error("Preview context unavailable"));
         return;
       }
-      context.drawImage(
-        image,
-        cropPixels.x,
-        cropPixels.y,
-        cropPixels.width,
-        cropPixels.height,
-        0,
-        0,
-        width,
-        height,
-      );
+      context.drawImage(rotatedCanvas, cropPixels.x, cropPixels.y, cropPixels.width, cropPixels.height, 0, 0, width, height);
       const targetMime = String(mimeType || "").includes("png") ? "image/png" : "image/jpeg";
       resolve(canvas.toDataURL(targetMime, 0.92));
     };
@@ -69,10 +96,26 @@ function renderCropPreview({ src, cropPixels, width, height, mimeType }) {
 
 function toCropPayload(croppedPixels) {
   if (!croppedPixels) return null;
-  const x = Math.round(Number(croppedPixels.x) || 0);
-  const y = Math.round(Number(croppedPixels.y) || 0);
-  const width = Math.round(Number(croppedPixels.width) || 0);
-  const height = Math.round(Number(croppedPixels.height) || 0);
+  const rawX = Number(croppedPixels.x);
+  const rawY = Number(croppedPixels.y);
+  const rawWidth = Number(croppedPixels.width);
+  const rawHeight = Number(croppedPixels.height);
+  if (
+    !Number.isFinite(rawX) ||
+    !Number.isFinite(rawY) ||
+    !Number.isFinite(rawWidth) ||
+    !Number.isFinite(rawHeight) ||
+    rawWidth <= 0 ||
+    rawHeight <= 0
+  ) {
+    return null;
+  }
+  const x = Math.floor(rawX);
+  const y = Math.floor(rawY);
+  const right = Math.ceil(rawX + rawWidth);
+  const bottom = Math.ceil(rawY + rawHeight);
+  const width = right - x;
+  const height = bottom - y;
   if (width <= 0 || height <= 0) return null;
   return { x, y, width, height };
 }
@@ -90,6 +133,7 @@ export default function RasterCropConfirmModal({
   const [sourceHeight, setSourceHeight] = useState(0);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [widthInput, setWidthInput] = useState(null);
   const [heightInput, setHeightInput] = useState(null);
@@ -102,6 +146,7 @@ export default function RasterCropConfirmModal({
     setImageUrl(nextUrl);
     setCrop({ x: 0, y: 0 });
     setZoom(1);
+    setRotation(0);
     setCroppedAreaPixels(null);
     setWidthInput(null);
     setHeightInput(null);
@@ -124,8 +169,16 @@ export default function RasterCropConfirmModal({
 
   const parsedWidth = useMemo(() => parsePositiveIntOrNull(widthInput), [widthInput]);
   const parsedHeight = useMemo(() => parsePositiveIntOrNull(heightInput), [heightInput]);
+  const normalizedRotation = useMemo(() => normalizeRotationDegrees(rotation), [rotation]);
   const hasWidth = parsedWidth !== null;
   const hasHeight = parsedHeight !== null;
+
+  const orientedSource = useMemo(
+    () => rotateSize(sourceWidth, sourceHeight, normalizedRotation),
+    [sourceWidth, sourceHeight, normalizedRotation],
+  );
+  const orientedSourceWidth = Math.max(1, Math.ceil(orientedSource.width || 0));
+  const orientedSourceHeight = Math.max(1, Math.ceil(orientedSource.height || 0));
 
   const aspect = useMemo(() => {
     if (Number.isFinite(parsedWidth) && Number.isFinite(parsedHeight)) {
@@ -146,8 +199,10 @@ export default function RasterCropConfirmModal({
       return "Width and height must be positive integers.";
     }
     if (Number.isFinite(parsedWidth) && Number.isFinite(parsedHeight)) {
-      if (parsedWidth > sourceWidth || parsedHeight > sourceHeight) {
-        return "Width and height must be less than or equal to source dimensions.";
+      const maxWidth = Number(cropPayload?.width) || orientedSourceWidth;
+      const maxHeight = Number(cropPayload?.height) || orientedSourceHeight;
+      if (parsedWidth > maxWidth + 1 || parsedHeight > maxHeight + 1) {
+        return "Width and height must be less than or equal to the crop area dimensions.";
       }
     }
     return "";
@@ -157,8 +212,8 @@ export default function RasterCropConfirmModal({
     hasHeight,
     parsedWidth,
     parsedHeight,
-    sourceWidth,
-    sourceHeight,
+    orientedSourceWidth,
+    orientedSourceHeight,
   ]);
 
   const finalWidth =
@@ -184,6 +239,7 @@ export default function RasterCropConfirmModal({
       cropPixels: cropPayload,
       width: finalWidth,
       height: finalHeight,
+      rotation: normalizedRotation,
       mimeType: file?.type,
     })
       .then((nextPreviewUrl) => {
@@ -198,7 +254,7 @@ export default function RasterCropConfirmModal({
     return () => {
       cancelled = true;
     };
-  }, [open, imageUrl, cropPayload, finalWidth, finalHeight, file?.type]);
+  }, [open, imageUrl, cropPayload, finalWidth, finalHeight, normalizedRotation, file?.type]);
 
   const handleConfirm = () => {
     if (validationError || !cropPayload) return;
@@ -206,6 +262,7 @@ export default function RasterCropConfirmModal({
       crop: cropPayload,
       width: Number.isFinite(parsedWidth) ? parsedWidth : null,
       height: Number.isFinite(parsedHeight) ? parsedHeight : null,
+      rotationDegrees: normalizedRotation,
       finalWidth,
       finalHeight,
     });
@@ -241,9 +298,11 @@ export default function RasterCropConfirmModal({
                   image={imageUrl}
                   crop={crop}
                   zoom={zoom}
+                  rotation={normalizedRotation}
                   aspect={aspect}
                   onCropChange={setCrop}
                   onZoomChange={setZoom}
+                  onRotationChange={setRotation}
                   onCropComplete={(_, areaPixels) => setCroppedAreaPixels(areaPixels)}
                   minZoom={1}
                   maxZoom={4}
@@ -262,6 +321,17 @@ export default function RasterCropConfirmModal({
                   value={zoom}
                   onChange={setZoom}
                   tooltip={{ formatter: (value) => `${Number(value || 1).toFixed(2)}x` }}
+                />
+              </div>
+              <div className={styles.cropControlItem}>
+                <Typography.Text>Rotation</Typography.Text>
+                <Slider
+                  min={0}
+                  max={359}
+                  step={0.1}
+                  value={normalizedRotation}
+                  onChange={setRotation}
+                  tooltip={{ formatter: (value) => `${Number(value || 0).toFixed(1)} deg` }}
                 />
               </div>
             </div>
@@ -294,7 +364,7 @@ export default function RasterCropConfirmModal({
               <div>
                 <Typography.Text type="secondary">Source</Typography.Text>
                 <div>
-                  {sourceWidth || 0} x {sourceHeight || 0}
+                  {orientedSourceWidth || 0} x {orientedSourceHeight || 0}
                 </div>
               </div>
               <div>

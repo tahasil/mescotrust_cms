@@ -24,6 +24,13 @@ export function formatDate(dateValue) {
   return formatDateTime(dateValue);
 }
 
+export function effectiveDisplaySize(item) {
+  const optimized = Number(item?.optimizedSize) || 0;
+  const fallback = Number(item?.size || item?.originalSize) || 0;
+  if (isImage(item) && optimized > 0) return optimized;
+  return fallback;
+}
+
 export function monthLabel(monthValue) {
   const match = String(monthValue || "").match(/^(\d{4})-(\d{2})$/);
   if (!match) return monthValue || "";

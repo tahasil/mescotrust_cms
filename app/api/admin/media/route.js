@@ -212,6 +212,7 @@ export async function POST(req) {
       crop: cropContract.crop,
       targetWidth: cropContract.targetWidth,
       targetHeight: cropContract.targetHeight,
+      rotation: cropContract.rotationDegrees,
     });
 
     draft.filename = optimized.filename || draft.filename;

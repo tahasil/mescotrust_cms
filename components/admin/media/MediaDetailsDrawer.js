@@ -29,6 +29,7 @@ import {
 import {
   GENERATED_SIZE_ORDER,
   dimensionsText,
+  effectiveDisplaySize,
   formatBytes,
   formatDate,
   getSizeVariant,
@@ -96,7 +97,9 @@ export default function MediaDetailsDrawer({
           <Descriptions column={1} size="small" bordered style={{ marginBottom: 12 }}>
             <Descriptions.Item label="File name">{item.originalName}</Descriptions.Item>
             <Descriptions.Item label="Dimensions">{dimensionsText(item)}</Descriptions.Item>
-            <Descriptions.Item label="File size">{formatBytes(item.size)}</Descriptions.Item>
+            <Descriptions.Item label="File size">
+              {formatBytes(effectiveDisplaySize(item))}
+            </Descriptions.Item>
             <Descriptions.Item label="Upload date">{formatDate(item.createdAt)}</Descriptions.Item>
           </Descriptions>
 

@@ -32,6 +32,7 @@ test("non-raster MIME bypasses crop contract", () => {
     crop: null,
     targetWidth: null,
     targetHeight: null,
+    rotationDegrees: 0,
   });
 });
 
@@ -77,10 +78,31 @@ test("valid raster crop contract is parsed", () => {
     crop: { x: 10.1, y: 20.9, width: 300.4, height: 200.6 },
     targetWidth: 300,
     targetHeight: 200,
+    rotationDegrees: 0,
   });
 });
 
-test("normalizeCropForSource rounds coordinates and validates bounds", () => {
+test("rotation defaults to 0 and normalizes to 0-359 range", () => {
+  const formData = makeFormData({
+    crop: JSON.stringify({ x: 10, y: 10, width: 100, height: 80 }),
+    rotation: "450.5",
+  });
+  const contract = parseCropContractFromFormData(formData, { mimeType: "image/png" });
+  assert.equal(contract.rotationDegrees, 90.5);
+});
+
+test("non-numeric rotation values are rejected", () => {
+  const formData = makeFormData({
+    crop: JSON.stringify({ x: 10, y: 10, width: 100, height: 80 }),
+    rotation: "not-a-number",
+  });
+  expectCropError(
+    () => parseCropContractFromFormData(formData, { mimeType: "image/png" }),
+    "INVALID_ROTATION",
+  );
+});
+
+test("normalizeCropForSource stabilizes coordinates and validates bounds", () => {
   const normalized = normalizeCropForSource({
     crop: { x: 11.4, y: 9.7, width: 100.2, height: 80.9 },
     sourceWidth: 500,
@@ -88,17 +110,31 @@ test("normalizeCropForSource rounds coordinates and validates bounds", () => {
   });
   assert.deepEqual(normalized, {
     left: 11,
-    top: 10,
-    width: 100,
-    height: 81,
+    top: 9,
+    width: 101,
+    height: 82,
   });
 });
 
-test("normalizeCropForSource rejects out-of-bound crop rectangles", () => {
+test("normalizeCropForSource clamps partially out-of-bound crop rectangles", () => {
+  const normalized = normalizeCropForSource({
+    crop: { x: 450, y: 350, width: 100, height: 80 },
+    sourceWidth: 500,
+    sourceHeight: 400,
+  });
+  assert.deepEqual(normalized, {
+    left: 450,
+    top: 350,
+    width: 50,
+    height: 50,
+  });
+});
+
+test("normalizeCropForSource rejects crops fully outside source", () => {
   expectCropError(
     () =>
       normalizeCropForSource({
-        crop: { x: 450, y: 350, width: 100, height: 80 },
+        crop: { x: 550, y: 350, width: 100, height: 80 },
         sourceWidth: 500,
         sourceHeight: 400,
       }),
@@ -114,6 +150,21 @@ test("target dimensions must be <= source dimensions", () => {
         targetHeight: 1500,
         sourceWidth: 1000,
         sourceHeight: 900,
+      }),
+    "DIMENSIONS_EXCEED_SOURCE",
+  );
+});
+
+test("target dimensions must be <= selected crop dimensions when provided", () => {
+  expectCropError(
+    () =>
+      validateTargetDimensionsAgainstSource({
+        targetWidth: 700,
+        targetHeight: 500,
+        sourceWidth: 1600,
+        sourceHeight: 1200,
+        cropWidth: 600,
+        cropHeight: 480,
       }),
     "DIMENSIONS_EXCEED_SOURCE",
   );

@@ -28,6 +28,8 @@ test("MediaPickerInput enforces raster crop-before-upload with modal flow", () =
 test("RasterCropConfirmModal exposes final dimensions and blocks invalid confirm", () => {
   const source = readFile("components/admin/media/RasterCropConfirmModal.js");
   assert.match(source, /Final output/);
+  assert.match(source, /Rotation/);
+  assert.match(source, /rotationDegrees/);
   assert.match(source, /disabled=\{Boolean\(validationError\)\}/);
   assert.match(source, /Preview will appear after crop selection\./);
 });
