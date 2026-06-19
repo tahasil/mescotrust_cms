@@ -16,11 +16,11 @@ import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/ma
 
 const API_PATH = "/api/theme/VideoPlaying";
 const PREFIX = "videoPlaying";
-const MIN_COVER_IMAGE_WIDTH = 2164;
-const MIN_COVER_IMAGE_HEIGHT = 1200;
+const REQUIRED_COVER_IMAGE_WIDTH = 2164;
+const REQUIRED_COVER_IMAGE_HEIGHT = 1200;
 const REQUIRED_COVER_IMAGE_HELPER_TEXT =
-  `${MIN_COVER_IMAGE_WIDTH} \u00D7 ${MIN_COVER_IMAGE_HEIGHT}`;
-const MIN_COVER_IMAGE_ERROR_TEXT =
+  `${REQUIRED_COVER_IMAGE_WIDTH} \u00D7 ${REQUIRED_COVER_IMAGE_HEIGHT}`;
+const REQUIRED_COVER_IMAGE_ERROR_TEXT =
   `${REQUIRED_COVER_IMAGE_HELPER_TEXT} pixels`;
 
 const FALLBACK_THEME_COLOR_KEYS = [
@@ -55,15 +55,20 @@ async function validateVideoPlayingCoverImageDimensions(_, value) {
 
   try {
     const { width, height } = await getImageDimensions(imageUrl);
-    if (width >= MIN_COVER_IMAGE_WIDTH && height >= MIN_COVER_IMAGE_HEIGHT) {
+    if (
+      width === REQUIRED_COVER_IMAGE_WIDTH &&
+      height === REQUIRED_COVER_IMAGE_HEIGHT
+    ) {
       return Promise.resolve();
     }
     return Promise.reject(
-      new Error(`Image size must be at least ${MIN_COVER_IMAGE_ERROR_TEXT}.`),
+      new Error(
+        `Image size must be exactly ${REQUIRED_COVER_IMAGE_ERROR_TEXT}. Selected: ${width} \u00D7 ${height} pixels.`,
+      ),
     );
   } catch {
     return Promise.reject(
-      new Error(`Image size must be at least ${MIN_COVER_IMAGE_ERROR_TEXT}.`),
+      new Error(`Image size must be exactly ${REQUIRED_COVER_IMAGE_ERROR_TEXT}.`),
     );
   }
 }
@@ -232,6 +237,7 @@ function VideoPlayingEditForm(
                   <Form.Item
                     name="coverImageDesktop"
                     label="Desktop Cover Image"
+                    validateTrigger={["onChange", "onBlur"]}
                     rules={[{ validator: validateVideoPlayingCoverImageDimensions }]}
                   >
                     <MediaPickerInput

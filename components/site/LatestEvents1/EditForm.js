@@ -322,13 +322,14 @@ function LatestEvents1EditForm(
                             name={[name, "imageUrlDesktop"]}
                             label="Image"
                             className="latest-events1-image-field"
+                            validateTrigger={["onChange", "onBlur"]}
                             rules={[{ validator: validateLatestEventsImageDimensions }]}
                           >
                             <MediaPickerInput
                               placeholder="/images/news-1.png"
                               uiVariant="stacked"
                               showVariants={false}
-                              hintText={`Recommended size: ${REQUIRED_IMAGE_DIMENSIONS_TEXT}`}
+                              hintText={`Required size: ${REQUIRED_IMAGE_DIMENSIONS_TEXT}`}
                             />
                           </Form.Item>
                         </Col>

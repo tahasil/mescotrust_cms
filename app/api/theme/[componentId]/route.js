@@ -14,6 +14,7 @@ import { getRegistryIdsFromDisk } from "@/lib/getRegistryIdsFromDisk";
 import { normalizeThemeColorCollections } from "@/lib/themeColorFallbacks";
 import { validateOverviewOfOurWorkBackgroundImages } from "@/lib/overviewOfOurWorkImageValidation";
 import { validateWelcometoMESCOImage } from "@/lib/welcometoMESCOImageValidation";
+import { validateLatestEvents1Images } from "@/lib/latestEvents1ImageValidation";
 import {
   stripVideoPlayingMobileCoverImage,
   validateVideoPlayingCoverImage,
@@ -109,6 +110,16 @@ export async function PUT(req, { params }) {
 
     if (componentId === "WelcometoMESCO") {
       const validationErrors = await validateWelcometoMESCOImage(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "LatestEvents1") {
+      const validationErrors = await validateLatestEvents1Images(defaultProps);
       if (validationErrors.length > 0) {
         return NextResponse.json(
           { error: validationErrors[0] },

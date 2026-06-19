@@ -14,6 +14,7 @@ import {
   normalizePopupStatus,
   sanitizePopupPayload,
 } from "@/lib/popupValidation";
+import { validatePopupImageDimensions } from "@/lib/popupImageValidation";
 
 export const dynamic = "force-dynamic";
 
@@ -134,6 +135,16 @@ export async function PUT(req, { params }) {
           requireTargetRoutes: true,
           requireImageUrl: true,
         });
+        const imageValidationErrors = await validatePopupImageDimensions(
+          patch.defaultProps?.imageUrl,
+          { labelPrefix: "Popup image" },
+        );
+        if (imageValidationErrors.length > 0) {
+          return NextResponse.json(
+            { error: imageValidationErrors[0] },
+            { status: 400 },
+          );
+        }
       } catch (validationErr) {
         return NextResponse.json(
           { error: validationErr?.message || "Invalid popup payload" },
@@ -144,10 +155,23 @@ export async function PUT(req, { params }) {
 
     if (patch.status === "published") {
       try {
-        sanitizePopupPayload(patch.defaultProps || doc.defaultProps, {
-          requireTargetRoutes: true,
-          requireImageUrl: true,
-        });
+        const publishedProps = sanitizePopupPayload(
+          patch.defaultProps || doc.defaultProps,
+          {
+            requireTargetRoutes: true,
+            requireImageUrl: true,
+          },
+        );
+        const imageValidationErrors = await validatePopupImageDimensions(
+          publishedProps?.imageUrl,
+          { labelPrefix: "Popup image" },
+        );
+        if (imageValidationErrors.length > 0) {
+          return NextResponse.json(
+            { error: imageValidationErrors[0] },
+            { status: 400 },
+          );
+        }
       } catch (validationErr) {
         return NextResponse.json(
           {

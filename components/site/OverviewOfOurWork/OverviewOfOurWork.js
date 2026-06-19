@@ -586,6 +586,8 @@ export default function OverviewOfOurWork(props) {
                             className="cardIconImage"
                             src={card.icon}
                             alt=""
+                            width={48}
+                            height={48}
                           />
                           {hasCustomIconHoverColor ? (
                             <span

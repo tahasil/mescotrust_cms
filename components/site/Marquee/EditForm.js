@@ -232,6 +232,7 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                             {...restField}
                             name={[name, "urlDesktop"]}
                             label="Image"
+                            validateTrigger={["onChange", "onBlur"]}
                             rules={[
                               { required: true, message: "Required" },
                               { validator: validateMarqueeImageDimensions },
@@ -240,7 +241,7 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                             <MediaPickerInput
                               placeholder="/images/partner-1.png"
                               uiVariant="stacked"
-                              hintText={`Recommended size: ${RECOMMENDED_MARQUEE_IMAGE_DIMENSIONS_TEXT}`}
+                              hintText={`Required size: ${RECOMMENDED_MARQUEE_IMAGE_DIMENSIONS_TEXT}`}
                             />
                           </Form.Item>
                         </Col>

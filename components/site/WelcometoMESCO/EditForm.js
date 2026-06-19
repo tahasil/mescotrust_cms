@@ -20,11 +20,11 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/WelcometoMESCO";
 const PREFIX = "welcometoMESCO";
-const MIN_DESKTOP_IMAGE_WIDTH = 1042;
-const MIN_DESKTOP_IMAGE_HEIGHT = 1164;
-const MIN_DESKTOP_IMAGE_TEXT =
-  `${MIN_DESKTOP_IMAGE_WIDTH} \u00D7 ${MIN_DESKTOP_IMAGE_HEIGHT}`;
-const MIN_DESKTOP_IMAGE_ERROR_TEXT = `${MIN_DESKTOP_IMAGE_TEXT} pixels`;
+const REQUIRED_DESKTOP_IMAGE_WIDTH = 1042;
+const REQUIRED_DESKTOP_IMAGE_HEIGHT = 1164;
+const REQUIRED_DESKTOP_IMAGE_TEXT =
+  `${REQUIRED_DESKTOP_IMAGE_WIDTH} \u00D7 ${REQUIRED_DESKTOP_IMAGE_HEIGHT}`;
+const REQUIRED_DESKTOP_IMAGE_ERROR_TEXT = `${REQUIRED_DESKTOP_IMAGE_TEXT} pixels`;
 
 const FALLBACK_THEME_COLOR_KEYS = [
   "primary",
@@ -66,15 +66,20 @@ async function validateWelcometoMESCODesktopImageDimensions(_, value) {
 
   try {
     const { width, height } = await getImageDimensions(imageUrl);
-    if (width >= MIN_DESKTOP_IMAGE_WIDTH && height >= MIN_DESKTOP_IMAGE_HEIGHT) {
+    if (
+      width === REQUIRED_DESKTOP_IMAGE_WIDTH &&
+      height === REQUIRED_DESKTOP_IMAGE_HEIGHT
+    ) {
       return Promise.resolve();
     }
     return Promise.reject(
-      new Error(`Image size must be at least ${MIN_DESKTOP_IMAGE_ERROR_TEXT}.`),
+      new Error(
+        `Image size must be exactly ${REQUIRED_DESKTOP_IMAGE_ERROR_TEXT}. Selected: ${width} × ${height} pixels.`,
+      ),
     );
   } catch {
     return Promise.reject(
-      new Error(`Image size must be at least ${MIN_DESKTOP_IMAGE_ERROR_TEXT}.`),
+      new Error(`Image size must be exactly ${REQUIRED_DESKTOP_IMAGE_ERROR_TEXT}.`),
     );
   }
 }
@@ -447,6 +452,7 @@ function WelcometoMESCOEditForm(
                   <Form.Item
                     name="imageDesktop"
                     label="Desktop Image"
+                    validateTrigger={["onChange", "onBlur"]}
                     rules={[
                       { validator: validateWelcometoMESCODesktopImageDimensions },
                     ]}
@@ -454,7 +460,7 @@ function WelcometoMESCOEditForm(
                     <MediaPickerInput
                       placeholder="e.g. /images/helping.png"
                       uiVariant="stacked"
-                      hintText={`Required size: ${MIN_DESKTOP_IMAGE_TEXT}`}
+                      hintText={`Required size: ${REQUIRED_DESKTOP_IMAGE_TEXT}`}
                     />
                   </Form.Item>
                 </Col>

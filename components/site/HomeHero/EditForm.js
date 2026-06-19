@@ -397,13 +397,14 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
                                   <Form.Item
                                     {...restField}
                                     name={[name, "bgImageUrlDesktop"]}
+                                    validateTrigger={["onChange", "onBlur"]}
                                     rules={[{ validator: validateHomeHeroImageDimensions }]}
                                     style={{ marginBottom: 0 }}
                                   >
                                     <MediaPickerInput
                                       placeholder="e.g. /images/slider-desktop.png"
                                       uiVariant="stacked"
-                                      hintText={`Recommended size: ${REQUIRED_HOME_HERO_IMAGE_DIMENSIONS_TEXT}`}
+                                      hintText={`Required size: ${REQUIRED_HOME_HERO_IMAGE_DIMENSIONS_TEXT}`}
                                     />
                                   </Form.Item>
                                 </Card>

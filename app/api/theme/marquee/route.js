@@ -7,6 +7,7 @@ import { getToken } from "next-auth/jwt";
 import { connectDB } from "@/lib/db";
 import Component from "@/models/Component";
 import { isAdmin } from "@/lib/permissions";
+import { validateMarqueeImages } from "@/lib/marqueeImageValidation";
 
 export const dynamic = "force-dynamic";
 
@@ -98,6 +99,10 @@ export async function PUT(req) {
     let doc = await Component.findOne({ baseComponent: "Marquee" });
     if (!doc) {
       const defaultProps = normalizeMarqueeProps(payload);
+      const validationErrors = await validateMarqueeImages(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json({ error: validationErrors[0] }, { status: 400 });
+      }
       doc = await Component.create({
         name: "Marquee",
         displayName: "Marquee",
@@ -108,10 +113,15 @@ export async function PUT(req) {
         active: true,
       });
     } else {
-      doc.defaultProps = normalizeMarqueeProps({
+      const nextDefaultProps = normalizeMarqueeProps({
         ...(doc.defaultProps || {}),
         ...payload,
       });
+      const validationErrors = await validateMarqueeImages(nextDefaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json({ error: validationErrors[0] }, { status: 400 });
+      }
+      doc.defaultProps = nextDefaultProps;
       doc.markModified("defaultProps");
       await doc.save();
     }
