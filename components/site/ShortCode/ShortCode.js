@@ -11,6 +11,7 @@ import LatestEvents1 from "@/components/site/LatestEvents1/LatestEvents1";
 import Notices from "@/components/site/Notices/Notices";
 import Cards from "@/components/site/Cards/Cards";
 import Cards1 from "@/components/site/Cards1/Cards1";
+import Subscribe from "@/components/site/Subscribe/Subscribe";
 import FormEmbed from "@/components/site/FormEmbed/FormEmbed";
 import {
   FullWidthBackground,
@@ -35,6 +36,7 @@ const SUPPORTED_SHORTCODE_COMPONENTS = {
   Notices,
   Cards,
   Cards1,
+  Subscribe,
   FormEmbed,
 };
 
