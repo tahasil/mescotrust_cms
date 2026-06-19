@@ -5,7 +5,10 @@ import { connectDB } from "@/lib/db";
 import Page from "@/models/Page";
 import Menu from "@/models/Menu";
 import { normalizeSlug } from "@/lib/slug";
-import { validateLayoutProps } from "@/lib/validateLayout";
+import {
+  filterLayoutValidationErrors,
+  validateLayoutProps,
+} from "@/lib/validateLayout";
 import { clearUsageForRef, syncMediaUsageForPage } from "@/lib/media/usageTracker";
 import { sanitizeVideoPlayingLayout } from "@/lib/videoPlayingImageValidation";
 import { sanitizePhotoGalleryLayout } from "@/lib/photoGalleryImageValidation";
@@ -151,8 +154,12 @@ export async function PUT(req, { params }) {
         sanitizeVideoPlayingLayout(layout),
       );
       const validationErrors = await validateLayoutProps(safeLayout);
-      if (validationErrors.length > 0) {
-        return NextResponse.json({ error: `Layout validation: ${validationErrors.join("; ")}` }, { status: 400 });
+      const blockingValidationErrors = filterLayoutValidationErrors(
+        validationErrors,
+        { nonBlockingBaseComponents: ["PhotoGallery"] },
+      );
+      if (blockingValidationErrors.length > 0) {
+        return NextResponse.json({ error: `Layout validation: ${blockingValidationErrors.join("; ")}` }, { status: 400 });
       }
       page.layout = safeLayout;
     }

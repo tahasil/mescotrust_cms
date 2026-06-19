@@ -328,7 +328,6 @@ function LatestEvents1EditForm(
                             <MediaPickerInput
                               placeholder="/images/news-1.png"
                               uiVariant="stacked"
-                              showVariants={false}
                               hintText={`Required size: ${REQUIRED_IMAGE_DIMENSIONS_TEXT}`}
                             />
                           </Form.Item>

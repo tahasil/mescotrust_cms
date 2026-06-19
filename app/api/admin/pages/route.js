@@ -3,7 +3,10 @@ import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Page from "@/models/Page";
 import { normalizeSlug } from "@/lib/slug";
-import { validateLayoutProps } from "@/lib/validateLayout";
+import {
+  filterLayoutValidationErrors,
+  validateLayoutProps,
+} from "@/lib/validateLayout";
 import { syncMediaUsageForPage } from "@/lib/media/usageTracker";
 import { sanitizeVideoPlayingLayout } from "@/lib/videoPlayingImageValidation";
 import { sanitizePhotoGalleryLayout } from "@/lib/photoGalleryImageValidation";
@@ -55,8 +58,12 @@ export async function POST(req) {
 
     if (safeLayout.length > 0) {
       const validationErrors = await validateLayoutProps(safeLayout);
-      if (validationErrors.length > 0) {
-        return NextResponse.json({ error: `Layout validation: ${validationErrors.join("; ")}` }, { status: 400 });
+      const blockingValidationErrors = filterLayoutValidationErrors(
+        validationErrors,
+        { nonBlockingBaseComponents: ["PhotoGallery"] },
+      );
+      if (blockingValidationErrors.length > 0) {
+        return NextResponse.json({ error: `Layout validation: ${blockingValidationErrors.join("; ")}` }, { status: 400 });
       }
     }
 

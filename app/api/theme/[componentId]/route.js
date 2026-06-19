@@ -154,9 +154,10 @@ export async function PUT(req, { params }) {
       const validationErrors =
         await validatePhotoGalleryCoverImages(safeDefaultProps);
       if (validationErrors.length > 0) {
-        return NextResponse.json(
-          { error: validationErrors[0] },
-          { status: 400 },
+        // Temporary non-blocking behavior requested by product: do not fail save for PhotoGallery image-size validation.
+        console.warn(
+          "[Theme component API] Non-blocking PhotoGallery validation:",
+          validationErrors[0],
         );
       }
     }
