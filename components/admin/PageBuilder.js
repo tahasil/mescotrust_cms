@@ -92,7 +92,10 @@ const EDITABLE_SITE_COMPONENTS = SITE_COMPONENT_IDS.filter(
 /** Default props for new Testimonials block; all settings/items stored in page (pages collection). */
 const TESTIMONIALS_DEFAULT_PROPS = {
   testimonialsTitle: "Testimonials",
+  testimonialsTitleAlign: "center",
   testimonialsTitleColorKey: "",
+  testimonialsAvatarBgColorKey: "",
+  testimonialsAvatarTextColorKey: "",
   testimonialsAutoplay: false,
   testimonialsSectionBgType: "default",
   testimonialsSectionBgImage: "",
@@ -122,8 +125,8 @@ const TESTIMONIALS_DEFAULT_PROPS = {
   testimonialsSlidesTablet: 2,
   testimonialsSlidesMobile: 1,
   testimonialsItems: [
-    { quote: "", imageUrl: "", name: "", title: "", rating: 5 },
-    { quote: "", imageUrl: "", name: "", title: "", rating: 5 },
+    { quote: "", name: "", title: "", rating: 5 },
+    { quote: "", name: "", title: "", rating: 5 },
   ],
 };
 

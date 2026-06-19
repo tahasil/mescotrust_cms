@@ -38,6 +38,22 @@ export default function TitleAndColorsSection({
                   >
                     <Input placeholder={item.placeholder || ""} size="small" style={{ width: "100%", minWidth: 200 }} />
                   </Form.Item>
+                ) : item.type === "select" ? (
+                  <Form.Item
+                    key="select"
+                    name={item.name}
+                    noStyle
+                    style={{ marginBottom: 0 }}
+                    rules={item.rules}
+                  >
+                    <Select
+                      size="small"
+                      options={Array.isArray(item.options) ? item.options : []}
+                      placeholder={item.placeholder || "Select"}
+                      style={{ width: item.width || 120 }}
+                      allowClear={item.allowClear === true}
+                    />
+                  </Form.Item>
                 ) : (
                   <Form.Item key="switch" name={item.name} valuePropName="checked" noStyle style={{ marginBottom: 0 }}>
                     <Switch />

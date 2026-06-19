@@ -550,7 +550,6 @@ export default function AdminComponentEditPage() {
         const items = Array.isArray(data?.testimonialsItems)
           ? data.testimonialsItems.map((it) => ({
               quote: it?.quote != null ? String(it.quote).trim() : "",
-              imageUrl: it?.imageUrl != null ? String(it.imageUrl).trim() : "",
               name: it?.name != null ? String(it.name).trim() : "",
               title: it?.title != null ? String(it.title).trim() : "",
               rating: Math.min(5, Math.max(0, Number(it?.rating) || 0)),
@@ -565,6 +564,10 @@ export default function AdminComponentEditPage() {
             data?.testimonialsTitle != null
               ? String(data.testimonialsTitle).trim()
               : "Testimonials",
+          testimonialsTitleAlign:
+            data?.testimonialsTitleAlign != null
+              ? String(data.testimonialsTitleAlign).trim()
+              : "center",
           testimonialsTitleColorKey:
             data?.testimonialsTitleColorKey != null
               ? String(data.testimonialsTitleColorKey).trim()
@@ -580,6 +583,14 @@ export default function AdminComponentEditPage() {
           testimonialsRatingColorKey:
             data?.testimonialsRatingColorKey != null
               ? String(data.testimonialsRatingColorKey).trim()
+              : "",
+          testimonialsAvatarBgColorKey:
+            data?.testimonialsAvatarBgColorKey != null
+              ? String(data.testimonialsAvatarBgColorKey).trim()
+              : "",
+          testimonialsAvatarTextColorKey:
+            data?.testimonialsAvatarTextColorKey != null
+              ? String(data.testimonialsAvatarTextColorKey).trim()
               : "",
           testimonialsTitleEnabled: data?.testimonialsTitleEnabled !== false,
           testimonialsNameColorEnabled:
@@ -1406,10 +1417,6 @@ export default function AdminComponentEditPage() {
                   const items = Array.isArray(theme?.testimonialsItems)
                     ? theme.testimonialsItems.map((it) => ({
                         quote: it?.quote != null ? String(it.quote).trim() : "",
-                        imageUrl:
-                          it?.imageUrl != null
-                            ? String(it.imageUrl).trim()
-                            : "",
                         name: it?.name != null ? String(it.name).trim() : "",
                         title: it?.title != null ? String(it.title).trim() : "",
                         rating: Math.min(
@@ -1427,6 +1434,10 @@ export default function AdminComponentEditPage() {
                       theme?.testimonialsTitle != null
                         ? String(theme.testimonialsTitle).trim()
                         : "Testimonials",
+                    testimonialsTitleAlign:
+                      theme?.testimonialsTitleAlign != null
+                        ? String(theme.testimonialsTitleAlign).trim()
+                        : "center",
                     testimonialsTitleColorKey:
                       theme?.testimonialsTitleColorKey != null
                         ? String(theme.testimonialsTitleColorKey).trim()
@@ -1442,6 +1453,14 @@ export default function AdminComponentEditPage() {
                     testimonialsRatingColorKey:
                       theme?.testimonialsRatingColorKey != null
                         ? String(theme.testimonialsRatingColorKey).trim()
+                        : "",
+                    testimonialsAvatarBgColorKey:
+                      theme?.testimonialsAvatarBgColorKey != null
+                        ? String(theme.testimonialsAvatarBgColorKey).trim()
+                        : "",
+                    testimonialsAvatarTextColorKey:
+                      theme?.testimonialsAvatarTextColorKey != null
+                        ? String(theme.testimonialsAvatarTextColorKey).trim()
                         : "",
                     testimonialsTitleEnabled:
                       theme?.testimonialsTitleEnabled !== false,

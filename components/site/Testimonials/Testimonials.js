@@ -81,8 +81,8 @@ const Avatar = styled.div`
   width: 46px;
   height: 46px;
   border-radius: 50%;
-  background: #2f2a2a;
-  color: #fff;
+  background: ${(p) => p.$bgColor || "#2f2a2a"};
+  color: ${(p) => p.$textColor || "#fff"};
   font-size: 13px;
   font-weight: 700;
   line-height: 1;
@@ -90,14 +90,6 @@ const Avatar = styled.div`
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-`;
-
-const AvatarImage = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  border-radius: 50%;
 `;
 
 const Name = styled.div`
@@ -221,19 +213,8 @@ const Dot = styled.button`
 `;
 
 function normalizeItem(it) {
-  const desktopImage =
-    it?.imageDesktop != null
-      ? String(it.imageDesktop).trim()
-      : it?.imageUrl != null
-        ? String(it.imageUrl).trim()
-        : "";
-  const mobileImage =
-    it?.imageMobile != null ? String(it.imageMobile).trim() : "";
   return {
     quote: it?.quote != null ? String(it.quote).trim() : "",
-    imageDesktop: desktopImage,
-    imageMobile: mobileImage,
-    imageUrl: desktopImage,
     name: it?.name != null ? String(it.name).trim() : "",
     title: it?.title != null ? String(it.title).trim() : "",
     rating: Math.min(5, Math.max(0, Number(it?.rating) || 0)),
@@ -308,9 +289,6 @@ const DEFAULT_ITEMS = [
   {
     quote:
       "Ali's professionalism and dedication led our software project to success, delivering high-quality results on time and within budget. His expertise and reliability make him our top choice for any future tech/software needs.",
-    imageDesktop: "",
-    imageMobile: "",
-    imageUrl: "",
     name: "Tracye Lawyer",
     title: "",
     rating: 4,
@@ -318,9 +296,6 @@ const DEFAULT_ITEMS = [
   {
     quote:
       "Ali's professionalism and dedication led our software project to success, delivering high-quality results on time and within budget. His expertise and reliability make him our top choice for any future tech/software needs.",
-    imageDesktop: "",
-    imageMobile: "",
-    imageUrl: "",
     name: "Tracye Lawyer",
     title: "",
     rating: 4,
@@ -328,9 +303,6 @@ const DEFAULT_ITEMS = [
   {
     quote:
       "Ali's professionalism and dedication led our software project to success, delivering high-quality results on time and within budget. His expertise and reliability make him our top choice for any future tech/software needs.",
-    imageDesktop: "",
-    imageMobile: "",
-    imageUrl: "",
     name: "Tracye Lawyer",
     title: "",
     rating: 4,
@@ -368,6 +340,14 @@ export default function Testimonials(props) {
       .trim() || "Testimonials";
 
   const titleEnabled = props?.testimonialsTitleEnabled !== false;
+  const titleAlignRaw = (props?.testimonialsTitleAlign ?? "center")
+    .toString()
+    .trim()
+    .toLowerCase();
+  const titleAlign =
+    titleAlignRaw === "left" || titleAlignRaw === "right"
+      ? titleAlignRaw
+      : "center";
   const titleColorKey = (props?.testimonialsTitleColorKey ?? "")
     .toString()
     .trim();
@@ -386,6 +366,16 @@ export default function Testimonials(props) {
     .toString()
     .trim();
   const ratingColor = ratingColorKey ? getColor(ratingColorKey) : "#d63a33";
+  const avatarBgColorKey = (props?.testimonialsAvatarBgColorKey ?? "")
+    .toString()
+    .trim();
+  const avatarBgColor = avatarBgColorKey ? getColor(avatarBgColorKey) : "#2f2a2a";
+  const avatarTextColorKey = (props?.testimonialsAvatarTextColorKey ?? "")
+    .toString()
+    .trim();
+  const avatarTextColor = avatarTextColorKey
+    ? getColor(avatarTextColorKey)
+    : "#ffffff";
 
   const sectionBgType = (
     props?.testimonialsSectionBgType ?? "default"
@@ -638,7 +628,7 @@ export default function Testimonials(props) {
       <PageContainer style={pageContainerBgStyle}>
         {titleEnabled && (
           <Row gutter={[16, 16]}>
-            <Col span={24} className=" text-center mb-4">
+            <Col span={24} className="mb-4" style={{ textAlign: titleAlign }}>
               <MainTitle color={titleColor}>{title}</MainTitle>
             </Col>
           </Row>
@@ -654,37 +644,11 @@ export default function Testimonials(props) {
             {items.map((item, i) => (
               <Slide key={i} $perView={perViewClamped}>
                 <Card>
-                  {/*
-                    Avatar image falls back to initials when not provided.
-                    Mobile image is optional and falls back to desktop.
-                  */}
-                  {(() => {
-                    const avatarDesktop =
-                      item?.imageDesktop || item?.imageUrl || "";
-                    const avatarMobile = item?.imageMobile || "";
-                    const avatarSrc = avatarDesktop || avatarMobile;
-                    return (
-                      <>
                   <StarRating rating={item.rating} starColor={ratingColor} />
                   <QuoteText>{item.quote || "—"}</QuoteText>
                   <Footer>
-                    <Avatar>
-                      {avatarSrc ? (
-                        <picture>
-                          {avatarMobile ? (
-                            <source
-                              media="(max-width: 767px)"
-                              srcSet={avatarMobile}
-                            />
-                          ) : null}
-                          <AvatarImage
-                            src={avatarSrc}
-                            alt={getFirstLastName(item.name)}
-                          />
-                        </picture>
-                      ) : (
-                        getInitials(item.name)
-                      )}
+                    <Avatar $bgColor={avatarBgColor} $textColor={avatarTextColor}>
+                      {getInitials(item.name)}
                     </Avatar>
                     <AuthorInfo>
                       <Name $color={nameColor} $hasRole={!!item.title}>
@@ -695,9 +659,6 @@ export default function Testimonials(props) {
                       ) : null}
                     </AuthorInfo>
                   </Footer>
-                      </>
-                    );
-                  })()}
                 </Card>
               </Slide>
             ))}
