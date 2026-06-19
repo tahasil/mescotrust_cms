@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Button, InputNumber, Modal, Slider, Space, Typography } from "antd";
-import Cropper from "react-easy-crop";
 import { parsePositiveIntOrNull } from "./rasterMedia";
 import styles from "./AdminMediaLibrary.module.css";
+
+const Cropper = dynamic(
+  () => import("react-cropper").then((module) => module.Cropper),
+  { ssr: false },
+);
 
 function createObjectUrl(file) {
   if (!file) return "";
@@ -51,73 +56,51 @@ function normalizeRotationDegrees(value) {
   return Number(wrapped.toFixed(2));
 }
 
-function renderCropPreview({ src, cropPixels, width, height, rotation, mimeType }) {
-  return new Promise((resolve, reject) => {
-    if (!src || !cropPixels || !width || !height) {
-      reject(new Error("Preview input missing"));
-      return;
-    }
-    const image = new window.Image();
-    image.onload = () => {
-      const rotatedCanvas = document.createElement("canvas");
-      const { width: rotatedWidth, height: rotatedHeight } = rotateSize(
-        image.width,
-        image.height,
-        rotation,
-      );
-      rotatedCanvas.width = Math.max(1, Math.floor(rotatedWidth));
-      rotatedCanvas.height = Math.max(1, Math.floor(rotatedHeight));
-      const rotatedContext = rotatedCanvas.getContext("2d");
-      if (!rotatedContext) {
-        reject(new Error("Preview context unavailable"));
-        return;
-      }
-
-      rotatedContext.translate(rotatedCanvas.width / 2, rotatedCanvas.height / 2);
-      rotatedContext.rotate(getRadianAngle(rotation));
-      rotatedContext.drawImage(image, -image.width / 2, -image.height / 2);
-
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-      const context = canvas.getContext("2d");
-      if (!context) {
-        reject(new Error("Preview context unavailable"));
-        return;
-      }
-      context.drawImage(rotatedCanvas, cropPixels.x, cropPixels.y, cropPixels.width, cropPixels.height, 0, 0, width, height);
-      const targetMime = String(mimeType || "").includes("png") ? "image/png" : "image/jpeg";
-      resolve(canvas.toDataURL(targetMime, 0.92));
-    };
-    image.onerror = () => reject(new Error("Preview render failed"));
-    image.src = src;
-  });
+function getCanvasMimeType(fileMimeType) {
+  const normalized = String(fileMimeType || "").toLowerCase();
+  if (normalized.includes("png")) return "image/png";
+  if (normalized.includes("webp")) return "image/webp";
+  return "image/jpeg";
 }
 
-function toCropPayload(croppedPixels) {
-  if (!croppedPixels) return null;
-  const rawX = Number(croppedPixels.x);
-  const rawY = Number(croppedPixels.y);
-  const rawWidth = Number(croppedPixels.width);
-  const rawHeight = Number(croppedPixels.height);
-  if (
-    !Number.isFinite(rawX) ||
-    !Number.isFinite(rawY) ||
-    !Number.isFinite(rawWidth) ||
-    !Number.isFinite(rawHeight) ||
-    rawWidth <= 0 ||
-    rawHeight <= 0
-  ) {
-    return null;
-  }
-  const x = Math.floor(rawX);
-  const y = Math.floor(rawY);
-  const right = Math.ceil(rawX + rawWidth);
-  const bottom = Math.ceil(rawY + rawHeight);
-  const width = right - x;
-  const height = bottom - y;
-  if (width <= 0 || height <= 0) return null;
-  return { x, y, width, height };
+function replaceFileExtension(name, ext) {
+  const base = String(name || "cropped-image").replace(/\.[^.]+$/, "");
+  return `${base}${ext}`;
+}
+
+function extensionFromMimeType(mimeType) {
+  const normalized = String(mimeType || "").toLowerCase();
+  if (normalized === "image/png") return ".png";
+  if (normalized === "image/webp") return ".webp";
+  return ".jpg";
+}
+
+function renderCanvasPreview({ cropper, width, height, mimeType }) {
+  if (!cropper || !width || !height) return "";
+  const canvas = cropper.getCroppedCanvas({
+    width: Math.max(1, Math.round(width)),
+    height: Math.max(1, Math.round(height)),
+    imageSmoothingEnabled: true,
+    imageSmoothingQuality: "high",
+  });
+  if (!canvas) return "";
+  return canvas.toDataURL(getCanvasMimeType(mimeType), 0.92);
+}
+
+function canvasToBlob(canvas, mimeType) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          reject(new Error("Unable to generate cropped image"));
+          return;
+        }
+        resolve(blob);
+      },
+      mimeType,
+      0.92,
+    );
+  });
 }
 
 export default function RasterCropConfirmModal({
@@ -128,30 +111,38 @@ export default function RasterCropConfirmModal({
   onCancel,
   onConfirm,
 }) {
+  const cropperRef = useRef(null);
   const [imageUrl, setImageUrl] = useState("");
   const [sourceWidth, setSourceWidth] = useState(0);
   const [sourceHeight, setSourceHeight] = useState(0);
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [cropperReady, setCropperReady] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [cropBoxPixels, setCropBoxPixels] = useState(null);
   const [widthInput, setWidthInput] = useState(null);
   const [heightInput, setHeightInput] = useState(null);
+  const [manualSizeMode, setManualSizeMode] = useState(false);
   const [previewUrl, setPreviewUrl] = useState("");
   const [previewError, setPreviewError] = useState("");
+  const [confirming, setConfirming] = useState(false);
+  const [interactionTick, setInteractionTick] = useState(0);
 
   useEffect(() => {
     if (!open || !file) return;
     const nextUrl = createObjectUrl(file);
     setImageUrl(nextUrl);
-    setCrop({ x: 0, y: 0 });
+    setSourceWidth(0);
+    setSourceHeight(0);
+    setCropperReady(false);
     setZoom(1);
     setRotation(0);
-    setCroppedAreaPixels(null);
+    setCropBoxPixels(null);
     setWidthInput(null);
     setHeightInput(null);
+    setManualSizeMode(false);
     setPreviewUrl("");
     setPreviewError("");
+    setInteractionTick(0);
     loadImageDimensions(nextUrl)
       .then((size) => {
         setSourceWidth(size.width);
@@ -167,11 +158,9 @@ export default function RasterCropConfirmModal({
     };
   }, [open, file]);
 
+  const normalizedRotation = useMemo(() => normalizeRotationDegrees(rotation), [rotation]);
   const parsedWidth = useMemo(() => parsePositiveIntOrNull(widthInput), [widthInput]);
   const parsedHeight = useMemo(() => parsePositiveIntOrNull(heightInput), [heightInput]);
-  const normalizedRotation = useMemo(() => normalizeRotationDegrees(rotation), [rotation]);
-  const hasWidth = parsedWidth !== null;
-  const hasHeight = parsedHeight !== null;
 
   const orientedSource = useMemo(
     () => rotateSize(sourceWidth, sourceHeight, normalizedRotation),
@@ -180,92 +169,217 @@ export default function RasterCropConfirmModal({
   const orientedSourceWidth = Math.max(1, Math.ceil(orientedSource.width || 0));
   const orientedSourceHeight = Math.max(1, Math.ceil(orientedSource.height || 0));
 
-  const aspect = useMemo(() => {
-    if (Number.isFinite(parsedWidth) && Number.isFinite(parsedHeight)) {
-      return parsedWidth / parsedHeight;
-    }
-    return undefined;
-  }, [parsedWidth, parsedHeight]);
+  const selectedCropWidth = Math.max(0, Math.round(Number(cropBoxPixels?.width) || 0));
+  const selectedCropHeight = Math.max(0, Math.round(Number(cropBoxPixels?.height) || 0));
 
-  const cropPayload = useMemo(() => toCropPayload(croppedAreaPixels), [croppedAreaPixels]);
+  const isManualSizeComplete =
+    manualSizeMode && Number.isFinite(parsedWidth) && Number.isFinite(parsedHeight);
+  const hasManualWidth = manualSizeMode && parsedWidth !== null;
+  const hasManualHeight = manualSizeMode && parsedHeight !== null;
+
+  const displayWidth = manualSizeMode ? widthInput : selectedCropWidth || null;
+  const displayHeight = manualSizeMode ? heightInput : selectedCropHeight || null;
+
+  const finalWidth = isManualSizeComplete ? parsedWidth : selectedCropWidth;
+  const finalHeight = isManualSizeComplete ? parsedHeight : selectedCropHeight;
 
   const validationError = useMemo(() => {
-    if (!cropPayload) return "Select a crop area to continue.";
-    if (hasWidth !== hasHeight) return "Width and height must be set together.";
+    if (!cropperReady) return "Loading image editor.";
+    if (!selectedCropWidth || !selectedCropHeight) return "Select a crop area to continue.";
+    if (manualSizeMode && hasManualWidth !== hasManualHeight) {
+      return "Width and height must be set together.";
+    }
     if (
-      (hasWidth && !Number.isFinite(parsedWidth)) ||
-      (hasHeight && !Number.isFinite(parsedHeight))
+      (manualSizeMode && hasManualWidth && !Number.isFinite(parsedWidth)) ||
+      (manualSizeMode && hasManualHeight && !Number.isFinite(parsedHeight))
     ) {
       return "Width and height must be positive integers.";
     }
-    if (Number.isFinite(parsedWidth) && Number.isFinite(parsedHeight)) {
-      const maxWidth = Number(cropPayload?.width) || orientedSourceWidth;
-      const maxHeight = Number(cropPayload?.height) || orientedSourceHeight;
-      if (parsedWidth > maxWidth + 1 || parsedHeight > maxHeight + 1) {
-        return "Width and height must be less than or equal to the crop area dimensions.";
-      }
+    if (!finalWidth || !finalHeight) {
+      return "Select a crop area to continue.";
     }
     return "";
   }, [
-    cropPayload,
-    hasWidth,
-    hasHeight,
+    cropperReady,
+    selectedCropWidth,
+    selectedCropHeight,
+    manualSizeMode,
+    hasManualWidth,
+    hasManualHeight,
     parsedWidth,
     parsedHeight,
-    orientedSourceWidth,
-    orientedSourceHeight,
+    finalWidth,
+    finalHeight,
   ]);
 
-  const finalWidth =
-    Number.isFinite(parsedWidth) && Number.isFinite(parsedHeight)
-      ? parsedWidth
-      : cropPayload?.width || 0;
-  const finalHeight =
-    Number.isFinite(parsedWidth) && Number.isFinite(parsedHeight)
-      ? parsedHeight
-      : cropPayload?.height || 0;
+  const syncCropData = useCallback(() => {
+    const cropper = cropperRef.current;
+    if (!cropper) return;
+    const data = cropper.getData(true);
+    if (!data) return;
+    const width = Number(data.width) || 0;
+    const height = Number(data.height) || 0;
+    if (width <= 0 || height <= 0) return;
+    const x = Math.max(0, Number(data.x) || 0);
+    const y = Math.max(0, Number(data.y) || 0);
+    setCropBoxPixels({
+      x,
+      y,
+      width,
+      height,
+    });
+    setInteractionTick((prev) => prev + 1);
+  }, []);
+
+  useEffect(() => {
+    const cropper = cropperRef.current;
+    if (!cropper || !cropperReady) return;
+    if (isManualSizeComplete) {
+      cropper.setAspectRatio(parsedWidth / parsedHeight);
+    } else {
+      cropper.setAspectRatio(NaN);
+    }
+    syncCropData();
+  }, [cropperReady, isManualSizeComplete, parsedWidth, parsedHeight, syncCropData]);
+
+  useEffect(() => {
+    const cropper = cropperRef.current;
+    if (!cropper || !cropperReady) return;
+    cropper.rotateTo(normalizedRotation);
+    syncCropData();
+  }, [cropperReady, normalizedRotation, syncCropData]);
+
+  useEffect(() => {
+    const cropper = cropperRef.current;
+    if (!cropper || !cropperReady) return;
+    cropper.zoomTo(zoom);
+    syncCropData();
+  }, [cropperReady, zoom, syncCropData]);
+
+  const handleWidthChange = (nextValue) => {
+    const next = nextValue === null ? null : Number(nextValue);
+    if (!manualSizeMode) {
+      if (next === null) return;
+      setManualSizeMode(true);
+      setWidthInput(next);
+      setHeightInput(selectedCropHeight || null);
+      return;
+    }
+    setWidthInput(next);
+    if (next === null && heightInput === null) {
+      setManualSizeMode(false);
+    }
+  };
+
+  const handleHeightChange = (nextValue) => {
+    const next = nextValue === null ? null : Number(nextValue);
+    if (!manualSizeMode) {
+      if (next === null) return;
+      setManualSizeMode(true);
+      setHeightInput(next);
+      setWidthInput(selectedCropWidth || null);
+      return;
+    }
+    setHeightInput(next);
+    if (next === null && widthInput === null) {
+      setManualSizeMode(false);
+    }
+  };
+
+  const resetManualSize = () => {
+    setManualSizeMode(false);
+    setWidthInput(null);
+    setHeightInput(null);
+  };
 
   useEffect(() => {
     let cancelled = false;
-    setPreviewError("");
-    if (!open || !imageUrl || !cropPayload || !finalWidth || !finalHeight) {
+    if (!open || !cropperReady) {
       setPreviewUrl("");
       return () => {
         cancelled = true;
       };
     }
-    renderCropPreview({
-      src: imageUrl,
-      cropPixels: cropPayload,
-      width: finalWidth,
-      height: finalHeight,
-      rotation: normalizedRotation,
-      mimeType: file?.type,
-    })
-      .then((nextPreviewUrl) => {
-        if (!cancelled) setPreviewUrl(nextPreviewUrl);
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setPreviewUrl("");
-          setPreviewError(err.message || "Unable to render preview");
-        }
+    if (!finalWidth || !finalHeight || validationError) {
+      setPreviewUrl("");
+      return () => {
+        cancelled = true;
+      };
+    }
+    try {
+      const cropper = cropperRef.current;
+      const nextPreview = renderCanvasPreview({
+        cropper,
+        width: finalWidth,
+        height: finalHeight,
+        mimeType: file?.type,
       });
+      if (!cancelled) {
+        setPreviewError("");
+        setPreviewUrl(nextPreview);
+      }
+    } catch (err) {
+      if (!cancelled) {
+        setPreviewUrl("");
+        setPreviewError(err?.message || "Unable to render preview");
+      }
+    }
     return () => {
       cancelled = true;
     };
-  }, [open, imageUrl, cropPayload, finalWidth, finalHeight, normalizedRotation, file?.type]);
+  }, [
+    open,
+    cropperReady,
+    interactionTick,
+    finalWidth,
+    finalHeight,
+    file?.type,
+    validationError,
+  ]);
 
-  const handleConfirm = () => {
-    if (validationError || !cropPayload) return;
-    onConfirm?.({
-      crop: cropPayload,
-      width: Number.isFinite(parsedWidth) ? parsedWidth : null,
-      height: Number.isFinite(parsedHeight) ? parsedHeight : null,
-      rotationDegrees: normalizedRotation,
-      finalWidth,
-      finalHeight,
-    });
+  const handleConfirm = async () => {
+    if (validationError || confirming) return;
+    const cropper = cropperRef.current;
+    if (!cropper) return;
+    try {
+      setConfirming(true);
+      setPreviewError("");
+      const targetMime = getCanvasMimeType(file?.type);
+      const canvas = cropper.getCroppedCanvas({
+        width: Math.max(1, Math.round(finalWidth)),
+        height: Math.max(1, Math.round(finalHeight)),
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: "high",
+      });
+      if (!canvas) {
+        throw new Error("Unable to generate cropped image");
+      }
+      const blob = await canvasToBlob(canvas, targetMime);
+      const outputMime = String(blob.type || targetMime);
+      const outputExt = extensionFromMimeType(outputMime);
+      const outputName = replaceFileExtension(file?.name, outputExt);
+      const processedFile = new File([blob], outputName, { type: outputMime });
+      const outputWidth = Math.max(1, Number(canvas.width) || Math.round(finalWidth));
+      const outputHeight = Math.max(1, Number(canvas.height) || Math.round(finalHeight));
+      onConfirm?.({
+        processedFile,
+        crop: {
+          x: 0,
+          y: 0,
+          width: outputWidth,
+          height: outputHeight,
+        },
+        width: null,
+        height: null,
+        rotationDegrees: 0,
+        finalWidth: outputWidth,
+        finalHeight: outputHeight,
+      });
+    } catch (err) {
+      setPreviewError(err?.message || "Unable to generate cropped image");
+    } finally {
+      setConfirming(false);
+    }
   };
 
   return (
@@ -273,10 +387,10 @@ export default function RasterCropConfirmModal({
       open={open}
       title={title}
       onCancel={onCancel}
-      width={980}
+      width="min(980px, calc(100vw - 24px))"
       destroyOnClose
       footer={[
-        <Button key="cancel" onClick={onCancel}>
+        <Button key="cancel" onClick={onCancel} disabled={confirming}>
           Cancel
         </Button>,
         <Button
@@ -284,6 +398,7 @@ export default function RasterCropConfirmModal({
           type="primary"
           onClick={handleConfirm}
           disabled={Boolean(validationError)}
+          loading={confirming}
         >
           {confirmText}
         </Button>,
@@ -295,18 +410,28 @@ export default function RasterCropConfirmModal({
             <div className={styles.cropEditor}>
               {imageUrl ? (
                 <Cropper
-                  image={imageUrl}
-                  crop={crop}
-                  zoom={zoom}
-                  rotation={normalizedRotation}
-                  aspect={aspect}
-                  onCropChange={setCrop}
-                  onZoomChange={setZoom}
-                  onRotationChange={setRotation}
-                  onCropComplete={(_, areaPixels) => setCroppedAreaPixels(areaPixels)}
-                  minZoom={1}
-                  maxZoom={4}
-                  restrictPosition={false}
+                  src={imageUrl}
+                  style={{ width: "100%", height: "100%" }}
+                  viewMode={1}
+                  dragMode="move"
+                  guides
+                  background={false}
+                  responsive
+                  checkOrientation={false}
+                  autoCropArea={0.8}
+                  toggleDragModeOnDblclick={false}
+                  cropBoxMovable
+                  cropBoxResizable
+                  minCropBoxWidth={20}
+                  minCropBoxHeight={20}
+                  ready={() => {
+                    setCropperReady(true);
+                    syncCropData();
+                  }}
+                  crop={syncCropData}
+                  onInitialized={(instance) => {
+                    cropperRef.current = instance;
+                  }}
                 />
               ) : null}
             </div>
@@ -315,7 +440,7 @@ export default function RasterCropConfirmModal({
               <div className={styles.cropControlItem}>
                 <Typography.Text>Zoom</Typography.Text>
                 <Slider
-                  min={1}
+                  min={0.1}
                   max={4}
                   step={0.01}
                   value={zoom}
@@ -344,21 +469,26 @@ export default function RasterCropConfirmModal({
                 min={1}
                 controls={false}
                 placeholder="Width"
-                value={widthInput}
-                onChange={setWidthInput}
+                value={displayWidth}
+                onChange={handleWidthChange}
               />
               <InputNumber
                 min={1}
                 controls={false}
                 placeholder="Height"
-                value={heightInput}
-                onChange={setHeightInput}
+                value={displayHeight}
+                onChange={handleHeightChange}
               />
             </Space>
             <Typography.Text type="secondary">
-              Enter both width and height to lock aspect ratio. Leave both empty to use crop
-              area dimensions.
+              Drag or resize the crop box directly. Leave width and height empty to use crop area
+              size.
             </Typography.Text>
+            {manualSizeMode ? (
+              <Button type="link" size="small" style={{ padding: 0 }} onClick={resetManualSize}>
+                Use crop area size
+              </Button>
+            ) : null}
 
             <div className={styles.cropMetaBlock}>
               <div>
@@ -368,7 +498,7 @@ export default function RasterCropConfirmModal({
                 </div>
               </div>
               <div>
-                <Typography.Text type="secondary">Final output</Typography.Text>
+                <Typography.Text type="secondary">Output</Typography.Text>
                 <div>
                   {finalWidth || 0} x {finalHeight || 0}
                 </div>

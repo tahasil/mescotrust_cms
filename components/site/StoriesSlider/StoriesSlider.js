@@ -13,7 +13,7 @@ import {
 } from "@/styles/Theme";
 
 const REQUIRED_STORY_IMAGE_WIDTH = 400;
-const REQUIRED_STORY_IMAGE_HEIGHT = 450;
+const REQUIRED_STORY_IMAGE_HEIGHT = 400;
 
 /* ── Styled Components ── */
 const SliderWrapper = styled.div`
@@ -35,7 +35,7 @@ const SliderWrapper = styled.div`
 
   .slide-image {
     width: 100%;
-    aspect-ratio: 400 / 450;
+    aspect-ratio: 400 / 400;
     height: auto;
     background: rgba(0, 0, 0, 0.04);
     border-radius: 16px;

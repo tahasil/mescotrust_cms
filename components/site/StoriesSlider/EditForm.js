@@ -13,7 +13,7 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 const API_PATH = "/api/theme/StoriesSlider";
 const PREFIX = "storiesSlider";
 const REQUIRED_STORY_IMAGE_WIDTH = 400;
-const REQUIRED_STORY_IMAGE_HEIGHT = 450;
+const REQUIRED_STORY_IMAGE_HEIGHT = 400;
 const REQUIRED_STORY_IMAGE_TEXT =
   `${REQUIRED_STORY_IMAGE_WIDTH} \u00D7 ${REQUIRED_STORY_IMAGE_HEIGHT} px`;
 

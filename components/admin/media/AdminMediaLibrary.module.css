@@ -182,12 +182,17 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 2px;
 }
 
 .cropModalGrid {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 16px;
+  align-items: start;
 }
 
 .cropEditor {
@@ -197,6 +202,20 @@
   border-radius: 10px;
   background: #111;
   overflow: hidden;
+}
+
+.cropEditor :global(.cropper-container) {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.cropEditor :global(.cropper-view-box) {
+  outline: 2px solid rgba(255, 255, 255, 0.95);
+  outline-offset: -1px;
+}
+
+.cropEditor :global(.cropper-face) {
+  background-color: rgba(255, 255, 255, 0.02);
 }
 
 .cropControls {
@@ -215,11 +234,12 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-width: 0;
 }
 
 .cropMetaBlock {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   padding: 8px 10px;
   border-radius: 8px;
@@ -247,6 +267,21 @@
   background: #fff;
 }
 
+@media (max-width: 992px) {
+  .cropModalGrid {
+    grid-template-columns: 1.35fr 1fr;
+    gap: 12px;
+  }
+
+  .cropEditor {
+    height: 300px;
+  }
+
+  .cropPreviewFrame {
+    min-height: 140px;
+  }
+}
+
 @media (max-width: 768px) {
   .searchInput,
   .selectControl {
@@ -265,4 +300,18 @@
   .cropEditor {
     height: 260px;
   }
+
+  .cropControls {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .cropControlItem {
+    min-width: 0;
+  }
+
+  .cropPreviewFrame {
+    min-height: 120px;
+  }
+
 }

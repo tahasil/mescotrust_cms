@@ -304,7 +304,8 @@ export default function AdminMediaLibrary() {
 
       const values = detailsForm.getFieldsValue();
       const formData = new FormData();
-      formData.append("file", file);
+      const uploadFile = cropContract?.processedFile || file;
+      formData.append("file", uploadFile);
       formData.append("title", values.title || "");
       formData.append("altText", values.alt || "");
       appendCropContractToFormData(formData, cropContract);
@@ -479,7 +480,8 @@ export default function AdminMediaLibrary() {
   const uploadFileToMediaApi = ({ file, cropContract, onProgress, onSuccess, onError }) => {
     const xhr = new XMLHttpRequest();
     const formData = new FormData();
-    formData.append("file", file);
+    const uploadFile = cropContract?.processedFile || file;
+    formData.append("file", uploadFile);
     appendCropContractToFormData(formData, cropContract);
 
     xhr.upload.onprogress = (event) => {

@@ -130,6 +130,20 @@ test("normalizeCropForSource clamps partially out-of-bound crop rectangles", () 
   });
 });
 
+test("normalizeCropForSource clamps negative crop offsets into source bounds", () => {
+  const normalized = normalizeCropForSource({
+    crop: { x: -20, y: -10, width: 80, height: 70 },
+    sourceWidth: 500,
+    sourceHeight: 400,
+  });
+  assert.deepEqual(normalized, {
+    left: 0,
+    top: 0,
+    width: 60,
+    height: 60,
+  });
+});
+
 test("normalizeCropForSource rejects crops fully outside source", () => {
   expectCropError(
     () =>

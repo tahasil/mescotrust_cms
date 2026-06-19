@@ -229,7 +229,8 @@ export default function MediaPickerInput({
       }
 
       const formData = new FormData();
-      formData.append("file", file);
+      const uploadFile = cropContract?.processedFile || file;
+      formData.append("file", uploadFile);
       appendCropContractToFormData(formData, cropContract);
 
       const res = await fetch("/api/admin/media", {
