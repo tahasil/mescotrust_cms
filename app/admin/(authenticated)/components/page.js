@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Table, Button, message, Modal, Form, Input, Switch, Row, Col } from "antd";
-import { EditOutlined, PlusOutlined, SaveOutlined, SearchOutlined } from "@ant-design/icons";
+import { CopyOutlined, EditOutlined, PlusOutlined, SaveOutlined, SearchOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { ThemeAdminCard } from "@/styles/Theme";
 
@@ -19,6 +19,12 @@ function deriveComponentId(displayName) {
   let base = displayName.replace(/\s+/g, "").replace(/[^a-zA-Z0-9]/g, "");
   if (!/^[a-zA-Z]/.test(base) && base.length) base = "C" + base;
   return base;
+}
+
+function getComponentShortcodeSnippet(componentId) {
+  const value = String(componentId || "").trim();
+  if (!value) return "";
+  return `[shortcode="${value}"]`;
 }
 
 export default function AdminComponentsPage() {
@@ -100,6 +106,20 @@ export default function AdminComponentsPage() {
     }
   };
 
+  const handleCopyShortcode = async (componentId) => {
+    const snippet = getComponentShortcodeSnippet(componentId);
+    if (!snippet) {
+      message.error("Component ID is missing");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(snippet);
+      message.success("Shortcode copied");
+    } catch {
+      message.error("Copy failed");
+    }
+  };
+
   const columns = [
     {
       title: "Component",
@@ -125,28 +145,27 @@ export default function AdminComponentsPage() {
       ),
     },
     {
-      title: "Position (when global)",
-      key: "position",
-      width: 120,
-      render: (_, r) =>
-        r.global
-          ? r.position === "after"
-            ? "Below content"
-            : "Above content"
-          : "—",
-    },
-    {
       title: "Actions",
       key: "actions",
-      width: 100,
+      width: 220,
       render: (_, record) => (
-        <Link
-          href={`/admin/components/${encodeURIComponent(record.componentId)}/edit`}
-        >
-          <Button type="link" size="small" icon={<EditOutlined />}>
-            Edit
+        <>
+          <Link
+            href={`/admin/components/${encodeURIComponent(record.componentId)}/edit`}
+          >
+            <Button type="link" size="small" icon={<EditOutlined />}>
+              Edit
+            </Button>
+          </Link>
+          <Button
+            type="link"
+            size="small"
+            icon={<CopyOutlined />}
+            onClick={() => handleCopyShortcode(record.componentId)}
+          >
+            Copy Shortcode
           </Button>
-        </Link>
+        </>
       ),
     },
   ];
@@ -248,3 +267,4 @@ export default function AdminComponentsPage() {
     </>
   );
 }
+

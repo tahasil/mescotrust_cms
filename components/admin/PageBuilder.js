@@ -269,11 +269,6 @@ function getDefaultPropsForNewSiteComponent(componentId) {
     case "ShortCode":
       return {
         ...base,
-        shortCodeSourceType: "manual",
-        shortCodeSelectedForm: "",
-        shortCodeSelectedSlider: "",
-        shortCodeSelectedPopup: "",
-        shortCodeSelectedComponent: "",
         shortcode: "",
       };
     default:
