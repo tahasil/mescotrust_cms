@@ -8,6 +8,7 @@ import { normalizeSlug } from "@/lib/slug";
 import { validateLayoutProps } from "@/lib/validateLayout";
 import { clearUsageForRef, syncMediaUsageForPage } from "@/lib/media/usageTracker";
 import { sanitizeVideoPlayingLayout } from "@/lib/videoPlayingImageValidation";
+import { sanitizePhotoGalleryLayout } from "@/lib/photoGalleryImageValidation";
 
 /**
  * Recursively find and remove a menu item by pageSlug.
@@ -146,7 +147,9 @@ export async function PUT(req, { params }) {
     if (title !== undefined) page.title = title;
     if (status !== undefined) page.status = status;
     if (Array.isArray(layout)) {
-      const safeLayout = sanitizeVideoPlayingLayout(layout);
+      const safeLayout = sanitizePhotoGalleryLayout(
+        sanitizeVideoPlayingLayout(layout),
+      );
       const validationErrors = await validateLayoutProps(safeLayout);
       if (validationErrors.length > 0) {
         return NextResponse.json({ error: `Layout validation: ${validationErrors.join("; ")}` }, { status: 400 });

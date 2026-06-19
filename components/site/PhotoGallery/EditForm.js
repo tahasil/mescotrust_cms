@@ -12,13 +12,54 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/PhotoGallery";
 const PREFIX = "photoGallery";
+const REQUIRED_COVER_IMAGE_WIDTH = 446;
+const REQUIRED_COVER_IMAGE_HEIGHT = 334;
+const REQUIRED_COVER_IMAGE_TEXT =
+  `${REQUIRED_COVER_IMAGE_WIDTH} \u00D7 ${REQUIRED_COVER_IMAGE_HEIGHT}`;
+const REQUIRED_COVER_IMAGE_ERROR_TEXT = `${REQUIRED_COVER_IMAGE_TEXT} pixels`;
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+async function validatePhotoGalleryCoverImageDimensions(_, value) {
+  const imageUrl = String(value || "").trim();
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (
+      width === REQUIRED_COVER_IMAGE_WIDTH &&
+      height === REQUIRED_COVER_IMAGE_HEIGHT
+    ) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(
+        `Image size must be exactly ${REQUIRED_COVER_IMAGE_ERROR_TEXT}. Selected: ${width} \u00D7 ${height} pixels.`,
+      ),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(`Image size must be exactly ${REQUIRED_COVER_IMAGE_ERROR_TEXT}.`),
+    );
+  }
+}
 
 function normalizeGalleryImage(img) {
   if (typeof img === "string") {
     const desktop = img.trim();
     return {
       urlDesktop: desktop,
-      urlMobile: "",
       url: desktop,
     };
   }
@@ -29,11 +70,11 @@ function normalizeGalleryImage(img) {
         ? String(img.url).trim()
         : img?.src != null
           ? String(img.src).trim()
+          : img?.urlMobile != null
+            ? String(img.urlMobile).trim()
           : "";
-  const mobile = img?.urlMobile != null ? String(img.urlMobile).trim() : "";
   return {
     urlDesktop: desktop,
-    urlMobile: mobile,
     url: desktop,
   };
 }
@@ -43,23 +84,22 @@ function normalizeItem(it) {
   const images = Array.isArray(it?.images)
     ? it.images
         .map(normalizeGalleryImage)
-        .filter((img) => img.urlDesktop || img.urlMobile)
+        .filter((img) => img.urlDesktop)
     : [];
   const coverDesktop =
     it?.imageDesktop != null
       ? String(it.imageDesktop).trim()
       : it?.image != null
         ? String(it.image).trim()
+        : it?.imageMobile != null
+          ? String(it.imageMobile).trim()
         : images[0]?.urlDesktop || "";
-  const coverMobile =
-    it?.imageMobile != null ? String(it.imageMobile).trim() : "";
   const type = it?.type === "link" ? "link" : "album";
   const linkType = it?.linkType === "external" ? "external" : "internal";
   const linkUrl = it?.linkUrl != null ? String(it.linkUrl).trim() : "";
   return {
     title: it?.title != null ? String(it.title).trim() : "",
     imageDesktop: coverDesktop,
-    imageMobile: coverMobile,
     image: coverDesktop,
     images: images,
     categories: cats.filter((c) => c !== "All"),
@@ -316,20 +356,20 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "imageDesktop"]} label="Desktop Cover Image" rules={[{ required: true, message: "Cover image is required" }]}>
+                          <Form.Item
+                            {...restField}
+                            name={[name, "imageDesktop"]}
+                            label="Desktop Cover Image"
+                            validateTrigger={["onChange", "onBlur"]}
+                            rules={[
+                              { required: true, message: "Cover image is required" },
+                              { validator: validatePhotoGalleryCoverImageDimensions },
+                            ]}
+                          >
                             <MediaPickerInput
                               placeholder="/uploads/album-cover.webp"
                               uiVariant="stacked"
-                              hintText="Recommended for desktop/tablet"
-                            />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "imageMobile"]} label="Mobile Cover Image">
-                            <MediaPickerInput
-                              placeholder="/uploads/album-cover-mobile.webp"
-                              uiVariant="stacked"
-                              hintText="Optional. Desktop image will be used if empty."
+                              hintText={`Required size: ${REQUIRED_COVER_IMAGE_TEXT} px`}
                             />
                           </Form.Item>
                         </Col>
@@ -375,26 +415,13 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                                             <Form.Item
                                               {...imgRest}
                                               name={[imgName, "urlDesktop"]}
-                                              label="Desktop Image"
-                                              style={{ marginBottom: 8 }}
+                                              label={`Image ${Number(imgName) + 1}`}
+                                              style={{ marginBottom: 0 }}
                                               rules={[{ required: true, message: "Desktop image is required" }]}
                                             >
                                               <MediaPickerInput
                                                 placeholder="/uploads/photo.webp"
                                                 uiVariant="stacked"
-                                                hintText="Recommended for desktop/tablet"
-                                              />
-                                            </Form.Item>
-                                            <Form.Item
-                                              {...imgRest}
-                                              name={[imgName, "urlMobile"]}
-                                              label="Mobile Image"
-                                              style={{ marginBottom: 0 }}
-                                            >
-                                              <MediaPickerInput
-                                                placeholder="/uploads/photo-mobile.webp"
-                                                uiVariant="stacked"
-                                                hintText="Optional. Desktop image will be used if empty."
                                               />
                                             </Form.Item>
                                             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
@@ -412,7 +439,7 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                                             type="primary"
                                             shape="circle"
                                             icon={<PlusOutlined />}
-                                            onClick={() => addImg({ urlDesktop: "", urlMobile: "", url: "" })}
+                                            onClick={() => addImg({ urlDesktop: "", url: "" })}
                                           />
                                         </div>
                                       </>

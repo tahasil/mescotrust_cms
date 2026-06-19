@@ -17,6 +17,10 @@ import { validateWelcometoMESCOImage } from "@/lib/welcometoMESCOImageValidation
 import { validateLatestEvents1Images } from "@/lib/latestEvents1ImageValidation";
 import { validateStoriesSliderImages } from "@/lib/storiesSliderImageValidation";
 import {
+  stripPhotoGalleryMobileCoverImages,
+  validatePhotoGalleryCoverImages,
+} from "@/lib/photoGalleryImageValidation";
+import {
   stripVideoPlayingMobileCoverImage,
   validateVideoPlayingCoverImage,
 } from "@/lib/videoPlayingImageValidation";
@@ -25,6 +29,16 @@ export const dynamic = "force-dynamic";
 
 const STATIC_ROUTES = ["header", "footer", "subscribe", "home-hero", "marquee"];
 const THEME_QUERY = { $or: [{ themeKey: "default" }, { themeKey: { $exists: false } }] };
+
+function sanitizeComponentDefaultProps(componentId, props) {
+  if (componentId === "VideoPlaying") {
+    return stripVideoPlayingMobileCoverImage(props);
+  }
+  if (componentId === "PhotoGallery") {
+    return stripPhotoGalleryMobileCoverImages(props);
+  }
+  return props;
+}
 
 function isAllowed(componentId) {
   if (!componentId || typeof componentId !== "string") return false;
@@ -49,10 +63,7 @@ export async function GET(req, { params }) {
       doc?.defaultProps && typeof doc.defaultProps === "object"
         ? { ...doc.defaultProps }
         : {};
-    const safePayload =
-      componentId === "VideoPlaying"
-        ? stripVideoPlayingMobileCoverImage(payload)
-        : payload;
+    const safePayload = sanitizeComponentDefaultProps(componentId, payload);
     const normalizedTheme = normalizeThemeColorCollections(themeDoc || {});
     const palette =
       normalizedTheme?.themePalette &&
@@ -91,10 +102,10 @@ export async function PUT(req, { params }) {
   try {
     const body = await req.json();
     const defaultProps = body && typeof body === "object" ? { ...body } : {};
-    const safeDefaultProps =
-      componentId === "VideoPlaying"
-        ? stripVideoPlayingMobileCoverImage(defaultProps)
-        : defaultProps;
+    const safeDefaultProps = sanitizeComponentDefaultProps(
+      componentId,
+      defaultProps,
+    );
 
     await connectDB();
 
@@ -139,6 +150,17 @@ export async function PUT(req, { params }) {
       }
     }
 
+    if (componentId === "PhotoGallery") {
+      const validationErrors =
+        await validatePhotoGalleryCoverImages(safeDefaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
     if (componentId === "VideoPlaying") {
       const validationErrors =
         await validateVideoPlayingCoverImage(safeDefaultProps);
@@ -163,10 +185,10 @@ export async function PUT(req, { params }) {
       });
     } else {
       const mergedDefaultProps = { ...(doc.defaultProps || {}), ...safeDefaultProps };
-      doc.defaultProps =
-        componentId === "VideoPlaying"
-          ? stripVideoPlayingMobileCoverImage(mergedDefaultProps)
-          : mergedDefaultProps;
+      doc.defaultProps = sanitizeComponentDefaultProps(
+        componentId,
+        mergedDefaultProps,
+      );
       doc.markModified("defaultProps");
       await doc.save();
     }

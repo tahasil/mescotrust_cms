@@ -6,6 +6,7 @@ import { normalizeSlug } from "@/lib/slug";
 import { validateLayoutProps } from "@/lib/validateLayout";
 import { syncMediaUsageForPage } from "@/lib/media/usageTracker";
 import { sanitizeVideoPlayingLayout } from "@/lib/videoPlayingImageValidation";
+import { sanitizePhotoGalleryLayout } from "@/lib/photoGalleryImageValidation";
 
 export async function GET(req) {
   const session = await requireAuth(req);
@@ -49,7 +50,7 @@ export async function POST(req) {
     }
 
     const safeLayout = Array.isArray(layout)
-      ? sanitizeVideoPlayingLayout(layout)
+      ? sanitizePhotoGalleryLayout(sanitizeVideoPlayingLayout(layout))
       : [];
 
     if (safeLayout.length > 0) {

@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Row, Col } from "antd";
 import { ArrowRightOutlined } from "@ant-design/icons";
 import styled, { createGlobalStyle } from "styled-components";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import {
   FullWidthBackground,
@@ -169,7 +168,6 @@ function normalizeGalleryImage(img) {
     const desktop = img.trim();
     return {
       urlDesktop: desktop,
-      urlMobile: "",
       url: desktop,
     };
   }
@@ -180,11 +178,11 @@ function normalizeGalleryImage(img) {
         ? String(img.url).trim()
         : img?.src != null
           ? String(img.src).trim()
+          : img?.urlMobile != null
+            ? String(img.urlMobile).trim()
           : "";
-  const mobile = img?.urlMobile != null ? String(img.urlMobile).trim() : "";
   return {
     urlDesktop: desktop,
-    urlMobile: mobile,
     url: desktop,
   };
 }
@@ -198,29 +196,28 @@ function normalizeItem(it) {
   const normalizedImages = Array.isArray(it?.images)
     ? it.images
         .map(normalizeGalleryImage)
-        .filter((img) => img.urlDesktop || img.urlMobile)
+        .filter((img) => img.urlDesktop)
     : [];
   const coverDesktop =
     it?.imageDesktop != null
       ? String(it.imageDesktop).trim()
       : it?.image != null
         ? String(it.image).trim()
+        : it?.imageMobile != null
+          ? String(it.imageMobile).trim()
         : normalizedImages[0]?.urlDesktop || "";
-  const coverMobile =
-    it?.imageMobile != null ? String(it.imageMobile).trim() : "";
   const itemType = it?.type === "link" ? "link" : "album";
   const linkType = it?.linkType === "external" ? "external" : "internal";
   const linkUrl = it?.linkUrl != null ? String(it.linkUrl).trim() : "";
   return {
     title: it?.title != null ? String(it.title).trim() : "",
     imageDesktop: coverDesktop,
-    imageMobile: coverMobile,
     image: coverDesktop,
     images:
       normalizedImages.length > 0
         ? normalizedImages
         : coverDesktop
-          ? [{ urlDesktop: coverDesktop, urlMobile: "", url: coverDesktop }]
+          ? [{ urlDesktop: coverDesktop, url: coverDesktop }]
           : [],
     categories: cats.filter((c) => c !== "All"),
     type: itemType,
@@ -240,7 +237,7 @@ export default function PhotoGallery(props) {
       : [];
   const items = rawItems
     .map(normalizeItem)
-    .filter((it) => it.imageDesktop || it.imageMobile);
+    .filter((it) => it.imageDesktop);
   const tabs =
     Array.isArray(props?.photoGalleryTabs) && props.photoGalleryTabs.length > 0
       ? props.photoGalleryTabs
@@ -330,15 +327,6 @@ export default function PhotoGallery(props) {
       : undefined;
 
   const [activeTab, setActiveTab] = useState("All");
-  const [isMobileViewport, setIsMobileViewport] = useState(false);
-
-  useEffect(() => {
-    const updateViewport = () => setIsMobileViewport(window.innerWidth <= 767);
-    updateViewport();
-    window.addEventListener("resize", updateViewport);
-    return () => window.removeEventListener("resize", updateViewport);
-  }, []);
-
   /* Store lightGallery instances per album */
   const lgInstances = useRef({});
 
@@ -379,15 +367,6 @@ export default function PhotoGallery(props) {
       openAlbum(itemIndex);
     },
     [router],
-  );
-
-  const resolveImageForViewport = useCallback(
-    (img) => {
-      if (!img || typeof img !== "object") return "";
-      if (isMobileViewport && img.urlMobile) return img.urlMobile;
-      return img.urlDesktop || img.urlMobile || "";
-    },
-    [isMobileViewport],
   );
 
   const PREFIX = "photoGallery";
@@ -567,19 +546,7 @@ export default function PhotoGallery(props) {
           {filteredItems.map((item, index) => (
             <Col key={index} xs={24} sm={12} md={12} lg={8}>
               <GalleryCard onClick={() => handleItemClick(item, index)}>
-                <picture>
-                  {item.imageMobile ? (
-                    <source
-                      media="(max-width: 767px)"
-                      srcSet={item.imageMobile}
-                    />
-                  ) : null}
-                  <img
-                    loading="lazy"
-                    src={item.imageDesktop || item.imageMobile}
-                    alt={item.title}
-                  />
-                </picture>
+                <img loading="lazy" src={item.imageDesktop} alt={item.title} />
                 <GalleryCardTitle>{item.title}</GalleryCardTitle>
                 {item.type === "album" && item.images.length > 1 && (
                   <GalleryCardCount>
@@ -637,20 +604,15 @@ export default function PhotoGallery(props) {
             >
               {item.images.map((img, imgIdx) => {
                 const desktop = img?.urlDesktop || img?.url || "";
-                const mobile = img?.urlMobile || "";
-                const imageForViewer = resolveImageForViewport(img);
-                if (!desktop && !mobile) return null;
+                if (!desktop) return null;
                 return (
                   <a
                     key={imgIdx}
-                    href={imageForViewer || desktop || mobile}
-                    data-thumb={imageForViewer || desktop || mobile}
+                    href={desktop}
+                    data-thumb={desktop}
                     data-sub-html={`<h4>${item.title}</h4>${item.images.length > 1 ? `<p>${imgIdx + 1} / ${item.images.length}</p>` : ""}`}
                   >
-                    <img
-                      src={imageForViewer || desktop || mobile}
-                      alt={item.title}
-                    />
+                    <img src={desktop} alt={item.title} />
                   </a>
                 );
               })}
