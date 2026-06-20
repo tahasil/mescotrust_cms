@@ -18,6 +18,7 @@ import { validateInnerPageHeroBackgroundImage } from "@/lib/innerPageHeroImageVa
 import { validateLatestEvents1Images } from "@/lib/latestEvents1ImageValidation";
 import { validateStoriesSliderImages } from "@/lib/storiesSliderImageValidation";
 import { validateImpactShowcaseImages } from "@/lib/impactShowcaseImageValidation";
+import { validateHelpingpeopleImage } from "@/lib/helpingpeopleImageValidation";
 import {
   stripPhotoGalleryMobileCoverImages,
   validatePhotoGalleryCoverImages,
@@ -165,6 +166,16 @@ export async function PUT(req, { params }) {
 
     if (componentId === "ImpactShowcase") {
       const validationErrors = await validateImpactShowcaseImages(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "Helpingpeople") {
+      const validationErrors = await validateHelpingpeopleImage(defaultProps);
       if (validationErrors.length > 0) {
         return NextResponse.json(
           { error: validationErrors[0] },
