@@ -24,6 +24,7 @@ const API_PATH_BY_COMPONENT_ID = {
   Marquee: "/api/theme/marquee",
   Subscribe: "/api/theme/subscribe",
 };
+const PASSTHROUGH_COMPONENT_SHORTCODES = new Set(["Testimonials"]);
 
 function sanitizePayload(data) {
   if (!data || typeof data !== "object") return {};
@@ -274,6 +275,9 @@ export default function ShortCode(props) {
     [shortcodeValue],
   );
   const isSubscribeShortcode = resolvedComponentId === "Subscribe";
+  const isPassthroughShortcode = PASSTHROUGH_COMPONENT_SHORTCODES.has(
+    resolvedComponentId,
+  );
   const shortcodeSubscribeBgImage = useMemo(
     () => getSubscribeBackgroundFromShortCodeProps(props),
     [props],
@@ -349,7 +353,7 @@ export default function ShortCode(props) {
     if (!shortcodeValue) {
       return (
         <div style={{ color: "#b42318" }}>
-          Invalid shortcode format. Use: [shortcode="Subscribe"]
+          Invalid shortcode format. Use: [shortcode="ComponentName"]
         </div>
       );
     }
@@ -431,6 +435,10 @@ export default function ShortCode(props) {
         {renderShortcodeContent()}
       </FullWidthBackground>
     );
+  }
+
+  if (isPassthroughShortcode) {
+    return renderShortcodeContent();
   }
 
   return (
