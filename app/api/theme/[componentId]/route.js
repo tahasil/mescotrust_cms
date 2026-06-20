@@ -19,7 +19,7 @@ import { validateLatestEvents1Images } from "@/lib/latestEvents1ImageValidation"
 import { validateStoriesSliderImages } from "@/lib/storiesSliderImageValidation";
 import { validateImpactShowcaseImages } from "@/lib/impactShowcaseImageValidation";
 import { validateHelpingpeopleImage } from "@/lib/helpingpeopleImageValidation";
-import { validateAimsObjectivesImage } from "@/lib/aimsObjectivesImageValidation";
+import { validateManageSectionBackgroundImages } from "@/lib/manageSectionBackgroundImageValidation";
 import {
   stripPhotoGalleryMobileCoverImages,
   validatePhotoGalleryCoverImages,
@@ -113,6 +113,15 @@ export async function PUT(req, { params }) {
 
     await connectDB();
 
+    const manageSectionBackgroundErrors =
+      await validateManageSectionBackgroundImages(defaultProps);
+    if (manageSectionBackgroundErrors.length > 0) {
+      return NextResponse.json(
+        { error: manageSectionBackgroundErrors[0] },
+        { status: 400 },
+      );
+    }
+
     if (componentId === "OverviewOfOurWork") {
       const validationErrors =
         await validateOverviewOfOurWorkBackgroundImages(defaultProps);
@@ -177,16 +186,6 @@ export async function PUT(req, { params }) {
 
     if (componentId === "Helpingpeople") {
       const validationErrors = await validateHelpingpeopleImage(defaultProps);
-      if (validationErrors.length > 0) {
-        return NextResponse.json(
-          { error: validationErrors[0] },
-          { status: 400 },
-        );
-      }
-    }
-
-    if (componentId === "AimsObjectives") {
-      const validationErrors = await validateAimsObjectivesImage(defaultProps);
       if (validationErrors.length > 0) {
         return NextResponse.json(
           { error: validationErrors[0] },
