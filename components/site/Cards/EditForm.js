@@ -11,6 +11,10 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/Cards";
 const PREFIX = "cards";
+const MIN_IMAGE_WIDTH = 210;
+const MIN_IMAGE_HEIGHT = 170;
+const MIN_IMAGE_HINT_TEXT =
+  `Min Width ${MIN_IMAGE_WIDTH} and Min Height ${MIN_IMAGE_HEIGHT} px`;
 
 const DEFAULT_ITEMS = [
   {
@@ -43,6 +47,42 @@ function clamp(value, min, max, fallback) {
   const n = Number(value);
   if (!Number.isFinite(n)) return fallback;
   return Math.max(min, Math.min(max, n));
+}
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+async function validateCardImageMinimumDimensions(_, value) {
+  const imageUrl = String(value || "").trim();
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (width >= MIN_IMAGE_WIDTH && height >= MIN_IMAGE_HEIGHT) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(
+        `Image must be minimum ${MIN_IMAGE_WIDTH} \u00D7 ${MIN_IMAGE_HEIGHT} px. Selected image is ${width} \u00D7 ${height} px.`,
+      ),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(
+        `Unable to validate image size. Please use ${MIN_IMAGE_HINT_TEXT}.`,
+      ),
+    );
+  }
 }
 
 function normalizeItem(it) {
@@ -276,12 +316,16 @@ function CardsEditForm(
                             {...restField}
                             name={[name, "imageDesktop"]}
                             label="Desktop Image"
-                            rules={[{ required: true, message: "Image URL is required" }]}
+                            validateTrigger={["onChange", "onBlur"]}
+                            rules={[
+                              { required: true, message: "Image URL is required" },
+                              { validator: validateCardImageMinimumDimensions },
+                            ]}
                           >
                             <MediaPickerInput
                               placeholder="/images/logo.svg"
                               uiVariant="stacked"
-                              hintText="Recommended for desktop/tablet"
+                              hintText={`Required size: ${MIN_IMAGE_HINT_TEXT}`}
                             />
                           </Form.Item>
                         </Col>

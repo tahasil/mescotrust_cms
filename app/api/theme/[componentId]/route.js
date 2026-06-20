@@ -30,6 +30,7 @@ import {
   validateMissionImage,
   validateVisionImage,
 } from "@/lib/visionMissionImageValidation";
+import { validateCardsImages } from "@/lib/cardsImageValidation";
 import {
   stripPhotoGalleryMobileCoverImages,
   validatePhotoGalleryCoverImages,
@@ -257,6 +258,16 @@ export async function PUT(req, { params }) {
 
     if (componentId === "Mission") {
       const validationErrors = await validateMissionImage(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "Cards") {
+      const validationErrors = await validateCardsImages(defaultProps);
       if (validationErrors.length > 0) {
         return NextResponse.json(
           { error: validationErrors[0] },
