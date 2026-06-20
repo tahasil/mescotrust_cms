@@ -11,10 +11,14 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/Helpingpeople";
 const PREFIX = "helpingpeople";
-const REQUIRED_DESKTOP_IMAGE_WIDTH = 600;
-const REQUIRED_DESKTOP_IMAGE_HEIGHT = 400;
-const REQUIRED_DESKTOP_IMAGE_TEXT =
-  `${REQUIRED_DESKTOP_IMAGE_WIDTH} \u00D7 ${REQUIRED_DESKTOP_IMAGE_HEIGHT} px`;
+const REQUIRED_CONTENT_IMAGE_WIDTH = 600;
+const REQUIRED_CONTENT_IMAGE_HEIGHT = 400;
+const REQUIRED_CONTENT_IMAGE_TEXT =
+  `${REQUIRED_CONTENT_IMAGE_WIDTH} \u00D7 ${REQUIRED_CONTENT_IMAGE_HEIGHT} px`;
+const REQUIRED_BACKGROUND_IMAGE_WIDTH = 1440;
+const REQUIRED_BACKGROUND_IMAGE_HEIGHT = 620;
+const REQUIRED_BACKGROUND_IMAGE_TEXT =
+  `${REQUIRED_BACKGROUND_IMAGE_WIDTH} \u00D7 ${REQUIRED_BACKGROUND_IMAGE_HEIGHT} px`;
 
 function getImageDimensions(imageUrl) {
   return new Promise((resolve, reject) => {
@@ -29,31 +33,48 @@ function getImageDimensions(imageUrl) {
   });
 }
 
-async function validateDesktopImageDimensions(_, value) {
-  const imageUrl = String(value || "").trim();
-  if (!imageUrl) return Promise.resolve();
+function createImageDimensionValidator({
+  fieldLabel,
+  requiredWidth,
+  requiredHeight,
+  requiredText,
+}) {
+  return async (_, value) => {
+    const imageUrl = String(value || "").trim();
+    if (!imageUrl) return Promise.resolve();
 
-  try {
-    const { width, height } = await getImageDimensions(imageUrl);
-    if (
-      width === REQUIRED_DESKTOP_IMAGE_WIDTH &&
-      height === REQUIRED_DESKTOP_IMAGE_HEIGHT
-    ) {
-      return Promise.resolve();
+    try {
+      const { width, height } = await getImageDimensions(imageUrl);
+      if (width === requiredWidth && height === requiredHeight) {
+        return Promise.resolve();
+      }
+      return Promise.reject(
+        new Error(
+          `${fieldLabel} must be exactly ${requiredText}. Selected image is ${width} \u00D7 ${height} px.`,
+        ),
+      );
+    } catch {
+      return Promise.reject(
+        new Error(
+          `Unable to validate ${fieldLabel.toLowerCase()} size. Please select an image of ${requiredText}.`,
+        ),
+      );
     }
-    return Promise.reject(
-      new Error(
-        `Desktop Image must be exactly ${REQUIRED_DESKTOP_IMAGE_TEXT}. Selected image is ${width} \u00D7 ${height} px.`,
-      ),
-    );
-  } catch {
-    return Promise.reject(
-      new Error(
-        `Unable to validate desktop image size. Please select an image of ${REQUIRED_DESKTOP_IMAGE_TEXT}.`,
-      ),
-    );
-  }
+  };
 }
+
+const validateDesktopImageDimensions = createImageDimensionValidator({
+  fieldLabel: "Desktop Image",
+  requiredWidth: REQUIRED_CONTENT_IMAGE_WIDTH,
+  requiredHeight: REQUIRED_CONTENT_IMAGE_HEIGHT,
+  requiredText: REQUIRED_CONTENT_IMAGE_TEXT,
+});
+const validateSectionBackgroundImageDimensions = createImageDimensionValidator({
+  fieldLabel: "Background",
+  requiredWidth: REQUIRED_BACKGROUND_IMAGE_WIDTH,
+  requiredHeight: REQUIRED_BACKGROUND_IMAGE_HEIGHT,
+  requiredText: REQUIRED_BACKGROUND_IMAGE_TEXT,
+});
 
 /**
  * Edit form for Helpingpeople — used in component edit drawer.
@@ -205,7 +226,19 @@ function HelpingpeopleEditForm({ source, initialData: initialDataProp, onSaveToP
           {
             key: "manage-section",
             label: "Manage Section",
-            children: <ManageSectionFields prefix={PREFIX} form={form} themeColorOptions={themeColorOptions} />,
+            children: (
+              <ManageSectionFields
+                prefix={PREFIX}
+                form={form}
+                themeColorOptions={themeColorOptions}
+                sectionBgImageFieldLabel="Background"
+                sectionBgImageHintText={`Required size: ${REQUIRED_BACKGROUND_IMAGE_TEXT}`}
+                sectionBgImageValidateTrigger={["onChange", "onBlur"]}
+                sectionBgImageRules={[
+                  { validator: validateSectionBackgroundImageDimensions },
+                ]}
+              />
+            ),
           },
           {
             key: "title-colors",
@@ -229,7 +262,7 @@ function HelpingpeopleEditForm({ source, initialData: initialDataProp, onSaveToP
                   <MediaPickerInput
                     placeholder="/images/about-mesco-3.png"
                     uiVariant="stacked"
-                    hintText={`Required size: ${REQUIRED_DESKTOP_IMAGE_TEXT}`}
+                    hintText={`Required size: ${REQUIRED_CONTENT_IMAGE_TEXT}`}
                   />
                 </Form.Item>
                 <Form.Item name="helpingpeopleImageMobile" label="Mobile Image">

@@ -64,11 +64,23 @@ export default function ManageSectionFields({
                   tooltip="Enter the full URL or path to the background image."
                   validateTrigger={sectionBgImageValidateTrigger}
                   rules={sectionBgImageRules}
+                  extra={
+                    sectionBgImageHintText ? (
+                      <span
+                        style={{
+                          fontSize: 12,
+                          lineHeight: 1.4,
+                          color: "rgba(0,0,0,0.45)",
+                        }}
+                      >
+                        {sectionBgImageHintText}
+                      </span>
+                    ) : undefined
+                  }
                   style={{ marginBottom: 12 }}
                 >
                   <MediaPickerInput
                     placeholder="e.g. /media/..."
-                    hintText={sectionBgImageHintText}
                   />
                 </Form.Item>
               )}
