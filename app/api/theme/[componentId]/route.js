@@ -14,12 +14,20 @@ import { getRegistryIdsFromDisk } from "@/lib/getRegistryIdsFromDisk";
 import { normalizeThemeColorCollections } from "@/lib/themeColorFallbacks";
 import { validateOverviewOfOurWorkBackgroundImages } from "@/lib/overviewOfOurWorkImageValidation";
 import { validateWelcometoMESCOImage } from "@/lib/welcometoMESCOImageValidation";
-import { validateInnerPageHeroBackgroundImage } from "@/lib/innerPageHeroImageValidation";
+import {
+  INNER_PAGE_HERO_REQUIRED_IMAGE_HEIGHT,
+  INNER_PAGE_HERO_REQUIRED_IMAGE_WIDTH,
+  validateInnerPageHeroBackgroundImage,
+} from "@/lib/innerPageHeroImageValidation";
 import { validateLatestEvents1Images } from "@/lib/latestEvents1ImageValidation";
 import { validateStoriesSliderImages } from "@/lib/storiesSliderImageValidation";
 import { validateImpactShowcaseImages } from "@/lib/impactShowcaseImageValidation";
 import { validateHelpingpeopleImage } from "@/lib/helpingpeopleImageValidation";
 import { validateManageSectionBackgroundImages } from "@/lib/manageSectionBackgroundImageValidation";
+import {
+  validateMissionImage,
+  validateVisionImage,
+} from "@/lib/visionMissionImageValidation";
 import {
   stripPhotoGalleryMobileCoverImages,
   validatePhotoGalleryCoverImages,
@@ -33,6 +41,8 @@ export const dynamic = "force-dynamic";
 
 const STATIC_ROUTES = ["header", "footer", "subscribe", "home-hero", "marquee"];
 const THEME_QUERY = { $or: [{ themeKey: "default" }, { themeKey: { $exists: false } }] };
+const SHORT_CODE_REQUIRED_IMAGE_WIDTH = 1440;
+const SHORT_CODE_REQUIRED_IMAGE_HEIGHT = 378;
 
 function sanitizeComponentDefaultProps(componentId, props) {
   if (componentId === "VideoPlaying") {
@@ -50,6 +60,22 @@ function isAllowed(componentId) {
   if (STATIC_ROUTES.includes(id.toLowerCase())) return false;
   const ids = getRegistryIdsFromDisk();
   return ids.includes(id);
+}
+
+function getManageSectionBackgroundValidationOptions(componentId) {
+  if (componentId === "InnerPageHero") {
+    return {
+      requiredWidth: INNER_PAGE_HERO_REQUIRED_IMAGE_WIDTH,
+      requiredHeight: INNER_PAGE_HERO_REQUIRED_IMAGE_HEIGHT,
+    };
+  }
+  if (componentId === "ShortCode") {
+    return {
+      requiredWidth: SHORT_CODE_REQUIRED_IMAGE_WIDTH,
+      requiredHeight: SHORT_CODE_REQUIRED_IMAGE_HEIGHT,
+    };
+  }
+  return {};
 }
 
 export async function GET(req, { params }) {
@@ -114,7 +140,10 @@ export async function PUT(req, { params }) {
     await connectDB();
 
     const manageSectionBackgroundErrors =
-      await validateManageSectionBackgroundImages(defaultProps);
+      await validateManageSectionBackgroundImages(
+        defaultProps,
+        getManageSectionBackgroundValidationOptions(componentId),
+      );
     if (manageSectionBackgroundErrors.length > 0) {
       return NextResponse.json(
         { error: manageSectionBackgroundErrors[0] },
@@ -186,6 +215,26 @@ export async function PUT(req, { params }) {
 
     if (componentId === "Helpingpeople") {
       const validationErrors = await validateHelpingpeopleImage(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "Vision") {
+      const validationErrors = await validateVisionImage(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "Mission") {
+      const validationErrors = await validateMissionImage(defaultProps);
       if (validationErrors.length > 0) {
         return NextResponse.json(
           { error: validationErrors[0] },

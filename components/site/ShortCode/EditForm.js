@@ -18,6 +18,46 @@ import {
 const API_PATH = "/api/theme/ShortCode";
 const PREFIX = "shortCode";
 const SHORTCODE_HELP_TEXT = 'Use format: [shortcode="Subscribe"]';
+const REQUIRED_SECTION_BG_WIDTH = 1440;
+const REQUIRED_SECTION_BG_HEIGHT = 378;
+const REQUIRED_SECTION_BG_TEXT =
+  `${REQUIRED_SECTION_BG_WIDTH} \u00D7 ${REQUIRED_SECTION_BG_HEIGHT} px`;
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+async function validateSectionBackgroundImageDimensions(_, value) {
+  const imageUrl = normalizeShortcodeText(value);
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (width === REQUIRED_SECTION_BG_WIDTH && height === REQUIRED_SECTION_BG_HEIGHT) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(
+        `Background must be exactly ${REQUIRED_SECTION_BG_TEXT}. Selected image is ${width} \u00D7 ${height} px.`,
+      ),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(
+        `Unable to validate background size. Please select an image of ${REQUIRED_SECTION_BG_TEXT}.`,
+      ),
+    );
+  }
+}
 
 function getLegacySelectedValue(input = {}) {
   const sourceType = normalizeShortcodeText(input?.shortCodeSourceType).toLowerCase();
@@ -200,6 +240,11 @@ function ShortCodeEditForm(
                 prefix={PREFIX}
                 form={form}
                 themeColorOptions={themeColorOptions}
+                sectionBgImageHintText={`Required size: ${REQUIRED_SECTION_BG_TEXT}`}
+                sectionBgImageValidateTrigger={["onChange", "onBlur"]}
+                sectionBgImageRules={[
+                  { validator: validateSectionBackgroundImageDimensions },
+                ]}
               />
             ),
           },
