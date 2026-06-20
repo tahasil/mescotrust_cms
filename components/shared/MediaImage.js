@@ -1,6 +1,7 @@
 import Image from "next/image";
 import {
   buildMediaUrl,
+  extractMediaFormatParam,
   ensureMediaVariantParams,
   isMediaRouteUrl,
   normalizeMediaFormatParam,
@@ -14,7 +15,7 @@ function normalizeLoading({ priority, loading }) {
 }
 
 function normalizeFormat(format) {
-  return normalizeMediaFormatParam(format || "auto") || "auto";
+  return normalizeMediaFormatParam(format || "");
 }
 
 export default function MediaImage({
@@ -30,16 +31,20 @@ export default function MediaImage({
   sizes = "100vw",
   priority = false,
   loading = "lazy",
-  format = "auto",
+  format = "",
 }) {
   const normalizedFormat = normalizeFormat(format);
+  const sourceFormat = normalizedFormat || extractMediaFormatParam(src) || "auto";
+  const mobileSourceFormat =
+    normalizedFormat || extractMediaFormatParam(mobileSrc) || sourceFormat;
+
   const resolvedSrc = buildMediaUrl(src, {
     size: "original",
-    format: normalizedFormat,
+    ...(normalizedFormat ? { format: normalizedFormat } : {}),
   });
   const normalizedResolvedSrc = ensureMediaVariantParams(resolvedSrc, {
     defaultSize: "original",
-    defaultFormat: normalizedFormat,
+    defaultFormat: sourceFormat,
   });
 
   if (!normalizedResolvedSrc) return null;
@@ -48,11 +53,11 @@ export default function MediaImage({
     ? ensureMediaVariantParams(
         buildMediaUrl(mobileSrc, {
           size: "original",
-          format: normalizedFormat,
+          ...(normalizedFormat ? { format: normalizedFormat } : {}),
         }),
         {
           defaultSize: "original",
-          defaultFormat: normalizedFormat,
+          defaultFormat: mobileSourceFormat,
         },
       )
     : "";

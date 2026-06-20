@@ -15,7 +15,7 @@
 
 export function getEventImageSources(event) {
   const desktop = (event?.featuredImageDesktop || "").trim();
-  const mobile = (event?.featuredImageMobile || "").trim() || desktop;
+  const mobile = desktop;
   return { desktop, mobile };
 }
 

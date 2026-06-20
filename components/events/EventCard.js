@@ -27,7 +27,7 @@ export default function EventCard({ event }) {
         href={href}
         style={{
           display: "block",
-          background: desktop ? "rgba(0,0,0,0.02)" : "rgba(0,0,0,0.04)",
+          padding: 10,
         }}
         className="event-card-image-wrap"
       >
@@ -36,21 +36,22 @@ export default function EventCard({ event }) {
             src={desktop}
             mobileSrc={mobile && mobile !== desktop ? mobile : ""}
             alt={event.title || "Event"}
-            width={960}
-            height={540}
+            width={800}
+            height={400}
             sizes="(max-width: 576px) 100vw, (max-width: 992px) 50vw, 33vw"
             imgStyle={{
               width: "100%",
-              height: 220,
-              objectFit: "cover",
+              height: "auto",
               display: "block",
+              border: "1px solid rgba(0,0,0,0.12)",
+              borderRadius: 8,
             }}
           />
         ) : (
           <div
             style={{
               width: "100%",
-              height: 220,
+              minHeight: 120,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",

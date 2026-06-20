@@ -263,7 +263,6 @@ async function EventDetail({ slug }) {
                     margin: "0 0 28px",
                     borderRadius: 12,
                     overflow: "hidden",
-                    maxHeight: 400,
                   }}
                 >
                   <MediaImage
@@ -271,17 +270,15 @@ async function EventDetail({ slug }) {
                     mobileSrc={mobile && mobile !== desktop ? mobile : ""}
                     alt={event.title}
                     imgClassName="events-detail-banner-img"
-                    width={1440}
-                    height={810}
+                    width={800}
+                    height={400}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 860px"
                     priority
                     imgStyle={{
                       width: "auto",
                       maxWidth: "100%",
                       height: "auto",
-                      maxHeight: 400,
-                      objectFit: "contain",
-                      objectPosition: "left top",
+                      borderRadius: 12,
                       display: "block",
                       margin: 0,
                     }}
@@ -485,13 +482,14 @@ async function EventDetail({ slug }) {
         @media (max-width: 768px) {
           .events-detail-title { font-size: 24px !important; line-height: 1.3 !important; }
           .events-detail-meta-row { align-items: stretch !important; }
-          .events-detail-banner { margin-bottom: 20px !important; max-height: none !important; border-radius: 10px !important; }
+          .events-detail-banner {
+            margin-bottom: 20px !important;
+            border-radius: 10px !important;
+          }
           .events-detail-banner-img {
-            width: 100% !important;
+            width: auto !important;
             max-width: 100% !important;
-            max-height: 320px !important;
-            object-fit: cover !important;
-            object-position: center center !important;
+            height: auto !important;
           }
           .events-detail-sidebar { margin-top: 28px !important; }
         }

@@ -23,6 +23,9 @@ import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { ThemeAdminCard } from "@/styles/Theme";
 
 const { RangePicker } = DatePicker;
+const DESKTOP_REQUIRED_WIDTH = 800;
+const DESKTOP_REQUIRED_HEIGHT = 400;
+const DESKTOP_REQUIRED_TEXT = `${DESKTOP_REQUIRED_WIDTH} \u00D7 ${DESKTOP_REQUIRED_HEIGHT} px`;
 
 function toDateTimeValue(v, fallbackTime = "") {
   if (!v) return undefined;
@@ -72,6 +75,42 @@ function toTimeText(dateVal) {
   return dateVal.format("HH:mm");
 }
 
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+async function validateDesktopImageDimensions(_, value) {
+  const imageUrl = String(value || "").trim();
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (width === DESKTOP_REQUIRED_WIDTH && height === DESKTOP_REQUIRED_HEIGHT) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(
+        `Desktop Image must be exactly ${DESKTOP_REQUIRED_TEXT}. Selected image is ${width} \u00D7 ${height} px.`,
+      ),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(
+        `Unable to validate desktop image size. Please use ${DESKTOP_REQUIRED_TEXT}.`,
+      ),
+    );
+  }
+}
+
 export default function AdminEventEditPage() {
   const params = useParams();
   const router = useRouter();
@@ -101,7 +140,6 @@ export default function AdminEventEditPage() {
           description: data.description,
           content: data.content,
           featuredImageDesktop: data.featuredImageDesktop,
-          featuredImageMobile: data.featuredImageMobile,
           eventDateRange:
             startDateValue || endDateValue
               ? [startDateValue || null, endDateValue || null]
@@ -140,7 +178,6 @@ export default function AdminEventEditPage() {
           description: values.description || "",
           content: values.content || "",
           featuredImageDesktop: values.featuredImageDesktop || "",
-          featuredImageMobile: values.featuredImageMobile || "",
           startDate: toIsoStringOrNull(startDateValue),
           endDate: toIsoStringOrNull(endDateValue),
           time: timeStr,
@@ -296,32 +333,18 @@ export default function AdminEventEditPage() {
               <Col xs={24} xl={12}>
                 <Card title="Featured Images" size="small">
                   <Row gutter={[12, 12]}>
-                    <Col xs={24} md={12}>
+                    <Col xs={24}>
                       <Card title="Desktop Image" size="small">
                         <Form.Item
                           name="featuredImageDesktop"
+                          validateTrigger={["onChange", "onBlur"]}
+                          rules={[{ validator: validateDesktopImageDimensions }]}
                           style={{ marginBottom: 0 }}
                         >
                           <MediaPickerInput
                             placeholder="/media/..."
                             uiVariant="stacked"
-                            showVariants={false}
-                            hintText="Recommended: 1200x600"
-                          />
-                        </Form.Item>
-                      </Card>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Card title="Mobile Image" size="small">
-                        <Form.Item
-                          name="featuredImageMobile"
-                          style={{ marginBottom: 0 }}
-                        >
-                          <MediaPickerInput
-                            placeholder="/media/..."
-                            uiVariant="stacked"
-                            showVariants={false}
-                            hintText="Recommended: 1200x600"
+                            hintText={`Required size: ${DESKTOP_REQUIRED_TEXT}`}
                           />
                         </Form.Item>
                       </Card>
