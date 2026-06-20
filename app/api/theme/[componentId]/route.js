@@ -17,6 +17,7 @@ import { validateWelcometoMESCOImage } from "@/lib/welcometoMESCOImageValidation
 import { validateInnerPageHeroBackgroundImage } from "@/lib/innerPageHeroImageValidation";
 import { validateLatestEvents1Images } from "@/lib/latestEvents1ImageValidation";
 import { validateStoriesSliderImages } from "@/lib/storiesSliderImageValidation";
+import { validateImpactShowcaseImages } from "@/lib/impactShowcaseImageValidation";
 import {
   stripPhotoGalleryMobileCoverImages,
   validatePhotoGalleryCoverImages,
@@ -154,6 +155,16 @@ export async function PUT(req, { params }) {
 
     if (componentId === "StoriesSlider") {
       const validationErrors = await validateStoriesSliderImages(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "ImpactShowcase") {
+      const validationErrors = await validateImpactShowcaseImages(defaultProps);
       if (validationErrors.length > 0) {
         return NextResponse.json(
           { error: validationErrors[0] },

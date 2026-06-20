@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, Collapse, message, Spin } from "antd";
+import { Form, Collapse, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
@@ -10,10 +10,75 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/ImpactShowcase";
 const PREFIX = "impactShowcase";
+const REQUIRED_LEFT_DESKTOP_IMAGE_WIDTH = 763;
+const REQUIRED_LEFT_DESKTOP_IMAGE_HEIGHT = 476;
+const REQUIRED_RIGHT_DESKTOP_IMAGE_WIDTH = 457;
+const REQUIRED_RIGHT_DESKTOP_IMAGE_HEIGHT = 338;
+const REQUIRED_LEFT_DESKTOP_IMAGE_TEXT =
+  `${REQUIRED_LEFT_DESKTOP_IMAGE_WIDTH} \u00D7 ${REQUIRED_LEFT_DESKTOP_IMAGE_HEIGHT} px`;
+const REQUIRED_RIGHT_DESKTOP_IMAGE_TEXT =
+  `${REQUIRED_RIGHT_DESKTOP_IMAGE_WIDTH} \u00D7 ${REQUIRED_RIGHT_DESKTOP_IMAGE_HEIGHT} px`;
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+function createDesktopImageValidator({
+  requiredWidth,
+  requiredHeight,
+  requiredText,
+  fieldLabel,
+}) {
+  return async (_, value) => {
+    const imageUrl = String(value || "").trim();
+    if (!imageUrl) return Promise.resolve();
+
+    try {
+      const { width, height } = await getImageDimensions(imageUrl);
+      if (width === requiredWidth && height === requiredHeight) {
+        return Promise.resolve();
+      }
+      return Promise.reject(
+        new Error(
+          `${fieldLabel} must be exactly ${requiredText}. Selected image is ${width} \u00D7 ${height} px.`,
+        ),
+      );
+    } catch {
+      return Promise.reject(
+        new Error(
+          `Unable to validate ${fieldLabel.toLowerCase()} size. Please select an image of ${requiredText}.`,
+        ),
+      );
+    }
+  };
+}
+
+const validateLeftDesktopImageDimensions = createDesktopImageValidator({
+  requiredWidth: REQUIRED_LEFT_DESKTOP_IMAGE_WIDTH,
+  requiredHeight: REQUIRED_LEFT_DESKTOP_IMAGE_HEIGHT,
+  requiredText: REQUIRED_LEFT_DESKTOP_IMAGE_TEXT,
+  fieldLabel: "Left Desktop Image",
+});
+
+const validateRightDesktopImageDimensions = createDesktopImageValidator({
+  requiredWidth: REQUIRED_RIGHT_DESKTOP_IMAGE_WIDTH,
+  requiredHeight: REQUIRED_RIGHT_DESKTOP_IMAGE_HEIGHT,
+  requiredText: REQUIRED_RIGHT_DESKTOP_IMAGE_TEXT,
+  fieldLabel: "Right Desktop Image",
+});
 
 /**
  * Edit form for ImpactShowcase — used in component edit drawer.
- * Title & Colors: titles, button text/links/icons, button colors (bg + text for both buttons).
+ * Title & Colors: button text/links + button colors (bg + text for both buttons).
  * Content: only images (left + right).
  */
 function ImpactShowcaseEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [] }, ref) {
@@ -64,14 +129,16 @@ function ImpactShowcaseEditForm({ source, initialData: initialDataProp, onSaveTo
             : "/images/about-mesco-2.png",
       impactShowcaseButton1Text: data?.impactShowcaseButton1Text != null ? String(data.impactShowcaseButton1Text).trim() : "Contact Us",
       impactShowcaseButton1Link: data?.impactShowcaseButton1Link != null ? String(data.impactShowcaseButton1Link).trim() : "/",
-      impactShowcaseButton1IconUrl: data?.impactShowcaseButton1IconUrl != null ? String(data.impactShowcaseButton1IconUrl).trim() : "",
       impactShowcaseButton2Text: data?.impactShowcaseButton2Text != null ? String(data.impactShowcaseButton2Text).trim() : "Volunteer",
       impactShowcaseButton2Link: data?.impactShowcaseButton2Link != null ? String(data.impactShowcaseButton2Link).trim() : "/",
-      impactShowcaseButton2IconUrl: data?.impactShowcaseButton2IconUrl != null ? String(data.impactShowcaseButton2IconUrl).trim() : "/images/volunteer-icon.svg",
       impactShowcaseButton1BgColorKey: data?.impactShowcaseButton1BgColorKey != null ? String(data.impactShowcaseButton1BgColorKey).trim() : "",
       impactShowcaseButton1TextColorKey: data?.impactShowcaseButton1TextColorKey != null ? String(data.impactShowcaseButton1TextColorKey).trim() : "",
+      impactShowcaseButton1HoverBgColorKey: data?.impactShowcaseButton1HoverBgColorKey != null ? String(data.impactShowcaseButton1HoverBgColorKey).trim() : "",
+      impactShowcaseButton1HoverTextColorKey: data?.impactShowcaseButton1HoverTextColorKey != null ? String(data.impactShowcaseButton1HoverTextColorKey).trim() : "",
       impactShowcaseButton2BgColorKey: data?.impactShowcaseButton2BgColorKey != null ? String(data.impactShowcaseButton2BgColorKey).trim() : "",
       impactShowcaseButton2TextColorKey: data?.impactShowcaseButton2TextColorKey != null ? String(data.impactShowcaseButton2TextColorKey).trim() : "",
+      impactShowcaseButton2HoverBgColorKey: data?.impactShowcaseButton2HoverBgColorKey != null ? String(data.impactShowcaseButton2HoverBgColorKey).trim() : "",
+      impactShowcaseButton2HoverTextColorKey: data?.impactShowcaseButton2HoverTextColorKey != null ? String(data.impactShowcaseButton2HoverTextColorKey).trim() : "",
       ...getManageSectionInitialValues(PREFIX, data),
     });
   }
@@ -113,54 +180,99 @@ function ImpactShowcaseEditForm({ source, initialData: initialDataProp, onSaveTo
       .finally(() => setLoading(false));
   }, [form, isPageBlock, initialDataProp]);
 
+  const buildPayloadFromValues = (values = {}) => ({
+    impactShowcaseLeftImageDesktop:
+      values.impactShowcaseLeftImageDesktop != null
+        ? String(values.impactShowcaseLeftImageDesktop).trim()
+        : values.impactShowcaseLeftImage != null
+          ? String(values.impactShowcaseLeftImage).trim()
+          : "",
+    impactShowcaseLeftImageMobile:
+      values.impactShowcaseLeftImageMobile != null
+        ? String(values.impactShowcaseLeftImageMobile).trim()
+        : "",
+    impactShowcaseLeftImage:
+      values.impactShowcaseLeftImageDesktop != null
+        ? String(values.impactShowcaseLeftImageDesktop).trim()
+        : values.impactShowcaseLeftImage != null
+          ? String(values.impactShowcaseLeftImage).trim()
+          : "",
+    impactShowcaseRightImageDesktop:
+      values.impactShowcaseRightImageDesktop != null
+        ? String(values.impactShowcaseRightImageDesktop).trim()
+        : values.impactShowcaseRightImage != null
+          ? String(values.impactShowcaseRightImage).trim()
+          : "",
+    impactShowcaseRightImageMobile:
+      values.impactShowcaseRightImageMobile != null
+        ? String(values.impactShowcaseRightImageMobile).trim()
+        : "",
+    impactShowcaseRightImage:
+      values.impactShowcaseRightImageDesktop != null
+        ? String(values.impactShowcaseRightImageDesktop).trim()
+        : values.impactShowcaseRightImage != null
+          ? String(values.impactShowcaseRightImage).trim()
+          : "",
+    impactShowcaseButton1Text:
+      values.impactShowcaseButton1Text != null
+        ? String(values.impactShowcaseButton1Text).trim()
+        : "",
+    impactShowcaseButton1Link:
+      values.impactShowcaseButton1Link != null
+        ? String(values.impactShowcaseButton1Link).trim()
+        : "/",
+    impactShowcaseButton2Text:
+      values.impactShowcaseButton2Text != null
+        ? String(values.impactShowcaseButton2Text).trim()
+        : "",
+    impactShowcaseButton2Link:
+      values.impactShowcaseButton2Link != null
+        ? String(values.impactShowcaseButton2Link).trim()
+        : "/",
+    impactShowcaseButton1BgColorKey:
+      values.impactShowcaseButton1BgColorKey != null
+        ? String(values.impactShowcaseButton1BgColorKey).trim()
+        : "",
+    impactShowcaseButton1TextColorKey:
+      values.impactShowcaseButton1TextColorKey != null
+        ? String(values.impactShowcaseButton1TextColorKey).trim()
+        : "",
+    impactShowcaseButton1HoverBgColorKey:
+      values.impactShowcaseButton1HoverBgColorKey != null
+        ? String(values.impactShowcaseButton1HoverBgColorKey).trim()
+        : "",
+    impactShowcaseButton1HoverTextColorKey:
+      values.impactShowcaseButton1HoverTextColorKey != null
+        ? String(values.impactShowcaseButton1HoverTextColorKey).trim()
+        : "",
+    impactShowcaseButton2BgColorKey:
+      values.impactShowcaseButton2BgColorKey != null
+        ? String(values.impactShowcaseButton2BgColorKey).trim()
+        : "",
+    impactShowcaseButton2TextColorKey:
+      values.impactShowcaseButton2TextColorKey != null
+        ? String(values.impactShowcaseButton2TextColorKey).trim()
+        : "",
+    impactShowcaseButton2HoverBgColorKey:
+      values.impactShowcaseButton2HoverBgColorKey != null
+        ? String(values.impactShowcaseButton2HoverBgColorKey).trim()
+        : "",
+    impactShowcaseButton2HoverTextColorKey:
+      values.impactShowcaseButton2HoverTextColorKey != null
+        ? String(values.impactShowcaseButton2HoverTextColorKey).trim()
+        : "",
+    ...getManageSectionPayload(PREFIX, values),
+  });
+
+  const handleFormValuesChange = (_, allValues) => {
+    if (!isPageBlock || !onSaveToPage) return;
+    onSaveToPage(buildPayloadFromValues(allValues));
+  };
+
   const handleUpdate = () => {
     form.validateFields().then(() => {
       const values = form.getFieldsValue(true);
-      const payload = {
-        impactShowcaseLeftImageDesktop:
-          values.impactShowcaseLeftImageDesktop != null
-            ? String(values.impactShowcaseLeftImageDesktop).trim()
-            : values.impactShowcaseLeftImage != null
-              ? String(values.impactShowcaseLeftImage).trim()
-              : "",
-        impactShowcaseLeftImageMobile:
-          values.impactShowcaseLeftImageMobile != null
-            ? String(values.impactShowcaseLeftImageMobile).trim()
-            : "",
-        impactShowcaseLeftImage:
-          values.impactShowcaseLeftImageDesktop != null
-            ? String(values.impactShowcaseLeftImageDesktop).trim()
-            : values.impactShowcaseLeftImage != null
-              ? String(values.impactShowcaseLeftImage).trim()
-              : "",
-        impactShowcaseRightImageDesktop:
-          values.impactShowcaseRightImageDesktop != null
-            ? String(values.impactShowcaseRightImageDesktop).trim()
-            : values.impactShowcaseRightImage != null
-              ? String(values.impactShowcaseRightImage).trim()
-              : "",
-        impactShowcaseRightImageMobile:
-          values.impactShowcaseRightImageMobile != null
-            ? String(values.impactShowcaseRightImageMobile).trim()
-            : "",
-        impactShowcaseRightImage:
-          values.impactShowcaseRightImageDesktop != null
-            ? String(values.impactShowcaseRightImageDesktop).trim()
-            : values.impactShowcaseRightImage != null
-              ? String(values.impactShowcaseRightImage).trim()
-              : "",
-        impactShowcaseButton1Text: values.impactShowcaseButton1Text != null ? String(values.impactShowcaseButton1Text).trim() : "",
-        impactShowcaseButton1Link: values.impactShowcaseButton1Link != null ? String(values.impactShowcaseButton1Link).trim() : "/",
-        impactShowcaseButton1IconUrl: values.impactShowcaseButton1IconUrl != null ? String(values.impactShowcaseButton1IconUrl).trim() : "",
-        impactShowcaseButton2Text: values.impactShowcaseButton2Text != null ? String(values.impactShowcaseButton2Text).trim() : "",
-        impactShowcaseButton2Link: values.impactShowcaseButton2Link != null ? String(values.impactShowcaseButton2Link).trim() : "/",
-        impactShowcaseButton2IconUrl: values.impactShowcaseButton2IconUrl != null ? String(values.impactShowcaseButton2IconUrl).trim() : "",
-        impactShowcaseButton1BgColorKey: values.impactShowcaseButton1BgColorKey != null ? String(values.impactShowcaseButton1BgColorKey).trim() : "",
-        impactShowcaseButton1TextColorKey: values.impactShowcaseButton1TextColorKey != null ? String(values.impactShowcaseButton1TextColorKey).trim() : "",
-        impactShowcaseButton2BgColorKey: values.impactShowcaseButton2BgColorKey != null ? String(values.impactShowcaseButton2BgColorKey).trim() : "",
-        impactShowcaseButton2TextColorKey: values.impactShowcaseButton2TextColorKey != null ? String(values.impactShowcaseButton2TextColorKey).trim() : "",
-        ...getManageSectionPayload(PREFIX, values),
-      };
+      const payload = buildPayloadFromValues(values);
       if (isPageBlock && onSaveToPage) {
         onSaveToPage(payload);
         message.success("Changes will be saved with the page");
@@ -196,7 +308,7 @@ function ImpactShowcaseEditForm({ source, initialData: initialDataProp, onSaveTo
   }
 
   return (
-    <Form form={form} layout="vertical">
+    <Form form={form} layout="vertical" onValuesChange={handleFormValuesChange}>
       <Collapse
         defaultActiveKey={["manage-section", "title-colors", "content"]}
         items={[
@@ -215,11 +327,16 @@ function ImpactShowcaseEditForm({ source, initialData: initialDataProp, onSaveTo
             label: "Content",
             children: (
               <>
-                <Form.Item name="impactShowcaseLeftImageDesktop" label="Left Desktop Image">
+                <Form.Item
+                  name="impactShowcaseLeftImageDesktop"
+                  label="Left Desktop Image"
+                  validateTrigger={["onChange", "onBlur"]}
+                  rules={[{ validator: validateLeftDesktopImageDimensions }]}
+                >
                   <MediaPickerInput
                     placeholder="/images/about-mesco-1.png"
                     uiVariant="stacked"
-                    hintText="Recommended for desktop/tablet"
+                    hintText={`Required size: ${REQUIRED_LEFT_DESKTOP_IMAGE_TEXT}`}
                   />
                 </Form.Item>
                 <Form.Item name="impactShowcaseLeftImageMobile" label="Left Mobile Image">
@@ -229,11 +346,16 @@ function ImpactShowcaseEditForm({ source, initialData: initialDataProp, onSaveTo
                     hintText="Optional. Desktop image will be used if empty."
                   />
                 </Form.Item>
-                <Form.Item name="impactShowcaseRightImageDesktop" label="Right Desktop Image">
+                <Form.Item
+                  name="impactShowcaseRightImageDesktop"
+                  label="Right Desktop Image"
+                  validateTrigger={["onChange", "onBlur"]}
+                  rules={[{ validator: validateRightDesktopImageDimensions }]}
+                >
                   <MediaPickerInput
                     placeholder="/images/about-mesco-2.png"
                     uiVariant="stacked"
-                    hintText="Recommended for desktop/tablet"
+                    hintText={`Required size: ${REQUIRED_RIGHT_DESKTOP_IMAGE_TEXT}`}
                   />
                 </Form.Item>
                 <Form.Item name="impactShowcaseRightImageMobile" label="Right Mobile Image">

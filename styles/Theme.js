@@ -18,18 +18,30 @@ export const HEADER_OFFSET_MOBILE = "56px";
 
 /** Semantic aliases map to CSS vars injected from DB-backed theme config. */
 export const THEME_COLOR_ALIASES = {
-  primary: "var(--primary-color)",
-  secondary: "var(--secondary-color)",
-  white: "var(--theme-white)",
-  black: "var(--theme-black)",
+  primary: "var(--primary-color, var(--theme-primary, rgba(207, 55, 47, 1)))",
+  secondary: "var(--secondary-color, var(--theme-secondary, #050505))",
+  white: "var(--theme-white, #FFFFFF)",
+  black: "var(--theme-black, #050505)",
   headerBg: "var(--theme-header-bg)",
   headerCta: "var(--theme-header-cta)",
   ctaBorder: "var(--theme-cta-border)",
-  gradient: "var(--theme-gradient)",
-  primaryLight: "var(--theme-primary-light)",
+  gradient:
+    "var(--theme-gradient, linear-gradient(90deg, #CF372F 0%, #691C18 100%))",
+  primaryLight: "var(--theme-primary-light, rgba(207, 55, 47, 0.1))",
   themeBorder: "var(--theme-theme-border, var(--border-color))",
   imgFillWhite: "var(--theme-img-fill-white)",
   imgFillTheme: "var(--theme-img-fill-theme)",
+};
+
+const THEME_COLOR_FALLBACKS = {
+  primary: "rgba(207, 55, 47, 1)",
+  secondary: "#050505",
+  black: "#050505",
+  white: "#FFFFFF",
+  "primary-light": "rgba(207, 55, 47, 0.1)",
+  gradient: "linear-gradient(90deg, #CF372F 0%, #691C18 100%)",
+  border: "rgba(0, 0, 0, 0.1)",
+  transparent: "transparent",
 };
 
 const Theme = {
@@ -78,7 +90,8 @@ export const getColor = (key) => {
   if (aliasKey) {
     return THEME_COLOR_ALIASES[aliasKey];
   }
-  return `var(--theme-${slug})`;
+  const fallback = THEME_COLOR_FALLBACKS[slug];
+  return fallback ? `var(--theme-${slug}, ${fallback})` : `var(--theme-${slug})`;
 };
 
 export const GlobalStyle = createGlobalStyle`
@@ -127,6 +140,28 @@ export const ThemeButton = styled(ButtonWrapper)`
   &:active {
     transform: translateY(0);
     box-shadow: 0 2px 10px rgba(207, 55, 47, 0.25);
+  }
+  &.impact-showcase-btn {
+    color: var(--impact-btn-text, inherit) !important;
+    border-color: var(--impact-btn-border, transparent) !important;
+    .impact-showcase-btn__label {
+      color: var(--impact-btn-text, inherit) !important;
+    }
+    .impact-showcase-btn__icon-svg {
+      color: var(--impact-btn-icon-color, currentColor);
+      transition: color 0.3s ease;
+    }
+    &:hover {
+      background: var(--impact-btn-hover-bg, ${getColor("white")}) !important;
+      border-color: var(--impact-btn-hover-border, ${getColor("primary")}) !important;
+      color: var(--impact-btn-hover-text, ${getColor("primary")}) !important;
+    }
+    &:hover .impact-showcase-btn__label {
+      color: var(--impact-btn-hover-text, ${getColor("primary")}) !important;
+    }
+    &:hover .impact-showcase-btn__icon-svg {
+      color: var(--impact-btn-icon-hover-color, var(--impact-btn-hover-text, ${getColor("primary")}));
+    }
   }
   &.link {
     gap: 10px;
