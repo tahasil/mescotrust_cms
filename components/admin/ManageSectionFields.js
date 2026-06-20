@@ -8,7 +8,15 @@ import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
  * Shared "Manage Section" UI: Fluid Container + Box Container (background, padding, margin).
  * Use in any site component EditForm. Pass prefix (e.g. "testimonials", "homeHero") and form/themeColorOptions.
  */
-export default function ManageSectionFields({ prefix, form, themeColorOptions = [] }) {
+export default function ManageSectionFields({
+  prefix,
+  form,
+  themeColorOptions = [],
+  sectionBgImageFieldLabel = "Image path / URL",
+  sectionBgImageHintText = "",
+  sectionBgImageRules,
+  sectionBgImageValidateTrigger,
+}) {
   const sectionBgType = (Form.useWatch(prefix + "SectionBgType", form) || "default");
   const pageContainerBgType = (Form.useWatch(prefix + "PageContainerBgType", form) || "default");
 
@@ -52,11 +60,16 @@ export default function ManageSectionFields({ prefix, form, themeColorOptions = 
               {sectionBgType === "image" && (
                 <Form.Item
                   name={prefix + "SectionBgImage"}
-                  label="Image path / URL"
+                  label={sectionBgImageFieldLabel}
                   tooltip="Enter the full URL or path to the background image."
+                  validateTrigger={sectionBgImageValidateTrigger}
+                  rules={sectionBgImageRules}
                   style={{ marginBottom: 12 }}
                 >
-                  <MediaPickerInput placeholder="e.g. /media/..." />
+                  <MediaPickerInput
+                    placeholder="e.g. /media/..."
+                    hintText={sectionBgImageHintText}
+                  />
                 </Form.Item>
               )}
               {sectionBgType === "color" && (
