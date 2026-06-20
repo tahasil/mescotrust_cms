@@ -11,6 +11,46 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/CommitteeMembers";
 const PREFIX = "committeeMembers";
+const REQUIRED_DESKTOP_IMAGE_WIDTH = 290;
+const REQUIRED_DESKTOP_IMAGE_HEIGHT = 400;
+const REQUIRED_DESKTOP_IMAGE_TEXT =
+  `${REQUIRED_DESKTOP_IMAGE_WIDTH} \u00D7 ${REQUIRED_DESKTOP_IMAGE_HEIGHT} px`;
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+async function validateDesktopImageDimensions(_, value) {
+  const imageUrl = String(value || "").trim();
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (width === REQUIRED_DESKTOP_IMAGE_WIDTH && height === REQUIRED_DESKTOP_IMAGE_HEIGHT) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(
+        `Desktop Image must be exactly ${REQUIRED_DESKTOP_IMAGE_TEXT}. Selected image is ${width} \u00D7 ${height} px.`,
+      ),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(
+        `Unable to validate desktop image size. Please select an image of ${REQUIRED_DESKTOP_IMAGE_TEXT}.`,
+      ),
+    );
+  }
+}
 
 function normalizeItem(it) {
   const desktopImage =
@@ -186,11 +226,17 @@ function CommitteeMembersEditForm({ source, initialData: initialDataProp, onSave
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "imageDesktop"]} label="Desktop Image">
+                          <Form.Item
+                            {...restField}
+                            name={[name, "imageDesktop"]}
+                            label="Desktop Image"
+                            validateTrigger={["onChange", "onBlur"]}
+                            rules={[{ validator: validateDesktopImageDimensions }]}
+                          >
                             <MediaPickerInput
                               placeholder="/images/members-1.png"
                               uiVariant="stacked"
-                              hintText="Recommended for desktop/tablet"
+                              hintText={`Required size: ${REQUIRED_DESKTOP_IMAGE_TEXT}`}
                             />
                           </Form.Item>
                         </Col>
