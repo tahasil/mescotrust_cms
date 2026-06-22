@@ -8,13 +8,20 @@ import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
+import {
+  MANAGING_COMMITTEE_DESKTOP_ALLOWED_COMPACT_TEXT,
+  MANAGING_COMMITTEE_DESKTOP_REQUIRED_TEXT,
+  isAllowedManagingCommitteeDesktopSize,
+} from "@/lib/managingCommitteeImageConfig";
 
 const API_PATH = "/api/theme/ManagingCommittee";
 const PREFIX = "managingCommittee";
-const REQUIRED_DESKTOP_IMAGE_WIDTH = 600;
-const REQUIRED_DESKTOP_IMAGE_HEIGHT = 400;
-const REQUIRED_DESKTOP_IMAGE_TEXT =
-  `${REQUIRED_DESKTOP_IMAGE_WIDTH} \u00D7 ${REQUIRED_DESKTOP_IMAGE_HEIGHT} px`;
+
+function buildDesktopImageValidationError(width, height) {
+  const selectedWidth = Number(width) || 0;
+  const selectedHeight = Number(height) || 0;
+  return `Supports Only ${MANAGING_COMMITTEE_DESKTOP_ALLOWED_COMPACT_TEXT} px. Selected image is ${selectedWidth}X${selectedHeight} px.`;
+}
 
 function getImageDimensions(imageUrl) {
   return new Promise((resolve, reject) => {
@@ -29,24 +36,64 @@ function getImageDimensions(imageUrl) {
   });
 }
 
+function getImageDimensionsFromFile(file) {
+  if (!(file instanceof File)) {
+    return Promise.reject(new Error("Invalid upload file"));
+  }
+
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const image = new window.Image();
+    image.onload = () => {
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+      URL.revokeObjectURL(objectUrl);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Failed to load image"));
+    };
+    image.src = objectUrl;
+  });
+}
+
+async function validateDesktopImageSelection(selection = {}) {
+  try {
+    if (selection?.source === "upload" && selection?.file) {
+      const { width, height } = await getImageDimensionsFromFile(selection.file);
+      if (isAllowedManagingCommitteeDesktopSize(width, height)) return "";
+      return buildDesktopImageValidationError(width, height);
+    }
+
+    const imageUrl = String(selection?.imageUrl || "").trim();
+    if (!imageUrl) return "";
+
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (isAllowedManagingCommitteeDesktopSize(width, height)) return "";
+    return buildDesktopImageValidationError(width, height);
+  } catch {
+    return `Unable to validate desktop image size. Supports Only ${MANAGING_COMMITTEE_DESKTOP_ALLOWED_COMPACT_TEXT} px.`;
+  }
+}
+
 async function validateDesktopImageDimensions(_, value) {
   const imageUrl = String(value || "").trim();
   if (!imageUrl) return Promise.resolve();
 
   try {
     const { width, height } = await getImageDimensions(imageUrl);
-    if (width === REQUIRED_DESKTOP_IMAGE_WIDTH && height === REQUIRED_DESKTOP_IMAGE_HEIGHT) {
+    if (isAllowedManagingCommitteeDesktopSize(width, height)) {
       return Promise.resolve();
     }
     return Promise.reject(
-      new Error(
-        `Desktop Image must be exactly ${REQUIRED_DESKTOP_IMAGE_TEXT}. Selected image is ${width} \u00D7 ${height} px.`,
-      ),
+      new Error(buildDesktopImageValidationError(width, height)),
     );
   } catch {
     return Promise.reject(
       new Error(
-        `Unable to validate desktop image size. Please select an image of ${REQUIRED_DESKTOP_IMAGE_TEXT}.`,
+        `Unable to validate desktop image size. Supports Only ${MANAGING_COMMITTEE_DESKTOP_ALLOWED_COMPACT_TEXT} px.`,
       ),
     );
   }
@@ -193,7 +240,8 @@ function ManagingCommitteeEditForm({ source, initialData: initialDataProp, onSav
                   <MediaPickerInput
                     placeholder="/images/good-governance-2.png"
                     uiVariant="stacked"
-                    hintText={`Required size: ${REQUIRED_DESKTOP_IMAGE_TEXT}`}
+                    hintText={`Required size: ${MANAGING_COMMITTEE_DESKTOP_REQUIRED_TEXT}`}
+                    validateSelection={validateDesktopImageSelection}
                   />
                 </Form.Item>
                 <Form.Item name="managingCommitteeImageMobile" label="Mobile Image">

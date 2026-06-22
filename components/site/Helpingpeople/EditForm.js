@@ -8,13 +8,14 @@ import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
+import {
+  HELPINGPEOPLE_DESKTOP_ALLOWED_COMPACT_TEXT,
+  HELPINGPEOPLE_DESKTOP_REQUIRED_TEXT,
+  isAllowedHelpingpeopleDesktopSize,
+} from "@/lib/helpingpeopleImageConfig";
 
 const API_PATH = "/api/theme/Helpingpeople";
 const PREFIX = "helpingpeople";
-const REQUIRED_CONTENT_IMAGE_WIDTH = 600;
-const REQUIRED_CONTENT_IMAGE_HEIGHT = 400;
-const REQUIRED_CONTENT_IMAGE_TEXT =
-  `${REQUIRED_CONTENT_IMAGE_WIDTH} \u00D7 ${REQUIRED_CONTENT_IMAGE_HEIGHT} px`;
 const REQUIRED_BACKGROUND_IMAGE_WIDTH = 1440;
 const REQUIRED_BACKGROUND_IMAGE_HEIGHT = 620;
 const REQUIRED_BACKGROUND_IMAGE_TEXT =
@@ -31,6 +32,33 @@ function getImageDimensions(imageUrl) {
     image.onerror = () => reject(new Error("Failed to load image"));
     image.src = imageUrl;
   });
+}
+
+function buildDesktopImageValidationError(width, height) {
+  const selectedWidth = Number(width) || 0;
+  const selectedHeight = Number(height) || 0;
+  return `Supports Only ${HELPINGPEOPLE_DESKTOP_ALLOWED_COMPACT_TEXT} px. Selected image is ${selectedWidth}X${selectedHeight} px.`;
+}
+
+async function validateDesktopImageDimensions(_, value) {
+  const imageUrl = String(value || "").trim();
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (isAllowedHelpingpeopleDesktopSize(width, height)) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(buildDesktopImageValidationError(width, height)),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(
+        `Unable to validate desktop image size. Supports Only ${HELPINGPEOPLE_DESKTOP_ALLOWED_COMPACT_TEXT} px.`,
+      ),
+    );
+  }
 }
 
 function createImageDimensionValidator({
@@ -63,12 +91,6 @@ function createImageDimensionValidator({
   };
 }
 
-const validateDesktopImageDimensions = createImageDimensionValidator({
-  fieldLabel: "Desktop Image",
-  requiredWidth: REQUIRED_CONTENT_IMAGE_WIDTH,
-  requiredHeight: REQUIRED_CONTENT_IMAGE_HEIGHT,
-  requiredText: REQUIRED_CONTENT_IMAGE_TEXT,
-});
 const validateSectionBackgroundImageDimensions = createImageDimensionValidator({
   fieldLabel: "Background",
   requiredWidth: REQUIRED_BACKGROUND_IMAGE_WIDTH,
@@ -262,7 +284,7 @@ function HelpingpeopleEditForm({ source, initialData: initialDataProp, onSaveToP
                   <MediaPickerInput
                     placeholder="/images/about-mesco-3.png"
                     uiVariant="stacked"
-                    hintText={`Required size: ${REQUIRED_CONTENT_IMAGE_TEXT}`}
+                    hintText={`Required size: ${HELPINGPEOPLE_DESKTOP_REQUIRED_TEXT}`}
                   />
                 </Form.Item>
                 <Form.Item name="helpingpeopleImageMobile" label="Mobile Image">
