@@ -50,6 +50,8 @@ const STATIC_ROUTES = ["header", "footer", "subscribe", "home-hero", "marquee"];
 const THEME_QUERY = { $or: [{ themeKey: "default" }, { themeKey: { $exists: false } }] };
 const SHORT_CODE_REQUIRED_IMAGE_WIDTH = 1440;
 const SHORT_CODE_REQUIRED_IMAGE_HEIGHT = 378;
+const HOME_HERO_2_MIN_BACKGROUND_IMAGE_WIDTH = 1440;
+const HOME_HERO_2_MIN_BACKGROUND_IMAGE_HEIGHT = 620;
 
 function sanitizeComponentDefaultProps(componentId, props) {
   if (componentId === "VideoPlaying") {
@@ -80,6 +82,14 @@ function getManageSectionBackgroundValidationOptions(componentId) {
     return {
       requiredWidth: SHORT_CODE_REQUIRED_IMAGE_WIDTH,
       requiredHeight: SHORT_CODE_REQUIRED_IMAGE_HEIGHT,
+    };
+  }
+  if (componentId === "HomeHero2") {
+    return {
+      validationMode: "minimum",
+      minWidth: HOME_HERO_2_MIN_BACKGROUND_IMAGE_WIDTH,
+      minHeight: HOME_HERO_2_MIN_BACKGROUND_IMAGE_HEIGHT,
+      requiredText: `minimum ${HOME_HERO_2_MIN_BACKGROUND_IMAGE_WIDTH} \u00D7 ${HOME_HERO_2_MIN_BACKGROUND_IMAGE_HEIGHT} px`,
     };
   }
   return {};
@@ -280,7 +290,7 @@ export async function PUT(req, { params }) {
       }
     }
 
-    if (componentId === "ImageSlider") {
+    if (componentId === "ImageSlider" || componentId === "HomeHero2") {
       const validationErrors = await validateImageSliderImages(defaultProps);
       if (validationErrors.length > 0) {
         return NextResponse.json(

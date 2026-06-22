@@ -229,6 +229,8 @@ export default function HomeHero2(props) {
           stepDeg={sliderStepDeg}
           duration={sliderDuration}
           draggable={sliderDraggable}
+          sizePreset="portrait350x450"
+          imageFit="contain"
         />
       ) : null}
     </HomeContainer>
