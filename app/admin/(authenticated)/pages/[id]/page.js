@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Button, Form, Input, Select, Card, Space, message, Spin, Drawer, Collapse } from "antd";
-import { ArrowLeftOutlined, SettingOutlined, SaveOutlined, FolderOutlined } from "@ant-design/icons";
+import { Button, Form, Input, Select, Space, message, Spin, Drawer, Collapse } from "antd";
+import { ArrowLeftOutlined, SettingOutlined, SaveOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import PageBuilder from "@/components/admin/PageBuilder";
 import { ThemeAdminCard } from "@/styles/Theme";
@@ -42,13 +42,6 @@ export default function AdminPageEditPage() {
     const nextLayout = typeof next === "function" ? next(layoutRef.current) : next;
     layoutRef.current = Array.isArray(nextLayout) ? nextLayout : [];
     setLayout(layoutRef.current);
-  }, []);
-
-  useEffect(() => {
-    if (typeof window !== "undefined" && sessionStorage.getItem("pageSaveSuccess") === "1") {
-      sessionStorage.removeItem("pageSaveSuccess");
-      message.success("Page updated successfully");
-    }
   }, []);
 
   // Load page (including layout) from pages collection only — GET /api/admin/pages/[id] returns Page document
@@ -92,7 +85,7 @@ export default function AdminPageEditPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/admin/pages?limit=200").then((res) =>
+      fetch("/api/admin/pages?limit=200&fields=slug&includeTotal=0").then((res) =>
         res.ok ? res.json() : { items: [] },
       ),
       fetch("/api/admin/menus").then((res) => (res.ok ? res.json() : [])),
@@ -116,10 +109,17 @@ export default function AdminPageEditPage() {
           });
         });
         // Also include the current page's parent so it appears in the dropdown
-        if (selectedParent) folders.add(selectedParent);
         setParentFolders([...folders].sort());
       })
       .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!selectedParent) return;
+    setParentFolders((prev) => {
+      if (prev.includes(selectedParent)) return prev;
+      return [...prev, selectedParent].sort();
+    });
   }, [selectedParent]);
 
   const handleSave = async () => {
@@ -151,8 +151,23 @@ export default function AdminPageEditPage() {
         message.error(data.error || "Save failed");
         return;
       }
-      if (typeof sessionStorage !== "undefined") sessionStorage.setItem("pageSaveSuccess", "1");
-      window.location.reload();
+      setPage((prev) =>
+        prev
+          ? {
+              ...prev,
+              title: values.title,
+              slug: fullSlug,
+              status: values.status,
+              layout: layoutToSave,
+              meta: {
+                metaTitle: values.metaTitle,
+                metaDescription: values.metaDescription,
+                metaKeywords: values.metaKeywords,
+              },
+            }
+          : prev,
+      );
+      message.success("Page updated successfully");
     } catch (e) {
       if (e.errorFields) {
         setSettingsOpen(true);
@@ -164,7 +179,23 @@ export default function AdminPageEditPage() {
     }
   };
 
-  if (loading) return <Spin size="large" style={{ display: "block", margin: "100px auto" }} />;
+  if (loading) {
+    return (
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 1200,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          pointerEvents: "none",
+        }}
+      >
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
     <ThemeAdminCard

@@ -106,7 +106,7 @@ export async function GET(req, { params }) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
     await connectDB();
-    const page = await Page.findById(id).populate("layout.componentId").lean();
+    const page = await Page.findById(id).lean();
     if (!page) return NextResponse.json({ error: "Not found" }, { status: 404 });
     return NextResponse.json(page);
   } catch (err) {

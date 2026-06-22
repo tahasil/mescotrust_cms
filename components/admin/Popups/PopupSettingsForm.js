@@ -156,7 +156,7 @@ function PopupSettingsForm({ componentId, onSuccess, onLivePreviewChange }, ref)
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/admin/pages?limit=200")
+    fetch("/api/admin/pages?limit=200&fields=title,slug&includeTotal=0")
       .then((res) => (res.ok ? res.json() : { items: [] }))
       .then((data) => {
         if (cancelled) return;

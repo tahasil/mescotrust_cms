@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Layout,
   Menu,
@@ -30,7 +30,6 @@ import {
   UserOutlined,
   LogoutOutlined,
   BellOutlined,
-  HeartOutlined,
   ClockCircleOutlined,
   MessageOutlined,
   DollarOutlined,
@@ -45,7 +44,11 @@ const HEADER_HEIGHT = 64;
 const MOBILE_BREAKPOINT = 992;
 const ADMIN_ROUTE_LOADER_DELAY_MS = 60;
 const ADMIN_ROUTE_LOADER_MIN_MS = 280;
-const ADMIN_ROUTE_LOADER_POST_PATHNAME_SETTLE_MS = 450;
+const ADMIN_ROUTE_LOADER_POST_PATHNAME_SETTLE_MS = 160;
+const ADMIN_ROUTE_LOADER_MAX_MS = 3500;
+const ADMIN_NOTIFICATION_POLL_MS = 15000;
+const ADMIN_FETCH_CACHE_TTL_MS = 12000;
+const ADMIN_FETCH_CACHE_MAX_ENTRIES = 120;
 
 const linkStyle = { textDecoration: "none" };
 
@@ -310,6 +313,7 @@ const DEFAULT_ADMIN_THEME = {
 };
 
 export default function AdminLayoutClient({ children, userName, userRole }) {
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -325,9 +329,10 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
   const routeShowTimerRef = useRef(null);
   const routeHideTimerRef = useRef(null);
   const routeSettleTimerRef = useRef(null);
-  const routeChangedRef = useRef(false);
-  const navPendingFetchRef = useRef(0);
+  const routeMaxTimerRef = useRef(null);
   const prevCountRef = useRef(0);
+  const adminFetchCacheRef = useRef(new Map());
+  const adminFetchInFlightRef = useRef(new Map());
   const applyAdminTheme = useCallback((data) => {
     const next = { ...DEFAULT_ADMIN_THEME };
     if (data && typeof data === "object") {
@@ -353,17 +358,24 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
       window.clearTimeout(routeSettleTimerRef.current);
       routeSettleTimerRef.current = null;
     }
+    if (routeMaxTimerRef.current) {
+      window.clearTimeout(routeMaxTimerRef.current);
+      routeMaxTimerRef.current = null;
+    }
   }, []);
 
   const startRouteLoader = useCallback(() => {
     if (routeLoadingRef.current || routeShowTimerRef.current) return;
     clearRouteLoaderTimers();
-    routeChangedRef.current = false;
-    navPendingFetchRef.current = 0;
     routeShowTimerRef.current = window.setTimeout(() => {
       routeStartedAtRef.current = Date.now();
       routeLoadingRef.current = true;
       setRouteLoading(true);
+      routeMaxTimerRef.current = window.setTimeout(() => {
+        routeLoadingRef.current = false;
+        setRouteLoading(false);
+        routeMaxTimerRef.current = null;
+      }, ADMIN_ROUTE_LOADER_MAX_MS);
       routeShowTimerRef.current = null;
     }, ADMIN_ROUTE_LOADER_DELAY_MS);
   }, [clearRouteLoaderTimers]);
@@ -372,6 +384,10 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
     if (routeSettleTimerRef.current) {
       window.clearTimeout(routeSettleTimerRef.current);
       routeSettleTimerRef.current = null;
+    }
+    if (routeMaxTimerRef.current) {
+      window.clearTimeout(routeMaxTimerRef.current);
+      routeMaxTimerRef.current = null;
     }
     if (routeShowTimerRef.current) {
       window.clearTimeout(routeShowTimerRef.current);
@@ -387,8 +403,6 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
     routeHideTimerRef.current = window.setTimeout(() => {
       routeLoadingRef.current = false;
       setRouteLoading(false);
-      routeChangedRef.current = false;
-      navPendingFetchRef.current = 0;
       routeHideTimerRef.current = null;
     }, wait);
   }, []);
@@ -423,22 +437,20 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
   // Close mobile sidebar on route change
   useEffect(() => {
     if (isMobile) setMobileOpen(false);
-    routeChangedRef.current = true;
     if (routeSettleTimerRef.current) {
       window.clearTimeout(routeSettleTimerRef.current);
       routeSettleTimerRef.current = null;
     }
-    // Let the destination page mount and fire initial data fetches first.
-    // If no tracked fetch starts, close loader after a short settle window.
+    // Let destination content mount, then close the transition loader quickly.
     if (routeLoadingRef.current) {
       routeSettleTimerRef.current = window.setTimeout(() => {
-        if (routeLoadingRef.current && navPendingFetchRef.current <= 0) {
+        if (routeLoadingRef.current) {
           stopRouteLoader();
         }
         routeSettleTimerRef.current = null;
       }, ADMIN_ROUTE_LOADER_POST_PATHNAME_SETTLE_MS);
     }
-  }, [pathname, isMobile]);
+  }, [pathname, isMobile, stopRouteLoader]);
 
   // Single global admin route loader for sidebar/link/programmatic navigation.
   useEffect(() => {
@@ -463,23 +475,25 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
       }
       if (url.origin !== window.location.origin) return;
       if (!isAdminHref(url.pathname)) return;
-      const nextPath = `${url.pathname}${url.search}${url.hash}`;
-      const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-      if (nextPath === currentPath) return;
+      // Only show route transition loader for real page-path transitions.
+      if (url.pathname === window.location.pathname) return;
       startRouteLoader();
     };
 
     const originalPushState = window.history.pushState;
     const originalReplaceState = window.history.replaceState;
     const originalFetch = window.fetch;
+    const adminFetchCache = adminFetchCacheRef.current;
+    const adminFetchInFlight = adminFetchInFlightRef.current;
     const handleHistoryTarget = (targetLike) => {
       if (targetLike == null) return;
       try {
         const target = new URL(String(targetLike), window.location.href);
         const current = new URL(window.location.href);
-        const nextPath = `${target.pathname}${target.search}${target.hash}`;
-        const currentPath = `${current.pathname}${current.search}${current.hash}`;
-        if (nextPath !== currentPath && isAdminHref(target.pathname)) startRouteLoader();
+        // Query/hash-only updates should not trigger route-level loader.
+        if (target.pathname !== current.pathname && isAdminHref(target.pathname)) {
+          startRouteLoader();
+        }
       } catch {}
     };
 
@@ -493,51 +507,94 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
     };
 
     window.fetch = function patchedFetch(input, init) {
-      let trackForRoute = false;
-      if (routeLoadingRef.current) {
-        try {
-          const url =
-            typeof input === "string"
-              ? new URL(input, window.location.href)
-              : new URL(input?.url || "", window.location.href);
-          if (
-            url.origin === window.location.origin &&
-            (url.pathname.startsWith("/api/admin") ||
-              url.pathname.startsWith("/api/theme") ||
-              url.pathname.startsWith("/api/public"))
-          ) {
-            trackForRoute = true;
-          }
-        } catch {}
-      }
-      if (trackForRoute) {
-        navPendingFetchRef.current += 1;
-      }
+      const method =
+        String(
+          init?.method ||
+            (typeof input === "object" && input?.method) ||
+            "GET",
+        ).toUpperCase();
 
-      const done = () => {
-        if (trackForRoute) {
-          navPendingFetchRef.current = Math.max(0, navPendingFetchRef.current - 1);
-          if (
-            routeLoadingRef.current &&
-            routeChangedRef.current &&
-            navPendingFetchRef.current === 0
-          ) {
-            stopRouteLoader();
-          }
-        }
-      };
-
+      let url = null;
       try {
-        const result = originalFetch.call(window, input, init);
-        return Promise.resolve(result).finally(done);
-      } catch (err) {
-        done();
-        throw err;
+        url =
+          typeof input === "string"
+            ? new URL(input, window.location.href)
+            : new URL(input?.url || "", window.location.href);
+      } catch {}
+
+      const isSameOriginApi =
+        !!url &&
+        url.origin === window.location.origin &&
+        (url.pathname.startsWith("/api/admin") ||
+          url.pathname.startsWith("/api/theme") ||
+          url.pathname.startsWith("/api/public"));
+
+      if (
+        isSameOriginApi &&
+        (method === "POST" ||
+          method === "PUT" ||
+          method === "PATCH" ||
+          method === "DELETE")
+      ) {
+        adminFetchCache.clear();
+        adminFetchInFlight.clear();
       }
+
+      const requestCacheMode = String(
+        init?.cache ||
+          (typeof input === "object" ? input?.cache : "") ||
+          "",
+      ).toLowerCase();
+      const canUseCache =
+        method === "GET" &&
+        isSameOriginApi &&
+        requestCacheMode !== "no-store" &&
+        requestCacheMode !== "reload" &&
+        !url.searchParams.has("_ts");
+
+      if (!canUseCache || !url) {
+        return originalFetch.call(window, input, init);
+      }
+
+      const cacheKey = `${method}:${url.pathname}${url.search}`;
+      const now = Date.now();
+      const cache = adminFetchCache;
+      const inFlight = adminFetchInFlight;
+      const cached = cache.get(cacheKey);
+      if (cached && now - cached.time < ADMIN_FETCH_CACHE_TTL_MS) {
+        return Promise.resolve(cached.response.clone());
+      }
+      if (cached) {
+        cache.delete(cacheKey);
+      }
+      if (inFlight.has(cacheKey)) {
+        return inFlight.get(cacheKey).then((response) => response.clone());
+      }
+
+      const requestPromise = Promise.resolve(originalFetch.call(window, input, init))
+        .then((response) => {
+          if (response?.ok) {
+            cache.set(cacheKey, { response: response.clone(), time: Date.now() });
+            if (cache.size > ADMIN_FETCH_CACHE_MAX_ENTRIES) {
+              const oldestKey = cache.keys().next().value;
+              if (oldestKey) cache.delete(oldestKey);
+            }
+          }
+          return response;
+        })
+        .finally(() => {
+          inFlight.delete(cacheKey);
+        });
+
+      inFlight.set(cacheKey, requestPromise);
+      return requestPromise.then((response) => response.clone());
     };
 
     const onPopState = () => {
-      if (window.location.pathname.startsWith("/admin")) startRouteLoader();
+      const currentPath = window.location.pathname;
+      if (currentPath.startsWith("/admin") && currentPath !== pathname) {
+        startRouteLoader();
+      }
     };
     const onWindowError = () => stopRouteLoader();
     const onUnhandledRejection = () => stopRouteLoader();
@@ -555,9 +612,11 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
       window.history.pushState = originalPushState;
       window.history.replaceState = originalReplaceState;
       window.fetch = originalFetch;
+      adminFetchCache.clear();
+      adminFetchInFlight.clear();
       clearRouteLoaderTimers();
     };
-  }, [clearRouteLoaderTimers, startRouteLoader, stopRouteLoader]);
+  }, [clearRouteLoaderTimers, pathname, startRouteLoader, stopRouteLoader]);
 
   const toggleSidebar = () => {
     if (isMobile) {
@@ -706,7 +765,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 5000);
+    const interval = setInterval(fetchNotifications, ADMIN_NOTIFICATION_POLL_MS);
     const handleNewSubmission = () => setTimeout(fetchNotifications, 500);
     window.addEventListener("new-contact-submission", handleNewSubmission);
     window.addEventListener("new-donation", handleNewSubmission);
@@ -767,7 +826,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
             }}
             onClick={() => {
               setNotifOpen(false);
-              window.location.href = item.link;
+              router.push(item.link);
             }}
             onMouseEnter={(e) =>
               (e.currentTarget.style.background = "rgba(0,0,0,0.02)")
@@ -812,8 +871,10 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
           <Divider style={{ margin: 0 }} />
           <div style={{ textAlign: "center", padding: "10px 16px" }}>
             <Typography.Link
-              onClick={() => setNotifOpen(false)}
-              href="/admin/form-builder"
+              onClick={() => {
+                setNotifOpen(false);
+                router.push("/admin/form-builder");
+              }}
               style={{ fontSize: 13 }}
             >
               View all
@@ -877,9 +938,9 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
           animation: badgePulse 1.5s infinite;
         }
         .admin-route-loader {
-          position: absolute;
+          position: fixed;
           inset: 0;
-          z-index: 20;
+          z-index: 1200;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -902,6 +963,16 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
         .admin-content.admin-route-loading .ant-spin {
           opacity: 0 !important;
           visibility: hidden !important;
+        }
+        .admin-content .ant-spin-nested-loading > .ant-spin {
+          position: fixed !important;
+          inset: 0 !important;
+          max-height: none !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          pointer-events: none !important;
+          z-index: 1100 !important;
         }
         .admin-route-loader-spinner {
           width: 44px;

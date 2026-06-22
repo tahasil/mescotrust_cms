@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Table, Button, message, Modal, Form, Input, Switch, Row, Col } from "antd";
 import { CopyOutlined, EditOutlined, PlusOutlined, SaveOutlined, SearchOutlined } from "@ant-design/icons";
@@ -13,6 +13,8 @@ const EXCLUDED_COMPONENT_IDS = new Set([
   "EventsSlider",
   "CommitteeMembers",
 ]);
+const COMPONENTS_LIST_CACHE_KEY = "admin-components-list-cache-v1";
+const COMPONENTS_LIST_CACHE_TTL_MS = 20_000;
 
 function deriveComponentId(displayName) {
   if (!displayName || typeof displayName !== "string") return "";
@@ -57,18 +59,47 @@ export default function AdminComponentsPage() {
     }
   }, [searchParams, router]);
 
-  const fetchList = () => {
-    setLoading(true);
+  const fetchList = useCallback(({ background = false } = {}) => {
+    if (!background) setLoading(true);
     fetch("/api/admin/site-components")
       .then((res) => (res.ok ? res.json() : []))
-      .then(setList)
+      .then((data) => {
+        const nextList = Array.isArray(data) ? data : [];
+        setList(nextList);
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem(
+            COMPONENTS_LIST_CACHE_KEY,
+            JSON.stringify({ items: nextList, ts: Date.now() }),
+          );
+        }
+      })
       .catch(() => message.error("Failed to load components"))
-      .finally(() => setLoading(false));
-  };
+      .finally(() => {
+        if (!background) setLoading(false);
+      });
+  }, []);
 
   useEffect(() => {
-    fetchList();
-  }, []);
+    let usedCache = false;
+    if (typeof window !== "undefined") {
+      try {
+        const raw = sessionStorage.getItem(COMPONENTS_LIST_CACHE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (
+            Array.isArray(parsed?.items) &&
+            Number.isFinite(parsed?.ts) &&
+            Date.now() - parsed.ts < COMPONENTS_LIST_CACHE_TTL_MS
+          ) {
+            setList(parsed.items);
+            setLoading(false);
+            usedCache = true;
+          }
+        }
+      } catch {}
+    }
+    fetchList({ background: usedCache });
+  }, [fetchList]);
 
   const handleCreateSubmit = async () => {
     try {

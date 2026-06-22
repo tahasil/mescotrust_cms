@@ -30,7 +30,10 @@ export async function GET(req) {
 
   try {
     await connectDB();
-    const allMetas = await SiteComponentMeta.find({}).lean();
+    const allMetas = await SiteComponentMeta.find(
+      {},
+      "componentId displayName global order position enabled",
+    ).lean();
     const metaById = {};
     allMetas.forEach((m) => {
       metaById[m.componentId] = m;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   Table,
@@ -17,6 +17,9 @@ import { PlusOutlined, EditOutlined, DeleteOutlined, FolderOutlined, SearchOutli
 import Link from "next/link";
 import { ThemeAdminCard } from "@/styles/Theme";
 
+const PAGES_LIST_CACHE_KEY = "admin-pages-list-cache-v1";
+const PAGES_LIST_CACHE_TTL_MS = 20_000;
+
 export default function AdminPagesPage() {
   const router = useRouter();
   const [list, setList] = useState([]);
@@ -27,23 +30,50 @@ export default function AdminPagesPage() {
   const [folderFilter, setFolderFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const fetchPages = async () => {
-    setLoading(true);
+  const fetchPages = useCallback(async ({ background = false } = {}) => {
+    if (!background) setLoading(true);
     try {
-      const res = await fetch("/api/admin/pages");
+      const res = await fetch(
+        "/api/admin/pages?fields=title,slug,status,updatedAt&includeTotal=0",
+      );
       if (!res.ok) throw new Error("Failed to fetch");
       const data = await res.json();
-      setList(Array.isArray(data) ? data : data.items || []);
+      const nextList = Array.isArray(data) ? data : data.items || [];
+      setList(nextList);
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(
+          PAGES_LIST_CACHE_KEY,
+          JSON.stringify({ items: nextList, ts: Date.now() }),
+        );
+      }
     } catch (e) {
       message.error(e.message || "Failed to load pages");
     } finally {
-      setLoading(false);
+      if (!background) setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchPages();
-  }, []);
+    let usedCache = false;
+    if (typeof window !== "undefined") {
+      try {
+        const raw = sessionStorage.getItem(PAGES_LIST_CACHE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (
+            Array.isArray(parsed?.items) &&
+            Number.isFinite(parsed?.ts) &&
+            Date.now() - parsed.ts < PAGES_LIST_CACHE_TTL_MS
+          ) {
+            setList(parsed.items);
+            setLoading(false);
+            usedCache = true;
+          }
+        }
+      } catch {}
+    }
+    fetchPages({ background: usedCache });
+  }, [fetchPages]);
 
   const handleCreate = () => {
     router.push("/admin/pages/new");

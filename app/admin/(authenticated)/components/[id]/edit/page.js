@@ -725,7 +725,17 @@ export default function AdminComponentEditPage() {
 
   if (loading) {
     return (
-      <div style={{ padding: 24, textAlign: "center" }}>
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 1200,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          pointerEvents: "none",
+        }}
+      >
         <Spin size="large" />
       </div>
     );

@@ -306,7 +306,7 @@ export default function AdminMenusPage() {
   }, []);
 
   const fetchPages = useCallback(() => {
-    fetch("/api/admin/pages?limit=200")
+    fetch("/api/admin/pages?limit=200&fields=title,slug,status&includeTotal=0")
       .then((res) => (res.ok ? res.json() : { items: [] }))
       .then((data) => setPages(data.items || []))
       .catch(() => setPages([]));

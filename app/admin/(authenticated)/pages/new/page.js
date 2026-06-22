@@ -31,7 +31,7 @@ export default function AdminPageNewPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/admin/pages?limit=200").then((res) =>
+      fetch("/api/admin/pages?limit=200&fields=slug&includeTotal=0").then((res) =>
         res.ok ? res.json() : { items: [] },
       ),
       fetch("/api/admin/menus").then((res) => (res.ok ? res.json() : [])),
