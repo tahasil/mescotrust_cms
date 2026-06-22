@@ -33,6 +33,7 @@ import {
 import { validateCardsImages } from "@/lib/cardsImageValidation";
 import { validateImageSliderImages } from "@/lib/imageSliderImageValidation";
 import { validateImagesImage } from "@/lib/imagesImageValidation";
+import { validateOverlayCardsImages } from "@/lib/overlayCardsImageValidation";
 import {
   stripPhotoGalleryMobileCoverImages,
   validatePhotoGalleryCoverImages,
@@ -290,6 +291,16 @@ export async function PUT(req, { params }) {
 
     if (componentId === "Images") {
       const validationErrors = await validateImagesImage(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "OverlayCards") {
+      const validationErrors = await validateOverlayCardsImages(defaultProps);
       if (validationErrors.length > 0) {
         return NextResponse.json(
           { error: validationErrors[0] },

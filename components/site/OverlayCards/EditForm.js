@@ -8,6 +8,11 @@ import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
+import {
+  OVERLAY_CARDS_DESKTOP_ALLOWED_COMPACT_TEXT,
+  OVERLAY_CARDS_DESKTOP_REQUIRED_TEXT,
+  isAllowedOverlayCardsDesktopSize,
+} from "@/lib/overlayCardsImageConfig";
 
 const API_PATH = "/api/theme/OverlayCards";
 const PREFIX = "overlayCards";
@@ -51,6 +56,53 @@ function normalizeItem(it) {
     bgImageDesktop: desktopImage,
     bgImageMobile: mobileImage,
     bgImage: desktopImage,
+  };
+}
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+function buildDesktopImageValidationError(width, height, cardLabel) {
+  const selectedWidth = Number(width) || 0;
+  const selectedHeight = Number(height) || 0;
+  const prefix = cardLabel ? `${cardLabel}: ` : "";
+  return `${prefix}Supports Only ${OVERLAY_CARDS_DESKTOP_ALLOWED_COMPACT_TEXT} px. Selected image is ${selectedWidth}X${selectedHeight} px.`;
+}
+
+function createDesktopImageValidator(cardIndex) {
+  return async (_, value) => {
+    const imageUrl = String(value || "").trim();
+    if (!imageUrl) return Promise.resolve();
+
+    const cardLabel = Number.isInteger(Number(cardIndex))
+      ? `Card #${Number(cardIndex) + 1}`
+      : "";
+
+    try {
+      const { width, height } = await getImageDimensions(imageUrl);
+      if (isAllowedOverlayCardsDesktopSize(width, height)) {
+        return Promise.resolve();
+      }
+      return Promise.reject(
+        new Error(buildDesktopImageValidationError(width, height, cardLabel)),
+      );
+    } catch {
+      return Promise.reject(
+        new Error(
+          `${cardLabel ? `${cardLabel}: ` : ""}Unable to validate desktop image size. Supports Only ${OVERLAY_CARDS_DESKTOP_ALLOWED_COMPACT_TEXT} px.`,
+        ),
+      );
+    }
   };
 }
 
@@ -218,11 +270,17 @@ function OverlayCardsEditForm({ source, initialData: initialDataProp, onSaveToPa
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "bgImageDesktop"]} label="Desktop Background Image">
+                          <Form.Item
+                            {...restField}
+                            name={[name, "bgImageDesktop"]}
+                            label="Desktop Background Image"
+                            validateTrigger={["onChange", "onBlur"]}
+                            rules={[{ validator: createDesktopImageValidator(name) }]}
+                          >
                             <MediaPickerInput
                               placeholder="/images/newspaper-card-bg-1.png"
                               uiVariant="stacked"
-                              hintText="Recommended for desktop/tablet"
+                              hintText={`Required size: ${OVERLAY_CARDS_DESKTOP_REQUIRED_TEXT}`}
                             />
                           </Form.Item>
                         </Col>
