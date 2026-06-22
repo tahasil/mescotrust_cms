@@ -19,8 +19,8 @@ import { isValidEmail, isValidName, isValidPhone, normalizeText } from "@/lib/fo
  * or Component defaultProps (global). Manage Section + Title & Colors come
  * from EditForm so all settings the editor changes in the drawer apply here.
  *
- * The event details (eventTitle, eventDate, eventId) are pulled from one of:
- *   1. URL query params:  ?event=...&date=...&eventId=...
+ * The event details (eventTitle, eventDate, eventId, eventSlug) are pulled from one of:
+ *   1. URL query params:  ?event=...&date=...&eventId=...&eventSlug=...
  *   2. Block props:       defaultEventTitle, defaultEventDate
  *
  * If neither is present, the form asks the visitor to type the event name.
@@ -28,7 +28,7 @@ import { isValidEmail, isValidName, isValidPhone, normalizeText } from "@/lib/fo
 export default function EventRegistrationForm(props = {}) {
   const PREFIX = "eventRegistrationForm";
 
-  /* ── Section background / spacing (read by FullWidthBackground) ── */
+  /* -- Section background / spacing (read by FullWidthBackground) -- */
   const sectionBgType = (props?.[PREFIX + "SectionBgType"] ?? "default").toString();
   const sectionBgImage = (props?.[PREFIX + "SectionBgImage"] ?? "").toString().trim();
   const sectionBgColorKey = (props?.[PREFIX + "SectionBgColorKey"] ?? "").toString().trim();
@@ -83,7 +83,7 @@ export default function EventRegistrationForm(props = {}) {
         }
       : undefined;
 
-  /* ── Page container background / spacing ── */
+  /* -- Page container background / spacing -- */
   const pageContainerBgType = (props?.[PREFIX + "PageContainerBgType"] ?? "default").toString();
   const pageContainerBgImage = (props?.[PREFIX + "PageContainerBgImage"] ?? "").toString().trim();
   const pageContainerBgColorKey = (props?.[PREFIX + "PageContainerBgColorKey"] ?? "").toString().trim();
@@ -153,7 +153,7 @@ export default function EventRegistrationForm(props = {}) {
         }
       : undefined;
 
-  /* ── Title & subtitle ── */
+  /* -- Title & subtitle -- */
   const mainTitle = (props?.mainTitle ?? "Event Registration").toString().trim();
   const subTitle = (props?.subTitle ?? "").toString().trim();
   const titleEnabled = props?.eventRegistrationFormTitleEnabled !== false;
@@ -163,7 +163,7 @@ export default function EventRegistrationForm(props = {}) {
   const subTitleColorKey = (props?.eventRegistrationFormSubTitleColorKey ?? "").toString().trim();
   const subTitleColor = subTitleColorKey ? getColor(subTitleColorKey) : undefined;
 
-  /* ── Form copy ── */
+  /* -- Form copy -- */
   const intro = (
     props?.intro ||
     "Please fill in your details below to register for this event. We will reach out with the next steps."
@@ -175,7 +175,7 @@ export default function EventRegistrationForm(props = {}) {
   ).toString();
   const studentFieldsEnabled = props?.studentFieldsEnabled !== false;
 
-  /* ── Form colours (resolved from theme keys) ── */
+  /* -- Form colours (resolved from theme keys) -- */
   const cardBgColorKey = (props?.eventRegistrationFormCardBgColorKey ?? "").toString().trim();
   const cardBgColor = cardBgColorKey ? getColor(cardBgColorKey) : "#ffffff";
   const labelColorKey = (props?.eventRegistrationFormLabelColorKey ?? "").toString().trim();
@@ -191,7 +191,7 @@ export default function EventRegistrationForm(props = {}) {
   const eventLineColorKey = (props?.eventRegistrationFormEventLineColorKey ?? "").toString().trim();
   const eventLineColor = eventLineColorKey ? getColor(eventLineColorKey) : "rgba(0,0,0,0.6)";
 
-  /* ── Defaults from props ── */
+  /* -- Defaults from props -- */
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const formRef = useRef(null);
@@ -202,6 +202,8 @@ export default function EventRegistrationForm(props = {}) {
     (props.defaultEventDate || "").toString().trim(),
   );
   const [eventId, setEventId] = useState("");
+  const [eventSlug, setEventSlug] = useState("");
+  const [pagePath, setPagePath] = useState("");
   const [pageUrl, setPageUrl] = useState("");
 
   /* Read query params on mount (client-only) */
@@ -211,10 +213,15 @@ export default function EventRegistrationForm(props = {}) {
     const qpEvent = params.get("event");
     const qpDate = params.get("date");
     const qpId = params.get("eventId");
+    const qpSlug = params.get("eventSlug") || params.get("slug");
     if (qpEvent) setEventTitle(qpEvent);
     if (qpDate) setEventDate(qpDate);
     if (qpId) setEventId(qpId);
-    setPageUrl(window.location.pathname + window.location.search);
+    if (qpSlug) setEventSlug(qpSlug);
+
+    const currentPath = window.location.pathname || "/";
+    setPagePath(currentPath);
+    setPageUrl(currentPath + window.location.search);
   }, []);
 
   const onSubmit = async (e) => {
@@ -228,12 +235,14 @@ export default function EventRegistrationForm(props = {}) {
         normalizeText(data.get("eventTitleFallback")),
       eventDate: eventDate || "",
       eventId: eventId || "",
+      eventSlug: eventSlug || "",
       name: normalizeText(data.get("name")),
       email: normalizeText(data.get("email")),
       phone: normalizeText(data.get("phone")),
       school: normalizeText(data.get("school")),
       classOrYear: normalizeText(data.get("classOrYear")),
       message: normalizeText(data.get("message")),
+      pagePath: pagePath || "",
       page: pageUrl,
       source: "EventRegistrationForm",
       website: (data.get("website") || "").toString(), // honeypot
@@ -321,7 +330,7 @@ export default function EventRegistrationForm(props = {}) {
                   {intro && <Intro style={{ color: introColor }}>{intro}</Intro>}
 
                   <form ref={formRef} onSubmit={onSubmit} noValidate>
-                    {/* Honeypot — hidden from real users; bots that fill it are silently rejected */}
+                    {/* Honeypot: hidden from real users; bots that fill it are silently rejected */}
                     <Honeypot
                       type="text"
                       name="website"
@@ -469,7 +478,7 @@ export default function EventRegistrationForm(props = {}) {
                           $bg={buttonBgColor}
                           $color={buttonTextColor}
                         >
-                          {submitting ? "Submitting…" : buttonText}
+                          {submitting ? "Submitting..." : buttonText}
                         </SubmitBtn>
                       </Col>
                     </Row>
@@ -483,7 +492,7 @@ export default function EventRegistrationForm(props = {}) {
   );
 }
 
-/* ── Styled primitives — fully responsive (mobile-first) ── */
+/* -- Styled primitives, fully responsive (mobile-first) -- */
 
 const FormCard = styled.div`
   background: ${(p) => p.$bg || "#ffffff"};

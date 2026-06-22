@@ -23,6 +23,7 @@ const eventRegistrationSchema = new mongoose.Schema(
     eventTitle: { type: String, required: true, trim: true },
     eventDate: { type: String, default: "", trim: true }, // free-text date as the editor entered it
     eventId: { type: String, default: "", trim: true, index: true }, // optional stable ID
+    eventSlug: { type: String, default: "", trim: true, lowercase: true, index: true },
 
     // Applicant info
     payload: {

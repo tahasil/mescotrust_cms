@@ -17,8 +17,9 @@ import EventContent from "@/components/events/EventContent";
 import {
   formatEventDayDate,
   formatEventDateRange,
-  getEventStartTimeText,
+  getEventEndTimeText,
   getEventImageSources,
+  getEventStartTimeText,
   isEventPast,
   isEventStarted,
 } from "@/components/events/eventDisplay";
@@ -80,6 +81,20 @@ function getEventShareMeta(event, themeDoc, slug) {
     image: toAbsoluteUrl(shareMeta.image || globalSeo.image, siteUrl),
     keywords: parseMetaKeywords(event?.meta?.metaKeywords) || globalSeo.keywords,
   };
+}
+
+function buildRegistrationHref(regLink, event, eventDateRange) {
+  const link = (regLink || "").trim();
+  if (!link || !link.startsWith("/")) return link;
+
+  const [pathOnly, existingQuery = ""] = link.split("?");
+  const params = new URLSearchParams(existingQuery);
+  if (event?.title) params.set("event", String(event.title).trim());
+  if (eventDateRange) params.set("date", eventDateRange);
+  if (event?._id) params.set("eventId", event._id.toString());
+  if (event?.slug) params.set("eventSlug", String(event.slug).trim());
+  const query = params.toString();
+  return query ? `${pathOnly}?${query}` : pathOnly;
 }
 
 export async function generateMetadata({ params }) {
@@ -189,19 +204,28 @@ async function EventDetail({ slug }) {
   const regLink = (event.eventLink || "").trim();
   const isPastEvent = isEventPast(event);
   const hasEventStarted = isEventStarted(event);
-  const isRegistrationOpen =
-    Boolean(regLink) && hasEventStarted && !isPastEvent;
+  const isWithinEventWindow = hasEventStarted && !isPastEvent;
+  const isRegistrationOpen = Boolean(regLink) && isWithinEventWindow;
   const eventTime = (event.time || "").trim();
-  const eventStartTime = getEventStartTimeText(eventTime);
-  const registrationOpenDate = formatEventDayDate(event.startDate);
-  const registrationOpenLabel = registrationOpenDate
-    ? eventStartTime
-      ? `${registrationOpenDate} at ${eventStartTime}`
-      : registrationOpenDate
-    : "the start date";
+  const eventDateRange = formatEventDateRange(event.startDate, event.endDate);
+  const registrationHref = buildRegistrationHref(regLink, event, eventDateRange);
+  const eventStartDateText = formatEventDayDate(event.startDate);
+  const eventStartTimeText = getEventStartTimeText(event.time);
+  const eventStartLabel = eventStartDateText
+    ? eventStartTimeText
+      ? `${eventStartDateText} at ${eventStartTimeText}`
+      : eventStartDateText
+    : "the event start date";
+  const eventEndDateText = formatEventDayDate(event.endDate || event.startDate);
+  const eventEndTimeText =
+    getEventEndTimeText(event.time) || getEventStartTimeText(event.time);
+  const eventEndLabel = eventEndDateText
+    ? eventEndTimeText
+      ? `${eventEndDateText} at ${eventEndTimeText}`
+      : eventEndDateText
+    : "the event end date";
   const shortDescription = (event.description || "").trim();
   const fullDescription = (event.content || "").trim();
-  const eventDateRange = formatEventDateRange(event.startDate, event.endDate);
   const eventMode = event.isOnline ? "Online" : "In-person";
   const venue = event.isOnline
     ? "Online event"
@@ -349,7 +373,7 @@ async function EventDetail({ slug }) {
                   <dd style={{ margin: 0, color: "rgba(0,0,0,0.82)" }}>
                     {isRegistrationOpen ? (
                       <a
-                        href={regLink}
+                        href={registrationHref}
                         rel="noopener noreferrer"
                         style={{
                           color: "var(--primary-color, #8b1a1a)",
@@ -359,10 +383,10 @@ async function EventDetail({ slug }) {
                       >
                         Open registration form
                       </a>
-                    ) : regLink ? (
-                      hasEventStarted
-                        ? "Registration closed"
-                        : `Registration opens on ${registrationOpenLabel}`
+                    ) : regLink && isPastEvent ? (
+                      `Event closed on ${eventEndLabel}`
+                    ) : regLink && !hasEventStarted ? (
+                      `Registration opens on ${eventStartLabel}`
                     ) : (
                       "Not available"
                     )}

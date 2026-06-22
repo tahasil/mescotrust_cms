@@ -46,6 +46,11 @@ export function getEventStartTimeText(timeValue) {
   return startTime || "";
 }
 
+export function getEventEndTimeText(timeValue) {
+  const [, endTime] = splitEventTimeRange(timeValue);
+  return endTime || "";
+}
+
 export function formatLocationLine(event) {
   if (event?.isOnline) return "Online";
   const loc = (event?.location || "").trim();
