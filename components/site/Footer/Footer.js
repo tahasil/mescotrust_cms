@@ -17,6 +17,7 @@ import {
   FooterParagraph,
   CopyrightBar,
 } from "./FooterStyle";
+import { resolveYearPlaceholder } from "@/lib/yearPlaceholder";
 
 const SOCIAL_ICONS = {
   facebook: FacebookFilled,
@@ -35,24 +36,10 @@ function getSocialIcon(platform) {
   return SOCIAL_ICONS[key] || GlobalOutlined;
 }
 
-function withDynamicCopyrightYear(text, year) {
-  const raw = String(text || "").trim();
-  if (!raw) return "";
-
-  // Prefer replacing the year directly after Copyright/© to preserve existing format.
-  const copyScoped = raw.replace(
-    /((?:copyright\s*©?|©)\s*)(\d{4})(?!\d)/i,
-    (_, prefix) => `${prefix}${year}`,
-  );
-  if (copyScoped !== raw) return copyScoped;
-
-  // Fallback: replace first standalone 4-digit year if present.
-  if (/\b\d{4}\b/.test(raw)) {
-    return raw.replace(/\b\d{4}\b/, String(year));
-  }
-
-  return raw;
+function withDynamicCopyrightYear(text) {
+  return resolveYearPlaceholder(text).trim();
 }
+
 
 /**
  * Footer: 100% database-driven. Layout matches reference (Ant Design Row/Col).
@@ -74,9 +61,8 @@ export default function Footer({
   footerCopyrightBarValue = "",
   preview = false,
 }) {
-  const currentYear = new Date().getFullYear();
   const title = siteTitle?.trim() || "";
-  const copy = withDynamicCopyrightYear(footerCopyrightText, currentYear);
+  const copy = withDynamicCopyrightYear(footerCopyrightText);
   const address = footerAddress?.trim() || "";
   const email = footerEmail?.trim() || "";
   const phone = footerPhone?.trim() || "";
@@ -206,3 +192,4 @@ export default function Footer({
     </FooterContainer>
   );
 }
+
