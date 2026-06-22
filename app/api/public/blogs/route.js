@@ -37,7 +37,7 @@ export async function GET(req) {
 
     const select =
       fieldsMode === "sidebar"
-        ? "_id slug title featuredImage publishedAt"
+        ? "_id slug title featuredImage featuredImageMobile featuredImageDesktop publishedAt"
         : fieldsMode === "archive"
           ? "_id publishedAt"
           : null;

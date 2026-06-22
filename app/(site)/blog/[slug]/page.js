@@ -17,6 +17,7 @@ import { FullWidthBackground, MainTitle, PageContainer } from "@/styles/Theme";
 import BlogSidebarFull from "@/components/blog/BlogSidebarFull";
 import MediaImage from "@/components/shared/MediaImage";
 import SocialShare from "@/components/common/SocialShare";
+import { getBlogImageSources } from "@/components/blog/blogDisplay";
 
 export const revalidate = 60;
 
@@ -53,6 +54,7 @@ function getBlogShareMeta(post, themeDoc, slug) {
   const metaTitle = String(post?.meta?.metaTitle || "").trim();
   const metaDescription = String(post?.meta?.metaDescription || "").trim();
   const titleFromContent = String(post?.title || "").trim();
+  const { desktop, mobile } = getBlogImageSources(post || {});
 
   const shareMeta = resolveShareMetadata({
     canonicalUrl,
@@ -62,9 +64,9 @@ function getBlogShareMeta(post, themeDoc, slug) {
     metaDescription,
     shortDescription: post?.shortDescription,
     excerpt: post?.excerpt,
-    featuredImageDesktop: post?.featuredImageDesktop,
-    featuredImage: post?.featuredImage,
-    featuredImageMobile: post?.featuredImageMobile,
+    featuredImageDesktop: desktop,
+    featuredImage: desktop,
+    featuredImageMobile: mobile,
     seoImage: post?.seoImage,
     globalFallbackImage,
   });
@@ -178,6 +180,7 @@ async function PostContent({ slug }) {
 
   if (!post) notFound();
 
+  const { desktop, mobile } = getBlogImageSources(post);
   const shareMeta = getBlogShareMeta(post, themeDoc, slug);
 
   const jsonLd = {
@@ -266,7 +269,7 @@ async function PostContent({ slug }) {
                 />
               </div>
 
-              {post.featuredImage && (
+              {desktop && (
                 <figure
                   className="blog-detail-banner"
                   style={{
@@ -277,8 +280,8 @@ async function PostContent({ slug }) {
                   }}
                 >
                   <MediaImage
-                    src={post.featuredImage}
-                    mobileSrc={post.featuredImageMobile}
+                    src={desktop}
+                    mobileSrc={mobile && mobile !== desktop ? mobile : ""}
                     alt={post.title}
                     imgClassName="blog-detail-banner-img"
                     width={1440}

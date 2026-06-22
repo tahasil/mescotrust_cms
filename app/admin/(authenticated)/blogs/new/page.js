@@ -9,6 +9,10 @@ import RichTextEditor from "@/components/admin/RichTextEditor";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { ThemeAdminCard } from "@/styles/Theme";
 
+const DESKTOP_REQUIRED_WIDTH = 1200;
+const DESKTOP_REQUIRED_HEIGHT = 1000;
+const DESKTOP_REQUIRED_TEXT = `${DESKTOP_REQUIRED_WIDTH} \u00D7 ${DESKTOP_REQUIRED_HEIGHT} px`;
+
 function slugify(text) {
   return (text || "")
     .toString()
@@ -18,6 +22,42 @@ function slugify(text) {
     .replace(/[^a-z0-9-]/g, "")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
+}
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+async function validateDesktopImageDimensions(_, value) {
+  const imageUrl = String(value || "").trim();
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (width === DESKTOP_REQUIRED_WIDTH && height === DESKTOP_REQUIRED_HEIGHT) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(
+        `Desktop Image must be exactly ${DESKTOP_REQUIRED_TEXT}. Selected image is ${width} \u00D7 ${height} px.`,
+      ),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(
+        `Unable to validate desktop image size. Please use ${DESKTOP_REQUIRED_TEXT}.`,
+      ),
+    );
+  }
 }
 
 export default function AdminBlogNewPage() {
@@ -183,6 +223,8 @@ export default function AdminBlogNewPage() {
                       <Card title="Desktop Image" size="small">
                         <Form.Item
                           name="featuredImage"
+                          validateTrigger={["onChange", "onBlur"]}
+                          rules={[{ validator: validateDesktopImageDimensions }]}
                           extra="Primary image for social sharing previews."
                           style={{ marginBottom: 0 }}
                         >
@@ -190,7 +232,7 @@ export default function AdminBlogNewPage() {
                             placeholder="/media/..."
                             uiVariant="stacked"
                             showVariants={false}
-                            hintText="Recommended: 1200x600"
+                            hintText={`Required size: ${DESKTOP_REQUIRED_TEXT}`}
                           />
                         </Form.Item>
                       </Card>

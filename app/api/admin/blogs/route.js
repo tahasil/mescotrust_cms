@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import Blog from "@/models/Blog";
 import { normalizeSlug } from "@/lib/slug";
 import { syncMediaUsageForBlog } from "@/lib/media/usageTracker";
+import { validateBlogImages } from "@/lib/blogImageValidation";
 
 export async function GET(req) {
   const session = await requireAuth(req);
@@ -33,6 +34,17 @@ export async function POST(req) {
   try {
     const body = await req.json();
     const { title, slug: rawSlug, content, excerpt, featuredImage, featuredImageMobile, author, status, publishedAt, category, tags, meta, locale } = body;
+
+    const imageValidationErrors = await validateBlogImages({
+      featuredImage,
+      featuredImageMobile,
+    });
+    if (imageValidationErrors.length > 0) {
+      return NextResponse.json(
+        { error: imageValidationErrors[0] },
+        { status: 400 },
+      );
+    }
 
     const result = normalizeSlug(rawSlug || title);
     if (!result.valid) {
