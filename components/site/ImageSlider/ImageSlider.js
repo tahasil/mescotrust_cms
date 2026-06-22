@@ -92,6 +92,8 @@ export default function ImageSlider(props) {
         stepDeg={stepDeg}
         duration={duration}
         draggable={draggable}
+        sizePreset="portrait350x450"
+        imageFit="contain"
       />
     </FullWidthBackground>
   );

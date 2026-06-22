@@ -23,6 +23,8 @@ export default function CircularSlider({
   stepDeg = DEFAULTS.stepDeg,
   duration = DEFAULTS.duration,
   draggable = true,
+  sizePreset = "legacy",
+  imageFit = "cover",
 }) {
   const uid = useId().replace(/:/g, "");
   const className = `circular-slider-${uid}`;
@@ -135,13 +137,14 @@ export default function CircularSlider({
         <SliderCarousel
           ref={carouselRef}
           className={className}
+          $sizePreset={sizePreset}
           aria-label="Circular image carousel - drag to rotate"
         >
           {Array.from({ length: slideCount }, (_, i) => {
             const slide = images[i % images.length];
             return (
-              <SliderWrapper key={i} $rotation={i * stepDeg}>
-                <SliderSlide>
+              <SliderWrapper key={i} $rotation={i * stepDeg} $sizePreset={sizePreset}>
+                <SliderSlide $sizePreset={sizePreset} $imageFit={imageFit}>
                   <img loading="lazy" className="img-fluid" src={slide.src} alt={slide.alt} />
                 </SliderSlide>
               </SliderWrapper>
