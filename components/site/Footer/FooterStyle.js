@@ -94,7 +94,7 @@ export const FooterInner = styled.div`
 
 export const FooterLogo = styled.a`
   display: inline-block;
-  margin-bottom: 24px;
+  margin-bottom: 4px;
   img {
     display: block;
     height: auto;
