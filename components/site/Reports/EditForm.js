@@ -8,6 +8,11 @@ import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
+import {
+  REPORTS_DESKTOP_ALLOWED_COMPACT_TEXT,
+  REPORTS_DESKTOP_REQUIRED_TEXT,
+  isAllowedReportsDesktopSize,
+} from "@/lib/reportsImageConfig";
 
 const API_PATH = "/api/theme/Reports";
 const PREFIX = "reports";
@@ -43,6 +48,53 @@ function normalizeItem(it) {
     imageMobile: mobileImage,
     image: desktopImage,
     pdfUrl: it?.pdfUrl != null ? String(it.pdfUrl).trim() : "",
+  };
+}
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+function buildDesktopImageValidationError(width, height, reportLabel) {
+  const selectedWidth = Number(width) || 0;
+  const selectedHeight = Number(height) || 0;
+  const prefix = reportLabel ? `${reportLabel}: ` : "";
+  return `${prefix}Supports Only ${REPORTS_DESKTOP_ALLOWED_COMPACT_TEXT} px. Selected image is ${selectedWidth}X${selectedHeight} px.`;
+}
+
+function createDesktopImageValidator(reportIndex) {
+  return async (_, value) => {
+    const imageUrl = String(value || "").trim();
+    if (!imageUrl) return Promise.resolve();
+
+    const reportLabel = Number.isInteger(Number(reportIndex))
+      ? `Report #${Number(reportIndex) + 1}`
+      : "";
+
+    try {
+      const { width, height } = await getImageDimensions(imageUrl);
+      if (isAllowedReportsDesktopSize(width, height)) {
+        return Promise.resolve();
+      }
+      return Promise.reject(
+        new Error(buildDesktopImageValidationError(width, height, reportLabel)),
+      );
+    } catch {
+      return Promise.reject(
+        new Error(
+          `${reportLabel ? `${reportLabel}: ` : ""}Unable to validate desktop image size. Supports Only ${REPORTS_DESKTOP_ALLOWED_COMPACT_TEXT} px.`,
+        ),
+      );
+    }
   };
 }
 
@@ -211,11 +263,17 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "imageDesktop"]} label="Desktop Image">
+                          <Form.Item
+                            {...restField}
+                            name={[name, "imageDesktop"]}
+                            label="Desktop Image"
+                            validateTrigger={["onChange", "onBlur"]}
+                            rules={[{ validator: createDesktopImageValidator(name) }]}
+                          >
                             <MediaPickerInput
                               placeholder="/uploads/report-cover.webp"
                               uiVariant="stacked"
-                              hintText="Recommended for desktop/tablet"
+                              hintText={`Required size: ${REPORTS_DESKTOP_REQUIRED_TEXT}`}
                             />
                           </Form.Item>
                         </Col>

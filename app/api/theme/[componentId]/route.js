@@ -34,6 +34,7 @@ import { validateCardsImages } from "@/lib/cardsImageValidation";
 import { validateImageSliderImages } from "@/lib/imageSliderImageValidation";
 import { validateImagesImage } from "@/lib/imagesImageValidation";
 import { validateOverlayCardsImages } from "@/lib/overlayCardsImageValidation";
+import { validateReportsImages } from "@/lib/reportsImageValidation";
 import {
   stripPhotoGalleryMobileCoverImages,
   validatePhotoGalleryCoverImages,
@@ -301,6 +302,16 @@ export async function PUT(req, { params }) {
 
     if (componentId === "OverlayCards") {
       const validationErrors = await validateOverlayCardsImages(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "Reports") {
+      const validationErrors = await validateReportsImages(defaultProps);
       if (validationErrors.length > 0) {
         return NextResponse.json(
           { error: validationErrors[0] },
