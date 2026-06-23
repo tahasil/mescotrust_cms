@@ -46,6 +46,7 @@ export const CUSTOM_BUTTONS_SCHEMA = [
       { value: "_blank", label: "New Tab" },
     ],
   },
+  { key: "headerVolunteerIconUrl", type: "image", label: "Volunteer Icon" },
   { key: "headerDonateIconUrl", type: "image", label: "Donate Icon" },
 ];
 
@@ -53,7 +54,7 @@ export const HEADER_FIELD_GROUPS = [
   { label: "Logo and link", keys: ["logoType", "logoLightUrl", "logoMobileUrl", "logoDarkUrl", "logoTitle", "logoTagline", "logoUrl", "logoColor", "logoFontSize", "taglineFontSize", "sectionsOrder"] },
   { label: "Menu", keys: ["menuPosition", "navColor", "navFontSize", "navFontWeight", "navHoverColor", "navItemBackground", "navItemHoverBackground"] },
   { label: "Navbar (Bootstrap)", keys: ["navbarExpand", "navbarFixed", "navbarSticky", "collapseOnSelect", "navbarMobileMenu", "navbarOffcanvasPlacement"] },
-  { label: "Custom buttons", keys: ["headerSearchEnabled", "headerSearchLabel", "headerSearchPlaceholder", "headerVolunteerHref", "headerVolunteerHrefTarget", "headerDonateIconUrl"] },
+  { label: "Custom buttons", keys: ["headerSearchEnabled", "headerSearchLabel", "headerSearchPlaceholder", "headerVolunteerHref", "headerVolunteerHrefTarget", "headerVolunteerIconUrl", "headerDonateIconUrl"] },
 ];
 
 export const SECTION_SETTINGS_SCHEMA = [

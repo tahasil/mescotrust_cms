@@ -244,7 +244,7 @@ export const Chevron = styled.span`
 export const Actions = styled.div`
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   @media (max-width: ${BREAKPOINT}) {
     display: none;
   }
@@ -284,11 +284,14 @@ export const SearchBtn = styled.button`
 export const Btn = styled.a`
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  gap: 10px;
+  padding: 6px 10px 6px 18px;
+  min-height: 44px;
+  border-radius: 999px;
+  white-space: nowrap;
+  font-size: 0.95rem;
   font-weight: 600;
+  line-height: 1;
   text-decoration: none;
   transition:
     background 0.2s,
@@ -301,19 +304,22 @@ export const Btn = styled.a`
 `;
 
 export const IconWrap = styled.span`
+  --icon-wrap-size: 34px;
+  --icon-size: 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  min-width: 28px;
-  min-height: 28px;
+  width: var(--icon-wrap-size);
+  height: var(--icon-wrap-size);
+  min-width: var(--icon-wrap-size);
+  min-height: var(--icon-wrap-size);
   flex-shrink: 0;
   background: #fff;
   border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
   img {
-    width: 16px;
-    height: 16px;
+    width: var(--icon-size);
+    height: var(--icon-size);
     object-fit: contain;
     display: block;
     vertical-align: middle;
@@ -324,20 +330,49 @@ export const BtnVolunteer = styled(Btn)`
   background: ${(props) => props.$headerCtaBgValue || "transparent"};
   color: ${(props) => props.$headerCtaTextValue || "currentColor"};
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border-radius: 30px;
+  border-radius: 999px;
+  padding-right: 8px;
+  ${IconWrap} {
+    --icon-wrap-size: 34px;
+    --icon-size: 14px;
+  }
   &:hover {
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+  }
+  @media (max-width: 1280px) {
+    min-height: 40px;
+    padding: 5px 8px 5px 15px;
+    font-size: 0.9rem;
+    ${IconWrap} {
+      --icon-wrap-size: 31px;
+      --icon-size: 14px;
+    }
   }
 `;
 
 export const BtnDonate = styled(Btn)`
   background: ${(props) => props.$headerDonateBgValue || "transparent"};
   color: ${(props) => props.$headerDonateTextValue || "currentColor"};
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-  border-radius: 30px;
+  box-shadow: 0 6px 16px rgba(122, 22, 17, 0.22);
+  border-radius: 999px;
+  padding-left: 20px;
+  padding-right: 8px;
+  ${IconWrap} {
+    --icon-wrap-size: 34px;
+    --icon-size: 14px;
+  }
   &:hover {
     color: ${(props) => props.$headerDonateTextValue || "currentColor"};
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 8px 18px rgba(122, 22, 17, 0.26);
+  }
+  @media (max-width: 1280px) {
+    min-height: 40px;
+    padding: 5px 8px 5px 16px;
+    font-size: 0.9rem;
+    ${IconWrap} {
+      --icon-wrap-size: 31px;
+      --icon-size: 14px;
+    }
   }
 `;
 
@@ -562,13 +597,23 @@ export const MobileBtnSearch = styled.button`
 export const MobileBtnVolunteer = styled(MobileBtn)`
   background: ${(props) => props.$headerCtaBgValue || "transparent"};
   color: ${(props) => props.$headerCtaTextValue || "currentColor"};
+  border-radius: 999px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  ${IconWrap} {
+    --icon-wrap-size: 32px;
+    --icon-size: 14px;
+  }
 `;
 
 export const MobileBtnDonate = styled(MobileBtn)`
   background: ${(props) => props.$headerDonateBgValue || "transparent"};
   color: ${(props) => props.$headerDonateTextValue || "currentColor"};
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  box-shadow: 0 6px 16px rgba(122, 22, 17, 0.22);
+  ${IconWrap} {
+    --icon-wrap-size: 32px;
+    --icon-size: 14px;
+  }
 `;
 
 export const SearchOverlay = styled.div`

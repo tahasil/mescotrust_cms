@@ -248,6 +248,12 @@ export default function Header({
     String(volunteerHrefTarget || "").trim() === "_blank" ? "_blank" : "_self";
   const title = siteTitle ?? "";
   const volunteerIconMobile = volunteerIconUrlMobile ?? volunteerIconUrl;
+  const volunteerIconDesktopSrc =
+    String(volunteerIconUrl || "").trim() || "/images/volunteer-icon.svg";
+  const volunteerIconMobileSrc =
+    String(volunteerIconMobile || "").trim() || volunteerIconDesktopSrc;
+  const donateIconSrc =
+    String(donateIconUrl || "").trim() || "/images/donate-now-icon.svg";
 
   useEffect(() => {
     const onScroll = () =>
@@ -491,14 +497,12 @@ export default function Header({
               >
                 {volunteerLabel}
                 <IconWrap>
-                  {volunteerIconUrl ? (
-                    <img
-                      loading="eager"
-                      decoding="async"
-                      src={volunteerIconUrl}
-                      alt={volunteerLabel}
-                    />
-                  ) : null}
+                  <img
+                    loading="eager"
+                    decoding="async"
+                    src={volunteerIconDesktopSrc}
+                    alt={volunteerLabel}
+                  />
                 </IconWrap>
               </BtnVolunteer>
             )}
@@ -510,14 +514,12 @@ export default function Header({
               >
                 {donateLabel}
                 <IconWrap>
-                  {donateIconUrl ? (
-                    <img
-                      loading="eager"
-                      decoding="async"
-                      src={donateIconUrl}
-                      alt={donateLabel}
-                    />
-                  ) : null}
+                  <img
+                    loading="eager"
+                    decoding="async"
+                    src={donateIconSrc}
+                    alt={donateLabel}
+                  />
                 </IconWrap>
               </BtnDonate>
             )}
@@ -657,16 +659,14 @@ export default function Header({
               $headerCtaBgValue={headerCtaBgValue}
               $headerCtaTextValue={headerCtaTextValue}
             >
-              <IconWrap>
-                {volunteerIconMobile ? (
-                  <img
-                    loading="lazy"
-                    src={volunteerIconMobile}
-                    alt={volunteerLabel}
-                  />
-                ) : null}
-              </IconWrap>
               {volunteerLabel}
+              <IconWrap>
+                <img
+                  loading="lazy"
+                  src={volunteerIconMobileSrc}
+                  alt={volunteerLabel}
+                />
+              </IconWrap>
             </MobileBtnVolunteer>
           )}
           {(donateLabel || donateHref) && donateHref && (
@@ -676,16 +676,14 @@ export default function Header({
               $headerDonateBgValue={headerDonateBgValue}
               $headerDonateTextValue={headerDonateTextValue}
             >
-              <IconWrap>
-                {donateIconUrl ? (
-                  <img
-                    loading="lazy"
-                    src={donateIconUrl}
-                    alt={donateLabel}
-                  />
-                ) : null}
-              </IconWrap>
               {donateLabel}
+              <IconWrap>
+                <img
+                  loading="lazy"
+                  src={donateIconSrc}
+                  alt={donateLabel}
+                />
+              </IconWrap>
             </MobileBtnDonate>
           )}
         </MobileActions>
