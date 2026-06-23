@@ -284,20 +284,28 @@ export const SearchBtn = styled.button`
 export const Btn = styled.a`
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 10px 6px 18px;
+  justify-content: center;
+  position: relative;
+  padding: 6px 50px 6px 18px;
   min-height: 44px;
   border-radius: 999px;
   white-space: nowrap;
   font-size: 0.95rem;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.1;
   text-decoration: none;
   transition:
     background 0.2s,
     box-shadow 0.2s,
     filter 0.2s;
   border: none;
+  .btn-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    text-align: center;
+  }
   &:hover {
     filter: brightness(1.05);
   }
@@ -309,6 +317,10 @@ export const IconWrap = styled.span`
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
   width: var(--icon-wrap-size);
   height: var(--icon-wrap-size);
   min-width: var(--icon-wrap-size);
@@ -331,7 +343,8 @@ export const BtnVolunteer = styled(Btn)`
   color: ${(props) => props.$headerCtaTextValue || "currentColor"};
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border-radius: 999px;
-  padding-right: 8px;
+  padding-left: 18px;
+  padding-right: 50px;
   ${IconWrap} {
     --icon-wrap-size: 34px;
     --icon-size: 14px;
@@ -341,7 +354,7 @@ export const BtnVolunteer = styled(Btn)`
   }
   @media (max-width: 1280px) {
     min-height: 40px;
-    padding: 5px 8px 5px 15px;
+    padding: 5px 45px 5px 15px;
     font-size: 0.9rem;
     ${IconWrap} {
       --icon-wrap-size: 31px;
@@ -356,7 +369,7 @@ export const BtnDonate = styled(Btn)`
   box-shadow: 0 6px 16px rgba(122, 22, 17, 0.22);
   border-radius: 999px;
   padding-left: 20px;
-  padding-right: 8px;
+  padding-right: 50px;
   ${IconWrap} {
     --icon-wrap-size: 34px;
     --icon-size: 14px;
@@ -367,7 +380,7 @@ export const BtnDonate = styled(Btn)`
   }
   @media (max-width: 1280px) {
     min-height: 40px;
-    padding: 5px 8px 5px 16px;
+    padding: 5px 45px 5px 16px;
     font-size: 0.9rem;
     ${IconWrap} {
       --icon-wrap-size: 31px;
@@ -436,11 +449,21 @@ export const MobileMenu = styled.div`
 `;
 
 export const MobileMenuHeader = styled.div`
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding-bottom: 20px;
-  border-bottom: 1px solid ${getColor("themeBorder")};
+  border-bottom: none;
+  &::after {
+    content: "";
+    position: absolute;
+    left: -20px;
+    right: -20px;
+    bottom: 0;
+    height: 1px;
+    background: rgba(5, 5, 5, 0.12);
+  }
 `;
 
 export const MobileMenuLogo = styled.a`
@@ -562,6 +585,7 @@ export const MobileActions = styled.div`
 export const MobileBtn = styled(Btn)`
   justify-content: center;
   width: 100%;
+  padding: 10px 18px;
 `;
 
 export const MobileBtnSearch = styled.button`
@@ -571,7 +595,7 @@ export const MobileBtnSearch = styled.button`
   gap: 8px;
   width: 100%;
   padding: 10px 18px;
-  border-radius: 8px;
+  border-radius: 999px;
   font-size: 0.9rem;
   font-weight: 600;
   border: 1px solid rgba(0, 0, 0, 0.14);
@@ -599,10 +623,6 @@ export const MobileBtnVolunteer = styled(MobileBtn)`
   color: ${(props) => props.$headerCtaTextValue || "currentColor"};
   border-radius: 999px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  ${IconWrap} {
-    --icon-wrap-size: 32px;
-    --icon-size: 14px;
-  }
 `;
 
 export const MobileBtnDonate = styled(MobileBtn)`
@@ -610,10 +630,6 @@ export const MobileBtnDonate = styled(MobileBtn)`
   color: ${(props) => props.$headerDonateTextValue || "currentColor"};
   border-radius: 999px;
   box-shadow: 0 6px 16px rgba(122, 22, 17, 0.22);
-  ${IconWrap} {
-    --icon-wrap-size: 32px;
-    --icon-size: 14px;
-  }
 `;
 
 export const SearchOverlay = styled.div`

@@ -495,7 +495,7 @@ export default function Header({
                 $headerCtaBgValue={headerCtaBgValue}
                 $headerCtaTextValue={headerCtaTextValue}
               >
-                {volunteerLabel}
+                <span className="btn-label">{volunteerLabel}</span>
                 <IconWrap>
                   <img
                     loading="eager"
@@ -512,7 +512,7 @@ export default function Header({
                 $headerDonateBgValue={headerDonateBgValue}
                 $headerDonateTextValue={headerDonateTextValue}
               >
-                {donateLabel}
+                <span className="btn-label">{donateLabel}</span>
                 <IconWrap>
                   <img
                     loading="eager"
@@ -659,14 +659,7 @@ export default function Header({
               $headerCtaBgValue={headerCtaBgValue}
               $headerCtaTextValue={headerCtaTextValue}
             >
-              {volunteerLabel}
-              <IconWrap>
-                <img
-                  loading="lazy"
-                  src={volunteerIconMobileSrc}
-                  alt={volunteerLabel}
-                />
-              </IconWrap>
+              <span className="btn-label">{volunteerLabel}</span>
             </MobileBtnVolunteer>
           )}
           {(donateLabel || donateHref) && donateHref && (
@@ -676,14 +669,7 @@ export default function Header({
               $headerDonateBgValue={headerDonateBgValue}
               $headerDonateTextValue={headerDonateTextValue}
             >
-              {donateLabel}
-              <IconWrap>
-                <img
-                  loading="lazy"
-                  src={donateIconSrc}
-                  alt={donateLabel}
-                />
-              </IconWrap>
+              <span className="btn-label">{donateLabel}</span>
             </MobileBtnDonate>
           )}
         </MobileActions>
