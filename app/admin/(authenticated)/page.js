@@ -1,47 +1,12 @@
-import { Card, Row, Col, Statistic } from "antd";
-import { FileTextOutlined, BookOutlined, MailOutlined } from "@ant-design/icons";
-import { connectDB } from "@/lib/db";
-import Page from "@/models/Page";
-import Blog from "@/models/Blog";
-import ContactSubmission from "@/models/ContactSubmission";
-import AdminPageCard from "@/components/admin/AdminPageCard";
-
-async function getCounts() {
-  try {
-    await connectDB();
-    const [pages, posts, contacts] = await Promise.all([
-      Page.countDocuments(),
-      Blog.countDocuments(),
-      ContactSubmission.countDocuments(),
-    ]);
-    return { pages, posts, contacts };
-  } catch {
-    return { pages: 0, posts: 0, contacts: 0 };
-  }
-}
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { getDashboardData } from "@/lib/admin/dashboardData";
+import CommonDashboard from "@/components/admin/dashboard/CommonDashboard";
 
 export default async function AdminDashboardPage() {
-  const { pages, posts, contacts } = await getCounts();
+  const session = await getServerSession(authOptions);
+  const userRole = session?.user?.role || "";
+  const data = await getDashboardData(userRole);
 
-  return (
-    <AdminPageCard title="Dashboard">
-      <Row gutter={16}>
-        <Col xs={24} sm={8}>
-          <Card>
-            <Statistic title="Pages" value={pages} prefix={<FileTextOutlined />} />
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card>
-            <Statistic title="Blog posts" value={posts} prefix={<BookOutlined />} />
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card>
-            <Statistic title="Contact submissions" value={contacts} prefix={<MailOutlined />} />
-          </Card>
-        </Col>
-      </Row>
-    </AdminPageCard>
-  );
+  return <CommonDashboard data={data} />;
 }
