@@ -1,5 +1,6 @@
 import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
+import { normalizeRole } from "@/lib/permissions";
 
 const adminPathPrefix = "/admin";
 const loginPath = "/admin/login";
@@ -47,6 +48,7 @@ function isAuthorAllowedAdminPath(pathname) {
 
 function isAuthorAllowedAdminApi(pathname, method) {
   return (
+    pathname.startsWith("/api/admin/dashboard") ||
     pathname.startsWith("/api/admin/blogs") ||
     pathname.startsWith("/api/admin/events") ||
     (method === "GET" && pathname.startsWith("/api/admin/blog-categories"))
@@ -159,9 +161,10 @@ export async function middleware(req) {
     url.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(url);
   }
+  const role = normalizeRole(token);
 
   const adminOnlyPaths = ["/admin/users", "/admin/theme", "/api/admin/users"];
-  if (token.role !== "Admin" && adminOnlyPaths.some((p) => pathname.startsWith(p))) {
+  if (role !== "Admin" && adminOnlyPaths.some((p) => pathname.startsWith(p))) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Forbidden: Admin only" }, { status: 403 });
     }
@@ -171,7 +174,7 @@ export async function middleware(req) {
     return NextResponse.redirect(url);
   }
 
-  if (isFormBuilderPath(pathname) && token.role !== "Admin" && token.role !== "Editor") {
+  if (isFormBuilderPath(pathname) && role !== "Admin" && role !== "Editor") {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Forbidden: Form Builder access requires Admin or Editor role" }, { status: 403 });
     }
@@ -181,7 +184,7 @@ export async function middleware(req) {
     return NextResponse.redirect(url);
   }
 
-  if (token.role === "Author") {
+  if (role === "Author") {
     if (pathname.startsWith("/api/admin") && !isAuthorAllowedAdminApi(pathname, req.method)) {
       return NextResponse.json({ error: "Forbidden: Author access limited to blog/event APIs" }, { status: 403 });
     }

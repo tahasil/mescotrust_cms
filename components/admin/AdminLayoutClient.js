@@ -36,6 +36,7 @@ import {
   CloseOutlined,
 } from "@ant-design/icons";
 import { signOut } from "next-auth/react";
+import { normalizeRole } from "@/lib/permissions";
 
 const { Header, Content } = Layout;
 
@@ -314,6 +315,8 @@ const DEFAULT_ADMIN_THEME = {
 
 export default function AdminLayoutClient({ children, userName, userRole }) {
   const router = useRouter();
+  const normalizedRole = normalizeRole(userRole);
+  const roleLabel = normalizedRole || String(userRole || "").trim();
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -629,7 +632,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
   const sidebarVisible = isMobile ? mobileOpen : !collapsed;
   const contentMarginLeft = isMobile ? 0 : collapsed ? 0 : SIDEBAR_WIDTH;
   let menuItems = baseMenuItems;
-  if (userRole === "Author") {
+  if (normalizedRole === "Author") {
     const dashboard = baseMenuItems.find((item) => item.key === "/admin");
     const blogGroup = baseMenuItems.find((item) => item.key === "group:admin:blogs");
     const eventsGroup = baseMenuItems.find((item) => item.key === "group:admin:events");
@@ -645,7 +648,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
         : null,
       eventsGroup,
     ].filter(Boolean);
-  } else if (userRole !== "Admin") {
+  } else if (normalizedRole !== "Admin") {
     menuItems = baseMenuItems.filter((item) => item.key !== "/admin/users");
   }
   const selectedMenuKey = String(pathname || "").startsWith("/admin/popups/")
@@ -655,7 +658,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
     : pathname;
 
   const fetchNotifications = useCallback(() => {
-    if (userRole === "Author") {
+    if (normalizedRole === "Author") {
       setNotifications([]);
       prevCountRef.current = 0;
       return;
@@ -761,7 +764,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
         setNotifications(sliced);
       })
       .catch(() => {});
-  }, [userRole]);
+  }, [normalizedRole]);
 
   useEffect(() => {
     fetchNotifications();
@@ -1393,7 +1396,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
             style={{ fontSize: 18, color: at.adminTextColor }}
           />
           <Space size="middle" style={{ marginLeft: "auto" }}>
-            {userRole ? (
+            {roleLabel ? (
               <Typography.Text
                 style={{
                   color: at.adminTextColor,
@@ -1404,7 +1407,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
                   fontWeight: 600,
                 }}
               >
-                {userRole}
+                {roleLabel}
               </Typography.Text>
             ) : null}
             <Popover
