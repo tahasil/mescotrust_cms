@@ -56,7 +56,10 @@ export default function TitleAndColorsSection({
                   </Form.Item>
                 ) : (
                   <Form.Item key="switch" name={item.name} valuePropName="checked" noStyle style={{ marginBottom: 0 }}>
-                    <Switch />
+                    <Switch
+                      checkedChildren={item.checkedChildren}
+                      unCheckedChildren={item.unCheckedChildren}
+                    />
                   </Form.Item>
                 ),
               ]}

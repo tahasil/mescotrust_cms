@@ -1,14 +1,32 @@
 "use client";
 
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, message, Spin, Collapse } from "antd";
+import { Form, message, Spin, Collapse, InputNumber, Row, Col, Select } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import RichTextEditor from "@/components/admin/RichTextEditor";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/SectionIntro";
 const PREFIX = "sectionIntro";
+const DEFAULT_DESCRIPTION_FONT_SIZE = 16;
+const DEFAULT_DESCRIPTION_FONT_WEIGHT = 400;
+const DEFAULT_DESCRIPTION_LINE_HEIGHT = 1.7;
+
+function normalizeDescriptionHtml(value) {
+  if (value == null) return "";
+  return String(value).replace(/&nbsp;/gi, " ").replace(/\u00A0/g, " ").trim();
+}
+
+function toNumber(value, fallback) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
 
 /**
  * Edit form for SectionIntro — used in component edit drawer.
@@ -48,7 +66,28 @@ function SectionIntroEditForm({ source, initialData: initialDataProp, onSaveToPa
         titleColorKey: data.titleColorKey ?? "",
         ...getManageSectionInitialValues(PREFIX, data),
         ...data,
-        sectionIntroParagraph: data?.sectionIntroParagraph != null ? String(data.sectionIntroParagraph) : "",
+        sectionIntroTitleEnabled:
+          data?.sectionIntroTitleEnabled !== false &&
+          data?.sectionIntroTitleEnabled !== "false",
+        sectionIntroSubTitleEnabled:
+          data?.sectionIntroSubTitleEnabled !== false &&
+          data?.sectionIntroSubTitleEnabled !== "false",
+        sectionIntroDescriptionFontSize: clamp(
+          toNumber(data?.sectionIntroDescriptionFontSize, DEFAULT_DESCRIPTION_FONT_SIZE),
+          10,
+          80,
+        ),
+        sectionIntroDescriptionFontWeight: clamp(
+          toNumber(data?.sectionIntroDescriptionFontWeight, DEFAULT_DESCRIPTION_FONT_WEIGHT),
+          100,
+          900,
+        ),
+        sectionIntroDescriptionLineHeight: clamp(
+          toNumber(data?.sectionIntroDescriptionLineHeight, DEFAULT_DESCRIPTION_LINE_HEIGHT),
+          1,
+          3,
+        ),
+        sectionIntroParagraph: normalizeDescriptionHtml(data?.sectionIntroParagraph),
       });
       setLoading(false);
       return;
@@ -62,7 +101,28 @@ function SectionIntroEditForm({ source, initialData: initialDataProp, onSaveToPa
           titleColorKey: (data && data.titleColorKey) ?? "",
           ...getManageSectionInitialValues(PREFIX, data),
           ...(data && typeof data === "object" ? data : {}),
-          sectionIntroParagraph: data?.sectionIntroParagraph != null ? String(data.sectionIntroParagraph) : "",
+          sectionIntroTitleEnabled:
+            data?.sectionIntroTitleEnabled !== false &&
+            data?.sectionIntroTitleEnabled !== "false",
+          sectionIntroSubTitleEnabled:
+            data?.sectionIntroSubTitleEnabled !== false &&
+            data?.sectionIntroSubTitleEnabled !== "false",
+          sectionIntroDescriptionFontSize: clamp(
+            toNumber(data?.sectionIntroDescriptionFontSize, DEFAULT_DESCRIPTION_FONT_SIZE),
+            10,
+            80,
+          ),
+          sectionIntroDescriptionFontWeight: clamp(
+            toNumber(data?.sectionIntroDescriptionFontWeight, DEFAULT_DESCRIPTION_FONT_WEIGHT),
+            100,
+            900,
+          ),
+          sectionIntroDescriptionLineHeight: clamp(
+            toNumber(data?.sectionIntroDescriptionLineHeight, DEFAULT_DESCRIPTION_LINE_HEIGHT),
+            1,
+            3,
+          ),
+          sectionIntroParagraph: normalizeDescriptionHtml(data?.sectionIntroParagraph),
         });
       })
       .catch(() => message.error("Failed to load SectionIntro"))
@@ -74,7 +134,28 @@ function SectionIntroEditForm({ source, initialData: initialDataProp, onSaveToPa
       const values = form.getFieldsValue(true);
       const payload = {
         ...values,
-        sectionIntroParagraph: values.sectionIntroParagraph != null ? String(values.sectionIntroParagraph).trim() : "",
+        sectionIntroTitleEnabled:
+          values.sectionIntroTitleEnabled !== false &&
+          values.sectionIntroTitleEnabled !== "false",
+        sectionIntroSubTitleEnabled:
+          values.sectionIntroSubTitleEnabled !== false &&
+          values.sectionIntroSubTitleEnabled !== "false",
+        sectionIntroDescriptionFontSize: clamp(
+          toNumber(values.sectionIntroDescriptionFontSize, DEFAULT_DESCRIPTION_FONT_SIZE),
+          10,
+          80,
+        ),
+        sectionIntroDescriptionFontWeight: clamp(
+          toNumber(values.sectionIntroDescriptionFontWeight, DEFAULT_DESCRIPTION_FONT_WEIGHT),
+          100,
+          900,
+        ),
+        sectionIntroDescriptionLineHeight: clamp(
+          toNumber(values.sectionIntroDescriptionLineHeight, DEFAULT_DESCRIPTION_LINE_HEIGHT),
+          1,
+          3,
+        ),
+        sectionIntroParagraph: normalizeDescriptionHtml(values.sectionIntroParagraph),
         ...getManageSectionPayload(PREFIX, values),
       };
       if (isPageBlock && onSaveToPage) {
@@ -114,7 +195,7 @@ function SectionIntroEditForm({ source, initialData: initialDataProp, onSaveToPa
   return (
     <Form form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={["manage-section", "title-colors", "content"]}
+        defaultActiveKey={["manage-section", "title-colors", "description-typography", "content"]}
         items={[
           {
             key: "manage-section",
@@ -127,12 +208,47 @@ function SectionIntroEditForm({ source, initialData: initialDataProp, onSaveToPa
             children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("SectionIntro")} />,
           },
           {
+            key: "description-typography",
+            label: "Description Typography",
+            children: (
+              <Row gutter={12}>
+                <Col xs={24} md={8}>
+                  <Form.Item name="sectionIntroDescriptionFontSize" label="Font Size">
+                    <InputNumber min={10} max={80} step={1} style={{ width: "100%" }} addonAfter="px" />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={8}>
+                  <Form.Item name="sectionIntroDescriptionFontWeight" label="Font Weight">
+                    <Select
+                      options={[
+                        { label: "100", value: 100 },
+                        { label: "200", value: 200 },
+                        { label: "300", value: 300 },
+                        { label: "400", value: 400 },
+                        { label: "500", value: 500 },
+                        { label: "600", value: 600 },
+                        { label: "700", value: 700 },
+                        { label: "800", value: 800 },
+                        { label: "900", value: 900 },
+                      ]}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={8}>
+                  <Form.Item name="sectionIntroDescriptionLineHeight" label="Line Height">
+                    <InputNumber min={1} max={3} step={0.1} style={{ width: "100%" }} />
+                  </Form.Item>
+                </Col>
+              </Row>
+            ),
+          },
+          {
             key: "content",
             label: "Content",
             children: (
               <>
-                <Form.Item name="sectionIntroParagraph" label="Paragraph / Description">
-                  <Input.TextArea rows={4} placeholder="Enter paragraph/description text" />
+                <Form.Item name="sectionIntroParagraph" label="Description">
+                  <RichTextEditor placeholder="Enter description..." />
                 </Form.Item>
               </>
             ),
