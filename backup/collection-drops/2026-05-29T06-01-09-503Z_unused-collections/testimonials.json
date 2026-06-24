@@ -1,0 +1,26 @@
+{
+  "collection": "testimonials",
+  "count": 1,
+  "backedUpAt": "2026-05-29T06:01:10.403Z",
+  "docs": [
+    {
+      "_id": "69d785f5d5fad4c1d89b0ffd",
+      "name": "test",
+      "title": "test role",
+      "quote": "test",
+      "imageUrl": "",
+      "rating": 5,
+      "category": "other",
+      "featured": false,
+      "order": 0,
+      "status": "published",
+      "publishedAt": "2026-04-09T10:56:53.801Z",
+      "locale": "en",
+      "createdBy": "admin@example.com",
+      "updatedBy": "admin@example.com",
+      "createdAt": "2026-04-09T10:56:53.954Z",
+      "updatedAt": "2026-04-09T10:56:53.954Z",
+      "__v": 0
+    }
+  ]
+}

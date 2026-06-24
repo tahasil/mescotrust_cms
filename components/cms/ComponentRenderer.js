@@ -42,7 +42,7 @@ import AntDividerBlock from "@/components/cms/blocks/antd/AntDivider";
 import AntAlertBlock from "@/components/cms/blocks/antd/AntAlert";
 import AntTypographyBlock from "@/components/cms/blocks/antd/AntTypography";
 import AntSpaceBlock from "@/components/cms/blocks/antd/AntSpace";
-import * as SiteComponents from "@/components/site";
+import * as SiteComponents from "@/components/site/publicComponents";
 import { PageContainer } from "@/styles/Theme";
 import FadeInSection from "@/components/cms/FadeInSection";
 
@@ -131,6 +131,7 @@ const AWARDS_TO_OVERVIEW_PROP_KEYS = {
   awardsRecognitionCardTitleColorKey: "overviewOfOurWorkCardTitleColorKey",
   awardsRecognitionCardBorderColorKey: "overviewOfOurWorkCardBorderColorKey",
   awardsRecognitionButtonColorKey: "overviewOfOurWorkButtonColorKey",
+  awardsRecognitionIconHoverColorKey: "overviewOfOurWorkIconHoverColorKey",
   awardsRecognitionHoverColorKey: "overviewOfOurWorkHoverColorKey",
 };
 

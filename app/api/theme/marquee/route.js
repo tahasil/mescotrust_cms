@@ -7,30 +7,69 @@ import { getToken } from "next-auth/jwt";
 import { connectDB } from "@/lib/db";
 import Component from "@/models/Component";
 import { isAdmin } from "@/lib/permissions";
+import { validateMarqueeImages } from "@/lib/marqueeImageValidation";
 
 export const dynamic = "force-dynamic";
 
 const MARQUEE_DEFAULTS = {
   marqueeTitle: "Our CSR Partners | Awards & Recognition",
   marqueeItems: [],
+  marqueeTitleColorKey: "",
 };
 
 function normalizeItem(it) {
+  const desktop =
+    it?.urlDesktop != null
+      ? String(it.urlDesktop).trim()
+      : it?.url != null
+        ? String(it.url).trim()
+        : "";
+  const mobile =
+    it?.urlMobile != null ? String(it.urlMobile).trim() : "";
   return {
-    url: it?.url != null ? String(it.url).trim() : "",
+    urlDesktop: desktop,
+    urlMobile: mobile,
+    url: desktop,
     alt: it?.alt != null ? String(it.alt).trim() : "",
   };
 }
 
-function toPayload(defaultProps) {
-  const title =
-    defaultProps?.marqueeTitle != null
-      ? String(defaultProps.marqueeTitle).trim()
+function normalizeMarqueeProps(input) {
+  const payload = input && typeof input === "object" ? input : {};
+  const out = { ...MARQUEE_DEFAULTS, ...payload };
+  out.marqueeTitle =
+    out.marqueeTitle != null
+      ? String(out.marqueeTitle).trim()
       : MARQUEE_DEFAULTS.marqueeTitle;
-  const items = Array.isArray(defaultProps?.marqueeItems)
-    ? defaultProps.marqueeItems.map(normalizeItem)
-    : MARQUEE_DEFAULTS.marqueeItems;
-  return { marqueeTitle: title, marqueeItems: items };
+  out.marqueeItems = Array.isArray(out.marqueeItems)
+    ? out.marqueeItems.map(normalizeItem)
+    : [];
+  if (out.marqueeTitleColorKey != null) {
+    out.marqueeTitleColorKey = String(out.marqueeTitleColorKey).trim();
+  }
+  for (const [key, value] of Object.entries(out)) {
+    if (
+      key === "marqueeTitle" ||
+      key === "marqueeItems" ||
+      key === "marqueeTitleColorKey"
+    ) {
+      continue;
+    }
+    if (typeof value === "string") out[key] = value.trim();
+  }
+  return out;
+}
+
+function toPayload(defaultProps) {
+  const out = normalizeMarqueeProps(defaultProps);
+  if (defaultProps && typeof defaultProps === "object") {
+    for (const key of Object.keys(defaultProps)) {
+      if (out[key] !== undefined) continue;
+      const value = defaultProps[key];
+      out[key] = typeof value === "string" ? value.trim() : value;
+    }
+  }
+  return out;
 }
 
 export async function GET() {
@@ -54,27 +93,35 @@ export async function PUT(req) {
 
   try {
     const body = await req.json();
-    const marqueeTitle =
-      body.marqueeTitle != null ? String(body.marqueeTitle).trim() : MARQUEE_DEFAULTS.marqueeTitle;
-    const marqueeItems = Array.isArray(body.marqueeItems)
-      ? body.marqueeItems.map(normalizeItem)
-      : MARQUEE_DEFAULTS.marqueeItems;
+    const payload = body && typeof body === "object" ? body : {};
 
     await connectDB();
     let doc = await Component.findOne({ baseComponent: "Marquee" });
-    const defaultProps = { marqueeTitle, marqueeItems };
     if (!doc) {
+      const defaultProps = normalizeMarqueeProps(payload);
+      const validationErrors = await validateMarqueeImages(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json({ error: validationErrors[0] }, { status: 400 });
+      }
       doc = await Component.create({
         name: "Marquee",
         displayName: "Marquee",
         type: "system",
         baseComponent: "Marquee",
-        defaultProps,
+        defaultProps: { ...defaultProps },
         layout: [],
         active: true,
       });
     } else {
-      doc.defaultProps = { ...(doc.defaultProps || {}), ...defaultProps };
+      const nextDefaultProps = normalizeMarqueeProps({
+        ...(doc.defaultProps || {}),
+        ...payload,
+      });
+      const validationErrors = await validateMarqueeImages(nextDefaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json({ error: validationErrors[0] }, { status: 400 });
+      }
+      doc.defaultProps = nextDefaultProps;
       doc.markModified("defaultProps");
       await doc.save();
     }

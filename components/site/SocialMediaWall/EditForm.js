@@ -1,60 +1,154 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, Row, Col, Collapse, message, Spin, Select, Switch } from "antd";
+import {
+  Form,
+  Input,
+  Row,
+  Col,
+  Collapse,
+  message,
+  Spin,
+  Select,
+  Switch,
+  InputNumber,
+} from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
-import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/SocialMediaWall";
+const SECURE_CONFIG_API_PATH = "/api/admin/social-wall-config";
 const PREFIX = "socialMediaWall";
 
 const PLATFORM_OPTIONS = [
   { label: "Instagram", value: "instagram" },
   { label: "Facebook", value: "facebook" },
-  { label: "LinkedIn", value: "linkedin" },
   { label: "YouTube", value: "youtube" },
-  { label: "X (Twitter)", value: "twitter" },
-  { label: "WhatsApp", value: "whatsapp" },
-  { label: "Google Maps", value: "googlemaps" },
-  { label: "Other", value: "other" },
+  { label: "Twitter/X", value: "twitter" },
 ];
 
-const DEFAULT_POSTS = [
-  { platform: "instagram", username: "@mescotrust", caption: "", imageDesktop: "", imageMobile: "", image: "", date: "", postUrl: "", enabled: true },
-  { platform: "facebook", username: "MESCO Trust", caption: "", imageDesktop: "", imageMobile: "", image: "", date: "", postUrl: "", enabled: true },
-  { platform: "youtube", username: "MESCO Trust", caption: "", imageDesktop: "", imageMobile: "", image: "", date: "", postUrl: "", enabled: true },
+const DEFAULT_PLATFORMS = [
+  { platform: "instagram", accessToken: "", accountId: "", apiKey: "", active: true, order: 1 },
+  { platform: "facebook", accessToken: "", accountId: "", apiKey: "", active: true, order: 2 },
+  { platform: "youtube", accessToken: "", accountId: "", apiKey: "", active: true, order: 3 },
+  { platform: "twitter", accessToken: "", accountId: "", apiKey: "", active: true, order: 4 },
 ];
 
-function normalizePost(it) {
-  const desktopImage =
-    it?.imageDesktop != null
-      ? String(it.imageDesktop).trim()
-      : it?.image != null
-        ? String(it.image).trim()
-        : "";
-  const mobileImage =
-    it?.imageMobile != null ? String(it.imageMobile).trim() : "";
+const LAYOUT_OPTIONS = [
+  { label: "Grid", value: "grid" },
+  { label: "Masonry", value: "masonry" },
+  { label: "Carousel", value: "carousel" },
+];
+
+function safeString(value) {
+  return value == null ? "" : String(value).trim();
+}
+
+function normalizeOrder(value, fallback) {
+  const num = Number(value);
+  if (!Number.isFinite(num) || num <= 0) return fallback;
+  return Math.floor(num);
+}
+
+function normalizePostLimit(value) {
+  const num = Number(value);
+  if (!Number.isFinite(num) || num <= 0) return 12;
+  return Math.min(60, Math.floor(num));
+}
+
+function normalizeLayoutMode(value) {
+  const mode = safeString(value).toLowerCase();
+  return ["grid", "masonry", "carousel"].includes(mode) ? mode : "masonry";
+}
+
+function normalizePlatform(item, index = 0) {
+  const platform = safeString(item?.platform).toLowerCase();
+  const isKnownPlatform = PLATFORM_OPTIONS.some((option) => option.value === platform);
   return {
-    platform: it?.platform != null ? String(it.platform).trim() : "other",
-    username: it?.username != null ? String(it.username).trim() : "",
-    caption: it?.caption != null ? String(it.caption).trim() : "",
-    imageDesktop: desktopImage,
-    imageMobile: mobileImage,
-    image: desktopImage,
-    date: it?.date != null ? String(it.date).trim() : "",
-    postUrl: it?.postUrl != null ? String(it.postUrl).trim() : "",
-    enabled: it?.enabled !== false,
+    platform: isKnownPlatform ? platform : "instagram",
+    accessToken: safeString(item?.accessToken),
+    accountId: safeString(item?.accountId),
+    apiKey: safeString(item?.apiKey),
+    active: item?.active !== false,
+    order: normalizeOrder(item?.order ?? item?.displayOrder, index + 1),
+    hasAccessToken: item?.hasAccessToken === true,
+    hasAccountId: item?.hasAccountId === true,
+    hasApiKey: item?.hasApiKey === true,
+    accessTokenMasked: safeString(item?.accessTokenMasked),
+    accountIdMasked: safeString(item?.accountIdMasked),
+    apiKeyMasked: safeString(item?.apiKeyMasked),
   };
 }
 
-function SocialMediaWallEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [] }, ref) {
+function dedupeAndSortPlatforms(rows) {
+  const map = new Map();
+  rows.forEach((row) => {
+    if (row?.platform) map.set(row.platform, row);
+  });
+  return Array.from(map.values()).sort((a, b) => a.order - b.order);
+}
+
+function mergePlatformRows(componentRowsRaw, secureRowsRaw) {
+  const merged = new Map(
+    DEFAULT_PLATFORMS.map((item, index) => [
+      item.platform,
+      normalizePlatform(item, index),
+    ]),
+  );
+
+  const componentRows = Array.isArray(componentRowsRaw)
+    ? componentRowsRaw.map((item, index) => normalizePlatform(item, index))
+    : [];
+  const secureRows = Array.isArray(secureRowsRaw)
+    ? secureRowsRaw.map((item, index) => normalizePlatform(item, index))
+    : [];
+
+  componentRows.forEach((row) => {
+    const previous = merged.get(row.platform) || {};
+    merged.set(row.platform, {
+      ...previous,
+      platform: row.platform,
+      active: row.active,
+      order: row.order,
+    });
+  });
+
+  secureRows.forEach((row) => {
+    const previous = merged.get(row.platform) || {};
+    merged.set(row.platform, {
+      ...previous,
+      ...row,
+      platform: row.platform,
+      active: row.active,
+      order: row.order,
+      accessToken: safeString(row.accessToken),
+      accountId: safeString(row.accountId),
+      apiKey: safeString(row.apiKey),
+    });
+  });
+
+  return dedupeAndSortPlatforms(Array.from(merged.values()));
+}
+
+function fetchJson(url) {
+  return fetch(url, { cache: "no-store" }).then((res) => (res.ok ? res.json() : {}));
+}
+
+function SocialMediaWallEditForm(
+  {
+    source,
+    initialData: initialDataProp,
+    onSaveToPage,
+    onSuccess,
+    themeColorOptions: themeColorOptionsProp = [],
+  },
+  ref,
+) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [themeColorOptions, setThemeColorOptions] = useState(themeColorOptionsProp);
   const [reorderMovedIndex, setReorderMovedIndex] = useState(-1);
   const [reorderDirection, setReorderDirection] = useState("up");
@@ -67,36 +161,68 @@ function SocialMediaWallEditForm({ source, initialData: initialDataProp, onSaveT
 
   useEffect(() => {
     setLoading(true);
-    const setFormAndColors = (data, theme) => {
-      const posts = Array.isArray(data?.socialMediaWallPosts)
-        ? data.socialMediaWallPosts.map(normalizePost)
-        : [];
+
+    const setFormAndColors = (data, theme, secureData) => {
+      const spacingValue = Number(data?.socialMediaWallSectionSpacing);
+      const normalizedForSection = {
+        ...(data || {}),
+        ...(data?.socialMediaWallSectionBgType !== "image" &&
+        data?.socialMediaWallSectionBgType !== "color" &&
+        safeString(data?.socialMediaWallSectionBgColorKey)
+          ? { socialMediaWallSectionBgType: "color" }
+          : {}),
+        ...(data?.socialMediaWallSectionPaddingTop == null &&
+        data?.socialMediaWallSectionPaddingBottom == null &&
+        Number.isFinite(spacingValue) &&
+        spacingValue >= 0
+          ? {
+              socialMediaWallSectionPaddingTop: Math.floor(spacingValue),
+              socialMediaWallSectionPaddingBottom: Math.floor(spacingValue),
+            }
+          : {}),
+      };
+
+      const platforms = mergePlatformRows(
+        data?.socialMediaWallPlatforms,
+        secureData?.items,
+      );
+
       form.setFieldsValue({
-        ...getManageSectionInitialValues(PREFIX, data),
-        mainTitle: data?.mainTitle != null ? String(data.mainTitle).trim() : "Social Media Wall",
-        subTitle: data?.subTitle != null ? String(data.subTitle).trim() : "",
-        titleColorKey: data?.titleColorKey != null ? String(data.titleColorKey).trim() : "",
+        ...getManageSectionInitialValues(PREFIX, normalizedForSection),
+        socialMediaWallEnabled: data?.socialMediaWallEnabled !== false,
+        mainTitle: safeString(data?.mainTitle || "Social Media Wall") || "Social Media Wall",
+        subTitle: safeString(data?.subTitle),
+        titleColorKey: safeString(data?.titleColorKey),
         socialMediaWallTitleEnabled: data?.socialMediaWallTitleEnabled !== false,
         socialMediaWallSubTitleEnabled: data?.socialMediaWallSubTitleEnabled !== false,
-        socialMediaWallSubTitleColorKey: data?.socialMediaWallSubTitleColorKey != null ? String(data.socialMediaWallSubTitleColorKey).trim() : "",
-        socialMediaWallPosts: posts.length > 0 ? posts : DEFAULT_POSTS.map(normalizePost),
+        socialMediaWallSubTitleColorKey: safeString(data?.socialMediaWallSubTitleColorKey),
+        socialMediaWallPlatforms: platforms,
+        socialMediaWallPostLimit: normalizePostLimit(data?.socialMediaWallPostLimit),
+        socialMediaWallLayoutMode: normalizeLayoutMode(data?.socialMediaWallLayoutMode),
+        socialMediaWallShowPlatformIcon: data?.socialMediaWallShowPlatformIcon !== false,
       });
+
       if (theme) {
         const palette = theme?.themePalette || {};
         const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
-        const names = [...new Set([...Object.keys(palette), ...customColors.map((c) => c?.name).filter(Boolean)])].sort();
+        const names = [
+          ...new Set([
+            ...Object.keys(palette),
+            ...customColors.map((color) => color?.name).filter(Boolean),
+          ]),
+        ].sort();
         setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
       }
     };
 
     if (isPageBlock) {
       const data = initialDataProp ?? {};
-      setFormAndColors(data);
+      setFormAndColors(data, null, null);
+
       if (!themeFetchedForColorsRef.current) {
         themeFetchedForColorsRef.current = true;
-        fetch("/api/theme", { cache: "no-store" })
-          .then((res) => (res.ok ? res.json() : {}))
-          .then((theme) => setFormAndColors(data, theme))
+        fetchJson("/api/theme")
+          .then((theme) => setFormAndColors(data, theme, null))
           .catch(() => {})
           .finally(() => setLoading(false));
       } else {
@@ -104,161 +230,323 @@ function SocialMediaWallEditForm({ source, initialData: initialDataProp, onSaveT
       }
       return;
     }
+
     Promise.all([
-      fetch(API_PATH, { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
-      fetch("/api/theme", { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
+      fetchJson(API_PATH),
+      fetchJson("/api/theme"),
+      fetchJson(SECURE_CONFIG_API_PATH),
     ])
-      .then(([data, theme]) => setFormAndColors(data, theme))
-      .catch(() => message.error("Failed to load Social Media Wall"))
+      .then(([data, theme, secureData]) => setFormAndColors(data, theme, secureData))
+      .catch(() => message.error("Failed to load Social Media Wall settings"))
       .finally(() => setLoading(false));
   }, [form, isPageBlock, initialDataProp]);
 
-  const handleUpdate = () => {
-    form.validateFields().then(() => {
+  const handleUpdate = async () => {
+    try {
+      await form.validateFields();
       const values = form.getFieldsValue(true);
-      const rawPosts = values.socialMediaWallPosts ?? [];
-      const posts = Array.isArray(rawPosts) ? rawPosts.map(normalizePost) : [];
+      const platforms = dedupeAndSortPlatforms(
+        (Array.isArray(values?.socialMediaWallPlatforms)
+          ? values.socialMediaWallPlatforms
+          : []
+        )
+          .map((item, index) => normalizePlatform(item, index))
+          .filter(Boolean),
+      );
+
+      if (platforms.length === 0) {
+        message.error("At least one platform configuration is required");
+        return;
+      }
+
+      const platformComponentPayload = platforms.map((item) => ({
+        platform: item.platform,
+        active: item.active !== false,
+        order: normalizeOrder(item.order, 1),
+        feedMode: "both",
+        visibility: "all",
+        postLimit: normalizePostLimit(values?.socialMediaWallPostLimit),
+      }));
+
       const payload = {
         ...getManageSectionPayload(PREFIX, values),
-        mainTitle: values.mainTitle != null ? String(values.mainTitle).trim() : "Social Media Wall",
-        subTitle: values.subTitle != null ? String(values.subTitle).trim() : "",
-        titleColorKey: values.titleColorKey != null ? String(values.titleColorKey).trim() : "",
-        socialMediaWallTitleEnabled: values.socialMediaWallTitleEnabled !== false,
-        socialMediaWallSubTitleEnabled: values.socialMediaWallSubTitleEnabled !== false,
-        socialMediaWallSubTitleColorKey: values.socialMediaWallSubTitleColorKey != null ? String(values.socialMediaWallSubTitleColorKey).trim() : "",
-        socialMediaWallPosts: posts,
+        socialMediaWallEnabled: values?.socialMediaWallEnabled !== false,
+        mainTitle: safeString(values?.mainTitle || "Social Media Wall") || "Social Media Wall",
+        subTitle: safeString(values?.subTitle),
+        titleColorKey: safeString(values?.titleColorKey),
+        socialMediaWallTitleEnabled: values?.socialMediaWallTitleEnabled !== false,
+        socialMediaWallSubTitleEnabled: values?.socialMediaWallSubTitleEnabled !== false,
+        socialMediaWallSubTitleColorKey: safeString(values?.socialMediaWallSubTitleColorKey),
+        socialMediaWallPlatforms: platformComponentPayload,
+        socialMediaWallPostLimit: normalizePostLimit(values?.socialMediaWallPostLimit),
+        socialMediaWallLayoutMode: normalizeLayoutMode(values?.socialMediaWallLayoutMode),
+        socialMediaWallShowPlatformIcon: values?.socialMediaWallShowPlatformIcon !== false,
+        socialMediaWallSectionSpacing: -1,
+        socialMediaWallEnableLivePosts: true,
+        socialMediaWallOrderMode: "platform-priority",
       };
+
       if (isPageBlock && onSaveToPage) {
         onSaveToPage(payload);
         message.success("Changes will be saved with the page");
         onSuccess?.();
         return;
       }
-      setSaving(true);
-      fetch(API_PATH, {
+
+      const credentialRows = platforms.map((item) => ({
+        platform: item.platform,
+        accessToken: safeString(item.accessToken),
+        accountId: safeString(item.accountId),
+        apiKey: safeString(item.apiKey),
+        active: item.active !== false,
+        displayOrder: normalizeOrder(item.order, 1),
+      }));
+
+      const secureRes = await fetch(SECURE_CONFIG_API_PATH, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: credentialRows }),
+      });
+      if (!secureRes.ok) {
+        const errorPayload = await secureRes.json().catch(() => ({}));
+        throw new Error(errorPayload?.error || "Failed to save platform credentials");
+      }
+
+      const themeRes = await fetch(API_PATH, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-      })
-        .then((res) => { if (!res.ok) return res.json().then((d) => Promise.reject(d)); })
-        .then(() => { message.success("Social Media Wall saved"); onSuccess?.(); })
-        .catch((err) => message.error(err?.error || "Failed to save"))
-        .finally(() => setSaving(false));
-    }).catch(() => {});
+      });
+      if (!themeRes.ok) {
+        const errorPayload = await themeRes.json().catch(() => ({}));
+        throw new Error(errorPayload?.error || "Failed to save Social Media Wall settings");
+      }
+
+      message.success("Social Media Wall saved");
+      onSuccess?.();
+    } catch (err) {
+      if (err?.errorFields) return;
+      message.error(err?.message || "Failed to save");
+    }
   };
 
-  useImperativeHandle(ref, () => ({ update: handleUpdate }), []);
+  useImperativeHandle(ref, () => ({ update: handleUpdate }), [handleUpdate]);
 
   if (loading) {
-    return <div style={{ padding: 48, textAlign: "center" }}><Spin /></div>;
+    return (
+      <div style={{ padding: 48, textAlign: "center" }}>
+        <Spin />
+      </div>
+    );
   }
 
   return (
     <Form form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={["posts"]}
+        defaultActiveKey={["platform-configurations"]}
         items={[
           {
             key: "manage-section",
             label: "Manage Section",
-            children: <ManageSectionFields prefix={PREFIX} form={form} themeColorOptions={themeColorOptions} />,
+            children: (
+              <>
+                <div style={{ marginBottom: 16 }}>
+                  <Form.Item
+                    name="socialMediaWallEnabled"
+                    label="Enable component"
+                    valuePropName="checked"
+                    style={{ marginBottom: 0 }}
+                  >
+                    <Switch />
+                  </Form.Item>
+                </div>
+                <ManageSectionFields
+                  prefix={PREFIX}
+                  form={form}
+                  themeColorOptions={themeColorOptions}
+                />
+              </>
+            ),
           },
           {
             key: "title-colors",
             label: "Title & Colors",
-            children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("SocialMediaWall")} />,
+            children: (
+              <TitleAndColorsSection
+                form={form}
+                themeColorOptions={themeColorOptions}
+                {...getTitleAndColorsConfig("SocialMediaWall")}
+              />
+            ),
           },
           {
-            key: "posts",
-            label: "Manage Posts",
+            key: "display-settings",
+            label: "Display Settings",
             children: (
-              <Form.List name="socialMediaWallPosts">
-                {(fields, { add, remove, move }) => (
-                  <SortableFormList
-                    fields={fields}
-                    add={add}
-                    remove={remove}
-                    move={move}
-                    itemLabel="Post"
-                    addButtonText="Add post"
-                    defaultAddPayload={{
-                      platform: "instagram",
-                      username: "",
-                      caption: "",
-                      imageDesktop: "",
-                      imageMobile: "",
-                      image: "",
-                      date: "",
-                      postUrl: "",
-                      enabled: true,
-                    }}
-                    reorderMovedIndex={reorderMovedIndex}
-                    reorderDirection={reorderDirection}
-                    onMoveWithTransition={(from, to) => {
-                      setReorderDirection(to < from ? "up" : "down");
-                      setReorderMovedIndex(to);
-                      setTimeout(() => setReorderMovedIndex(-1), 400);
-                    }}
-                    renderItemContent={(name, restField) => (
-                      <Row gutter={[16, 16]}>
-                        <Col span={10}>
-                          <Form.Item {...restField} name={[name, "platform"]} label="Platform">
-                            <Select options={PLATFORM_OPTIONS} size="large" />
-                          </Form.Item>
-                        </Col>
-                        <Col span={11}>
-                          <Form.Item {...restField} name={[name, "username"]} label="Username / Source">
-                            <Input placeholder="e.g. @mescotrust" size="large" />
-                          </Form.Item>
-                        </Col>
-                        <Col span={3}>
-                          <Form.Item {...restField} name={[name, "enabled"]} label="Active" valuePropName="checked">
-                            <Switch />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "imageDesktop"]} label="Desktop Image">
-                            <MediaPickerInput
-                              placeholder="/uploads/post-image.webp or https://..."
-                              uiVariant="stacked"
-                              hintText="Recommended for desktop/tablet"
-                            />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "imageMobile"]} label="Mobile Image">
-                            <MediaPickerInput
-                              placeholder="/uploads/post-image-mobile.webp or https://..."
-                              uiVariant="stacked"
-                              hintText="Optional. Desktop image will be used if empty."
-                            />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "caption"]} label="Caption / Text">
-                            <Input.TextArea rows={3} placeholder="Post caption or description..." size="large" />
-                          </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                          <Form.Item {...restField} name={[name, "date"]} label="Date">
-                            <Input placeholder="e.g. 14 Apr, 2025" size="large" />
-                          </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                          <Form.Item
-                            {...restField}
-                            name={[name, "postUrl"]}
-                            label="Post URL"
-                            tooltip="Link to the original post. Opens in modal 'View on Platform' button."
-                          >
-                            <Input placeholder="https://www.instagram.com/p/ABC123/" size="large" />
-                          </Form.Item>
-                        </Col>
-                      </Row>
-                    )}
-                  />
-                )}
-              </Form.List>
+              <Row gutter={[16, 16]}>
+                <Col xs={24} md={8}>
+                  <Form.Item name="socialMediaWallPostLimit" label="Posts to show">
+                    <InputNumber min={1} max={60} style={{ width: "100%" }} size="large" />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={8}>
+                  <Form.Item name="socialMediaWallLayoutMode" label="Layout style">
+                    <Select options={LAYOUT_OPTIONS} size="large" />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={8}>
+                  <Form.Item
+                    name="socialMediaWallShowPlatformIcon"
+                    label="Show platform icon"
+                    valuePropName="checked"
+                  >
+                    <Switch />
+                  </Form.Item>
+                </Col>
+              </Row>
+            ),
+          },
+          {
+            key: "platform-configurations",
+            label: "SocialMediaWall Configuration",
+            children: (
+              <>
+                <Form.List name="socialMediaWallPlatforms">
+                  {(fields, { add, remove, move }) => (
+                    <SortableFormList
+                      fields={fields}
+                      add={add}
+                      remove={remove}
+                      move={move}
+                      itemLabel="Platform"
+                      addButtonText="Add platform configuration"
+                      defaultAddPayload={{
+                        platform: "instagram",
+                        accessToken: "",
+                        accountId: "",
+                        apiKey: "",
+                        active: true,
+                        order: fields.length + 1,
+                      }}
+                      reorderMovedIndex={reorderMovedIndex}
+                      reorderDirection={reorderDirection}
+                      hideRemove
+                      resolveItemTitle={(name) => `Platform ${name + 1}`}
+                      onMoveWithTransition={(from, to) => {
+                        setReorderDirection(to < from ? "up" : "down");
+                        setReorderMovedIndex(to);
+                        setTimeout(() => setReorderMovedIndex(-1), 400);
+                      }}
+                      renderItemContent={(name, restField) => {
+                        return (
+                          <Row gutter={[0, 0]}>
+                            <Col xs={24}>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  marginBottom: 12,
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontSize: 14,
+                                    fontWeight: 500,
+                                    color: "rgba(0,0,0,0.88)",
+                                  }}
+                                >
+                                  Active Status
+                                </span>
+                                <Form.Item
+                                  {...restField}
+                                  name={[name, "active"]}
+                                  valuePropName="checked"
+                                  style={{ marginBottom: 0 }}
+                                >
+                                  <Switch />
+                                </Form.Item>
+                              </div>
+                            </Col>
+
+                            <Col xs={24}>
+                              <Form.Item
+                                {...restField}
+                                name={[name, "platform"]}
+                                label="Platform"
+                                rules={[{ required: true, message: "Platform is required" }]}
+                                style={{ marginBottom: 12 }}
+                              >
+                                <Select options={PLATFORM_OPTIONS} size="large" />
+                              </Form.Item>
+                            </Col>
+
+                            <Col xs={24}>
+                              <Form.Item
+                                {...restField}
+                                name={[name, "order"]}
+                                label="Display Order"
+                                rules={[{ required: true, message: "Display order is required" }]}
+                                style={{ marginBottom: 12 }}
+                              >
+                                <InputNumber min={1} max={99} size="large" style={{ width: "100%" }} />
+                              </Form.Item>
+                            </Col>
+
+                            {!isPageBlock ? (
+                              <Col xs={24}>
+                                <Form.Item
+                                  {...restField}
+                                  name={[name, "accessToken"]}
+                                  label="ACCESS_TOKEN"
+                                  style={{ marginBottom: 12 }}
+                                >
+                                  <Input.Password
+                                    size="large"
+                                    placeholder="Enter ACCESS_TOKEN (leave blank to keep existing)"
+                                  />
+                                </Form.Item>
+                              </Col>
+                            ) : null}
+
+                            {!isPageBlock ? (
+                              <Col xs={24}>
+                                <Form.Item
+                                  {...restField}
+                                  name={[name, "accountId"]}
+                                  label="USER_ID / CHANNEL_ID / PAGE_ID"
+                                  style={{ marginBottom: 12 }}
+                                >
+                                  <Input
+                                    size="large"
+                                    placeholder="Enter USER_ID / CHANNEL_ID / PAGE_ID"
+                                  />
+                                </Form.Item>
+                              </Col>
+                            ) : null}
+
+                            {!isPageBlock ? (
+                              <Col xs={24}>
+                                <Form.Item
+                                  {...restField}
+                                  name={[name, "apiKey"]}
+                                  label="API_KEY"
+                                  style={{ marginBottom: 12 }}
+                                >
+                                  <Input.Password
+                                    size="large"
+                                    placeholder="Enter API_KEY (leave blank to keep existing)"
+                                  />
+                                </Form.Item>
+                              </Col>
+                            ) : null}
+                          </Row>
+                        );
+                      }}
+                    />
+                  )}
+                </Form.List>
+              </>
             ),
           },
         ]}

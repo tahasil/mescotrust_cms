@@ -10,7 +10,15 @@
     "seed": "node scripts/seed.js",
     "check-db": "node scripts/check-db.js",
     "seed-subscribe": "node scripts/seed-subscribe-from-mescotrust.js",
-    "backup-db": "node scripts/backup-db.js"
+    "backup-db": "node scripts/backup-db.js",
+    "sync-missing-media": "node scripts/sync-missing-media.js",
+    "form-upload-cleanup": "node scripts/form-upload-cleanup.js",
+    "form-builder-qa": "node scripts/form-builder-qa.js",
+    "test:media-delivery": "node --test scripts/test-media-delivery.js",
+    "test:media-crop-contract": "node --test scripts/test-media-crop-contract.js",
+    "test:media-ui-contracts": "node --test scripts/test-media-ui-contracts.js",
+    "test:media-phase8": "npm run test:media-delivery && npm run test:media-crop-contract && npm run test:media-ui-contracts",
+    "qa:media-phase8": "node scripts/media-phase8-qa.js"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.0",
@@ -21,6 +29,7 @@
     "antd": "^5.22.0",
     "bcryptjs": "^2.4.3",
     "bootstrap": "^5.3.3",
+    "cropperjs": "^1.6.2",
     "gsap": "^3.14.2",
     "isomorphic-dompurify": "^2.36.0",
     "lenis": "^1.3.19",
@@ -30,12 +39,15 @@
     "next-auth": "^4.24.10",
     "react": "^18.3.1",
     "react-bootstrap": "^2.10.2",
+    "react-cropper": "^2.3.3",
     "react-dom": "^18.3.1",
+    "react-easy-crop": "^5.5.3",
     "react-fast-marquee": "^1.6.5",
     "react-quill-new": "^3.8.3",
     "sharp": "^0.34.5",
     "slugify": "^1.6.6",
-    "styled-components": "^6.1.8"
+    "styled-components": "^6.1.8",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "dotenv": "^16.4.5",

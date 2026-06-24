@@ -8,13 +8,15 @@ import { runMediaJob } from "@/lib/media/jobsRunner";
 
 const ALLOWED_JOB_TYPES = [
   "bulk_optimize",
-  "regenerate_sizes",
   "convert_formats",
 ];
 
 export async function GET(req) {
   const session = await requireAuth(req);
   if (session instanceof NextResponse) return session;
+  if (!isAdmin(session)) {
+    return NextResponse.json({ error: "Forbidden: Admin only" }, { status: 403 });
+  }
 
   try {
     await connectDB();

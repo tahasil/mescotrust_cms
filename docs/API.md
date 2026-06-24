@@ -20,13 +20,15 @@ All API routes live under `/api/`. The convention is:
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/public/pages/[slug]` | Single published page by slug |
+| GET | `/api/public/forms/[formId]` | Published Form Builder runtime schema by immutable `formId` |
+| GET | `/api/public/forms/resolve?shortcode=...` | Published Form Builder runtime schema by immutable shortcode |
 | GET | `/api/public/blogs?page=1&limit=12&category=slug` | Published blog posts (paginated, filterable) |
 | GET | `/api/public/blogs/[slug]` | Single published blog post by slug |
 | GET | `/api/public/blog-categories` | All blog categories |
 | GET | `/api/public/menus?name=header` | Menu by name (e.g. header, footer) |
 | GET | `/api/public/search?q=term` | Search pages and posts by title/slug/excerpt |
 | GET | `/api/theme` | Active theme configuration |
-| GET | `/media/[id]?size=desktop&format=auto` | Stable media delivery endpoint (AVIF/WebP/fallback) |
+| GET | `/media/[id]?size=original&format=auto` | Stable media delivery endpoint (`format=auto` prefers WebP, then AVIF, then original/JPG). Legacy size names are accepted and resolved to original. |
 | GET | `/api/health` | Database connectivity check (200 or 503) |
 
 ## Admin APIs
@@ -50,18 +52,235 @@ All admin APIs require authentication via JWT (enforced by middleware and `requi
 | GET | `/api/admin/media/usage?mediaId=<id>` | Admin, Editor | Where-used references for media |
 | GET | `/api/admin/media/settings` | Admin, Editor | Read media optimization settings |
 | PUT | `/api/admin/media/settings` | Admin only | Update media optimization settings |
-| GET | `/api/admin/media/jobs` | Admin, Editor | List media optimization jobs |
+| GET | `/api/admin/media/jobs` | Admin only | List media optimization jobs |
 | POST | `/api/admin/media/jobs` | Admin only | Start media optimization job |
-| GET | `/api/admin/media/jobs/[jobId]` | Admin, Editor | Job progress/details |
+| GET | `/api/admin/media/jobs/[jobId]` | Admin only | Job progress/details |
 | POST | `/api/admin/media/jobs/[jobId]/cancel` | Admin only | Cancel running media job |
 | GET/POST | `/api/admin/menus` | Admin, Editor | List/create menus |
 | GET/PUT | `/api/admin/menus/[name]` | Admin, Editor | Read/update menu by name |
+| GET/POST | `/api/admin/forms` | Admin, Editor | List/create Form Builder forms |
+| GET/PUT/DELETE | `/api/admin/forms/[formId]` | Admin, Editor | Read/update/delete form metadata |
+| PUT | `/api/admin/forms/[formId]/schema` | Admin, Editor | Update canonical form schema (sections/questions) |
+| POST | `/api/admin/forms/[formId]/publish` | Admin, Editor | Transition form status `draft -> published` |
+| POST | `/api/admin/forms/[formId]/unpublish` | Admin, Editor | Transition form status `published|archived -> draft` |
+| POST | `/api/admin/forms/[formId]/archive` | Admin, Editor | Transition form status `draft|published -> archived` |
+| GET | `/api/admin/forms/[formId]/submissions` | Admin, Editor | List form submissions with filters (`page`, `limit`, `search`, `isRead`, `dateFrom`, `dateTo`, `sort`) |
+| GET/PATCH/DELETE | `/api/admin/forms/[formId]/submissions/[submissionId]` | Admin, Editor | Read submission detail, mark `isRead`, or delete submission |
+| GET | `/api/admin/forms/submissions/unread?limit=10` | Admin, Editor | Latest unread Form Builder submissions across forms |
 | GET | `/api/admin/contacts` | Admin, Editor | List contact submissions |
 | DELETE | `/api/admin/contacts/[id]` | Admin, Editor | Delete contact submission |
 | GET/POST | `/api/admin/users` | Admin only | List/create users |
 | GET/PUT/DELETE | `/api/admin/users/[id]` | Admin only | Read/update/delete user |
 | PUT | `/api/theme` | Admin only | Update theme configuration |
 | GET/POST/DELETE | `/api/admin/fonts` | Admin, Editor | List/upload/delete custom fonts |
+
+### Media Upload / Replace Contract
+
+`POST /api/admin/media` and `POST /api/admin/media/[id]/replace` share the same contract for raster images.
+
+Request (`multipart/form-data`):
+- `file` (required)
+- `crop` (required for raster images): JSON string `{ "x": number, "y": number, "width": number, "height": number }`
+- `width`, `height` (optional; if one is sent, both are required)
+- `title` (optional)
+- `altText` (optional)
+
+Raster MIME types requiring crop confirmation:
+- `image/jpeg`, `image/jpg`, `image/png`, `image/webp`, `image/avif`
+
+Non-raster bypass:
+- `image/svg+xml`, `application/pdf` (crop payload not required)
+
+Validation/error responses (`400`):
+- `CROP_CONFIRMATION_REQUIRED`
+- `INVALID_CROP_PAYLOAD`
+- `WIDTH_HEIGHT_BOTH_REQUIRED`
+- `INVALID_DIMENSIONS`
+- `DIMENSIONS_EXCEED_SOURCE`
+
+Processing contract for new raster uploads/replacements:
+- Single-size only (`generatedSizes.original` is written for new records)
+- Output formats are generated from confirmed crop result:
+  - `original`
+  - `jpg`
+  - `webp`
+  - `avif`
+- JPG generation uses deterministic alpha flattening on white (`#ffffff`) for transparent inputs.
+
+## Form Builder (Phase 1)
+
+### Roles and protection
+
+- UI paths under `/admin/form-builder*` are restricted to `Admin` and `Editor`.
+- API paths under `/api/admin/forms*` are restricted to `Admin` and `Editor`.
+- `Author` receives `403` for Form Builder API access.
+
+### `GET /api/admin/forms`
+
+Query params:
+- `page` (default `1`)
+- `limit` (default `20`, max `100`)
+- `search` (matches `formId`, `name`, `shortcode`, `shortcodeAlt`)
+- `status` (`draft|published|archived`)
+
+Response:
+- `{ items, total, page, totalPages, limit }`
+
+### `POST /api/admin/forms`
+
+Request body:
+- `name` (optional, defaults to `"Untitled Form"`)
+- `shortcode` (optional candidate; unique shortcode still enforced)
+- `schema` or `formSchema` (optional, normalized and validated)
+
+Behavior:
+- Creates a blank draft form when schema is omitted.
+- Generates immutable `formId` (`FORM_###`) from `FormCounter`.
+- Generates immutable unique `shortcode`.
+- Persists `shortcodeAlt` from `formId`.
+
+### `GET /api/admin/forms/[formId]`
+
+Response includes both keys for compatibility:
+- `schema`
+- `formSchema`
+
+Both contain the canonical sections/questions structure.
+
+### `PUT /api/admin/forms/[formId]`
+
+Mutable fields:
+- `name`
+
+Rejected in this endpoint:
+- `formId`, `shortcode`, `shortcodeAlt` (immutable)
+- `status` (must use lifecycle endpoints)
+- `schema`/`formSchema` (must use `/schema` endpoint)
+
+### `DELETE /api/admin/forms/[formId]`
+
+Delete policy:
+- Returns `409` when one or more submissions exist.
+- Hard delete allowed only when submission count is zero.
+
+### `PUT /api/admin/forms/[formId]/schema`
+
+Request body:
+- `schema` or `formSchema` (required)
+
+Behavior:
+- Validates sections/questions linkage and field naming rules.
+- Increments `schemaVersion` only when schema actually changes.
+
+### Lifecycle endpoints
+
+- `POST /api/admin/forms/[formId]/publish`
+- `POST /api/admin/forms/[formId]/unpublish`
+- `POST /api/admin/forms/[formId]/archive`
+
+Invalid transitions return `400` with an actionable error.
+
+### `GET /api/admin/forms/submissions/unread?limit=10`
+
+Response:
+- `{ items, limit }`
+- `items[]` includes: `_id`, `formId`, `isRead`, `createdAt`, `payloadByFieldNameSnapshot`
+
+## Form Builder (Phase 3 Runtime + Inbox)
+
+### `GET /api/public/forms/[formId]`
+
+Behavior:
+- Resolves runtime schema only for `published` forms.
+- Returns `404` for missing, draft, or archived forms.
+
+Response:
+- `{ formId, name, shortcode, schemaVersion, status, schema, formSchema, defaults }`
+
+### `GET /api/public/forms/resolve?shortcode=...`
+
+Behavior:
+- Resolves published form by immutable `shortcode` or `shortcodeAlt`.
+- Returns the same runtime payload shape as `/api/public/forms/[formId]`.
+
+### `POST /api/public/forms/[formId]/upload`
+
+Request:
+- `multipart/form-data`
+- required fields: `fieldKey`, `file`
+
+Behavior:
+- Form must be `published`.
+- Field must exist in current schema and be type `file`.
+- Server validates MIME type, extension, and size constraints.
+- Stores a `SubmissionFile` in `pending` state until linked during submit.
+
+Response:
+- `{ submissionFileId, formId, fieldKey, filename, mimeType, size, url, status }`
+
+### `POST /api/public/forms/[formId]/submit`
+
+Request body supports:
+- `answersByFieldKey` (preferred)
+- `answers` / `payloadByFieldKey` aliases
+- `answersByFieldName` / `payload` aliases
+
+Behavior:
+- Form must be `published`.
+- Server-side validation is authoritative.
+- Persists:
+  - `fieldSnapshot`
+  - `payloadByFieldKey`
+  - `payloadByFieldNameSnapshot`
+  - normalized `searchText`
+- Links uploaded pending files to the created submission and marks them `linked`.
+
+Validation error response:
+- status `400`
+- payload: `{ error: "Validation failed", errors: [{ fieldKey, error }] }`
+
+Success response:
+- status `201`
+- payload: `{ success: true, formId, submissionId, message }`
+
+### `GET /api/admin/forms/[formId]/submissions`
+
+Query params:
+- `page` (default `1`)
+- `limit` (default `20`, max `100`)
+- `search` (matches denormalized `searchText`)
+- `isRead` (`true|false|all`, default `all`)
+- `dateFrom`, `dateTo` (ISO date filters)
+- `sort` (`createdAt_desc` default, `createdAt_asc`)
+
+Response:
+- `{ form, items, total, page, totalPages, limit }`
+- `items[]` includes `_id`, `formId`, `isRead`, `createdAt`, `payloadByFieldNameSnapshot`, `source`, `pagePath`
+
+### `GET /api/admin/forms/[formId]/submissions/[submissionId]`
+
+Response:
+- Full submission detail including:
+  - `schemaVersion`
+  - `fieldSnapshot`
+  - `payloadByFieldKey`
+  - `payloadByFieldNameSnapshot`
+  - `isRead`, timestamps, metadata
+
+### `PATCH /api/admin/forms/[formId]/submissions/[submissionId]`
+
+Request:
+- `{ "isRead": true|false }`
+
+Behavior:
+- Only `isRead` updates are allowed.
+
+### `DELETE /api/admin/forms/[formId]/submissions/[submissionId]`
+
+Behavior:
+- Deletes submission record.
+- Deletes linked `SubmissionFile` records.
+- Attempts to remove linked stored files from disk.
 
 ## Component Props Schema Format
 

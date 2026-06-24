@@ -12,6 +12,10 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/StoriesSlider";
 const PREFIX = "storiesSlider";
+const REQUIRED_STORY_IMAGE_WIDTH = 400;
+const REQUIRED_STORY_IMAGE_HEIGHT = 400;
+const REQUIRED_STORY_IMAGE_TEXT =
+  `${REQUIRED_STORY_IMAGE_WIDTH} \u00D7 ${REQUIRED_STORY_IMAGE_HEIGHT} px`;
 
 const DEFAULT_ITEMS = [
   {
@@ -37,6 +41,52 @@ function normalizeItem(it) {
     mobileImage: it?.mobileImage != null ? String(it.mobileImage).trim() : "",
   };
 }
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+function createStoryImageDimensionValidator(fieldLabel) {
+  return async (_, value) => {
+    const imageUrl = String(value || "").trim();
+    if (!imageUrl) return Promise.resolve();
+
+    try {
+      const { width, height } = await getImageDimensions(imageUrl);
+      if (
+        width === REQUIRED_STORY_IMAGE_WIDTH &&
+        height === REQUIRED_STORY_IMAGE_HEIGHT
+      ) {
+        return Promise.resolve();
+      }
+      return Promise.reject(
+        new Error(
+          `${fieldLabel} size must be exactly ${REQUIRED_STORY_IMAGE_TEXT}. Selected: ${width} \u00D7 ${height} px.`,
+        ),
+      );
+    } catch {
+      return Promise.reject(
+        new Error(
+          `${fieldLabel} size must be exactly ${REQUIRED_STORY_IMAGE_TEXT}.`,
+        ),
+      );
+    }
+  };
+}
+
+const validateStoryDesktopImageDimensions =
+  createStoryImageDimensionValidator("Desktop image");
+const validateStoryMobileImageDimensions =
+  createStoryImageDimensionValidator("Mobile image");
 
 function StoriesSliderEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [] }, ref) {
   const [form] = Form.useForm();
@@ -296,12 +346,14 @@ function StoriesSliderEditForm({ source, initialData: initialDataProp, onSaveToP
                             <Form.Item
                               {...restField}
                               name={[name, "image"]}
+                              validateTrigger={["onChange", "onBlur"]}
+                              rules={[{ validator: validateStoryDesktopImageDimensions }]}
                               style={{ marginBottom: 0 }}
                             >
                               <MediaPickerInput
                                 placeholder="/uploads/story-desktop.webp"
                                 uiVariant="stacked"
-                                hintText="Recommended: 960x800"
+                                hintText={`Required size: ${REQUIRED_STORY_IMAGE_TEXT}`}
                               />
                             </Form.Item>
                           </Card>
@@ -311,12 +363,14 @@ function StoriesSliderEditForm({ source, initialData: initialDataProp, onSaveToP
                             <Form.Item
                               {...restField}
                               name={[name, "mobileImage"]}
+                              validateTrigger={["onChange", "onBlur"]}
+                              rules={[{ validator: validateStoryMobileImageDimensions }]}
                               style={{ marginBottom: 0 }}
                             >
                               <MediaPickerInput
                                 placeholder="/uploads/story-mobile.webp"
                                 uiVariant="stacked"
-                                hintText="Optional for mobile (fallback desktop)"
+                                hintText={`Optional. Required size: ${REQUIRED_STORY_IMAGE_TEXT}`}
                               />
                             </Form.Item>
                           </Card>

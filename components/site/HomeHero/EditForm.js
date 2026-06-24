@@ -10,6 +10,50 @@ import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
+const REQUIRED_HOME_HERO_IMAGE_WIDTH = 2560;
+const REQUIRED_HOME_HERO_IMAGE_HEIGHT = 1200;
+const REQUIRED_HOME_HERO_IMAGE_DIMENSIONS_TEXT =
+  `${REQUIRED_HOME_HERO_IMAGE_WIDTH} \u00D7 ${REQUIRED_HOME_HERO_IMAGE_HEIGHT} px`;
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+async function validateHomeHeroImageDimensions(_, value) {
+  const imageUrl = String(value || "").trim();
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (
+      width === REQUIRED_HOME_HERO_IMAGE_WIDTH &&
+      height === REQUIRED_HOME_HERO_IMAGE_HEIGHT
+    ) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(
+        `Image must be exactly ${REQUIRED_HOME_HERO_IMAGE_DIMENSIONS_TEXT}. Selected image is ${width} \u00D7 ${height} px.`,
+      ),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(
+        `Unable to validate image size. Please select an image of ${REQUIRED_HOME_HERO_IMAGE_DIMENSIONS_TEXT}.`,
+      ),
+    );
+  }
+}
+
 /**
  * Edit form for HomeHero — used in page builder drawer or component edit.
  * When source="page": data comes from block.props (pages collection); save updates layout only, not components collection.
@@ -328,7 +372,6 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
                       addButtonText="Add slide"
                       defaultAddPayload={{
                         bgImageUrlDesktop: "",
-                        bgImageUrlMobile: "",
                         bgImageUrl: "",
                         mediaType: "image",
                         youtubeUrl: "",
@@ -350,31 +393,18 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
                           <Col span={24}>
                             <Row gutter={[12, 12]}>
                               <Col span={24}>
-                                <Card size="small" title="Desktop Image">
+                                <Card size="small" title="Image">
                                   <Form.Item
                                     {...restField}
                                     name={[name, "bgImageUrlDesktop"]}
+                                    validateTrigger={["onChange", "onBlur"]}
+                                    rules={[{ validator: validateHomeHeroImageDimensions }]}
                                     style={{ marginBottom: 0 }}
                                   >
                                     <MediaPickerInput
                                       placeholder="e.g. /images/slider-desktop.png"
                                       uiVariant="stacked"
-                                      hintText="Recommended: 1920x900"
-                                    />
-                                  </Form.Item>
-                                </Card>
-                              </Col>
-                              <Col span={24}>
-                                <Card size="small" title="Mobile Image">
-                                  <Form.Item
-                                    {...restField}
-                                    name={[name, "bgImageUrlMobile"]}
-                                    style={{ marginBottom: 0 }}
-                                  >
-                                    <MediaPickerInput
-                                      placeholder="e.g. /images/slider-mobile.png"
-                                      uiVariant="stacked"
-                                      hintText="Optional for mobile (fallback desktop)"
+                                      hintText={`Required size: ${REQUIRED_HOME_HERO_IMAGE_DIMENSIONS_TEXT}`}
                                     />
                                   </Form.Item>
                                 </Card>

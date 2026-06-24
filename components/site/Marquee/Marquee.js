@@ -53,15 +53,6 @@ const PartnersSection = styled.section`
   }
 `;
 
-const defaultImages = [
-  "/images/partner-1.png",
-  "/images/partner-2.png",
-  "/images/partner-3.png",
-  "/images/partner-4.png",
-  "/images/partner-5.png",
-  "/images/partner-6.png",
-];
-
 function normalizeImageItem(item) {
   if (typeof item === "string") {
     const url = item.trim();
@@ -122,7 +113,7 @@ export default function Marquee(props) {
     (data?.marqueeTitle != null && String(data.marqueeTitle).trim() !== ""
       ? String(data.marqueeTitle).trim()
       : null) ??
-    "Our CSR Partners | Awards & Recognition";
+    "";
   const imageItems =
     Array.isArray(props?.marqueeItems) && props.marqueeItems.length > 0
       ? props.marqueeItems
@@ -130,7 +121,9 @@ export default function Marquee(props) {
         ? props.images
         : Array.isArray(data?.marqueeItems) && data.marqueeItems.length > 0
           ? data.marqueeItems
-          : defaultImages;
+          : [];
+
+  if (imageItems.length === 0) return null;
 
   const titleColor = getColor(props?.marqueeTitleColorKey || "black");
 

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Table, Button, message, Modal, Form, Input, Switch, Row, Col } from "antd";
-import { EditOutlined, PlusOutlined, SaveOutlined, SearchOutlined } from "@ant-design/icons";
+import { CopyOutlined, EditOutlined, PlusOutlined, SaveOutlined, SearchOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { ThemeAdminCard } from "@/styles/Theme";
 
@@ -13,12 +13,20 @@ const EXCLUDED_COMPONENT_IDS = new Set([
   "EventsSlider",
   "CommitteeMembers",
 ]);
+const COMPONENTS_LIST_CACHE_KEY = "admin-components-list-cache-v1";
+const COMPONENTS_LIST_CACHE_TTL_MS = 20_000;
 
 function deriveComponentId(displayName) {
   if (!displayName || typeof displayName !== "string") return "";
   let base = displayName.replace(/\s+/g, "").replace(/[^a-zA-Z0-9]/g, "");
   if (!/^[a-zA-Z]/.test(base) && base.length) base = "C" + base;
   return base;
+}
+
+function getComponentShortcodeSnippet(componentId) {
+  const value = String(componentId || "").trim();
+  if (!value) return "";
+  return `[shortcode="${value}"]`;
 }
 
 export default function AdminComponentsPage() {
@@ -51,18 +59,47 @@ export default function AdminComponentsPage() {
     }
   }, [searchParams, router]);
 
-  const fetchList = () => {
-    setLoading(true);
+  const fetchList = useCallback(({ background = false } = {}) => {
+    if (!background) setLoading(true);
     fetch("/api/admin/site-components")
       .then((res) => (res.ok ? res.json() : []))
-      .then(setList)
+      .then((data) => {
+        const nextList = Array.isArray(data) ? data : [];
+        setList(nextList);
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem(
+            COMPONENTS_LIST_CACHE_KEY,
+            JSON.stringify({ items: nextList, ts: Date.now() }),
+          );
+        }
+      })
       .catch(() => message.error("Failed to load components"))
-      .finally(() => setLoading(false));
-  };
+      .finally(() => {
+        if (!background) setLoading(false);
+      });
+  }, []);
 
   useEffect(() => {
-    fetchList();
-  }, []);
+    let usedCache = false;
+    if (typeof window !== "undefined") {
+      try {
+        const raw = sessionStorage.getItem(COMPONENTS_LIST_CACHE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (
+            Array.isArray(parsed?.items) &&
+            Number.isFinite(parsed?.ts) &&
+            Date.now() - parsed.ts < COMPONENTS_LIST_CACHE_TTL_MS
+          ) {
+            setList(parsed.items);
+            setLoading(false);
+            usedCache = true;
+          }
+        }
+      } catch {}
+    }
+    fetchList({ background: usedCache });
+  }, [fetchList]);
 
   const handleCreateSubmit = async () => {
     try {
@@ -100,6 +137,20 @@ export default function AdminComponentsPage() {
     }
   };
 
+  const handleCopyShortcode = async (componentId) => {
+    const snippet = getComponentShortcodeSnippet(componentId);
+    if (!snippet) {
+      message.error("Component ID is missing");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(snippet);
+      message.success("Shortcode copied");
+    } catch {
+      message.error("Copy failed");
+    }
+  };
+
   const columns = [
     {
       title: "Component",
@@ -125,28 +176,27 @@ export default function AdminComponentsPage() {
       ),
     },
     {
-      title: "Position (when global)",
-      key: "position",
-      width: 120,
-      render: (_, r) =>
-        r.global
-          ? r.position === "after"
-            ? "Below content"
-            : "Above content"
-          : "—",
-    },
-    {
       title: "Actions",
       key: "actions",
-      width: 100,
+      width: 220,
       render: (_, record) => (
-        <Link
-          href={`/admin/components/${encodeURIComponent(record.componentId)}/edit`}
-        >
-          <Button type="link" size="small" icon={<EditOutlined />}>
-            Edit
+        <>
+          <Link
+            href={`/admin/components/${encodeURIComponent(record.componentId)}/edit`}
+          >
+            <Button type="link" size="small" icon={<EditOutlined />}>
+              Edit
+            </Button>
+          </Link>
+          <Button
+            type="link"
+            size="small"
+            icon={<CopyOutlined />}
+            onClick={() => handleCopyShortcode(record.componentId)}
+          >
+            Copy Shortcode
           </Button>
-        </Link>
+        </>
       ),
     },
   ];
@@ -248,3 +298,4 @@ export default function AdminComponentsPage() {
     </>
   );
 }
+

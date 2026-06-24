@@ -10,12 +10,52 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/Vision";
 const PREFIX = "vision";
+const REQUIRED_DESKTOP_IMAGE_WIDTH = 550;
+const REQUIRED_DESKTOP_IMAGE_HEIGHT = 450;
+const REQUIRED_DESKTOP_IMAGE_TEXT =
+  `${REQUIRED_DESKTOP_IMAGE_WIDTH} \u00D7 ${REQUIRED_DESKTOP_IMAGE_HEIGHT} px`;
 
 const CONTENT_FIELDS = [
   "visionSubTitle", "visionTitle", "visionImageDesktop", "visionImageMobile", "visionImage",
   "visionCardRadius", "visionCardPadding",
   "visionSubTitleColorKey", "visionMainTitleColorKey",
 ];
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+async function validateDesktopImageDimensions(_, value) {
+  const imageUrl = String(value || "").trim();
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (width === REQUIRED_DESKTOP_IMAGE_WIDTH && height === REQUIRED_DESKTOP_IMAGE_HEIGHT) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(
+        `Desktop Image must be exactly ${REQUIRED_DESKTOP_IMAGE_TEXT}. Selected image is ${width} \u00D7 ${height} px.`,
+      ),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(
+        `Unable to validate desktop image size. Please select an image of ${REQUIRED_DESKTOP_IMAGE_TEXT}.`,
+      ),
+    );
+  }
+}
 
 function applyFormValues(form, data) {
   form.setFieldsValue({
@@ -146,11 +186,16 @@ function VisionEditForm({ source, initialData: initialDataProp, onSaveToPage, on
                 <Form.Item name="visionTitle" label="Main title" rules={[{ required: true }]}>
                   <Input.TextArea placeholder="Vision description" rows={3} size="large" />
                 </Form.Item>
-                <Form.Item name="visionImageDesktop" label="Desktop Image">
+                <Form.Item
+                  name="visionImageDesktop"
+                  label="Desktop Image"
+                  validateTrigger={["onChange", "onBlur"]}
+                  rules={[{ validator: validateDesktopImageDimensions }]}
+                >
                   <MediaPickerInput
                     placeholder="/images/vision.png"
                     uiVariant="stacked"
-                    hintText="Recommended for desktop/tablet"
+                    hintText={`Required size: ${REQUIRED_DESKTOP_IMAGE_TEXT}`}
                   />
                 </Form.Item>
                 <Form.Item name="visionImageMobile" label="Mobile Image">

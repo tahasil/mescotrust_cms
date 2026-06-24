@@ -75,9 +75,10 @@ export const Logo = styled.a`
   flex-shrink: 0;
   img {
     display: block;
-    height: auto;
-    max-height: 44px;
-    width: auto;
+    height: 44px;
+    width: clamp(120px, 11vw, 170px);
+    object-fit: contain;
+    object-position: left center;
   }
 `;
 
@@ -243,47 +244,94 @@ export const Chevron = styled.span`
 export const Actions = styled.div`
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   @media (max-width: ${BREAKPOINT}) {
     display: none;
+  }
+`;
+
+export const SearchBtn = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 30px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  background: rgba(255, 255, 255, 0.86);
+  color: ${getColor("black")};
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+  &:hover {
+    background: #fff;
+    border-color: rgba(0, 0, 0, 0.24);
+    transform: translateY(-1px);
+  }
+  &:focus-visible {
+    outline: 2px solid rgba(0, 0, 0, 0.3);
+    outline-offset: 2px;
+  }
+  svg {
+    display: block;
   }
 `;
 
 export const Btn = styled.a`
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  justify-content: center;
+  position: relative;
+  padding: 6px 50px 6px 18px;
+  min-height: 44px;
+  border-radius: 999px;
+  white-space: nowrap;
+  font-size: 0.95rem;
   font-weight: 600;
+  line-height: 1.1;
   text-decoration: none;
   transition:
     background 0.2s,
     box-shadow 0.2s,
     filter 0.2s;
   border: none;
+  .btn-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    text-align: center;
+  }
   &:hover {
     filter: brightness(1.05);
   }
 `;
 
 export const IconWrap = styled.span`
+  --icon-wrap-size: 34px;
+  --icon-size: 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  min-width: 28px;
-  min-height: 28px;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--icon-wrap-size);
+  height: var(--icon-wrap-size);
+  min-width: var(--icon-wrap-size);
+  min-height: var(--icon-wrap-size);
   flex-shrink: 0;
   background: #fff;
   border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
   img {
-    max-width: 100%;
-    max-height: 100%;
-    width: auto;
-    height: auto;
+    width: var(--icon-size);
+    height: var(--icon-size);
     object-fit: contain;
     display: block;
     vertical-align: middle;
@@ -294,20 +342,50 @@ export const BtnVolunteer = styled(Btn)`
   background: ${(props) => props.$headerCtaBgValue || "transparent"};
   color: ${(props) => props.$headerCtaTextValue || "currentColor"};
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border-radius: 30px;
+  border-radius: 999px;
+  padding-left: 18px;
+  padding-right: 50px;
+  ${IconWrap} {
+    --icon-wrap-size: 34px;
+    --icon-size: 14px;
+  }
   &:hover {
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+  }
+  @media (max-width: 1280px) {
+    min-height: 40px;
+    padding: 5px 45px 5px 15px;
+    font-size: 0.9rem;
+    ${IconWrap} {
+      --icon-wrap-size: 31px;
+      --icon-size: 14px;
+    }
   }
 `;
 
 export const BtnDonate = styled(Btn)`
   background: ${(props) => props.$headerDonateBgValue || "transparent"};
   color: ${(props) => props.$headerDonateTextValue || "currentColor"};
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-  border-radius: 30px;
+  box-shadow: 0 6px 16px rgba(122, 22, 17, 0.22);
+  border-radius: 999px;
+  padding-left: 20px;
+  padding-right: 50px;
+  ${IconWrap} {
+    --icon-wrap-size: 34px;
+    --icon-size: 14px;
+  }
   &:hover {
     color: ${(props) => props.$headerDonateTextValue || "currentColor"};
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 8px 18px rgba(122, 22, 17, 0.26);
+  }
+  @media (max-width: 1280px) {
+    min-height: 40px;
+    padding: 5px 45px 5px 16px;
+    font-size: 0.9rem;
+    ${IconWrap} {
+      --icon-wrap-size: 31px;
+      --icon-size: 14px;
+    }
   }
 `;
 
@@ -371,11 +449,21 @@ export const MobileMenu = styled.div`
 `;
 
 export const MobileMenuHeader = styled.div`
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding-bottom: 20px;
-  border-bottom: 1px solid ${getColor("themeBorder")};
+  border-bottom: none;
+  &::after {
+    content: "";
+    position: absolute;
+    left: -20px;
+    right: -20px;
+    bottom: 0;
+    height: 1px;
+    background: rgba(5, 5, 5, 0.12);
+  }
 `;
 
 export const MobileMenuLogo = styled.a`
@@ -497,16 +585,189 @@ export const MobileActions = styled.div`
 export const MobileBtn = styled(Btn)`
   justify-content: center;
   width: 100%;
+  padding: 10px 18px;
+`;
+
+export const MobileBtnSearch = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  background: #fff;
+  color: ${getColor("black")};
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+  &:hover {
+    background: #fafafa;
+    border-color: rgba(0, 0, 0, 0.24);
+  }
+  &:focus-visible {
+    outline: 2px solid rgba(0, 0, 0, 0.3);
+    outline-offset: 2px;
+  }
+  svg {
+    display: block;
+  }
 `;
 
 export const MobileBtnVolunteer = styled(MobileBtn)`
   background: ${(props) => props.$headerCtaBgValue || "transparent"};
   color: ${(props) => props.$headerCtaTextValue || "currentColor"};
+  border-radius: 999px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 `;
 
 export const MobileBtnDonate = styled(MobileBtn)`
   background: ${(props) => props.$headerDonateBgValue || "transparent"};
   color: ${(props) => props.$headerDonateTextValue || "currentColor"};
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  box-shadow: 0 6px 16px rgba(122, 22, 17, 0.22);
+`;
+
+export const SearchOverlay = styled.div`
+  position: ${(props) => (props.$preview ? "absolute" : "fixed")};
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: clamp(84px, 14vh, 130px) 16px 18px;
+  background: rgba(10, 15, 25, 0.6);
+  z-index: ${(props) => (props.$preview ? 5 : 1400)};
+  opacity: ${(props) => (props.$open ? 1 : 0)};
+  visibility: ${(props) => (props.$open ? "visible" : "hidden")};
+  pointer-events: ${(props) => (props.$open ? "auto" : "none")};
+  transition:
+    opacity 0.25s ease,
+    visibility 0.25s ease;
+  @media (max-width: ${BREAKPOINT}) {
+    padding-top: 72px;
+  }
+`;
+
+export const SearchPanel = styled.div`
+  width: min(840px, 100%);
+  max-height: min(70vh, 640px);
+  background: #fff;
+  border-radius: 18px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.22);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: ${(props) =>
+    props.$open ? "translateY(0) scale(1)" : "translateY(12px) scale(0.98)"};
+  opacity: ${(props) => (props.$open ? 1 : 0)};
+  transition:
+    transform 0.28s cubic-bezier(0.2, 0.85, 0.32, 1),
+    opacity 0.2s ease;
+  @media (max-width: ${BREAKPOINT}) {
+    max-height: calc(100vh - 96px);
+    border-radius: 14px;
+  }
+`;
+
+export const SearchTopRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 14px 16px;
+`;
+
+export const SearchTopIcon = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.55);
+  flex-shrink: 0;
+`;
+
+export const SearchInput = styled.input`
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: ${getColor("black")};
+  font-size: 1rem;
+  font-weight: 500;
+  min-width: 0;
+  outline: none;
+  &::placeholder {
+    color: rgba(0, 0, 0, 0.45);
+    font-weight: 400;
+  }
+`;
+
+export const SearchCloseBtn = styled.button`
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.65);
+  cursor: pointer;
+  transition: background 0.2s ease;
+  &:hover {
+    background: rgba(0, 0, 0, 0.07);
+  }
+`;
+
+export const SearchResults = styled.div`
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 8px 12px;
+`;
+
+export const SearchResultLink = styled.a`
+  display: block;
+  text-decoration: none;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 4px 0;
+  color: ${getColor("black")};
+  transition: background 0.2s ease;
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+`;
+
+export const SearchResultType = styled.span`
+  display: inline-flex;
+  align-items: center;
+  text-transform: uppercase;
+  font-size: 0.67rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: #8c1c13;
+  margin-bottom: 4px;
+`;
+
+export const SearchResultTitle = styled.div`
+  font-size: 0.97rem;
+  font-weight: 600;
+  line-height: 1.35;
+`;
+
+export const SearchResultMeta = styled.div`
+  margin-top: 4px;
+  font-size: 0.83rem;
+  color: rgba(0, 0, 0, 0.57);
+  line-height: 1.4;
+`;
+
+export const SearchState = styled.div`
+  padding: 24px 18px 20px;
+  color: rgba(0, 0, 0, 0.65);
+  font-size: 0.95rem;
+  line-height: 1.5;
 `;

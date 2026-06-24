@@ -5,8 +5,13 @@ import { connectDB } from "@/lib/db";
 import Page from "@/models/Page";
 import Menu from "@/models/Menu";
 import { normalizeSlug } from "@/lib/slug";
-import { validateLayoutProps } from "@/lib/validateLayout";
+import {
+  filterLayoutValidationErrors,
+  validateLayoutProps,
+} from "@/lib/validateLayout";
 import { clearUsageForRef, syncMediaUsageForPage } from "@/lib/media/usageTracker";
+import { sanitizeVideoPlayingLayout } from "@/lib/videoPlayingImageValidation";
+import { sanitizePhotoGalleryLayout } from "@/lib/photoGalleryImageValidation";
 
 /**
  * Recursively find and remove a menu item by pageSlug.
@@ -101,7 +106,7 @@ export async function GET(req, { params }) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
     await connectDB();
-    const page = await Page.findById(id).populate("layout.componentId").lean();
+    const page = await Page.findById(id).lean();
     if (!page) return NextResponse.json({ error: "Not found" }, { status: 404 });
     return NextResponse.json(page);
   } catch (err) {
@@ -145,11 +150,18 @@ export async function PUT(req, { params }) {
     if (title !== undefined) page.title = title;
     if (status !== undefined) page.status = status;
     if (Array.isArray(layout)) {
-      const validationErrors = await validateLayoutProps(layout);
-      if (validationErrors.length > 0) {
-        return NextResponse.json({ error: `Layout validation: ${validationErrors.join("; ")}` }, { status: 400 });
+      const safeLayout = sanitizePhotoGalleryLayout(
+        sanitizeVideoPlayingLayout(layout),
+      );
+      const validationErrors = await validateLayoutProps(safeLayout);
+      const blockingValidationErrors = filterLayoutValidationErrors(
+        validationErrors,
+        { nonBlockingBaseComponents: ["PhotoGallery"] },
+      );
+      if (blockingValidationErrors.length > 0) {
+        return NextResponse.json({ error: `Layout validation: ${blockingValidationErrors.join("; ")}` }, { status: 400 });
       }
-      page.layout = layout;
+      page.layout = safeLayout;
     }
     if (meta !== undefined) page.meta = meta;
     if (locale !== undefined) page.locale = locale;

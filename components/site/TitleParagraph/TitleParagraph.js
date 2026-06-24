@@ -9,6 +9,7 @@ import {
   SubTitle,
   PageContainer,
 } from "@/styles/Theme";
+import SafeHtml from "@/components/cms/SafeHtml";
 
 const ContentWrapper = styled.div`
   font-size: 16px;
@@ -227,16 +228,9 @@ export default function TitleParagraph(props) {
               </MainTitle>
             )}
             {content && (
-              <ContentWrapper
-                $textColor={textColor}
-                dangerouslySetInnerHTML={{
-                  __html: content
-                    .replace(/\s*(color|background-color)\s*:\s*[^;"]+(;?)/gi, "")
-                    .replace(/<span[^>]*>/gi, "")
-                    .replace(/<\/span>/gi, "")
-                    .replace(/&nbsp;/gi, " "),
-                }}
-              />
+              <ContentWrapper $textColor={textColor}>
+                <SafeHtml html={content} />
+              </ContentWrapper>
             )}
           </Col>
         </Row>

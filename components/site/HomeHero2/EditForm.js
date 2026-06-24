@@ -36,9 +36,79 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/HomeHero2";
 const PREFIX = "homeHero2";
+const MIN_SECTION_BACKGROUND_WIDTH = 1440;
+const MIN_SECTION_BACKGROUND_HEIGHT = 620;
+const MIN_SECTION_BACKGROUND_TEXT =
+  `${MIN_SECTION_BACKGROUND_WIDTH} \u00D7 ${MIN_SECTION_BACKGROUND_HEIGHT} px`;
+const REQUIRED_SLIDER_DESKTOP_WIDTH = 350;
+const REQUIRED_SLIDER_DESKTOP_HEIGHT = 450;
+const REQUIRED_SLIDER_DESKTOP_TEXT =
+  `${REQUIRED_SLIDER_DESKTOP_WIDTH} \u00D7 ${REQUIRED_SLIDER_DESKTOP_HEIGHT} px`;
 
 const DEFAULT_SUBTITLE =
   "A community-powered initiative that brings donors, mentors, and resources together to help learners overcome barriers and continue their education—turning collective support into real opportunities.";
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+async function validateHomeHero2DesktopSliderImage(_, value) {
+  const imageUrl = String(value || "").trim();
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (
+      width === REQUIRED_SLIDER_DESKTOP_WIDTH &&
+      height === REQUIRED_SLIDER_DESKTOP_HEIGHT
+    ) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(
+        `Supports Only ${REQUIRED_SLIDER_DESKTOP_TEXT}. Selected image is ${width} \u00D7 ${height} px.`,
+      ),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(
+        `Unable to validate desktop image size. Supports Only ${REQUIRED_SLIDER_DESKTOP_TEXT}.`,
+      ),
+    );
+  }
+}
+
+async function validateHomeHero2SectionBackgroundImage(_, value) {
+  const imageUrl = String(value || "").trim();
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (width >= MIN_SECTION_BACKGROUND_WIDTH && height >= MIN_SECTION_BACKGROUND_HEIGHT) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(
+        `Background must be at least ${MIN_SECTION_BACKGROUND_TEXT}. Selected image is ${width} \u00D7 ${height} px.`,
+      ),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(
+        `Unable to validate background size. Please use minimum ${MIN_SECTION_BACKGROUND_TEXT}.`,
+      ),
+    );
+  }
+}
 
 function buildInitialData(data) {
   const sliderItems = Array.isArray(data?.homeHero2SliderImages)
@@ -72,8 +142,10 @@ function buildInitialData(data) {
     titleColorKey: data?.titleColorKey ?? "",
     homeHero2ButtonBgColorKey: data?.homeHero2ButtonBgColorKey ?? "",
     homeHero2ButtonTextColorKey: data?.homeHero2ButtonTextColorKey ?? "",
-    buttonText: data?.buttonText ?? "Contact Us",
-    buttonHref: data?.buttonHref ?? "/",
+    buttonText:
+      data?.buttonText != null ? String(data.buttonText).trim() : "",
+    buttonHref:
+      data?.buttonHref != null ? String(data.buttonHref).trim() : "",
     heroIconUrl: data?.heroIconUrl ?? "/images/hero-icon.svg",
     homeHero2SliderImages: normalizedSliderItems,
     homeHero2SlideCount:
@@ -219,6 +291,10 @@ function HomeHero2EditForm(
             values.homeHero2ButtonTextColorKey != null
               ? String(values.homeHero2ButtonTextColorKey).trim()
               : "",
+          buttonText:
+            values.buttonText != null ? String(values.buttonText).trim() : "",
+          buttonHref:
+            values.buttonHref != null ? String(values.buttonHref).trim() : "",
           homeHero2SliderImages,
           homeHero2SlideCount:
             values.homeHero2SlideCount != null
@@ -305,6 +381,11 @@ function HomeHero2EditForm(
                 prefix={PREFIX}
                 form={form}
                 themeColorOptions={themeColorOptions}
+                sectionBgImageHintText={`Required size: minimum ${MIN_SECTION_BACKGROUND_TEXT}`}
+                sectionBgImageRules={[
+                  { validator: validateHomeHero2SectionBackgroundImage },
+                ]}
+                sectionBgImageValidateTrigger={["onChange", "onBlur"]}
               />
             ),
           },
@@ -369,18 +450,20 @@ function HomeHero2EditForm(
                             <Form.Item
                               {...restField}
                               name={[name, "desktopSrc"]}
+                              validateTrigger={["onChange", "onBlur"]}
                               rules={[
                                 {
                                   required: true,
                                   message: "Desktop image is required",
                                 },
+                                { validator: validateHomeHero2DesktopSliderImage },
                               ]}
                               style={{ marginBottom: 0 }}
                             >
                               <MediaPickerInput
                                 placeholder="/images/slider-desktop.png"
                                 uiVariant="stacked"
-                                hintText="Recommended: 1200x700"
+                                hintText={`Required size: ${REQUIRED_SLIDER_DESKTOP_TEXT}`}
                               />
                             </Form.Item>
                           </Card>

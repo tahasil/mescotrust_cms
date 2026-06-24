@@ -7,9 +7,54 @@ import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
+import {
+  IMAGES_DESKTOP_ALLOWED_COMPACT_TEXT,
+  IMAGES_DESKTOP_REQUIRED_TEXT,
+  isAllowedImagesDesktopSize,
+} from "@/lib/imagesImageConfig";
 
 const API_PATH = "/api/theme/Images";
 const PREFIX = "images";
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+function buildDesktopImageValidationError(width, height) {
+  const selectedWidth = Number(width) || 0;
+  const selectedHeight = Number(height) || 0;
+  return `Supports Only ${IMAGES_DESKTOP_ALLOWED_COMPACT_TEXT} px. Selected image is ${selectedWidth}X${selectedHeight} px.`;
+}
+
+async function validateDesktopImageDimensions(_, value) {
+  const imageUrl = String(value || "").trim();
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (isAllowedImagesDesktopSize(width, height)) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(buildDesktopImageValidationError(width, height)),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(
+        `Unable to validate desktop image size. Supports Only ${IMAGES_DESKTOP_ALLOWED_COMPACT_TEXT} px.`,
+      ),
+    );
+  }
+}
 
 /**
  * Edit form for Images — used in component edit drawer.
@@ -155,11 +200,16 @@ function ImagesEditForm({ source, initialData: initialDataProp, onSaveToPage, on
             label: "Content",
             children: (
               <>
-                <Form.Item name="imageUrlDesktop" label="Desktop Image">
+                <Form.Item
+                  name="imageUrlDesktop"
+                  label="Desktop Image"
+                  validateTrigger={["onChange", "onBlur"]}
+                  rules={[{ validator: validateDesktopImageDimensions }]}
+                >
                   <MediaPickerInput
                     placeholder="e.g. /images/clinics-dispensaries.png"
                     uiVariant="stacked"
-                    hintText="Recommended for desktop/tablet"
+                    hintText={`Required size: ${IMAGES_DESKTOP_REQUIRED_TEXT}`}
                   />
                 </Form.Item>
                 <Form.Item name="imageUrlMobile" label="Mobile Image">

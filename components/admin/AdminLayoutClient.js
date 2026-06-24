@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Layout,
   Menu,
@@ -30,13 +30,13 @@ import {
   UserOutlined,
   LogoutOutlined,
   BellOutlined,
-  HeartOutlined,
   ClockCircleOutlined,
   MessageOutlined,
   DollarOutlined,
   CloseOutlined,
 } from "@ant-design/icons";
 import { signOut } from "next-auth/react";
+import { normalizeRole } from "@/lib/permissions";
 
 const { Header, Content } = Layout;
 
@@ -45,11 +45,15 @@ const HEADER_HEIGHT = 64;
 const MOBILE_BREAKPOINT = 992;
 const ADMIN_ROUTE_LOADER_DELAY_MS = 60;
 const ADMIN_ROUTE_LOADER_MIN_MS = 280;
-const ADMIN_ROUTE_LOADER_POST_PATHNAME_SETTLE_MS = 450;
+const ADMIN_ROUTE_LOADER_POST_PATHNAME_SETTLE_MS = 160;
+const ADMIN_ROUTE_LOADER_MAX_MS = 3500;
+const ADMIN_NOTIFICATION_POLL_MS = 15000;
+const ADMIN_FETCH_CACHE_TTL_MS = 12000;
+const ADMIN_FETCH_CACHE_MAX_ENTRIES = 120;
 
 const linkStyle = { textDecoration: "none" };
 
-const menuItems = [
+const baseMenuItems = [
   {
     key: "/admin",
     icon: <DashboardOutlined />,
@@ -78,11 +82,29 @@ const menuItems = [
     ),
   },
   {
+    key: "/admin/form-builder",
+    icon: <FileTextOutlined />,
+    label: (
+      <Link href="/admin/form-builder" style={linkStyle}>
+        Form Builder
+      </Link>
+    ),
+  },
+  {
     key: "/admin/sliders",
     icon: <AppstoreOutlined />,
     label: (
       <Link href="/admin/sliders" style={linkStyle}>
         Sliders
+      </Link>
+    ),
+  },
+  {
+    key: "/admin/popups",
+    icon: <AppstoreOutlined />,
+    label: (
+      <Link href="/admin/popups" style={linkStyle}>
+        Popups
       </Link>
     ),
   },
@@ -244,6 +266,14 @@ const menuItems = [
         ),
       },
       {
+        key: "/admin/volunteers-feedback",
+        label: (
+          <Link href="/admin/volunteers-feedback" style={linkStyle}>
+            Volunteers Feedback
+          </Link>
+        ),
+      },
+      {
         key: "/admin/contacts",
         label: (
           <Link href="/admin/contacts" style={linkStyle}>
@@ -284,6 +314,9 @@ const DEFAULT_ADMIN_THEME = {
 };
 
 export default function AdminLayoutClient({ children, userName, userRole }) {
+  const router = useRouter();
+  const normalizedRole = normalizeRole(userRole);
+  const roleLabel = normalizedRole || String(userRole || "").trim();
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -299,9 +332,21 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
   const routeShowTimerRef = useRef(null);
   const routeHideTimerRef = useRef(null);
   const routeSettleTimerRef = useRef(null);
-  const routeChangedRef = useRef(false);
-  const navPendingFetchRef = useRef(0);
+  const routeMaxTimerRef = useRef(null);
   const prevCountRef = useRef(0);
+  const adminFetchCacheRef = useRef(new Map());
+  const adminFetchInFlightRef = useRef(new Map());
+  const applyAdminTheme = useCallback((data) => {
+    const next = { ...DEFAULT_ADMIN_THEME };
+    if (data && typeof data === "object") {
+      for (const key of Object.keys(DEFAULT_ADMIN_THEME)) {
+        if (data[key] !== undefined && data[key] !== "") {
+          next[key] = data[key];
+        }
+      }
+    }
+    setAdminTheme(next);
+  }, []);
 
   const clearRouteLoaderTimers = useCallback(() => {
     if (routeShowTimerRef.current) {
@@ -316,17 +361,24 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
       window.clearTimeout(routeSettleTimerRef.current);
       routeSettleTimerRef.current = null;
     }
+    if (routeMaxTimerRef.current) {
+      window.clearTimeout(routeMaxTimerRef.current);
+      routeMaxTimerRef.current = null;
+    }
   }, []);
 
   const startRouteLoader = useCallback(() => {
     if (routeLoadingRef.current || routeShowTimerRef.current) return;
     clearRouteLoaderTimers();
-    routeChangedRef.current = false;
-    navPendingFetchRef.current = 0;
     routeShowTimerRef.current = window.setTimeout(() => {
       routeStartedAtRef.current = Date.now();
       routeLoadingRef.current = true;
       setRouteLoading(true);
+      routeMaxTimerRef.current = window.setTimeout(() => {
+        routeLoadingRef.current = false;
+        setRouteLoading(false);
+        routeMaxTimerRef.current = null;
+      }, ADMIN_ROUTE_LOADER_MAX_MS);
       routeShowTimerRef.current = null;
     }, ADMIN_ROUTE_LOADER_DELAY_MS);
   }, [clearRouteLoaderTimers]);
@@ -335,6 +387,10 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
     if (routeSettleTimerRef.current) {
       window.clearTimeout(routeSettleTimerRef.current);
       routeSettleTimerRef.current = null;
+    }
+    if (routeMaxTimerRef.current) {
+      window.clearTimeout(routeMaxTimerRef.current);
+      routeMaxTimerRef.current = null;
     }
     if (routeShowTimerRef.current) {
       window.clearTimeout(routeShowTimerRef.current);
@@ -350,25 +406,23 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
     routeHideTimerRef.current = window.setTimeout(() => {
       routeLoadingRef.current = false;
       setRouteLoading(false);
-      routeChangedRef.current = false;
-      navPendingFetchRef.current = 0;
       routeHideTimerRef.current = null;
     }, wait);
   }, []);
 
   // Fetch admin theme settings
   useEffect(() => {
+    const handleAdminThemeUpdated = (event) => {
+      applyAdminTheme(event?.detail);
+    };
     fetch("/api/theme")
       .then((res) => (res.ok ? res.json() : {}))
-      .then((data) => {
-        const t = { ...DEFAULT_ADMIN_THEME };
-        for (const key of Object.keys(DEFAULT_ADMIN_THEME)) {
-          if (data[key] !== undefined && data[key] !== "") t[key] = data[key];
-        }
-        setAdminTheme(t);
-      })
+      .then((data) => applyAdminTheme(data))
       .catch(() => {});
-  }, []);
+    window.addEventListener("admin-theme-updated", handleAdminThemeUpdated);
+    return () =>
+      window.removeEventListener("admin-theme-updated", handleAdminThemeUpdated);
+  }, [applyAdminTheme]);
 
   // Responsive detection
   useEffect(() => {
@@ -386,22 +440,20 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
   // Close mobile sidebar on route change
   useEffect(() => {
     if (isMobile) setMobileOpen(false);
-    routeChangedRef.current = true;
     if (routeSettleTimerRef.current) {
       window.clearTimeout(routeSettleTimerRef.current);
       routeSettleTimerRef.current = null;
     }
-    // Let the destination page mount and fire initial data fetches first.
-    // If no tracked fetch starts, close loader after a short settle window.
+    // Let destination content mount, then close the transition loader quickly.
     if (routeLoadingRef.current) {
       routeSettleTimerRef.current = window.setTimeout(() => {
-        if (routeLoadingRef.current && navPendingFetchRef.current <= 0) {
+        if (routeLoadingRef.current) {
           stopRouteLoader();
         }
         routeSettleTimerRef.current = null;
       }, ADMIN_ROUTE_LOADER_POST_PATHNAME_SETTLE_MS);
     }
-  }, [pathname, isMobile]);
+  }, [pathname, isMobile, stopRouteLoader]);
 
   // Single global admin route loader for sidebar/link/programmatic navigation.
   useEffect(() => {
@@ -426,23 +478,25 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
       }
       if (url.origin !== window.location.origin) return;
       if (!isAdminHref(url.pathname)) return;
-      const nextPath = `${url.pathname}${url.search}${url.hash}`;
-      const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-      if (nextPath === currentPath) return;
+      // Only show route transition loader for real page-path transitions.
+      if (url.pathname === window.location.pathname) return;
       startRouteLoader();
     };
 
     const originalPushState = window.history.pushState;
     const originalReplaceState = window.history.replaceState;
     const originalFetch = window.fetch;
+    const adminFetchCache = adminFetchCacheRef.current;
+    const adminFetchInFlight = adminFetchInFlightRef.current;
     const handleHistoryTarget = (targetLike) => {
       if (targetLike == null) return;
       try {
         const target = new URL(String(targetLike), window.location.href);
         const current = new URL(window.location.href);
-        const nextPath = `${target.pathname}${target.search}${target.hash}`;
-        const currentPath = `${current.pathname}${current.search}${current.hash}`;
-        if (nextPath !== currentPath && isAdminHref(target.pathname)) startRouteLoader();
+        // Query/hash-only updates should not trigger route-level loader.
+        if (target.pathname !== current.pathname && isAdminHref(target.pathname)) {
+          startRouteLoader();
+        }
       } catch {}
     };
 
@@ -456,51 +510,94 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
     };
 
     window.fetch = function patchedFetch(input, init) {
-      let trackForRoute = false;
-      if (routeLoadingRef.current) {
-        try {
-          const url =
-            typeof input === "string"
-              ? new URL(input, window.location.href)
-              : new URL(input?.url || "", window.location.href);
-          if (
-            url.origin === window.location.origin &&
-            (url.pathname.startsWith("/api/admin") ||
-              url.pathname.startsWith("/api/theme") ||
-              url.pathname.startsWith("/api/public"))
-          ) {
-            trackForRoute = true;
-          }
-        } catch {}
-      }
-      if (trackForRoute) {
-        navPendingFetchRef.current += 1;
-      }
+      const method =
+        String(
+          init?.method ||
+            (typeof input === "object" && input?.method) ||
+            "GET",
+        ).toUpperCase();
 
-      const done = () => {
-        if (trackForRoute) {
-          navPendingFetchRef.current = Math.max(0, navPendingFetchRef.current - 1);
-          if (
-            routeLoadingRef.current &&
-            routeChangedRef.current &&
-            navPendingFetchRef.current === 0
-          ) {
-            stopRouteLoader();
-          }
-        }
-      };
-
+      let url = null;
       try {
-        const result = originalFetch.call(window, input, init);
-        return Promise.resolve(result).finally(done);
-      } catch (err) {
-        done();
-        throw err;
+        url =
+          typeof input === "string"
+            ? new URL(input, window.location.href)
+            : new URL(input?.url || "", window.location.href);
+      } catch {}
+
+      const isSameOriginApi =
+        !!url &&
+        url.origin === window.location.origin &&
+        (url.pathname.startsWith("/api/admin") ||
+          url.pathname.startsWith("/api/theme") ||
+          url.pathname.startsWith("/api/public"));
+
+      if (
+        isSameOriginApi &&
+        (method === "POST" ||
+          method === "PUT" ||
+          method === "PATCH" ||
+          method === "DELETE")
+      ) {
+        adminFetchCache.clear();
+        adminFetchInFlight.clear();
       }
+
+      const requestCacheMode = String(
+        init?.cache ||
+          (typeof input === "object" ? input?.cache : "") ||
+          "",
+      ).toLowerCase();
+      const canUseCache =
+        method === "GET" &&
+        isSameOriginApi &&
+        requestCacheMode !== "no-store" &&
+        requestCacheMode !== "reload" &&
+        !url.searchParams.has("_ts");
+
+      if (!canUseCache || !url) {
+        return originalFetch.call(window, input, init);
+      }
+
+      const cacheKey = `${method}:${url.pathname}${url.search}`;
+      const now = Date.now();
+      const cache = adminFetchCache;
+      const inFlight = adminFetchInFlight;
+      const cached = cache.get(cacheKey);
+      if (cached && now - cached.time < ADMIN_FETCH_CACHE_TTL_MS) {
+        return Promise.resolve(cached.response.clone());
+      }
+      if (cached) {
+        cache.delete(cacheKey);
+      }
+      if (inFlight.has(cacheKey)) {
+        return inFlight.get(cacheKey).then((response) => response.clone());
+      }
+
+      const requestPromise = Promise.resolve(originalFetch.call(window, input, init))
+        .then((response) => {
+          if (response?.ok) {
+            cache.set(cacheKey, { response: response.clone(), time: Date.now() });
+            if (cache.size > ADMIN_FETCH_CACHE_MAX_ENTRIES) {
+              const oldestKey = cache.keys().next().value;
+              if (oldestKey) cache.delete(oldestKey);
+            }
+          }
+          return response;
+        })
+        .finally(() => {
+          inFlight.delete(cacheKey);
+        });
+
+      inFlight.set(cacheKey, requestPromise);
+      return requestPromise.then((response) => response.clone());
     };
 
     const onPopState = () => {
-      if (window.location.pathname.startsWith("/admin")) startRouteLoader();
+      const currentPath = window.location.pathname;
+      if (currentPath.startsWith("/admin") && currentPath !== pathname) {
+        startRouteLoader();
+      }
     };
     const onWindowError = () => stopRouteLoader();
     const onUnhandledRejection = () => stopRouteLoader();
@@ -518,9 +615,11 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
       window.history.pushState = originalPushState;
       window.history.replaceState = originalReplaceState;
       window.fetch = originalFetch;
+      adminFetchCache.clear();
+      adminFetchInFlight.clear();
       clearRouteLoaderTimers();
     };
-  }, [clearRouteLoaderTimers, startRouteLoader, stopRouteLoader]);
+  }, [clearRouteLoaderTimers, pathname, startRouteLoader, stopRouteLoader]);
 
   const toggleSidebar = () => {
     if (isMobile) {
@@ -532,8 +631,38 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
 
   const sidebarVisible = isMobile ? mobileOpen : !collapsed;
   const contentMarginLeft = isMobile ? 0 : collapsed ? 0 : SIDEBAR_WIDTH;
+  let menuItems = baseMenuItems;
+  if (normalizedRole === "Author") {
+    const dashboard = baseMenuItems.find((item) => item.key === "/admin");
+    const blogGroup = baseMenuItems.find((item) => item.key === "group:admin:blogs");
+    const eventsGroup = baseMenuItems.find((item) => item.key === "group:admin:events");
+    menuItems = [
+      dashboard,
+      blogGroup
+        ? {
+            ...blogGroup,
+            children: (blogGroup.children || []).filter(
+              (child) => child.key === "/admin/blogs" || child.key === "/admin/blogs/new",
+            ),
+          }
+        : null,
+      eventsGroup,
+    ].filter(Boolean);
+  } else if (normalizedRole !== "Admin") {
+    menuItems = baseMenuItems.filter((item) => item.key !== "/admin/users");
+  }
+  const selectedMenuKey = String(pathname || "").startsWith("/admin/popups/")
+    ? "/admin/popups"
+    : String(pathname || "").startsWith("/admin/form-builder/")
+      ? "/admin/form-builder"
+    : pathname;
 
   const fetchNotifications = useCallback(() => {
+    if (normalizedRole === "Author") {
+      setNotifications([]);
+      prevCountRef.current = 0;
+      return;
+    }
     Promise.all([
       fetch("/api/admin/contacts?limit=20").then((r) =>
         r.ok ? r.json() : { items: [] },
@@ -547,8 +676,11 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
       fetch("/api/admin/event-registrations?limit=20").then((r) =>
         r.ok ? r.json() : { items: [] },
       ),
+      fetch("/api/admin/forms/submissions/unread?limit=10").then((r) =>
+        r.ok ? r.json() : { items: [] },
+      ),
     ])
-      .then(([contacts, donations, subscribers, eventRegs]) => {
+      .then(([contacts, donations, subscribers, eventRegs, formSubmissions]) => {
         const notifs = [];
         (contacts.items || []).forEach((c) => {
           if (!c.isRead) {
@@ -602,6 +734,23 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
             });
           }
         });
+        (formSubmissions.items || []).forEach((submission) => {
+          const payload = submission?.payloadByFieldNameSnapshot || {};
+          const identity =
+            payload?.name ||
+            payload?.full_name ||
+            payload?.email ||
+            payload?.phone ||
+            "New response";
+          notifs.push({
+            id: submission._id,
+            type: "form-submission",
+            icon: <FileTextOutlined style={{ color: "#13c2c2" }} />,
+            title: `New form submission (${submission.formId}): ${identity}`,
+            time: submission.createdAt,
+            link: `/admin/form-builder/${encodeURIComponent(submission.formId)}/submissions`,
+          });
+        });
         notifs.sort((a, b) => new Date(b.time) - new Date(a.time));
         const sliced = notifs.slice(0, 10);
         if (
@@ -615,18 +764,20 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
         setNotifications(sliced);
       })
       .catch(() => {});
-  }, []);
+  }, [normalizedRole]);
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 5000);
+    const interval = setInterval(fetchNotifications, ADMIN_NOTIFICATION_POLL_MS);
     const handleNewSubmission = () => setTimeout(fetchNotifications, 500);
     window.addEventListener("new-contact-submission", handleNewSubmission);
     window.addEventListener("new-donation", handleNewSubmission);
+    window.addEventListener("new-form-submission", handleNewSubmission);
     return () => {
       clearInterval(interval);
       window.removeEventListener("new-contact-submission", handleNewSubmission);
       window.removeEventListener("new-donation", handleNewSubmission);
+      window.removeEventListener("new-form-submission", handleNewSubmission);
     };
   }, [fetchNotifications]);
 
@@ -678,7 +829,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
             }}
             onClick={() => {
               setNotifOpen(false);
-              window.location.href = item.link;
+              router.push(item.link);
             }}
             onMouseEnter={(e) =>
               (e.currentTarget.style.background = "rgba(0,0,0,0.02)")
@@ -723,8 +874,10 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
           <Divider style={{ margin: 0 }} />
           <div style={{ textAlign: "center", padding: "10px 16px" }}>
             <Typography.Link
-              onClick={() => setNotifOpen(false)}
-              href="/admin/contacts"
+              onClick={() => {
+                setNotifOpen(false);
+                router.push("/admin/form-builder");
+              }}
               style={{ fontSize: 13 }}
             >
               View all
@@ -788,9 +941,9 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
           animation: badgePulse 1.5s infinite;
         }
         .admin-route-loader {
-          position: absolute;
+          position: fixed;
           inset: 0;
-          z-index: 20;
+          z-index: 1200;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -813,6 +966,16 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
         .admin-content.admin-route-loading .ant-spin {
           opacity: 0 !important;
           visibility: hidden !important;
+        }
+        .admin-content .ant-spin-nested-loading > .ant-spin {
+          position: fixed !important;
+          inset: 0 !important;
+          max-height: none !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          pointer-events: none !important;
+          z-index: 1100 !important;
         }
         .admin-route-loader-spinner {
           width: 44px;
@@ -902,6 +1065,12 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
         /* Inject admin loader color as CSS variable */
         :root {
           --admin-loader-color: ${at.adminLoaderColor};
+          --admin-text-color: ${at.adminTextColor};
+          --admin-border-color: ${at.adminBorderColor};
+          --admin-cta-bg-color: ${at.adminCtaBgColor};
+          --admin-cta-text-color: ${at.adminCtaTextColor};
+          --admin-cta-hover-bg-color: ${at.adminCtaHoverBgColor || at.adminCtaBgColor};
+          --admin-cta-hover-text-color: ${at.adminCtaHoverTextColor || at.adminCtaTextColor};
         }
 
         /* Override Ant Design Spin color globally for admin */
@@ -912,6 +1081,153 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
         }
         .admin-content .ant-spin {
           color: ${at.adminLoaderColor} !important;
+        }
+
+        /* Admin form controls default colors (content + drawers + modals + popovers) */
+        .admin-content .ant-input,
+        .admin-content .ant-input-affix-wrapper,
+        .admin-content .ant-input-number,
+        .admin-content .ant-select-selector,
+        .admin-content .ant-picker,
+        .ant-drawer .ant-input,
+        .ant-drawer .ant-input-affix-wrapper,
+        .ant-drawer .ant-input-number,
+        .ant-drawer .ant-select-selector,
+        .ant-drawer .ant-picker,
+        .ant-modal-root .ant-input,
+        .ant-modal-root .ant-input-affix-wrapper,
+        .ant-modal-root .ant-input-number,
+        .ant-modal-root .ant-select-selector,
+        .ant-modal-root .ant-picker,
+        .ant-popover .ant-input,
+        .ant-popover .ant-input-affix-wrapper,
+        .ant-popover .ant-input-number,
+        .ant-popover .ant-select-selector,
+        .ant-popover .ant-picker {
+          border-color: ${at.adminBorderColor} !important;
+          color: ${at.adminTextColor} !important;
+        }
+
+        .admin-content .ant-form-item-label > label,
+        .ant-drawer .ant-form-item-label > label,
+        .ant-modal-root .ant-form-item-label > label,
+        .ant-popover .ant-form-item-label > label,
+        .admin-content .ant-typography,
+        .ant-drawer .ant-typography,
+        .ant-modal-root .ant-typography,
+        .ant-popover .ant-typography,
+        .admin-content .ant-select-selection-item,
+        .admin-content .ant-select-selection-placeholder,
+        .ant-drawer .ant-select-selection-item,
+        .ant-drawer .ant-select-selection-placeholder,
+        .ant-modal-root .ant-select-selection-item,
+        .ant-modal-root .ant-select-selection-placeholder,
+        .ant-popover .ant-select-selection-item,
+        .ant-popover .ant-select-selection-placeholder {
+          color: ${at.adminTextColor} !important;
+        }
+
+        .admin-content .ant-input:hover,
+        .admin-content .ant-input-affix-wrapper:hover,
+        .admin-content .ant-input-number:hover,
+        .admin-content .ant-select:hover .ant-select-selector,
+        .admin-content .ant-picker:hover,
+        .ant-drawer .ant-input:hover,
+        .ant-drawer .ant-input-affix-wrapper:hover,
+        .ant-drawer .ant-input-number:hover,
+        .ant-drawer .ant-select:hover .ant-select-selector,
+        .ant-drawer .ant-picker:hover,
+        .ant-modal-root .ant-input:hover,
+        .ant-modal-root .ant-input-affix-wrapper:hover,
+        .ant-modal-root .ant-input-number:hover,
+        .ant-modal-root .ant-select:hover .ant-select-selector,
+        .ant-modal-root .ant-picker:hover,
+        .ant-popover .ant-input:hover,
+        .ant-popover .ant-input-affix-wrapper:hover,
+        .ant-popover .ant-input-number:hover,
+        .ant-popover .ant-select:hover .ant-select-selector,
+        .ant-popover .ant-picker:hover {
+          border-color: ${at.adminCtaBgColor} !important;
+        }
+
+        .admin-content .ant-input:focus,
+        .admin-content .ant-input-focused,
+        .admin-content .ant-input-affix-wrapper:focus,
+        .admin-content .ant-input-affix-wrapper-focused,
+        .admin-content .ant-input-number-focused,
+        .admin-content .ant-select-focused .ant-select-selector,
+        .admin-content .ant-picker-focused,
+        .ant-drawer .ant-input:focus,
+        .ant-drawer .ant-input-focused,
+        .ant-drawer .ant-input-affix-wrapper:focus,
+        .ant-drawer .ant-input-affix-wrapper-focused,
+        .ant-drawer .ant-input-number-focused,
+        .ant-drawer .ant-select-focused .ant-select-selector,
+        .ant-drawer .ant-picker-focused,
+        .ant-modal-root .ant-input:focus,
+        .ant-modal-root .ant-input-focused,
+        .ant-modal-root .ant-input-affix-wrapper:focus,
+        .ant-modal-root .ant-input-affix-wrapper-focused,
+        .ant-modal-root .ant-input-number-focused,
+        .ant-modal-root .ant-select-focused .ant-select-selector,
+        .ant-modal-root .ant-picker-focused,
+        .ant-popover .ant-input:focus,
+        .ant-popover .ant-input-focused,
+        .ant-popover .ant-input-affix-wrapper:focus,
+        .ant-popover .ant-input-affix-wrapper-focused,
+        .ant-popover .ant-input-number-focused,
+        .ant-popover .ant-select-focused .ant-select-selector,
+        .ant-popover .ant-picker-focused {
+          border-color: ${at.adminCtaBgColor} !important;
+          box-shadow: 0 0 0 2px color-mix(in srgb, ${at.adminCtaBgColor} 18%, transparent) !important;
+        }
+
+        .admin-content .ant-btn:not(.ant-btn-primary):not(.ant-btn-link):not(.ant-btn-text),
+        .ant-drawer .ant-btn:not(.ant-btn-primary):not(.ant-btn-link):not(.ant-btn-text),
+        .ant-modal-root .ant-btn:not(.ant-btn-primary):not(.ant-btn-link):not(.ant-btn-text),
+        .ant-popover .ant-btn:not(.ant-btn-primary):not(.ant-btn-link):not(.ant-btn-text) {
+          border-color: ${at.adminBorderColor} !important;
+          color: ${at.adminTextColor} !important;
+        }
+
+        .admin-content .ant-btn:not(.ant-btn-primary):not(.ant-btn-link):not(.ant-btn-text):hover,
+        .ant-drawer .ant-btn:not(.ant-btn-primary):not(.ant-btn-link):not(.ant-btn-text):hover,
+        .ant-modal-root .ant-btn:not(.ant-btn-primary):not(.ant-btn-link):not(.ant-btn-text):hover,
+        .ant-popover .ant-btn:not(.ant-btn-primary):not(.ant-btn-link):not(.ant-btn-text):hover {
+          border-color: ${at.adminCtaBgColor} !important;
+          color: ${at.adminCtaBgColor} !important;
+        }
+
+        .admin-content .ant-switch.ant-switch-checked,
+        .ant-drawer .ant-switch.ant-switch-checked,
+        .ant-modal-root .ant-switch.ant-switch-checked,
+        .ant-popover .ant-switch.ant-switch-checked {
+          background: ${at.adminCtaBgColor} !important;
+        }
+
+        .admin-content .ant-checkbox-checked .ant-checkbox-inner,
+        .admin-content .ant-checkbox-indeterminate .ant-checkbox-inner:after,
+        .ant-drawer .ant-checkbox-checked .ant-checkbox-inner,
+        .ant-drawer .ant-checkbox-indeterminate .ant-checkbox-inner:after,
+        .ant-modal-root .ant-checkbox-checked .ant-checkbox-inner,
+        .ant-modal-root .ant-checkbox-indeterminate .ant-checkbox-inner:after,
+        .ant-popover .ant-checkbox-checked .ant-checkbox-inner,
+        .ant-popover .ant-checkbox-indeterminate .ant-checkbox-inner:after {
+          background-color: ${at.adminCtaBgColor} !important;
+          border-color: ${at.adminCtaBgColor} !important;
+        }
+
+        .admin-content .ant-radio-checked .ant-radio-inner,
+        .ant-drawer .ant-radio-checked .ant-radio-inner,
+        .ant-modal-root .ant-radio-checked .ant-radio-inner,
+        .ant-popover .ant-radio-checked .ant-radio-inner {
+          border-color: ${at.adminCtaBgColor} !important;
+        }
+        .admin-content .ant-radio-checked .ant-radio-inner:after,
+        .ant-drawer .ant-radio-checked .ant-radio-inner:after,
+        .ant-modal-root .ant-radio-checked .ant-radio-inner:after,
+        .ant-popover .ant-radio-checked .ant-radio-inner:after {
+          background-color: ${at.adminCtaBgColor} !important;
         }
 
         /* Admin CTA button override — covers content, drawers, modals, popovers */
@@ -1021,7 +1337,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
           <Menu
             theme="light"
             mode="inline"
-            selectedKeys={[pathname]}
+            selectedKeys={[selectedMenuKey]}
             // defaultOpenKeys={["/admin/blogs"]}
             items={menuItems}
             style={{
@@ -1080,6 +1396,20 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
             style={{ fontSize: 18, color: at.adminTextColor }}
           />
           <Space size="middle" style={{ marginLeft: "auto" }}>
+            {roleLabel ? (
+              <Typography.Text
+                style={{
+                  color: at.adminTextColor,
+                  background: "rgba(0, 0, 0, 0.05)",
+                  padding: "2px 10px",
+                  borderRadius: 999,
+                  fontSize: 12,
+                  fontWeight: 600,
+                }}
+              >
+                {roleLabel}
+              </Typography.Text>
+            ) : null}
             <Popover
               content={notificationContent}
               trigger="click"

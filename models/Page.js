@@ -21,6 +21,7 @@ const pageSchema = new mongoose.Schema(
     meta: {
       metaTitle: { type: String, default: "" },
       metaDescription: { type: String, default: "" },
+      metaKeywords: { type: String, default: "" },
     },
     locale: { type: String, default: "en", index: true },
     createdBy: { type: String, default: "" },

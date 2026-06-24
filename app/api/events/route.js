@@ -10,12 +10,42 @@ function withCache(body, maxAge = 60) {
   });
 }
 
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function getStartOfTodayUtc() {
+  const now = new Date();
+  return new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
+}
+
+function buildActiveDateCondition(todayStart) {
+  return {
+    $or: [
+      { endDate: { $gte: todayStart } },
+      { endDate: null, startDate: { $gte: todayStart } },
+      { endDate: null, startDate: null },
+    ],
+  };
+}
+
+function buildPastDateCondition(todayStart) {
+  return {
+    $or: [
+      { endDate: { $lt: todayStart } },
+      { endDate: null, startDate: { $lt: todayStart } },
+    ],
+  };
+}
+
 /**
  * Public events API.
- * GET /api/events — paginated list (published only)
+ * GET /api/events — paginated list (published + active by default)
  * GET /api/events?slug=my-event — single published event
  *
- * Query: page, limit, search, sort=upcoming|recent, locale
+ * Query: page, limit, search, sort=upcoming|recent, locale, visibility=active|past|all
  */
 export async function GET(req) {
   try {
@@ -35,20 +65,35 @@ export async function GET(req) {
     const search = searchParams.get("search")?.trim() || null;
     const sortMode = (searchParams.get("sort") || "upcoming").toLowerCase();
     const locale = searchParams.get("locale") || null;
+    const visibility = (searchParams.get("visibility") || "active").toLowerCase();
     const fieldsMode = (searchParams.get("fields") || "").toLowerCase();
+    const todayStart = getStartOfTodayUtc();
 
-    const filter = { status: "published" };
-    if (locale) filter.locale = locale;
+    const andConditions = [{ status: "published" }];
+    if (locale) andConditions.push({ locale });
     if (search) {
-      filter.$or = [
-        { title: new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i") },
-        { description: new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i") },
-        { slug: new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i") },
-      ];
+      const query = escapeRegex(search);
+      andConditions.push({
+        $or: [
+          { title: new RegExp(query, "i") },
+          { description: new RegExp(query, "i") },
+          { content: new RegExp(query, "i") },
+          { slug: new RegExp(query, "i") },
+        ],
+      });
     }
+    if (visibility === "past") {
+      andConditions.push(buildPastDateCondition(todayStart));
+    } else if (visibility !== "all") {
+      andConditions.push(buildActiveDateCondition(todayStart));
+    }
+    const filter =
+      andConditions.length === 1 ? andConditions[0] : { $and: andConditions };
 
     const sort =
-      sortMode === "recent"
+      visibility === "past"
+        ? { endDate: -1, startDate: -1, updatedAt: -1 }
+        : sortMode === "recent"
         ? { updatedAt: -1, startDate: -1 }
         : { startDate: 1, updatedAt: -1 };
     const select =

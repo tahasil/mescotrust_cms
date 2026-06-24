@@ -3,6 +3,7 @@
  * GET: public. PUT: admin only.
  */
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getToken } from "next-auth/jwt";
 import { connectDB } from "@/lib/db";
 import Component from "@/models/Component";
@@ -10,57 +11,46 @@ import { isAdmin } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
-const HEADER_KEYS = [
-  "menuName",
-  "navItems",
-  "logoType",
-  "logoLightUrl",
-  "logoMobileUrl",
-  "logoDarkUrl",
-  "logoImageUrl",
-  "headerVolunteerLabel",
-  "headerVolunteerHref",
-  "headerVolunteerIconUrl",
-  "headerVolunteerIconUrlMobile",
-  "headerDonateLabel",
-  "headerDonateHref",
-  "headerDonateIconUrl",
-  "headerDonateIconUrlMobile",
-  "headerBgColorKey",
-  "headerCtaBgColorKey",
-  "headerCtaTextColorKey",
-  "headerDonateBgColorKey",
-  "headerDonateTextColorKey",
-  "_sectionBg",
-  "_sectionPadding",
-  "_sectionBorderSize",
-  "_sectionBorderStyle",
-  "_sectionBorderColor",
-  "_sectionShadow",
-];
-
 const HEADER_DEFAULTS = {
   menuName: "",
   navItems: [],
+  headerSearchEnabled: false,
+  headerSearchLabel: "",
+  headerSearchOpenAriaLabel: "",
+  headerSearchPlaceholder: "",
+  headerSearchDialogLabel: "",
+  headerSearchInputAriaLabel: "",
+  headerSearchCloseAriaLabel: "",
+  headerSearchMinCharsMessage: "",
+  headerSearchLoadingMessage: "",
+  headerSearchNoResultsMessage: "",
+  headerSearchErrorMessage: "",
+  headerSearchResultTypePageLabel: "",
+  headerSearchResultTypeBlogLabel: "",
+  headerSearchResultTypeEventLabel: "",
+  headerSearchFallbackTitle: "",
+  headerSearchFallbackMeta: "",
   logoType: "text",
+  logoUrl: "",
   logoLightUrl: "",
   logoMobileUrl: "",
   logoDarkUrl: "",
   logoImageUrl: "",
   headerVolunteerLabel: "",
   headerVolunteerHref: "",
+  headerVolunteerHrefTarget: "_self",
   headerVolunteerIconUrl: "",
   headerVolunteerIconUrlMobile: "",
   headerDonateLabel: "",
   headerDonateHref: "",
   headerDonateIconUrl: "",
-  headerDonateIconUrlMobile: "",
   headerBgColorKey: "headerBg",
   headerCtaBgColorKey: "headerCta",
   headerCtaTextColorKey: "primary",
   headerDonateBgColorKey: "gradient",
   headerDonateTextColorKey: "white",
   _sectionBg: "",
+  _containerType: "container",
   _sectionPadding: "",
   _sectionBorderSize: "",
   _sectionBorderStyle: "",
@@ -68,19 +58,52 @@ const HEADER_DEFAULTS = {
   _sectionShadow: "",
 };
 
-function toPayload(defaultProps) {
-  const out = { ...HEADER_DEFAULTS };
-  if (defaultProps && typeof defaultProps === "object") {
-    for (const k of HEADER_KEYS) {
-      if (defaultProps[k] == null) continue;
-      if (k === "navItems") {
-        out.navItems = Array.isArray(defaultProps.navItems) ? defaultProps.navItems : [];
-      } else if (k === "menuName") {
-        out.menuName = String(defaultProps.menuName || "").trim();
-      } else {
-        out[k] = typeof defaultProps[k] === "string" ? String(defaultProps[k]).trim() : defaultProps[k];
-      }
-    }
+const REMOVED_HEADER_KEYS = new Set([
+  "headerDonateIconUrlMobile",
+  "volunteerModalTitle",
+  "volunteerModalSuccessTitle",
+  "volunteerModalSuccessDescription",
+  "volunteerModalErrorTitle",
+  "volunteerModalNameLabel",
+  "volunteerModalEmailLabel",
+  "volunteerModalSubjectLabel",
+  "volunteerModalMessageLabel",
+  "volunteerModalNamePlaceholder",
+  "volunteerModalEmailPlaceholder",
+  "volunteerModalSubjectPlaceholder",
+  "volunteerModalMessagePlaceholder",
+  "volunteerModalCancelLabel",
+  "volunteerModalSendLabel",
+  "volunteerModalSendingLabel",
+  "volunteerModalNameRequiredMessage",
+  "volunteerModalEmailRequiredMessage",
+  "volunteerModalEmailInvalidMessage",
+  "volunteerModalSubjectRequiredMessage",
+  "volunteerModalSubjectMinMessage",
+  "volunteerModalMessageRequiredMessage",
+  "volunteerModalMessageMinMessage",
+  "volunteerModalBtnBg",
+  "volunteerModalBtnText",
+  "volunteerModalCancelColor",
+]);
+
+function normalizeHeaderProps(input) {
+  const payload = input && typeof input === "object" ? input : {};
+  const out = { ...HEADER_DEFAULTS, ...payload };
+  if (!out.headerDonateIconUrl && payload?.headerDonateIconUrlMobile) {
+    out.headerDonateIconUrl = String(payload.headerDonateIconUrlMobile || "").trim();
+  }
+  for (const key of REMOVED_HEADER_KEYS) {
+    delete out[key];
+  }
+  out.headerSearchEnabled = out.headerSearchEnabled === true;
+  out.headerVolunteerHrefTarget =
+    String(out.headerVolunteerHrefTarget || "").trim() === "_blank" ? "_blank" : "_self";
+  out.menuName = String(out.menuName || "").trim();
+  out.navItems = Array.isArray(out.navItems) ? out.navItems : [];
+  for (const [key, value] of Object.entries(out)) {
+    if (key === "navItems" || key === "menuName") continue;
+    if (typeof value === "string") out[key] = value.trim();
   }
   return out;
 }
@@ -88,14 +111,16 @@ function toPayload(defaultProps) {
 export async function GET() {
   try {
     await connectDB();
-    const doc = await Component.findOne({ baseComponent: "Header" }).lean();
-    const payload = toPayload(doc?.defaultProps);
+    const doc = await Component.findOne({ baseComponent: "Header" })
+      .sort({ updatedAt: -1 })
+      .lean();
+    const payload = normalizeHeaderProps(doc?.defaultProps);
     return NextResponse.json(payload, {
       headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
     });
   } catch (err) {
     console.error("[Header API] GET error:", err);
-    return NextResponse.json(toPayload(null), { status: 200 });
+    return NextResponse.json(normalizeHeaderProps(null), { status: 200 });
   }
 }
 
@@ -106,37 +131,34 @@ export async function PUT(req) {
 
   try {
     const body = await req.json();
-    const defaultProps = { ...HEADER_DEFAULTS };
-    for (const k of HEADER_KEYS) {
-      if (body[k] === undefined) continue;
-      if (k === "navItems") {
-        defaultProps.navItems = Array.isArray(body.navItems) ? body.navItems : [];
-      } else if (k === "menuName") {
-        defaultProps.menuName = typeof body.menuName === "string" ? String(body.menuName).trim() : "";
-      } else {
-        defaultProps[k] = typeof body[k] === "string" ? String(body[k]).trim() : body[k];
-      }
-    }
+    const payload = body && typeof body === "object" ? body : {};
 
     await connectDB();
-    let doc = await Component.findOne({ baseComponent: "Header" });
+    let doc = await Component.findOne({ baseComponent: "Header" }).sort({
+      updatedAt: -1,
+    });
     if (!doc) {
+      const defaultProps = normalizeHeaderProps(payload);
       doc = await Component.create({
         name: "Header",
         displayName: "Header",
         type: "system",
         baseComponent: "Header",
-        defaultProps,
+        defaultProps: { ...defaultProps },
         layout: [],
         active: true,
       });
     } else {
-      doc.defaultProps = { ...(doc.defaultProps || {}), ...defaultProps };
+      doc.defaultProps = normalizeHeaderProps({
+        ...(doc.defaultProps || {}),
+        ...payload,
+      });
       doc.markModified("defaultProps");
       await doc.save();
     }
 
-    const out = toPayload(doc.defaultProps);
+    revalidatePath("/", "layout");
+    const out = normalizeHeaderProps(doc.defaultProps);
     return NextResponse.json(out, {
       headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
     });

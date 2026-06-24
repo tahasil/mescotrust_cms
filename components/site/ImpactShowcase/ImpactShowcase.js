@@ -7,8 +7,8 @@ import {
   PageContainer,
   ThemeButton,
 } from "@/styles/Theme";
-import { RightCircleFilled } from "@ant-design/icons";
-import Link from "next/link";
+import { RightOutlined, UserOutlined } from "@ant-design/icons";
+import { useRouter } from "next/navigation";
 
 /**
  * Site component: ImpactShowcase (Impact Showcase).
@@ -16,6 +16,7 @@ import Link from "next/link";
  * Manage Section (background/padding) and Title & Colors come from EditForm.
  */
 export default function ImpactShowcase(props) {
+  const router = useRouter();
   const leftImageDesktop = (
     props?.impactShowcaseLeftImageDesktop ??
     props?.impactShowcaseLeftImage ??
@@ -42,18 +43,10 @@ export default function ImpactShowcase(props) {
   const button1Link = (props?.impactShowcaseButton1Link ?? "/")
     .toString()
     .trim();
-  const button1IconUrl = (props?.impactShowcaseButton1IconUrl ?? "")
-    .toString()
-    .trim();
   const button2Text = (props?.impactShowcaseButton2Text ?? "Volunteer")
     .toString()
     .trim();
   const button2Link = (props?.impactShowcaseButton2Link ?? "/")
-    .toString()
-    .trim();
-  const button2IconUrl = (
-    props?.impactShowcaseButton2IconUrl ?? "/images/volunteer-icon.svg"
-  )
     .toString()
     .trim();
 
@@ -69,10 +62,34 @@ export default function ImpactShowcase(props) {
   const btn2TextKey = (props?.impactShowcaseButton2TextColorKey ?? "")
     .toString()
     .trim();
+  const btn1HoverBgKey = (props?.impactShowcaseButton1HoverBgColorKey ?? "")
+    .toString()
+    .trim();
+  const btn1HoverTextKey = (
+    props?.impactShowcaseButton1HoverTextColorKey ?? ""
+  )
+    .toString()
+    .trim();
+  const btn2HoverBgKey = (props?.impactShowcaseButton2HoverBgColorKey ?? "")
+    .toString()
+    .trim();
+  const btn2HoverTextKey = (
+    props?.impactShowcaseButton2HoverTextColorKey ?? ""
+  )
+    .toString()
+    .trim();
   const btn1BgColor = btn1BgKey ? getColor(btn1BgKey) : undefined;
   const btn1TextColor = btn1TextKey ? getColor(btn1TextKey) : undefined;
   const btn2BgColor = btn2BgKey ? getColor(btn2BgKey) : undefined;
   const btn2TextColor = btn2TextKey ? getColor(btn2TextKey) : undefined;
+  const btn1HoverBgColor = btn1HoverBgKey ? getColor(btn1HoverBgKey) : undefined;
+  const btn1HoverTextColor = btn1HoverTextKey
+    ? getColor(btn1HoverTextKey)
+    : undefined;
+  const btn2HoverBgColor = btn2HoverBgKey ? getColor(btn2HoverBgKey) : undefined;
+  const btn2HoverTextColor = btn2HoverTextKey
+    ? getColor(btn2HoverTextKey)
+    : undefined;
 
   const sectionBgType = (
     props?.impactShowcaseSectionBgType ?? "default"
@@ -218,20 +235,86 @@ export default function ImpactShowcase(props) {
         }
       : undefined;
 
-  const btn1Style =
-    btn1BgKey || btn1TextKey
-      ? {
-          ...(btn1BgColor ? { background: btn1BgColor } : {}),
-          ...(btn1TextColor ? { color: btn1TextColor } : {}),
-        }
-      : undefined;
-  const btn2Style =
-    btn2BgKey || btn2TextKey
-      ? {
-          ...(btn2BgColor ? { background: btn2BgColor } : {}),
-          ...(btn2TextColor ? { color: btn2TextColor } : {}),
-        }
-      : undefined;
+  const btn1BaseBgColor = btn1BgColor || getColor("gradient");
+  const btn1BaseTextColor = btn1TextColor || getColor("white");
+  const btn2BaseBgColor = btn2BgColor || getColor("primaryLight");
+  const btn2BaseTextColor = btn2TextColor || getColor("primary");
+  const btn1ResolvedHoverBgColor = btn1HoverBgColor || getColor("white");
+  const btn1ResolvedHoverTextColor = btn1HoverTextColor || getColor("primary");
+  const btn2ResolvedHoverBgColor = btn2HoverBgColor || getColor("primary");
+  const btn2ResolvedHoverTextColor = btn2HoverTextColor || getColor("white");
+  const btn1ResolvedHoverBorderColor =
+    btn1HoverBgColor || getColor("primary");
+  const btn2ResolvedHoverBorderColor =
+    btn2HoverBgColor || getColor("primary");
+
+  const btn1Style = {
+    background: btn1BaseBgColor,
+    color: btn1BaseTextColor,
+    "--impact-btn-text": btn1BaseTextColor,
+    "--impact-btn-border": getColor("ctaBorder"),
+    "--impact-btn-hover-bg": btn1ResolvedHoverBgColor,
+    "--impact-btn-hover-text": btn1ResolvedHoverTextColor,
+    "--impact-btn-hover-border": btn1ResolvedHoverBorderColor,
+    "--impact-btn-icon-color": getColor("primary"),
+    "--impact-btn-icon-hover-color": btn1ResolvedHoverTextColor,
+  };
+  const btn2Style = {
+    background: btn2BaseBgColor,
+    color: btn2BaseTextColor,
+    boxShadow: "none",
+    border: "1px solid transparent",
+    "--impact-btn-text": btn2BaseTextColor,
+    "--impact-btn-border": "transparent",
+    "--impact-btn-hover-bg": btn2ResolvedHoverBgColor,
+    "--impact-btn-hover-text": btn2ResolvedHoverTextColor,
+    "--impact-btn-hover-border": btn2ResolvedHoverBorderColor,
+    "--impact-btn-icon-color": btn2BaseTextColor,
+    "--impact-btn-icon-hover-color": btn2ResolvedHoverTextColor,
+  };
+  const actionButtonBaseStyle = {
+    minHeight: 48,
+    borderRadius: 999,
+    paddingInlineStart: 20,
+    paddingInlineEnd: 12,
+    fontSize: 16,
+    fontWeight: 600,
+    lineHeight: 1.2,
+    display: "inline-flex",
+    alignItems: "center",
+  };
+  const iconBubbleBaseStyle = {
+    width: 28,
+    height: 28,
+    borderRadius: "50%",
+    background: "#fff",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flex: "0 0 28px",
+  };
+  const btn1FinalStyle = { ...actionButtonBaseStyle, ...(btn1Style || {}) };
+  const btn2FinalStyle = { ...actionButtonBaseStyle, ...(btn2Style || {}) };
+  const buttonLabelStyle = { color: "inherit" };
+  const isModalVolunteerTrigger =
+    !button2Link ||
+    button2Link === "/" ||
+    button2Link === "#" ||
+    button2Link === "#volunteer-modal";
+
+  const navigateTo = (href) => {
+    const nextHref = String(href || "").trim();
+    if (!nextHref || nextHref === "#") return;
+    if (
+      /^https?:\/\//i.test(nextHref) ||
+      /^mailto:/i.test(nextHref) ||
+      /^tel:/i.test(nextHref)
+    ) {
+      window.location.assign(nextHref);
+      return;
+    }
+    router.push(nextHref);
+  };
 
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
@@ -261,63 +344,91 @@ export default function ImpactShowcase(props) {
             )}
           </Col>
           <Col xs={24} sm={24} md={24} lg={10}>
-            <Space gap={16} className="mb-4">
+            <Space size={16} className="mb-4">
               {button1Text && (
-                <Link href={button1Link || "/"}>
-                  <ThemeButton
-                    type="button"
-                    size="large"
-                    icon={
-                      button1IconUrl ? (
-                        <img loading="lazy" alt="" src={button1IconUrl} />
-                      ) : (
-                        <RightCircleFilled />
-                      )
-                    }
-                    iconPosition="end"
-                    style={btn1Style}
+                <ThemeButton
+                  className="impact-showcase-btn impact-showcase-btn--one"
+                  type="button"
+                  size="large"
+                  icon={
+                    <span
+                      className="impact-showcase-btn__icon-wrap"
+                      style={iconBubbleBaseStyle}
+                    >
+                      <RightOutlined
+                        className="impact-showcase-btn__icon-svg"
+                        style={{ fontSize: 12 }}
+                      />
+                    </span>
+                  }
+                  iconPosition="end"
+                  style={btn1FinalStyle}
+                  onClick={() => navigateTo(button1Link || "/")}
+                >
+                  <span
+                    className="impact-showcase-btn__label"
+                    style={buttonLabelStyle}
                   >
                     {button1Text}
-                  </ThemeButton>
-                </Link>
+                  </span>
+                </ThemeButton>
               )}
               {button2Text && (
-                button2Link && button2Link !== "/" && button2Link !== "#" && button2Link !== "#volunteer-modal" ? (
-                  <Link href={button2Link}>
-                    <ThemeButton
-                      className="volunteer"
-                      type="button"
-                      size="large"
-                      icon={
-                        button2IconUrl ? (
-                          <img loading="lazy" alt="" src={button2IconUrl} />
-                        ) : (
-                          <RightCircleFilled />
-                        )
-                      }
-                      iconPosition="end"
-                      style={btn2Style}
-                    >
-                      {button2Text}
-                    </ThemeButton>
-                  </Link>
-                ) : (
+                isModalVolunteerTrigger ? (
                   <ThemeButton
-                    className="volunteer"
+                    className="impact-showcase-btn impact-showcase-btn--two"
                     type="button"
                     size="large"
                     icon={
-                      button2IconUrl ? (
-                        <img loading="lazy" alt="" src={button2IconUrl} />
-                      ) : (
-                        <RightCircleFilled />
-                      )
+                      <span
+                        className="impact-showcase-btn__icon-wrap"
+                        style={iconBubbleBaseStyle}
+                      >
+                        <UserOutlined
+                          className="impact-showcase-btn__icon-svg"
+                          style={{ fontSize: 13 }}
+                        />
+                      </span>
                     }
                     iconPosition="end"
-                    style={btn2Style}
-                    onClick={() => window.dispatchEvent(new Event("open-volunteer-modal"))}
+                    style={btn2FinalStyle}
+                    onClick={() =>
+                      window.dispatchEvent(new Event("open-volunteer-modal"))
+                    }
                   >
-                    {button2Text}
+                    <span
+                      className="impact-showcase-btn__label"
+                      style={buttonLabelStyle}
+                    >
+                      {button2Text}
+                    </span>
+                  </ThemeButton>
+                ) : (
+                  <ThemeButton
+                    className="impact-showcase-btn impact-showcase-btn--two"
+                    type="button"
+                    size="large"
+                    icon={
+                      <span
+                        className="impact-showcase-btn__icon-wrap"
+                        style={iconBubbleBaseStyle}
+                      >
+                        <UserOutlined
+                          className="impact-showcase-btn__icon-svg"
+                          style={{ fontSize: 13 }}
+                        />
+                      </span>
+                    }
+                    iconPosition="end"
+                    style={btn2FinalStyle}
+                    onClick={() => navigateTo(button2Link)}
+                  >
+                    <span
+                      className="impact-showcase-btn__label"
+                      style={buttonLabelStyle}
+                    >
+                      {button2Text}
+                    </span>
                   </ThemeButton>
                 )
               )}

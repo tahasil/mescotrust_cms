@@ -3,8 +3,13 @@ import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Page from "@/models/Page";
 import { normalizeSlug } from "@/lib/slug";
-import { validateLayoutProps } from "@/lib/validateLayout";
+import {
+  filterLayoutValidationErrors,
+  validateLayoutProps,
+} from "@/lib/validateLayout";
 import { syncMediaUsageForPage } from "@/lib/media/usageTracker";
+import { sanitizeVideoPlayingLayout } from "@/lib/videoPlayingImageValidation";
+import { sanitizePhotoGalleryLayout } from "@/lib/photoGalleryImageValidation";
 
 export async function GET(req) {
   const session = await requireAuth(req);
@@ -15,13 +20,41 @@ export async function GET(req) {
     const page = Math.max(1, Number(searchParams.get("page")) || 1);
     const limit = Math.min(100, Math.max(1, Number(searchParams.get("limit")) || 50));
     const skip = (page - 1) * limit;
+    const includeTotalParam = String(searchParams.get("includeTotal") || "").toLowerCase();
+    const includeTotal = !(includeTotalParam === "0" || includeTotalParam === "false");
+    const fieldsParam = String(searchParams.get("fields") || "").trim();
+
+    let selectedFields = null;
+    if (fieldsParam && fieldsParam !== "all" && fieldsParam !== "*") {
+      const requested = fieldsParam
+        .split(",")
+        .map((field) => field.trim())
+        .filter(Boolean);
+      if (!requested.includes("_id")) requested.unshift("_id");
+      if (requested.length > 0) selectedFields = requested.join(" ");
+    } else if (fieldsParam === "summary") {
+      selectedFields = "_id title slug status updatedAt locale";
+    }
 
     await connectDB();
+    const pagesQuery = Page.find().sort({ updatedAt: -1 }).skip(skip).limit(limit);
+    if (selectedFields) pagesQuery.select(selectedFields);
+
     const [pages, total] = await Promise.all([
-      Page.find().sort({ updatedAt: -1 }).skip(skip).limit(limit).lean(),
-      Page.countDocuments(),
+      pagesQuery.lean(),
+      includeTotal ? Page.countDocuments() : Promise.resolve(null),
     ]);
-    return NextResponse.json({ items: pages, total, page, totalPages: Math.ceil(total / limit) });
+
+    const payload = {
+      items: pages,
+      page,
+      limit,
+    };
+    if (includeTotal) {
+      payload.total = total;
+      payload.totalPages = Math.ceil(total / limit);
+    }
+    return NextResponse.json(payload);
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
@@ -47,10 +80,18 @@ export async function POST(req) {
       return NextResponse.json({ error: "A page with this slug already exists" }, { status: 400 });
     }
 
-    if (Array.isArray(layout) && layout.length > 0) {
-      const validationErrors = await validateLayoutProps(layout);
-      if (validationErrors.length > 0) {
-        return NextResponse.json({ error: `Layout validation: ${validationErrors.join("; ")}` }, { status: 400 });
+    const safeLayout = Array.isArray(layout)
+      ? sanitizePhotoGalleryLayout(sanitizeVideoPlayingLayout(layout))
+      : [];
+
+    if (safeLayout.length > 0) {
+      const validationErrors = await validateLayoutProps(safeLayout);
+      const blockingValidationErrors = filterLayoutValidationErrors(
+        validationErrors,
+        { nonBlockingBaseComponents: ["PhotoGallery"] },
+      );
+      if (blockingValidationErrors.length > 0) {
+        return NextResponse.json({ error: `Layout validation: ${blockingValidationErrors.join("; ")}` }, { status: 400 });
       }
     }
 
@@ -58,7 +99,7 @@ export async function POST(req) {
       title: title || "Untitled",
       slug,
       status: status || "draft",
-      layout: Array.isArray(layout) ? layout : [],
+      layout: safeLayout,
       meta: meta || {},
       ...(locale && { locale }),
       createdBy: session.email || "",

@@ -6,6 +6,22 @@ import { connectDB } from "@/lib/db";
 import SiteComponentMeta from "@/models/SiteComponentMeta";
 import Component from "@/models/Component";
 import { getRegistryIdsFromDisk } from "@/lib/getRegistryIdsFromDisk";
+import { isAdmin } from "@/lib/permissions";
+
+function guardAdmin(session) {
+  if (!isAdmin(session)) {
+    return NextResponse.json({ error: "Forbidden: Admin only" }, { status: 403 });
+  }
+  return null;
+}
+
+function sanitizeDisplayNameForTemplate(value) {
+  return String(value || "")
+    .replace(/\s+/g, " ")
+    .replace(/[^a-zA-Z0-9 .,&()'_-]/g, "")
+    .trim()
+    .slice(0, 80);
+}
 
 /** GET: list all site components (registry + custom from DB) with metadata */
 export async function GET(req) {
@@ -14,7 +30,10 @@ export async function GET(req) {
 
   try {
     await connectDB();
-    const allMetas = await SiteComponentMeta.find({}).lean();
+    const allMetas = await SiteComponentMeta.find(
+      {},
+      "componentId displayName global order position enabled",
+    ).lean();
     const metaById = {};
     allMetas.forEach((m) => {
       metaById[m.componentId] = m;
@@ -33,6 +52,9 @@ export async function GET(req) {
       }
       if (id === "ImageSlider" && (!displayName || displayName === "ImageSlider")) {
         displayName = "Circular Slider";
+      }
+      if (id === "FormEmbed" && (!displayName || displayName === "FormEmbed")) {
+        displayName = "Form Embed";
       }
       return {
         componentId: id,
@@ -62,6 +84,8 @@ export async function GET(req) {
 export async function POST(req) {
   const session = await requireAuth(req);
   if (session instanceof NextResponse) return session;
+  const forbidden = guardAdmin(session);
+  if (forbidden) return forbidden;
 
   try {
     const body = await req.json();
@@ -84,6 +108,7 @@ export async function POST(req) {
       suffix += 1;
       componentId = `${baseName}${suffix}`;
     }
+    const safeDisplayName = sanitizeDisplayNameForTemplate(displayName) || componentId;
     const global = Boolean(body.global);
     const order = Number(body.order) ?? 0;
     const position = body.position === "after" ? "after" : "before";
@@ -107,7 +132,7 @@ import {
 } from "@/styles/Theme";
 
 /**
- * Site component: ${componentId} (${displayName}).
+ * Site component: ${componentId} (${safeDisplayName}).
  * Section comes from ComponentRenderer. Props from theme/Component defaultProps.
  * Manage Section (background/padding) and Title & Colors come from EditForm.
  */
@@ -300,7 +325,7 @@ function ${componentId}EditForm({ source, initialData: initialDataProp, onSaveTo
           if (!res.ok) return res.json().then((d) => Promise.reject(d));
         })
         .then(() => {
-          message.success("${displayName} saved");
+          message.success("${safeDisplayName} saved");
           onSuccess?.();
         })
         .catch((err) => message.error(err?.error || "Failed to save"))

@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/db";
 import Event from "@/models/Event";
 import { normalizeSlug } from "@/lib/slug";
 import { clearUsageForRef, syncMediaUsageForEvent } from "@/lib/media/usageTracker";
+import { validateEventImages } from "@/lib/eventImageValidation";
 
 function parseOptionalDate(v) {
   if (v === null || v === undefined || v === "") return null;
@@ -58,6 +59,17 @@ export async function PUT(req, { params }) {
       meta,
       locale,
     } = body;
+
+    const imageValidationErrors = await validateEventImages({
+      featuredImageDesktop,
+      featuredImageMobile,
+    });
+    if (imageValidationErrors.length > 0) {
+      return NextResponse.json(
+        { error: imageValidationErrors[0] },
+        { status: 400 },
+      );
+    }
 
     await connectDB();
     const doc = await Event.findById(id);

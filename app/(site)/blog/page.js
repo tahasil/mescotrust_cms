@@ -8,6 +8,7 @@ import { getPageSeoMetadata } from "@/lib/seo";
 import { FullWidthBackground, MainTitle, PageContainer } from "@/styles/Theme";
 import BlogSidebarFull from "@/components/blog/BlogSidebarFull";
 import MediaImage from "@/components/shared/MediaImage";
+import { getBlogImageSources } from "@/components/blog/blogDisplay";
 
 export const dynamic = "force-dynamic";
 
@@ -198,6 +199,9 @@ export default async function BlogListPage({ searchParams }) {
             )}
 
             {items.map((post) => (
+              (() => {
+                const { desktop, mobile } = getBlogImageSources(post);
+                return (
               <article
                 key={post._id.toString()}
                 style={{
@@ -221,17 +225,15 @@ export default async function BlogListPage({ searchParams }) {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    background: post.featuredImage
+                    background: desktop
                       ? "rgba(0,0,0,0.02)"
                       : "rgba(0,0,0,0.04)",
                   }}
                 >
-                  {post.featuredImage ? (
+                  {desktop ? (
                     <MediaImage
-                      src={post.featuredImage}
-                      mobileSrc={post.featuredImageMobile}
-                      variant="large"
-                      mobileVariant="mobile"
+                      src={desktop}
+                      mobileSrc={mobile && mobile !== desktop ? mobile : ""}
                       alt={post.title}
                       width={1200}
                       height={675}
@@ -353,6 +355,8 @@ export default async function BlogListPage({ searchParams }) {
                   </div>
                 </div>
               </article>
+                );
+              })()
             ))}
 
             {/* Pagination */}

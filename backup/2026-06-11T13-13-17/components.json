@@ -1,0 +1,4896 @@
+[
+  {
+    "_id": "69c37f1cae84be222402f46e",
+    "name": "ImageSlider",
+    "displayName": "ImageSlider",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "ImageSlider",
+    "defaultProps": {
+      "imageSliderImages": [
+        {
+          "src": "/uploads/1773056632193_slider-1.webp",
+          "alt": "1"
+        },
+        {
+          "src": "/uploads/1773056638320_slider-2.webp",
+          "alt": "2"
+        },
+        {
+          "src": "/uploads/1773056643750_slider-3.webp",
+          "alt": "3"
+        },
+        {
+          "src": "/uploads/1773056649343_slider-4.webp",
+          "alt": "4"
+        }
+      ],
+      "imageSliderSlideCount": 37,
+      "imageSliderAutoInterval": 4000,
+      "imageSliderStepDeg": 10,
+      "imageSliderDuration": 0.6,
+      "imageSliderAutoplay": true,
+      "imageSliderDraggable": true,
+      "imageSliderSectionBgType": "default",
+      "imageSliderSectionBgImage": "",
+      "imageSliderSectionBgColorKey": "",
+      "imageSliderPageContainerBgType": "default",
+      "imageSliderPageContainerBgImage": "",
+      "imageSliderPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-25T06:22:20.075Z",
+    "updatedAt": "2026-03-25T06:22:20.075Z",
+    "__v": 0
+  },
+  {
+    "_id": "69c1385eca925c7a2e53482b",
+    "name": "Helpingpeople",
+    "displayName": "Helping people",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "Helpingpeople",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-23T12:55:58.253Z",
+    "updatedAt": "2026-03-25T05:41:25.988Z",
+    "__v": 0,
+    "defaultProps": {
+      "helpingpeopleMainTitle": "Helping people live better tomorrow",
+      "helpingpeopleParagraph": "<p>MESCO&nbsp;Managing&nbsp;Committee&nbsp;comprises&nbsp;of&nbsp;Professionals&nbsp;who&nbsp;have&nbsp;devoted&nbsp;their&nbsp;lives&nbsp;and&nbsp;are&nbsp;dedicated&nbsp;to&nbsp;develop&nbsp;a&nbsp;trusted&nbsp;&#39;brand&#39;&nbsp;in&nbsp;delivering&nbsp;humanitarian&nbsp;support.&nbsp;The&nbsp;Managing&nbsp;Committee&nbsp;volunteers&nbsp;with&nbsp;a&nbsp;team&nbsp;of&nbsp;Sub-Committee&nbsp;members&nbsp;(some&nbsp;of&nbsp;who&nbsp;were&nbsp;touched&nbsp;by&nbsp;MESCO&nbsp;in&nbsp;their&nbsp;lives)&nbsp;to&nbsp;constantly&nbsp;strive&nbsp;and&nbsp;ensure&nbsp;that&nbsp;the&nbsp;organization&nbsp;remains&nbsp;focused&nbsp;on&nbsp;its&nbsp;Objectives.&nbsp;They&nbsp;regularly&nbsp;interact&nbsp;and&nbsp;provide&nbsp;guidance&nbsp;and&nbsp;do&nbsp;periodical&nbsp;reviews&nbsp;in&nbsp;smaller&nbsp;groups&nbsp;(Portfolio&nbsp;Committees)&nbsp;with&nbsp;the&nbsp;leadership&nbsp;of&nbsp;the&nbsp;organization&nbsp;and&nbsp;the&nbsp;departmental&nbsp;Heads.&nbsp;The&nbsp;day&nbsp;to&nbsp;day&nbsp;management&nbsp;and&nbsp;service&nbsp;delivery&nbsp;is&nbsp;carried&nbsp;out&nbsp;by&nbsp;a&nbsp;team&nbsp;of&nbsp;well&nbsp;qualified&nbsp;Professionals&nbsp;from&nbsp;different&nbsp;domains&nbsp;and&nbsp;expertise,&nbsp;who&nbsp;identify&nbsp;with&nbsp;the&nbsp;mission&nbsp;of&nbsp;the&nbsp;organization.&nbsp;MESCO&#39;s&nbsp;attitude,&nbsp;openness,&nbsp;meticulous&nbsp;documentation,&nbsp;self-critique,&nbsp;plan-do-review-plan&nbsp;approach,&nbsp;has&nbsp;been&nbsp;lauded&nbsp;and&nbsp;has&nbsp;earned&nbsp;respect&nbsp;in&nbsp;the&nbsp;Society.&nbsp;Shaping&nbsp;careers&nbsp;of&nbsp;the&nbsp;economically&nbsp;underprivileged&nbsp;students,&nbsp;empowering&nbsp;women&nbsp;and&nbsp;girls,&nbsp;providing&nbsp;poverty&nbsp;relief&nbsp;and&nbsp;rehabilitation,&nbsp;medical&nbsp;assistance&nbsp;(preventive&nbsp;and&nbsp;curative),&nbsp;ration&nbsp;support&nbsp;and&nbsp;entrepreneurial&nbsp;avenues&nbsp;are&nbsp;key&nbsp;focus&nbsp;areas&nbsp;of&nbsp;the&nbsp;organization.</p>",
+      "helpingpeopleImageUrl": "/uploads/1774271016108_about-mesco-3.webp",
+      "helpingpeopleImageAlt": "Helping people",
+      "helpingpeopleTitleColorKey": "White",
+      "helpingpeopleTextColorKey": "White",
+      "helpingpeopleSectionBgType": "image",
+      "helpingpeopleSectionBgImage": "/uploads/1772876490774_about-card-bg.webp",
+      "helpingpeopleSectionBgColorKey": "",
+      "helpingpeoplePageContainerBgType": "default",
+      "helpingpeoplePageContainerBgImage": "",
+      "helpingpeoplePageContainerBgColorKey": "",
+      "_disableFadeAnimation": false
+    }
+  },
+  {
+    "_id": "69df1d142bd1deedd3256c83",
+    "name": "Volunteer",
+    "displayName": "Volunteer",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "Volunteer",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-04-15T05:07:32.151Z",
+    "updatedAt": "2026-04-15T05:39:03.995Z",
+    "__v": 0,
+    "defaultProps": {
+      "volunteerSectionBgType": "default",
+      "volunteerSectionBgImage": "",
+      "volunteerSectionBgColorKey": "",
+      "volunteerPageContainerBgType": "default",
+      "volunteerPageContainerBgImage": "",
+      "volunteerPageContainerBgColorKey": "",
+      "_disableFadeAnimation": true,
+      "mainTitle": "Why Volunteer with MESCO",
+      "subTitle": "Why Choose Us?",
+      "titleColorKey": "Black",
+      "volunteerTitleEnabled": true,
+      "volunteerSubTitleEnabled": true,
+      "volunteerSubTitleColorKey": "Black",
+      "volunteerDescription": "Make a real difference by contributing to education, medical relief and empowerment initiatives. Volunteering with MESCO offers meaningful exposure and an opportunity to impact lives.",
+      "volunteerDescriptionColorKey": "Black",
+      "volunteerPageValue": "Volunteer",
+      "volunteerSourceValue": "Volunteer Form",
+      "volunteerSubjectLine": "Volunteer Application",
+      "volunteerSubmitLabel": "Submit Application",
+      "volunteerAreasOptions": "Education Support,Health Awareness,Event Management,Administrative,Fundraising,Women's Empowerment",
+      "volunteerChecklistTitle": "Ready to Start?",
+      "volunteerChecklistDescription": "If you meet these criteria and are excited about making a difference, we'd love to have you on our team!",
+      "volunteerChecklistItems": "Quick application process\nOrientation within 2 weeks\nOngoing support & training",
+      "volunteerFormCardBgColorKey": "White",
+      "volunteerFormCardBorderColorKey": "Border",
+      "volunteerLabelColorKey": "Black",
+      "volunteerInputBgColorKey": "White",
+      "volunteerInputBorderColorKey": "Border",
+      "volunteerInputTextColorKey": "Black",
+      "volunteerPlaceholderColorKey": "Black Light",
+      "volunteerButtonBgColorKey": "Gradient",
+      "volunteerButtonTextColorKey": "White",
+      "volunteerChecklistBgColorKey": "Gradient",
+      "volunteerChecklistTitleColorKey": "White",
+      "volunteerChecklistTextColorKey": "White",
+      "volunteerChecklistBulletColorKey": "White",
+      "volunteerFormCardRadius": 16,
+      "volunteerInputRadius": 8,
+      "volunteerChecklistCardRadius": 14,
+      "volunteerPageContainerPaddingTop": 40,
+      "volunteerPageContainerPaddingRight": 0,
+      "volunteerPageContainerPaddingBottom": 60,
+      "volunteerPageContainerPaddingLeft": 0,
+      "volunteerCheckboxColorKey": ""
+    }
+  },
+  {
+    "_id": "69c3cd9cae84be2224030b7d",
+    "name": "Images",
+    "displayName": "Images",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "Images",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-25T11:57:16.094Z",
+    "updatedAt": "2026-03-25T13:13:52.808Z",
+    "__v": 0,
+    "defaultProps": {
+      "mainTitle": "Section Title",
+      "subTitle": "Subtitle",
+      "titleColorKey": "Black",
+      "imagesSectionBgType": "default",
+      "imagesSectionBgImage": "",
+      "imagesSectionBgColorKey": "",
+      "imagesSectionPadding": "",
+      "imagesSectionMargin": "",
+      "imagesPageContainerBgType": "default",
+      "imagesPageContainerBgImage": "",
+      "imagesPageContainerBgColorKey": "",
+      "imagesPageContainerPadding": "",
+      "imagesPageContainerMargin": "",
+      "_disableFadeAnimation": false,
+      "colors": [],
+      "imagesTitleEnabled": true,
+      "imagesSubTitleEnabled": true,
+      "imagesSubTitleColorKey": "Primary",
+      "imageUrl": "/uploads/1774444055049_clinics-dispensaries.webp",
+      "imageAlt": "Clinics And Dispensaries"
+    }
+  },
+  {
+    "_id": "69c20d6bbb1a8fef1996f89e",
+    "name": "CommitteeMembers",
+    "displayName": "Committee Members",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "CommitteeMembers",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-24T04:04:59.791Z",
+    "updatedAt": "2026-03-24T04:33:40.124Z",
+    "__v": 0,
+    "defaultProps": {
+      "committeeMembersMainTitle": "Committee Members",
+      "committeeMembersTitleColorKey": "Black",
+      "committeeMembersTitleFontSize": 24,
+      "committeeMembersTitleFontWeight": 600,
+      "committeeMembersItems": [
+        {
+          "name": "Prof. M. Farhaan Makba",
+          "qualification": "M.Sc., PGDME",
+          "title": "President",
+          "image": "/uploads/1774326267661_members-1.webp",
+          "bio": "Prof. M. Farhaan Makba is the President, Education Portfolio Committee at MESCO. He completed his M.Sc. in Microbiology and Post Graduate Diploma in Management of Education. Presently is an Assistant Professor, Department of Microbiology at Royal College, Mira Road. He was also awarded R.S Krishnan CUBE-Teacher fellow award by TIFR."
+        },
+        {
+          "name": "MR. MASUD MEMON",
+          "qualification": "B.Com",
+          "title": "Vice-President",
+          "image": "/uploads/1774326574466_members-2.webp",
+          "bio": "Mr. Masud Memon is the Vice-President of MESCO, a Commerce graduate from Mumbai University. He is a businessman by profession."
+        },
+        {
+          "name": "MR. SALMAN KARDAME",
+          "qualification": "",
+          "title": "General Secretary",
+          "image": "/uploads/1774326697593_members-3.webp",
+          "bio": "Mr. Salman Kardame (General Secretary) of MESCO is an Arts Graduate from Mumbai University. He did his Vocational Training in Computers. An Entrepreneur dealing in Computer Hardware and Software. He is also into Construction Business. He is the Chairman of the R. C. Mahim Portfolio Committee at MESCO."
+        },
+        {
+          "name": "MR. SHAKIL AHMED RANGREJ",
+          "qualification": "",
+          "title": "Treasurer",
+          "image": "/uploads/1774326809410_members-4.webp",
+          "bio": ""
+        }
+      ],
+      "committeeMembersSectionBgType": "default",
+      "committeeMembersSectionBgImage": "",
+      "committeeMembersSectionBgColorKey": "",
+      "committeeMembersPageContainerBgType": "default",
+      "committeeMembersPageContainerBgImage": "",
+      "committeeMembersPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false
+    }
+  },
+  {
+    "_id": "69d794d2d5fad4c1d89b3dd6",
+    "name": "EventRegistrationForm",
+    "displayName": "EventRegistrationForm",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "EventRegistrationForm",
+    "defaultProps": {
+      "heading": "Event Registration",
+      "intro": "Please fill in your details below to register for this event. We will reach out with the next steps.",
+      "buttonText": "Register",
+      "successMessage": "Thank you! Your registration has been received. We will contact you with the next steps.",
+      "studentFieldsEnabled": true,
+      "defaultEventTitle": "",
+      "defaultEventDate": "",
+      "eventRegistrationFormSectionBgType": "default",
+      "eventRegistrationFormSectionBgImage": "",
+      "eventRegistrationFormSectionBgColorKey": "",
+      "eventRegistrationFormPageContainerBgType": "default",
+      "eventRegistrationFormPageContainerBgImage": "",
+      "eventRegistrationFormPageContainerBgColorKey": "",
+      "eventRegistrationFormPageContainerPaddingTop": 40,
+      "eventRegistrationFormPageContainerPaddingRight": 0,
+      "eventRegistrationFormPageContainerPaddingBottom": 60,
+      "eventRegistrationFormPageContainerPaddingLeft": 0,
+      "_disableFadeAnimation": false,
+      "mainTitle": "Event Registration",
+      "subTitle": "",
+      "titleColorKey": "Black",
+      "eventRegistrationFormTitleEnabled": true,
+      "eventRegistrationFormSubTitleEnabled": true,
+      "eventRegistrationFormSubTitleColorKey": "Primary",
+      "eventRegistrationFormCardBgColorKey": "White",
+      "eventRegistrationFormLabelColorKey": "Black",
+      "eventRegistrationFormInputBorderColorKey": "Border",
+      "eventRegistrationFormButtonBgColorKey": "Gradient",
+      "eventRegistrationFormButtonTextColorKey": "White",
+      "eventRegistrationFormIntroColorKey": "Black Light",
+      "eventRegistrationFormEventLineColorKey": "Black"
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-04-09T12:00:18.103Z",
+    "updatedAt": "2026-04-09T12:29:45.136Z",
+    "__v": 0
+  },
+  {
+    "_id": "69a959531e2837aa73742379",
+    "name": "HomeHero",
+    "displayName": "Home Hero",
+    "type": "system",
+    "category": "",
+    "baseComponent": "HomeHero",
+    "defaultProps": {
+      "homeHeroSlides": [
+        {
+          "bgImageUrl": "/uploads/1772598083225_slide-1.webp",
+          "title": "Because Every Learner Deserves Support",
+          "description": "A community-powered initiative that brings donors, mentors, and resources together to help learners overcome barriers and continue their education—turning collective support into real opportunities.",
+          "buttonText": "Contact Us",
+          "buttonLink": "/contact",
+          "showButton": true
+        },
+        {
+          "bgImageUrl": "/uploads/1772598088898_slide-2.webp",
+          "title": "Because Every Learner Deserves Support",
+          "description": "A community-powered initiative that brings donors, mentors, and resources together to help learners overcome barriers and continue their education—turning collective support into real opportunities.",
+          "buttonText": "Contact Us",
+          "buttonLink": "/contact",
+          "showButton": true
+        }
+      ],
+      "homeHeroSliderTitleColorKey": "White",
+      "homeHeroSliderDescColorKey": "White",
+      "homeHeroSliderButtonBgColorKey": "Gradient",
+      "homeHeroSliderButtonTextColorKey": "White",
+      "homeHeroBackgroundContainer": "full",
+      "homeHeroContentContainer": "pageContainer"
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-05T10:22:11.039Z",
+    "updatedAt": "2026-03-06T04:55:56.053Z",
+    "__v": 0
+  },
+  {
+    "_id": "69c28361ae84be222402dd3f",
+    "name": "Videogallery",
+    "displayName": "Video gallery",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "Videogallery",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-24T12:28:17.275Z",
+    "updatedAt": "2026-03-24T13:46:10.262Z",
+    "__v": 0,
+    "defaultProps": {
+      "videogalleryAccentColorKey": "Primary",
+      "videogalleryTabBgColorKey": "Gradient",
+      "videogalleryTabTextColorKey": "White",
+      "videogalleryTabBorderColorKey": "Black Light",
+      "videogalleryTabInactiveTextColorKey": "Black",
+      "videogalleryTabHoverBorderColorKey": "Primary",
+      "videogalleryTabHoverTextColorKey": "Primary",
+      "videogalleryTabs": [
+        "All",
+        "Education",
+        "Medical",
+        "Events",
+        "Community"
+      ],
+      "videogalleryItems": [
+        {
+          "title": "MESCO's High Cost Education Scholarship: Empowering Dreams, Building Future",
+          "videoId": "Mny8ziStg4w",
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "Teachers' Day Celebration 2025 | R.C. Mahim Municipal School",
+          "videoId": "YUau1ug-iQs",
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "MESCO DUA | A Prayer of Hope & Unity",
+          "videoId": "c7W_mRKoHFg",
+          "categories": [
+            "Community"
+          ]
+        },
+        {
+          "title": "Threads of Hope | MESCO Trust's Sewing Machine Program",
+          "videoId": "-C2V6K6AP68",
+          "categories": [
+            "Community"
+          ]
+        },
+        {
+          "title": "From Student to Doctor | Dr. Almas Rameez Khan's Inspiring Journey",
+          "videoId": "ySk4VM-aBWM",
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "Help Us Build a Permanent Office | Appeal by Prof. M Farhaan Makba",
+          "videoId": "f0nkSLv4meU",
+          "categories": [
+            "Events"
+          ]
+        },
+        {
+          "title": "Sustained Dialysis Support | Lifeline for Deserving Patients",
+          "videoId": "EXCQG6YvqwE",
+          "categories": [
+            "Medical"
+          ]
+        },
+        {
+          "title": "Important Documents Required for College Admission & Scholarships",
+          "videoId": "_9-KS_hXyDw",
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "Donate Your Zakat & Change a Child's Future",
+          "videoId": "oB11dilzf-Y",
+          "categories": [
+            "Community"
+          ]
+        },
+        {
+          "title": "Education Support Program | Transforming Lives with Mr. Irfan Shaikh",
+          "videoId": "sMcL45sbJrE",
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "This Ramadan, Your Zakat Can Change Lives",
+          "videoId": "U9Z6YYy8GRA",
+          "categories": [
+            "Community"
+          ]
+        },
+        {
+          "title": "Zakat Appeal 2025",
+          "videoId": "HzQ01RQhphA",
+          "categories": [
+            "Community"
+          ]
+        },
+        {
+          "title": "Empowering Futures: Highlights from the MESCO Donor Milaap Programme 2024",
+          "videoId": "nUHTAZrOmIk",
+          "categories": [
+            "Events"
+          ]
+        },
+        {
+          "title": "MESCO Blood Donation Camp 2024 | R.C. Mahim School",
+          "videoId": "34DaH3fzSBY",
+          "categories": [
+            "Medical"
+          ]
+        },
+        {
+          "title": "Teachers' Day Special: The Lifelong Impact of a Great Teacher",
+          "videoId": "gMKdgnVOOrI",
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "Your Zakat, Their Future | Zakat Appeal 2024",
+          "videoId": "Q6c6vFEo25Q",
+          "categories": [
+            "Community"
+          ]
+        },
+        {
+          "title": "Career in the Field of Arts After 10th",
+          "videoId": "a0_WxVVfcMM",
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "What To Do After 10th Commerce Stream | Best Career Options",
+          "videoId": "iGwtYwD6uUY",
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "What To Do After 10th - Science PCB | Best Career Options",
+          "videoId": "wgXtI0tqR4U",
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "What To Do After 10th - Science PCM | Best Career Options",
+          "videoId": "fkXlCNbCeOg",
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "Zakat Appeal 2024",
+          "videoId": "a9mSTHdycgA",
+          "categories": [
+            "Community"
+          ]
+        },
+        {
+          "title": "ForgeAhead: MESCO Boys' Personality Development Camp 2023-2024",
+          "videoId": "DNu3JBQkfv0",
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "EmpowerHER: Transformative Girls' Personality Development Camp 2023",
+          "videoId": "UEabyvEmCEU",
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "MESCO Sewing Machine Distribution: Needles and Hope Sewing Machines Stitch a Brighter Future",
+          "videoId": "UhZAOVKAWHQ",
+          "categories": [
+            "Community"
+          ]
+        },
+        {
+          "title": "MESCO's Milaap Program 3rd December 2023: Bridging Dreams & Connecting Hearts",
+          "videoId": "A0plYeegsOo",
+          "categories": [
+            "Events"
+          ]
+        },
+        {
+          "title": "MESCO's Milaap Program 19th November 2023: Bridging Dreams & Connecting Hearts",
+          "videoId": "FCbJrYT33Cw",
+          "categories": [
+            "Events"
+          ]
+        },
+        {
+          "title": "MESCO Study Center: A Place Where Students Can Learn and Explore",
+          "videoId": "IRQwhWhJmVM",
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "Top Students of RC Mahim Urdu School Felicitated by MESCO",
+          "videoId": "cC2TgE70aoU",
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "Sewing Machine Distribution Program by MESCO: Empowering Women for Livelihood",
+          "videoId": "_Ozb6vJkBv0",
+          "categories": [
+            "Community"
+          ]
+        },
+        {
+          "title": "Resilience Story of Tushar N. Lohar",
+          "videoId": "Ax_PVVZ6kRw",
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "Resilience Story of Snehalata Saxena",
+          "videoId": "iFIpq3q2KIo",
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "Resilience Story of Mr. Maqbool Husain Shaikh",
+          "videoId": "8z5NGIpaVZU",
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "Disaster Relief and Ration Distribution at Appa Pada, Malad (E) by MESCO",
+          "videoId": "eWnQ_zhfyxk",
+          "categories": [
+            "Community"
+          ]
+        },
+        {
+          "title": "Best of Luck to SSC Students",
+          "videoId": "WxeIGGMuPtU",
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "State Topper",
+          "videoId": "w0QLD-q4UCY",
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "RC Mahim Annual Sports Day",
+          "videoId": "MTqoyTvOaHA",
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "Top Ranking Students Felicitation Function 2023",
+          "videoId": "uo4uZnYCDSE",
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "Sewing Machine Distribution",
+          "videoId": "UhZAOVKAWHQ",
+          "categories": [
+            "Community"
+          ]
+        },
+        {
+          "title": "World Kidney Day",
+          "videoId": "6B0cSK3q1Gc",
+          "categories": [
+            "Medical"
+          ]
+        },
+        {
+          "title": "Zakat Appeal 2023",
+          "videoId": "9Phm2HXFHLM",
+          "categories": [
+            "Community"
+          ]
+        }
+      ],
+      "videogallerySectionBgType": "default",
+      "videogallerySectionBgImage": "",
+      "videogallerySectionBgColorKey": "",
+      "videogalleryPageContainerBgType": "default",
+      "videogalleryPageContainerBgImage": "",
+      "videogalleryPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false,
+      "videogalleryLimitEnabled": false,
+      "videogalleryLimitCount": 6,
+      "videogalleryViewMoreText": "View More",
+      "videogalleryViewMoreLink": "/media/video-gallery"
+    }
+  },
+  {
+    "_id": "69c6587e10c1006e67ac7b29",
+    "name": "StoriesSlider",
+    "displayName": "Stories Slider",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "StoriesSlider",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-27T10:14:22.150Z",
+    "updatedAt": "2026-03-27T10:25:31.672Z",
+    "__v": 0,
+    "defaultProps": {
+      "storiesSliderSectionBgType": "default",
+      "storiesSliderSectionBgImage": "",
+      "storiesSliderSectionBgColorKey": "",
+      "storiesSliderPageContainerBgType": "default",
+      "storiesSliderPageContainerBgImage": "",
+      "storiesSliderPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false,
+      "mainTitle": "",
+      "subTitle": "",
+      "titleColorKey": "",
+      "storiesSliderTitleEnabled": true,
+      "storiesSliderSubTitleEnabled": true,
+      "storiesSliderSubTitleColorKey": "",
+      "storiesSliderNameColorKey": "",
+      "storiesSliderItems": [
+        {
+          "quote": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+          "name": "Lorem Ipsum",
+          "role": "UI Designer",
+          "image": ""
+        },
+        {
+          "quote": "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?",
+          "name": "Lorem Ipsum",
+          "role": "Software Engineer",
+          "image": ""
+        }
+      ]
+    }
+  },
+  {
+    "_id": "69c4c54d10c1006e67ac4611",
+    "name": "InMedia",
+    "displayName": "In Media",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "InMedia",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-26T05:34:05.308Z",
+    "updatedAt": "2026-03-27T07:46:16.824Z",
+    "__v": 0,
+    "defaultProps": {
+      "inMediaSectionBgType": "default",
+      "inMediaSectionBgImage": "",
+      "inMediaSectionBgColorKey": "",
+      "inMediaPageContainerBgType": "default",
+      "inMediaPageContainerBgImage": "",
+      "inMediaPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false,
+      "mainTitle": "Lorem Ipsum is simply dummy text of the printing and typesetting industry",
+      "subTitle": "lorem ipsum",
+      "titleColorKey": "Black",
+      "inMediaTitleEnabled": true,
+      "inMediaSubTitleEnabled": true,
+      "inMediaSubTitleColorKey": "Primary",
+      "inMediaNameColorKey": "Black",
+      "inMediaDateColorKey": "Black Light",
+      "inMediaItems": [
+        {
+          "name": "Lorem Ipsum has been the industry's standard dummy text",
+          "date": "14 Apr, 2023",
+          "image": "/uploads/1774503996018_media-large-1.webp",
+          "source": "Inquilab"
+        },
+        {
+          "name": "NGO uses zakat fund to educate poor and raise agents of change",
+          "date": "26 Mar, 2023",
+          "image": "/images/media-2.png",
+          "source": "Mumbai Mirror"
+        },
+        {
+          "name": "Our Doctors making an impact on society",
+          "date": "12 Jul, 2022",
+          "image": "/images/media-3.png",
+          "source": "Bombay Times"
+        }
+      ]
+    }
+  },
+  {
+    "_id": "69c5fdc310c1006e67ac5ecf",
+    "name": "OverlayCards",
+    "displayName": "Overlay Cards",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "OverlayCards",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-27T03:47:15.694Z",
+    "updatedAt": "2026-03-27T04:44:24.350Z",
+    "__v": 0,
+    "defaultProps": {
+      "mainTitle": "Section Title",
+      "subTitle": "Subtitle",
+      "titleColorKey": "White",
+      "overlayCardsSectionBgType": "image",
+      "overlayCardsSectionBgImage": "/uploads/1772875877475_about-card-bg-2.webp",
+      "overlayCardsSectionBgColorKey": "",
+      "overlayCardsSectionPadding": "",
+      "overlayCardsSectionMargin": "",
+      "overlayCardsPageContainerBgType": "default",
+      "overlayCardsPageContainerBgImage": "",
+      "overlayCardsPageContainerBgColorKey": "",
+      "overlayCardsPageContainerPadding": "",
+      "overlayCardsPageContainerMargin": "",
+      "_disableFadeAnimation": false,
+      "colors": [],
+      "overlayCardsTitleEnabled": true,
+      "overlayCardsSubTitleEnabled": true,
+      "overlayCardsSubTitleColorKey": "White",
+      "overlayCardsHoverColorKey": "Primary Light",
+      "overlayCardsItems": [
+        {
+          "title": "Mumbai City Unit (Bandra to Colaba)",
+          "description": "Contact No: +91 9969937812",
+          "bgImage": "/images/newspaper-card-bg-1.png"
+        },
+        {
+          "title": "Mumbai Suburban Unit (Santacruz to Borivali)",
+          "description": "Contact No: +91 9969937814",
+          "bgImage": "/images/newspaper-card-bg-2.png"
+        },
+        {
+          "title": "Thane Unit (Thane and Navi Mumbai)",
+          "description": "Contact No: +91 7718038065",
+          "bgImage": "/images/newspaper-card-bg-3.png"
+        }
+      ]
+    }
+  },
+  {
+    "_id": "69a98dcb1e2837aa73742c00",
+    "name": "Marquee",
+    "displayName": "Marquee",
+    "type": "system",
+    "category": "",
+    "baseComponent": "Marquee",
+    "defaultProps": {
+      "marqueeTitle": "Our CSR Partners | Awards & Recognition",
+      "marqueeItems": [
+        {
+          "url": "/uploads/1772598258327_partner-6.webp",
+          "alt": "1"
+        },
+        {
+          "url": "/uploads/1772598254163_partner-5.webp",
+          "alt": "2"
+        },
+        {
+          "url": "/uploads/1772598248574_partner-4.webp",
+          "alt": "3"
+        },
+        {
+          "url": "/uploads/1772598244428_partner-3.webp",
+          "alt": "4"
+        },
+        {
+          "url": "/uploads/1772598237677_partner-2.webp",
+          "alt": "5"
+        },
+        {
+          "url": "/uploads/1772598215270_partner-1.webp",
+          "alt": "6"
+        }
+      ]
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-05T14:06:03.791Z",
+    "updatedAt": "2026-03-05T14:06:30.046Z",
+    "__v": 0
+  },
+  {
+    "_id": "69bcde8a4784717a277857de",
+    "name": "Notices",
+    "displayName": "Notices",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "Notices",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-20T05:43:38.008Z",
+    "updatedAt": "2026-03-20T05:49:21.678Z",
+    "__v": 0,
+    "defaultProps": {
+      "noticesSectionBgType": "default",
+      "noticesSectionBgImage": "",
+      "noticesSectionBgColorKey": "",
+      "noticesPageContainerBgType": "default",
+      "noticesPageContainerBgImage": "",
+      "noticesPageContainerBgColorKey": "",
+      "mainTitle": "Important Notices",
+      "titleColorKey": "Black",
+      "noticesItems": [
+        {
+          "label": "Form5A PF",
+          "link": ""
+        },
+        {
+          "label": "Form5A PF",
+          "link": ""
+        },
+        {
+          "label": "Form5A PF",
+          "link": ""
+        }
+      ]
+    }
+  },
+  {
+    "_id": "69bcd16d69aa6d98c3e63661",
+    "name": "WelcometoMESCO",
+    "displayName": "Welcome to MESCO",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "WelcometoMESCO",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-20T04:47:41.716Z",
+    "updatedAt": "2026-03-20T05:24:21.844Z",
+    "__v": 0,
+    "defaultProps": {
+      "mainTitle": "Helping people live better tomorrow",
+      "subTitle": "Subtitle 2",
+      "titleColorKey": "Black",
+      "welcometoMESCOSectionBgType": "default",
+      "welcometoMESCOSectionBgImage": "",
+      "welcometoMESCOSectionBgColorKey": "",
+      "welcometoMESCOSectionPadding": "",
+      "welcometoMESCOSectionMargin": "",
+      "welcometoMESCOPageContainerBgType": "default",
+      "welcometoMESCOPageContainerBgImage": "",
+      "welcometoMESCOPageContainerBgColorKey": "",
+      "welcometoMESCOPageContainerPadding": "",
+      "welcometoMESCOPageContainerMargin": "",
+      "colors": [
+        {
+          "name": "Primary",
+          "value": "rgba(207, 55, 47, 1)"
+        },
+        {
+          "name": "Black",
+          "value": "#050505"
+        },
+        {
+          "name": "Black Light",
+          "value": "rgba(5, 5, 5, 0.5)"
+        },
+        {
+          "name": "White",
+          "value": "#FFFFFF"
+        },
+        {
+          "name": "Primary Light",
+          "value": "rgba(207, 55, 47, 0.1)"
+        },
+        {
+          "name": "Gradient",
+          "value": "linear-gradient(90deg, #CF372F 0%, #691C18 100%)"
+        },
+        {
+          "name": "Border",
+          "value": "rgba(0, 0, 0, 0.1)"
+        },
+        {
+          "name": "imgWhite",
+          "value": "brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(3%) hue-rotate(51deg) brightness(115%) contrast(100%)"
+        },
+        {
+          "name": "imgColor",
+          "value": "brightness(0) saturate(100%) invert(25%) sepia(76%) saturate(6383%) hue-rotate(354deg) brightness(93%) contrast(73%)"
+        },
+        {
+          "name": "Transparent",
+          "value": "transparent"
+        }
+      ],
+      "welcomeLabel": "Welcome to MESCO",
+      "highlightText": "We are the largest crowdfunding",
+      "description": "MESCO is a Secular Trust registered in 1968 with the Charity Commissioner of Mumbai. The organization is a selfless effort for serving mankind which began with a few friends who constituted the first Managing Committee. ‘Education’ was identified as a core theme for human development by the organization and later it expanded to provide Medical Assistance and Poverty Relief. The organization touches the lives of over 15,000 families annually through a combination of well strategized and implemented schemes, programs, activities and its institutions. The approach has always been to uphold ethical values in delivering and becoming a channel to deliver resources from those who want to giveto those who need it the most.",
+      "secondaryText": "Trusted today by a large number of noble souls (individuals, families, foundations, charities and corporate) both in the country and abroad, the organization strives to bring happiness...",
+      "buttonText": "Zakat Appeal",
+      "buttonLink": "/",
+      "imageUrl": "/uploads/1773983435252_helping.webp",
+      "imageAlt": "Helping",
+      "welcometoMESCOHighlightColorKey": "Primary",
+      "welcometoMESCOButtonBgColorKey": "Gradient",
+      "welcometoMESCOButtonTextColorKey": "White",
+      "welcometoMESCOStats": [
+        {
+          "number": "89052",
+          "label": "Educational Scholarships Students",
+          "iconImage": "/uploads/1773984121340_welcome-icon-1.webp"
+        },
+        {
+          "number": "12199",
+          "label": "Educational Scholarships Students",
+          "iconImage": "/uploads/1773984172431_welcome-icon-2.webp"
+        },
+        {
+          "number": "833000",
+          "label": "Educational Scholarships Students",
+          "iconImage": "/uploads/1773984178207_welcome-icon-3.webp"
+        },
+        {
+          "number": "2509",
+          "label": "Educational Scholarships Students",
+          "iconImage": "/uploads/1773984181615_welcome-icon-4.webp"
+        }
+      ]
+    }
+  },
+  {
+    "_id": "69c126d9ca925c7a2e5340fe",
+    "name": "AnimationsText",
+    "displayName": "Animations Text",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "AnimationsText",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-23T11:41:13.181Z",
+    "updatedAt": "2026-03-23T11:56:34.336Z",
+    "__v": 0,
+    "defaultProps": {
+      "animationsTextFontSize": 20,
+      "animationsTextLineHeight": 34,
+      "animationsTextFontWeight": 500,
+      "animationsTextOpacity": 1,
+      "animationsTextLightColorKey": "",
+      "animationsTextDarkColorKey": "",
+      "animationsTextParagraphs": [
+        {
+          "text": "MESCO is a Secular Trust registered in 1968 with the Charity Commissioner of Mumbai. The organization is a selfless effort for serving mankind which began with a few friends who constituted the first Managing Committee. 'Education' was identified as a core theme for human development by the organization and later it expanded to provide Medical Assistance and Poverty Relief. The organization touches the lives of over 15,000 families annually through a combination of well strategized and implemented schemes, programs, activities and its institutions. The approach has always been to uphold ethical values in delivering and becoming a channel to deliver resources from those who want to give to those who need it the most. Trusted today by a large number of noble souls (individuals, families, foundations, charities and corporate) both in the country and abroad, the organization strives to bring happiness in lives of many."
+        }
+      ],
+      "animationsTextSectionBgType": "default",
+      "animationsTextSectionBgImage": "",
+      "animationsTextSectionBgColorKey": "",
+      "animationsTextPageContainerBgType": "default",
+      "animationsTextPageContainerBgImage": "",
+      "animationsTextPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false
+    }
+  },
+  {
+    "_id": "69c15a25bb1a8fef1996f462",
+    "name": "Mission",
+    "displayName": "Mission",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "Mission",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-23T15:20:05.179Z",
+    "updatedAt": "2026-03-23T15:30:34.721Z",
+    "__v": 0,
+    "defaultProps": {
+      "missionSubTitle": "Mission",
+      "missionTitle": "Strive to improve the quality of life of the financially disadvantaged by promoting meaningful education & health.",
+      "missionImage": "/uploads/1774279824265_mission.webp",
+      "missionSubTitleFontSize": "16",
+      "missionSubTitleFontWeight": "500",
+      "missionMainTitleFontSize": "36",
+      "missionMainTitleFontWeight": "400",
+      "missionMainTitleLineHeight": "50",
+      "missionCardRadius": "40",
+      "missionCardPadding": "40",
+      "missionSubTitleColorKey": "",
+      "missionMainTitleColorKey": "",
+      "missionSectionBgType": "default",
+      "missionSectionBgImage": "",
+      "missionSectionBgColorKey": "",
+      "missionPageContainerBgType": "default",
+      "missionPageContainerBgImage": "",
+      "missionPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false
+    }
+  },
+  {
+    "_id": "69c140f0ca925c7a2e534c22",
+    "name": "AimsObjectives",
+    "displayName": "Aims & Objectives",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "AimsObjectives",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-23T13:32:32.581Z",
+    "updatedAt": "2026-03-23T13:56:11.302Z",
+    "__v": 0,
+    "defaultProps": {
+      "aimsObjectivesMainTitle": "Aims & Objectives",
+      "aimsObjectivesTitleColorKey": "White",
+      "aimsObjectivesItems": [
+        {
+          "text": "To promote education amongst the weaker section of society primarily and others generally. The promotion of  education shall include the promotion of Science and Literature."
+        },
+        {
+          "text": "To work for the social upliftment of the backward sections of society."
+        },
+        {
+          "text": "To bring about a better understanding and appreciation of universal cultural values."
+        }
+      ],
+      "aimsObjectivesSectionBgType": "image",
+      "aimsObjectivesSectionBgImage": "/uploads/1772875877475_about-card-bg-2.webp",
+      "aimsObjectivesSectionBgColorKey": "",
+      "aimsObjectivesPageContainerBgType": "default",
+      "aimsObjectivesPageContainerBgImage": "",
+      "aimsObjectivesPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false,
+      "aimsObjectivesTextColorKey": "White"
+    }
+  },
+  {
+    "_id": "69aeac805423591207667d0b",
+    "name": "HomeHero2",
+    "displayName": "Home Hero 2",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "HomeHero2",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-09T11:18:24.729Z",
+    "updatedAt": "2026-03-20T06:05:33.822Z",
+    "__v": 0,
+    "defaultProps": {
+      "mainTitle": "Because Every Learner",
+      "subTitle": "A community-powered initiative that brings donors, mentors, and resources together to help learners overcome barriers and continue their education—turning collective support into real opportunities.",
+      "titleColorKey": "Black",
+      "homeHero2SectionBgType": "image",
+      "homeHero2SectionBgImage": "/uploads/1773055183174_hero_bg.webp",
+      "homeHero2SectionBgColorKey": "",
+      "homeHero2SectionPadding": "",
+      "homeHero2SectionMargin": "",
+      "homeHero2PageContainerBgType": "default",
+      "homeHero2PageContainerBgImage": "",
+      "homeHero2PageContainerBgColorKey": "",
+      "homeHero2PageContainerPadding": "",
+      "homeHero2PageContainerMargin": "",
+      "mainTitleHighlight": "Deserves Support",
+      "buttonText": "Contact Us",
+      "buttonHref": "/",
+      "heroIconUrl": "/uploads/1773056149245_hero-icon.webp",
+      "heroBgImageUrl": "/images/hero_bg.png",
+      "homeHero2SliderImages": [
+        {
+          "src": "/uploads/1773056632193_slider-1.webp",
+          "alt": "1"
+        },
+        {
+          "src": "/uploads/1773056638320_slider-2.webp",
+          "alt": "2"
+        },
+        {
+          "src": "/uploads/1773056643750_slider-3.webp",
+          "alt": "3"
+        },
+        {
+          "src": "/uploads/1773056649343_slider-4.webp",
+          "alt": "4"
+        }
+      ],
+      "homeHero2ButtonBgColorKey": "Gradient",
+      "homeHero2ButtonTextColorKey": "White",
+      "homeHero2SlideCount": 37,
+      "homeHero2AutoInterval": 4000,
+      "homeHero2StepDeg": 10,
+      "homeHero2Duration": 0.6,
+      "homeHero2Autoplay": true,
+      "homeHero2Draggable": true,
+      "_disableFadeAnimation": true
+    }
+  },
+  {
+    "_id": "69aa80597f27e473787cbbdd",
+    "name": "Footer",
+    "displayName": "Footer",
+    "type": "system",
+    "category": "",
+    "baseComponent": "Footer",
+    "defaultProps": {
+      "footerLogoUrl": "/media/69d8fa6ec6d58d17d368a32c/uploads/1772598422643_footer-logo.webp",
+      "footerAddress": "1 & 2, Plot No 423, Landmark Building, Next to Johnson & Johnson, Near Saraswati Mandir School, Senapati Bapat Marg, Mahim(W), Mumbai - 400016.",
+      "footerEmail": "mescotrust@mescotrust.org",
+      "footerPhone": "(+9122) 24441442 / (+9122) 24448637 022-24466218 022-24440006 022-24466241/2 022-49731441 022-49670550",
+      "footerCol1Links": [
+        {
+          "label": "Educational Support Programmes",
+          "url": "/our-works/educational-support"
+        },
+        {
+          "label": "Medical Aid",
+          "url": "/our-works/medical-aid"
+        },
+        {
+          "label": "Clinics & Dispensaries",
+          "url": "/our-works/clinics-dispensaries"
+        }
+      ],
+      "footerCol2Links": [
+        {
+          "label": "Relief of Poverty",
+          "url": "/our-works/relief-of-poverty"
+        },
+        {
+          "label": "RC Mahim Mun. School Adoption",
+          "url": "/our-works/school-adoption"
+        },
+        {
+          "label": "Old Newspaper Units",
+          "url": "/our-works/old-newspaper-units"
+        }
+      ],
+      "footerSocialLinks": [
+        {
+          "platform": "instagram",
+          "url": "https://www.instagram.com/mesco.trust/"
+        },
+        {
+          "platform": "facebook",
+          "url": "https://www.facebook.com/mesco.trust"
+        },
+        {
+          "platform": "linkedin",
+          "url": "https://www.linkedin.com/company/mesco-trust/"
+        },
+        {
+          "platform": "youtube",
+          "url": "https://www.youtube.com/@mescotrust29"
+        },
+        {
+          "platform": "x",
+          "url": "https://x.com/_mesco_trust"
+        }
+      ],
+      "footerCopyrightText": "Copyright © {{year}} All Rights Reserved.",
+      "footerBgColorKey": "",
+      "footerBackgroundImageUrl": "/uploads/1772598452508_footer-bg.webp",
+      "footerTextColorKey": "White",
+      "footerCopyrightBarColorKey": "Gradient",
+      "footerCol1Title": "",
+      "footerCol2Title": "",
+      "footerLatestTitle": "",
+      "footerLatestPlaceholder": "",
+      "footerSocialColorKey": "",
+      "footerSectionBgType": "default",
+      "footerSectionBgImage": "",
+      "footerSectionBgColorKey": "",
+      "footerPageContainerBgType": "default",
+      "footerPageContainerBgImage": "",
+      "footerPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-06T07:20:57.090Z",
+    "updatedAt": "2026-06-04T10:17:20.381Z",
+    "__v": 0,
+    "deletedBy": "",
+    "isDeleted": false
+  },
+  {
+    "_id": "69ae6aaf16ddb243f71a5a3f",
+    "name": "OverviewOfOurWork",
+    "displayName": "Overview of Our Work",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "OverviewOfOurWork",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-09T06:37:35.637Z",
+    "updatedAt": "2026-03-09T11:09:04.765Z",
+    "__v": 0,
+    "defaultProps": {
+      "mainTitle": "Section Title",
+      "subTitle": "Subtitle",
+      "titleColorKey": "White",
+      "overviewOfOurWorkSectionBgType": "image",
+      "overviewOfOurWorkSectionBgImage": "/uploads/1772875877475_about-card-bg-2.webp",
+      "overviewOfOurWorkSectionBgColorKey": "",
+      "awardsRecognitionSectionPadding": "",
+      "awardsRecognitionSectionMargin": "",
+      "overviewOfOurWorkPageContainerBgType": "default",
+      "overviewOfOurWorkPageContainerBgImage": "",
+      "overviewOfOurWorkPageContainerBgColorKey": "",
+      "awardsRecognitionPageContainerPadding": "",
+      "awardsRecognitionPageContainerMargin": "",
+      "overviewOfOurWorkItems": [
+        {
+          "title": "Educational Support Programmes",
+          "imageUrl": "",
+          "bgImageUrl": "/uploads/1773050122412_card-bg-1.webp",
+          "link": "/",
+          "linkText": "More Details",
+          "titleColorKey": "",
+          "icon": "/uploads/1773044229613_educational-img.webp"
+        },
+        {
+          "title": "Medical Aid",
+          "imageUrl": "",
+          "bgImageUrl": "/uploads/1773050080426_card-bg-2.webp",
+          "link": "/",
+          "linkText": "More Details",
+          "titleColorKey": "",
+          "icon": "/uploads/1773050047813_medical-aid-img.webp"
+        },
+        {
+          "title": "Clinics & Dispensaries",
+          "imageUrl": "",
+          "bgImageUrl": "/uploads/1773054416754_card-bg-3.webp",
+          "link": "/",
+          "linkText": "More Details",
+          "titleColorKey": "",
+          "icon": "/uploads/1773054438646_dispensaries-img.webp"
+        },
+        {
+          "title": "Relief of Poverty",
+          "imageUrl": "",
+          "bgImageUrl": "/uploads/1773054518856_card-bg-4.webp",
+          "link": "/",
+          "linkText": "More Details",
+          "titleColorKey": "",
+          "icon": "/uploads/1773054531850_educational-img.webp"
+        }
+      ],
+      "overviewOfOurWorkCardTitleColorKey": "White",
+      "overviewOfOurWorkCardBorderColorKey": "White",
+      "overviewOfOurWorkButtonColorKey": "White",
+      "overviewOfOurWorkHoverColorKey": "Primary",
+      "overviewOfOurWorkHoverOverlayOpacity": 0.5
+    }
+  },
+  {
+    "_id": "69c67ba310c1006e67ac8907",
+    "name": "DonorTestimonials",
+    "displayName": "Donor Testimonials",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "DonorTestimonials",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-27T12:44:19.357Z",
+    "updatedAt": "2026-03-27T13:00:16.194Z",
+    "__v": 0,
+    "defaultProps": {
+      "donorTestimonialsSectionBgType": "default",
+      "donorTestimonialsSectionBgImage": "",
+      "donorTestimonialsSectionBgColorKey": "",
+      "donorTestimonialsPageContainerBgType": "default",
+      "donorTestimonialsPageContainerBgImage": "",
+      "donorTestimonialsPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false,
+      "mainTitle": "",
+      "subTitle": "",
+      "titleColorKey": "Black",
+      "donorTestimonialsTitleEnabled": false,
+      "donorTestimonialsSubTitleEnabled": false,
+      "donorTestimonialsSubTitleColorKey": "Primary",
+      "donorTestimonialsQuoteIconColorKey": "Primary",
+      "donorTestimonialsNameColorKey": "Black",
+      "donorTestimonialsQuoteTextColorKey": "Black",
+      "donorTestimonialsRoleColorKey": "Black Light",
+      "donorTestimonialsItems": [
+        {
+          "quote": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries",
+          "name": "Where does it come from?",
+          "role": "Designer"
+        },
+        {
+          "quote": "Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of \"de Finibus Bonorum et Malorum\" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, \"Lorem ipsum dolor sit amet..\", comes from a line in section 1.10.32.",
+          "name": "Where can I get some?",
+          "role": "Developer"
+        }
+      ]
+    }
+  },
+  {
+    "_id": "69a94d7006757886a1da95ed",
+    "name": "Subscribe",
+    "displayName": "Subscribe",
+    "type": "system",
+    "category": "",
+    "baseComponent": "Subscribe",
+    "defaultProps": {
+      "subscribeSubtitle": "Latest News",
+      "subscribeTitle": "To get weekly & monthly news, Subscribe to our newsletter.",
+      "subscribePlaceholder": "Enter email address",
+      "subscribeButtonText": "Subscribe",
+      "subscribeBgUrl": "/media/69f82ebdac6fcb9142970f2d?format=original",
+      "subscribeSubtitleColorKey": "Black",
+      "subscribeTitleColorKey": "Black",
+      "subscribeButtonBgColorKey": "Gradient",
+      "subscribeButtonTextColorKey": "White"
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-05T09:31:28.674Z",
+    "updatedAt": "2026-05-04T05:30:08.219Z",
+    "__v": 0
+  },
+  {
+    "_id": "69ddccccabb513260dfe0b3e",
+    "name": "EventsSlider",
+    "displayName": "EventsSlider",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "EventsSlider",
+    "defaultProps": {
+      "eventsSliderSubTitle": "Upcoming",
+      "eventsSliderMainTitle": "Events",
+      "eventsSliderLimit": 8,
+      "eventsSliderSort": "upcoming",
+      "eventsSliderSubTitleColorKey": "White",
+      "eventsSliderMainTitleColorKey": "White",
+      "eventsSliderSectionBgType": "image",
+      "eventsSliderSectionBgImage": "/uploads/1772875877475_about-card-bg-2.webp",
+      "eventsSliderSectionBgColorKey": "",
+      "eventsSliderPageContainerBgType": "default",
+      "eventsSliderPageContainerBgImage": "",
+      "eventsSliderPageContainerBgColorKey": "",
+      "_disableFadeAnimation": true,
+      "eventsSliderTitleEnabled": true,
+      "eventsSliderSubTitleEnabled": true,
+      "eventsSliderDateColorKey": "Black Light",
+      "eventsSliderDescColorKey": "White",
+      "eventsSliderArrowColorKey": "White",
+      "eventsSliderDotActiveColorKey": "Primary",
+      "eventsSliderButtonBgColorKey": "Gradient",
+      "eventsSliderButtonTextColorKey": "White",
+      "eventsSliderButtonRadius": 999,
+      "eventsSliderButtonSize": "md",
+      "eventsSliderAutoplay": false,
+      "eventsSliderShowArrows": true,
+      "eventsSliderShowDots": false,
+      "eventsSliderInfinite": true,
+      "eventsSliderAutoplaySpeed": 5000,
+      "eventsSliderSpeed": 450,
+      "eventsSliderArrowBgColorKey": "Primary"
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-04-14T05:12:44.771Z",
+    "updatedAt": "2026-04-14T08:08:37.617Z",
+    "__v": 0
+  },
+  {
+    "_id": "69c22bd5bb1a8fef199706f6",
+    "name": "ManagingCommittee",
+    "displayName": "Managing Committee",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "ManagingCommittee",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-24T06:14:45.174Z",
+    "updatedAt": "2026-03-25T05:36:58.435Z",
+    "__v": 0,
+    "defaultProps": {
+      "managingCommitteeMainTitle": "Managing Committee",
+      "managingCommitteeParagraph": "<p>Members&nbsp;of&nbsp;Managing&nbsp;Committee&nbsp;are&nbsp;dedicated&nbsp;professionals&nbsp;and&nbsp;individuals&nbsp;from&nbsp;diverse&nbsp;backgrounds&nbsp;and&nbsp;experts&nbsp;in&nbsp;social&nbsp;engineering.&nbsp;They&nbsp;are&nbsp;involved&nbsp;in&nbsp;developing,&nbsp;reviewing&nbsp;policies&nbsp;and&nbsp;schemes&nbsp;with&nbsp;an&nbsp;aim&nbsp;to&nbsp;optimize&nbsp;the&nbsp;resources&nbsp;for&nbsp;our&nbsp;beneficiaries.&nbsp;Strategic&nbsp;and&nbsp;Operational&nbsp;matters&nbsp;are&nbsp;also&nbsp;discussed&nbsp;among&nbsp;the&nbsp;members&nbsp;of&nbsp;the&nbsp;committee.&nbsp;It&nbsp;comprises&nbsp;of&nbsp;08&nbsp;members.&nbsp;Detailed&nbsp;agenda&nbsp;and&nbsp;proceedings&nbsp;of&nbsp;these&nbsp;meetings&nbsp;are&nbsp;documented&nbsp;for&nbsp;future&nbsp;reference.&nbsp;The&nbsp;Managing&nbsp;Committee&nbsp;formulates&nbsp;the&nbsp;structure&nbsp;of&nbsp;authority&nbsp;and&nbsp;responsibilities&nbsp;and&nbsp;it&nbsp;is&nbsp;delegated&nbsp;to&nbsp;the&nbsp;concerned&nbsp;staff&nbsp;members&nbsp;of&nbsp;the&nbsp;organization.</p>",
+      "managingCommitteeImageUrl": "/images/good-governance-2.png",
+      "managingCommitteeImageAlt": "Managing Committee",
+      "managingCommitteeTitleColorKey": "Black",
+      "managingCommitteeTextColorKey": "Black",
+      "managingCommitteeSectionBgType": "default",
+      "managingCommitteeSectionBgImage": "",
+      "managingCommitteeSectionBgColorKey": "",
+      "managingCommitteePageContainerBgType": "default",
+      "managingCommitteePageContainerBgImage": "",
+      "managingCommitteePageContainerBgColorKey": "",
+      "_disableFadeAnimation": false
+    }
+  },
+  {
+    "_id": "69c636d910c1006e67ac71f3",
+    "name": "Reports",
+    "displayName": "Reports",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "Reports",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-27T07:50:49.878Z",
+    "updatedAt": "2026-03-27T08:28:12.645Z",
+    "__v": 0,
+    "defaultProps": {
+      "reportsSectionBgType": "default",
+      "reportsSectionBgImage": "",
+      "reportsSectionBgColorKey": "",
+      "reportsPageContainerBgType": "default",
+      "reportsPageContainerBgImage": "",
+      "reportsPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false,
+      "mainTitle": "What is Lorem Ipsum?",
+      "subTitle": "Lorem Ipsum",
+      "titleColorKey": "Black",
+      "reportsTitleEnabled": true,
+      "reportsSubTitleEnabled": true,
+      "reportsSubTitleColorKey": "Primary",
+      "reportsNameColorKey": "Black",
+      "reportsDateColorKey": "Black Light",
+      "reportsItems": [
+        {
+          "name": "Lorem Ipsum",
+          "tag": "Lorem Ipsum",
+          "image": "",
+          "pdfUrl": "https://www.rd.usda.gov/sites/default/files/pdf-sample_0.pdf"
+        },
+        {
+          "name": "Lorem Ipsum",
+          "tag": "Lorem Ipsum",
+          "image": "",
+          "pdfUrl": "https://www.rd.usda.gov/sites/default/files/pdf-sample_0.pdf"
+        },
+        {
+          "name": "Lorem Ipsum",
+          "tag": "Lorem Ipsum",
+          "image": "",
+          "pdfUrl": ""
+        }
+      ]
+    }
+  },
+  {
+    "_id": "69c0efdeca925c7a2e533c67",
+    "name": "ImpactShowcase",
+    "displayName": "Impact Showcase",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "ImpactShowcase",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-23T07:46:38.710Z",
+    "updatedAt": "2026-03-23T11:38:46.091Z",
+    "__v": 0,
+    "defaultProps": {
+      "mainTitle": "Section Title",
+      "subTitle": "Subtitle",
+      "titleColorKey": "",
+      "impactShowcaseLeftImage": "/uploads/1774265391605_about-mesco-1.webp",
+      "impactShowcaseRightImage": "/uploads/1774265357053_about-mesco-2.webp",
+      "impactShowcaseButton1Text": "Contact Us",
+      "impactShowcaseButton1Link": "/",
+      "impactShowcaseButton1IconUrl": "",
+      "impactShowcaseButton2Text": "Volunteer",
+      "impactShowcaseButton2Link": "/",
+      "impactShowcaseButton2IconUrl": "/uploads/1772597707257_volunteer-icon.webp",
+      "impactShowcaseButtonColorKey": "Black",
+      "impactShowcaseSectionBgType": "default",
+      "impactShowcaseSectionBgImage": "",
+      "impactShowcaseSectionBgColorKey": "",
+      "impactShowcasePageContainerBgType": "default",
+      "impactShowcasePageContainerBgImage": "",
+      "impactShowcasePageContainerBgColorKey": "",
+      "_disableFadeAnimation": false,
+      "impactShowcaseButton1BgColorKey": "Gradient",
+      "impactShowcaseButton1TextColorKey": "White",
+      "impactShowcaseButton2BgColorKey": "Primary Light",
+      "impactShowcaseButton2TextColorKey": "Primary"
+    }
+  },
+  {
+    "_id": "69c22eeebb1a8fef1997085e",
+    "name": "Accordion",
+    "displayName": "Accordion",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "Accordion",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-24T06:27:58.606Z",
+    "updatedAt": "2026-03-24T08:30:00.926Z",
+    "__v": 0,
+    "defaultProps": {
+      "accordionExpandIconUrl": "/uploads/1774334236324_accordion-arrow.webp",
+      "accordionItems": [
+        {
+          "label": "Board of Trustees",
+          "content": "The Board of Trustees set the vision and broad guidelines for the organization and ensure good governance in liaison with the Advisory Board and various Committees. The direction and control of the organization is with Board for social relevance, financial sustainability, monitoring and evaluation and overall growth of organization."
+        },
+        {
+          "label": "Managing Committee",
+          "content": "<p>Members&nbsp;of&nbsp;Managing&nbsp;Committee&nbsp;are&nbsp;dedicated&nbsp;professionals&nbsp;and&nbsp;individuals&nbsp;from&nbsp;diverse&nbsp;backgrounds&nbsp;and&nbsp;experts&nbsp;in&nbsp;social&nbsp;engineering.&nbsp;They&nbsp;are&nbsp;involved&nbsp;in&nbsp;developing,&nbsp;reviewing&nbsp;policies&nbsp;and&nbsp;schemes&nbsp;with&nbsp;an&nbsp;aim&nbsp;to&nbsp;optimize&nbsp;the&nbsp;resources&nbsp;for&nbsp;our&nbsp;beneficiaries.&nbsp;Strategic&nbsp;and&nbsp;Operational&nbsp;matters&nbsp;are&nbsp;also&nbsp;discussed&nbsp;among&nbsp;the&nbsp;members&nbsp;of&nbsp;the&nbsp;committee.&nbsp;It&nbsp;comprises&nbsp;of&nbsp;08&nbsp;members.&nbsp;Detailed&nbsp;agenda&nbsp;and&nbsp;proceedings&nbsp;of&nbsp;these&nbsp;meetings&nbsp;are&nbsp;documented&nbsp;for&nbsp;future&nbsp;reference.&nbsp;The&nbsp;Managing&nbsp;Committee&nbsp;formulates&nbsp;the&nbsp;structure&nbsp;of&nbsp;authority&nbsp;and&nbsp;responsibilities&nbsp;and&nbsp;it&nbsp;is&nbsp;delegated&nbsp;to&nbsp;the&nbsp;concerned&nbsp;staff&nbsp;members&nbsp;of&nbsp;the&nbsp;organization.</p>"
+        }
+      ],
+      "accordionSectionBgType": "default",
+      "accordionSectionBgImage": "",
+      "accordionSectionBgColorKey": "",
+      "accordionPageContainerBgType": "default",
+      "accordionPageContainerBgImage": "",
+      "accordionPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false,
+      "accordionHeaderColorKey": "Black",
+      "accordionContentColorKey": "Black Light",
+      "accordionBorderColorKey": "Black Light",
+      "accordionBgColorKey": "White"
+    }
+  },
+  {
+    "_id": "69c38846ae84be222402fb29",
+    "name": "TitleParagraph",
+    "displayName": "Title & Paragraph",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "TitleParagraph",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-25T07:01:26.543Z",
+    "updatedAt": "2026-03-25T07:37:12.002Z",
+    "__v": 0,
+    "defaultProps": {
+      "titleParagraphMainTitle": "The standard chunk of Lorem Ipsum used since the 1500",
+      "titleParagraphSubTitle": "Lorem Ipsum",
+      "titleParagraphTitleEnabled": true,
+      "titleParagraphSubTitleEnabled": true,
+      "titleParagraphTitleColorKey": "Black",
+      "titleParagraphTextColorKey": "Black",
+      "titleParagraphItems": [
+        {
+          "text": "<p></p>"
+        }
+      ],
+      "titleParagraphSectionBgType": "default",
+      "titleParagraphSectionBgImage": "",
+      "titleParagraphSectionBgColorKey": "",
+      "titleParagraphPageContainerBgType": "default",
+      "titleParagraphPageContainerBgImage": "",
+      "titleParagraphPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false,
+      "titleParagraphContent": "<p>Lorem&nbsp;Ipsum&nbsp;is&nbsp;simply&nbsp;dummy&nbsp;text&nbsp;of&nbsp;the&nbsp;printing&nbsp;and&nbsp;typesetting&nbsp;industry.&nbsp;Lorem&nbsp;Ipsum&nbsp;has&nbsp;been&nbsp;the&nbsp;industry&#39;s&nbsp;standard&nbsp;dummy&nbsp;text&nbsp;ever&nbsp;since&nbsp;the&nbsp;1500s,&nbsp;when&nbsp;an&nbsp;unknown&nbsp;printer&nbsp;took&nbsp;a&nbsp;galley&nbsp;of&nbsp;type&nbsp;and&nbsp;scrambled&nbsp;it&nbsp;to&nbsp;make&nbsp;a&nbsp;type&nbsp;specimen&nbsp;book.&nbsp;It&nbsp;has&nbsp;survived&nbsp;not&nbsp;only&nbsp;five&nbsp;centuries</p><p></p><p><span style=\"background-color: rgb(255, 255, 255); color: rgb(0, 0, 0);\">It&nbsp;is&nbsp;a&nbsp;long&nbsp;established&nbsp;fact&nbsp;that&nbsp;a&nbsp;reader&nbsp;will&nbsp;be&nbsp;distracted&nbsp;by&nbsp;the&nbsp;readable&nbsp;content&nbsp;of&nbsp;a&nbsp;page&nbsp;when&nbsp;looking&nbsp;at&nbsp;its&nbsp;layout.&nbsp;The&nbsp;point&nbsp;of&nbsp;using&nbsp;Lorem&nbsp;Ipsum&nbsp;is&nbsp;that&nbsp;it&nbsp;has&nbsp;a&nbsp;more-or-less&nbsp;normal&nbsp;distribution&nbsp;of&nbsp;letters,&nbsp;as&nbsp;opposed&nbsp;to&nbsp;using&nbsp;&#39;Content&nbsp;here,&nbsp;content&nbsp;here</span></p>",
+      "titleParagraphSubTitleColorKey": "Primary"
+    }
+  },
+  {
+    "_id": "69c265d2ae84be222402d360",
+    "name": "PhotoGallery",
+    "displayName": "Photo Gallery",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "PhotoGallery",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-24T10:22:10.851Z",
+    "updatedAt": "2026-04-07T07:13:43.309Z",
+    "__v": 0,
+    "defaultProps": {
+      "photoGalleryAccentColorKey": "Primary",
+      "photoGalleryTabs": [
+        "All",
+        "Education",
+        "Medical",
+        "Events",
+        "Community"
+      ],
+      "photoGalleryItems": [
+        {
+          "title": "Top Ranking Students' Felicitation Function",
+          "image": "/uploads/1774348313221_gallery-1.webp",
+          "images": [
+            "/uploads/1775545582649_galley_a-0.webp",
+            "/uploads/1775545582697_galley_a-1.webp",
+            "/uploads/1775545582740_galley_a-2.webp",
+            "/uploads/1775545582785_galley_a-3.webp",
+            "/uploads/1775545582831_galley_a-4.webp",
+            "/uploads/1775545582881_galley_a-5.webp",
+            "/uploads/1775545581178_galley_a-6.webp",
+            "/uploads/1775545581359_galley_a-7.webp",
+            "/uploads/1775545581461_galley_a-8.webp",
+            "/uploads/1775545581522_galley_a-9.webp",
+            "/uploads/1775545581576_galley_a-10.webp",
+            "/uploads/1775545581625_galley_a-11.webp",
+            "/uploads/1775545581672_galley_a-12.webp",
+            "/uploads/1775545581717_galley_a-13.webp",
+            "/uploads/1775545581765_galley_a-14.webp",
+            "/uploads/1775545581807_galley_a-15.webp",
+            "/uploads/1775545581860_galley_a-16.webp",
+            "/uploads/1775545581922_galley_a-17.webp",
+            "/uploads/1775545581966_galley_a-18.webp",
+            "/uploads/1775545582007_galley_a-19.webp",
+            "/uploads/1775545582046_galley_a-20.webp",
+            "/uploads/1775545582093_galley_a-21.webp",
+            "/uploads/1775545582144_galley_a-22.webp",
+            "/uploads/1775545582191_galley_a-23.webp",
+            "/uploads/1775545582237_galley_a-24.webp",
+            "/uploads/1775545582284_galley_a-25.webp",
+            "/uploads/1775545582326_galley_a-26.webp",
+            "/uploads/1775545582376_galley_a-27.webp",
+            "/uploads/1775545582423_galley_a-28.webp",
+            "/uploads/1775545582470_galley_a-29.webp",
+            "/uploads/1775545582509_galley_a-30.webp",
+            "/uploads/1775545582553_galley_a-31.webp",
+            "/uploads/1775545582602_galley_a-32.webp"
+          ],
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "World NGO Day",
+          "image": "/uploads/1774348350718_gallery-2.webp",
+          "images": [],
+          "categories": [
+            "Community"
+          ]
+        },
+        {
+          "title": "World Kidney Day",
+          "image": "/uploads/1774351352464_gallery-3.webp",
+          "images": [],
+          "categories": [
+            "Medical"
+          ]
+        },
+        {
+          "title": "Ration & Utensils Distribution At Appa Pada Malad (E)",
+          "image": "/uploads/1774351387764_gallery-4.webp",
+          "images": [],
+          "categories": [
+            "Community"
+          ]
+        },
+        {
+          "title": "Sewing Machine Distribution",
+          "image": "/uploads/1774351491896_gallery-5.webp",
+          "images": [],
+          "categories": [
+            "Community"
+          ]
+        },
+        {
+          "title": "Zakat Collection Get-Together 2023",
+          "image": "/uploads/1774351526041_gallery-6.webp",
+          "images": [],
+          "categories": [
+            "Events"
+          ]
+        },
+        {
+          "title": "Iftar Packet Distribution 2023",
+          "image": "/uploads/1774351554937_gallery-7.webp",
+          "images": [],
+          "categories": [
+            "Events"
+          ]
+        },
+        {
+          "title": "Personality Development Camp 2022",
+          "image": "/uploads/1774351585073_gallery-8.webp",
+          "images": [],
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "R.C. Mahim Sports Day",
+          "image": "/uploads/1774351687280_gallery-9.webp",
+          "images": [],
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "Digest Distribution to R.C. Mahim SSC Students",
+          "image": "/uploads/1774351716750_gallery-10.webp",
+          "images": [],
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "Expert Lectures for R.C. Mahim School",
+          "image": "/uploads/1774351743977_gallery-11.webp",
+          "images": [],
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "SSC Farewell for R.C. Mahim Students",
+          "image": "/uploads/1774351772857_gallery-12.webp",
+          "images": [],
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "Medical Camp at Govandi",
+          "image": "/uploads/1774352433983_gallery-13.webp",
+          "images": [],
+          "categories": [
+            "Medical"
+          ]
+        },
+        {
+          "title": "Staff Training",
+          "image": "/uploads/1774352466277_gallery-14.webp",
+          "images": [],
+          "categories": [
+            "Events"
+          ]
+        },
+        {
+          "title": "55th Annual General Meeting",
+          "image": "/uploads/1774352501396_gallery-15.webp",
+          "images": [],
+          "categories": [
+            "Events"
+          ]
+        },
+        {
+          "title": "Orientation Programme for EAS Students",
+          "image": "/uploads/1774352528825_gallery-16.webp",
+          "images": [],
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "SSC and HSC Get-Together",
+          "image": "/uploads/1774352554802_gallery-17.webp",
+          "images": [],
+          "categories": [
+            "Events"
+          ]
+        },
+        {
+          "title": "UPSC Talk",
+          "image": "/uploads/1774352581930_gallery-18.webp",
+          "images": [],
+          "categories": [
+            "Education"
+          ]
+        },
+        {
+          "title": "Donors & Students Milaap Programme 19th November 2023",
+          "image": "/uploads/1774352609348_gallery-19.webp",
+          "images": [],
+          "categories": [
+            "Events"
+          ]
+        },
+        {
+          "title": "Donors & Students Milaap Programme 03rd December 2023",
+          "image": "/uploads/1774352641191_gallery-20.webp",
+          "images": [],
+          "categories": [
+            "Events"
+          ]
+        },
+        {
+          "title": "Ramzan Kit Distribution Programme",
+          "image": "/uploads/1774352669712_gallery-21.webp",
+          "images": [],
+          "categories": [
+            "Community"
+          ]
+        },
+        {
+          "title": "Free Health Check-up Camp on 7th January 2024 at Imamvada Compound",
+          "image": "/uploads/1774352700683_gallery-22.webp",
+          "images": [],
+          "categories": [
+            "Medical"
+          ]
+        },
+        {
+          "title": "Iftar Kit 2025",
+          "image": "/uploads/1774352733237_gallery-23.webp",
+          "images": [],
+          "categories": [
+            "Community"
+          ]
+        }
+      ],
+      "photoGallerySectionBgType": "default",
+      "photoGallerySectionBgImage": "",
+      "photoGallerySectionBgColorKey": "",
+      "photoGalleryPageContainerBgType": "default",
+      "photoGalleryPageContainerBgImage": "",
+      "photoGalleryPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false,
+      "photoGalleryTabBgColorKey": "Gradient",
+      "photoGalleryTabTextColorKey": "White",
+      "photoGalleryTabBorderColorKey": "Black Light",
+      "photoGalleryTabInactiveTextColorKey": "Black",
+      "photoGalleryTabHoverBorderColorKey": "Primary",
+      "photoGalleryTabHoverTextColorKey": "Primary",
+      "photoGalleryLimitEnabled": false,
+      "photoGalleryLimitCount": 6,
+      "photoGalleryViewMoreText": "View More",
+      "photoGalleryViewMoreLink": "/media/image-gallery"
+    }
+  },
+  {
+    "_id": "69aabb9f7f27e473787cde7d",
+    "name": "LatestEvents1",
+    "displayName": "Latest Events",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "LatestEvents1",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-06T11:33:51.462Z",
+    "updatedAt": "2026-04-17T09:00:59.913Z",
+    "__v": 0,
+    "defaultProps": {
+      "latestEvents1SubTitle": "Latest News",
+      "latestEvents1MainTitle": "Stay Informed. Stay Ahead.",
+      "latestEvents1Items": [
+        {
+          "imageUrlDesktop": "/uploads/1772798641863_news-1.webp",
+          "imageUrlMobile": "",
+          "imageUrl": "/uploads/1772798641863_news-1.webp",
+          "date": "02 Feb 2026",
+          "title": "Scholarship information for the year 2025-26",
+          "description": "Lorem ipsum dolor sit amet consectetur. Amet mattis tellus et as ectus orc.",
+          "buttonText": "Read Post",
+          "buttonLink": "/"
+        },
+        {
+          "imageUrlDesktop": "/uploads/1772798649092_news-2.webp",
+          "imageUrlMobile": "",
+          "imageUrl": "/uploads/1772798649092_news-2.webp",
+          "date": "02 Feb 2026",
+          "title": "Congratulations to all our EAS students for passing their HSC examination.",
+          "description": "",
+          "buttonText": "Read Post",
+          "buttonLink": "/"
+        }
+      ],
+      "latestEvents1SubTitleColorKey": "Black",
+      "latestEvents1MainTitleColorKey": "Black",
+      "latestEvents1ButtonColorKey": "Primary",
+      "latestEvents1SectionBgType": "default",
+      "latestEvents1SectionBgImage": "",
+      "latestEvents1SectionBgColorKey": "",
+      "latestEvents1PageContainerBgType": "default",
+      "latestEvents1PageContainerBgImage": "",
+      "latestEvents1PageContainerBgColorKey": "",
+      "_disableFadeAnimation": false
+    }
+  },
+  {
+    "_id": "69de2f5c908cdebd496eaaa9",
+    "name": "Cards",
+    "displayName": "Cards",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "Cards",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-04-14T12:13:16.867Z",
+    "updatedAt": "2026-04-14T12:37:46.686Z",
+    "__v": 0,
+    "defaultProps": {
+      "cardsSectionBgType": "default",
+      "cardsSectionBgImage": "",
+      "cardsSectionBgColorKey": "",
+      "cardsPageContainerBgType": "default",
+      "cardsPageContainerBgImage": "",
+      "cardsPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false,
+      "mainTitle": "Section Title",
+      "subTitle": "Subtitle",
+      "cardsTitleEnabled": true,
+      "cardsSubTitleEnabled": true,
+      "cardsSubTitleColorKey": "Primary",
+      "cardsMainTitleColorKey": "Black",
+      "cardsCardBgColorKey": "Transparent",
+      "cardsCardTitleColorKey": "Black",
+      "cardsCardBorderColorKey": "Border",
+      "cardsColumnsDesktop": 4,
+      "cardsColumnsTablet": 2,
+      "cardsColumnsMobile": 1,
+      "cardsColumnGap": 16,
+      "cardsRowGap": 16,
+      "cardsCardRadius": 10,
+      "cardsCardBorderWidth": 1,
+      "cardsCardImageAreaHeight": 160,
+      "cardsCardImageMaxHeight": 110,
+      "cardsCardContentPaddingY": 10,
+      "cardsCardTitleFontSize": 14,
+      "cardsCardTitleLineHeight": 1.35,
+      "cardsItems": [
+        {
+          "image": "/uploads/1775827566718_brands-10.webp",
+          "title": "Accredited For Desirable Norms Credibility"
+        },
+        {
+          "image": "/uploads/1775827566718_brands-10.webp",
+          "title": "Accredited For Desirable Norms Credibility Alliance"
+        },
+        {
+          "image": "/uploads/1775827566718_brands-10.webp",
+          "title": "Accredited For Desirable Norms Credibility Alliance"
+        },
+        {
+          "image": "/uploads/1775827566718_brands-10.webp",
+          "title": "Accredited For Desirable Norms Credibility Alliance"
+        },
+        {
+          "image": "/uploads/1775827566718_brands-10.webp",
+          "title": "Accredited For Desirable Norms Credibility Alliance"
+        },
+        {
+          "image": "/uploads/1775827566718_brands-10.webp",
+          "title": "Accredited For Desirable Norms Credibility Alliance"
+        }
+      ]
+    }
+  },
+  {
+    "_id": "69ca2edf398aee58a5db9b6c",
+    "name": "Careers",
+    "displayName": "Careers",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "Careers",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-30T08:05:51.783Z",
+    "updatedAt": "2026-03-30T08:18:43.449Z",
+    "__v": 0,
+    "defaultProps": {
+      "careersSectionBgType": "default",
+      "careersSectionBgImage": "",
+      "careersSectionBgColorKey": "",
+      "careersPageContainerBgType": "default",
+      "careersPageContainerBgImage": "",
+      "careersPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false,
+      "mainTitle": "Lorem Ipsum is simply dummy text of the printing and typesetting industry",
+      "subTitle": "Lorem Ipsum",
+      "titleColorKey": "Black",
+      "careersTitleEnabled": false,
+      "careersSubTitleEnabled": false,
+      "careersSubTitleColorKey": "Primary",
+      "careersJobTitleColorKey": "Black",
+      "careersMetaIconColorKey": "Primary",
+      "careersBtnBgColorKey": "Gradient",
+      "careersBtnTextColorKey": "White",
+      "careersItems": [
+        {
+          "title": "What is Lorem Ipsum?",
+          "department": "Education Dept.",
+          "location": "Mumbai",
+          "type": "Full-time",
+          "applyUrl": "",
+          "btnText": "Apply Now"
+        },
+        {
+          "title": "What is Lorem Ipsum?",
+          "department": "Healthcare",
+          "location": "Mumbai",
+          "type": "Full-time",
+          "applyUrl": "",
+          "btnText": "Apply Now"
+        },
+        {
+          "title": "What is Lorem Ipsum?",
+          "department": "Media",
+          "location": "Mumbai",
+          "type": "Full-time",
+          "applyUrl": "",
+          "btnText": "Apply Now"
+        }
+      ]
+    }
+  },
+  {
+    "_id": "69bcdb1069aa6d98c3e63a29",
+    "name": "VideoPlaying",
+    "displayName": "Video Playing",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "VideoPlaying",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-20T05:28:48.575Z",
+    "updatedAt": "2026-03-20T05:37:10.802Z",
+    "__v": 0,
+    "defaultProps": {
+      "videoPlayingSectionBgType": "default",
+      "videoPlayingSectionBgImage": "",
+      "videoPlayingSectionBgColorKey": "",
+      "videoPlayingPageContainerBgType": "default",
+      "videoPlayingPageContainerBgImage": "",
+      "videoPlayingPageContainerBgColorKey": "",
+      "youtubeVideoId": "R3GfuzLMPkA",
+      "coverImage": "/uploads/1773984825179_player-cover.webp",
+      "coverAlt": "Video cover"
+    }
+  },
+  {
+    "_id": "69aba66e7b2a3eb4c2269cac",
+    "name": "Testimonials",
+    "displayName": "Testimonials",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "Testimonials",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-07T04:15:42.413Z",
+    "updatedAt": "2026-03-07T12:02:58.288Z",
+    "__v": 0,
+    "defaultProps": {
+      "testimonialsTitle": "Testimonials",
+      "testimonialsItems": [
+        {
+          "quote": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book",
+          "imageUrl": "/uploads/1772598083225_slide-1.webp",
+          "name": "Tracye Lawyer",
+          "title": "Tracye Lawyer",
+          "rating": 4
+        },
+        {
+          "quote": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book",
+          "imageUrl": "/uploads/1772598088898_slide-2.webp",
+          "name": "Tracye Lawyer",
+          "title": "Tracye Lawyer",
+          "rating": 2
+        },
+        {
+          "quote": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.",
+          "imageUrl": "/uploads/1772600490791_subscribe-bg.webp",
+          "name": "Tracye Lawyer",
+          "title": "Tracye Lawyer",
+          "rating": 5
+        },
+        {
+          "quote": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.",
+          "imageUrl": "/uploads/1772600490791_subscribe-bg.webp",
+          "name": "Tracye Lawyer",
+          "title": "Tracye Lawyer",
+          "rating": 3
+        }
+      ],
+      "testimonialsTitleColorKey": "White",
+      "testimonialsAutoplay": true,
+      "testimonialsAutoplaySpeed": 5000,
+      "testimonialsShowArrows": true,
+      "testimonialsShowDots": true,
+      "testimonialsSpeed": 400,
+      "testimonialsNameColorKey": "Black",
+      "testimonialsRoleColorKey": "Black",
+      "testimonialsRatingColorKey": "Primary",
+      "testimonialsTitleEnabled": true,
+      "testimonialsNameColorEnabled": false,
+      "testimonialsRoleColorEnabled": false,
+      "testimonialsRatingColorEnabled": false,
+      "testimonialsDraggable": false,
+      "testimonialsInfinite": true,
+      "testimonialsSlidesDesktop": 3,
+      "testimonialsSlidesTablet": 2,
+      "testimonialsSlidesMobile": 1,
+      "testimonialsSectionBgType": "image",
+      "testimonialsSectionBgImage": "/uploads/1772875877475_about-card-bg-2.webp",
+      "testimonialsSectionBgColorKey": "",
+      "testimonialsPageContainerBgType": "default",
+      "testimonialsPageContainerBgImage": "",
+      "testimonialsPageContainerBgColorKey": ""
+    }
+  },
+  {
+    "_id": "69c154b0bb1a8fef1996f181",
+    "name": "Vision",
+    "displayName": "Vision",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "Vision",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-23T14:56:48.213Z",
+    "updatedAt": "2026-03-23T15:10:02.363Z",
+    "__v": 0,
+    "defaultProps": {
+      "visionSubTitle": "Vision",
+      "visionTitle": "To help the underprivileged and marginalized live a better tomorrow through various interventions.",
+      "visionImage": "/uploads/1774278582977_vision.webp",
+      "missionSubTitle": "Mission",
+      "missionTitle": "Strive to improve the quality of life of the financially disadvantaged by promoting meaningful education & health.",
+      "missionImage": "/images/mission.png",
+      "visionSubTitleFontSize": "16",
+      "visionSubTitleFontWeight": "500",
+      "visionMainTitleFontSize": "36",
+      "visionMainTitleFontWeight": "400",
+      "visionMainTitleLineHeight": "50",
+      "visionCardRadius": "40",
+      "visionCardPadding": "40",
+      "visionSubTitleColorKey": "Black",
+      "visionMainTitleColorKey": "Black",
+      "visionSectionBgType": "default",
+      "visionSectionBgImage": "",
+      "visionSectionBgColorKey": "",
+      "visionPageContainerBgType": "default",
+      "visionPageContainerBgImage": "",
+      "visionPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false
+    }
+  },
+  {
+    "_id": "69aa7fc57f27e473787cbb1f",
+    "name": "Header",
+    "displayName": "Header",
+    "type": "system",
+    "category": "",
+    "baseComponent": "Header",
+    "defaultProps": {
+      "menuName": "Primary Menu",
+      "navItems": [
+        {
+          "label": "About Us",
+          "url": "#",
+          "hasDropdown": true,
+          "children": [
+            {
+              "label": "Mesco At Glance",
+              "url": "/about-us/mesco-at-glance",
+              "hasDropdown": false,
+              "openInNewTab": false
+            },
+            {
+              "label": "Managing Committee",
+              "url": "/about-us/managing-committee",
+              "hasDropdown": false,
+              "openInNewTab": false
+            },
+            {
+              "label": "Our Team",
+              "url": "/about-us/our-team",
+              "hasDropdown": false,
+              "openInNewTab": false
+            },
+            {
+              "label": "Good Governance",
+              "url": "/about-us/good-governance",
+              "hasDropdown": false,
+              "openInNewTab": false
+            },
+            {
+              "label": "Institute",
+              "url": "#",
+              "hasDropdown": true,
+              "openInNewTab": false,
+              "children": [
+                {
+                  "label": "MESCO Education Society",
+                  "url": "https://www.mescoeducationsociety.org/",
+                  "hasDropdown": false,
+                  "openInNewTab": true
+                },
+                {
+                  "label": "Angels' Paradise Nursery Schools",
+                  "url": "https://www.mescoeducationsociety.org/Pages.aspx?id=34&t=Nursery%20Schools",
+                  "hasDropdown": false,
+                  "openInNewTab": true
+                },
+                {
+                  "label": "Vocational Training Center",
+                  "url": "https://www.mescoeducationsociety.org/Pages.aspx?id=34&t=Nursery%20Schools",
+                  "hasDropdown": false,
+                  "openInNewTab": true
+                },
+                {
+                  "label": "ECCE",
+                  "url": "https://www.mescoeducationsociety.org/Pages.aspx?id=61&t=ECCE%20Teachers%20Training%20Institute",
+                  "hasDropdown": false,
+                  "openInNewTab": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "Our Works",
+          "url": "#",
+          "hasDropdown": true,
+          "children": [
+            {
+              "label": "Educational Support Programmes",
+              "url": "/our-works/educational-support",
+              "hasDropdown": false,
+              "openInNewTab": false
+            },
+            {
+              "label": "Medical Aid",
+              "url": "/our-works/medical-aid",
+              "hasDropdown": false,
+              "openInNewTab": false
+            },
+            {
+              "label": "Clinics And Dispensaries",
+              "url": "/our-works/clinics-dispensaries",
+              "hasDropdown": false,
+              "openInNewTab": false
+            },
+            {
+              "label": "Relief of Poverty",
+              "url": "/our-works/relief-of-poverty",
+              "hasDropdown": false,
+              "openInNewTab": false
+            },
+            {
+              "label": "RC Mahim Mun. School Adoption",
+              "url": "/our-works/school-adoption",
+              "hasDropdown": false,
+              "openInNewTab": false
+            },
+            {
+              "label": "Old Newspaper Units",
+              "url": "/our-works/old-newspaper-units",
+              "hasDropdown": false,
+              "openInNewTab": false
+            },
+            {
+              "label": "Study Centre",
+              "url": "https://mescotrust.org/studycentre/",
+              "hasDropdown": false,
+              "openInNewTab": true
+            }
+          ]
+        },
+        {
+          "label": "Media",
+          "url": "#",
+          "hasDropdown": true,
+          "children": [
+            {
+              "label": "Image Gallery",
+              "url": "/media/image-gallery",
+              "hasDropdown": false,
+              "openInNewTab": false
+            },
+            {
+              "label": "Video Gallery",
+              "url": "/media/video-gallery",
+              "hasDropdown": false,
+              "openInNewTab": false
+            },
+            {
+              "label": "Newsletters",
+              "url": "/media/newsletters",
+              "hasDropdown": false,
+              "openInNewTab": false
+            },
+            {
+              "label": "Annual Reports",
+              "url": "/media/annual-reports",
+              "hasDropdown": false,
+              "openInNewTab": false
+            },
+            {
+              "label": "EX Student Directory 2025",
+              "url": "https://mescotrust.org/Ex-Students-Directory-2025.pdf",
+              "hasDropdown": false,
+              "openInNewTab": true
+            },
+            {
+              "label": "Success Stories",
+              "url": "/media/success-stories",
+              "hasDropdown": false,
+              "openInNewTab": false
+            },
+            {
+              "label": "Donor Testimonials Stories",
+              "url": "/media/donor-testimonials-stories",
+              "hasDropdown": false,
+              "openInNewTab": false
+            }
+          ]
+        },
+        {
+          "label": "More",
+          "url": "#",
+          "hasDropdown": true,
+          "children": [
+            {
+              "label": "CSR",
+              "url": "/more/csr",
+              "hasDropdown": false,
+              "openInNewTab": false
+            },
+            {
+              "label": "Notices",
+              "url": "/more/notices",
+              "hasDropdown": false,
+              "openInNewTab": false
+            },
+            {
+              "label": "Careers",
+              "url": "/more/careers",
+              "hasDropdown": false,
+              "openInNewTab": false
+            },
+            {
+              "label": "Contact Us",
+              "url": "/more/contact-us",
+              "hasDropdown": false,
+              "openInNewTab": false
+            }
+          ]
+        }
+      ],
+      "headerSearchEnabled": true,
+      "headerSearchLabel": "Search",
+      "headerSearchOpenAriaLabel": "",
+      "headerSearchPlaceholder": "Search events, blog etc",
+      "headerSearchDialogLabel": "",
+      "headerSearchInputAriaLabel": "",
+      "headerSearchCloseAriaLabel": "",
+      "headerSearchMinCharsMessage": "",
+      "headerSearchLoadingMessage": "",
+      "headerSearchNoResultsMessage": "",
+      "headerSearchErrorMessage": "",
+      "headerSearchResultTypePageLabel": "",
+      "headerSearchResultTypeBlogLabel": "",
+      "headerSearchResultTypeEventLabel": "",
+      "headerSearchFallbackTitle": "",
+      "headerSearchFallbackMeta": "",
+      "logoType": "image",
+      "logoUrl": "/",
+      "logoLightUrl": "/uploads/1772597551416_logo.webp",
+      "logoMobileUrl": "/uploads/1772597551416_logo.webp",
+      "logoDarkUrl": "",
+      "logoImageUrl": "",
+      "headerVolunteerLabel": "Volunteer",
+      "headerVolunteerHref": "/about-us/volunteer",
+      "headerVolunteerHrefTarget": "_self",
+      "headerVolunteerIconUrl": "/uploads/1772597707257_volunteer-icon.webp",
+      "headerVolunteerIconUrlMobile": "/uploads/1772597707257_volunteer-icon.webp",
+      "headerDonateLabel": "Donate Now",
+      "headerDonateHref": "/donate-now",
+      "headerDonateIconUrl": "/uploads/1772597745371_donate-now-icon.webp",
+      "headerBgColorKey": "headerBg",
+      "headerCtaBgColorKey": "Primary Light",
+      "headerCtaTextColorKey": "Black",
+      "headerDonateBgColorKey": "Gradient",
+      "headerDonateTextColorKey": "White",
+      "_sectionBg": "White",
+      "_containerType": "container",
+      "_sectionPadding": "",
+      "_sectionBorderSize": "",
+      "_sectionBorderStyle": "",
+      "_sectionBorderColor": "",
+      "_sectionShadow": "",
+      "logoImage": "/uploads/1772597551416_logo.webp",
+      "logoTitle": "",
+      "logoTagline": "",
+      "actionButtons": [
+        {
+          "label": "test",
+          "url": "",
+          "image": "",
+          "imagePosition": "",
+          "imageHeight": "",
+          "fontSize": "",
+          "fontWeight": "",
+          "letterSpacing": "",
+          "textTransform": "",
+          "background": "",
+          "color": "",
+          "borderColor": "",
+          "borderRadius": "",
+          "paddingY": "",
+          "paddingX": "",
+          "boxShadow": ""
+        }
+      ],
+      "headerSectionBgType": "default",
+      "headerSectionBgImage": "",
+      "headerSectionBgColorKey": "",
+      "headerSectionPadding": "",
+      "headerSectionMargin": "",
+      "headerPageContainerBgType": "default",
+      "headerPageContainerBgImage": "",
+      "headerPageContainerBgColorKey": "",
+      "headerPageContainerPadding": "",
+      "headerPageContainerMargin": "",
+      "_disableFadeAnimation": false,
+      "menuPosition": "center",
+      "headerVolunteerOpenInNewTab": false,
+      "headerSectionId": "",
+      "navbarMobileMenu": "offcanvas"
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-06T07:18:29.077Z",
+    "updatedAt": "2026-06-08T04:47:05.429Z",
+    "__v": 0,
+    "deletedBy": "",
+    "isDeleted": false
+  },
+  {
+    "_id": "69c13c97ca925c7a2e534a4d",
+    "name": "Registered",
+    "displayName": "Registered",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "Registered",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-23T13:13:59.023Z",
+    "updatedAt": "2026-03-23T13:27:22.964Z",
+    "__v": 0,
+    "defaultProps": {
+      "registeredMainTitle": "Registered Under",
+      "registeredTitleColorKey": "Black",
+      "registeredItems": [
+        {
+          "text": "The Societies Registration Act, *1860.*"
+        },
+        {
+          "text": "The Bombay Public Trust Act *1950.*"
+        },
+        {
+          "text": "Section 80-G of the Income Tax, *1961.*"
+        },
+        {
+          "text": "Foreign Contribution Regulation Act, (FCRA) *2010*, Ministry of Home Affairs. GOI."
+        }
+      ],
+      "registeredSectionBgType": "default",
+      "registeredSectionBgImage": "",
+      "registeredSectionBgColorKey": "",
+      "registeredPageContainerBgType": "default",
+      "registeredPageContainerBgImage": "",
+      "registeredPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false
+    }
+  },
+  {
+    "_id": "69be34554784717a27787223",
+    "name": "InnerPageHero",
+    "displayName": "Inner Page Hero",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "InnerPageHero",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-21T06:01:57.936Z",
+    "updatedAt": "2026-03-27T12:40:04.730Z",
+    "__v": 0,
+    "defaultProps": {
+      "innerPageHeroSectionBgType": "image",
+      "innerPageHeroSectionBgImage": "/uploads/1774073280514_inner-banner.webp",
+      "innerPageHeroSectionBgColorKey": "",
+      "innerPageHeroPageContainerBgType": "default",
+      "innerPageHeroPageContainerBgImage": "",
+      "innerPageHeroPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false,
+      "title": "What is Lorem Ipsum?",
+      "description": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text",
+      "bgImage": "/uploads/1774073280514_inner-banner.webp",
+      "breadcrumbItems": [
+        {
+          "label": "Home",
+          "href": "/"
+        },
+        {
+          "label": "What is Lorem Ipsum?",
+          "href": ""
+        }
+      ]
+    }
+  },
+  {
+    "_id": "69be210c4784717a277863c7",
+    "name": "HelpingEvents",
+    "displayName": "Helping Events",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "HelpingEvents",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-21T04:39:40.392Z",
+    "updatedAt": "2026-03-21T04:54:30.350Z",
+    "__v": 0,
+    "defaultProps": {
+      "helpingEventsSectionBgType": "image",
+      "helpingEventsSectionBgImage": "/uploads/1772875877475_about-card-bg-2.webp",
+      "helpingEventsSectionBgColorKey": "",
+      "helpingEventsPageContainerBgType": "default",
+      "helpingEventsPageContainerBgImage": "",
+      "helpingEventsPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false,
+      "subTitle": "Events",
+      "mainTitle": "Helping people live a better tomorrow!",
+      "titleColorKey": "White",
+      "eventTitle": "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
+      "eventDescription": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages.",
+      "eventImage": "/images/event-img.png",
+      "eventImageAlt": "Event",
+      "buttonText": "Donate Now",
+      "buttonLink": "/",
+      "helpingEventsButtonBgColorKey": "Gradient",
+      "helpingEventsButtonTextColorKey": "White"
+    }
+  },
+  {
+    "_id": "69ca00fe398aee58a5db8517",
+    "name": "Newsletters",
+    "displayName": "Newsletters",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "Newsletters",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-30T04:50:06.858Z",
+    "updatedAt": "2026-04-17T10:53:17.072Z",
+    "__v": 0,
+    "defaultProps": {
+      "newslettersSectionBgType": "default",
+      "newslettersSectionBgImage": "",
+      "newslettersSectionBgColorKey": "",
+      "newslettersPageContainerBgType": "default",
+      "newslettersPageContainerBgImage": "",
+      "newslettersPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false,
+      "mainTitle": "",
+      "subTitle": "",
+      "titleColorKey": "Black",
+      "newslettersTitleEnabled": false,
+      "newslettersSubTitleEnabled": false,
+      "newslettersSubTitleColorKey": "Black",
+      "newslettersIconColorKey": "Primary",
+      "newslettersViewColorKey": "White",
+      "newslettersTitleItemColorKey": "Black",
+      "newslettersItems": [
+        {
+          "title": "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
+          "date": "January 2023",
+          "tag": "Newsletter",
+          "pdfUrl": "PDF URL (opens in new tab)"
+        },
+        {
+          "title": "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
+          "date": "January 2023",
+          "tag": "Newsletter",
+          "pdfUrl": "PDF URL (opens in new tab)"
+        },
+        {
+          "title": "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
+          "date": "January 2023",
+          "tag": "Newsletter",
+          "pdfUrl": "PDF URL (opens in new tab)"
+        }
+      ],
+      "newslettersPageContainerPaddingTop": 40,
+      "newslettersPageContainerPaddingRight": 60,
+      "newslettersPageContainerPaddingBottom": 0,
+      "newslettersViewBgColorKey": "Gradient",
+      "newslettersDateColorKey": "Black",
+      "newslettersCardBgColorKey": "Black",
+      "newslettersIconBgColorKey": "Primary Light"
+    }
+  },
+  {
+    "_id": "69ca1387398aee58a5db8d92",
+    "name": "Alerts",
+    "displayName": "Alerts",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "Alerts",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-03-30T06:09:11.442Z",
+    "updatedAt": "2026-03-30T06:30:53.166Z",
+    "__v": 0,
+    "defaultProps": {
+      "alertsSectionBgType": "default",
+      "alertsSectionBgImage": "",
+      "alertsSectionBgColorKey": "",
+      "alertsPageContainerBgType": "default",
+      "alertsPageContainerBgImage": "",
+      "alertsPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false,
+      "mainTitle": "",
+      "subTitle": "",
+      "titleColorKey": "Black",
+      "alertsTitleEnabled": false,
+      "alertsSubTitleEnabled": false,
+      "alertsSubTitleColorKey": "Primary",
+      "alertsIconColorKey": "Primary",
+      "alertsHeadingColorKey": "Black",
+      "alertsTextColorKey": "Black",
+      "alertsItems": [
+        {
+          "heading": "What is Lorem Ipsum?",
+          "text": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s",
+          "iconUrl": "/uploads/1774851632207_award.webp"
+        },
+        {
+          "heading": "",
+          "text": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s",
+          "iconUrl": "/uploads/1774851632207_award.webp"
+        },
+        {
+          "heading": "",
+          "text": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s",
+          "iconUrl": "/uploads/1774851632207_award.webp"
+        }
+      ]
+    }
+  },
+  {
+    "_id": "6a1a6a39778be74281bbfad8",
+    "name": "SectionIntro",
+    "displayName": "Section Intro",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "SectionIntro",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-05-30T04:40:25.234Z",
+    "updatedAt": "2026-05-30T04:49:37.423Z",
+    "__v": 0,
+    "defaultProps": {
+      "mainTitle": "Why Volunteer with MESCO",
+      "subTitle": "Why Choose Us?",
+      "titleColorKey": "Black",
+      "sectionIntroSectionBgType": "default",
+      "sectionIntroSectionBgImage": "",
+      "sectionIntroSectionBgColorKey": "",
+      "sectionIntroSectionPadding": "",
+      "sectionIntroSectionMargin": "",
+      "sectionIntroPageContainerBgType": "default",
+      "sectionIntroPageContainerBgImage": "",
+      "sectionIntroPageContainerBgColorKey": "",
+      "sectionIntroPageContainerPadding": "",
+      "sectionIntroPageContainerMargin": "",
+      "_disableFadeAnimation": false,
+      "colors": [
+        {
+          "name": "Primary",
+          "value": "rgba(207, 55, 47, 1)"
+        },
+        {
+          "name": "Black",
+          "value": "#050505"
+        },
+        {
+          "name": "Black Light",
+          "value": "rgba(5, 5, 5, 0.5)"
+        },
+        {
+          "name": "White",
+          "value": "#FFFFFF"
+        },
+        {
+          "name": "Primary Light",
+          "value": "rgba(207, 55, 47, 0.1)"
+        },
+        {
+          "name": "Gradient",
+          "value": "linear-gradient(90deg, #CF372F 0%, #691C18 100%)"
+        },
+        {
+          "name": "Border",
+          "value": "rgba(0, 0, 0, 0.1)"
+        },
+        {
+          "name": "imgWhite",
+          "value": "brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(3%) hue-rotate(51deg) brightness(115%) contrast(100%)"
+        },
+        {
+          "name": "imgColor",
+          "value": "brightness(0) saturate(100%) invert(25%) sepia(76%) saturate(6383%) hue-rotate(354deg) brightness(93%) contrast(73%)"
+        },
+        {
+          "name": "Transparent",
+          "value": "transparent"
+        }
+      ],
+      "sectionIntroParagraph": "Make a real difference by contributing to education, medical, Relief of Poverty, and women's empowerment initiatives. Volunteering with MESCO offers a meaningful experience, skill development, and the opportunity to impact lives."
+    }
+  },
+  {
+    "_id": "6a1a8953c867bad4746b214c",
+    "name": "Paragraph",
+    "displayName": "Paragraph",
+    "type": "system",
+    "category": "text",
+    "baseComponent": "Paragraph",
+    "propsSchema": [
+      {
+        "key": "text",
+        "type": "richtext",
+        "label": "Text"
+      },
+      {
+        "key": "color",
+        "type": "color",
+        "label": "Text color"
+      },
+      {
+        "key": "align",
+        "type": "select",
+        "label": "Alignment",
+        "options": [
+          "left",
+          "center",
+          "right"
+        ]
+      }
+    ],
+    "defaultProps": {
+      "text": "<p>Type your paragraph text here...</p>"
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:07.371Z",
+    "updatedAt": "2026-05-30T06:53:07.371Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8953c867bad4746b214f",
+    "name": "Heading",
+    "displayName": "Heading",
+    "type": "system",
+    "category": "text",
+    "baseComponent": "Heading",
+    "propsSchema": [
+      {
+        "key": "level",
+        "type": "number",
+        "label": "Level (1-6)"
+      },
+      {
+        "key": "text",
+        "type": "text",
+        "label": "Text"
+      },
+      {
+        "key": "style",
+        "type": "select",
+        "label": "Style",
+        "options": [
+          "default",
+          "underline",
+          "accent",
+          "uppercase",
+          "light"
+        ]
+      },
+      {
+        "key": "color",
+        "type": "color",
+        "label": "Text color"
+      },
+      {
+        "key": "align",
+        "type": "select",
+        "label": "Alignment",
+        "options": [
+          "left",
+          "center",
+          "right"
+        ]
+      }
+    ],
+    "defaultProps": {
+      "level": 2,
+      "text": "Section Heading",
+      "style": "default"
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:07.396Z",
+    "updatedAt": "2026-05-30T06:53:07.396Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8953c867bad4746b2152",
+    "name": "List",
+    "displayName": "List",
+    "type": "system",
+    "category": "text",
+    "baseComponent": "List",
+    "propsSchema": [
+      {
+        "key": "items",
+        "type": "json",
+        "label": "Items (JSON array of strings)"
+      },
+      {
+        "key": "ordered",
+        "type": "boolean",
+        "label": "Numbered list"
+      },
+      {
+        "key": "color",
+        "type": "color",
+        "label": "Text color"
+      }
+    ],
+    "defaultProps": {
+      "items": [
+        "Item 1",
+        "Item 2",
+        "Item 3"
+      ],
+      "ordered": false
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:07.415Z",
+    "updatedAt": "2026-05-30T06:53:07.415Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8953c867bad4746b2155",
+    "name": "Quote",
+    "displayName": "Quote",
+    "type": "system",
+    "category": "text",
+    "baseComponent": "Quote",
+    "propsSchema": [
+      {
+        "key": "text",
+        "type": "text",
+        "label": "Quote text"
+      },
+      {
+        "key": "citation",
+        "type": "text",
+        "label": "Citation"
+      },
+      {
+        "key": "color",
+        "type": "color",
+        "label": "Text color"
+      }
+    ],
+    "defaultProps": {
+      "text": "This is a sample quote",
+      "citation": "Author"
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:07.432Z",
+    "updatedAt": "2026-05-30T06:53:07.432Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8953c867bad4746b2158",
+    "name": "CodeSnippet",
+    "displayName": "Code Snippet",
+    "type": "system",
+    "category": "text",
+    "baseComponent": "CodeSnippet",
+    "propsSchema": [
+      {
+        "key": "code",
+        "type": "text",
+        "label": "Code"
+      },
+      {
+        "key": "language",
+        "type": "text",
+        "label": "Language"
+      }
+    ],
+    "defaultProps": {
+      "code": "console.log('Hello')",
+      "language": "javascript"
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:07.457Z",
+    "updatedAt": "2026-05-30T06:53:07.457Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8953c867bad4746b215b",
+    "name": "Image",
+    "displayName": "Image",
+    "type": "system",
+    "category": "media",
+    "baseComponent": "Image",
+    "propsSchema": [
+      {
+        "key": "src",
+        "type": "image",
+        "label": "Image URL"
+      },
+      {
+        "key": "alt",
+        "type": "text",
+        "label": "Alt text"
+      }
+    ],
+    "defaultProps": {
+      "src": "",
+      "alt": ""
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:07.511Z",
+    "updatedAt": "2026-05-30T06:53:07.511Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8953c867bad4746b215e",
+    "name": "Gallery",
+    "displayName": "Gallery",
+    "type": "system",
+    "category": "media",
+    "baseComponent": "Gallery",
+    "propsSchema": [
+      {
+        "key": "images",
+        "type": "json",
+        "label": "Images (JSON: [{src, alt}])"
+      },
+      {
+        "key": "columns",
+        "type": "number",
+        "label": "Columns (1-6)"
+      },
+      {
+        "key": "gap",
+        "type": "number",
+        "label": "Gap (px)"
+      }
+    ],
+    "defaultProps": {
+      "images": [],
+      "columns": 3,
+      "gap": 8
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:07.526Z",
+    "updatedAt": "2026-05-30T06:53:07.526Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8953c867bad4746b2161",
+    "name": "Video",
+    "displayName": "Video",
+    "type": "system",
+    "category": "media",
+    "baseComponent": "Video",
+    "propsSchema": [
+      {
+        "key": "url",
+        "type": "url",
+        "label": "Video URL"
+      },
+      {
+        "key": "caption",
+        "type": "text",
+        "label": "Caption"
+      }
+    ],
+    "defaultProps": {
+      "url": "",
+      "caption": ""
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:07.562Z",
+    "updatedAt": "2026-05-30T06:53:07.562Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8953c867bad4746b2164",
+    "name": "FileDownload",
+    "displayName": "File Download",
+    "type": "system",
+    "category": "media",
+    "baseComponent": "FileDownload",
+    "propsSchema": [
+      {
+        "key": "url",
+        "type": "url",
+        "label": "File URL"
+      },
+      {
+        "key": "label",
+        "type": "text",
+        "label": "Label"
+      },
+      {
+        "key": "description",
+        "type": "text",
+        "label": "Description"
+      }
+    ],
+    "defaultProps": {
+      "url": "",
+      "label": "Download file",
+      "description": ""
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:07.581Z",
+    "updatedAt": "2026-05-30T06:53:07.581Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8953c867bad4746b2167",
+    "name": "Slider",
+    "displayName": "Slider / Carousel",
+    "type": "system",
+    "category": "media",
+    "baseComponent": "Slider",
+    "propsSchema": [
+      {
+        "key": "slides",
+        "type": "json",
+        "label": "Slides JSON"
+      },
+      {
+        "key": "autoplay",
+        "type": "boolean",
+        "label": "Autoplay"
+      },
+      {
+        "key": "interval",
+        "type": "number",
+        "label": "Interval (ms)"
+      },
+      {
+        "key": "showDots",
+        "type": "boolean",
+        "label": "Show dots"
+      },
+      {
+        "key": "showArrows",
+        "type": "boolean",
+        "label": "Show arrows"
+      },
+      {
+        "key": "height",
+        "type": "number",
+        "label": "Height (px)"
+      }
+    ],
+    "defaultProps": {
+      "slides": [
+        {
+          "image": "",
+          "heading": "Slide 1",
+          "text": "Slide description"
+        }
+      ],
+      "autoplay": true,
+      "interval": 5000,
+      "showDots": true,
+      "showArrows": true,
+      "height": 300
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:07.608Z",
+    "updatedAt": "2026-05-30T06:53:07.608Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8953c867bad4746b216a",
+    "name": "Embed",
+    "displayName": "Embed",
+    "type": "system",
+    "category": "media",
+    "baseComponent": "Embed",
+    "propsSchema": [
+      {
+        "key": "url",
+        "type": "url",
+        "label": "Embed URL"
+      },
+      {
+        "key": "caption",
+        "type": "text",
+        "label": "Caption"
+      }
+    ],
+    "defaultProps": {
+      "url": "",
+      "caption": ""
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:07.626Z",
+    "updatedAt": "2026-05-30T06:53:07.626Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8953c867bad4746b216d",
+    "name": "FormEmbed",
+    "displayName": "Form Embed",
+    "type": "system",
+    "category": "interactive",
+    "baseComponent": "FormEmbed",
+    "propsSchema": [
+      {
+        "key": "formId",
+        "type": "text",
+        "label": "Form ID (e.g. FORM_001)"
+      },
+      {
+        "key": "shortcode",
+        "type": "text",
+        "label": "Shortcode ([form id=\"FORM_001\"])"
+      },
+      {
+        "key": "source",
+        "type": "text",
+        "label": "Source label"
+      }
+    ],
+    "defaultProps": {
+      "formId": "",
+      "shortcode": "",
+      "source": "FormEmbed"
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:07.640Z",
+    "updatedAt": "2026-05-30T06:53:07.640Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8953c867bad4746b2170",
+    "name": "Cover",
+    "displayName": "Cover",
+    "type": "system",
+    "category": "layout",
+    "baseComponent": "Cover",
+    "propsSchema": [
+      {
+        "key": "src",
+        "type": "image",
+        "label": "Background image URL"
+      },
+      {
+        "key": "alt",
+        "type": "text",
+        "label": "Alt text"
+      },
+      {
+        "key": "heading",
+        "type": "text",
+        "label": "Heading"
+      },
+      {
+        "key": "text",
+        "type": "text",
+        "label": "Text"
+      },
+      {
+        "key": "overlayColor",
+        "type": "text",
+        "label": "Overlay color"
+      },
+      {
+        "key": "minHeight",
+        "type": "number",
+        "label": "Min height (px)"
+      }
+    ],
+    "defaultProps": {
+      "src": "",
+      "alt": "",
+      "heading": "Cover Heading",
+      "text": "Cover description",
+      "overlayColor": "rgba(0,0,0,0.45)",
+      "minHeight": 200
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:07.683Z",
+    "updatedAt": "2026-05-30T06:53:07.683Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8953c867bad4746b2173",
+    "name": "Hero",
+    "displayName": "Hero Section",
+    "type": "system",
+    "category": "layout",
+    "baseComponent": "Hero",
+    "propsSchema": [
+      {
+        "key": "backgroundImage",
+        "type": "image",
+        "label": "Background image"
+      },
+      {
+        "key": "backgroundAlt",
+        "type": "text",
+        "label": "Alt text"
+      },
+      {
+        "key": "heading",
+        "type": "text",
+        "label": "Heading"
+      },
+      {
+        "key": "subheading",
+        "type": "text",
+        "label": "Subheading"
+      },
+      {
+        "key": "buttonLabel",
+        "type": "text",
+        "label": "Primary button"
+      },
+      {
+        "key": "buttonUrl",
+        "type": "url",
+        "label": "Primary button URL"
+      },
+      {
+        "key": "buttonVariant",
+        "type": "select",
+        "label": "Button style",
+        "options": [
+          "solid",
+          "outline"
+        ]
+      },
+      {
+        "key": "secondaryButtonLabel",
+        "type": "text",
+        "label": "Secondary button"
+      },
+      {
+        "key": "secondaryButtonUrl",
+        "type": "url",
+        "label": "Secondary URL"
+      },
+      {
+        "key": "align",
+        "type": "select",
+        "label": "Alignment",
+        "options": [
+          "left",
+          "center",
+          "right"
+        ]
+      },
+      {
+        "key": "minHeight",
+        "type": "number",
+        "label": "Min height (px)"
+      },
+      {
+        "key": "overlayColor",
+        "type": "text",
+        "label": "Overlay color"
+      }
+    ],
+    "defaultProps": {
+      "backgroundImage": "",
+      "heading": "Your headline here",
+      "subheading": "Supporting text goes here",
+      "buttonLabel": "Get started",
+      "buttonUrl": "#",
+      "buttonVariant": "solid",
+      "align": "center",
+      "minHeight": 350,
+      "overlayColor": "rgba(0,0,0,0.5)"
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:07.903Z",
+    "updatedAt": "2026-05-30T06:53:07.903Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8953c867bad4746b2176",
+    "name": "Buttons",
+    "displayName": "Buttons",
+    "type": "system",
+    "category": "layout",
+    "baseComponent": "Buttons",
+    "propsSchema": [
+      {
+        "key": "buttons",
+        "type": "json",
+        "label": "Buttons JSON"
+      }
+    ],
+    "defaultProps": {
+      "buttons": [
+        {
+          "label": "Primary",
+          "url": "#",
+          "variant": "solid"
+        },
+        {
+          "label": "Secondary",
+          "url": "#",
+          "variant": "outline"
+        }
+      ]
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:07.950Z",
+    "updatedAt": "2026-05-30T06:53:07.950Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8953c867bad4746b2179",
+    "name": "Spacer",
+    "displayName": "Spacer",
+    "type": "system",
+    "category": "layout",
+    "baseComponent": "Spacer",
+    "propsSchema": [
+      {
+        "key": "height",
+        "type": "number",
+        "label": "Height (px)"
+      },
+      {
+        "key": "showDivider",
+        "type": "boolean",
+        "label": "Show divider line"
+      }
+    ],
+    "defaultProps": {
+      "height": 40,
+      "showDivider": false
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:07.969Z",
+    "updatedAt": "2026-05-30T06:53:07.969Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8954c867bad4746b217c",
+    "name": "Columns",
+    "displayName": "Columns",
+    "type": "system",
+    "category": "layout",
+    "baseComponent": "Columns",
+    "propsSchema": [
+      {
+        "key": "columns",
+        "type": "number",
+        "label": "Columns (1-4)"
+      },
+      {
+        "key": "gap",
+        "type": "number",
+        "label": "Gap (px)"
+      },
+      {
+        "key": "content",
+        "type": "json",
+        "label": "Content JSON"
+      }
+    ],
+    "defaultProps": {
+      "columns": 2,
+      "gap": 24,
+      "content": [
+        {
+          "text": "Column 1"
+        },
+        {
+          "text": "Column 2"
+        }
+      ]
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:08.018Z",
+    "updatedAt": "2026-05-30T06:53:08.018Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8954c867bad4746b217f",
+    "name": "Divider",
+    "displayName": "Divider",
+    "type": "system",
+    "category": "layout",
+    "baseComponent": "Divider",
+    "propsSchema": [
+      {
+        "key": "style",
+        "type": "select",
+        "label": "Style",
+        "options": [
+          "solid",
+          "dashed",
+          "dotted"
+        ]
+      },
+      {
+        "key": "color",
+        "type": "text",
+        "label": "Color"
+      },
+      {
+        "key": "thickness",
+        "type": "number",
+        "label": "Thickness (px)"
+      },
+      {
+        "key": "width",
+        "type": "text",
+        "label": "Width"
+      },
+      {
+        "key": "spacing",
+        "type": "number",
+        "label": "Spacing (px)"
+      },
+      {
+        "key": "text",
+        "type": "text",
+        "label": "Center text"
+      }
+    ],
+    "defaultProps": {
+      "style": "solid",
+      "color": "#e8e8e8",
+      "thickness": 1,
+      "width": "100%",
+      "spacing": 24,
+      "text": ""
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:08.039Z",
+    "updatedAt": "2026-05-30T06:53:08.039Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8954c867bad4746b2184",
+    "name": "Section",
+    "displayName": "Section (container)",
+    "type": "system",
+    "category": "layout",
+    "baseComponent": "Section",
+    "propsSchema": [
+      {
+        "key": "backgroundColor",
+        "type": "color",
+        "label": "Background color"
+      },
+      {
+        "key": "padding",
+        "type": "text",
+        "label": "Padding (e.g. 2rem 1rem)"
+      }
+    ],
+    "defaultProps": {
+      "layout": [],
+      "backgroundColor": "",
+      "padding": ""
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:08.064Z",
+    "updatedAt": "2026-05-30T06:53:08.064Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8954c867bad4746b2187",
+    "name": "CallToAction",
+    "displayName": "Call to Action",
+    "type": "system",
+    "category": "content",
+    "baseComponent": "CallToAction",
+    "propsSchema": [
+      {
+        "key": "heading",
+        "type": "text",
+        "label": "Heading"
+      },
+      {
+        "key": "text",
+        "type": "text",
+        "label": "Text"
+      },
+      {
+        "key": "buttonLabel",
+        "type": "text",
+        "label": "Button label"
+      },
+      {
+        "key": "buttonUrl",
+        "type": "url",
+        "label": "Button URL"
+      },
+      {
+        "key": "buttonVariant",
+        "type": "select",
+        "label": "Button style",
+        "options": [
+          "solid",
+          "outline"
+        ]
+      },
+      {
+        "key": "align",
+        "type": "select",
+        "label": "Alignment",
+        "options": [
+          "left",
+          "center",
+          "right"
+        ]
+      },
+      {
+        "key": "color",
+        "type": "color",
+        "label": "Heading color"
+      },
+      {
+        "key": "backgroundColor",
+        "type": "color",
+        "label": "Background color"
+      }
+    ],
+    "defaultProps": {
+      "heading": "Ready to get started?",
+      "text": "Join thousands of users today.",
+      "buttonLabel": "Learn more",
+      "buttonUrl": "#",
+      "buttonVariant": "solid",
+      "align": "center"
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:08.079Z",
+    "updatedAt": "2026-05-30T06:53:08.079Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8954c867bad4746b218a",
+    "name": "Card",
+    "displayName": "Card",
+    "type": "system",
+    "category": "content",
+    "baseComponent": "Card",
+    "propsSchema": [
+      {
+        "key": "image",
+        "type": "image",
+        "label": "Image URL"
+      },
+      {
+        "key": "imageAlt",
+        "type": "text",
+        "label": "Image alt"
+      },
+      {
+        "key": "title",
+        "type": "text",
+        "label": "Title"
+      },
+      {
+        "key": "description",
+        "type": "text",
+        "label": "Description"
+      },
+      {
+        "key": "linkUrl",
+        "type": "url",
+        "label": "Link URL"
+      },
+      {
+        "key": "linkLabel",
+        "type": "text",
+        "label": "Link label"
+      },
+      {
+        "key": "variant",
+        "type": "select",
+        "label": "Style",
+        "options": [
+          "default",
+          "bordered",
+          "shadow"
+        ]
+      }
+    ],
+    "defaultProps": {
+      "image": "",
+      "title": "Card Title",
+      "description": "Card description text goes here.",
+      "linkUrl": "",
+      "linkLabel": "Read more",
+      "variant": "shadow"
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:08.105Z",
+    "updatedAt": "2026-05-30T06:53:08.105Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8954c867bad4746b218d",
+    "name": "CardGrid",
+    "displayName": "Card Grid",
+    "type": "system",
+    "category": "content",
+    "baseComponent": "CardGrid",
+    "propsSchema": [
+      {
+        "key": "cards",
+        "type": "json",
+        "label": "Cards JSON"
+      },
+      {
+        "key": "columns",
+        "type": "number",
+        "label": "Columns (1-4)"
+      },
+      {
+        "key": "gap",
+        "type": "number",
+        "label": "Gap (px)"
+      }
+    ],
+    "defaultProps": {
+      "cards": [
+        {
+          "title": "Card 1",
+          "description": "Description 1"
+        },
+        {
+          "title": "Card 2",
+          "description": "Description 2"
+        },
+        {
+          "title": "Card 3",
+          "description": "Description 3"
+        }
+      ],
+      "columns": 3,
+      "gap": 24
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:08.120Z",
+    "updatedAt": "2026-05-30T06:53:08.120Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8954c867bad4746b2190",
+    "name": "FeatureGrid",
+    "displayName": "Feature Grid",
+    "type": "system",
+    "category": "content",
+    "baseComponent": "FeatureGrid",
+    "propsSchema": [
+      {
+        "key": "features",
+        "type": "json",
+        "label": "Features JSON"
+      },
+      {
+        "key": "columns",
+        "type": "number",
+        "label": "Columns (1-4)"
+      },
+      {
+        "key": "variant",
+        "type": "select",
+        "label": "Variant",
+        "options": [
+          "default",
+          "cards"
+        ]
+      }
+    ],
+    "defaultProps": {
+      "features": [
+        {
+          "icon": "star",
+          "title": "Feature 1",
+          "description": "Description"
+        },
+        {
+          "icon": "heart",
+          "title": "Feature 2",
+          "description": "Description"
+        },
+        {
+          "icon": "rocket",
+          "title": "Feature 3",
+          "description": "Description"
+        }
+      ],
+      "columns": 3,
+      "variant": "default"
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:08.153Z",
+    "updatedAt": "2026-05-30T06:53:08.153Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8954c867bad4746b2193",
+    "name": "IconBox",
+    "displayName": "Icon Box",
+    "type": "system",
+    "category": "content",
+    "baseComponent": "IconBox",
+    "propsSchema": [
+      {
+        "key": "icon",
+        "type": "text",
+        "label": "Icon name"
+      },
+      {
+        "key": "title",
+        "type": "text",
+        "label": "Title"
+      },
+      {
+        "key": "description",
+        "type": "text",
+        "label": "Description"
+      },
+      {
+        "key": "align",
+        "type": "select",
+        "label": "Align",
+        "options": [
+          "left",
+          "center",
+          "right"
+        ]
+      },
+      {
+        "key": "iconSize",
+        "type": "number",
+        "label": "Icon size (px)"
+      },
+      {
+        "key": "variant",
+        "type": "select",
+        "label": "Variant",
+        "options": [
+          "default",
+          "bordered",
+          "filled"
+        ]
+      }
+    ],
+    "defaultProps": {
+      "icon": "star",
+      "title": "Feature Title",
+      "description": "Description text",
+      "align": "center",
+      "iconSize": 40,
+      "variant": "filled"
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:08.166Z",
+    "updatedAt": "2026-05-30T06:53:08.166Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8954c867bad4746b2196",
+    "name": "Testimonial",
+    "displayName": "Testimonials",
+    "type": "system",
+    "category": "content",
+    "baseComponent": "Testimonial",
+    "propsSchema": [
+      {
+        "key": "items",
+        "type": "json",
+        "label": "Items JSON"
+      },
+      {
+        "key": "columns",
+        "type": "number",
+        "label": "Columns (1-3)"
+      }
+    ],
+    "defaultProps": {
+      "items": [
+        {
+          "quote": "Amazing product! Highly recommend.",
+          "name": "Jane Doe",
+          "role": "CEO"
+        }
+      ],
+      "columns": 1
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:08.179Z",
+    "updatedAt": "2026-05-30T06:53:08.179Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8954c867bad4746b2199",
+    "name": "Team",
+    "displayName": "Team Members",
+    "type": "system",
+    "category": "content",
+    "baseComponent": "Team",
+    "propsSchema": [
+      {
+        "key": "members",
+        "type": "json",
+        "label": "Members JSON"
+      },
+      {
+        "key": "columns",
+        "type": "number",
+        "label": "Columns (1-4)"
+      }
+    ],
+    "defaultProps": {
+      "members": [
+        {
+          "name": "Team Member",
+          "role": "Position",
+          "bio": "Short bio"
+        }
+      ],
+      "columns": 3
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:08.195Z",
+    "updatedAt": "2026-05-30T06:53:08.195Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8954c867bad4746b219c",
+    "name": "Alert",
+    "displayName": "Alert / Notice",
+    "type": "system",
+    "category": "content",
+    "baseComponent": "Alert",
+    "propsSchema": [
+      {
+        "key": "type",
+        "type": "select",
+        "label": "Type",
+        "options": [
+          "info",
+          "success",
+          "warning",
+          "error"
+        ]
+      },
+      {
+        "key": "title",
+        "type": "text",
+        "label": "Title"
+      },
+      {
+        "key": "message",
+        "type": "text",
+        "label": "Message"
+      }
+    ],
+    "defaultProps": {
+      "type": "info",
+      "title": "Notice",
+      "message": "This is an informational message."
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:08.209Z",
+    "updatedAt": "2026-05-30T06:53:08.209Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8954c867bad4746b219f",
+    "name": "Accordion",
+    "displayName": "Accordion / FAQ",
+    "type": "system",
+    "category": "interactive",
+    "baseComponent": "Accordion",
+    "propsSchema": [
+      {
+        "key": "items",
+        "type": "json",
+        "label": "Items JSON"
+      },
+      {
+        "key": "allowMultiple",
+        "type": "boolean",
+        "label": "Allow multiple open"
+      }
+    ],
+    "defaultProps": {
+      "items": [
+        {
+          "title": "Question 1?",
+          "content": "Answer to question 1."
+        },
+        {
+          "title": "Question 2?",
+          "content": "Answer to question 2."
+        }
+      ],
+      "allowMultiple": false
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:08.261Z",
+    "updatedAt": "2026-05-30T06:53:08.261Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8954c867bad4746b21a2",
+    "name": "Tabs",
+    "displayName": "Tabs",
+    "type": "system",
+    "category": "interactive",
+    "baseComponent": "Tabs",
+    "propsSchema": [
+      {
+        "key": "tabs",
+        "type": "json",
+        "label": "Tabs JSON"
+      },
+      {
+        "key": "defaultTab",
+        "type": "number",
+        "label": "Default tab"
+      }
+    ],
+    "defaultProps": {
+      "tabs": [
+        {
+          "label": "Tab 1",
+          "content": "Content for tab 1"
+        },
+        {
+          "label": "Tab 2",
+          "content": "Content for tab 2"
+        }
+      ],
+      "defaultTab": 0
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:08.505Z",
+    "updatedAt": "2026-05-30T06:53:08.505Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8954c867bad4746b21a5",
+    "name": "Modal",
+    "displayName": "Modal / Popup",
+    "type": "system",
+    "category": "interactive",
+    "baseComponent": "Modal",
+    "propsSchema": [
+      {
+        "key": "triggerLabel",
+        "type": "text",
+        "label": "Button label"
+      },
+      {
+        "key": "triggerVariant",
+        "type": "select",
+        "label": "Button style",
+        "options": [
+          "solid",
+          "outline"
+        ]
+      },
+      {
+        "key": "title",
+        "type": "text",
+        "label": "Modal title"
+      },
+      {
+        "key": "content",
+        "type": "text",
+        "label": "Modal content"
+      },
+      {
+        "key": "size",
+        "type": "select",
+        "label": "Size",
+        "options": [
+          "small",
+          "medium",
+          "large"
+        ]
+      }
+    ],
+    "defaultProps": {
+      "triggerLabel": "Open Dialog",
+      "triggerVariant": "solid",
+      "title": "Dialog Title",
+      "content": "Dialog content here...",
+      "size": "medium"
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:08.519Z",
+    "updatedAt": "2026-05-30T06:53:08.519Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8954c867bad4746b21a8",
+    "name": "Stats",
+    "displayName": "Statistics",
+    "type": "system",
+    "category": "data",
+    "baseComponent": "Stats",
+    "propsSchema": [
+      {
+        "key": "items",
+        "type": "json",
+        "label": "Items JSON"
+      },
+      {
+        "key": "columns",
+        "type": "number",
+        "label": "Columns (1-6)"
+      },
+      {
+        "key": "background",
+        "type": "text",
+        "label": "Background color"
+      }
+    ],
+    "defaultProps": {
+      "items": [
+        {
+          "value": "100",
+          "label": "Users",
+          "suffix": "+"
+        },
+        {
+          "value": "50",
+          "label": "Projects"
+        },
+        {
+          "value": "99",
+          "label": "Uptime",
+          "suffix": "%"
+        }
+      ],
+      "columns": 3,
+      "background": "#f8f9fa"
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:08.551Z",
+    "updatedAt": "2026-05-30T06:53:08.551Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8954c867bad4746b21ab",
+    "name": "Pricing",
+    "displayName": "Pricing Table",
+    "type": "system",
+    "category": "data",
+    "baseComponent": "Pricing",
+    "propsSchema": [
+      {
+        "key": "plans",
+        "type": "json",
+        "label": "Plans JSON"
+      },
+      {
+        "key": "columns",
+        "type": "number",
+        "label": "Columns (1-4)"
+      }
+    ],
+    "defaultProps": {
+      "plans": [
+        {
+          "name": "Basic",
+          "price": "$9",
+          "period": "mo",
+          "features": [
+            "Feature 1",
+            "Feature 2"
+          ],
+          "buttonLabel": "Choose",
+          "buttonUrl": "#"
+        },
+        {
+          "name": "Pro",
+          "price": "$29",
+          "period": "mo",
+          "features": [
+            "Feature 1",
+            "Feature 2",
+            "Feature 3"
+          ],
+          "buttonLabel": "Choose",
+          "buttonUrl": "#",
+          "highlighted": true,
+          "badge": "Popular"
+        }
+      ],
+      "columns": 2
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:08.611Z",
+    "updatedAt": "2026-05-30T06:53:08.611Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8954c867bad4746b21b1",
+    "name": "Table",
+    "displayName": "Table",
+    "type": "system",
+    "category": "data",
+    "baseComponent": "Table",
+    "propsSchema": [
+      {
+        "key": "headers",
+        "type": "json",
+        "label": "Headers JSON"
+      },
+      {
+        "key": "rows",
+        "type": "json",
+        "label": "Rows JSON"
+      },
+      {
+        "key": "striped",
+        "type": "boolean",
+        "label": "Striped rows"
+      },
+      {
+        "key": "bordered",
+        "type": "boolean",
+        "label": "Bordered"
+      }
+    ],
+    "defaultProps": {
+      "headers": [
+        "Name",
+        "Role",
+        "Status"
+      ],
+      "rows": [
+        [
+          "Alice",
+          "Designer",
+          "Active"
+        ],
+        [
+          "Bob",
+          "Developer",
+          "Active"
+        ]
+      ],
+      "striped": true,
+      "bordered": true
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:08.632Z",
+    "updatedAt": "2026-05-30T06:53:08.632Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8954c867bad4746b21ba",
+    "name": "Timeline",
+    "displayName": "Timeline",
+    "type": "system",
+    "category": "data",
+    "baseComponent": "Timeline",
+    "propsSchema": [
+      {
+        "key": "items",
+        "type": "json",
+        "label": "Items JSON"
+      },
+      {
+        "key": "variant",
+        "type": "select",
+        "label": "Variant",
+        "options": [
+          "left",
+          "alternating"
+        ]
+      }
+    ],
+    "defaultProps": {
+      "items": [
+        {
+          "date": "2024",
+          "title": "Event 1",
+          "description": "Description"
+        },
+        {
+          "date": "2025",
+          "title": "Event 2",
+          "description": "Description"
+        }
+      ],
+      "variant": "left"
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:08.668Z",
+    "updatedAt": "2026-05-30T06:53:08.668Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8954c867bad4746b21c0",
+    "name": "Breadcrumbs",
+    "displayName": "Breadcrumbs",
+    "type": "system",
+    "category": "navigation",
+    "baseComponent": "Breadcrumbs",
+    "propsSchema": [
+      {
+        "key": "items",
+        "type": "json",
+        "label": "Items JSON"
+      },
+      {
+        "key": "separator",
+        "type": "text",
+        "label": "Separator"
+      }
+    ],
+    "defaultProps": {
+      "items": [
+        {
+          "label": "Home",
+          "url": "/"
+        },
+        {
+          "label": "Page",
+          "url": "#"
+        }
+      ],
+      "separator": "/"
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:08.689Z",
+    "updatedAt": "2026-05-30T06:53:08.689Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a8954c867bad4746b21c3",
+    "name": "SocialLinks",
+    "displayName": "Social Links",
+    "type": "system",
+    "category": "navigation",
+    "baseComponent": "SocialLinks",
+    "propsSchema": [
+      {
+        "key": "links",
+        "type": "json",
+        "label": "Links JSON"
+      },
+      {
+        "key": "size",
+        "type": "number",
+        "label": "Icon size"
+      },
+      {
+        "key": "variant",
+        "type": "select",
+        "label": "Variant",
+        "options": [
+          "filled",
+          "outline",
+          "rounded"
+        ]
+      },
+      {
+        "key": "align",
+        "type": "select",
+        "label": "Align",
+        "options": [
+          "left",
+          "center",
+          "right"
+        ]
+      }
+    ],
+    "defaultProps": {
+      "links": [
+        {
+          "platform": "facebook",
+          "url": "#"
+        },
+        {
+          "platform": "twitter",
+          "url": "#"
+        },
+        {
+          "platform": "instagram",
+          "url": "#"
+        }
+      ],
+      "size": 40,
+      "variant": "filled",
+      "align": "center"
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "createdAt": "2026-05-30T06:53:08.705Z",
+    "updatedAt": "2026-05-30T06:53:08.705Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1a9fc4ec6f27547c6a3433",
+    "name": "Internshiplifecycle",
+    "displayName": "Internship lifecycle",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "Internshiplifecycle",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-05-30T08:28:52.948Z",
+    "updatedAt": "2026-05-30T08:48:33.000Z",
+    "__v": 0,
+    "defaultProps": {
+      "internshiplifecycleSectionBgType": "default",
+      "internshiplifecycleSectionBgImage": "",
+      "internshiplifecycleSectionBgColorKey": "",
+      "internshiplifecyclePageContainerBgType": "default",
+      "internshiplifecyclePageContainerBgImage": "",
+      "internshiplifecyclePageContainerBgColorKey": "",
+      "_disableFadeAnimation": false,
+      "mainTitle": "Internship lifecycle",
+      "titleColorKey": "black",
+      "internshiplifecycleDescriptionColorKey": "black",
+      "internshiplifecycleCircleBgColorKey": "black",
+      "internshiplifecycleCircleHoverBgColorKey": "primary",
+      "internshiplifecycleIconColorKey": "white",
+      "internshiplifecycleIconHoverColorKey": "white",
+      "internshiplifecycleConnectorColorKey": "themeBorder",
+      "internshiplifecycleTitleFontFamily": "",
+      "internshiplifecycleTitleFontSize": 24,
+      "internshiplifecycleTitleFontWeight": 700,
+      "internshiplifecycleTitleLineHeight": 1.12,
+      "internshiplifecycleTitleLetterSpacing": 0,
+      "internshiplifecycleTitleTextTransform": "none",
+      "internshiplifecycleCircleSize": 52,
+      "internshiplifecycleIconSize": 24,
+      "internshiplifecycleStepGap": 32,
+      "internshiplifecycleItems": [
+        {
+          "title": "Application Submission",
+          "description": "",
+          "icon": "/images/internship-lifecycle/application-submission.svg",
+          "highlighted": true
+        },
+        {
+          "title": "Screening and Interview",
+          "description": "",
+          "icon": "/images/internship-lifecycle/screening-interview.svg",
+          "highlighted": false
+        },
+        {
+          "title": "Orientation and Role Assignment",
+          "description": "",
+          "icon": "/images/internship-lifecycle/orientation-assignment.svg",
+          "highlighted": false
+        },
+        {
+          "title": "Active Engagement and Periodic Reviews",
+          "description": "",
+          "icon": "/images/internship-lifecycle/active-engagement.svg",
+          "highlighted": false
+        },
+        {
+          "title": "Completion Certification",
+          "description": "",
+          "icon": "/images/internship-lifecycle/completion-certification.svg",
+          "highlighted": false
+        }
+      ]
+    }
+  },
+  {
+    "_id": "6a1ab3c818ffce84abb24766",
+    "name": "VolunteersFeedback",
+    "displayName": "Volunteers Feedback",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "VolunteersFeedback",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-05-30T09:54:16.754Z",
+    "updatedAt": "2026-06-01T03:59:24.469Z",
+    "__v": 0,
+    "defaultProps": {
+      "mainTitle": "MESCO values your input! After completing your volunteering period, please share your feedback to help us improve and grow",
+      "subTitle": "Volunteers' feedback",
+      "volunteersFeedbackDescription": "Process to Get Involved: Clearly outline simple, step-by-step instructions for users interested in participating or contributing.",
+      "volunteersFeedbackTitleEnabled": true,
+      "volunteersFeedbackSubTitleEnabled": true,
+      "volunteersFeedbackDescriptionEnabled": true,
+      "volunteersFeedbackNameLabel": "Full Name",
+      "volunteersFeedbackEmailLabel": "Email Address",
+      "volunteersFeedbackPhoneLabel": "Phone Number",
+      "volunteersFeedbackMessageLabel": "Message",
+      "volunteersFeedbackNamePlaceholder": "Enter your full name",
+      "volunteersFeedbackEmailPlaceholder": "your.email@example.com",
+      "volunteersFeedbackPhonePlaceholder": "+91 98765 43210",
+      "volunteersFeedbackMessagePlaceholder": "Enter your message here",
+      "volunteersFeedbackSubmitText": "Submit",
+      "volunteersFeedbackSubmittingText": "Submitting...",
+      "volunteersFeedbackRequiredMarker": "*",
+      "volunteersFeedbackSuccessTitle": "Success",
+      "volunteersFeedbackSuccessMessage": "Thank you for your feedback.",
+      "volunteersFeedbackFailureTitle": "Submission failed",
+      "volunteersFeedbackFailureMessage": "Unable to submit your feedback. Please try again.",
+      "volunteersFeedbackErrorNameRequired": "Full name is required",
+      "volunteersFeedbackErrorNameInvalid": "Please enter a valid full name",
+      "volunteersFeedbackErrorEmailRequired": "Email is required",
+      "volunteersFeedbackErrorEmailInvalid": "Please enter a valid email address",
+      "volunteersFeedbackErrorPhoneRequired": "Phone number is required",
+      "volunteersFeedbackErrorPhoneInvalid": "Please enter a valid mobile number",
+      "volunteersFeedbackErrorMessageRequired": "Message is required",
+      "volunteersFeedbackErrorMessageMin": "Please enter at least 5 characters in your message",
+      "volunteersFeedbackMessageMinLength": 5,
+      "volunteersFeedbackPageValue": "",
+      "volunteersFeedbackSourceValue": "volunteers-feedback",
+      "volunteersFeedbackHeroBgDesktop": "/media/69a7bcaaec15ec6418ecf7e5",
+      "volunteersFeedbackHeroBgMobile": "",
+      "volunteersFeedbackHeroOverlay": "rgba(0, 0, 0, 0.45)",
+      "volunteersFeedbackHeroMinHeight": 320,
+      "volunteersFeedbackHeroMinHeightMobile": 220,
+      "volunteersFeedbackCardMaxWidth": 1200,
+      "volunteersFeedbackCardOverlap": 70,
+      "volunteersFeedbackCardRadius": 20,
+      "volunteersFeedbackCardPadding": 32,
+      "volunteersFeedbackCardShadow": "0 10px 28px rgba(0, 0, 0, 0.12)",
+      "volunteersFeedbackFieldGap": 16,
+      "volunteersFeedbackGridColumnGap": 12,
+      "volunteersFeedbackGridRowGap": 14,
+      "volunteersFeedbackInputHeight": 44,
+      "volunteersFeedbackTextAreaMinHeight": 64,
+      "volunteersFeedbackSubmitRadius": 12,
+      "volunteersFeedbackSubmitPaddingY": 10,
+      "volunteersFeedbackSubmitPaddingX": 18,
+      "volunteersFeedbackSubTitleSize": 14,
+      "volunteersFeedbackSubTitleWeight": 600,
+      "volunteersFeedbackTitleSize": 31,
+      "volunteersFeedbackTitleLineHeight": 1.35,
+      "volunteersFeedbackDescriptionSize": 17,
+      "volunteersFeedbackDescriptionLineHeight": 1.5,
+      "volunteersFeedbackLabelSize": 14,
+      "volunteersFeedbackInputFontSize": 14,
+      "volunteersFeedbackButtonFontSize": 20,
+      "titleColorKey": "",
+      "volunteersFeedbackSubTitleColorKey": "",
+      "volunteersFeedbackDescriptionColorKey": "",
+      "volunteersFeedbackCardBgColorKey": "",
+      "volunteersFeedbackCardBorderColorKey": "",
+      "volunteersFeedbackLabelColorKey": "",
+      "volunteersFeedbackInputBgColorKey": "",
+      "volunteersFeedbackInputBorderColorKey": "",
+      "volunteersFeedbackInputTextColorKey": "",
+      "volunteersFeedbackPlaceholderColorKey": "",
+      "volunteersFeedbackErrorColorKey": "",
+      "volunteersFeedbackButtonBgColorKey": "gradient",
+      "volunteersFeedbackButtonTextColorKey": "white",
+      "volunteersFeedbackRequiredStarColorKey": "",
+      "volunteersFeedbackSectionBgType": "default",
+      "volunteersFeedbackSectionBgImage": "",
+      "volunteersFeedbackSectionBgColorKey": "",
+      "volunteersFeedbackPageContainerBgType": "default",
+      "volunteersFeedbackPageContainerBgImage": "",
+      "volunteersFeedbackPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false
+    }
+  },
+  {
+    "_id": "6a1d722e523de1fa9319387d",
+    "name": "Cards1",
+    "displayName": "Cards",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "Cards1",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-06-01T11:51:10.149Z",
+    "updatedAt": "2026-06-01T12:37:44.627Z",
+    "__v": 0,
+    "defaultProps": {
+      "cards1SectionBgType": "default",
+      "cards1SectionBgImage": "",
+      "cards1SectionBgColorKey": "",
+      "cards1PageContainerBgType": "default",
+      "cards1PageContainerBgImage": "",
+      "cards1PageContainerBgColorKey": "",
+      "_disableFadeAnimation": false,
+      "mainTitle": "",
+      "subTitle": "",
+      "cards1TitleEnabled": true,
+      "cards1SubTitleEnabled": true,
+      "cards1SubTitleColorKey": "",
+      "cards1MainTitleColorKey": "",
+      "cards1CardBgColorKey": "",
+      "cards1CardBorderColorKey": "",
+      "cards1CardTitleColorKey": "",
+      "cards1CardDescriptionColorKey": "",
+      "cards1CardHoverBgColorKey": "",
+      "cards1CardHoverTitleColorKey": "",
+      "cards1CardHoverDescriptionColorKey": "",
+      "cards1CardIconBgColorKey": "",
+      "cards1CardButtonBgColorKey": "",
+      "cards1CardButtonTextColorKey": "",
+      "cards1CardHoverButtonBgColorKey": "",
+      "cards1CardHoverButtonTextColorKey": "",
+      "cards1ColumnsDesktop": 5,
+      "cards1ColumnsLaptop": 4,
+      "cards1ColumnsTablet": 3,
+      "cards1ColumnsMobileLandscape": 2,
+      "cards1ColumnsMobile": 1,
+      "cards1ColumnGap": 18,
+      "cards1RowGap": 22,
+      "cards1CardRadius": 14,
+      "cards1CardBorderWidth": 1,
+      "cards1CardMinHeight": 182,
+      "cards1CardPaddingTop": 18,
+      "cards1CardPaddingBottom": 18,
+      "cards1CardPaddingX": 20,
+      "cards1CardIconWrapSize": 56,
+      "cards1CardIconSize": 24,
+      "cards1CardTitleFontSize": 34,
+      "cards1CardTitleLineHeight": 1.3,
+      "cards1CardDescriptionFontSize": 14,
+      "cards1CardDescriptionLineHeight": 1.5,
+      "cards1CardButtonFontSize": 13,
+      "cards1CardButtonRadius": 8,
+      "cards1CardHoverLift": 3,
+      "cards1CardHoverTransitionMs": 260,
+      "cards1Items": []
+    }
+  },
+  {
+    "_id": "6a1ec33c01b3c33481b60797",
+    "name": "SocialMediaWall",
+    "displayName": "SocialMediaWall",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "SocialMediaWall",
+    "defaultProps": {
+      "socialMediaWallSectionBgType": "default",
+      "socialMediaWallSectionBgImage": "",
+      "socialMediaWallSectionBgColorKey": "",
+      "socialMediaWallPageContainerBgType": "default",
+      "socialMediaWallPageContainerBgImage": "",
+      "socialMediaWallPageContainerBgColorKey": "",
+      "_disableFadeAnimation": false,
+      "mainTitle": "Social Media Wall",
+      "subTitle": "",
+      "titleColorKey": "Black",
+      "socialMediaWallTitleEnabled": true,
+      "socialMediaWallSubTitleEnabled": true,
+      "socialMediaWallSubTitleColorKey": "Black",
+      "socialMediaWallEnableLivePosts": true,
+      "socialMediaWallOrderMode": "platform-priority",
+      "socialMediaWallPostLimit": 20,
+      "socialMediaWallAutoRefreshEnabled": false,
+      "socialMediaWallRefreshIntervalSec": 180,
+      "socialMediaWallLayoutMode": "grid",
+      "socialMediaWallColumnsDesktop": 5,
+      "socialMediaWallColumnsLaptop": 4,
+      "socialMediaWallColumnsTablet": 3,
+      "socialMediaWallColumnsMobile": 1,
+      "socialMediaWallCardGap": 16,
+      "socialMediaWallShowPlatformIcon": true,
+      "socialMediaWallShowPlatformLabel": true,
+      "socialMediaWallShowHandle": true,
+      "socialMediaWallShowDate": true,
+      "socialMediaWallShowCaption": true,
+      "socialMediaWallAllowModal": true,
+      "socialMediaWallEmptyStateMessage": "No social posts available right now. Please check back shortly.",
+      "socialMediaWallPlatforms": [
+        {
+          "platform": "instagram",
+          "active": true,
+          "order": 1,
+          "feedMode": "both",
+          "visibility": "all",
+          "postLimit": 20
+        },
+        {
+          "platform": "facebook",
+          "active": true,
+          "order": 2,
+          "feedMode": "both",
+          "visibility": "all",
+          "postLimit": 20
+        },
+        {
+          "platform": "youtube",
+          "active": true,
+          "order": 3,
+          "feedMode": "both",
+          "visibility": "all",
+          "postLimit": 20
+        },
+        {
+          "platform": "twitter",
+          "active": true,
+          "order": 4,
+          "feedMode": "both",
+          "visibility": "all",
+          "postLimit": 20
+        }
+      ],
+      "socialMediaWallPosts": [],
+      "socialMediaWallEnabled": true,
+      "socialMediaWallSectionSpacing": -1,
+      "socialMediaWallSectionPaddingTop": 64,
+      "socialMediaWallSectionPaddingBottom": 64
+    },
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-06-02T11:49:16.927Z",
+    "updatedAt": "2026-06-03T08:41:06.309Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a23a2405ea5143173273217",
+    "name": "ShortCode",
+    "displayName": "Short Code",
+    "type": "custom",
+    "category": "",
+    "baseComponent": "ShortCode",
+    "layout": [],
+    "container": "container",
+    "active": true,
+    "propsSchema": [],
+    "createdAt": "2026-06-06T04:29:52.793Z",
+    "updatedAt": "2026-06-06T05:03:25.251Z",
+    "__v": 0,
+    "defaultProps": {
+      "mainTitle": "Section Title",
+      "subTitle": "Subtitle",
+      "shortCodeTitleEnabled": true,
+      "shortCodeSubTitleEnabled": true,
+      "shortCodeSubTitleColorKey": "",
+      "shortCodeMainTitleColorKey": "",
+      "shortCodeCardBgColorKey": "",
+      "shortCodeCardTextColorKey": "",
+      "shortCodeCardBorderColorKey": "",
+      "shortCodeSourceType": "form",
+      "shortCodeSelectedForm": "testing-form",
+      "shortCodeSelectedSlider": "",
+      "shortCodeSelectedPopup": "",
+      "shortCodeSelectedComponent": "",
+      "shortcode": "[form shortcode=\"testing-form\"]",
+      "shortCodeSectionBgType": "default",
+      "shortCodeSectionBgImage": "",
+      "shortCodeSectionBgColorKey": "",
+      "shortCodeSectionPadding": "",
+      "shortCodeSectionMargin": "",
+      "shortCodePageContainerBgType": "default",
+      "shortCodePageContainerBgImage": "",
+      "shortCodePageContainerBgColorKey": "",
+      "shortCodePageContainerPadding": "",
+      "shortCodePageContainerMargin": "",
+      "_disableFadeAnimation": false,
+      "colors": [
+        {
+          "name": "Primary",
+          "value": "rgba(207, 55, 47, 1)"
+        },
+        {
+          "name": "Black",
+          "value": "#050505"
+        },
+        {
+          "name": "Black Light",
+          "value": "rgba(5, 5, 5, 0.5)"
+        },
+        {
+          "name": "White",
+          "value": "#FFFFFF"
+        },
+        {
+          "name": "Primary Light",
+          "value": "rgba(207, 55, 47, 0.1)"
+        },
+        {
+          "name": "Gradient",
+          "value": "linear-gradient(90deg, #CF372F 0%, #691C18 100%)"
+        },
+        {
+          "name": "Border",
+          "value": "rgba(0, 0, 0, 0.1)"
+        },
+        {
+          "name": "imgWhite",
+          "value": "brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(3%) hue-rotate(51deg) brightness(115%) contrast(100%)"
+        },
+        {
+          "name": "imgColor",
+          "value": "brightness(0) saturate(100%) invert(25%) sepia(76%) saturate(6383%) hue-rotate(354deg) brightness(93%) contrast(73%)"
+        },
+        {
+          "name": "Transparent",
+          "value": "transparent"
+        },
+        {
+          "name": "Form Background",
+          "value": "#F3F3F3"
+        }
+      ]
+    }
+  }
+]

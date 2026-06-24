@@ -17,6 +17,10 @@ import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/ma
 
 const API_PATH = "/api/theme/InnerPageHero";
 const PREFIX = "innerPageHero";
+const REQUIRED_BACKGROUND_IMAGE_WIDTH = 1440;
+const REQUIRED_BACKGROUND_IMAGE_HEIGHT = 260;
+const REQUIRED_BACKGROUND_IMAGE_DIMENSIONS_TEXT =
+  `${REQUIRED_BACKGROUND_IMAGE_WIDTH} \u00D7 ${REQUIRED_BACKGROUND_IMAGE_HEIGHT} px`;
 
 const FALLBACK_THEME_COLOR_KEYS = [
   "primary", "secondary", "white", "black", "headingColor",
@@ -28,6 +32,45 @@ function normalizeItem(it) {
     label: it?.label != null ? String(it.label).trim() : "",
     href: it?.href != null ? String(it.href).trim() : "",
   };
+}
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+async function validateInnerPageHeroBackgroundImageDimensions(_, value) {
+  const imageUrl = String(value || "").trim();
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (
+      width === REQUIRED_BACKGROUND_IMAGE_WIDTH &&
+      height === REQUIRED_BACKGROUND_IMAGE_HEIGHT
+    ) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(
+        `Image must be exactly ${REQUIRED_BACKGROUND_IMAGE_DIMENSIONS_TEXT}. Selected image is ${width} \u00D7 ${height} px.`,
+      ),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(
+        `Unable to validate image size. Please select an image of ${REQUIRED_BACKGROUND_IMAGE_DIMENSIONS_TEXT}.`,
+      ),
+    );
+  }
 }
 
 /**
@@ -178,7 +221,19 @@ function InnerPageHeroEditForm(
           {
             key: "section",
             label: "Manage Section",
-            children: <ManageSectionFields prefix={PREFIX} form={form} themeColorOptions={themeColorOptions} />,
+            children: (
+              <ManageSectionFields
+                prefix={PREFIX}
+                form={form}
+                themeColorOptions={themeColorOptions}
+                sectionBgImageFieldLabel="Background Image"
+                sectionBgImageHintText={`Required size: ${REQUIRED_BACKGROUND_IMAGE_DIMENSIONS_TEXT}`}
+                sectionBgImageValidateTrigger={["onChange", "onBlur"]}
+                sectionBgImageRules={[
+                  { validator: validateInnerPageHeroBackgroundImageDimensions },
+                ]}
+              />
+            ),
           },
           {
             key: "content",
@@ -200,11 +255,18 @@ function InnerPageHeroEditForm(
                   </Form.Item>
                 </Col>
                 <Col span={24}>
-                  <Form.Item name="bgImageDesktop" label="Desktop Image">
+                  <Form.Item
+                    name="bgImageDesktop"
+                    label="Desktop Image"
+                    validateTrigger={["onChange", "onBlur"]}
+                    rules={[
+                      { validator: validateInnerPageHeroBackgroundImageDimensions },
+                    ]}
+                  >
                     <MediaPickerInput
                       placeholder="e.g. /images/inner-banner.png"
                       uiVariant="stacked"
-                      hintText="Recommended for desktop/tablet"
+                      hintText={`Required size: ${REQUIRED_BACKGROUND_IMAGE_DIMENSIONS_TEXT}`}
                     />
                   </Form.Item>
                 </Col>

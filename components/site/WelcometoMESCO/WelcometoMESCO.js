@@ -15,9 +15,18 @@ import {
 const HomeHelping = styled.div`
   width: 100%;
   position: relative;
-  border: 1px solid ${() => getColor("themeBorder")};
+  background: var(--card-bg-color, #fff);
+  border: 1px solid var(--theme-theme-border, var(--border-color, rgba(0, 0, 0, 0.12)));
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.05);
   padding: 30px;
   border-radius: 24px;
+  @media (max-width: 992px) {
+    padding: 24px;
+  }
+  @media (max-width: 576px) {
+    padding: 20px;
+    border-radius: 18px;
+  }
 `;
 
 const HomeHelpingBottom = styled.div`

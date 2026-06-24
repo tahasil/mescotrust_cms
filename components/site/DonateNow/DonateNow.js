@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Row, Col, Select, notification } from "antd";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Col, Row, Select, notification } from "antd";
 import styled from "styled-components";
 import {
   FullWidthBackground,
@@ -18,262 +18,433 @@ import {
   normalizeText,
   toDigits,
 } from "@/lib/formValidation";
+import {
+  computePurposeAmount,
+  DONATE_NOW_BASE_FIELDS,
+  getDefaultDonateNowPurposes,
+  DONATE_NOW_FIGMA_PURPOSE_ORDER,
+  getDefaultPurposeValue,
+  getPurposeRuleState,
+  normalizeDonateNowConfig,
+} from "@/lib/donateNowConfig";
 
-/* ── Styled Components ── */
-const PackageList = styled.div`
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 12px;
-  padding: 24px;
-  .pkg-title {
-    font-size: 22px;
-    font-weight: 700;
-    margin-bottom: 16px;
+function resolveColor(key, fallback) {
+  const colorKey = String(key ?? "").trim();
+  return colorKey ? getColor(colorKey) : fallback;
+}
+
+function getFieldDefaultValue(fieldConfig) {
+  if (
+    fieldConfig?.defaultValue != null &&
+    String(fieldConfig.defaultValue).trim()
+  ) {
+    return String(fieldConfig.defaultValue);
   }
-  .pkg-cards {
-    @media (max-width: 767px) {
-      display: none;
+  if (
+    fieldConfig?.inputType === "select" &&
+    Array.isArray(fieldConfig.options)
+  ) {
+    const firstOption = fieldConfig.options[0];
+    if (firstOption?.value != null) return String(firstOption.value);
+  }
+  return "";
+}
+
+function getInitialFieldValues(fieldConfigMap) {
+  const values = {};
+  DONATE_NOW_BASE_FIELDS.forEach((fieldDef) => {
+    const config = fieldConfigMap[fieldDef.key] || fieldDef;
+    values[fieldDef.key] = getFieldDefaultValue(config);
+  });
+  return values;
+}
+
+function asNumber(value) {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : 0;
+}
+
+function formatInr(value) {
+  const num = asNumber(value);
+  if (!num) return "";
+  return `₹${num.toLocaleString("en-IN")}`;
+}
+
+function isSelectField(fieldConfig) {
+  return (
+    fieldConfig?.inputType === "select" && Array.isArray(fieldConfig?.options)
+  );
+}
+
+function getFieldValidationError(fieldKey, value, fieldConfig, required) {
+  const normalized = normalizeText(value);
+  if (required && !normalized) {
+    return `${fieldConfig?.label || fieldKey} is required`;
+  }
+  if (!normalized) return "";
+
+  const validation = String(fieldConfig?.validation || "").toLowerCase();
+  if (validation === "email" && !isValidEmail(normalized)) {
+    return "Please enter a valid email address";
+  }
+  if (validation === "phone" && !isValidPhone(normalized)) {
+    return "Please enter a valid mobile number";
+  }
+  if (validation === "pan" && !isValidPan(normalized)) {
+    return "Please enter a valid PAN";
+  }
+  if (validation === "name" && !isValidName(normalized)) {
+    return "Name should contain alphabets only";
+  }
+  if (validation === "number" && !/^\d+$/.test(toDigits(normalized))) {
+    return "Please enter a valid number";
+  }
+  if (validation === "amount") {
+    const amount = Number(normalized);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return "Please enter a valid amount";
     }
   }
-  .pkg-dropdown {
-    display: none;
-    @media (max-width: 767px) {
-      display: block;
+  if (validation === "lookup") {
+    const isEmailInput = normalized.includes("@");
+    if (isEmailInput && !isValidEmail(normalized)) {
+      return "Please enter a valid email";
     }
-    .ant-select {
-      width: 100%;
-    }
-    .ant-select-selection-item {
-      white-space: normal !important;
-      line-height: 1.4 !important;
-      padding: 4px 0 !important;
-    }
-    .ant-select-item-option-content {
-      white-space: normal !important;
-      line-height: 1.4;
-      padding: 4px 0;
+    if (!isEmailInput) {
+      const lookupDigits = toDigits(normalized);
+      if (lookupDigits.length < 10 || lookupDigits.length > 15) {
+        return "Please enter a valid mobile number";
+      }
     }
   }
-`;
+  return "";
+}
 
-const PackageCard = styled.button`
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 14px 18px;
-  border: 1px solid rgba(38, 42, 44, 0.1);
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.05);
-  border-radius: 8px;
-  background: #fff;
-  margin-bottom: 8px;
-  cursor: pointer;
-  transition: all 0.5s ease;
-  &:hover {
-    border-color: ${getColor("primary")};
+function normalizeAdditionalFieldValue(fieldType, value) {
+  if (fieldType === "number") {
+    const parsed = Number(String(value ?? "").replace(/[^0-9.]/g, ""));
+    return Number.isFinite(parsed) ? parsed : "";
   }
-  &.active {
-    border-color: transparent;
-    color: #fff;
-  }
-  .pkg-amount {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 2px;
-  }
-  .pkg-desc {
-    font-size: 12px;
-    opacity: 0.8;
-    line-height: 1.4;
-  }
-`;
+  return String(value ?? "");
+}
 
-const FormWrapper = styled.div`
-  .form-title {
-    font-size: 22px;
-    font-weight: 700;
-    margin-bottom: 8px;
-  }
-  .form-desc {
-    font-size: 14px;
-    color: rgba(0, 0, 0, 0.5);
-    margin-bottom: 24px;
-    line-height: 1.5;
-  }
-  .form-label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 600;
-    font-size: 14px;
-  }
-  .form-label .req {
-    color: #cf372f;
-  }
-  .form-field {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1px solid rgba(0, 0, 0, 0.12);
-    border-radius: 8px;
-    font-size: 14px;
-    outline: none;
-    background: #fff;
-    transition: border-color 0.2s;
-    &:focus {
-      border-color: rgba(0, 0, 0, 0.3);
-    }
-    &::placeholder {
-      color: rgba(0, 0, 0, 0.3);
-    }
-  }
-  select.form-field {
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    padding-right: 36px;
-    cursor: pointer;
-  }
-  .form-group {
-    margin-bottom: 16px;
-  }
-`;
+function logDonorLookupClientDebug(stage, payload = {}) {
+  if (process.env.NODE_ENV === "production") return;
+  // Debug helper for lookup diagnostics in browser console.
+  console.info("[donor-lookup-ui]", stage, payload);
+}
 
-const BtnRow = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 24px;
-  flex-wrap: wrap;
-  @media (max-width: 576px) {
-    justify-content: center;
-  }
-`;
+const DONOR_TYPE_OPTIONS = [
+  { label: "New Donor", value: "new" },
+  { label: "Existing Donor", value: "existing" },
+];
 
-const DonateBtn = styled.button`
-  padding: 12px 28px;
-  border: none;
-  border-radius: 50px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.2s;
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-`;
+const DONOR_PROFILE_FIELD_KEYS = [
+  "name",
+  "pan",
+  "email",
+  "mobile",
+  "address",
+  "city",
+  "state",
+  "country",
+  "pincode",
+];
 
-const QrBtn = styled.button`
-  padding: 12px 28px;
-  border: 1px solid ${getColor("primary")};
-  border-radius: 50px;
-  font-size: 14px;
-  font-weight: 600;
-  background: transparent;
-  cursor: pointer;
-  transition: opacity 0.2s;
-`;
+const REQUIRED_LOOKUP_AUTOFILL_FIELDS = [
+  "name",
+  "pan",
+  "email",
+  "mobile",
+  "address",
+  "city",
+  "state",
+  "country",
+  "pincode",
+];
 
-export default function DonateNow(props) {
-  const formRef = useRef(null);
-  const gatewayFormRef = useRef(null);
-  const [selectedPkg, setSelectedPkg] = useState(null);
+function getInitialLookupState() {
+  return {
+    loading: false,
+    found: false,
+    verified: false,
+    verificationToken: "",
+    requiresPanLast4: false,
+    masked: null,
+    matchedSubmissionId: "",
+    lastDonation: null,
+  };
+}
+
+function getInitialVerificationState() {
+  return {
+    email: "",
+    mobile: "",
+    panLast4: "",
+  };
+}
+
+export default function DonateNow(props = {}) {
   const [submitting, setSubmitting] = useState(false);
-  const [encData, setEncData] = useState(null);
   const [errors, setErrors] = useState({});
-  const [isMobileViewport, setIsMobileViewport] = useState(false);
+  const [encData, setEncData] = useState(null);
+  const gatewayFormRef = useRef(null);
+  const lookupTimerRef = useRef(null);
+  const previousPurposeIdRef = useRef("");
+
+  const normalizedConfig = useMemo(
+    () => normalizeDonateNowConfig(props),
+    [props],
+  );
+  const {
+    fieldConfig,
+    purposes,
+    purposeSource,
+    copy,
+    lookupSettings,
+    paymentSettings,
+    defaultPurposeId,
+  } = normalizedConfig;
+  const selectablePurposes = useMemo(
+    () =>
+      purposes.filter((purpose) => {
+        if (!purpose?.active) return false;
+        const id = String(purpose.id || "").trim();
+        const name = String(purpose.name || "").trim();
+        return Boolean(id) && Boolean(name);
+      }),
+    [purposes],
+  );
+  const renderedPurposes = useMemo(() => {
+    const cardEligiblePurposes = selectablePurposes.filter((purpose) => {
+      if (purpose?.showOnCard === false) return false;
+      const title = String(purpose.cardTitle || purpose.name || "").trim();
+      const amountText = String(purpose.cardAmountText || "").trim();
+      const amountValue = Number(
+        purpose.fixedAmount || purpose.defaultAmount || 0,
+      );
+      return Boolean(title) && (Boolean(amountText) || amountValue > 0);
+    });
+    const byDisplayOrder = (a, b) => {
+      const orderA = Number(a.displayOrder) || 0;
+      const orderB = Number(b.displayOrder) || 0;
+      if (orderA !== orderB) return orderA - orderB;
+      return String(a.name || "").localeCompare(String(b.name || ""));
+    };
+    if (purposeSource === "custom") {
+      return [...cardEligiblePurposes].sort(byDisplayOrder);
+    }
+    const fallbackById =
+      purposeSource === "custom"
+        ? new Map()
+        : new Map(
+            getDefaultDonateNowPurposes().map((purpose) => [
+              String(purpose.id),
+              purpose,
+            ]),
+          );
+    const byId = new Map(
+      cardEligiblePurposes.map((purpose) => [String(purpose.id), purpose]),
+    );
+    const figmaOrdered = DONATE_NOW_FIGMA_PURPOSE_ORDER.map(
+      (id) => byId.get(id) || fallbackById.get(id),
+    ).filter(Boolean);
+    const figmaIds = new Set(figmaOrdered.map((purpose) => purpose.id));
+    const remaining = cardEligiblePurposes
+      .filter((purpose) => !figmaIds.has(purpose.id))
+      .sort(byDisplayOrder);
+    return [...figmaOrdered, ...remaining];
+  }, [selectablePurposes, purposeSource]);
+
+  const [selectedPurposeId, setSelectedPurposeId] = useState(
+    defaultPurposeId || getDefaultPurposeValue(selectablePurposes),
+  );
+  const [donorType, setDonorType] = useState("");
+  const [fieldValues, setFieldValues] = useState(() =>
+    getInitialFieldValues(fieldConfig),
+  );
+  const [additionalFieldValues, setAdditionalFieldValues] = useState({});
+  const [amountTouched, setAmountTouched] = useState(false);
+  const [lookupState, setLookupState] = useState(() => getInitialLookupState());
+  const [verificationValues, setVerificationValues] = useState(() =>
+    getInitialVerificationState(),
+  );
+  const [verifyingDonor, setVerifyingDonor] = useState(false);
+
+  const isExistingDonor = donorType === "existing";
+  const isNewDonor = donorType === "new";
+  const isDonorTypeSelected = isExistingDonor || isNewDonor;
+  const canUseMainFormFields =
+    isDonorTypeSelected &&
+    (!isExistingDonor || (lookupState.found && lookupState.verified));
+  const lookupAutofillFields = useMemo(
+    () =>
+      [...new Set([...lookupSettings.reusableFields, ...REQUIRED_LOOKUP_AUTOFILL_FIELDS])],
+    [lookupSettings.reusableFields],
+  );
 
   useEffect(() => {
-    const updateViewport = () => setIsMobileViewport(window.innerWidth <= 767);
-    updateViewport();
-    window.addEventListener("resize", updateViewport);
-    return () => window.removeEventListener("resize", updateViewport);
-  }, []);
+    setSelectedPurposeId(
+      defaultPurposeId || getDefaultPurposeValue(selectablePurposes),
+    );
+    setDonorType("");
+    setFieldValues(getInitialFieldValues(fieldConfig));
+    setAdditionalFieldValues({});
+    setAmountTouched(false);
+    setLookupState(getInitialLookupState());
+    setVerificationValues(getInitialVerificationState());
+    setVerifyingDonor(false);
+    setErrors({});
+    previousPurposeIdRef.current = "";
+  }, [defaultPurposeId, selectablePurposes, fieldConfig]);
 
-  /* ── Title ── */
-  const mainTitle = (props?.mainTitle ?? "").toString().trim();
-  const subTitle = (props?.subTitle ?? "").toString().trim();
+  useEffect(() => {
+    if (lookupTimerRef.current) {
+      window.clearTimeout(lookupTimerRef.current);
+    }
+    setLookupState(getInitialLookupState());
+    setVerificationValues(getInitialVerificationState());
+    setVerifyingDonor(false);
+    setFieldValues((previous) => {
+      const defaults = getInitialFieldValues(fieldConfig);
+      const next = { ...previous };
+      next.lookup = defaults.lookup ?? "";
+      DONOR_PROFILE_FIELD_KEYS.forEach((fieldKey) => {
+        next[fieldKey] = defaults[fieldKey] ?? "";
+      });
+      return next;
+    });
+  }, [donorType, fieldConfig]);
+
+  const selectedPurpose = useMemo(
+    () =>
+      selectablePurposes.find((purpose) => purpose.id === selectedPurposeId) ||
+      selectablePurposes[0] ||
+      null,
+    [selectablePurposes, selectedPurposeId],
+  );
+
+  const purposeRuleState = useMemo(
+    () => getPurposeRuleState(selectedPurpose, fieldConfig),
+    [selectedPurpose, fieldConfig],
+  );
+  const hiddenFields = purposeRuleState.hidden;
+  const disabledFields = purposeRuleState.disabled;
+  const requiredFields = purposeRuleState.required;
+
+  const additionalFields = useMemo(
+    () =>
+      Array.isArray(selectedPurpose?.additionalFields)
+        ? selectedPurpose.additionalFields.filter(
+            (field) => field.active && !field.hidden,
+          )
+        : [],
+    [selectedPurpose],
+  );
+  const quantityFieldKey = selectedPurpose?.quantityFieldKey || "studentsCount";
+  const quantityFieldValue = fieldValues[quantityFieldKey];
+
+  useEffect(() => {
+    if (!selectedPurpose) return;
+    const purposeChanged = previousPurposeIdRef.current !== selectedPurpose.id;
+    const minQuantity = Math.max(1, Number(selectedPurpose.minQuantity || 1));
+    const defaultStudentsCount = Math.max(
+      1,
+      Number(
+        selectedPurpose.defaultStudentsCount ||
+          selectedPurpose.minQuantity ||
+          1,
+      ),
+    );
+
+    setFieldValues((previous) => {
+      const next = { ...previous };
+      let changed = false;
+
+      if (next.purpose !== selectedPurpose.id) {
+        next.purpose = selectedPurpose.id;
+        changed = true;
+      }
+
+      if (
+        selectedPurpose.calculationMode === "multiply_by_students" ||
+        selectedPurpose.showStudentsCount
+      ) {
+        const parsedQuantity = Number.parseInt(
+          String(previous[quantityFieldKey] || ""),
+          10,
+        );
+        if (purposeChanged) {
+          next[quantityFieldKey] = String(defaultStudentsCount);
+          changed = true;
+        } else if (
+          !Number.isFinite(parsedQuantity) ||
+          parsedQuantity < minQuantity
+        ) {
+          next[quantityFieldKey] = String(defaultStudentsCount);
+          changed = true;
+        }
+      }
+
+      const quantityValue = next[quantityFieldKey];
+      const nextAmount = computePurposeAmount({
+        purpose: selectedPurpose,
+        quantityValue,
+        studentsCount: next.studentsCount,
+        currentAmount: previous.amount,
+        amountTouched,
+      });
+      if (String(previous.amount || "") !== nextAmount) {
+        next.amount = nextAmount;
+        changed = true;
+      }
+
+      return changed ? next : previous;
+    });
+    previousPurposeIdRef.current = selectedPurpose.id;
+  }, [selectedPurpose, quantityFieldKey, quantityFieldValue, amountTouched]);
+
+  const mainTitle = String(props?.mainTitle || "").trim();
+  const subTitle = String(props?.subTitle || "").trim();
   const titleEnabled = props?.donateNowTitleEnabled !== false;
   const subTitleEnabled = props?.donateNowSubTitleEnabled !== false;
-  const titleColorKey = (props?.titleColorKey ?? "").toString().trim();
-  const titleColor = titleColorKey
-    ? getColor(titleColorKey)
-    : getColor("primary");
-  const subTitleColorKey = (props?.donateNowSubTitleColorKey ?? "")
-    .toString()
-    .trim();
-  const subTitleColor = subTitleColorKey
-    ? getColor(subTitleColorKey)
-    : undefined;
+  const titleColor = resolveColor(props?.titleColorKey, getColor("primary"));
+  const subTitleColor = resolveColor(
+    props?.donateNowSubTitleColorKey,
+    undefined,
+  );
 
-  /* ── Colors ── */
-  const btnBgColorKey = (props?.donateNowBtnBgColorKey ?? "").toString().trim();
-  const btnBgColor = btnBgColorKey ? getColor(btnBgColorKey) : "#8b1a1a";
-  const btnTextColorKey = (props?.donateNowBtnTextColorKey ?? "")
-    .toString()
-    .trim();
-  const btnTextColor = btnTextColorKey ? getColor(btnTextColorKey) : "#fff";
-  const qrBtnBorderColorKey = (props?.donateNowQrBtnBorderColorKey ?? "")
-    .toString()
-    .trim();
-  const qrBtnBorderColor = qrBtnBorderColorKey
-    ? getColor(qrBtnBorderColorKey)
-    : "#000";
-  const qrBtnTextColorKey = (props?.donateNowQrBtnTextColorKey ?? "")
-    .toString()
-    .trim();
-  const qrBtnTextColor = qrBtnTextColorKey
-    ? getColor(qrBtnTextColorKey)
-    : "#000";
-  const pkgActiveColorKey = (props?.donateNowPkgActiveColorKey ?? "")
-    .toString()
-    .trim();
-  const pkgActiveColor = pkgActiveColorKey
-    ? getColor(pkgActiveColorKey)
-    : "#8b1a1a";
-  const formHeadingColorKey = (props?.donateNowFormHeadingColorKey ?? "")
-    .toString()
-    .trim();
-  const formHeadingColor = formHeadingColorKey
-    ? getColor(formHeadingColorKey)
-    : undefined;
+  const donateButtonBg = resolveColor(props?.donateNowBtnBgColorKey, "#8b1a1a");
+  const donateButtonText = resolveColor(
+    props?.donateNowBtnTextColorKey,
+    "#ffffff",
+  );
+  const qrBtnBorder = resolveColor(
+    props?.donateNowQrBtnBorderColorKey,
+    "#8b1a1a",
+  );
+  const qrBtnText = resolveColor(props?.donateNowQrBtnTextColorKey, "#8b1a1a");
+  const formHeadingColor = resolveColor(
+    props?.donateNowFormHeadingColorKey,
+    "#111111",
+  );
 
-  /* ── Packages ── */
-  const packages = Array.isArray(props?.donateNowPackages)
-    ? props.donateNowPackages
-    : [];
+  const qrImageDesktop = String(
+    props?.donateNowQrImageDesktop || props?.donateNowQrImageUrl || "",
+  ).trim();
+  const qrImageMobile = String(props?.donateNowQrImageMobile || "").trim();
+  const qrImageUrl = qrImageDesktop || qrImageMobile;
 
-  /* ── Purpose options ── */
-  const purposeOptions = (props?.donateNowPurposeOptions ?? "")
-    .toString()
-    .trim()
-    ? props.donateNowPurposeOptions
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean)
-    : [];
-
-  /* ── QR ── */
-  const qrImageDesktop = (
-    props?.donateNowQrImageDesktop ?? props?.donateNowQrImageUrl ?? ""
-  )
-    .toString()
-    .trim();
-  const qrImageMobile = (props?.donateNowQrImageMobile ?? "")
-    .toString()
-    .trim();
-  const qrImageUrl =
-    isMobileViewport && qrImageMobile ? qrImageMobile : qrImageDesktop || qrImageMobile;
-
-  /* ── Section bg (standard boilerplate) ── */
   const PREFIX = "donateNow";
   const sectionBgType = (
-    props?.[PREFIX + "SectionBgType"] ?? "default"
+    props?.[`${PREFIX}SectionBgType`] ?? "default"
   ).toString();
-  const sectionBgImage = (props?.[PREFIX + "SectionBgImage"] ?? "")
-    .toString()
-    .trim();
-  const sectionBgColorKey = (props?.[PREFIX + "SectionBgColorKey"] ?? "")
-    .toString()
-    .trim();
+  const sectionBgImage = String(
+    props?.[`${PREFIX}SectionBgImage`] ?? "",
+  ).trim();
+  const sectionBgColorKey = String(
+    props?.[`${PREFIX}SectionBgColorKey`] ?? "",
+  ).trim();
   const sectionBgClassName =
     sectionBgType === "default" ? "defaultBackground" : undefined;
   const sectionBgStyleBase =
@@ -290,56 +461,31 @@ export default function DonateNow(props) {
             backgroundImage: "none",
           }
         : undefined;
-  const sectionPaddingTop =
-    props?.[PREFIX + "SectionPaddingTop"] != null
-      ? Number(props[PREFIX + "SectionPaddingTop"])
-      : null;
-  const sectionPaddingBottom =
-    props?.[PREFIX + "SectionPaddingBottom"] != null
-      ? Number(props[PREFIX + "SectionPaddingBottom"])
-      : null;
-  const sectionMarginTop =
-    props?.[PREFIX + "SectionMarginTop"] != null
-      ? Number(props[PREFIX + "SectionMarginTop"])
-      : null;
-  const sectionMarginBottom =
-    props?.[PREFIX + "SectionMarginBottom"] != null
-      ? Number(props[PREFIX + "SectionMarginBottom"])
-      : null;
-  const sectionBgStyle =
-    sectionBgStyleBase ||
-    sectionPaddingTop != null ||
-    sectionPaddingBottom != null ||
-    sectionMarginTop != null ||
-    sectionMarginBottom != null
-      ? {
-          ...(sectionBgStyleBase || {}),
-          ...(sectionPaddingTop != null && sectionPaddingTop >= 0
-            ? { paddingTop: `${sectionPaddingTop}px` }
-            : {}),
-          ...(sectionPaddingBottom != null && sectionPaddingBottom >= 0
-            ? { paddingBottom: `${sectionPaddingBottom}px` }
-            : {}),
-          ...(sectionMarginTop != null && sectionMarginTop >= 0
-            ? { marginTop: `${sectionMarginTop}px` }
-            : {}),
-          ...(sectionMarginBottom != null && sectionMarginBottom >= 0
-            ? { marginBottom: `${sectionMarginBottom}px` }
-            : {}),
-        }
-      : undefined;
+  const sectionBgStyle = {
+    ...(sectionBgStyleBase || {}),
+    ...(props?.[`${PREFIX}SectionPaddingTop`] != null
+      ? { paddingTop: `${Number(props[`${PREFIX}SectionPaddingTop`])}px` }
+      : {}),
+    ...(props?.[`${PREFIX}SectionPaddingBottom`] != null
+      ? { paddingBottom: `${Number(props[`${PREFIX}SectionPaddingBottom`])}px` }
+      : {}),
+    ...(props?.[`${PREFIX}SectionMarginTop`] != null
+      ? { marginTop: `${Number(props[`${PREFIX}SectionMarginTop`])}px` }
+      : {}),
+    ...(props?.[`${PREFIX}SectionMarginBottom`] != null
+      ? { marginBottom: `${Number(props[`${PREFIX}SectionMarginBottom`])}px` }
+      : {}),
+  };
 
   const pageContainerBgType = (
-    props?.[PREFIX + "PageContainerBgType"] ?? "default"
+    props?.[`${PREFIX}PageContainerBgType`] ?? "default"
   ).toString();
-  const pageContainerBgImage = (props?.[PREFIX + "PageContainerBgImage"] ?? "")
-    .toString()
-    .trim();
-  const pageContainerBgColorKey = (
-    props?.[PREFIX + "PageContainerBgColorKey"] ?? ""
-  )
-    .toString()
-    .trim();
+  const pageContainerBgImage = String(
+    props?.[`${PREFIX}PageContainerBgImage`] ?? "",
+  ).trim();
+  const pageContainerBgColorKey = String(
+    props?.[`${PREFIX}PageContainerBgColorKey`] ?? "",
+  ).trim();
   const pageContainerBgStyleBase =
     pageContainerBgType === "image" && pageContainerBgImage
       ? {
@@ -354,566 +500,1092 @@ export default function DonateNow(props) {
             backgroundImage: "none",
           }
         : undefined;
-  const containerPaddingTop =
-    props?.[PREFIX + "PageContainerPaddingTop"] != null
-      ? Number(props[PREFIX + "PageContainerPaddingTop"])
-      : null;
-  const containerPaddingRight =
-    props?.[PREFIX + "PageContainerPaddingRight"] != null
-      ? Number(props[PREFIX + "PageContainerPaddingRight"])
-      : null;
-  const containerPaddingBottom =
-    props?.[PREFIX + "PageContainerPaddingBottom"] != null
-      ? Number(props[PREFIX + "PageContainerPaddingBottom"])
-      : null;
-  const containerPaddingLeft =
-    props?.[PREFIX + "PageContainerPaddingLeft"] != null
-      ? Number(props[PREFIX + "PageContainerPaddingLeft"])
-      : null;
-  const containerMarginTop =
-    props?.[PREFIX + "PageContainerMarginTop"] != null
-      ? Number(props[PREFIX + "PageContainerMarginTop"])
-      : null;
-  const containerMarginBottom =
-    props?.[PREFIX + "PageContainerMarginBottom"] != null
-      ? Number(props[PREFIX + "PageContainerMarginBottom"])
-      : null;
-  const pageContainerBgStyle =
-    pageContainerBgStyleBase ||
-    containerPaddingTop != null ||
-    containerPaddingRight != null ||
-    containerPaddingBottom != null ||
-    containerPaddingLeft != null ||
-    containerMarginTop != null ||
-    containerMarginBottom != null
+  const pageContainerBgStyle = {
+    ...(pageContainerBgStyleBase || {}),
+    ...(props?.[`${PREFIX}PageContainerPaddingTop`] != null
+      ? { paddingTop: `${Number(props[`${PREFIX}PageContainerPaddingTop`])}px` }
+      : {}),
+    ...(props?.[`${PREFIX}PageContainerPaddingRight`] != null
       ? {
-          ...(pageContainerBgStyleBase || {}),
-          ...(containerPaddingTop != null && containerPaddingTop >= 0
-            ? { paddingTop: `${containerPaddingTop}px` }
-            : {}),
-          ...(containerPaddingRight != null && containerPaddingRight >= 0
-            ? { paddingRight: `${containerPaddingRight}px` }
-            : {}),
-          ...(containerPaddingBottom != null && containerPaddingBottom >= 0
-            ? { paddingBottom: `${containerPaddingBottom}px` }
-            : {}),
-          ...(containerPaddingLeft != null && containerPaddingLeft >= 0
-            ? { paddingLeft: `${containerPaddingLeft}px` }
-            : {}),
-          ...(containerMarginTop != null && containerMarginTop >= 0
-            ? { marginTop: `${containerMarginTop}px` }
-            : {}),
-          ...(containerMarginBottom != null && containerMarginBottom >= 0
-            ? { marginBottom: `${containerMarginBottom}px` }
-            : {}),
+          paddingRight: `${Number(props[`${PREFIX}PageContainerPaddingRight`])}px`,
         }
-      : undefined;
+      : {}),
+    ...(props?.[`${PREFIX}PageContainerPaddingBottom`] != null
+      ? {
+          paddingBottom: `${Number(props[`${PREFIX}PageContainerPaddingBottom`])}px`,
+        }
+      : {}),
+    ...(props?.[`${PREFIX}PageContainerPaddingLeft`] != null
+      ? {
+          paddingLeft: `${Number(props[`${PREFIX}PageContainerPaddingLeft`])}px`,
+        }
+      : {}),
+    ...(props?.[`${PREFIX}PageContainerMarginTop`] != null
+      ? { marginTop: `${Number(props[`${PREFIX}PageContainerMarginTop`])}px` }
+      : {}),
+    ...(props?.[`${PREFIX}PageContainerMarginBottom`] != null
+      ? {
+          marginBottom: `${Number(props[`${PREFIX}PageContainerMarginBottom`])}px`,
+        }
+      : {}),
+  };
 
-  /* ── Auto-fill donor lookup ── */
-  const handleLookup = async (val) => {
-    if (!val || val.length < 5) return;
+  const selectPurpose = (nextPurposeId) => {
+    setSelectedPurposeId(nextPurposeId);
+    setAmountTouched(false);
+    if (errors.purpose) {
+      setErrors((previous) => ({ ...previous, purpose: "" }));
+    }
+  };
+
+  const isBaseFieldVisible = (fieldKey) => {
+    if (fieldKey === "lookup") return isExistingDonor;
+    if (!isDonorTypeSelected) return false;
+    if (isExistingDonor && !lookupState.found) return false;
+    return !hiddenFields.has(fieldKey);
+  };
+
+  const handleDonorTypeChange = (nextDonorType) => {
+    setDonorType(nextDonorType || "");
+    setErrors((previous) => {
+      const next = { ...previous };
+      delete next.donorType;
+      delete next.lookup;
+      delete next.donorVerification;
+      delete next.verifyEmail;
+      delete next.verifyMobile;
+      delete next.verifyPanLast4;
+      return next;
+    });
+  };
+
+  const handleFieldValue = (fieldKey, nextValue) => {
+    if (fieldKey === "lookup") {
+      setLookupState(getInitialLookupState());
+      setVerificationValues(getInitialVerificationState());
+      setVerifyingDonor(false);
+    }
+    setFieldValues((previous) => ({ ...previous, [fieldKey]: nextValue }));
+    if (errors[fieldKey]) {
+      setErrors((previous) => ({ ...previous, [fieldKey]: "" }));
+    }
+  };
+
+  const handleAdditionalValue = (fieldKey, nextValue) => {
+    setAdditionalFieldValues((previous) => ({
+      ...previous,
+      [fieldKey]: nextValue,
+    }));
+    const errorKey = `additional:${fieldKey}`;
+    if (errors[errorKey]) {
+      setErrors((previous) => ({ ...previous, [errorKey]: "" }));
+    }
+  };
+
+  const handleVerificationValue = (fieldKey, nextValue) => {
+    setVerificationValues((previous) => ({ ...previous, [fieldKey]: nextValue }));
+    const errorKeyMap = {
+      email: "verifyEmail",
+      mobile: "verifyMobile",
+      panLast4: "verifyPanLast4",
+    };
+    const errorKey = errorKeyMap[fieldKey];
+    setErrors((previous) => {
+      const next = { ...previous };
+      if (errorKey) delete next[errorKey];
+      delete next.donorVerification;
+      return next;
+    });
+  };
+
+  const getLookupValidationError = (lookupValue, required = false) =>
+    getFieldValidationError(
+      "lookup",
+      lookupValue,
+      fieldConfig.lookup || DONATE_NOW_BASE_FIELDS[0],
+      required,
+    );
+
+  const lookupAllowed = (lookupValue) => {
+    if (!isExistingDonor || !lookupSettings.enabled) return false;
+
+    const trimmed = normalizeText(lookupValue);
+    if (!trimmed || trimmed.length < lookupSettings.minimumCharacters)
+      return false;
+
+    if (trimmed.includes("@")) {
+      return lookupSettings.lookupByEmail && isValidEmail(trimmed);
+    }
+
+    return (
+      lookupSettings.lookupByMobile &&
+      toDigits(trimmed).length >= 10 &&
+      toDigits(trimmed).length <= 15
+    );
+  };
+
+  const performLookup = async (lookupValue, options = {}) => {
+    const { showValidationError = false } = options;
+    const trimmedLookup = normalizeText(lookupValue);
+    if (!isExistingDonor || !lookupSettings.enabled) return;
+    if (!trimmedLookup) {
+      setLookupState(getInitialLookupState());
+      if (showValidationError) {
+        setErrors((previous) => ({
+          ...previous,
+          lookup:
+            getLookupValidationError(trimmedLookup, true) ||
+            "Email / Mobile No. is required",
+        }));
+      }
+      return;
+    }
+
+    const lookupValidationError = getLookupValidationError(trimmedLookup);
+    if (lookupValidationError) {
+      setLookupState(getInitialLookupState());
+      if (showValidationError) {
+        setErrors((previous) => ({ ...previous, lookup: lookupValidationError }));
+      }
+      return;
+    }
+    if (!lookupAllowed(trimmedLookup)) return;
+
+    setLookupState((previous) => ({ ...previous, loading: true }));
+    setErrors((previous) => {
+      const next = { ...previous };
+      delete next.lookup;
+      delete next.donorVerification;
+      delete next.verifyEmail;
+      delete next.verifyMobile;
+      delete next.verifyPanLast4;
+      return next;
+    });
     try {
-      const res = await fetch(
-        `/api/payment/donor-lookup?q=${encodeURIComponent(val)}`,
-      );
-      const data = await res.json();
-      if (data.donor && formRef.current) {
-        const f = formRef.current;
-        if (data.donor.name)
-          f.querySelector('[name="name"]').value = data.donor.name;
-        if (data.donor.email)
-          f.querySelector('[name="email"]').value = data.donor.email;
-        if (data.donor.mobile)
-          f.querySelector('[name="mobile"]').value = data.donor.mobile;
-        if (data.donor.pan)
-          f.querySelector('[name="pan"]').value = data.donor.pan;
-        if (data.donor.address)
-          f.querySelector('[name="address"]').value = data.donor.address;
-        if (data.donor.city)
-          f.querySelector('[name="city"]').value = data.donor.city;
-        if (data.donor.state)
-          f.querySelector('[name="state"]').value = data.donor.state;
-        if (data.donor.country)
-          f.querySelector('[name="country"]').value = data.donor.country;
-        if (data.donor.pincode)
-          f.querySelector('[name="pincode"]').value = data.donor.pincode;
+      const include = lookupAutofillFields.join(",");
+      const url = `/api/payment/donor-lookup?q=${encodeURIComponent(
+        trimmedLookup,
+      )}&include=${encodeURIComponent(include)}`;
+      const res = await fetch(url);
+      let data = null;
+      try {
+        data = await res.json();
+      } catch (parseError) {
+        logDonorLookupClientDebug("response-parse-failed", {
+          lookupValue: trimmedLookup,
+          status: res.status,
+          statusText: res.statusText,
+          parseError: parseError?.message || "",
+        });
+      }
+
+      logDonorLookupClientDebug("response", {
+        lookupValue: trimmedLookup,
+        ok: res.ok,
+        status: res.status,
+        payload: data,
+      });
+
+      if (!res.ok) {
+        setLookupState(getInitialLookupState());
+        setErrors((previous) => ({
+          ...previous,
+          lookup: "Lookup request failed. Please try again.",
+        }));
+        setFieldValues((previous) => {
+          const defaults = getInitialFieldValues(fieldConfig);
+          const next = { ...previous };
+          DONOR_PROFILE_FIELD_KEYS.forEach((fieldKey) => {
+            next[fieldKey] = defaults[fieldKey] ?? "";
+          });
+          return next;
+        });
+        return;
+      }
+      if (!data?.found || !data?.donorMasked) {
+        setLookupState(getInitialLookupState());
+        setVerificationValues(getInitialVerificationState());
+        setErrors((previous) => ({
+          ...previous,
+          lookup:
+            copy.donorNotFoundMessage ||
+            "No donor found for this email / mobile.",
+        }));
+        setFieldValues((previous) => {
+          const defaults = getInitialFieldValues(fieldConfig);
+          const next = { ...previous };
+          DONOR_PROFILE_FIELD_KEYS.forEach((fieldKey) => {
+            next[fieldKey] = defaults[fieldKey] ?? "";
+          });
+          return next;
+        });
+        return;
+      }
+
+      setLookupState({
+        loading: false,
+        found: true,
+        verified: false,
+        verificationToken: String(data.verificationToken || ""),
+        requiresPanLast4: Boolean(data.requiresPanLast4),
+        masked: data.masked || null,
+        matchedSubmissionId: String(data.matchedSubmissionId || ""),
+        lastDonation: data.lastDonation || null,
+      });
+
+      setFieldValues((previous) => {
+        const next = { ...previous };
+        lookupAutofillFields.forEach((fieldKey) => {
+          if (!DONATE_NOW_BASE_FIELDS.some((field) => field.key === fieldKey))
+            return;
+          const incoming = String(data?.donorMasked?.[fieldKey] ?? "").trim();
+          if (incoming) next[fieldKey] = incoming;
+        });
+        return next;
+      });
+      setVerificationValues(getInitialVerificationState());
+
+      if (copy.donorFoundMessage) {
         notification.success({
-          message: "Info",
-          description: "Previous details found and filled",
+          message: "Returning donor found",
+          description:
+            "Donor identified. Verify your identity to unlock full details.",
           placement: "bottomRight",
         });
       }
-    } catch (_) {}
+    } catch (error) {
+      logDonorLookupClientDebug("request-failed", {
+        lookupValue: trimmedLookup,
+        message: error?.message || "",
+      });
+      setLookupState(getInitialLookupState());
+      setErrors((previous) => ({
+        ...previous,
+        lookup: "Lookup request failed. Please try again.",
+      }));
+      setFieldValues((previous) => {
+        const defaults = getInitialFieldValues(fieldConfig);
+        const next = { ...previous };
+        DONOR_PROFILE_FIELD_KEYS.forEach((fieldKey) => {
+          next[fieldKey] = defaults[fieldKey] ?? "";
+        });
+        return next;
+      });
+    }
   };
 
-  /* ── Submit to CCAvenue ── */
-  const handleDonate = async () => {
-    const f = formRef.current;
-    if (!f) return;
+  const verifyExistingDonor = async () => {
+    if (!lookupState.found || lookupState.verified || verifyingDonor) return;
 
-    const lookup = normalizeText(f.querySelector('[name="lookup"]')?.value);
-    const amount = normalizeText(f.querySelector('[name="amount"]')?.value);
-    const purpose = normalizeText(f.querySelector('[name="purpose"]')?.value);
-    const name = normalizeText(f.querySelector('[name="name"]')?.value);
-    const pan = normalizeText(f.querySelector('[name="pan"]')?.value);
-    const email = normalizeText(f.querySelector('[name="email"]')?.value);
-    const mobile = normalizeText(f.querySelector('[name="mobile"]')?.value);
+    const verifyEmail = normalizeText(verificationValues.email).toLowerCase();
+    const verifyMobile = normalizeText(verificationValues.mobile);
+    const verifyPanLast4 = normalizeText(verificationValues.panLast4).toUpperCase();
     const nextErrors = {};
-    if (!lookup) nextErrors.lookup = "Email / Mobile is required";
-    if (lookup) {
-      const isEmail = lookup.includes("@");
-      if (isEmail) {
-        if (!isValidEmail(lookup)) {
-          nextErrors.lookup = "Please enter a valid email";
-        }
-      } else {
-        const lookupDigits = toDigits(lookup);
-        if (lookupDigits.length < 10 || lookupDigits.length > 15) {
-          nextErrors.lookup = "Please enter a valid mobile number";
-        }
+
+    if (!isValidEmail(verifyEmail)) {
+      nextErrors.verifyEmail = "Please enter a valid email";
+    }
+    if (!isValidPhone(verifyMobile)) {
+      nextErrors.verifyMobile = "Please enter a valid mobile number";
+    }
+    if (lookupState.requiresPanLast4) {
+      if (!/^[A-Z0-9]{4}$/.test(verifyPanLast4)) {
+        nextErrors.verifyPanLast4 = "Enter first 4 PAN characters";
       }
     }
-    if (!purpose) nextErrors.purpose = "Purpose is required";
-    if (!amount) nextErrors.amount = "Amount is required";
-    if (amount && (Number.isNaN(Number(amount)) || Number(amount) <= 0)) nextErrors.amount = "Please enter a valid amount";
-    if (!name) nextErrors.name = "Full name is required";
-    if (name && !isValidName(name)) nextErrors.name = "Name should contain alphabets only";
-    if (!pan) nextErrors.pan = "PAN is required";
-    if (pan && !isValidPan(pan)) nextErrors.pan = "Please enter a valid PAN";
-    if (!email) nextErrors.email = "Email is required";
-    if (email && !isValidEmail(email)) nextErrors.email = "Please enter a valid email address";
-    if (!mobile) nextErrors.mobile = "Mobile number is required";
-    if (mobile && !isValidPhone(mobile)) nextErrors.mobile = "Please enter a valid mobile number";
+
     if (Object.keys(nextErrors).length > 0) {
-      setErrors(nextErrors);
+      setErrors((previous) => ({ ...previous, ...nextErrors }));
       return;
     }
-    setErrors({});
+    if (!lookupState.verificationToken) {
+      setErrors((previous) => ({
+        ...previous,
+        donorVerification: "Verification expired. Please lookup again.",
+      }));
+      return;
+    }
 
-    setSubmitting(true);
+    setVerifyingDonor(true);
     try {
-      const res = await fetch("/api/payment/initiate", {
+      const response = await fetch("/api/payment/donor-lookup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount,
-          purpose: purpose || "",
-          zakat: f.querySelector('[name="zakat"]')?.value || "No",
-          note: f.querySelector('[name="note"]')?.value || "",
-          donor: {
-            name,
-            email,
-            mobile,
-            pan: pan || "",
-            address: f.querySelector('[name="address"]')?.value || "",
-            city: f.querySelector('[name="city"]')?.value || "",
-            state: f.querySelector('[name="state"]')?.value || "",
-            country: f.querySelector('[name="country"]')?.value || "",
-            pincode: f.querySelector('[name="pincode"]')?.value || "",
-          },
+          token: lookupState.verificationToken,
+          email: verifyEmail,
+          mobile: verifyMobile,
+          panLast4: verifyPanLast4,
+          include: lookupAutofillFields.join(","),
         }),
       });
-      const data = await res.json();
-      if (!res.ok) {
+      const data = await response.json();
+      logDonorLookupClientDebug("verify-response", {
+        ok: response.ok,
+        status: response.status,
+        payload: data,
+      });
+
+      if (!response.ok || !data?.verified || !data?.donor) {
+        setErrors((previous) => ({
+          ...previous,
+          donorVerification:
+            data?.error ||
+            "Verification failed. Please check your details and try again.",
+        }));
+        setVerifyingDonor(false);
+        return;
+      }
+
+      setLookupState((previous) => ({
+        ...previous,
+        loading: false,
+        found: true,
+        verified: true,
+        matchedSubmissionId:
+          String(data?.matchedSubmissionId || "") || previous.matchedSubmissionId,
+      }));
+
+      setFieldValues((previous) => {
+        const next = { ...previous };
+        lookupAutofillFields.forEach((fieldKey) => {
+          if (!DONATE_NOW_BASE_FIELDS.some((field) => field.key === fieldKey))
+            return;
+          const incoming = String(data?.donor?.[fieldKey] ?? "").trim();
+          if (incoming) next[fieldKey] = incoming;
+        });
+        return next;
+      });
+
+      setErrors((previous) => {
+        const next = { ...previous };
+        delete next.donorVerification;
+        delete next.verifyEmail;
+        delete next.verifyMobile;
+        delete next.verifyPanLast4;
+        return next;
+      });
+      notification.success({
+        message: "Verification complete",
+        description: "Full donor details unlocked. You can review and update.",
+        placement: "bottomRight",
+      });
+    } catch (error) {
+      logDonorLookupClientDebug("verify-request-failed", {
+        message: error?.message || "",
+      });
+      setErrors((previous) => ({
+        ...previous,
+        donorVerification: "Verification failed. Please try again.",
+      }));
+    } finally {
+      setVerifyingDonor(false);
+    }
+  };
+
+  const scheduleLookup = (nextLookupValue) => {
+    if (!isExistingDonor || !lookupSettings.enabled) return;
+    if (lookupTimerRef.current) {
+      window.clearTimeout(lookupTimerRef.current);
+    }
+
+    const trimmedLookup = normalizeText(nextLookupValue);
+    if (!trimmedLookup || getLookupValidationError(trimmedLookup)) {
+      setLookupState(getInitialLookupState());
+      return;
+    }
+    if (!lookupAllowed(trimmedLookup)) return;
+
+    lookupTimerRef.current = window.setTimeout(() => {
+      performLookup(trimmedLookup);
+    }, 600);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (lookupTimerRef.current) window.clearTimeout(lookupTimerRef.current);
+    };
+  }, []);
+
+  const validateBeforeSubmit = () => {
+    const nextErrors = {};
+
+    if (!isDonorTypeSelected) {
+      nextErrors.donorType = "Please select donor type";
+    }
+
+    if (isExistingDonor) {
+      const lookupValue = normalizeText(fieldValues.lookup);
+      const lookupError = getLookupValidationError(lookupValue, true);
+      if (lookupError) {
+        nextErrors.lookup = lookupError;
+      } else if (!lookupState.found) {
+        nextErrors.lookup =
+          copy.donorNotFoundMessage ||
+          "Please identify the existing donor using email / mobile.";
+      } else if (!lookupState.verified) {
+        nextErrors.donorVerification =
+          "Please complete donor verification to unlock and edit full details.";
+      }
+    }
+
+    if (isExistingDonor && !lookupState.verified) {
+      setErrors(nextErrors);
+      return false;
+    }
+
+    DONATE_NOW_BASE_FIELDS.forEach((baseField) => {
+      const key = baseField.key;
+      const config = fieldConfig[key] || baseField;
+
+      if (!isBaseFieldVisible(key)) return;
+      if (key === "purpose") return;
+      if (key === "lookup") return;
+
+      const required = requiredFields.has(key);
+      const validationError = getFieldValidationError(
+        key,
+        fieldValues[key],
+        config,
+        required,
+      );
+      if (validationError) nextErrors[key] = validationError;
+    });
+
+    if (!selectedPurpose?.id) {
+      nextErrors.purpose = "Please select a purpose";
+    }
+
+    if (canUseMainFormFields) {
+      additionalFields.forEach((extraField) => {
+        const currentValue = additionalFieldValues[extraField.key];
+        const normalized = normalizeText(currentValue);
+        const errorKey = `additional:${extraField.key}`;
+
+        if (extraField.required && !normalized) {
+          nextErrors[errorKey] = `${extraField.label} is required`;
+          return;
+        }
+        if (
+          extraField.type === "number" &&
+          normalized &&
+          Number.isNaN(Number(normalized))
+        ) {
+          nextErrors[errorKey] = `${extraField.label} must be a number`;
+        }
+      });
+    }
+
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (submitting) return;
+    if (!validateBeforeSubmit()) return;
+
+    const donor = {
+      name: normalizeText(fieldValues.name),
+      email: normalizeText(fieldValues.email),
+      mobile: toDigits(fieldValues.mobile) || normalizeText(fieldValues.mobile),
+      pan: normalizeText(fieldValues.pan).toUpperCase(),
+      address: normalizeText(fieldValues.address),
+      city: normalizeText(fieldValues.city),
+      state: normalizeText(fieldValues.state),
+      country: normalizeText(fieldValues.country || "India"),
+      pincode: normalizeText(fieldValues.pincode),
+    };
+
+    const lookupRaw = isExistingDonor ? normalizeText(fieldValues.lookup) : "";
+    const lookupMethod = lookupRaw.includes("@") ? "email" : "mobile";
+    const additionalFieldsPayload = {};
+    additionalFields.forEach((field) => {
+      additionalFieldsPayload[field.key] = normalizeAdditionalFieldValue(
+        field.type,
+        additionalFieldValues[field.key] ?? field.defaultValue ?? "",
+      );
+    });
+
+    const amount = Number(fieldValues.amount);
+    const payload = {
+      amount,
+      currency: paymentSettings.currency || "INR",
+      purpose: selectedPurpose?.name || "",
+      purposeId: selectedPurpose?.id || "",
+      zakat: normalizeText(fieldValues.zakat) || "No",
+      interestMoney: normalizeText(fieldValues.interestMoney) || "No",
+      studentsCount: normalizeText(fieldValues.studentsCount),
+      note: normalizeText(fieldValues.note),
+      donor,
+      additionalFields: additionalFieldsPayload,
+      termsAccepted: false,
+      source: "DonateNow",
+      donorType: isExistingDonor ? "existing" : "new",
+      pagePath:
+        typeof window !== "undefined"
+          ? `${window.location.pathname}${window.location.search}`
+          : "",
+      lookup: {
+        query: lookupRaw,
+        method: lookupRaw ? lookupMethod : "none",
+        matched: lookupState.found,
+        matchedSubmissionId: lookupState.matchedSubmissionId || "",
+      },
+      purposeRuleSnapshot: {
+        purpose: selectedPurpose || {},
+        hiddenFields: Array.from(hiddenFields),
+        disabledFields: Array.from(disabledFields),
+        requiredFields: Array.from(requiredFields),
+      },
+      paymentSettingsSnapshot: paymentSettings,
+    };
+
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/payment/initiate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
         notification.error({
           message: "Submission failed",
-          description: data.error || "Failed to initiate payment",
+          description:
+            data?.error || copy.errorMessage || "Failed to initiate payment",
           placement: "bottomRight",
         });
         setSubmitting(false);
         return;
       }
+
       notification.success({
         message: "Success",
-        description: "Redirecting to payment gateway...",
+        description: copy.successMessage || "Redirecting to payment gateway...",
         placement: "bottomRight",
       });
-      // Set encrypted data and submit hidden form to CCAvenue
+
       setEncData(data);
-      setTimeout(() => {
+      window.setTimeout(() => {
         gatewayFormRef.current?.submit();
-      }, 100);
-    } catch (err) {
+      }, 120);
+    } catch (error) {
       notification.error({
         message: "Submission failed",
-        description: "Something went wrong",
+        description: copy.errorMessage || "Something went wrong",
         placement: "bottomRight",
       });
       setSubmitting(false);
     }
   };
 
+  const fieldOptions = useMemo(
+    () =>
+      DONATE_NOW_BASE_FIELDS.reduce((acc, item) => {
+        const config = fieldConfig[item.key] || item;
+        if (isSelectField(config)) {
+          acc[item.key] = config.options.map((option) => ({
+            label: option.label,
+            value: option.value,
+          }));
+        }
+        return acc;
+      }, {}),
+    [fieldConfig],
+  );
+
+  const renderBaseField = (baseField) => {
+    const key = baseField.key;
+    const config = fieldConfig[key] || baseField;
+    if (!isBaseFieldVisible(key)) return null;
+
+    const required = key === "lookup" ? true : requiredFields.has(key);
+    const disabled = disabledFields.has(key) || !canUseMainFormFields;
+    const value = fieldValues[key] ?? "";
+    const placeholder = config.placeholder || "";
+    const error = errors[key];
+
+    const colSpan = config.width === "full" || key === "lookup" ? 24 : 12;
+
+    if (key === "purpose") {
+      return (
+        <Col key={key} xs={24} md={colSpan}>
+          <FieldWrap $sectionStart>
+            <FieldLabel>
+              {config.label}
+              {required ? <span className="req">*</span> : null}
+            </FieldLabel>
+            <FieldSelect
+              size="large"
+              value={selectedPurpose?.id || undefined}
+              onChange={(nextPurposeId) => selectPurpose(nextPurposeId)}
+              status={error ? "error" : ""}
+              placeholder={placeholder || "Select purpose"}
+              options={selectablePurposes.map((purpose) => ({
+                label: purpose.name,
+                value: purpose.id,
+              }))}
+              disabled={disabled}
+            />
+            {error ? <FieldError>{error}</FieldError> : null}
+          </FieldWrap>
+        </Col>
+      );
+    }
+
+    if (isSelectField(config)) {
+      return (
+        <Col key={key} xs={24} md={colSpan}>
+          <FieldWrap
+            $sectionStart={key === "purpose" || key === "studentsCount"}
+          >
+            <FieldLabel>
+              {config.label}
+              {required ? <span className="req">*</span> : null}
+            </FieldLabel>
+            <FieldSelect
+              size="large"
+              value={value || undefined}
+              onChange={(nextValue) => handleFieldValue(key, nextValue)}
+              status={error ? "error" : ""}
+              placeholder={placeholder}
+              options={fieldOptions[key] || []}
+              disabled={key === "lookup" ? lookupState.loading : disabled}
+              onBlur={() => {
+                if (key === "lookup") {
+                  performLookup(value, { showValidationError: true });
+                }
+              }}
+            />
+            {error ? <FieldError>{error}</FieldError> : null}
+          </FieldWrap>
+        </Col>
+      );
+    }
+
+    if (key === "note") {
+      return (
+        <Col key={key} xs={24} md={24}>
+          <FieldWrap>
+            <FieldLabel>
+              {config.label}
+              {required ? <span className="req">*</span> : null}
+            </FieldLabel>
+            <FieldInput
+              type="text"
+              value={value}
+              placeholder={placeholder}
+              disabled={disabled}
+              onChange={(event) => handleFieldValue(key, event.target.value)}
+            />
+            {error ? <FieldError>{error}</FieldError> : null}
+          </FieldWrap>
+        </Col>
+      );
+    }
+
+    return (
+      <Col key={key} xs={24} md={colSpan}>
+        <FieldWrap>
+          <FieldLabel>
+            {config.label}
+            {required ? <span className="req">*</span> : null}
+          </FieldLabel>
+          <FieldInput
+            type={
+              key === "amount" || key === "studentsCount" ? "number" : "text"
+            }
+            inputMode={
+              key === "amount" ||
+              key === "studentsCount" ||
+              key === "mobile" ||
+              key === "pincode"
+                ? "numeric"
+                : "text"
+            }
+            value={value}
+            placeholder={placeholder}
+            disabled={key === "lookup" ? lookupState.loading : disabled}
+            onChange={(event) => {
+              handleFieldValue(key, event.target.value);
+              if (key === "amount") {
+                setAmountTouched(true);
+              }
+              if (key === "lookup" && isExistingDonor && lookupSettings.enabled) {
+                scheduleLookup(event.target.value);
+              }
+            }}
+            onBlur={() => {
+              if (key === "lookup" && isExistingDonor && lookupSettings.enabled) {
+                performLookup(value, { showValidationError: true });
+              }
+            }}
+          />
+          {error ? <FieldError>{error}</FieldError> : null}
+          {key === "lookup" ? <FieldSeparator /> : null}
+        </FieldWrap>
+      </Col>
+    );
+  };
+
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
-        {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) && (
+        {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) ? (
           <Row gutter={[16, 16]}>
             <Col span={24} className="mb-4">
-              {subTitleEnabled && subTitle && (
+              {subTitleEnabled && subTitle ? (
                 <SubTitle
                   style={subTitleColor ? { color: subTitleColor } : undefined}
                 >
                   {subTitle}
                 </SubTitle>
-              )}
-              {titleEnabled && mainTitle && (
+              ) : null}
+              {titleEnabled && mainTitle ? (
                 <MainTitle color={titleColor}>{mainTitle}</MainTitle>
-              )}
+              ) : null}
             </Col>
           </Row>
-        )}
-        <Row gutter={[32, 32]}>
-          {/* LEFT: Donation Packages */}
-          <Col xs={24} md={8}>
-            <PackageList>
-              <div
-                className="pkg-title"
-                style={
-                  formHeadingColor ? { color: formHeadingColor } : undefined
-                }
-              >
-                Donate
-              </div>
-              {/* Desktop: card list */}
-              <div className="pkg-cards">
-                {packages.map((pkg, idx) => {
-                  const amt = (pkg?.amount ?? "").toString().trim();
-                  const desc = (pkg?.description ?? "").toString().trim();
-                  const isActive = selectedPkg === idx;
-                  return (
-                    <PackageCard
-                      key={idx}
-                      type="button"
-                      className={isActive ? "active" : ""}
-                      style={
-                        isActive ? { background: pkgActiveColor } : undefined
-                      }
-                      onClick={() => {
-                        setSelectedPkg(idx);
-                        if (formRef.current && amt) {
-                          formRef.current.querySelector('[name="amount"]').value =
-                            amt.replace(/[^0-9.]/g, "");
-                        }
-                      }}
-                    >
-                      <div className="pkg-amount">
-                        {amt.startsWith("₹") ? amt : `₹${amt}/-`}
+        ) : null}
+
+        <Row gutter={[20, 20]} align="top" justify="center">
+          <Col xs={24} lg={16}>
+            <LeftColumn>
+              <FormPanel>
+                <PanelTitle style={{ color: formHeadingColor }}>
+                  {copy.formTitle || "Details"}
+                </PanelTitle>
+                {copy.formSubtitle ? (
+                  <PanelSubTitle>{copy.formSubtitle}</PanelSubTitle>
+                ) : null}
+
+                {isExistingDonor &&
+                lookupState.found &&
+                lookupSettings.showMaskedPreview ? (
+                  <LookupInfo>
+                    <div className="lookup-title">
+                      Returning donor recognized
+                    </div>
+                    <div className="lookup-line">
+                      Mobile:{" "}
+                      <strong>{lookupState?.masked?.mobile || "-"}</strong>
+                    </div>
+                    <div className="lookup-line">
+                      Email:{" "}
+                      <strong>{lookupState?.masked?.email || "-"}</strong>
+                    </div>
+                    {lookupState?.lastDonation?.amount ? (
+                      <div className="lookup-line">
+                        Last donation:{" "}
+                        <strong>
+                          {formatInr(lookupState.lastDonation.amount)} (
+                          {lookupState.lastDonation.purpose || "N/A"})
+                        </strong>
                       </div>
-                      {desc && <div className="pkg-desc">{desc}</div>}
-                    </PackageCard>
-                  );
-                })}
-              </div>
-              {/* Mobile: dropdown */}
-              <div className="pkg-dropdown">
-                <Select
-                  placeholder="Select a package"
-                  size="large"
-                  value={selectedPkg}
-                  onChange={(idx) => {
-                    setSelectedPkg(idx);
-                    if (idx !== null && idx !== undefined && formRef.current) {
-                      const amt = (packages[idx]?.amount ?? "").toString().trim();
-                      if (amt) {
-                        formRef.current.querySelector('[name="amount"]').value = amt.replace(/[^0-9.]/g, "");
-                      }
-                    }
-                  }}
-                  popupMatchSelectWidth={true}
-                  optionLabelProp="selectedLabel"
-                >
-                  {packages.map((pkg, idx) => {
-                    const amt = (pkg?.amount ?? "").toString().trim();
-                    const desc = (pkg?.description ?? "").toString().trim();
-                    const label = amt.startsWith("₹") ? amt : `₹${amt}/-`;
-                    return (
-                      <Select.Option key={idx} value={idx} selectedLabel={label}>
-                        {desc ? `${label} — ${desc}` : label}
-                      </Select.Option>
-                    );
-                  })}
-                </Select>
-              </div>
-            </PackageList>
-          </Col>
+                    ) : null}
+                  </LookupInfo>
+                ) : null}
 
-          {/* RIGHT: Donation Form */}
-          <Col xs={24} md={16}>
-            <FormWrapper className="mt-3">
-              <div
-                className="form-title"
-                style={
-                  formHeadingColor ? { color: formHeadingColor } : undefined
-                }
-              >
-                Details
-              </div>
-              <p className="form-desc">
-                If you have already donated before type your email ID or Mobile
-                No., the remaining details will be filled automatically.
-              </p>
+                <Row gutter={[20, 10]}>
+                  <Col xs={24} md={24}>
+                    <FieldWrap>
+                      <FieldLabel>
+                        Donor Type
+                        <span className="req">*</span>
+                      </FieldLabel>
+                      <FieldSelect
+                        size="large"
+                        value={donorType || undefined}
+                        onChange={handleDonorTypeChange}
+                        status={errors.donorType ? "error" : ""}
+                        placeholder="Select donor type"
+                        options={DONOR_TYPE_OPTIONS}
+                      />
+                      {errors.donorType ? (
+                        <FieldError>{errors.donorType}</FieldError>
+                      ) : null}
+                    </FieldWrap>
+                  </Col>
 
-              <div ref={formRef}>
-                {/* Auto-fill lookup */}
-                <div className="form-group">
-                  <label className="form-label">
-                    Email / Mobile No. <span className="req">*</span>
-                  </label>
-                  <input
-                    name="lookup"
-                    inputMode="text"
-                    className="form-field"
-                    placeholder="Enter email / Mobile to fill the data"
-                    onBlur={(e) => handleLookup(e.target.value)}
-                    onChange={() =>
-                      errors.lookup &&
-                      setErrors((prev) => ({ ...prev, lookup: "" }))
-                    }
-                    style={errors.lookup ? { borderColor: "#cf372f" } : undefined}
-                  />
-                  {errors.lookup ? (
-                    <div style={{ color: "#cf372f", fontSize: 12, marginTop: 6 }}>
-                      {errors.lookup}
-                    </div>
+                  {DONATE_NOW_BASE_FIELDS.map((fieldDef) =>
+                    renderBaseField(fieldDef),
+                  )}
+
+                  {isExistingDonor && lookupState.found && !lookupState.verified ? (
+                    <Col xs={24} md={24}>
+                      <VerificationPanel>
+                        <h4>Verify Identity to Unlock Full Details</h4>
+                        <p>
+                          For security, donor details are masked. Verify with
+                          registered contact details to reveal and edit.
+                        </p>
+                        <Row gutter={[12, 8]}>
+                          <Col xs={24} md={12}>
+                            <FieldLabel>
+                              Verification Email
+                              <span className="req">*</span>
+                            </FieldLabel>
+                            <FieldInput
+                              type="email"
+                              value={verificationValues.email}
+                              placeholder="Enter registered email"
+                              onChange={(event) =>
+                                handleVerificationValue(
+                                  "email",
+                                  event.target.value,
+                                )
+                              }
+                            />
+                            {errors.verifyEmail ? (
+                              <FieldError>{errors.verifyEmail}</FieldError>
+                            ) : null}
+                          </Col>
+                          <Col xs={24} md={12}>
+                            <FieldLabel>
+                              Verification Mobile
+                              <span className="req">*</span>
+                            </FieldLabel>
+                            <FieldInput
+                              type="text"
+                              inputMode="numeric"
+                              value={verificationValues.mobile}
+                              placeholder="Enter registered mobile"
+                              onChange={(event) =>
+                                handleVerificationValue(
+                                  "mobile",
+                                  event.target.value,
+                                )
+                              }
+                            />
+                            {errors.verifyMobile ? (
+                              <FieldError>{errors.verifyMobile}</FieldError>
+                            ) : null}
+                          </Col>
+                          {lookupState.requiresPanLast4 ? (
+                            <Col xs={24} md={12}>
+                              <FieldLabel>
+                                PAN Start 4
+                                <span className="req">*</span>
+                              </FieldLabel>
+                              <FieldInput
+                                type="text"
+                                maxLength={4}
+                                value={verificationValues.panLast4}
+                                placeholder="First 4 PAN characters"
+                                onChange={(event) =>
+                                  handleVerificationValue(
+                                    "panLast4",
+                                    event.target.value.toUpperCase(),
+                                  )
+                                }
+                              />
+                              {errors.verifyPanLast4 ? (
+                                <FieldError>{errors.verifyPanLast4}</FieldError>
+                              ) : null}
+                            </Col>
+                          ) : null}
+                        </Row>
+                        {errors.donorVerification ? (
+                          <FieldError>{errors.donorVerification}</FieldError>
+                        ) : null}
+                        <VerifyButton
+                          type="button"
+                          disabled={verifyingDonor}
+                          onClick={verifyExistingDonor}
+                        >
+                          {verifyingDonor ? "Verifying..." : "Verify & Unlock"}
+                        </VerifyButton>
+                      </VerificationPanel>
+                    </Col>
                   ) : null}
-                </div>
 
-                <Row gutter={[16, 0]}>
-                  <Col xs={24} md={12}>
-                    <div className="form-group">
-                      <label className="form-label">
-                        Zakat <span className="req">*</span>
-                      </label>
-                      <select
-                        name="zakat"
-                        className="form-field"
-                        defaultValue="Yes"
-                      >
-                        <option value="Yes">Yes</option>
-                        <option value="No">No</option>
-                      </select>
-                    </div>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <div className="form-group">
-                      <label className="form-label">
-                        Purpose of Donation <span className="req">*</span>
-                      </label>
-                      <select
-                        name="purpose"
-                        className="form-field"
-                        defaultValue=""
-                        required
-                        onChange={() => errors.purpose && setErrors((prev) => ({ ...prev, purpose: "" }))}
-                        style={errors.purpose ? { borderColor: "#cf372f" } : undefined}
-                      >
-                        <option value="" disabled>
-                          Select
-                        </option>
-                        {purposeOptions.map((opt, i) => (
-                          <option key={i} value={opt}>
-                            {opt}
-                          </option>
-                        ))}
-                      </select>
-                      {errors.purpose ? (
-                        <div style={{ color: "#cf372f", fontSize: 12, marginTop: 6 }}>{errors.purpose}</div>
-                      ) : null}
-                    </div>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <div className="form-group">
-                      <label className="form-label">
-                        Amount <span className="req">*</span>
-                      </label>
-                      <input
-                        name="amount"
-                        type="number"
-                        className="form-field"
-                        placeholder="Enter amount"
-                        required
-                        min="1"
-                        onChange={() => errors.amount && setErrors((prev) => ({ ...prev, amount: "" }))}
-                        style={errors.amount ? { borderColor: "#cf372f" } : undefined}
-                      />
-                      {errors.amount ? (
-                        <div style={{ color: "#cf372f", fontSize: 12, marginTop: 6 }}>{errors.amount}</div>
-                      ) : null}
-                    </div>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <div className="form-group">
-                      <label className="form-label">
-                        Full Name <span className="req">*</span>
-                      </label>
-                      <input
-                        name="name"
-                        className="form-field"
-                        placeholder="Enter full name"
-                        required
-                        onChange={() => errors.name && setErrors((prev) => ({ ...prev, name: "" }))}
-                        style={errors.name ? { borderColor: "#cf372f" } : undefined}
-                      />
-                      {errors.name ? (
-                        <div style={{ color: "#cf372f", fontSize: 12, marginTop: 6 }}>{errors.name}</div>
-                      ) : null}
-                    </div>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <div className="form-group">
-                      <label className="form-label">
-                        PAN No. <span className="req">*</span>
-                      </label>
-                      <input
-                        name="pan"
-                        className="form-field"
-                        placeholder="PAN No."
-                        maxLength={10}
-                        style={errors.pan ? { borderColor: "#cf372f", textTransform: "uppercase" } : { textTransform: "uppercase" }}
-                        required
-                        onChange={() =>
-                          errors.pan && setErrors((prev) => ({ ...prev, pan: "" }))
-                        }
-                      />
-                      {errors.pan ? (
-                        <div style={{ color: "#cf372f", fontSize: 12, marginTop: 6 }}>
-                          {errors.pan}
-                        </div>
-                      ) : null}
-                    </div>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <div className="form-group">
-                      <label className="form-label">
-                        Email ID <span className="req">*</span>
-                      </label>
-                      <input
-                        name="email"
-                        type="email"
-                        className="form-field"
-                        placeholder="Email ID"
-                        required
-                        onChange={() => errors.email && setErrors((prev) => ({ ...prev, email: "" }))}
-                        style={errors.email ? { borderColor: "#cf372f" } : undefined}
-                      />
-                      {errors.email ? (
-                        <div style={{ color: "#cf372f", fontSize: 12, marginTop: 6 }}>{errors.email}</div>
-                      ) : null}
-                    </div>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <div className="form-group">
-                      <label className="form-label">
-                        Mobile No. <span className="req">*</span>
-                      </label>
-                      <input
-                        name="mobile"
-                        type="tel"
-                        inputMode="numeric"
-                        maxLength={15}
-                        className="form-field"
-                        placeholder="Mobile No."
-                        required
-                        onChange={() => errors.mobile && setErrors((prev) => ({ ...prev, mobile: "" }))}
-                        style={errors.mobile ? { borderColor: "#cf372f" } : undefined}
-                      />
-                      {errors.mobile ? (
-                        <div style={{ color: "#cf372f", fontSize: 12, marginTop: 6 }}>{errors.mobile}</div>
-                      ) : null}
-                    </div>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <div className="form-group">
-                      <label className="form-label">Pincode</label>
-                      <input
-                        name="pincode"
-                        className="form-field"
-                        placeholder="Enter pincode"
-                      />
-                    </div>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <div className="form-group">
-                      <label className="form-label">Address</label>
-                      <input
-                        name="address"
-                        className="form-field"
-                        placeholder="Address"
-                      />
-                    </div>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <div className="form-group">
-                      <label className="form-label">City</label>
-                      <input
-                        name="city"
-                        className="form-field"
-                        placeholder="City"
-                      />
-                    </div>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <div className="form-group">
-                      <label className="form-label">State</label>
-                      <input
-                        name="state"
-                        className="form-field"
-                        placeholder="State"
-                      />
-                    </div>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <div className="form-group">
-                      <label className="form-label">Country</label>
-                      <input
-                        name="country"
-                        className="form-field"
-                        placeholder="Country"
-                        defaultValue="India"
-                      />
-                    </div>
-                  </Col>
-                  <Col span={24}>
-                    <div className="form-group">
-                      <label className="form-label">Note</label>
-                      <input
-                        name="note"
-                        className="form-field"
-                        placeholder="Enter note"
-                      />
-                    </div>
-                  </Col>
+                  {canUseMainFormFields
+                    ? additionalFields.map((extraField) => {
+                        const errorKey = `additional:${extraField.key}`;
+                        const error = errors[errorKey];
+                        const isSelect = extraField.type === "select";
+                        const currentValue =
+                          additionalFieldValues[extraField.key] ??
+                          extraField.defaultValue ??
+                          "";
+                        const options = String(extraField.optionsCsv || "")
+                          .split(",")
+                          .map((item) => item.trim())
+                          .filter(Boolean);
+
+                        return (
+                          <Col key={extraField.key} xs={24} md={12}>
+                            <FieldWrap>
+                              <FieldLabel>
+                                {extraField.label}
+                                {extraField.required ? (
+                                  <span className="req">*</span>
+                                ) : null}
+                              </FieldLabel>
+                              {isSelect ? (
+                                <FieldSelect
+                                  size="large"
+                                  value={currentValue || undefined}
+                                  onChange={(nextValue) =>
+                                    handleAdditionalValue(
+                                      extraField.key,
+                                      nextValue,
+                                    )
+                                  }
+                                  options={options.map((option) => ({
+                                    label: option,
+                                    value: option,
+                                  }))}
+                                  placeholder={
+                                    extraField.placeholder ||
+                                    `Select ${extraField.label}`
+                                  }
+                                  disabled={extraField.disabled}
+                                />
+                              ) : extraField.type === "textarea" ? (
+                                <FieldTextArea
+                                  value={currentValue}
+                                  onChange={(event) =>
+                                    handleAdditionalValue(
+                                      extraField.key,
+                                      event.target.value,
+                                    )
+                                  }
+                                  placeholder={extraField.placeholder}
+                                  disabled={extraField.disabled}
+                                />
+                              ) : (
+                                <FieldInput
+                                  type={
+                                    extraField.type === "number"
+                                      ? "number"
+                                      : "text"
+                                  }
+                                  value={currentValue}
+                                  onChange={(event) =>
+                                    handleAdditionalValue(
+                                      extraField.key,
+                                      event.target.value,
+                                    )
+                                  }
+                                  placeholder={extraField.placeholder}
+                                  disabled={extraField.disabled}
+                                />
+                              )}
+                              {error ? <FieldError>{error}</FieldError> : null}
+                            </FieldWrap>
+                          </Col>
+                        );
+                      })
+                    : null}
                 </Row>
 
-                <BtnRow>
-                  {qrImageUrl && (
-                    <QrBtn
+                <ButtonRow>
+                  {paymentSettings.enableQrButton && qrImageUrl ? (
+                    <QrButton
                       type="button"
-                      style={{
-                        color: qrBtnTextColor,
-                        borderColor: qrBtnBorderColor,
-                      }}
+                      style={{ color: qrBtnText, borderColor: qrBtnBorder }}
                       onClick={() => window.open(qrImageUrl, "_blank")}
                     >
-                      Donate Now with QR
-                    </QrBtn>
-                  )}
-                  <DonateBtn
+                      {copy.qrButtonText || "Donate Now with QR"}
+                    </QrButton>
+                  ) : null}
+                  <DonateButton
                     type="button"
-                    disabled={submitting}
-                    style={{ background: btnBgColor, color: btnTextColor }}
-                    onClick={handleDonate}
+                    style={{
+                      background: donateButtonBg,
+                      color: donateButtonText,
+                    }}
+                    disabled={
+                      submitting ||
+                      !isDonorTypeSelected ||
+                      (isExistingDonor &&
+                        (!lookupState.found || !lookupState.verified))
+                    }
+                    onClick={handleSubmit}
                   >
-                    {submitting ? "Processing..." : "Donate Now"}
-                  </DonateBtn>
-                </BtnRow>
-              </div>
-            </FormWrapper>
+                    {submitting
+                      ? copy.donateButtonProcessingText || "Processing..."
+                      : copy.donateButtonText || "Donate Now"}
+                  </DonateButton>
+                </ButtonRow>
+              </FormPanel>
+
+              {copy.footerBannerText || copy.footerBannerImage ? (
+                <FooterBanner
+                  style={{
+                    backgroundColor: copy.footerBannerBgColor || "#111111",
+                    ...(copy.footerBannerImage
+                      ? {
+                          backgroundImage: `url(${copy.footerBannerImage})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                        }
+                      : {}),
+                  }}
+                >
+                  {copy.footerBannerText?.includes(
+                    "80G of Income Tax Act 1961.",
+                  ) ? (
+                    <>
+                      <span>Your Donation to MESCO Exempt Under Section</span>
+                      <strong>80G of Income Tax Act 1961.</strong>
+                    </>
+                  ) : (
+                    copy.footerBannerText
+                  )}
+                </FooterBanner>
+              ) : null}
+            </LeftColumn>
+          </Col>
+
+          <Col xs={24} lg={8}>
+            <RightColumn>
+              <PurposePanel>
+                <PurposeGrid>
+                  {renderedPurposes.map((purpose) => {
+                    const active = selectedPurpose?.id === purpose.id;
+                    return (
+                      <PurposeCard
+                        key={purpose.id}
+                        type="button"
+                        $active={active}
+                        onClick={() => selectPurpose(purpose.id)}
+                      >
+                        {purpose.cardIcon ? (
+                          <CardIconWrap $active={active}>
+                            <CardIcon
+                              src={purpose.cardIcon}
+                              alt={
+                                purpose.cardTitle ||
+                                purpose.name ||
+                                "Donation purpose icon"
+                              }
+                              loading="lazy"
+                            />
+                          </CardIconWrap>
+                        ) : (
+                          <CardDot $active={active} />
+                        )}
+                        <h4>{purpose.cardTitle || purpose.name}</h4>
+                        <div className="amount">
+                          {purpose.cardAmountText ||
+                            formatInr(purpose.defaultAmount)}
+                        </div>
+                        {purpose.cardDescription ? (
+                          <p>{purpose.cardDescription}</p>
+                        ) : null}
+                      </PurposeCard>
+                    );
+                  })}
+                </PurposeGrid>
+              </PurposePanel>
+            </RightColumn>
           </Col>
         </Row>
 
-        {/* Hidden form that auto-submits to CCAvenue */}
-        {encData && (
+        {encData ? (
           <form
             ref={gatewayFormRef}
             method="POST"
@@ -927,8 +1599,444 @@ export default function DonateNow(props) {
               value={encData.accessCode}
             />
           </form>
-        )}
+        ) : null}
       </PageContainer>
     </FullWidthBackground>
   );
 }
+
+const LeftColumn = styled.div`
+  width: 100%;
+  margin: 0 auto;
+`;
+
+const RightColumn = styled.div`
+  width: 100%;
+  max-width: 409px;
+  margin: 0 auto;
+`;
+
+const FormPanel = styled.div`
+  background: #ffffff;
+  border: 1px solid rgba(229, 231, 235, 1);
+  border-radius: 10px;
+  padding: 32px 40px 30px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
+  @media (max-width: 767px) {
+    padding: 18px 14px 16px;
+    border-radius: 10px;
+  }
+`;
+
+const PurposePanel = styled.div`
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  @media (max-width: 767px) {
+    padding: 0;
+  }
+`;
+
+const PanelTitle = styled.h3`
+  margin: 0 0 12px;
+  font-size: 24px;
+  line-height: 1.1;
+  font-weight: 700;
+  @media (max-width: 991px) {
+    font-size: 22px;
+  }
+  @media (max-width: 640px) {
+    font-size: 21px;
+  }
+`;
+
+const PanelSubTitle = styled.p`
+  margin: 0 0 18px;
+  color: rgba(0, 0, 0, 0.65);
+  font-size: 14px;
+  line-height: 1.55;
+`;
+
+const LookupInfo = styled.div`
+  margin-bottom: 14px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 105, 0, 0.18);
+  background: rgba(29, 140, 23, 0.08);
+  .lookup-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #126f15;
+    margin-bottom: 4px;
+  }
+  .lookup-line {
+    font-size: 12px;
+    color: #1f2920;
+    line-height: 1.5;
+  }
+`;
+
+const VerificationPanel = styled.div`
+  margin-bottom: 16px;
+  padding: 14px 14px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(207, 55, 47, 0.25);
+  background: rgba(207, 55, 47, 0.05);
+  h4 {
+    margin: 0 0 6px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #7f1f1b;
+  }
+  p {
+    margin: 0 0 12px;
+    color: rgba(0, 0, 0, 0.72);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+`;
+
+const VerifyButton = styled.button`
+  margin-top: 10px;
+  min-height: 40px;
+  border-radius: 999px;
+  border: 1px solid ${getColor("primary")};
+  background: #ffffff;
+  color: ${getColor("primary")};
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+`;
+
+const FieldWrap = styled.div`
+  margin-bottom: 16px;
+  ${(props) => (props.$sectionStart ? "margin-top: 16px;" : "")}
+`;
+
+const FieldSeparator = styled.hr`
+  border: 0;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.12);
+  margin: 18px 0 14px;
+`;
+
+const FieldLabel = styled.label`
+  display: block;
+  margin-bottom: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1d1f21;
+  .req {
+    color: #cf372f;
+    margin-left: 3px;
+  }
+`;
+
+const FIELD_CONTROL_HEIGHT = "52px";
+const FIELD_CONTROL_INNER_HEIGHT = "50px";
+
+const FieldInput = styled.input`
+  width: 100%;
+  height: ${FIELD_CONTROL_HEIGHT};
+  border-radius: 10px;
+  border: 1px solid rgba(5, 5, 5, 0.1);
+  padding: 0 13px;
+  outline: none;
+  font-size: 14px;
+  line-height: 1.4;
+  box-sizing: border-box;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+  &:focus {
+    border-color: ${getColor("primary")};
+    box-shadow: 0 0 0 2px rgba(207, 55, 47, 0.1);
+  }
+  &:disabled {
+    background: rgba(0, 0, 0, 0.04);
+    cursor: not-allowed;
+  }
+`;
+
+const FieldTextArea = styled.textarea`
+  width: 100%;
+  min-height: 52px;
+  border-radius: 10px;
+  border: 1px solid rgba(5, 5, 5, 0.1);
+  padding: 10px 13px;
+  outline: none;
+  resize: vertical;
+  font-size: 14px;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+  &:focus {
+    border-color: ${getColor("primary")};
+    box-shadow: 0 0 0 2px rgba(207, 55, 47, 0.1);
+  }
+`;
+
+const FieldSelect = styled(Select)`
+  width: 100%;
+  .ant-select-single .ant-select-selector {
+    height: ${FIELD_CONTROL_HEIGHT} !important;
+    min-height: ${FIELD_CONTROL_HEIGHT} !important;
+    border-radius: 10px !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    border: 1px solid rgba(5, 5, 5, 0.1) !important;
+    padding-inline: 12px !important;
+    padding-right: 36px !important;
+    font-size: 14px !important;
+  }
+  .ant-select-single .ant-select-selector .ant-select-selection-item,
+  .ant-select-single .ant-select-selector .ant-select-selection-placeholder,
+  .ant-select-single .ant-select-selector .ant-select-selection-search {
+    display: flex;
+    align-items: center;
+    height: ${FIELD_CONTROL_INNER_HEIGHT} !important;
+    line-height: normal !important;
+    font-size: 14px !important;
+  }
+  .ant-select-single:not(.ant-select-customize-input)
+    .ant-select-selector
+    .ant-select-selection-search-input {
+    height: ${FIELD_CONTROL_INNER_HEIGHT} !important;
+    line-height: ${FIELD_CONTROL_INNER_HEIGHT} !important;
+    font-size: 14px !important;
+  }
+  .ant-select-arrow {
+    height: 100%;
+    top: 0;
+    inset-inline-end: 12px;
+    transform: none;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+    pointer-events: none;
+  }
+  .ant-select-arrow .anticon {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+  }
+  &.ant-select-focused .ant-select-selector,
+  &.ant-select-open .ant-select-selector {
+    border-color: ${getColor("primary")} !important;
+    box-shadow: 0 0 0 2px rgba(207, 55, 47, 0.1) !important;
+  }
+`;
+
+const FieldError = styled.div`
+  margin-top: 6px;
+  color: #cf372f;
+  font-size: 12px;
+`;
+
+const ButtonRow = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  @media (max-width: 575px) {
+    justify-content: stretch;
+    > button {
+      width: 100%;
+    }
+  }
+`;
+
+const DonateButton = styled.button`
+  border: none;
+  border-radius: 28px;
+  min-height: 48px;
+  font-size: 14px;
+  font-weight: 700;
+  min-width: 135px;
+  padding: 0 20px;
+  cursor: pointer;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+  &:hover {
+    opacity: 0.93;
+    transform: translateY(-1px);
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+`;
+
+const QrButton = styled.button`
+  border: 1px solid;
+  border-radius: 28px;
+  min-height: 48px;
+  font-size: 14px;
+  font-weight: 700;
+  min-width: 199px;
+  padding: 0 20px;
+  background: transparent;
+  cursor: pointer;
+`;
+
+const PurposeGrid = styled.div`
+  display: grid;
+  column-gap: 21px;
+  row-gap: 22px;
+  grid-template-columns: repeat(2, 194px);
+  justify-content: space-between;
+  @media (max-width: 1199px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 12px;
+    row-gap: 12px;
+  }
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const PurposeCard = styled.button`
+  border: 1px solid rgba(207, 55, 47, 0.2);
+  background: ${(props) => (props.$active ? "#fbebeb" : "#ffffff")};
+  border-radius: 10px;
+  text-align: center;
+  padding: 17px 8px 10px;
+  min-height: 190px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  box-shadow: none;
+  overflow: hidden;
+  position: relative;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+  &:after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: #cf372f;
+  }
+  &:hover {
+    border-color: rgba(207, 55, 47, 0.35);
+    background: ${(props) => (props.$active ? "#fbebeb" : "#fff6f5")};
+  }
+  h4 {
+    margin: 0;
+    color: rgba(38, 42, 44, 0.9);
+    font-size: 14px;
+    line-height: 1.3;
+    font-weight: 700;
+    text-align: center;
+  }
+  .amount {
+    color: #cf372f;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.3;
+    opacity: 0.9;
+  }
+  p {
+    margin: 0;
+    color: rgba(38, 42, 44, 0.9);
+    font-size: 12px;
+    line-height: 1.3;
+    text-align: center;
+  }
+`;
+
+const CardDot = styled.span`
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: ${(props) =>
+    props.$active
+      ? "linear-gradient(135deg, #a92d26 0%, #7b1c1c 100%)"
+      : "#8b1a1a"};
+  display: inline-block;
+  position: relative;
+  &:after {
+    content: "";
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    background-image: linear-gradient(120deg, #ffffff 0%, #ffe8e7 100%);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+`;
+
+const CardIconWrap = styled.span`
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: ${(props) =>
+    props.$active
+      ? "linear-gradient(135deg, #a92d26 0%, #7b1c1c 100%)"
+      : "#8b1a1a"};
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+`;
+
+const CardIcon = styled.img`
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+`;
+
+const FooterBanner = styled.div`
+  margin-top: 18px;
+  border-radius: 10px;
+  min-height: 176px;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  align-content: center;
+  flex-wrap: wrap;
+  padding: 14px 20px;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.5;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  overflow-wrap: anywhere;
+  strong {
+    color: #cf372f;
+    width: 100%;
+    display: block;
+  }
+  span {
+    width: 100%;
+    display: block;
+  }
+  @media (max-width: 991px) {
+    min-height: 116px;
+    font-size: 20px;
+  }
+  @media (max-width: 640px) {
+    font-size: 18px;
+    padding: 14px;
+    min-height: 92px;
+  }
+`;

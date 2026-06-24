@@ -21,6 +21,46 @@ import RichTextEditor from "@/components/admin/RichTextEditor";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { ThemeAdminCard } from "@/styles/Theme";
 
+const DESKTOP_REQUIRED_WIDTH = 1200;
+const DESKTOP_REQUIRED_HEIGHT = 1000;
+const DESKTOP_REQUIRED_TEXT = `${DESKTOP_REQUIRED_WIDTH} \u00D7 ${DESKTOP_REQUIRED_HEIGHT} px`;
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+async function validateDesktopImageDimensions(_, value) {
+  const imageUrl = String(value || "").trim();
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (width === DESKTOP_REQUIRED_WIDTH && height === DESKTOP_REQUIRED_HEIGHT) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(
+        `Desktop Image must be exactly ${DESKTOP_REQUIRED_TEXT}. Selected image is ${width} \u00D7 ${height} px.`,
+      ),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(
+        `Unable to validate desktop image size. Please use ${DESKTOP_REQUIRED_TEXT}.`,
+      ),
+    );
+  }
+}
+
 export default function AdminBlogEditPage() {
   const params = useParams();
   const router = useRouter();
@@ -57,6 +97,7 @@ export default function AdminBlogEditPage() {
           tags: Array.isArray(postData.tags) ? postData.tags : [],
           metaTitle: postData.meta?.metaTitle,
           metaDescription: postData.meta?.metaDescription,
+          metaKeywords: postData.meta?.metaKeywords,
         });
       } catch {
         message.error("Failed to load post");
@@ -81,6 +122,7 @@ export default function AdminBlogEditPage() {
           meta: {
             metaTitle: values.metaTitle,
             metaDescription: values.metaDescription,
+            metaKeywords: values.metaKeywords,
           },
         }),
       });
@@ -178,7 +220,12 @@ export default function AdminBlogEditPage() {
             </Form.Item>
           </Col>
           <Col xs={24} sm={12} xl={12}>
-            <Form.Item name="metaTitle" label="Meta title" className="mb-0">
+            <Form.Item
+              name="metaTitle"
+              label="Meta title"
+              extra="Used for social sharing title (Facebook, X, LinkedIn, WhatsApp, Telegram, Email)."
+              className="mb-0"
+            >
               <Input />
             </Form.Item>
           </Col>
@@ -186,9 +233,20 @@ export default function AdminBlogEditPage() {
             <Form.Item
               name="metaDescription"
               label="Meta description"
+              extra="Used for social sharing description when available."
               className="mb-0"
             >
               <Input.TextArea rows={2} />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12} xl={12}>
+            <Form.Item
+              name="metaKeywords"
+              label="Meta keywords"
+              extra="Comma separated. Example: education, scholarship, ngo"
+              className="mb-0"
+            >
+              <Input />
             </Form.Item>
           </Col>
 
@@ -212,19 +270,29 @@ export default function AdminBlogEditPage() {
                   <Row gutter={[12, 12]}>
                     <Col xs={24} md={12}>
                       <Card title="Desktop Image" size="small">
-                        <Form.Item name="featuredImage" className="mb-0">
+                        <Form.Item
+                          name="featuredImage"
+                          validateTrigger={["onChange", "onBlur"]}
+                          rules={[{ validator: validateDesktopImageDimensions }]}
+                          extra="Primary image for social sharing previews."
+                          className="mb-0"
+                        >
                           <MediaPickerInput
                             placeholder="/media/..."
                             uiVariant="stacked"
                             showVariants={false}
-                            hintText="Recommended: 1200x600"
+                            hintText={`Required size: ${DESKTOP_REQUIRED_TEXT}`}
                           />
                         </Form.Item>
                       </Card>
                     </Col>
                     <Col xs={24} md={12}>
                       <Card title="Mobile Image" size="small">
-                        <Form.Item name="featuredImageMobile" className="mb-0">
+                        <Form.Item
+                          name="featuredImageMobile"
+                          extra="Used as social sharing fallback image when desktop image is missing."
+                          className="mb-0"
+                        >
                           <MediaPickerInput
                             placeholder="/media/..."
                             uiVariant="stacked"

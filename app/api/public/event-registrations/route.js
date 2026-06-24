@@ -25,6 +25,7 @@ export async function POST(req) {
     const eventTitle = (body.eventTitle || "").trim();
     const eventDate = (body.eventDate || "").trim();
     const eventId = (body.eventId || "").trim();
+    const eventSlug = (body.eventSlug || "").trim().toLowerCase();
 
     const name = (body.name || "").trim();
     const email = (body.email || "").trim();
@@ -51,6 +52,7 @@ export async function POST(req) {
       eventTitle,
       eventDate,
       eventId,
+      eventSlug,
       payload: { name, email, phone, school, classOrYear, message },
       page: (body.page || "").trim(),
       source: (body.source || "EventRegistrationForm").trim(),

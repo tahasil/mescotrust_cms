@@ -1,11 +1,21 @@
 import Image from "next/image";
-import { buildMediaUrl, isMediaRouteUrl } from "@/lib/media/url";
+import {
+  buildMediaUrl,
+  extractMediaFormatParam,
+  ensureMediaVariantParams,
+  isMediaRouteUrl,
+  normalizeMediaFormatParam,
+} from "@/lib/media/url";
 
 function normalizeLoading({ priority, loading }) {
   if (priority) return "eager";
   const l = String(loading || "").toLowerCase();
   if (l === "eager" || l === "lazy") return l;
   return "lazy";
+}
+
+function normalizeFormat(format) {
+  return normalizeMediaFormatParam(format || "");
 }
 
 export default function MediaImage({
@@ -21,37 +31,45 @@ export default function MediaImage({
   sizes = "100vw",
   priority = false,
   loading = "lazy",
-  variant = "",
-  mobileVariant = "",
-  format = "auto",
+  format = "",
 }) {
+  const normalizedFormat = normalizeFormat(format);
+  const sourceFormat = normalizedFormat || extractMediaFormatParam(src) || "auto";
+  const mobileSourceFormat =
+    normalizedFormat || extractMediaFormatParam(mobileSrc) || sourceFormat;
+
   const resolvedSrc = buildMediaUrl(src, {
-    size: variant || undefined,
-    format: format || undefined,
+    size: "original",
+    ...(normalizedFormat ? { format: normalizedFormat } : {}),
+  });
+  const normalizedResolvedSrc = ensureMediaVariantParams(resolvedSrc, {
+    defaultSize: "original",
+    defaultFormat: sourceFormat,
   });
 
-  if (!resolvedSrc) return null;
+  if (!normalizedResolvedSrc) return null;
 
   const resolvedMobileSrc = mobileSrc
-    ? buildMediaUrl(mobileSrc, {
-        size: mobileVariant || undefined,
-        format: format || undefined,
-      })
-    : mobileVariant
-      ? buildMediaUrl(src, {
-          size: mobileVariant,
-          format: format || undefined,
-        })
-      : "";
+    ? ensureMediaVariantParams(
+        buildMediaUrl(mobileSrc, {
+          size: "original",
+          ...(normalizedFormat ? { format: normalizedFormat } : {}),
+        }),
+        {
+          defaultSize: "original",
+          defaultFormat: mobileSourceFormat,
+        },
+      )
+    : "";
 
   const effectiveLoading = normalizeLoading({ priority, loading });
 
-  if (resolvedMobileSrc && resolvedMobileSrc !== resolvedSrc) {
+  if (resolvedMobileSrc && resolvedMobileSrc !== normalizedResolvedSrc) {
     return (
       <picture className={className} style={style}>
         <source media="(max-width: 768px)" srcSet={resolvedMobileSrc} />
         <img
-          src={resolvedSrc}
+          src={normalizedResolvedSrc}
           alt={alt}
           className={imgClassName}
           loading={effectiveLoading}
@@ -64,7 +82,7 @@ export default function MediaImage({
 
   return (
     <Image
-      src={resolvedSrc}
+      src={normalizedResolvedSrc}
       alt={alt}
       className={imgClassName || className}
       style={imgStyle || style}
@@ -73,7 +91,7 @@ export default function MediaImage({
       sizes={sizes}
       priority={priority}
       loading={priority ? undefined : effectiveLoading}
-      unoptimized={isMediaRouteUrl(resolvedSrc)}
+      unoptimized={isMediaRouteUrl(normalizedResolvedSrc)}
     />
   );
 }

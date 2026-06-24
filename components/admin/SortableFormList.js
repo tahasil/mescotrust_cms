@@ -24,7 +24,7 @@ import { CSS } from "@dnd-kit/utilities";
  */
 function SortableRow({
   id,
-  itemLabel,
+  itemTitle,
   itemIndex,
   totalItems,
   children,
@@ -32,6 +32,7 @@ function SortableRow({
   onMoveUp,
   onMoveDown,
   onRemove,
+  hideRemove,
 }) {
   const {
     attributes,
@@ -74,7 +75,7 @@ function SortableRow({
         >
           <HolderOutlined />
         </span>
-        <strong>{itemLabel} {itemIndex + 1}</strong>
+        <strong>{itemTitle}</strong>
       </span>
       <span onClick={(e) => e.stopPropagation()} style={{ display: "flex", alignItems: "center", gap: 0 }}>
         <Button
@@ -93,7 +94,7 @@ function SortableRow({
           onClick={(e) => { e.stopPropagation(); onMoveDown?.(); }}
           title="Move down"
         />
-        {totalItems > 1 && (
+        {!hideRemove && totalItems > 1 && (
           <Button
             type="text"
             danger
@@ -149,6 +150,8 @@ export default function SortableFormList({
   addButtonText = "Add item",
   defaultAddPayload,
   onMoveWithTransition,
+  resolveItemTitle,
+  hideRemove = false,
 }) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -191,7 +194,11 @@ export default function SortableFormList({
               <SortableRow
                 key={key}
                 id={name}
-                itemLabel={itemLabel}
+                itemTitle={
+                  typeof resolveItemTitle === "function"
+                    ? resolveItemTitle(name)
+                    : `${itemLabel} ${name + 1}`
+                }
                 itemIndex={name}
                 totalItems={fields.length}
                 reorderClassName={
@@ -202,6 +209,7 @@ export default function SortableFormList({
                 onMoveUp={() => handleMove(name, name - 1)}
                 onMoveDown={() => handleMove(name, name + 1)}
                 onRemove={() => remove(name)}
+                hideRemove={hideRemove}
               >
                 {renderItemContent ? renderItemContent(name, restField) : null}
               </SortableRow>

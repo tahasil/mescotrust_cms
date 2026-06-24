@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Select, Collapse, message } from "antd";
+import { Form, Select, Collapse, Switch, message } from "antd";
 import { renderSchemaField, enrichSchema } from "@/components/admin/schemaFormUtils";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
@@ -11,7 +11,6 @@ import {
   LOGO_LINK_SCHEMA,
   MENU_SCHEMA,
   CUSTOM_BUTTONS_SCHEMA,
-  VOLUNTEER_MODAL_SCHEMA,
   HEADER_FIELD_GROUPS,
   SECTION_SETTINGS_SCHEMA,
 } from "./headerDrawerSchemas";
@@ -91,7 +90,7 @@ function HeaderEditForm(
       return;
     }
     themeLoadedOnceRef.current = true;
-    fetch("/api/theme")
+    fetch("/api/theme", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : {}))
       .then((theme) => {
         const flat = theme?.header ? { ...theme.header } : {};
@@ -100,24 +99,41 @@ function HeaderEditForm(
         if (theme?.logoImageUrl != null && !flat.logoLightUrl) flat.logoLightUrl = theme.logoImageUrl;
         if (theme?.logoMobileUrl != null) flat.logoMobileUrl = theme.logoMobileUrl;
         if (theme?.logoDarkUrl != null) flat.logoDarkUrl = theme.logoDarkUrl;
+        if (theme?.logoUrl != null) flat.logoUrl = theme.logoUrl;
         if (theme?.logoTitle != null) flat.logoTitle = theme.logoTitle;
         if (theme?.logoTagline != null) flat.logoTagline = theme.logoTagline;
+        if (theme?.headerSearchEnabled != null) flat.headerSearchEnabled = theme.headerSearchEnabled === true;
+        if (theme?.headerSearchLabel != null) flat.headerSearchLabel = theme.headerSearchLabel;
+        if (theme?.headerSearchOpenAriaLabel != null) flat.headerSearchOpenAriaLabel = theme.headerSearchOpenAriaLabel;
+        if (theme?.headerSearchPlaceholder != null) flat.headerSearchPlaceholder = theme.headerSearchPlaceholder;
+        if (theme?.headerSearchDialogLabel != null) flat.headerSearchDialogLabel = theme.headerSearchDialogLabel;
+        if (theme?.headerSearchInputAriaLabel != null) flat.headerSearchInputAriaLabel = theme.headerSearchInputAriaLabel;
+        if (theme?.headerSearchCloseAriaLabel != null) flat.headerSearchCloseAriaLabel = theme.headerSearchCloseAriaLabel;
+        if (theme?.headerSearchMinCharsMessage != null) flat.headerSearchMinCharsMessage = theme.headerSearchMinCharsMessage;
+        if (theme?.headerSearchLoadingMessage != null) flat.headerSearchLoadingMessage = theme.headerSearchLoadingMessage;
+        if (theme?.headerSearchNoResultsMessage != null) flat.headerSearchNoResultsMessage = theme.headerSearchNoResultsMessage;
+        if (theme?.headerSearchErrorMessage != null) flat.headerSearchErrorMessage = theme.headerSearchErrorMessage;
+        if (theme?.headerSearchResultTypePageLabel != null) flat.headerSearchResultTypePageLabel = theme.headerSearchResultTypePageLabel;
+        if (theme?.headerSearchResultTypeBlogLabel != null) flat.headerSearchResultTypeBlogLabel = theme.headerSearchResultTypeBlogLabel;
+        if (theme?.headerSearchResultTypeEventLabel != null) flat.headerSearchResultTypeEventLabel = theme.headerSearchResultTypeEventLabel;
+        if (theme?.headerSearchFallbackTitle != null) flat.headerSearchFallbackTitle = theme.headerSearchFallbackTitle;
+        if (theme?.headerSearchFallbackMeta != null) flat.headerSearchFallbackMeta = theme.headerSearchFallbackMeta;
         if (theme?.headerVolunteerLabel != null) flat.headerVolunteerLabel = theme.headerVolunteerLabel;
         if (theme?.headerVolunteerHref != null) flat.headerVolunteerHref = theme.headerVolunteerHref;
+        if (theme?.headerVolunteerHrefTarget != null) flat.headerVolunteerHrefTarget = theme.headerVolunteerHrefTarget;
         if (theme?.headerVolunteerIconUrl != null) flat.headerVolunteerIconUrl = theme.headerVolunteerIconUrl;
         if (theme?.headerVolunteerIconUrlMobile != null) flat.headerVolunteerIconUrlMobile = theme.headerVolunteerIconUrlMobile;
         if (theme?.headerDonateLabel != null) flat.headerDonateLabel = theme.headerDonateLabel;
         if (theme?.headerDonateHref != null) flat.headerDonateHref = theme.headerDonateHref;
-        if (theme?.headerDonateIconUrl != null) flat.headerDonateIconUrl = theme.headerDonateIconUrl;
-        if (theme?.headerDonateIconUrlMobile != null) flat.headerDonateIconUrlMobile = theme.headerDonateIconUrlMobile;
+        if (theme?.headerDonateIconUrl != null) {
+          flat.headerDonateIconUrl = theme.headerDonateIconUrl;
+        } else if (theme?.headerDonateIconUrlMobile != null) {
+          flat.headerDonateIconUrl = theme.headerDonateIconUrlMobile;
+        }
         if (theme?.headerCtaBgColorKey != null) flat.headerCtaBgColorKey = theme.headerCtaBgColorKey;
         if (theme?.headerCtaTextColorKey != null) flat.headerCtaTextColorKey = theme.headerCtaTextColorKey;
         if (theme?.headerDonateBgColorKey != null) flat.headerDonateBgColorKey = theme.headerDonateBgColorKey;
         if (theme?.headerDonateTextColorKey != null) flat.headerDonateTextColorKey = theme.headerDonateTextColorKey;
-        if (theme?.volunteerModalTitle != null) flat.volunteerModalTitle = theme.volunteerModalTitle;
-        if (theme?.volunteerModalBtnBg != null) flat.volunteerModalBtnBg = theme.volunteerModalBtnBg;
-        if (theme?.volunteerModalBtnText != null) flat.volunteerModalBtnText = theme.volunteerModalBtnText;
-        if (theme?.volunteerModalCancelColor != null) flat.volunteerModalCancelColor = theme.volunteerModalCancelColor;
         if (theme?.menuName != null) flat.menuName = theme.menuName;
         if (theme?.navItems != null) flat.navItems = theme.navItems;
         Object.assign(flat, getManageSectionInitialValues("header", theme));
@@ -180,49 +196,63 @@ function HeaderEditForm(
       .catch((e) => message.error(e?.message || "Could not load menu"));
   };
 
-  const handleUpdate = () => {
-    form.validateFields().then(() => {
-      let values = form.getFieldsValue(true);
-      if (Array.isArray(values?.navItems)) {
-        const loaded = lastLoadedNavItemsRef.current;
-        const formItems = values.navItems;
-        values = {
-          ...values,
-          navItems:
-            Array.isArray(loaded) && loaded.length === formItems.length
-              ? formItems.map((item, i) => ({
-                  label: item?.label ?? loaded[i]?.label ?? "",
-                  url: item?.url ?? loaded[i]?.url ?? "#",
-                  hasDropdown: item?.hasDropdown ?? loaded[i]?.hasDropdown ?? false,
-                  children: Array.isArray(loaded[i]?.children) ? loaded[i].children : Array.isArray(item?.children) ? item.children : [],
-                }))
-              : formItems.map((item) => ({
-                  ...item,
-                  children: Array.isArray(item?.children) ? item.children : [],
-                })),
-        };
-      }
-      const payload = { ...values, ...getManageSectionPayload("header", values) };
-      if (isPageBlock && onSaveToPage) {
-        onSaveToPage(payload);
-        message.success("Changes will be saved with the page");
-        onSuccess?.();
-        return;
-      }
-      setSaving(true);
-      fetch("/api/theme/header", {
+  const handleUpdate = async () => {
+    try {
+      await form.validateFields();
+    } catch (err) {
+      throw err;
+    }
+
+    let values = form.getFieldsValue(true);
+    if (Array.isArray(values?.navItems)) {
+      const loaded = lastLoadedNavItemsRef.current;
+      const formItems = values.navItems;
+      values = {
+        ...values,
+        navItems:
+          Array.isArray(loaded) && loaded.length === formItems.length
+            ? formItems.map((item, i) => ({
+                label: item?.label ?? loaded[i]?.label ?? "",
+                url: item?.url ?? loaded[i]?.url ?? "#",
+                hasDropdown: item?.hasDropdown ?? loaded[i]?.hasDropdown ?? false,
+                children: Array.isArray(loaded[i]?.children) ? loaded[i].children : Array.isArray(item?.children) ? item.children : [],
+              }))
+            : formItems.map((item) => ({
+                ...item,
+                children: Array.isArray(item?.children) ? item.children : [],
+              })),
+      };
+    }
+    const payload = { ...values, ...getManageSectionPayload("header", values) };
+    if (isPageBlock && onSaveToPage) {
+      onSaveToPage(payload);
+      message.success("Changes will be saved with the page");
+      onSuccess?.();
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const res = await fetch("/api/theme/header", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-      })
-        .then((r) => { if (!r.ok) return r.json().then((d) => Promise.reject(d)); })
-        .then(() => { message.success("Header saved"); onSuccess?.(); })
-        .catch((e) => message.error(e?.error || "Failed to save header"))
-        .finally(() => setSaving(false));
-    }).catch(() => {});
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || "Failed to save header");
+      }
+      message.success("Header saved");
+      await onSuccess?.();
+    } catch (e) {
+      message.error(e?.message || "Failed to save header");
+      throw e;
+    } finally {
+      setSaving(false);
+    }
   };
 
-  useImperativeHandle(ref, () => ({ update: handleUpdate }), []);
+  useImperativeHandle(ref, () => ({ update: handleUpdate }));
 
   if (loading) {
     return <div style={{ padding: 24, textAlign: "center", color: "#999" }}>Loading…</div>;
@@ -238,7 +268,6 @@ function HeaderEditForm(
     ...LOGO_LINK_SCHEMA,
     ...MENU_SCHEMA,
     ...CUSTOM_BUTTONS_SCHEMA,
-    ...VOLUNTEER_MODAL_SCHEMA,
     ...SECTION_SETTINGS_SCHEMA,
   ];
   const rawWithKeyOpts = raw.map((f) =>
@@ -248,6 +277,27 @@ function HeaderEditForm(
   const byKey = Object.fromEntries((Array.isArray(schema) ? schema : rawWithKeyOpts).map((f) => [f.key, f]));
 
   const renderField = (field) => renderSchemaField(field, themeColorOptions);
+  const renderSearchToggleRow = () => {
+    const searchField = byKey.headerSearchEnabled;
+    if (!searchField) return null;
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "4px 0 12px",
+          borderBottom: "1px solid rgba(0,0,0,0.06)",
+          marginBottom: 16,
+        }}
+      >
+        <span style={{ color: "rgba(0,0,0,0.88)" }}>{searchField.label}</span>
+        <Form.Item name="headerSearchEnabled" valuePropName="checked" noStyle>
+          <Switch />
+        </Form.Item>
+      </div>
+    );
+  };
 
   const headerItems = [
     {
@@ -280,7 +330,13 @@ function HeaderEditForm(
               />
             </Form.Item>
           )}
-          {grp.keys.map((k) => (byKey[k] ? renderField(byKey[k]) : null)).filter(Boolean)}
+          {grp.label === "Custom buttons" && renderSearchToggleRow()}
+          {grp.keys
+            .map((k) => {
+              if (grp.label === "Custom buttons" && k === "headerSearchEnabled") return null;
+              return byKey[k] ? renderField(byKey[k]) : null;
+            })
+            .filter(Boolean)}
         </>
       ),
     })),

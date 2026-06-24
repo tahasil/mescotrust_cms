@@ -3,26 +3,70 @@ import { headers } from "next/headers";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import StyledComponentsRegistry from "@/lib/StyledComponentsRegistry";
 import { getSiteUrl } from "@/lib/env";
-import { getTheme, THEME_DEFAULTS } from "@/lib/layoutData";
+import { getTheme } from "@/lib/layoutData";
 
 /** Always fetch fresh theme and menu from DB; no cache so menu changes show immediately. */
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+function parseKeywordList(raw) {
+  const input = String(raw || "").trim();
+  if (!input) return undefined;
+  const list = input
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean);
+  return list.length > 0 ? list : undefined;
+}
+
+function getGlobalMetaImage(theme) {
+  const candidates = [
+    theme?.defaultMetaImage,
+    theme?.seoImage,
+    theme?.ogImage,
+    theme?.socialShareImage,
+    theme?.logoLightUrl,
+    theme?.logoImageUrl,
+    theme?.logoMobileUrl,
+    theme?.logoDarkUrl,
+    theme?.faviconUrl,
+  ];
+  for (const candidate of candidates) {
+    const value = String(candidate || "").trim();
+    if (value) return value;
+  }
+  return "";
+}
+
 export async function generateMetadata() {
   const theme = await getTheme();
-  const siteName = String(theme?.siteTitle || "Mesco Trust CMS").trim() || "Mesco Trust CMS";
+  const siteName = String(theme?.siteTitle ?? "").trim();
+  const defaultMetaTitle = String(theme?.defaultMetaTitle || "").trim();
+  const defaultMetaDescription = String(theme?.defaultMetaDescription || "").trim();
+  const defaultMetaKeywords = parseKeywordList(theme?.defaultMetaKeywords);
+  const defaultMetaImage = getGlobalMetaImage(theme);
   const faviconUrl = String(theme?.faviconUrl || "").trim();
+  const resolvedTitle = defaultMetaTitle || siteName || "Mesco Trust";
+  const resolvedDescription = defaultMetaDescription || "Content management system";
+  const titleTemplateBase = siteName || resolvedTitle;
 
   return {
     metadataBase: new URL(getSiteUrl()),
     title: {
-      default: siteName,
-      template: `%s | ${siteName}`,
+      default: resolvedTitle,
+      template: `%s | ${titleTemplateBase}`,
     },
-    description: "Content management system",
+    description: resolvedDescription,
+    ...(defaultMetaKeywords ? { keywords: defaultMetaKeywords } : {}),
     openGraph: {
+      title: resolvedTitle,
+      description: resolvedDescription,
       siteName,
+      ...(defaultMetaImage
+        ? {
+            images: [{ url: defaultMetaImage, alt: resolvedTitle }],
+          }
+        : {}),
     },
     ...(faviconUrl
       ? {
@@ -77,10 +121,10 @@ function buildThemeCssVars(theme) {
     ...set("--border-color", t.borderColor),
     ...set("--divider-color", t.dividerColor),
     ...set("--input-border-color", t.inputBorderColor),
-    ...set("--font-family", t.bodyFont || "system-ui, sans-serif"),
-    ...set("--heading-font", t.headingFont || t.bodyFont || "system-ui, sans-serif"),
+    ...set("--font-family", t.bodyFont),
+    ...set("--heading-font", t.headingFont || t.bodyFont),
     ...set("--button-font", t.buttonFont || t.bodyFont),
-    ...set("--font-size", t.baseFontSize ? `${t.baseFontSize}px` : "16px"),
+    ...set("--font-size", t.baseFontSize != null ? `${t.baseFontSize}px` : undefined),
     ...set("--line-height", t.lineHeight),
     ...set("--letter-spacing", t.letterSpacing != null ? `${t.letterSpacing}px` : undefined),
     ...set("--font-weight", t.fontWeightNormal),
@@ -88,7 +132,7 @@ function buildThemeCssVars(theme) {
     ...set("--button-radius", t.buttonRadius != null ? `${t.buttonRadius}px` : undefined),
     ...set("--card-radius", t.cardRadius != null ? `${t.cardRadius}px` : undefined),
     ...set("--input-radius", t.inputRadius != null ? `${t.inputRadius}px` : undefined),
-    ...set("--layout-width", t.layoutWidth ? `${t.layoutWidth}px` : "1200px"),
+    ...set("--layout-width", t.layoutWidth != null ? `${t.layoutWidth}px` : undefined),
     ...(t.cardShadow === false ? { "--card-shadow": "none" } : {}),
     ...(t.buttonShadow === true ? { "--button-shadow": "0 2px 4px rgba(0,0,0,0.1)" } : {}),
     ...set("--button-bg", t.buttonBackground),
@@ -110,12 +154,46 @@ function buildGoogleFontsUrl(fonts) {
   return `https://fonts.googleapis.com/css2?${families}&display=swap`;
 }
 
+function sanitizeInlineScript(value) {
+  return String(value || "").replace(/<\/script/gi, "<\\/script");
+}
+
+function sanitizeInlineStyle(value) {
+  return String(value || "").replace(/<\/style/gi, "<\\/style");
+}
+
+function sanitizeCssToken(value, fallback) {
+  const raw = String(value || "").trim();
+  if (!raw) return fallback;
+  if (/[<>{};]/.test(raw)) return fallback;
+  return raw;
+}
+
+function sanitizeFontUrl(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (raw.startsWith("/") || raw.startsWith("data:")) return raw;
+  try {
+    const url = new URL(raw);
+    if (url.protocol === "https:" || url.protocol === "http:") return raw;
+  } catch {}
+  return "";
+}
+
+function sanitizeGoogleAnalyticsId(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (/^G-[A-Z0-9]+$/i.test(raw)) return raw;
+  if (/^UA-\d+-\d+$/i.test(raw)) return raw;
+  return "";
+}
+
 export default async function RootLayout({ children }) {
   const headersList = headers();
   const pathname = headersList.get("x-pathname") || headersList.get("X-Pathname") || "";
   const theme = await getTheme();
   const isAdmin = pathname.startsWith("/admin");
-  const dir = theme.direction || "ltr";
+  const dir = theme.direction;
   const googleFontsUrl = buildGoogleFontsUrl(theme.googleFonts);
 
   const colorVars = buildCssVarsFromColors(theme.colors);
@@ -136,22 +214,31 @@ export default async function RootLayout({ children }) {
     ...themeVars,
     ...themePaletteVars,
     ...colorVars,
-    "--font-family": theme.bodyFont || theme.fontFamily || "system-ui, sans-serif",
-    "--heading-font": theme.headingFont || theme.headingFontFamily || theme.bodyFont || "system-ui, sans-serif",
-    "--font-size": `${theme.baseFontSize ?? theme.fontSize ?? 16}px`,
-    "--line-height": String(theme.lineHeight ?? 1.6),
-    "--letter-spacing": `${theme.letterSpacing ?? 0}px`,
-    "--font-weight": String(theme.fontWeightNormal ?? theme.fontWeight ?? 400),
-    "--heading-font-weight": String(theme.fontWeightBold ?? theme.headingFontWeight ?? 700),
-    "--layout-width": `${theme.layoutWidth ?? 1200}px`,
+    "--font-family": theme.bodyFont || theme.fontFamily,
+    "--heading-font":
+      theme.headingFont || theme.headingFontFamily || theme.bodyFont,
+    "--font-size": `${theme.baseFontSize ?? theme.fontSize}px`,
+    "--line-height": String(theme.lineHeight),
+    "--letter-spacing": `${theme.letterSpacing}px`,
+    "--font-weight": String(theme.fontWeightNormal ?? theme.fontWeight),
+    "--heading-font-weight": String(
+      theme.fontWeightBold ?? theme.headingFontWeight,
+    ),
+    "--layout-width": `${theme.layoutWidth}px`,
   };
 
   const loaderEnabled = !isAdmin && theme.pageLoaderEnabled !== false;
-  const loaderBg = theme.pageLoaderBgColor || "#000000";
-  const loaderBar = theme.pageLoaderBarColor || "#CF372F";
-  const loaderMinDuration = theme.pageLoaderMinDuration ?? 400;
+  const loaderBg = sanitizeCssToken(theme.pageLoaderBgColor, "#000000");
+  const loaderBar = sanitizeCssToken(theme.pageLoaderBarColor, "#CF372F");
+  const loaderMinDuration = Number.isFinite(Number(theme.pageLoaderMinDuration))
+    ? Math.max(100, Math.min(5000, Number(theme.pageLoaderMinDuration)))
+    : 400;
+  const safeCustomCss = sanitizeInlineStyle(theme.customCss);
+  const safeHeadScripts = sanitizeInlineScript(theme.headScripts);
+  const safeCustomFontUrl = sanitizeFontUrl(theme.customFontUrl);
+  const safeGoogleAnalyticsId = sanitizeGoogleAnalyticsId(theme.googleAnalyticsId);
 
-  const siteName = theme.siteTitle || "Mesco Trust CMS";
+  const siteName = theme.siteTitle;
   const orgJsonLd = !isAdmin
     ? {
         "@context": "https://schema.org",
@@ -162,14 +249,14 @@ export default async function RootLayout({ children }) {
     : null;
 
   return (
-    <html lang={theme.defaultLocale || "en"} dir={dir} style={cssVars} data-header-layout={theme.headerLayout} data-card-style={theme.cardStyle} className={loaderEnabled ? "page-loading" : undefined}>
+    <html lang={theme.defaultLocale} dir={dir} style={cssVars} data-header-layout={theme.headerLayout} data-card-style={theme.cardStyle} className={loaderEnabled ? "page-loading" : undefined}>
       <head>
         {theme.faviconUrl && <link rel="icon" href={theme.faviconUrl} />}
         {googleFontsUrl && <link rel="stylesheet" href={googleFontsUrl} />}
-        {theme.customFontUrl && (
+        {safeCustomFontUrl && (
           <style
             dangerouslySetInnerHTML={{
-              __html: `@font-face { font-family: 'CustomUpload'; src: url('${theme.customFontUrl}'); font-display: swap; }`,
+              __html: `@font-face { font-family: 'CustomUpload'; src: url('${safeCustomFontUrl}'); font-display: swap; }`,
             }}
           />
         )}
@@ -188,9 +275,9 @@ html.page-loading,body.page-loading{overflow:hidden;margin:0;padding:0}
 @keyframes page-loader-bounce{0%,80%,100%{transform:scaleY(.4)}40%{transform:scaleY(1)}}
 ` }} />
         )}
-        {theme.customCss && <style dangerouslySetInnerHTML={{ __html: theme.customCss }} />}
-        {theme.headScripts && <script dangerouslySetInnerHTML={{ __html: theme.headScripts }} />}
-        {theme.googleAnalyticsId && (
+        {safeCustomCss && <style dangerouslySetInnerHTML={{ __html: safeCustomCss }} />}
+        {safeHeadScripts && <script dangerouslySetInnerHTML={{ __html: safeHeadScripts }} />}
+        {safeGoogleAnalyticsId && (
           <>
             {/* Google Consent Mode v2 — default-deny until the user accepts via the
                 cookie banner. The banner calls gtag('consent','update',...) on accept. */}
@@ -199,8 +286,8 @@ html.page-loading,body.page-loading{overflow:hidden;margin:0;padding:0}
                 __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}window.gtag=gtag;gtag('consent','default',{ad_storage:'denied',analytics_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',wait_for_update:500});try{var c=window.localStorage.getItem('mesco_cookie_consent');if(c==='accepted'){gtag('consent','update',{ad_storage:'granted',analytics_storage:'granted',ad_user_data:'granted',ad_personalization:'granted'});}}catch(e){}`,
               }}
             />
-            <script async src={`https://www.googletagmanager.com/gtag/js?id=${theme.googleAnalyticsId}`} />
-            <script dangerouslySetInnerHTML={{ __html: `gtag('js',new Date());gtag('config','${theme.googleAnalyticsId}');` }} />
+            <script async src={`https://www.googletagmanager.com/gtag/js?id=${safeGoogleAnalyticsId}`} />
+            <script dangerouslySetInnerHTML={{ __html: `gtag('js',new Date());gtag('config','${safeGoogleAnalyticsId}');` }} />
           </>
         )}
         {orgJsonLd && (

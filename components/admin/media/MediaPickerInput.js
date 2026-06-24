@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Button,
   Empty,
@@ -17,64 +17,55 @@ import {
 } from "antd";
 import {
   DeleteOutlined,
+  FileTextOutlined,
   PictureOutlined,
   SearchOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
-import { readJson } from "./mediaUtils";
-
-const SIZE_OPTIONS = [
-  { value: "original", label: "Original" },
-  { value: "thumbnail", label: "Thumb" },
-  { value: "medium", label: "Medium" },
-  { value: "large", label: "Large" },
-  { value: "mobile", label: "Mobile" },
-  { value: "desktop", label: "Desktop" },
-];
+import { buildMediaVariantUrl, normalizeMediaFormatParam } from "@/lib/media/url";
+import RasterCropConfirmModal from "./RasterCropConfirmModal";
+import { getSizeVariant, readJson } from "./mediaUtils";
+import { isRasterUploadFile } from "./rasterMedia";
 
 const FORMAT_OPTIONS = [
-  { value: "auto", label: "Auto (AVIF/WebP/JPG)" },
-  { value: "avif", label: "AVIF" },
+  { value: "auto", label: "Auto (WebP/AVIF/JPG)" },
   { value: "webp", label: "WebP" },
-  { value: "original", label: "JPG/Original" },
+  { value: "avif", label: "AVIF" },
+  { value: "jpg", label: "JPG" },
 ];
 
 function parseMediaValue(value) {
   const raw = String(value || "").trim();
-  if (!raw) return { mediaId: "", size: "original", format: "auto" };
+  if (!raw) return { mediaId: "", format: "auto" };
 
   const match = raw.match(/\/media\/([a-fA-F0-9]{24})(?:\?([^#]+))?/);
-  if (!match) return { mediaId: "", size: "original", format: "auto" };
+  if (!match) return { mediaId: "", format: "auto" };
 
   const mediaId = String(match[1] || "");
   const params = new URLSearchParams(match[2] || "");
-  const size = params.get("size") || "original";
-  const format = params.get("format") || "auto";
-  return { mediaId, size, format };
-}
-
-function buildMediaUrl(mediaId, size, format) {
-  const id = String(mediaId || "").trim();
-  if (!id) return "";
-  const params = new URLSearchParams();
-  if (size && size !== "original") params.set("size", size);
-  if (format && format !== "auto") params.set("format", format);
-  const query = params.toString();
-  return query ? `/media/${id}?${query}` : `/media/${id}`;
+  const format = normalizeMediaFormatParam(params.get("format") || "auto") || "auto";
+  return { mediaId, format };
 }
 
 function getImagePreview(item) {
   if (!item) return "";
   const id = String(item?._id || "").trim();
-  if (id) return `/media/${id}?size=thumbnail&format=auto`;
-  return (
-    item?.generatedSizes?.thumbnail?.jpgUrl ||
-    item?.generatedSizes?.medium?.jpgUrl ||
-    item?.url ||
-    item?.originalUrl ||
-    item?.publicUrl ||
-    ""
-  );
+  if (id) return buildMediaVariantUrl(id, { size: "original", format: "auto" });
+  return item?.originalUrl || item?.url || item?.publicUrl || "";
+}
+
+function appendCropContractToFormData(formData, cropContract) {
+  if (!cropContract?.crop) return;
+  formData.append("crop", JSON.stringify(cropContract.crop));
+  if (Number.isFinite(cropContract.rotationDegrees)) {
+    formData.append("rotation", String(cropContract.rotationDegrees));
+  }
+  if (Number.isInteger(cropContract.width)) {
+    formData.append("width", String(cropContract.width));
+  }
+  if (Number.isInteger(cropContract.height)) {
+    formData.append("height", String(cropContract.height));
+  }
 }
 
 export default function MediaPickerInput({
@@ -85,7 +76,11 @@ export default function MediaPickerInput({
   showVariants = true,
   uiVariant = "default",
   hintText = "",
+  mediaType = "image",
 }) {
+  const normalizedMediaType =
+    mediaType === "document" || mediaType === "all" ? mediaType : "image";
+  const isDocumentMode = normalizedMediaType === "document";
   const parsed = useMemo(() => parseMediaValue(value), [value]);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -96,16 +91,18 @@ export default function MediaPickerInput({
   const [queryInput, setQueryInput] = useState("");
   const [query, setQuery] = useState("");
   const [activeMedia, setActiveMedia] = useState(null);
-  const [size, setSize] = useState(parsed.size || "original");
   const [format, setFormat] = useState(parsed.format || "auto");
+  const [cropRequest, setCropRequest] = useState(null);
+
+  const cropQueueRef = useRef([]);
+  const activeCropRequestRef = useRef(null);
 
   const mediaId = parsed.mediaId || String(activeMedia?._id || "");
   const pageSize = 18;
 
   useEffect(() => {
-    setSize(parsed.size || "original");
     setFormat(parsed.format || "auto");
-  }, [parsed.size, parsed.format]);
+  }, [parsed.format]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -115,6 +112,42 @@ export default function MediaPickerInput({
     return () => clearTimeout(timer);
   }, [queryInput]);
 
+  const pumpCropQueue = () => {
+    if (activeCropRequestRef.current) return;
+    const next = cropQueueRef.current.shift();
+    if (!next) return;
+    activeCropRequestRef.current = next;
+    setCropRequest({ file: next.file, title: next.title });
+  };
+
+  const requestRasterCrop = (file, title) =>
+    new Promise((resolve, reject) => {
+      cropQueueRef.current.push({ file, title, resolve, reject });
+      pumpCropQueue();
+    });
+
+  const closeActiveCropRequest = () => {
+    activeCropRequestRef.current = null;
+    setCropRequest(null);
+    pumpCropQueue();
+  };
+
+  const handleCropCancel = () => {
+    const activeRequest = activeCropRequestRef.current;
+    if (activeRequest) {
+      const error = new Error("Crop confirmation is required");
+      error.code = "CROP_CONFIRMATION_REQUIRED";
+      activeRequest.reject(error);
+    }
+    closeActiveCropRequest();
+  };
+
+  const handleCropConfirm = (cropContract) => {
+    const activeRequest = activeCropRequestRef.current;
+    if (activeRequest) activeRequest.resolve(cropContract);
+    closeActiveCropRequest();
+  };
+
   const fetchLibrary = useCallback(
     async (nextPage = page) => {
       setLoading(true);
@@ -122,8 +155,10 @@ export default function MediaPickerInput({
         const params = new URLSearchParams({
           page: String(nextPage),
           limit: String(pageSize),
-          type: "image",
         });
+        if (normalizedMediaType !== "all") {
+          params.set("type", normalizedMediaType);
+        }
         if (query) params.set("q", query);
         const res = await fetch(`/api/admin/media?${params.toString()}`);
         const data = await readJson(res);
@@ -136,7 +171,7 @@ export default function MediaPickerInput({
         setLoading(false);
       }
     },
-    [page, query],
+    [normalizedMediaType, page, query],
   );
 
   useEffect(() => {
@@ -151,6 +186,7 @@ export default function MediaPickerInput({
       return;
     }
     if (String(activeMedia?._id || "") === id) return;
+
     let cancelled = false;
     fetch(`/api/admin/media/${id}`)
       .then((res) => readJson(res).then((data) => ({ ok: res.ok, data })))
@@ -167,12 +203,11 @@ export default function MediaPickerInput({
   }, [parsed.mediaId, activeMedia?._id]);
 
   const applyVariantUrl = useCallback(
-    (targetMediaId, nextSize, nextFormat) => {
-      const nextUrl = buildMediaUrl(
-        targetMediaId,
-        nextSize || "original",
-        nextFormat || "auto",
-      );
+    (targetMediaId, nextFormat) => {
+      const nextUrl = buildMediaVariantUrl(targetMediaId, {
+        size: "original",
+        format: normalizeMediaFormatParam(nextFormat || "auto") || "auto",
+      });
       onChange?.(nextUrl);
     },
     [onChange],
@@ -181,54 +216,84 @@ export default function MediaPickerInput({
   const selectMedia = (item) => {
     if (!item?._id) return;
     setActiveMedia(item);
-    applyVariantUrl(item._id, size || "original", format || "auto");
+    applyVariantUrl(item._id, format || "auto");
     setLibraryOpen(false);
   };
 
   const onUpload = async ({ file, onSuccess, onError }) => {
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
+      let cropContract = null;
+      if (isRasterUploadFile(file)) {
+        cropContract = await requestRasterCrop(file, "Crop image before upload");
+      }
+
+      const formData = new FormData();
+      const uploadFile = cropContract?.processedFile || file;
+      formData.append("file", uploadFile);
+      appendCropContractToFormData(formData, cropContract);
+
       const res = await fetch("/api/admin/media", {
         method: "POST",
-        body: fd,
+        body: formData,
       });
       const data = await readJson(res);
-      if (!res.ok) throw new Error(data.error || "Upload failed");
+      if (!res.ok) {
+        const error = new Error(data.error || "Upload failed");
+        error.code = data.code || "";
+        throw error;
+      }
+
       onSuccess?.(data);
-      message.success("Image uploaded");
+      message.success(
+        normalizedMediaType === "document" ? "Document uploaded" : "Image uploaded",
+      );
       setPage(1);
       fetchLibrary(1);
     } catch (err) {
       onError?.(err);
-      message.error(err.message || "Upload failed");
+      if (err?.code !== "CROP_CONFIRMATION_REQUIRED") {
+        message.error(err.message || "Upload failed");
+      }
     } finally {
       setUploading(false);
     }
   };
 
-  const variantAvailability = useMemo(() => {
-    const sizes = activeMedia?.generatedSizes || {};
-    const map = {};
-    for (const option of SIZE_OPTIONS) {
-      if (option.value === "original") {
-        map[option.value] = true;
-        continue;
-      }
-      const sizeData = sizes[option.value] || {};
-      map[option.value] = Boolean(
-        sizeData.jpgUrl || sizeData.webpUrl || sizeData.avifUrl,
-      );
-    }
-    return map;
-  }, [activeMedia]);
+  const activeOriginalVariant = useMemo(
+    () => getSizeVariant(activeMedia, "original"),
+    [activeMedia],
+  );
 
   const previewSrc = useMemo(() => {
-    if (mediaId) return buildMediaUrl(mediaId, size, format);
+    if (mediaId) {
+      return buildMediaVariantUrl(mediaId, {
+        size: "original",
+        format: normalizeMediaFormatParam(format || "auto") || "auto",
+      });
+    }
     return String(value || "").trim();
-  }, [mediaId, size, format, value]);
+  }, [mediaId, format, value]);
+
   const isStacked = uiVariant === "stacked";
+  const activeMediaMimeType = String(activeMedia?.mimeType || "").toLowerCase();
+  const activeMediaIsImage = activeMediaMimeType.startsWith("image/");
+  const previewLooksPdf = /\.pdf(?:[?#].*)?$/i.test(String(previewSrc || ""));
+  const canShowImagePreview =
+    Boolean(previewSrc) &&
+    !isDocumentMode &&
+    (activeMedia ? activeMediaIsImage : !previewLooksPdf);
+  const documentPreviewName =
+    activeMedia?.originalName ||
+    activeMedia?.title ||
+    String(value || "").trim() ||
+    "Selected document";
+  const uploadAccept =
+    normalizedMediaType === "document"
+      ? ".pdf,application/pdf"
+      : normalizedMediaType === "all"
+        ? "image/*,.svg,.pdf,application/pdf"
+        : "image/*,.svg";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -247,7 +312,7 @@ export default function MediaPickerInput({
               justifyContent: "center",
             }}
           >
-            {previewSrc ? (
+            {canShowImagePreview ? (
               <img
                 src={previewSrc}
                 alt="Selected media preview"
@@ -259,6 +324,31 @@ export default function MediaPickerInput({
                   background: "#fff",
                 }}
               />
+            ) : previewSrc ? (
+              <div
+                style={{
+                  width: "100%",
+                  minHeight: 120,
+                  borderRadius: 6,
+                  background: "#fff",
+                  border: "1px dashed #d9d9d9",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: 12,
+                  textAlign: "center",
+                  gap: 6,
+                }}
+              >
+                <FileTextOutlined style={{ fontSize: 22, color: "#8c8c8c" }} />
+                <Typography.Text
+                  type="secondary"
+                  style={{ fontSize: 12, wordBreak: "break-word" }}
+                >
+                  {documentPreviewName}
+                </Typography.Text>
+              </div>
             ) : (
               <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -271,7 +361,7 @@ export default function MediaPickerInput({
           <Input
             size="large"
             value={value || ""}
-            onChange={(e) => onChange?.(e.target.value)}
+            onChange={(event) => onChange?.(event.target.value)}
             placeholder={placeholder}
             disabled={!allowManual}
           />
@@ -299,31 +389,16 @@ export default function MediaPickerInput({
           {showVariants && mediaId ? (
             <Space wrap style={{ width: "100%" }}>
               <Select
-                value={size}
-                onChange={(nextSize) => {
-                  setSize(nextSize);
-                  applyVariantUrl(mediaId, nextSize, format);
-                }}
-                style={{ minWidth: 140 }}
-                options={SIZE_OPTIONS.map((option) => ({
-                  value: option.value,
-                  label:
-                    option.value === "original" || variantAvailability[option.value]
-                      ? option.label
-                      : `${option.label} (not generated)`,
-                }))}
-              />
-              <Select
                 value={format}
                 onChange={(nextFormat) => {
                   setFormat(nextFormat);
-                  applyVariantUrl(mediaId, size, nextFormat);
+                  applyVariantUrl(mediaId, nextFormat);
                 }}
-                style={{ minWidth: 190 }}
+                style={{ minWidth: 220 }}
                 options={FORMAT_OPTIONS}
               />
-              {activeMedia?.webpUrl ? <Tag color="green">WebP</Tag> : null}
-              {activeMedia?.avifUrl ? <Tag color="purple">AVIF</Tag> : null}
+              {activeOriginalVariant?.webpUrl ? <Tag color="green">WebP</Tag> : null}
+              {activeOriginalVariant?.avifUrl ? <Tag color="purple">AVIF</Tag> : null}
             </Space>
           ) : null}
 
@@ -338,12 +413,12 @@ export default function MediaPickerInput({
           <Space.Compact style={{ width: "100%" }}>
             <Input
               value={value || ""}
-              onChange={(e) => onChange?.(e.target.value)}
+              onChange={(event) => onChange?.(event.target.value)}
               placeholder={placeholder}
               disabled={!allowManual}
             />
             <Button
-              icon={<PictureOutlined />}
+              icon={isDocumentMode ? <FileTextOutlined /> : <PictureOutlined />}
               onClick={() => setLibraryOpen(true)}
               type="default"
             >
@@ -360,31 +435,16 @@ export default function MediaPickerInput({
           {showVariants && mediaId ? (
             <Space wrap style={{ width: "100%" }}>
               <Select
-                value={size}
-                onChange={(nextSize) => {
-                  setSize(nextSize);
-                  applyVariantUrl(mediaId, nextSize, format);
-                }}
-                style={{ minWidth: 140 }}
-                options={SIZE_OPTIONS.map((option) => ({
-                  value: option.value,
-                  label:
-                    option.value === "original" || variantAvailability[option.value]
-                      ? option.label
-                      : `${option.label} (not generated)`,
-                }))}
-              />
-              <Select
                 value={format}
                 onChange={(nextFormat) => {
                   setFormat(nextFormat);
-                  applyVariantUrl(mediaId, size, nextFormat);
+                  applyVariantUrl(mediaId, nextFormat);
                 }}
-                style={{ minWidth: 190 }}
+                style={{ minWidth: 220 }}
                 options={FORMAT_OPTIONS}
               />
-              {activeMedia?.webpUrl ? <Tag color="green">WebP</Tag> : null}
-              {activeMedia?.avifUrl ? <Tag color="purple">AVIF</Tag> : null}
+              {activeOriginalVariant?.webpUrl ? <Tag color="green">WebP</Tag> : null}
+              {activeOriginalVariant?.avifUrl ? <Tag color="purple">AVIF</Tag> : null}
             </Space>
           ) : null}
 
@@ -398,17 +458,35 @@ export default function MediaPickerInput({
                 maxWidth: 260,
               }}
             >
-              <img
-                src={previewSrc}
-                alt="Selected media preview"
-                style={{
-                  width: "100%",
-                  maxHeight: 110,
-                  objectFit: "contain",
-                  borderRadius: 6,
-                  background: "#fff",
-                }}
-              />
+              {canShowImagePreview ? (
+                <img
+                  src={previewSrc}
+                  alt="Selected media preview"
+                  style={{
+                    width: "100%",
+                    maxHeight: 110,
+                    objectFit: "contain",
+                    borderRadius: 6,
+                    background: "#fff",
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: "100%",
+                    minHeight: 72,
+                    borderRadius: 6,
+                    background: "#fff",
+                    border: "1px dashed #d9d9d9",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: 8,
+                  }}
+                >
+                  <FileTextOutlined style={{ fontSize: 22, color: "#8c8c8c" }} />
+                </div>
+              )}
               {activeMedia ? (
                 <Typography.Text
                   type="secondary"
@@ -442,23 +520,19 @@ export default function MediaPickerInput({
           <Input
             allowClear
             value={queryInput}
-            onChange={(e) => setQueryInput(e.target.value)}
+            onChange={(event) => setQueryInput(event.target.value)}
             prefix={<SearchOutlined />}
             placeholder="Search media"
             style={{ width: 300, maxWidth: "100%" }}
           />
           <Upload
-            accept="image/*"
+            accept={uploadAccept}
             showUploadList={false}
             customRequest={onUpload}
             disabled={uploading}
           >
-            <Button
-              icon={<UploadOutlined />}
-              loading={uploading}
-              type="primary"
-            >
-              Upload image
+            <Button icon={<UploadOutlined />} loading={uploading} type="primary">
+              {normalizedMediaType === "document" ? "Upload document" : "Upload image"}
             </Button>
           </Upload>
         </div>
@@ -468,7 +542,11 @@ export default function MediaPickerInput({
             <Spin />
           </div>
         ) : items.length === 0 ? (
-          <Empty description="No images found" />
+          <Empty
+            description={
+              normalizedMediaType === "document" ? "No documents found" : "No images found"
+            }
+          />
         ) : (
           <>
             <div
@@ -479,7 +557,9 @@ export default function MediaPickerInput({
               }}
             >
               {items.map((item) => {
-                const thumb = getImagePreview(item);
+                const itemMimeType = String(item?.mimeType || "").toLowerCase();
+                const itemIsImage = itemMimeType.startsWith("image/");
+                const thumb = itemIsImage ? getImagePreview(item) : "";
                 const isActive = String(item?._id || "") === mediaId;
                 return (
                   <button
@@ -514,7 +594,7 @@ export default function MediaPickerInput({
                           style={{ width: "100%", height: "100%", objectFit: "cover" }}
                         />
                       ) : (
-                        <PictureOutlined style={{ fontSize: 24, color: "#999" }} />
+                        <FileTextOutlined style={{ fontSize: 24, color: "#999" }} />
                       )}
                     </div>
                     <Typography.Text
@@ -525,7 +605,7 @@ export default function MediaPickerInput({
                       }}
                       ellipsis={{ tooltip: item.originalName || item.title }}
                     >
-                      {item.originalName || item.title || "Image"}
+                      {item.originalName || item.title || (itemIsImage ? "Image" : "Document")}
                     </Typography.Text>
                   </button>
                 );
@@ -545,6 +625,15 @@ export default function MediaPickerInput({
           </>
         )}
       </Modal>
+
+      <RasterCropConfirmModal
+        open={Boolean(cropRequest?.file)}
+        file={cropRequest?.file || null}
+        title={cropRequest?.title || "Crop image before upload"}
+        confirmText="Confirm crop"
+        onCancel={handleCropCancel}
+        onConfirm={handleCropConfirm}
+      />
     </div>
   );
 }

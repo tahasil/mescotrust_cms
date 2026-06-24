@@ -12,6 +12,9 @@ import {
   SubTitle,
 } from "@/styles/Theme";
 
+const REQUIRED_STORY_IMAGE_WIDTH = 400;
+const REQUIRED_STORY_IMAGE_HEIGHT = 400;
+
 /* ── Styled Components ── */
 const SliderWrapper = styled.div`
   .slide-card {
@@ -32,7 +35,8 @@ const SliderWrapper = styled.div`
 
   .slide-image {
     width: 100%;
-    height: 400px;
+    aspect-ratio: 400 / 400;
+    height: auto;
     background: rgba(0, 0, 0, 0.04);
     border-radius: 16px;
     overflow: hidden;
@@ -51,11 +55,7 @@ const SliderWrapper = styled.div`
       display: block;
     }
     @media (max-width: 991px) {
-      height: 300px;
       border-radius: 12px;
-    }
-    @media (max-width: 576px) {
-      height: 220px;
     }
   }
 
@@ -444,6 +444,8 @@ export default function StoriesSlider(props) {
                                 <img loading="lazy"
                                   src={image || mobileImage}
                                   alt={name || "Story"}
+                                  width={REQUIRED_STORY_IMAGE_WIDTH}
+                                  height={REQUIRED_STORY_IMAGE_HEIGHT}
                                 />
                               </picture>
                             ) : (

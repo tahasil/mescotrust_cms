@@ -1,0 +1,16 @@
+{
+  "collection": "templates",
+  "count": 1,
+  "backedUpAt": "2026-05-29T06:01:10.485Z",
+  "docs": [
+    {
+      "_id": "699c264fdf21690375d2d582",
+      "name": "mesco",
+      "description": "",
+      "layout": [],
+      "createdAt": "2026-02-23T10:05:04.004Z",
+      "updatedAt": "2026-02-23T10:05:04.004Z",
+      "__v": 0
+    }
+  ]
+}

@@ -1,17 +1,26 @@
-﻿import { notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import nextDynamic from "next/dynamic";
 import { cache } from "react";
 import { connectDB } from "@/lib/db";
 import { getSiteUrl } from "@/lib/env";
-
-export const revalidate = 60;
+import {
+  buildCanonicalUrl,
+  getGlobalFallbackImageFromTheme,
+  resolveShareMetadata,
+  toAbsoluteUrl,
+} from "@/helpers/socialShare";
 import Blog from "@/models/Blog";
 import ThemeConfig from "@/models/ThemeConfig";
+import { extractGlobalSeoFromTheme, parseMetaKeywords } from "@/lib/seo";
 import SafeHtml from "@/components/cms/SafeHtml";
 import { FullWidthBackground, MainTitle, PageContainer } from "@/styles/Theme";
-
 import BlogSidebarFull from "@/components/blog/BlogSidebarFull";
 import MediaImage from "@/components/shared/MediaImage";
+import SocialShare from "@/components/common/SocialShare";
+import { getBlogImageSources } from "@/components/blog/blogDisplay";
+
+export const revalidate = 60;
+
 const BlogComments = nextDynamic(
   () => import("@/components/blog/BlogComments"),
   { ssr: false },
@@ -22,31 +31,99 @@ const getPublishedPostBySlug = cache(async (slug) => {
   return Blog.findOne({ slug, status: "published" }).populate("category").lean();
 });
 
+const getThemeForBlogDetail = cache(async () => {
+  await connectDB();
+  return ThemeConfig.findOne({
+    $or: [{ themeKey: "default" }, { themeKey: { $exists: false } }],
+  })
+    .sort({ updatedAt: -1 })
+    .select(
+      "blogCommentsEnabled logoLightUrl logoImageUrl logoMobileUrl logoDarkUrl faviconUrl seoImage ogImage socialShareImage defaultMetaTitle defaultMetaDescription defaultMetaKeywords defaultMetaImage",
+    )
+    .lean();
+});
+
+function getBlogShareMeta(post, themeDoc, slug) {
+  const siteUrl = getSiteUrl();
+  const canonicalUrl = buildCanonicalUrl(siteUrl, `/blog/${slug}`);
+  const globalSeo = extractGlobalSeoFromTheme(themeDoc);
+  const globalFallbackImage = toAbsoluteUrl(
+    getGlobalFallbackImageFromTheme(themeDoc),
+    siteUrl,
+  );
+  const metaTitle = String(post?.meta?.metaTitle || "").trim();
+  const metaDescription = String(post?.meta?.metaDescription || "").trim();
+  const titleFromContent = String(post?.title || "").trim();
+  const { desktop, mobile } = getBlogImageSources(post || {});
+
+  const shareMeta = resolveShareMetadata({
+    canonicalUrl,
+    title: titleFromContent,
+    metaTitle,
+    description: post?.description,
+    metaDescription,
+    shortDescription: post?.shortDescription,
+    excerpt: post?.excerpt,
+    featuredImageDesktop: desktop,
+    featuredImage: desktop,
+    featuredImageMobile: mobile,
+    seoImage: post?.seoImage,
+    globalFallbackImage,
+  });
+
+  return {
+    canonicalUrl,
+    title: metaTitle || globalSeo.title || shareMeta.title || titleFromContent,
+    description: metaDescription || globalSeo.description || shareMeta.description || "",
+    image: toAbsoluteUrl(shareMeta.image || globalSeo.image, siteUrl),
+    keywords: parseMetaKeywords(post?.meta?.metaKeywords) || globalSeo.keywords,
+  };
+}
+
 export async function generateMetadata({ params }) {
   const slug = params.slug;
+
   try {
-    const post = await getPublishedPostBySlug(slug);
+    const [post, themeDoc] = await Promise.all([
+      getPublishedPostBySlug(slug),
+      getThemeForBlogDetail(),
+    ]);
+
     if (!post) return {};
-    const title = post.meta?.metaTitle || post.title;
-    const description = post.meta?.metaDescription || post.excerpt || undefined;
-    const og = {
-      title,
-      description,
-      url: `/blog/${slug}`,
+
+    const shareMeta = getBlogShareMeta(post, themeDoc, slug);
+
+    const openGraph = {
+      title: shareMeta.title,
+      description: shareMeta.description,
+      url: shareMeta.canonicalUrl,
       type: "article",
       ...(post.publishedAt && {
         publishedTime: new Date(post.publishedAt).toISOString(),
       }),
-      ...(post.author && { authors: [post.author] }),
+      ...(post.author ? { authors: [post.author] } : {}),
+      ...(shareMeta.image
+        ? {
+            images: [{
+              url: shareMeta.image,
+              alt: shareMeta.title,
+            }],
+          }
+        : {}),
     };
-    if (post.featuredImage) {
-      og.images = [{ url: post.featuredImage, alt: title }];
-    }
+
     return {
-      title,
-      description,
+      title: shareMeta.title,
+      description: shareMeta.description,
+      ...(shareMeta.keywords?.length ? { keywords: shareMeta.keywords } : {}),
       alternates: { canonical: `/blog/${slug}` },
-      openGraph: og,
+      openGraph,
+      twitter: {
+        card: shareMeta.image ? "summary_large_image" : "summary",
+        title: shareMeta.title,
+        description: shareMeta.description,
+        ...(shareMeta.image ? { images: [shareMeta.image] } : {}),
+      },
     };
   } catch {
     return {};
@@ -78,18 +155,17 @@ function formatDate(dateStr) {
 async function PostContent({ slug }) {
   let post;
   let commentsEnabled = true;
+  let themeDoc;
+
   try {
-    await connectDB();
-    const [postDoc, themeDoc] = await Promise.all([
+    const [postDoc, themeConfigDoc] = await Promise.all([
       getPublishedPostBySlug(slug),
-      ThemeConfig.findOne({
-        $or: [{ themeKey: "default" }, { themeKey: { $exists: false } }],
-      })
-        .sort({ updatedAt: -1 })
-        .select("blogCommentsEnabled")
-        .lean(),
+      getThemeForBlogDetail(),
     ]);
+
     post = postDoc;
+    themeDoc = themeConfigDoc;
+
     if (themeDoc && typeof themeDoc.blogCommentsEnabled === "boolean") {
       commentsEnabled = themeDoc.blogCommentsEnabled;
     }
@@ -104,18 +180,16 @@ async function PostContent({ slug }) {
 
   if (!post) notFound();
 
-  const siteUrl = getSiteUrl();
+  const { desktop, mobile } = getBlogImageSources(post);
+  const shareMeta = getBlogShareMeta(post, themeDoc, slug);
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: post.title,
-    ...(post.excerpt && { description: post.excerpt }),
-    url: `${siteUrl}/blog/${slug}`,
-    ...(post.featuredImage && {
-      image: post.featuredImage.startsWith("http")
-        ? post.featuredImage
-        : `${siteUrl}${post.featuredImage}`,
-    }),
+    ...(shareMeta.description && { description: shareMeta.description }),
+    url: shareMeta.canonicalUrl,
+    ...(shareMeta.image && { image: shareMeta.image }),
     ...(post.publishedAt && {
       datePublished: new Date(post.publishedAt).toISOString(),
     }),
@@ -140,7 +214,6 @@ async function PostContent({ slug }) {
             style={{ display: "flex", gap: 40 }}
             suppressHydrationWarning
           >
-            {/* Left: Article */}
             <article className="blog-detail-article" style={{ flex: 1, minWidth: 0 }}>
               {post.category?.name && (
                 <div
@@ -162,22 +235,41 @@ async function PostContent({ slug }) {
               </MainTitle>
 
               <div
+                className="blog-detail-meta-row"
                 style={{
                   display: "flex",
-                  alignItems: "center",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
                   gap: 16,
                   marginBottom: 24,
-                  fontSize: 14,
-                  color: "rgba(0,0,0,0.45)",
+                  flexWrap: "wrap",
                 }}
               >
-                {post.publishedAt && (
-                  <span>Published: {formatDate(post.publishedAt)}</span>
-                )}
-                {post.author && <span>By {post.author}</span>}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 16,
+                    fontSize: 14,
+                    color: "rgba(0,0,0,0.45)",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  {post.publishedAt && (
+                    <span>Published: {formatDate(post.publishedAt)}</span>
+                  )}
+                  {post.author && <span>By {post.author}</span>}
+                </div>
+
+                <SocialShare
+                  canonicalUrl={shareMeta.canonicalUrl}
+                  title={shareMeta.title}
+                  description={shareMeta.description}
+                  image={shareMeta.image}
+                />
               </div>
 
-              {post.featuredImage && (
+              {desktop && (
                 <figure
                   className="blog-detail-banner"
                   style={{
@@ -188,10 +280,8 @@ async function PostContent({ slug }) {
                   }}
                 >
                   <MediaImage
-                    src={post.featuredImage}
-                    mobileSrc={post.featuredImageMobile}
-                    variant="desktop"
-                    mobileVariant="mobile"
+                    src={desktop}
+                    mobileSrc={mobile && mobile !== desktop ? mobile : ""}
                     alt={post.title}
                     imgClassName="blog-detail-banner-img"
                     width={1440}
@@ -270,7 +360,6 @@ async function PostContent({ slug }) {
               {commentsEnabled && <BlogComments slug={slug} />}
             </article>
 
-            {/* Right: Sidebar (desktop) */}
             <div style={{ width: 320, flexShrink: 0 }} className="blog-detail-sidebar">
               <BlogSidebarFull currentSlug={slug} commentsEnabled={commentsEnabled} />
             </div>
@@ -288,6 +377,7 @@ async function PostContent({ slug }) {
         }
         @media (max-width: 768px) {
           .blog-detail-title { font-size: 24px !important; line-height: 1.3 !important; }
+          .blog-detail-meta-row { align-items: stretch !important; }
           .blog-detail-banner { margin-bottom: 20px !important; max-height: none !important; border-radius: 10px !important; }
           .blog-detail-banner-img {
             width: 100% !important;

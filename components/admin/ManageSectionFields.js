@@ -4,13 +4,68 @@ import { Form, Input, Select, Switch, Collapse, Tooltip } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 
+const REQUIRED_SECTION_BG_WIDTH = 1440;
+const REQUIRED_SECTION_BG_HEIGHT = 620;
+const REQUIRED_SECTION_BG_TEXT =
+  `${REQUIRED_SECTION_BG_WIDTH} \u00D7 ${REQUIRED_SECTION_BG_HEIGHT} px`;
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+async function validateDefaultSectionBackgroundImage(_, value) {
+  const imageUrl = String(value || "").trim();
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (width === REQUIRED_SECTION_BG_WIDTH && height === REQUIRED_SECTION_BG_HEIGHT) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(
+        `Background must be exactly ${REQUIRED_SECTION_BG_TEXT}. Selected image is ${width} \u00D7 ${height} px.`,
+      ),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(
+        `Unable to validate background size. Please select an image of ${REQUIRED_SECTION_BG_TEXT}.`,
+      ),
+    );
+  }
+}
+
 /**
  * Shared "Manage Section" UI: Fluid Container + Box Container (background, padding, margin).
  * Use in any site component EditForm. Pass prefix (e.g. "testimonials", "homeHero") and form/themeColorOptions.
  */
-export default function ManageSectionFields({ prefix, form, themeColorOptions = [] }) {
+export default function ManageSectionFields({
+  prefix,
+  form,
+  themeColorOptions = [],
+  sectionBgImageFieldLabel = "Background",
+  sectionBgImageHintText = `Required size: ${REQUIRED_SECTION_BG_TEXT}`,
+  sectionBgImageRules,
+  sectionBgImageValidateTrigger,
+}) {
   const sectionBgType = (Form.useWatch(prefix + "SectionBgType", form) || "default");
   const pageContainerBgType = (Form.useWatch(prefix + "PageContainerBgType", form) || "default");
+  const resolvedSectionBgImageRules =
+    Array.isArray(sectionBgImageRules) && sectionBgImageRules.length > 0
+      ? sectionBgImageRules
+      : [{ validator: validateDefaultSectionBackgroundImage }];
+  const resolvedSectionBgImageValidateTrigger =
+    sectionBgImageValidateTrigger || ["onChange", "onBlur"];
 
   return (
     <>
@@ -52,11 +107,28 @@ export default function ManageSectionFields({ prefix, form, themeColorOptions = 
               {sectionBgType === "image" && (
                 <Form.Item
                   name={prefix + "SectionBgImage"}
-                  label="Image path / URL"
+                  label={sectionBgImageFieldLabel}
                   tooltip="Enter the full URL or path to the background image."
+                  validateTrigger={resolvedSectionBgImageValidateTrigger}
+                  rules={resolvedSectionBgImageRules}
+                  extra={
+                    sectionBgImageHintText ? (
+                      <span
+                        style={{
+                          fontSize: 12,
+                          lineHeight: 1.4,
+                          color: "rgba(0,0,0,0.45)",
+                        }}
+                      >
+                        {sectionBgImageHintText}
+                      </span>
+                    ) : undefined
+                  }
                   style={{ marginBottom: 12 }}
                 >
-                  <MediaPickerInput placeholder="e.g. /media/..." />
+                  <MediaPickerInput
+                    placeholder="e.g. /media/..."
+                  />
                 </Form.Item>
               )}
               {sectionBgType === "color" && (

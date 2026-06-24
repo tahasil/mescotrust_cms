@@ -17,6 +17,7 @@ import {
   FooterParagraph,
   CopyrightBar,
 } from "./FooterStyle";
+import { resolveYearPlaceholder } from "@/lib/yearPlaceholder";
 
 const SOCIAL_ICONS = {
   facebook: FacebookFilled,
@@ -35,24 +36,10 @@ function getSocialIcon(platform) {
   return SOCIAL_ICONS[key] || GlobalOutlined;
 }
 
-function withDynamicCopyrightYear(text, year) {
-  const raw = String(text || "").trim();
-  if (!raw) return `Copyright © ${year} All Rights Reserved.`;
-
-  // Prefer replacing the year directly after Copyright/© to preserve existing format.
-  const copyScoped = raw.replace(
-    /((?:copyright\s*©?|©)\s*)(\d{4})(?!\d)/i,
-    (_, prefix) => `${prefix}${year}`,
-  );
-  if (copyScoped !== raw) return copyScoped;
-
-  // Fallback: replace first standalone 4-digit year if present.
-  if (/\b\d{4}\b/.test(raw)) {
-    return raw.replace(/\b\d{4}\b/, String(year));
-  }
-
-  return raw;
+function withDynamicCopyrightYear(text) {
+  return resolveYearPlaceholder(text).trim();
 }
+
 
 /**
  * Footer: 100% database-driven. Layout matches reference (Ant Design Row/Col).
@@ -74,9 +61,8 @@ export default function Footer({
   footerCopyrightBarValue = "",
   preview = false,
 }) {
-  const currentYear = new Date().getFullYear();
   const title = siteTitle?.trim() || "";
-  const copy = withDynamicCopyrightYear(footerCopyrightText, currentYear);
+  const copy = withDynamicCopyrightYear(footerCopyrightText);
   const address = footerAddress?.trim() || "";
   const email = footerEmail?.trim() || "";
   const phone = footerPhone?.trim() || "";
@@ -104,20 +90,18 @@ export default function Footer({
       <FooterInner>
         <Row gutter={[16, 16]}>
           <Col xs={24}>
-            <Link href="/">
-              <FooterLogo as="span">
-                {hasLogo ? (
-                  <img
-                    loading="lazy"
-                    src={footerLogoUrl}
-                    alt={title || "Logo"}
-                    className="img-fluid"
-                  />
-                ) : title ? (
-                  <span style={{ fontSize: 20, fontWeight: 600 }}>{title}</span>
-                ) : null}
-              </FooterLogo>
-            </Link>
+            <FooterLogo as="span">
+              {hasLogo ? (
+                <img
+                  loading="lazy"
+                  src={footerLogoUrl}
+                  alt={title || ""}
+                  className="img-fluid"
+                />
+              ) : title ? (
+                <span style={{ fontSize: 20, fontWeight: 600 }}>{title}</span>
+              ) : null}
+            </FooterLogo>
           </Col>
           {hasContactOrSocial && (
             <Col xs={24} sm={12} md={12} lg={6}>
@@ -148,7 +132,7 @@ export default function Footer({
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        aria-label={String(item?.platform || "social")}
+                        aria-label={String(item?.platform || "").trim()}
                         className="footer-social-link"
                       >
                         <Icon />
@@ -173,7 +157,11 @@ export default function Footer({
               <ul>
                 {col1.map((item, i) => (
                   <li key={`col1-${i}-${item.url || ""}-${item.label || ""}`}>
-                    <a href={item.url || "#"}>{item.label || ""}</a>
+                    {item.url ? (
+                      <a href={item.url}>{item.label || ""}</a>
+                    ) : (
+                      <span>{item.label || ""}</span>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -184,7 +172,11 @@ export default function Footer({
               <ul>
                 {col2.map((item, i) => (
                   <li key={`col2-${i}-${item.url || ""}-${item.label || ""}`}>
-                    <a href={item.url || "#"}>{item.label || ""}</a>
+                    {item.url ? (
+                      <a href={item.url}>{item.label || ""}</a>
+                    ) : (
+                      <span>{item.label || ""}</span>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -200,3 +192,4 @@ export default function Footer({
     </FooterContainer>
   );
 }
+

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Button,
+  DatePicker,
   Form,
   Input,
   Space,
@@ -16,15 +17,41 @@ import {
 } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import Link from "next/link";
+import dayjs from "dayjs";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { ThemeAdminCard } from "@/styles/Theme";
 
-function toDateInput(v) {
+const { RangePicker } = DatePicker;
+const DESKTOP_REQUIRED_WIDTH = 800;
+const DESKTOP_REQUIRED_HEIGHT = 400;
+const DESKTOP_REQUIRED_TEXT = `${DESKTOP_REQUIRED_WIDTH} \u00D7 ${DESKTOP_REQUIRED_HEIGHT} px`;
+
+function toDateTimeValue(v, fallbackTime = "") {
   if (!v) return undefined;
-  const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return undefined;
-  return d.toISOString().slice(0, 10);
+  const base = dayjs(v);
+  if (!base.isValid()) return undefined;
+
+  const match = fallbackTime
+    .toString()
+    .trim()
+    .match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return base;
+
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (
+    Number.isNaN(hours) ||
+    Number.isNaN(minutes) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59
+  ) {
+    return base;
+  }
+
+  return base.hour(hours).minute(minutes).second(0).millisecond(0);
 }
 
 function parseTimeRangeString(s) {
@@ -36,6 +63,52 @@ function parseTimeRangeString(s) {
     .filter(Boolean);
   if (parts.length >= 2) return { start: parts[0], end: parts[1] };
   return { start: raw, end: "" };
+}
+
+function toIsoStringOrNull(dateVal) {
+  if (!dateVal || !dayjs.isDayjs(dateVal) || !dateVal.isValid()) return null;
+  return dateVal.toDate().toISOString();
+}
+
+function toTimeText(dateVal) {
+  if (!dateVal || !dayjs.isDayjs(dateVal) || !dateVal.isValid()) return "";
+  return dateVal.format("HH:mm");
+}
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+async function validateDesktopImageDimensions(_, value) {
+  const imageUrl = String(value || "").trim();
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (width === DESKTOP_REQUIRED_WIDTH && height === DESKTOP_REQUIRED_HEIGHT) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(
+        `Desktop Image must be exactly ${DESKTOP_REQUIRED_TEXT}. Selected image is ${width} \u00D7 ${height} px.`,
+      ),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(
+        `Unable to validate desktop image size. Please use ${DESKTOP_REQUIRED_TEXT}.`,
+      ),
+    );
+  }
 }
 
 export default function AdminEventEditPage() {
@@ -59,23 +132,25 @@ export default function AdminEventEditPage() {
         }
         const data = await res.json();
         const tr = parseTimeRangeString(data.time);
+        const startDateValue = toDateTimeValue(data.startDate, tr.start);
+        const endDateValue = toDateTimeValue(data.endDate, tr.end);
         form.setFieldsValue({
           title: data.title,
           slug: data.slug,
           description: data.description,
           content: data.content,
           featuredImageDesktop: data.featuredImageDesktop,
-          featuredImageMobile: data.featuredImageMobile,
-          startDate: toDateInput(data.startDate),
-          endDate: toDateInput(data.endDate),
-          startTime: tr.start,
-          endTime: tr.end,
+          eventDateRange:
+            startDateValue || endDateValue
+              ? [startDateValue || null, endDateValue || null]
+              : undefined,
           location: data.location,
           isOnline: !!data.isOnline,
           eventLink: data.eventLink,
           status: data.status,
           metaTitle: data.meta?.metaTitle,
           metaDescription: data.meta?.metaDescription,
+          metaKeywords: data.meta?.metaKeywords,
         });
       } catch {
         message.error("Failed to load event");
@@ -88,8 +163,11 @@ export default function AdminEventEditPage() {
   const onFinish = async (values) => {
     setSaving(true);
     try {
-      const startT = (values.startTime || "").toString().trim();
-      const endT = (values.endTime || "").toString().trim();
+      const [startDateValue, endDateValue] = Array.isArray(values.eventDateRange)
+        ? values.eventDateRange
+        : [];
+      const startT = toTimeText(startDateValue);
+      const endT = toTimeText(endDateValue);
       const timeStr =
         startT && endT ? `${startT} - ${endT}` : startT || endT || "";
       const res = await fetch(`/api/admin/events/${id}`, {
@@ -100,9 +178,8 @@ export default function AdminEventEditPage() {
           description: values.description || "",
           content: values.content || "",
           featuredImageDesktop: values.featuredImageDesktop || "",
-          featuredImageMobile: values.featuredImageMobile || "",
-          startDate: values.startDate || null,
-          endDate: values.endDate || null,
+          startDate: toIsoStringOrNull(startDateValue),
+          endDate: toIsoStringOrNull(endDateValue),
           time: timeStr,
           location: values.isOnline ? "" : values.location || "",
           isOnline: !!values.isOnline,
@@ -110,6 +187,7 @@ export default function AdminEventEditPage() {
           meta: {
             metaTitle: values.metaTitle,
             metaDescription: values.metaDescription,
+            metaKeywords: values.metaKeywords,
           },
         }),
       });
@@ -177,25 +255,23 @@ export default function AdminEventEditPage() {
               <Input placeholder="https://..." />
             </Form.Item>
           </Col>
+          <Col xs={24} sm={12} xl={6}>
+            <Form.Item name="location" label="Location">
+              <Input
+                disabled={isOnline}
+                placeholder={isOnline ? "Online event" : "Venue or address"}
+              />
+            </Form.Item>
+          </Col>
 
-          <Col xs={24} sm={12} xl={6}>
-            <Form.Item name="startDate" label="Start date">
-              <Input type="date" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} xl={6}>
-            <Form.Item name="endDate" label="End date">
-              <Input type="date" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} xl={6}>
-            <Form.Item name="startTime" label="Start time">
-              <Input type="time" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} xl={6}>
-            <Form.Item name="endTime" label="End time">
-              <Input type="time" />
+          <Col xs={24} sm={12} xl={12}>
+            <Form.Item name="eventDateRange" label="Event date & time range">
+              <RangePicker
+                showTime={{ format: "HH:mm" }}
+                format="DD-MM-YYYY HH:mm"
+                style={{ width: "100%" }}
+                placeholder={["Start date & time", "End date & time"]}
+              />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12} xl={6}>
@@ -210,31 +286,29 @@ export default function AdminEventEditPage() {
 
           <Col xs={24} sm={12} xl={6}>
             <Form.Item
-              noStyle
-              shouldUpdate={(prev, cur) => prev.isOnline !== cur.isOnline}
+              name="metaTitle"
+              label="Meta title"
+              extra="Used for social sharing title (Facebook, X, LinkedIn, WhatsApp, Telegram, Email)."
             >
-              {({ getFieldValue }) =>
-                getFieldValue("isOnline") ? (
-                  <Form.Item label="Location">
-                    <Input disabled placeholder="Online event" />
-                  </Form.Item>
-                ) : (
-                  <Form.Item name="location" label="Location">
-                    <Input placeholder="Venue or address" />
-                  </Form.Item>
-                )
-              }
-            </Form.Item>
-          </Col>
-
-          <Col xs={24} sm={12} xl={6}>
-            <Form.Item name="metaTitle" label="Meta title">
               <Input />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12} xl={12}>
-            <Form.Item name="metaDescription" label="Meta description">
+            <Form.Item
+              name="metaDescription"
+              label="Meta description"
+              extra="Used for social sharing description when available."
+            >
               <Input.TextArea rows={2} />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12} xl={6}>
+            <Form.Item
+              name="metaKeywords"
+              label="Meta keywords"
+              extra="Comma separated. Example: education, scholarship, ngo"
+            >
+              <Input />
             </Form.Item>
           </Col>
 
@@ -259,32 +333,18 @@ export default function AdminEventEditPage() {
               <Col xs={24} xl={12}>
                 <Card title="Featured Images" size="small">
                   <Row gutter={[12, 12]}>
-                    <Col xs={24} md={12}>
+                    <Col xs={24}>
                       <Card title="Desktop Image" size="small">
                         <Form.Item
                           name="featuredImageDesktop"
+                          validateTrigger={["onChange", "onBlur"]}
+                          rules={[{ validator: validateDesktopImageDimensions }]}
                           style={{ marginBottom: 0 }}
                         >
                           <MediaPickerInput
                             placeholder="/media/..."
                             uiVariant="stacked"
-                            showVariants={false}
-                            hintText="Recommended: 1200x600"
-                          />
-                        </Form.Item>
-                      </Card>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Card title="Mobile Image" size="small">
-                        <Form.Item
-                          name="featuredImageMobile"
-                          style={{ marginBottom: 0 }}
-                        >
-                          <MediaPickerInput
-                            placeholder="/media/..."
-                            uiVariant="stacked"
-                            showVariants={false}
-                            hintText="Optional for mobile"
+                            hintText={`Required size: ${DESKTOP_REQUIRED_TEXT}`}
                           />
                         </Form.Item>
                       </Card>

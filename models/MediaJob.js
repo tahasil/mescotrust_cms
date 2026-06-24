@@ -12,7 +12,7 @@ const mediaJobSchema = new mongoose.Schema(
   {
     jobType: {
       type: String,
-      enum: ["bulk_optimize", "regenerate_sizes", "convert_formats"],
+      enum: ["bulk_optimize", "convert_formats"],
       required: true,
     },
     status: {
@@ -39,3 +39,4 @@ mediaJobSchema.index({ status: 1, jobType: 1 });
 module.exports =
   (mongoose.models && mongoose.models.MediaJob) ||
   mongoose.model("MediaJob", mediaJobSchema);
+

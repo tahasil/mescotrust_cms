@@ -26,7 +26,6 @@ import {
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
-import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -53,19 +52,8 @@ const FALLBACK_THEME_COLOR_KEYS = [
  * When editing from Admin → Components: load/save via API_PATH (component doc).
  */
 function normalizeItem(it) {
-  const desktopImage =
-    it?.imageDesktop != null
-      ? String(it.imageDesktop).trim()
-      : it?.imageUrl != null
-        ? String(it.imageUrl).trim()
-        : "";
-  const mobileImage =
-    it?.imageMobile != null ? String(it.imageMobile).trim() : "";
   return {
     quote: it?.quote != null ? String(it.quote).trim() : "",
-    imageDesktop: desktopImage,
-    imageMobile: mobileImage,
-    imageUrl: desktopImage,
     name: it?.name != null ? String(it.name).trim() : "",
     title: it?.title != null ? String(it.title).trim() : "",
     rating: Math.min(5, Math.max(0, Number(it?.rating) || 0)),
@@ -103,6 +91,10 @@ function TestimonialsEditForm(
           data?.testimonialsTitle != null
             ? String(data.testimonialsTitle).trim()
             : "Testimonials",
+        testimonialsTitleAlign:
+          data?.testimonialsTitleAlign != null
+            ? String(data.testimonialsTitleAlign).trim()
+            : "center",
         testimonialsTitleColorKey:
           data?.testimonialsTitleColorKey != null
             ? String(data.testimonialsTitleColorKey).trim()
@@ -118,6 +110,14 @@ function TestimonialsEditForm(
         testimonialsRatingColorKey:
           data?.testimonialsRatingColorKey != null
             ? String(data.testimonialsRatingColorKey).trim()
+            : "",
+        testimonialsAvatarBgColorKey:
+          data?.testimonialsAvatarBgColorKey != null
+            ? String(data.testimonialsAvatarBgColorKey).trim()
+            : "",
+        testimonialsAvatarTextColorKey:
+          data?.testimonialsAvatarTextColorKey != null
+            ? String(data.testimonialsAvatarTextColorKey).trim()
             : "",
         testimonialsTitleEnabled: data?.testimonialsTitleEnabled !== false,
         testimonialsAutoplay: data?.testimonialsAutoplay ?? false,
@@ -202,6 +202,10 @@ function TestimonialsEditForm(
           values.testimonialsTitle != null
             ? String(values.testimonialsTitle).trim()
             : "Testimonials",
+        testimonialsTitleAlign:
+          values.testimonialsTitleAlign != null
+            ? String(values.testimonialsTitleAlign).trim()
+            : "center",
         testimonialsTitleColorKey:
           values.testimonialsTitleColorKey != null
             ? String(values.testimonialsTitleColorKey).trim()
@@ -217,6 +221,14 @@ function TestimonialsEditForm(
         testimonialsRatingColorKey:
           values.testimonialsRatingColorKey != null
             ? String(values.testimonialsRatingColorKey).trim()
+            : "",
+        testimonialsAvatarBgColorKey:
+          values.testimonialsAvatarBgColorKey != null
+            ? String(values.testimonialsAvatarBgColorKey).trim()
+            : "",
+        testimonialsAvatarTextColorKey:
+          values.testimonialsAvatarTextColorKey != null
+            ? String(values.testimonialsAvatarTextColorKey).trim()
             : "",
         testimonialsTitleEnabled: values.testimonialsTitleEnabled !== false,
         testimonialsAutoplay: values.testimonialsAutoplay === true,
@@ -485,9 +497,6 @@ function TestimonialsEditForm(
                     addButtonText="Add testimonial"
                     defaultAddPayload={{
                       quote: "",
-                      imageDesktop: "",
-                      imageMobile: "",
-                      imageUrl: "",
                       name: "",
                       title: "",
                       rating: 5,
@@ -509,24 +518,6 @@ function TestimonialsEditForm(
                             rules={[{ required: true, message: "Quote is required" }]}
                           >
                             <Input.TextArea rows={4} placeholder="Testimonial text" size="large" />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "imageDesktop"]} label="Desktop Photo">
-                            <MediaPickerInput
-                              placeholder="https://..."
-                              uiVariant="stacked"
-                              hintText="Recommended for desktop/tablet"
-                            />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "imageMobile"]} label="Mobile Photo">
-                            <MediaPickerInput
-                              placeholder="https://..."
-                              uiVariant="stacked"
-                              hintText="Optional. Desktop image will be used if empty."
-                            />
                           </Form.Item>
                         </Col>
                         <Col span={24}>

@@ -1,8 +1,13 @@
 import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
+import { normalizeRole } from "@/lib/permissions";
 
 const adminPathPrefix = "/admin";
 const loginPath = "/admin/login";
+const FORM_BUILDER_PATH_PREFIXES = ["/admin/form-builder", "/api/admin/forms"];
+const CSRF_ORIGIN_EXEMPT_PATHS = new Set([
+  "/api/payment/callback",
+]);
 
 const LOGIN_WINDOW_MS = 60_000;
 const LOGIN_MAX = 10;
@@ -33,6 +38,23 @@ function isAdminRoute(pathname) {
   return pathname.startsWith(adminPathPrefix) || pathname.startsWith("/api/admin");
 }
 
+function isFormBuilderPath(pathname) {
+  return FORM_BUILDER_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
+function isAuthorAllowedAdminPath(pathname) {
+  return pathname === "/admin" || pathname.startsWith("/admin/blogs") || pathname.startsWith("/admin/events");
+}
+
+function isAuthorAllowedAdminApi(pathname, method) {
+  return (
+    pathname.startsWith("/api/admin/dashboard") ||
+    pathname.startsWith("/api/admin/blogs") ||
+    pathname.startsWith("/api/admin/events") ||
+    (method === "GET" && pathname.startsWith("/api/admin/blog-categories"))
+  );
+}
+
 function isMediaObjectIdPath(pathname) {
   const m = pathname.match(/^\/media\/([^/]+)$/);
   if (!m) return false;
@@ -43,12 +65,43 @@ function isStateChanging(method) {
   return method === "POST" || method === "PUT" || method === "PATCH" || method === "DELETE";
 }
 
-function checkSameOrigin(req) {
+function isCsrfExemptPath(pathname) {
+  return CSRF_ORIGIN_EXEMPT_PATHS.has(pathname);
+}
+
+function checkSameOrigin(req, pathname) {
+  if (isCsrfExemptPath(pathname)) return true;
+
   const origin = req.headers.get("origin");
   const host = req.headers.get("host");
-  if (!origin) return true;
+  const requestProto =
+    req.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() ||
+    req.nextUrl.protocol.replace(":", "");
+
+  if (!origin) {
+    const referer = req.headers.get("referer");
+    if (referer) {
+      try {
+        const refererUrl = new URL(referer);
+        return (
+          refererUrl.host === host &&
+          refererUrl.protocol.replace(":", "") === requestProto
+        );
+      } catch {
+        return false;
+      }
+    }
+
+    const secFetchSite = req.headers.get("sec-fetch-site");
+    if (!secFetchSite) return false;
+    return secFetchSite === "same-origin" || secFetchSite === "same-site" || secFetchSite === "none";
+  }
   try {
-    return new URL(origin).host === host;
+    const originUrl = new URL(origin);
+    return (
+      originUrl.host === host &&
+      originUrl.protocol.replace(":", "") === requestProto
+    );
   } catch {
     return false;
   }
@@ -82,7 +135,7 @@ export async function middleware(req) {
   }
 
   if (pathname.startsWith("/api/") && isStateChanging(req.method)) {
-    if (!checkSameOrigin(req)) {
+    if (!checkSameOrigin(req, pathname)) {
       return NextResponse.json({ error: "Forbidden: cross-origin request" }, { status: 403 });
     }
   }
@@ -108,9 +161,10 @@ export async function middleware(req) {
     url.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(url);
   }
+  const role = normalizeRole(token);
 
   const adminOnlyPaths = ["/admin/users", "/admin/theme", "/api/admin/users"];
-  if (token.role !== "Admin" && adminOnlyPaths.some((p) => pathname.startsWith(p))) {
+  if (role !== "Admin" && adminOnlyPaths.some((p) => pathname.startsWith(p))) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Forbidden: Admin only" }, { status: 403 });
     }
@@ -118,6 +172,28 @@ export async function middleware(req) {
     url.pathname = "/admin";
     url.searchParams.set("forbidden", "1");
     return NextResponse.redirect(url);
+  }
+
+  if (isFormBuilderPath(pathname) && role !== "Admin" && role !== "Editor") {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Forbidden: Form Builder access requires Admin or Editor role" }, { status: 403 });
+    }
+    const url = req.nextUrl.clone();
+    url.pathname = "/admin";
+    url.searchParams.set("forbidden", "1");
+    return NextResponse.redirect(url);
+  }
+
+  if (role === "Author") {
+    if (pathname.startsWith("/api/admin") && !isAuthorAllowedAdminApi(pathname, req.method)) {
+      return NextResponse.json({ error: "Forbidden: Author access limited to blog/event APIs" }, { status: 403 });
+    }
+    if (pathname.startsWith("/admin") && !isAuthorAllowedAdminPath(pathname)) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/admin";
+      url.searchParams.set("forbidden", "1");
+      return NextResponse.redirect(url);
+    }
   }
 
   return withPathname(req);

@@ -4,6 +4,7 @@ import { Row, Col, Collapse } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 import styled from "styled-components";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
+import SafeHtml from "@/components/cms/SafeHtml";
 
 const StyledCollapse = styled(Collapse)`
   && {
@@ -138,18 +139,7 @@ export default function Accordion(props) {
 
   const items = normalizedItems.map((it) => ({
     ...it,
-    children: (
-      <div
-        className="w-100"
-        dangerouslySetInnerHTML={{
-          __html: (it.children || "")
-            .replace(/\s*(color|background-color)\s*:\s*[^;"]+(;?)/gi, "")
-            .replace(/<span[^>]*>/gi, "")
-            .replace(/<\/span>/gi, "")
-            .replace(/&nbsp;/gi, " "),
-        }}
-      />
-    ),
+    children: <SafeHtml html={it.children || ""} className="w-100" />,
   }));
 
   const PREFIX = "accordion";

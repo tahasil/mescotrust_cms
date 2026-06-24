@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Page from "@/models/Page";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req, { params }) {
   try {
     const slug = params.slug;
@@ -25,7 +27,12 @@ export async function GET(req, { params }) {
       componentId: block.componentId,
     }));
 
-    return NextResponse.json({ ...page, layout });
+    return NextResponse.json(
+      { ...page, layout },
+      {
+        headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+      },
+    );
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import styled from "styled-components";
 import Link from "next/link";
 import MediaImage from "@/components/shared/MediaImage";
+import { getBlogImageSources } from "@/components/blog/blogDisplay";
 
 const SidebarWrap = styled.aside`
   @media (max-width: 992px) {
@@ -111,11 +112,14 @@ export default function BlogSidebar({ currentSlug, commentCounts }) {
         <div className="sidebar-title">Recent Posts</div>
         {display.map((post) => (
           <RecentPostItem key={post._id}>
-            {post.featuredImage && (
+            {(() => {
+              const { desktop, mobile } = getBlogImageSources(post);
+              if (!desktop) return null;
+              return (
               <Link href={`/blog/${post.slug}`} className="rp-image">
                 <MediaImage
-                  src={post.featuredImage}
-                  variant="thumbnail"
+                  src={desktop}
+                  mobileSrc={mobile && mobile !== desktop ? mobile : ""}
                   alt={post.title}
                   width={160}
                   height={140}
@@ -123,7 +127,8 @@ export default function BlogSidebar({ currentSlug, commentCounts }) {
                   imgStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                 />
               </Link>
-            )}
+              );
+            })()}
             <div className="rp-body">
               <div className="rp-title">
                 <Link href={`/blog/${post.slug}`}>{post.title}</Link>

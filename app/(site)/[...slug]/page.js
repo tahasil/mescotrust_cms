@@ -6,27 +6,25 @@ export const dynamic = "force-dynamic";
 import Page from "@/models/Page";
 import Component from "@/models/Component";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
+import { filterLayoutBlocksForPath } from "@/lib/routeComponentRules";
+import { getPageSeoMetadata } from "@/lib/seo";
 
 const RESERVED = ["admin", "blog", "contact", "search", "api", "preview"];
 
 export async function generateMetadata({ params }) {
   const slug = Array.isArray(params.slug) ? params.slug.join("/") : params.slug;
   if (RESERVED.includes(slug.split("/")[0])) return {};
-  try {
-    await connectDB();
-    const page = await Page.findOne({ slug, status: "published" }).lean();
-    if (!page) return {};
-    const title = page.meta?.metaTitle || page.title;
-    const description = page.meta?.metaDescription || undefined;
-    return {
-      title,
-      description,
-      alternates: { canonical: `/${slug}` },
-      openGraph: { title, description, url: `/${slug}`, type: "website" },
-    };
-  } catch {
-    return {};
-  }
+  return getPageSeoMetadata({
+    slug,
+    fallbackTitle: slug
+      .split("/")
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" "),
+    fallbackDescription: "",
+    fallbackCanonical: `/${slug}`,
+    fallbackOpenGraphUrl: `/${slug}`,
+  });
 }
 
 function ContentSkeleton() {
@@ -56,7 +54,7 @@ async function PageContent({ slug }) {
 
   if (!page) notFound();
 
-  const layoutBlocks = page.layout || [];
+  const layoutBlocks = filterLayoutBlocksForPath(page.layout || [], `/${slug}`);
   const baseComponents = [...new Set(layoutBlocks.map((b) => b.baseComponent || (typeof b.componentId === "object" && b.componentId?.baseComponent) || (typeof b.componentId === "string" ? b.componentId : null) || "Paragraph"))].filter(Boolean);
   const componentDocs = await Component.find({ baseComponent: { $in: baseComponents } }).lean();
   const defaultPropsByBase = {};

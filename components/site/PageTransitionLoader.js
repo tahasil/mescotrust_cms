@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
 function isInternalNavigableAnchor(anchor) {
@@ -21,8 +21,9 @@ function isInternalNavigableAnchor(anchor) {
   }
   if (url.origin !== window.location.origin) return false;
 
-  const nextPath = `${url.pathname}${url.search}${url.hash}`;
-  const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  // Hash-only updates do not require route-data loading.
+  const nextPath = `${url.pathname}${url.search}`;
+  const currentPath = `${window.location.pathname}${window.location.search}`;
   return nextPath !== currentPath;
 }
 
@@ -40,9 +41,12 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
   const hideTimerRef = useRef(null);
   const failSafeTimerRef = useRef(null);
   const loaderElRef = useRef(null);
+  const routeReadyRef = useRef(true);
+  const pendingBoundariesRef = useRef(0);
   const SHOW_DELAY_MS = 30;
+  const FAIL_SAFE_MS = 20000;
 
-  const clearTimers = () => {
+  const clearTimers = useCallback(() => {
     if (showDelayTimerRef.current) {
       window.clearTimeout(showDelayTimerRef.current);
       showDelayTimerRef.current = null;
@@ -55,9 +59,9 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
       window.clearTimeout(failSafeTimerRef.current);
       failSafeTimerRef.current = null;
     }
-  };
+  }, []);
 
-  const hideNow = () => {
+  const hideNow = useCallback(() => {
     const loaderEl = loaderElRef.current || document.getElementById("page-loader");
     if (!loaderEl) return;
     loaderEl.classList.add("page-loader-hidden");
@@ -65,9 +69,9 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
     document.documentElement.classList.remove("page-loading");
     document.body.classList.remove("page-loading");
     activeRef.current = false;
-  };
+  }, []);
 
-  const hideLoader = () => {
+  const hideLoader = useCallback(() => {
     if (showDelayTimerRef.current) {
       window.clearTimeout(showDelayTimerRef.current);
       showDelayTimerRef.current = null;
@@ -80,9 +84,9 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
       hideNow();
       clearTimers();
     }, wait);
-  };
+  }, [clearTimers, hideNow, minDuration]);
 
-  const showLoader = () => {
+  const showLoader = useCallback(() => {
     if (!enabled) return;
     if (activeRef.current || showDelayTimerRef.current) return;
     clearTimers();
@@ -100,10 +104,22 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
       failSafeTimerRef.current = window.setTimeout(() => {
         hideNow();
         clearTimers();
-      }, 8000);
+      }, FAIL_SAFE_MS);
       showDelayTimerRef.current = null;
     }, SHOW_DELAY_MS);
-  };
+  }, [FAIL_SAFE_MS, SHOW_DELAY_MS, clearTimers, enabled, hideNow]);
+
+  const startNavigationLoader = useCallback(() => {
+    routeReadyRef.current = false;
+    showLoader();
+  }, [showLoader]);
+
+  const tryHideLoader = useCallback(() => {
+    if (!enabled) return;
+    if (pendingBoundariesRef.current > 0) return;
+    if (!routeReadyRef.current) return;
+    hideLoader();
+  }, [enabled, hideLoader]);
 
   useEffect(() => {
     loaderElRef.current = document.getElementById("page-loader");
@@ -111,7 +127,7 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
       hideNow();
       clearTimers();
     }
-  }, [enabled]);
+  }, [enabled, hideNow, clearTimers]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -124,7 +140,7 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const anchor = event.target?.closest?.("a[href]");
       if (!isInternalNavigableAnchor(anchor)) return;
-      showLoader();
+      startNavigationLoader();
     };
 
     window.history.pushState = function patchedPushState(...args) {
@@ -132,7 +148,9 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
         try {
           const target = new URL(String(args[2]), window.location.href);
           const current = new URL(window.location.href);
-          if (`${target.pathname}${target.search}${target.hash}` !== `${current.pathname}${current.search}${current.hash}`) showLoader();
+          if (`${target.pathname}${target.search}` !== `${current.pathname}${current.search}`) {
+            startNavigationLoader();
+          }
         } catch {}
       }
       return originalPushState.apply(window.history, args);
@@ -143,7 +161,9 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
         try {
           const target = new URL(String(args[2]), window.location.href);
           const current = new URL(window.location.href);
-          if (`${target.pathname}${target.search}${target.hash}` !== `${current.pathname}${current.search}${current.hash}`) showLoader();
+          if (`${target.pathname}${target.search}` !== `${current.pathname}${current.search}`) {
+            startNavigationLoader();
+          }
         } catch {}
       }
       return originalReplaceState.apply(window.history, args);
@@ -158,16 +178,28 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
       clearTimers();
     };
 
-    const onPopState = () => showLoader();
-    const onPageShow = () => hideLoader();
+    const onPopState = () => startNavigationLoader();
+    const onPageShow = () => tryHideLoader();
     const onVisibility = () => {
-      if (document.visibilityState === "visible") hideLoader();
+      if (document.visibilityState === "visible") tryHideLoader();
+    };
+    const onRouteLoadingBoundary = (event) => {
+      const active = event?.detail?.active === true;
+      if (active) {
+        pendingBoundariesRef.current += 1;
+        routeReadyRef.current = false;
+        showLoader();
+        return;
+      }
+      pendingBoundariesRef.current = Math.max(0, pendingBoundariesRef.current - 1);
+      tryHideLoader();
     };
 
     document.addEventListener("click", onClickCapture, true);
     window.addEventListener("popstate", onPopState);
     window.addEventListener("pageshow", onPageShow);
     document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("site-route-loading", onRouteLoadingBoundary);
     window.addEventListener("unhandledrejection", onUnhandledRejection);
     window.addEventListener("error", onWindowError);
 
@@ -176,18 +208,20 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
       window.removeEventListener("popstate", onPopState);
       window.removeEventListener("pageshow", onPageShow);
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("site-route-loading", onRouteLoadingBoundary);
       window.removeEventListener("unhandledrejection", onUnhandledRejection);
       window.removeEventListener("error", onWindowError);
       window.history.pushState = originalPushState;
       window.history.replaceState = originalReplaceState;
       clearTimers();
     };
-  }, [enabled, minDuration]);
+  }, [enabled, minDuration, showLoader, startNavigationLoader, tryHideLoader, hideNow, clearTimers]);
 
   useEffect(() => {
     if (!enabled) return;
-    hideLoader();
-  }, [enabled, routeKey, minDuration]);
+    routeReadyRef.current = true;
+    tryHideLoader();
+  }, [enabled, routeKey, minDuration, tryHideLoader]);
 
   return null;
 }

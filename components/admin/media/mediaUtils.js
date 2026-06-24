@@ -1,11 +1,10 @@
+import { formatDateTime } from "@/lib/formatDate";
+import { buildMediaVariantUrl } from "@/lib/media/url";
+
 export const PAGE_SIZE = 24;
 
 export const GENERATED_SIZE_ORDER = [
-  ["thumbnail", "Thumb"],
-  ["medium", "Medium"],
-  ["large", "Large"],
-  ["mobile", "Mobile"],
-  ["desktop", "Desktop"],
+  ["original", "Original"],
 ];
 
 export function isImage(item) {
@@ -22,10 +21,14 @@ export function formatBytes(bytes) {
 }
 
 export function formatDate(dateValue) {
-  if (!dateValue) return "-";
-  const date = new Date(dateValue);
-  if (Number.isNaN(date.getTime())) return "-";
-  return date.toLocaleString();
+  return formatDateTime(dateValue);
+}
+
+export function effectiveDisplaySize(item) {
+  const optimized = Number(item?.optimizedSize) || 0;
+  const fallback = Number(item?.size || item?.originalSize) || 0;
+  if (isImage(item) && optimized > 0) return optimized;
+  return fallback;
 }
 
 export function monthLabel(monthValue) {
@@ -40,28 +43,63 @@ export function monthLabel(monthValue) {
 function mediaProxyUrl(item, { size = "", format = "" } = {}) {
   const id = String(item?._id || "").trim();
   if (!id) return "";
-  const params = new URLSearchParams();
-  if (size) params.set("size", String(size));
-  if (format) params.set("format", String(format));
-  const query = params.toString();
-  return query ? `/media/${id}?${query}` : `/media/${id}`;
+  if (!size && !format) return `/media/${id}`;
+  return buildMediaVariantUrl(id, {
+    size: size || "original",
+    format: format || "auto",
+  });
+}
+
+export function getSizeVariant(item, key) {
+  if (!item) {
+    return {
+      width: 0,
+      height: 0,
+      size: 0,
+      jpgUrl: "",
+      webpUrl: "",
+      avifUrl: "",
+    };
+  }
+
+  if (String(key || "") === "original") {
+    const originalVariant = item?.generatedSizes?.original || {};
+    return {
+      width: Number(item?.finalWidth || item?.width || originalVariant?.width) || 0,
+      height: Number(item?.finalHeight || item?.height || originalVariant?.height) || 0,
+      size: Number(originalVariant?.size || item?.size || item?.originalSize) || 0,
+      jpgUrl: originalVariant?.jpgUrl || item?.originalUrl || item?.url || "",
+      webpUrl: item?.webpUrl || originalVariant?.webpUrl || "",
+      avifUrl: item?.avifUrl || originalVariant?.avifUrl || "",
+    };
+  }
+
+  const variant = item?.generatedSizes?.[key] || {};
+  return {
+    width: Number(variant?.width) || 0,
+    height: Number(variant?.height) || 0,
+    size: Number(variant?.size) || 0,
+    jpgUrl: variant?.jpgUrl || "",
+    webpUrl: variant?.webpUrl || "",
+    avifUrl: variant?.avifUrl || "",
+  };
 }
 
 export function previewUrl(item) {
   if (!isImage(item)) return "";
-  const proxy = mediaProxyUrl(item, { size: "thumbnail", format: "auto" });
+  const proxy = mediaProxyUrl(item, { size: "original", format: "auto" });
   if (proxy) return proxy;
+  const original = getSizeVariant(item, "original");
   return (
-    item?.generatedSizes?.thumbnail?.jpgUrl ||
-    item?.generatedSizes?.medium?.jpgUrl ||
-    item?.url ||
-    item?.originalUrl ||
+    original.jpgUrl ||
+    original.webpUrl ||
+    original.avifUrl ||
     ""
   );
 }
 
 export function originalMediaUrl(item) {
-  const proxy = mediaProxyUrl(item, { size: "original", format: "original" });
+  const proxy = mediaProxyUrl(item, { size: "original", format: "jpg" });
   return proxy || item?.originalUrl || item?.url || "";
 }
 

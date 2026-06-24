@@ -11,11 +11,57 @@ import Component from "@/models/Component";
 import ThemeConfig from "@/models/ThemeConfig";
 import { isAdmin } from "@/lib/permissions";
 import { getRegistryIdsFromDisk } from "@/lib/getRegistryIdsFromDisk";
+import { normalizeThemeColorCollections } from "@/lib/themeColorFallbacks";
+import { validateOverviewOfOurWorkBackgroundImages } from "@/lib/overviewOfOurWorkImageValidation";
+import { validateWelcometoMESCOImage } from "@/lib/welcometoMESCOImageValidation";
+import {
+  INNER_PAGE_HERO_REQUIRED_IMAGE_HEIGHT,
+  INNER_PAGE_HERO_REQUIRED_IMAGE_WIDTH,
+  validateInnerPageHeroBackgroundImage,
+} from "@/lib/innerPageHeroImageValidation";
+import { validateLatestEvents1Images } from "@/lib/latestEvents1ImageValidation";
+import { validateStoriesSliderImages } from "@/lib/storiesSliderImageValidation";
+import { validateImpactShowcaseImages } from "@/lib/impactShowcaseImageValidation";
+import { validateHelpingpeopleImage } from "@/lib/helpingpeopleImageValidation";
+import { validateManagingCommitteeImage } from "@/lib/managingCommitteeImageValidation";
+import { validateCommitteeMembersImages } from "@/lib/committeeMembersImageValidation";
+import { validateManageSectionBackgroundImages } from "@/lib/manageSectionBackgroundImageValidation";
+import {
+  validateMissionImage,
+  validateVisionImage,
+} from "@/lib/visionMissionImageValidation";
+import { validateCardsImages } from "@/lib/cardsImageValidation";
+import { validateImageSliderImages } from "@/lib/imageSliderImageValidation";
+import { validateImagesImage } from "@/lib/imagesImageValidation";
+import { validateOverlayCardsImages } from "@/lib/overlayCardsImageValidation";
+import { validateReportsImages } from "@/lib/reportsImageValidation";
+import {
+  stripPhotoGalleryMobileCoverImages,
+  validatePhotoGalleryCoverImages,
+} from "@/lib/photoGalleryImageValidation";
+import {
+  stripVideoPlayingMobileCoverImage,
+  validateVideoPlayingCoverImage,
+} from "@/lib/videoPlayingImageValidation";
 
 export const dynamic = "force-dynamic";
 
 const STATIC_ROUTES = ["header", "footer", "subscribe", "home-hero", "marquee"];
 const THEME_QUERY = { $or: [{ themeKey: "default" }, { themeKey: { $exists: false } }] };
+const SHORT_CODE_REQUIRED_IMAGE_WIDTH = 1440;
+const SHORT_CODE_REQUIRED_IMAGE_HEIGHT = 378;
+const HOME_HERO_2_MIN_BACKGROUND_IMAGE_WIDTH = 1440;
+const HOME_HERO_2_MIN_BACKGROUND_IMAGE_HEIGHT = 620;
+
+function sanitizeComponentDefaultProps(componentId, props) {
+  if (componentId === "VideoPlaying") {
+    return stripVideoPlayingMobileCoverImage(props);
+  }
+  if (componentId === "PhotoGallery") {
+    return stripPhotoGalleryMobileCoverImages(props);
+  }
+  return props;
+}
 
 function isAllowed(componentId) {
   if (!componentId || typeof componentId !== "string") return false;
@@ -23,6 +69,30 @@ function isAllowed(componentId) {
   if (STATIC_ROUTES.includes(id.toLowerCase())) return false;
   const ids = getRegistryIdsFromDisk();
   return ids.includes(id);
+}
+
+function getManageSectionBackgroundValidationOptions(componentId) {
+  if (componentId === "InnerPageHero") {
+    return {
+      requiredWidth: INNER_PAGE_HERO_REQUIRED_IMAGE_WIDTH,
+      requiredHeight: INNER_PAGE_HERO_REQUIRED_IMAGE_HEIGHT,
+    };
+  }
+  if (componentId === "ShortCode") {
+    return {
+      requiredWidth: SHORT_CODE_REQUIRED_IMAGE_WIDTH,
+      requiredHeight: SHORT_CODE_REQUIRED_IMAGE_HEIGHT,
+    };
+  }
+  if (componentId === "HomeHero2") {
+    return {
+      validationMode: "minimum",
+      minWidth: HOME_HERO_2_MIN_BACKGROUND_IMAGE_WIDTH,
+      minHeight: HOME_HERO_2_MIN_BACKGROUND_IMAGE_HEIGHT,
+      requiredText: `minimum ${HOME_HERO_2_MIN_BACKGROUND_IMAGE_WIDTH} \u00D7 ${HOME_HERO_2_MIN_BACKGROUND_IMAGE_HEIGHT} px`,
+    };
+  }
+  return {};
 }
 
 export async function GET(req, { params }) {
@@ -36,12 +106,23 @@ export async function GET(req, { params }) {
       Component.findOne({ baseComponent: componentId }).lean(),
       ThemeConfig.findOne(THEME_QUERY).sort({ updatedAt: -1 }).lean(),
     ]);
-    const payload = (doc?.defaultProps && typeof doc.defaultProps === "object") ? { ...doc.defaultProps } : {};
-    const palette = themeDoc?.themePalette && typeof themeDoc.themePalette === "object" ? themeDoc.themePalette : {};
-    const colors = Array.isArray(themeDoc?.colors) ? themeDoc.colors : [];
+    const payload =
+      doc?.defaultProps && typeof doc.defaultProps === "object"
+        ? { ...doc.defaultProps }
+        : {};
+    const safePayload = sanitizeComponentDefaultProps(componentId, payload);
+    const normalizedTheme = normalizeThemeColorCollections(themeDoc || {});
+    const palette =
+      normalizedTheme?.themePalette &&
+      typeof normalizedTheme.themePalette === "object"
+        ? normalizedTheme.themePalette
+        : {};
+    const colors = Array.isArray(normalizedTheme?.colors)
+      ? normalizedTheme.colors
+      : [];
     return NextResponse.json(
       {
-        ...payload,
+        ...safePayload,
         themePalette: palette,
         colors,
       },
@@ -68,8 +149,210 @@ export async function PUT(req, { params }) {
   try {
     const body = await req.json();
     const defaultProps = body && typeof body === "object" ? { ...body } : {};
+    const safeDefaultProps = sanitizeComponentDefaultProps(
+      componentId,
+      defaultProps,
+    );
 
     await connectDB();
+
+    const manageSectionBackgroundErrors =
+      await validateManageSectionBackgroundImages(
+        defaultProps,
+        getManageSectionBackgroundValidationOptions(componentId),
+      );
+    if (manageSectionBackgroundErrors.length > 0) {
+      return NextResponse.json(
+        { error: manageSectionBackgroundErrors[0] },
+        { status: 400 },
+      );
+    }
+
+    if (componentId === "OverviewOfOurWork") {
+      const validationErrors =
+        await validateOverviewOfOurWorkBackgroundImages(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "WelcometoMESCO") {
+      const validationErrors = await validateWelcometoMESCOImage(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "InnerPageHero") {
+      const validationErrors =
+        await validateInnerPageHeroBackgroundImage(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "LatestEvents1") {
+      const validationErrors = await validateLatestEvents1Images(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "StoriesSlider") {
+      const validationErrors = await validateStoriesSliderImages(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "ImpactShowcase") {
+      const validationErrors = await validateImpactShowcaseImages(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "Helpingpeople") {
+      const validationErrors = await validateHelpingpeopleImage(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "ManagingCommittee") {
+      const validationErrors = await validateManagingCommitteeImage(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "CommitteeMembers") {
+      const validationErrors = await validateCommitteeMembersImages(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "Vision") {
+      const validationErrors = await validateVisionImage(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "Mission") {
+      const validationErrors = await validateMissionImage(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "Cards") {
+      const validationErrors = await validateCardsImages(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "ImageSlider" || componentId === "HomeHero2") {
+      const validationErrors = await validateImageSliderImages(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "Images") {
+      const validationErrors = await validateImagesImage(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "OverlayCards") {
+      const validationErrors = await validateOverlayCardsImages(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "Reports") {
+      const validationErrors = await validateReportsImages(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "PhotoGallery") {
+      const validationErrors =
+        await validatePhotoGalleryCoverImages(safeDefaultProps);
+      if (validationErrors.length > 0) {
+        // Temporary non-blocking behavior requested by product: do not fail save for PhotoGallery image-size validation.
+        console.warn(
+          "[Theme component API] Non-blocking PhotoGallery validation:",
+          validationErrors[0],
+        );
+      }
+    }
+
+    if (componentId === "VideoPlaying") {
+      const validationErrors =
+        await validateVideoPlayingCoverImage(safeDefaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
     let doc = await Component.findOne({ baseComponent: componentId });
     if (!doc) {
       doc = await Component.create({
@@ -77,12 +360,16 @@ export async function PUT(req, { params }) {
         displayName: componentId,
         type: "custom",
         baseComponent: componentId,
-        defaultProps: defaultProps,
+        defaultProps: safeDefaultProps,
         layout: [],
         active: true,
       });
     } else {
-      doc.defaultProps = { ...(doc.defaultProps || {}), ...defaultProps };
+      const mergedDefaultProps = { ...(doc.defaultProps || {}), ...safeDefaultProps };
+      doc.defaultProps = sanitizeComponentDefaultProps(
+        componentId,
+        mergedDefaultProps,
+      );
       doc.markModified("defaultProps");
       await doc.save();
     }

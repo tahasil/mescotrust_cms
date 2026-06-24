@@ -178,6 +178,110 @@
   color: #8c8c8c;
 }
 
+.cropModalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 2px;
+}
+
+.cropModalGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.cropEditor {
+  position: relative;
+  width: 100%;
+  height: 360px;
+  border-radius: 10px;
+  background: #111;
+  overflow: hidden;
+}
+
+.cropEditor :global(.cropper-container) {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.cropEditor :global(.cropper-view-box) {
+  outline: 2px solid rgba(255, 255, 255, 0.95);
+  outline-offset: -1px;
+}
+
+.cropEditor :global(.cropper-face) {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.cropControls {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.cropControlItem {
+  flex: 1;
+  min-width: 200px;
+}
+
+.cropPreviewPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.cropMetaBlock {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.cropPreviewFrame {
+  min-height: 160px;
+  border: 1px solid #f0f0f0;
+  border-radius: 10px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
+  overflow: hidden;
+}
+
+.cropPreviewImage {
+  max-width: 100%;
+  max-height: 240px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: #fff;
+}
+
+@media (max-width: 992px) {
+  .cropModalGrid {
+    grid-template-columns: 1.35fr 1fr;
+    gap: 12px;
+  }
+
+  .cropEditor {
+    height: 300px;
+  }
+
+  .cropPreviewFrame {
+    min-height: 140px;
+  }
+}
+
 @media (max-width: 768px) {
   .searchInput,
   .selectControl {
@@ -188,4 +292,26 @@
   .toolbarLeft {
     width: 100%;
   }
+
+  .cropModalGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .cropEditor {
+    height: 260px;
+  }
+
+  .cropControls {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .cropControlItem {
+    min-width: 0;
+  }
+
+  .cropPreviewFrame {
+    min-height: 120px;
+  }
+
 }

@@ -92,7 +92,10 @@ const EDITABLE_SITE_COMPONENTS = SITE_COMPONENT_IDS.filter(
 /** Default props for new Testimonials block; all settings/items stored in page (pages collection). */
 const TESTIMONIALS_DEFAULT_PROPS = {
   testimonialsTitle: "Testimonials",
+  testimonialsTitleAlign: "center",
   testimonialsTitleColorKey: "",
+  testimonialsAvatarBgColorKey: "",
+  testimonialsAvatarTextColorKey: "",
   testimonialsAutoplay: false,
   testimonialsSectionBgType: "default",
   testimonialsSectionBgImage: "",
@@ -122,8 +125,8 @@ const TESTIMONIALS_DEFAULT_PROPS = {
   testimonialsSlidesTablet: 2,
   testimonialsSlidesMobile: 1,
   testimonialsItems: [
-    { quote: "", imageUrl: "", name: "", title: "", rating: 5 },
-    { quote: "", imageUrl: "", name: "", title: "", rating: 5 },
+    { quote: "", name: "", title: "", rating: 5 },
+    { quote: "", name: "", title: "", rating: 5 },
   ],
 };
 
@@ -214,7 +217,18 @@ function getDefaultPropsForNewSiteComponent(componentId) {
         eventsSliderButtonSize: "md",
       };
     case "OverviewOfOurWork":
-      return { ...base, overviewOfOurWorkItems: [] };
+      return {
+        ...base,
+        overviewOfOurWorkTitleFontFamily: "",
+        overviewOfOurWorkTitleFontSize: 24,
+        overviewOfOurWorkTitleFontWeight: 700,
+        overviewOfOurWorkTitleFontStyle: "normal",
+        overviewOfOurWorkTitleLetterSpacing: 0,
+        overviewOfOurWorkTitleLineHeight: 1.2,
+        overviewOfOurWorkIconHoverColorKey: "",
+        overviewOfOurWorkCardsPerRow: 4,
+        overviewOfOurWorkItems: [],
+      };
     case "HomeHero2":
       return {
         ...base,
@@ -240,6 +254,22 @@ function getDefaultPropsForNewSiteComponent(componentId) {
         homeHero2Duration: 0.6,
         homeHero2Autoplay: true,
         homeHero2Draggable: true,
+      };
+    case "FormEmbed":
+      return {
+        ...base,
+        mode: "formId",
+        formId: "",
+        shortcode: "",
+        heading: "",
+        description: "",
+        submitLabel: "",
+        successMessage: "",
+      };
+    case "ShortCode":
+      return {
+        ...base,
+        shortcode: "",
       };
     default:
       return base;
@@ -281,6 +311,7 @@ const AWARDS_TO_OVERVIEW_KEYS = {
   awardsRecognitionCardTitleColorKey: "overviewOfOurWorkCardTitleColorKey",
   awardsRecognitionCardBorderColorKey: "overviewOfOurWorkCardBorderColorKey",
   awardsRecognitionButtonColorKey: "overviewOfOurWorkButtonColorKey",
+  awardsRecognitionIconHoverColorKey: "overviewOfOurWorkIconHoverColorKey",
   awardsRecognitionHoverColorKey: "overviewOfOurWorkHoverColorKey",
 };
 function normalizeAwardsBlockPropsToOverview(props) {
@@ -1491,6 +1522,7 @@ const PREVIEW_API_PATH = {
 function mapThemeToHeaderProps(theme) {
   return {
     siteTitle: theme.siteTitle ?? "",
+    logoUrl: theme.logoUrl ?? "",
     logoType: theme.logoType ?? "text",
     logoImageUrl: theme.logoLightUrl || theme.logoImageUrl || "",
     logoLightUrl: theme.logoLightUrl || theme.logoImageUrl || "",
@@ -1498,6 +1530,7 @@ function mapThemeToHeaderProps(theme) {
     logoDarkUrl: theme.logoDarkUrl ?? "",
     volunteerLabel: theme.headerVolunteerLabel ?? "",
     volunteerHref: theme.headerVolunteerHref ?? "",
+    volunteerHrefTarget: theme.headerVolunteerHrefTarget ?? "_self",
     volunteerIconUrl: theme.headerVolunteerIconUrl ?? "",
     volunteerIconUrlMobile: theme.headerVolunteerIconUrlMobile ?? "",
     donateLabel: theme.headerDonateLabel ?? "",

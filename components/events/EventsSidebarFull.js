@@ -39,8 +39,8 @@ const Item = styled.div`
   }
   .img {
     flex-shrink: 0;
-    width: 78px;
-    height: 68px;
+    width: 88px;
+    height: 44px;
     border-radius: 8px;
     overflow: hidden;
     background: rgba(0, 0, 0, 0.04);
@@ -118,9 +118,9 @@ function normalizeEvent(ev) {
 }
 
 function pickImage(ev) {
-  const m = (ev?.featuredImageMobile || "").toString().trim();
   const d = (ev?.featuredImageDesktop || "").toString().trim();
-  return m || d;
+  const m = (ev?.featuredImageMobile || "").toString().trim();
+  return d || m;
 }
 
 /**
@@ -230,11 +230,10 @@ export default function EventsSidebarFull({ searchQuery, currentSlug }) {
                   <Link href={`/events/${ev.slug}`} className="img">
                     <MediaImage
                       src={pickImage(ev)}
-                      variant="thumbnail"
                       alt={ev.title || "Event"}
-                      width={156}
-                      height={136}
-                      sizes="78px"
+                      width={176}
+                      height={88}
+                      sizes="88px"
                       imgStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                     />
                   </Link>
@@ -269,11 +268,10 @@ export default function EventsSidebarFull({ searchQuery, currentSlug }) {
                   <Link href={`/events/${ev.slug}`} className="img">
                     <MediaImage
                       src={pickImage(ev)}
-                      variant="thumbnail"
                       alt={ev.title || "Event"}
-                      width={156}
-                      height={136}
-                      sizes="78px"
+                      width={176}
+                      height={88}
+                      sizes="88px"
                       imgStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                     />
                   </Link>

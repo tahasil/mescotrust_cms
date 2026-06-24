@@ -29,8 +29,10 @@ import {
 import {
   GENERATED_SIZE_ORDER,
   dimensionsText,
+  effectiveDisplaySize,
   formatBytes,
   formatDate,
+  getSizeVariant,
   isImage,
   originalMediaUrl,
   previewUrl,
@@ -95,7 +97,9 @@ export default function MediaDetailsDrawer({
           <Descriptions column={1} size="small" bordered style={{ marginBottom: 12 }}>
             <Descriptions.Item label="File name">{item.originalName}</Descriptions.Item>
             <Descriptions.Item label="Dimensions">{dimensionsText(item)}</Descriptions.Item>
-            <Descriptions.Item label="File size">{formatBytes(item.size)}</Descriptions.Item>
+            <Descriptions.Item label="File size">
+              {formatBytes(effectiveDisplaySize(item))}
+            </Descriptions.Item>
             <Descriptions.Item label="Upload date">{formatDate(item.createdAt)}</Descriptions.Item>
           </Descriptions>
 
@@ -138,7 +142,7 @@ export default function MediaDetailsDrawer({
             <Space wrap>
               <Upload
                 beforeUpload={() => false}
-                accept=".jpg,.jpeg,.png,.webp,.avif,.pdf"
+                accept=".jpg,.jpeg,.png,.webp,.avif,.svg,.pdf"
                 fileList={replaceFileList}
                 onChange={({ fileList }) => setReplaceFileList(fileList.slice(-1))}
                 maxCount={1}
@@ -151,10 +155,10 @@ export default function MediaDetailsDrawer({
                 onClick={onReplace}
                 disabled={!replaceFileList.length}
               >
-                Replace image
+                Replace file
               </Button>
               <Button danger icon={<DeleteOutlined />} onClick={onDelete}>
-                Delete image
+                Delete file
               </Button>
             </Space>
           </div>
@@ -182,13 +186,6 @@ export default function MediaDetailsDrawer({
               Re-optimize
             </Button>
             <Button
-              icon={<ReloadOutlined />}
-              onClick={() => onProcess("regenerate")}
-              loading={processingAction === "regenerate"}
-            >
-              Regenerate sizes
-            </Button>
-            <Button
               icon={<SwapOutlined />}
               onClick={() => onProcess("convert")}
               loading={processingAction === "convert"}
@@ -199,12 +196,12 @@ export default function MediaDetailsDrawer({
           </Space>
 
           <Divider style={{ margin: "14px 0" }} />
-          <Typography.Text strong>Generated sizes</Typography.Text>
+          <Typography.Text strong>Generated output</Typography.Text>
           <List
             size="small"
             dataSource={GENERATED_SIZE_ORDER}
             renderItem={([key, label]) => {
-              const size = item.generatedSizes?.[key] || {};
+              const size = getSizeVariant(item, key);
               const hasAny = Boolean(size.jpgUrl || size.webpUrl || size.avifUrl);
               return (
                 <List.Item>
@@ -218,7 +215,9 @@ export default function MediaDetailsDrawer({
                       </div>
                     </div>
                     <Space size={4}>
-                      <Tag color={size.jpgUrl ? "blue" : "default"}>JPG</Tag>
+                      <Tag color={size.jpgUrl ? "blue" : "default"}>
+                        {key === "original" ? "JPG/Original" : "JPG"}
+                      </Tag>
                       <Tag color={size.webpUrl ? "green" : "default"}>WebP</Tag>
                       <Tag color={size.avifUrl ? "purple" : "default"}>AVIF</Tag>
                     </Space>

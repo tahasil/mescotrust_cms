@@ -478,8 +478,6 @@ export default function EventsSlider(props) {
                                 <MediaImage
                                   src={desktop || mobile}
                                   mobileSrc={mobile || ""}
-                                  variant="desktop"
-                                  mobileVariant="mobile"
                                   alt={ev.title || "Event"}
                                   width={1280}
                                   height={720}

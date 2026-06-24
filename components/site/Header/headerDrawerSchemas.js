@@ -15,6 +15,7 @@ export const NAVBAR_SCHEMA = [
 /** Logo image URLs and type – editable in Header drawer. */
 export const LOGO_LINK_SCHEMA = [
   { key: "logoType", type: "select", label: "Logo type", options: [{ value: "text", label: "Text" }, { value: "image", label: "Image" }] },
+  { key: "logoUrl", type: "url", label: "Logo click URL" },
   { key: "logoLightUrl", type: "image", label: "Logo image URL (desktop/light)" },
   { key: "logoMobileUrl", type: "image", label: "Logo image URL (mobile)" },
   { key: "logoDarkUrl", type: "image", label: "Logo image URL (dark mode)" },
@@ -30,32 +31,30 @@ export const MENU_SCHEMA = [
   { key: "navItemHoverBackground", type: "themeColorOnly", label: "Nav item hover background" },
 ];
 
-/** Volunteer & Donate button labels, links, icons and styles – editable in Header drawer. */
+/** Custom button settings shown in Header drawer. */
 export const CUSTOM_BUTTONS_SCHEMA = [
-  { key: "headerVolunteerLabel", type: "text", label: "Volunteer button label" },
-  { key: "headerVolunteerHref", type: "url", label: "Volunteer button link" },
-  { key: "headerVolunteerIconUrl", type: "image", label: "Volunteer icon URL (desktop)" },
-  { key: "headerVolunteerIconUrlMobile", type: "image", label: "Volunteer icon URL (mobile)" },
-  { key: "headerDonateLabel", type: "text", label: "Donate button label" },
-  { key: "headerDonateHref", type: "url", label: "Donate button link" },
-  { key: "headerDonateIconUrl", type: "image", label: "Donate icon URL (desktop)" },
-  { key: "headerDonateIconUrlMobile", type: "image", label: "Donate icon URL (mobile)" },
-];
-
-/** Volunteer modal – form that opens when clicking Volunteer button. */
-export const VOLUNTEER_MODAL_SCHEMA = [
-  { key: "volunteerModalTitle", type: "text", label: "Modal title" },
-  { key: "volunteerModalBtnBg", type: "themeColorOnly", label: "Send button background" },
-  { key: "volunteerModalBtnText", type: "themeColorOnly", label: "Send button text color" },
-  { key: "volunteerModalCancelColor", type: "themeColorOnly", label: "Cancel button color" },
+  { key: "headerSearchEnabled", type: "boolean", label: "Show Search Button" },
+  { key: "headerSearchLabel", type: "text", label: "Search Button Label" },
+  { key: "headerSearchPlaceholder", type: "text", label: "Search Input Placeholder" },
+  { key: "headerVolunteerHref", type: "url", label: "Volunteer Button Link" },
+  {
+    key: "headerVolunteerHrefTarget",
+    type: "select",
+    label: "Volunteer Button Target",
+    options: [
+      { value: "_self", label: "Same Tab" },
+      { value: "_blank", label: "New Tab" },
+    ],
+  },
+  { key: "headerVolunteerIconUrl", type: "image", label: "Volunteer Icon" },
+  { key: "headerDonateIconUrl", type: "image", label: "Donate Icon" },
 ];
 
 export const HEADER_FIELD_GROUPS = [
   { label: "Logo and link", keys: ["logoType", "logoLightUrl", "logoMobileUrl", "logoDarkUrl", "logoTitle", "logoTagline", "logoUrl", "logoColor", "logoFontSize", "taglineFontSize", "sectionsOrder"] },
   { label: "Menu", keys: ["menuPosition", "navColor", "navFontSize", "navFontWeight", "navHoverColor", "navItemBackground", "navItemHoverBackground"] },
   { label: "Navbar (Bootstrap)", keys: ["navbarExpand", "navbarFixed", "navbarSticky", "collapseOnSelect", "navbarMobileMenu", "navbarOffcanvasPlacement"] },
-  { label: "Custom buttons", keys: ["headerVolunteerLabel", "headerVolunteerHref", "headerVolunteerIconUrl", "headerVolunteerIconUrlMobile", "headerDonateLabel", "headerDonateHref", "headerDonateIconUrl", "headerDonateIconUrlMobile"] },
-  { label: "Volunteer modal", keys: ["volunteerModalTitle", "volunteerModalBtnBg", "volunteerModalBtnText", "volunteerModalCancelColor"] },
+  { label: "Custom buttons", keys: ["headerSearchEnabled", "headerSearchLabel", "headerSearchPlaceholder", "headerVolunteerHref", "headerVolunteerHrefTarget", "headerVolunteerIconUrl", "headerDonateIconUrl"] },
 ];
 
 export const SECTION_SETTINGS_SCHEMA = [

@@ -3,9 +3,17 @@ import path from "path";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Media from "@/models/Media";
-import { ALLOWED_UPLOAD_MIME_TYPES } from "@/lib/media/constants";
+import {
+  ALLOWED_UPLOAD_MIME_TYPES,
+  UPLOAD_MIME_BY_EXT,
+} from "@/lib/media/constants";
 import { getMediaSettings } from "@/lib/media/settings";
 import { optimizeAndStoreUpload } from "@/lib/media/processor";
+import { isSvgMimeType, sanitizeUploadedSvg } from "@/lib/media/svgSanitizer";
+import {
+  isCropContractError,
+  parseCropContractFromFormData,
+} from "@/lib/media/cropContract";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -19,6 +27,10 @@ function sanitizeName(name) {
     .replace(/-+/g, "-");
 }
 
+function escapeRegex(value) {
+  return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export async function GET(req) {
   const session = await requireAuth(req);
   if (session instanceof NextResponse) return session;
@@ -29,7 +41,7 @@ export async function GET(req) {
     const page = Math.max(1, Number(searchParams.get("page")) || 1);
     const limit = Math.min(50, Math.max(1, Number(searchParams.get("limit")) || 20));
     const skip = (page - 1) * limit;
-    const q = (searchParams.get("q") || searchParams.get("search") || "").trim();
+    const q = (searchParams.get("q") || searchParams.get("search") || "").trim().slice(0, 120);
     const status = (searchParams.get("status") || "").trim();
     const type = (searchParams.get("type") || "").trim();
     const month = (searchParams.get("month") || "").trim();
@@ -37,12 +49,13 @@ export async function GET(req) {
 
     const filter = {};
     if (q) {
+      const safeQ = escapeRegex(q);
       filter.$or = [
-        { title: { $regex: q, $options: "i" } },
-        { fileName: { $regex: q, $options: "i" } },
-        { filename: { $regex: q, $options: "i" } },
-        { originalName: { $regex: q, $options: "i" } },
-        { altText: { $regex: q, $options: "i" } },
+        { title: { $regex: safeQ, $options: "i" } },
+        { fileName: { $regex: safeQ, $options: "i" } },
+        { filename: { $regex: safeQ, $options: "i" } },
+        { originalName: { $regex: safeQ, $options: "i" } },
+        { altText: { $regex: safeQ, $options: "i" } },
       ];
     }
     if (status) filter.status = status;
@@ -137,13 +150,21 @@ export async function POST(req) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    const mimeType = String(file.type || "").toLowerCase();
+    const rawMimeType = String(file.type || "").toLowerCase().trim();
+    const ext = path.extname(String(file.name || "")).toLowerCase();
+    const mimeType = rawMimeType || UPLOAD_MIME_BY_EXT[ext] || "";
     if (!ALLOWED_UPLOAD_MIME_TYPES.includes(mimeType)) {
       return NextResponse.json(
-        { error: `Unsupported file type: ${mimeType}` },
+        {
+          error: `Unsupported file type${
+            mimeType ? `: ${mimeType}` : ""
+          }. Allowed: JPG, JPEG, PNG, WEBP, AVIF, SVG, PDF.`,
+        },
         { status: 400 },
       );
     }
+
+    const cropContract = parseCropContractFromFormData(formData, { mimeType });
 
     const maxUploadBytes = Number(settings.maxUploadMB || 20) * 1024 * 1024;
     if (file.size > maxUploadBytes) {
@@ -153,8 +174,14 @@ export async function POST(req) {
       );
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const ext = path.extname(String(file.name || "")).toLowerCase();
+    let buffer = Buffer.from(await file.arrayBuffer());
+    if (isSvgMimeType(mimeType)) {
+      const sanitizedSvg = sanitizeUploadedSvg(buffer);
+      if (!sanitizedSvg.ok) {
+        return NextResponse.json({ error: sanitizedSvg.error }, { status: 400 });
+      }
+      buffer = sanitizedSvg.buffer;
+    }
     const safeName = sanitizeName(file.name) || `upload${ext || ".bin"}`;
 
     const draft = await Media.create({
@@ -182,6 +209,10 @@ export async function POST(req) {
       mediaId: String(draft._id),
       settings,
       storageProvider,
+      crop: cropContract.crop,
+      targetWidth: cropContract.targetWidth,
+      targetHeight: cropContract.targetHeight,
+      rotation: cropContract.rotationDegrees,
     });
 
     draft.filename = optimized.filename || draft.filename;
@@ -191,7 +222,8 @@ export async function POST(req) {
     draft.ext = optimized.ext || ext;
     draft.storageProvider = optimized.storageProvider || storageProvider;
     draft.storageKey = optimized.storageKey || draft.storageKey || "";
-    draft.publicUrl = optimized.publicUrl || `/media/${draft._id}`;
+    draft.publicUrl =
+      optimized.publicUrl || `/media/${draft._id}?size=original&format=auto`;
     draft.url = optimized.url || draft.url;
     draft.originalUrl = optimized.originalUrl || draft.originalUrl || draft.url;
     draft.webpUrl = optimized.webpUrl || "";
@@ -203,6 +235,14 @@ export async function POST(req) {
     draft.optimizedSize = optimized.optimizedSize || buffer.length;
     draft.savingsPercentage = optimized.savingsPercentage || 0;
     draft.generatedSizes = optimized.generatedSizes || {};
+    draft.originalWidth = optimized.originalWidth || 0;
+    draft.originalHeight = optimized.originalHeight || 0;
+    draft.cropX = optimized.cropX || 0;
+    draft.cropY = optimized.cropY || 0;
+    draft.cropWidth = optimized.cropWidth || 0;
+    draft.cropHeight = optimized.cropHeight || 0;
+    draft.finalWidth = optimized.finalWidth || 0;
+    draft.finalHeight = optimized.finalHeight || 0;
     draft.status = optimized.status || "ready";
     draft.errorMessage = optimized.errorMessage || "";
     draft.updatedBy = session.email || session.name || "";
@@ -210,6 +250,12 @@ export async function POST(req) {
 
     return NextResponse.json(draft, { status: 201 });
   } catch (err) {
+    if (isCropContractError(err)) {
+      return NextResponse.json(
+        { error: err.message, code: err.code },
+        { status: err.status || 400 },
+      );
+    }
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

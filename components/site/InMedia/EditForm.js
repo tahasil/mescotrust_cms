@@ -228,7 +228,7 @@ function InMediaEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                             <MediaPickerInput
                               placeholder="/uploads/media-1.webp"
                               uiVariant="stacked"
-                              hintText="Recommended for desktop/tablet"
+                              hintText="Recommended size: minimum 400 × 400 px."
                             />
                           </Form.Item>
                         </Col>

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Button,
+  DatePicker,
   Form,
   Input,
   Space,
@@ -16,9 +17,15 @@ import {
 } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import Link from "next/link";
+import dayjs from "dayjs";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { ThemeAdminCard } from "@/styles/Theme";
+
+const { RangePicker } = DatePicker;
+const DESKTOP_REQUIRED_WIDTH = 800;
+const DESKTOP_REQUIRED_HEIGHT = 400;
+const DESKTOP_REQUIRED_TEXT = `${DESKTOP_REQUIRED_WIDTH} \u00D7 ${DESKTOP_REQUIRED_HEIGHT} px`;
 
 function slugify(text) {
   return (text || "")
@@ -29,6 +36,52 @@ function slugify(text) {
     .replace(/[^a-z0-9-]/g, "")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
+}
+
+function toIsoStringOrNull(dateVal) {
+  if (!dateVal || !dayjs.isDayjs(dateVal) || !dateVal.isValid()) return null;
+  return dateVal.toDate().toISOString();
+}
+
+function toTimeText(dateVal) {
+  if (!dateVal || !dayjs.isDayjs(dateVal) || !dateVal.isValid()) return "";
+  return dateVal.format("HH:mm");
+}
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+async function validateDesktopImageDimensions(_, value) {
+  const imageUrl = String(value || "").trim();
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (width === DESKTOP_REQUIRED_WIDTH && height === DESKTOP_REQUIRED_HEIGHT) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(
+        `Desktop Image must be exactly ${DESKTOP_REQUIRED_TEXT}. Selected image is ${width} \u00D7 ${height} px.`,
+      ),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(
+        `Unable to validate desktop image size. Please use ${DESKTOP_REQUIRED_TEXT}.`,
+      ),
+    );
+  }
 }
 
 export default function AdminEventNewPage() {
@@ -47,8 +100,11 @@ export default function AdminEventNewPage() {
   const onFinish = async (values) => {
     setSaving(true);
     try {
-      const startT = (values.startTime || "").toString().trim();
-      const endT = (values.endTime || "").toString().trim();
+      const [startDateValue, endDateValue] = Array.isArray(values.eventDateRange)
+        ? values.eventDateRange
+        : [];
+      const startT = toTimeText(startDateValue);
+      const endT = toTimeText(endDateValue);
       const timeStr =
         startT && endT ? `${startT} - ${endT}` : startT || endT || "";
 
@@ -60,9 +116,8 @@ export default function AdminEventNewPage() {
           description: values.description || "",
           content: values.content || "",
           featuredImageDesktop: values.featuredImageDesktop || "",
-          featuredImageMobile: values.featuredImageMobile || "",
-          startDate: values.startDate || null,
-          endDate: values.endDate || null,
+          startDate: toIsoStringOrNull(startDateValue),
+          endDate: toIsoStringOrNull(endDateValue),
           time: timeStr,
           location: values.isOnline ? "" : values.location || "",
           isOnline: !!values.isOnline,
@@ -70,6 +125,7 @@ export default function AdminEventNewPage() {
           meta: {
             metaTitle: values.metaTitle,
             metaDescription: values.metaDescription,
+            metaKeywords: values.metaKeywords,
           },
         }),
       });
@@ -147,26 +203,23 @@ export default function AdminEventNewPage() {
               <Input placeholder="https://..." />
             </Form.Item>
           </Col>
-
           <Col xs={24} sm={12} xl={6}>
-            <Form.Item name="startDate" label="Start date">
-              <Input type="date" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} xl={6}>
-            <Form.Item name="endDate" label="End date">
-              <Input type="date" />
+            <Form.Item name="location" label="Location">
+              <Input
+                disabled={isOnline}
+                placeholder={isOnline ? "Online event" : "Venue or address"}
+              />
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} xl={6}>
-            <Form.Item name="startTime" label="Start time">
-              <Input type="time" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} xl={6}>
-            <Form.Item name="endTime" label="End time">
-              <Input type="time" />
+          <Col xs={24} sm={12} xl={12}>
+            <Form.Item name="eventDateRange" label="Event date & time range">
+              <RangePicker
+                showTime={{ format: "HH:mm" }}
+                format="DD-MM-YYYY HH:mm"
+                style={{ width: "100%" }}
+                placeholder={["Start date & time", "End date & time"]}
+              />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12} xl={6}>
@@ -174,33 +227,32 @@ export default function AdminEventNewPage() {
               <Switch />
             </Form.Item>
           </Col>
-          <Col xs={24} sm={12} xl={6}>
-            <Form.Item
-              noStyle
-              shouldUpdate={(prev, cur) => prev.isOnline !== cur.isOnline}
-            >
-              {({ getFieldValue }) =>
-                getFieldValue("isOnline") ? (
-                  <Form.Item label="Location">
-                    <Input disabled placeholder="Online event" />
-                  </Form.Item>
-                ) : (
-                  <Form.Item name="location" label="Location">
-                    <Input placeholder="Venue or address" />
-                  </Form.Item>
-                )
-              }
-            </Form.Item>
-          </Col>
 
           <Col xs={24} sm={12} xl={12}>
-            <Form.Item name="metaTitle" label="Meta title">
+            <Form.Item
+              name="metaTitle"
+              label="Meta title"
+              extra="Used for social sharing title (Facebook, X, LinkedIn, WhatsApp, Telegram, Email)."
+            >
               <Input />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12} xl={12}>
-            <Form.Item name="metaDescription" label="Meta description">
+            <Form.Item
+              name="metaDescription"
+              label="Meta description"
+              extra="Used for social sharing description when available."
+            >
               <Input.TextArea rows={2} />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12} xl={12}>
+            <Form.Item
+              name="metaKeywords"
+              label="Meta keywords"
+              extra="Comma separated. Example: education, scholarship, ngo"
+            >
+              <Input />
             </Form.Item>
           </Col>
 
@@ -225,32 +277,18 @@ export default function AdminEventNewPage() {
               <Col xs={24} xl={12}>
                 <Card title="Featured Images" size="small">
                   <Row gutter={[12, 12]}>
-                    <Col xs={24} md={12}>
+                    <Col xs={24}>
                       <Card title="Desktop Image" size="small">
                         <Form.Item
                           name="featuredImageDesktop"
+                          validateTrigger={["onChange", "onBlur"]}
+                          rules={[{ validator: validateDesktopImageDimensions }]}
                           style={{ marginBottom: 0 }}
                         >
                           <MediaPickerInput
                             placeholder="/media/..."
                             uiVariant="stacked"
-                            showVariants={false}
-                            hintText="Recommended: 1200x600"
-                          />
-                        </Form.Item>
-                      </Card>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Card title="Mobile Image" size="small">
-                        <Form.Item
-                          name="featuredImageMobile"
-                          style={{ marginBottom: 0 }}
-                        >
-                          <MediaPickerInput
-                            placeholder="/media/..."
-                            uiVariant="stacked"
-                            showVariants={false}
-                            hintText="Optional for mobile"
+                            hintText={`Required size: ${DESKTOP_REQUIRED_TEXT}`}
                           />
                         </Form.Item>
                       </Card>

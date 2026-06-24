@@ -1,7 +1,8 @@
 ﻿"use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, Row, Col, Select, Collapse, message, Spin } from "antd";
+import { Form, Input, Row, Col, Select, Collapse, Tooltip, message, Spin } from "antd";
+import { InfoCircleOutlined } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
@@ -169,6 +170,14 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
       </div>
     );
   }
+  const copyrightLabel = (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+      Copyright text
+      <Tooltip title='Use `{{year}}` to render current year dynamically. Example: Copyright © {{year}} All Rights Reserved.'>
+        <InfoCircleOutlined style={{ color: "rgba(0,0,0,0.45)", cursor: "help" }} />
+      </Tooltip>
+    </span>
+  );
 
   return (
     <Form form={form} layout="vertical">
@@ -226,7 +235,7 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
                     ) : null
                   }
                 </Form.Item>
-                <Form.Item name="footerCopyrightText" label="Copyright text">
+                <Form.Item name="footerCopyrightText" label={copyrightLabel}>
                   <Input placeholder={`Copyright © ${currentYear} All Rights Reserved.`} />
                 </Form.Item>
               </>

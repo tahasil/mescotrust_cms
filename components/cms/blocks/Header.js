@@ -16,8 +16,8 @@ function NavLinkItem({
   navFontWeight,
   navHoverColor,
 }) {
-  const url = item.url || "#";
-  const label = item.label || "Link";
+  const url = String(item?.url || "").trim();
+  const label = String(item?.label || "").trim();
   const textColor = navColor || "#333";
   const hoverColor = navHoverColor || navColor || "#333";
   const style = {
@@ -25,6 +25,9 @@ function NavLinkItem({
     fontSize: navFontSize || undefined,
     fontWeight: navFontWeight || undefined,
   };
+  if (!url) {
+    return <span style={style}>{label}</span>;
+  }
   const hover = (e, color) => {
     e.currentTarget.style.color = color || textColor;
   };
@@ -78,13 +81,16 @@ function CustomNavDropdown({
     (openKey != null && String(openKey).startsWith(key + "-"));
 
   if (!hasDropdown) {
-    const url = item.url || "#";
-    const label = item.label || "Link";
+    const url = String(item?.url || "").trim();
+    const label = String(item?.label || "").trim();
     const style = {
       color: navColor || "#333",
       fontSize: navSize,
       fontWeight: navWeight,
     };
+    if (!url) {
+      return <span className="cms-header-nav-custom-link" style={style}>{label}</span>;
+    }
     if (item.openInNewTab || isExternal(url)) {
       return (
         <a
@@ -145,7 +151,7 @@ function CustomNavDropdown({
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
-        {item.label || "Menu"}
+        {item.label || ""}
         <span className="cms-header-nav-custom-arrow" aria-hidden />
       </button>
       <div
@@ -174,8 +180,8 @@ function CustomNavDropdown({
 
 export default function HeaderBlock({
   logoImage = "",
-  logoTitle = "MESCO",
-  logoTagline = "A TRUST SINCE 1960",
+  logoTitle = "",
+  logoTagline = "",
   logoUrl = "",
   navItems = [],
   actionButtons = [],
@@ -284,7 +290,7 @@ export default function HeaderBlock({
           color: logoTextColor,
         }}
       >
-        {logoTitle || "Logo"}
+        {logoTitle || ""}
       </div>
       <div
         style={{
@@ -392,8 +398,8 @@ export default function HeaderBlock({
       btn.borderRadius != null && btn.borderRadius !== ""
         ? Number(btn.borderRadius)
         : 9999;
-    const label = btn.label || "Button";
-    const url = btn.url || "#";
+    const label = String(btn?.label || "").trim();
+    const url = String(btn?.url || "").trim();
     const imageUrl =
       btn.image && typeof btn.image === "string" ? btn.image.trim() : "";
     const imagePosition =
@@ -460,6 +466,9 @@ export default function HeaderBlock({
         {btnContent}
       </Button>
     );
+    if (!url) {
+      return <span key={key}>{btnEl}</span>;
+    }
     if (isExternal(url)) {
       return (
         <a

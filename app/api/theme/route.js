@@ -8,14 +8,14 @@ import ThemeConfig from "@/models/ThemeConfig";
 import Component from "@/models/Component";
 import { isAdmin } from "@/lib/permissions";
 import { getRegistryIdsFromDisk } from "@/lib/getRegistryIdsFromDisk";
+import { normalizeThemeColorCollections } from "@/lib/themeColorFallbacks";
 
 export const dynamic = "force-dynamic";
 
 /** Single theme doc: match by themeKey or legacy docs without themeKey */
 const THEME_QUERY = { $or: [{ themeKey: "default" }, { themeKey: { $exists: false } }] };
 
-/** No built-in palette; only admin-defined palette + custom colors are stored and synced to Theme.js */
-const THEME_PALETTE_DEFAULTS = {};
+/** Legacy theme colors are recovered when missing; stored themePalette is preserved (except known bad generated keys). */
 
 function slugToCamel(slug) {
   return slug.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
@@ -80,9 +80,10 @@ function syncColorsToThemeJs(paletteColors, colors, themePath) {
 }
 
 const DEFAULTS = {
-  siteTitle: "Mesco Trust",
+  siteTitle: "",
   tagline: "",
   logoType: "text",
+  logoUrl: "",
   logoLightUrl: "",
   logoMobileUrl: "",
   logoDarkUrl: "",
@@ -136,14 +137,13 @@ const DEFAULTS = {
   headerLayout: "default",
   headerSticky: true,
   headerTransparent: false,
-  headerVolunteerLabel: "Volunteer",
-  headerVolunteerHref: "/volunteer",
+  headerVolunteerLabel: "",
+  headerVolunteerHref: "",
   headerVolunteerIconUrl: "",
   headerVolunteerIconUrlMobile: "",
-  headerDonateLabel: "Donate Now",
-  headerDonateHref: "/donate",
+  headerDonateLabel: "",
+  headerDonateHref: "",
   headerDonateIconUrl: "",
-  headerDonateIconUrlMobile: "",
   headerBgColorKey: "headerBg",
   headerCtaBgColorKey: "headerCta",
   headerCtaTextColorKey: "primary",
@@ -222,9 +222,21 @@ const DEFAULTS = {
   headScripts: "",
   footerScripts: "",
   googleAnalyticsId: "",
+  defaultMetaTitle: "",
+  defaultMetaDescription: "",
+  defaultMetaKeywords: "",
+  defaultMetaImage: "",
   layoutWidth: 1200,
   defaultLocale: "en",
   direction: "ltr",
+  smoothScrollEnabled: true,
+  smoothScrollDuration: 1.4,
+  smoothScrollWheelMultiplier: 1,
+  smoothScrollTouchMultiplier: 1.2,
+  fadeAnimationEnabled: true,
+  fadeAnimationDuration: 1,
+  fadeAnimationDistance: 20,
+  fadeAnimationThreshold: 0.1,
   adminSiteName: "",
   adminLogoUrl: "",
   adminTextColor: "#333333",
@@ -244,7 +256,7 @@ const DEFAULTS = {
 };
 
 const THEME_FIELDS = [
-  "siteTitle", "tagline", "logoType", "logoLightUrl", "logoMobileUrl", "logoDarkUrl", "logoImageUrl", "faviconUrl", "footerCopyrightText",
+  "siteTitle", "tagline", "logoType", "logoUrl", "logoLightUrl", "logoMobileUrl", "logoDarkUrl", "logoImageUrl", "faviconUrl", "footerCopyrightText",
   "primaryColor", "secondaryColor", "bodyBackground", "sectionBackground", "cardBackground", "headerBackground", "footerBackground",
   "headingColor", "paragraphColor", "linkColor", "hoverColor", "mutedTextColor", "borderColor", "dividerColor", "inputBorderColor", "colors",
   "headingFont", "bodyFont", "buttonFont", "baseFontSize", "h1Size", "h2Size", "h3Size", "h4Size", "h5Size", "h6Size",
@@ -253,7 +265,7 @@ const THEME_FIELDS = [
   "buttonRadius", "cardRadius", "inputRadius", "cardShadow", "buttonShadow",
   "headerLayout", "headerSticky", "headerTransparent",
   "headerVolunteerLabel", "headerVolunteerHref", "headerVolunteerIconUrl", "headerVolunteerIconUrlMobile",
-  "headerDonateLabel", "headerDonateHref", "headerDonateIconUrl", "headerDonateIconUrlMobile",
+  "headerDonateLabel", "headerDonateHref", "headerDonateIconUrl",
   "headerBgColorKey", "headerCtaBgColorKey", "headerCtaTextColorKey", "headerDonateBgColorKey", "headerDonateTextColorKey",
   "megaMenu", "dropdownStyle", "mobileMenuStyle",
   "footerLogoUrl", "footerAddress", "footerEmail", "footerPhone", "footerCol1Links", "footerCol2Links",
@@ -272,24 +284,193 @@ const THEME_FIELDS = [
   "blogCommentsEnabled", "blogLayout", "blogSidebarPosition", "blogFeaturedImageRatio", "blogMetaStyle",
   "pageLoaderEnabled", "pageLoaderBgColor", "pageLoaderBarColor", "pageLoaderMinDuration",
   "customCss", "customJs", "headScripts", "footerScripts", "googleAnalyticsId",
+  "defaultMetaTitle", "defaultMetaDescription", "defaultMetaKeywords", "defaultMetaImage",
   "layoutWidth", "defaultLocale", "direction",
+  "smoothScrollEnabled", "smoothScrollDuration", "smoothScrollWheelMultiplier", "smoothScrollTouchMultiplier",
+  "fadeAnimationEnabled", "fadeAnimationDuration", "fadeAnimationDistance", "fadeAnimationThreshold",
   "adminSiteName", "adminLogoUrl", "adminTextColor", "adminBorderColor",
   "adminCtaBgColor", "adminCtaTextColor", "adminCtaHoverBgColor", "adminCtaHoverTextColor",
   "adminSidebarBg", "adminSidebarText", "adminSidebarHoverBg", "adminSidebarHoverText",
   "adminSidebarActiveBg", "adminSidebarActiveText", "adminLoaderColor", "adminLoaderBgColor",
 ];
+const THEME_SCHEMA_KEYS = Object.keys(ThemeConfig?.schema?.paths || {}).filter(
+  (key) =>
+    key !== "_id" &&
+    key !== "__v" &&
+    key !== "createdAt" &&
+    key !== "updatedAt",
+);
+const THEME_CONFIG_OWNED_KEYS = new Set([
+  ...Object.keys(DEFAULTS),
+  ...THEME_SCHEMA_KEYS,
+]);
+const HEADER_COMPONENT_OVERRIDE_KEYS = new Set([
+  "menuName",
+  "navItems",
+  "logoType",
+  "logoUrl",
+  "logoLightUrl",
+  "logoMobileUrl",
+  "logoDarkUrl",
+  "logoImageUrl",
+  "headerVolunteerLabel",
+  "headerVolunteerHref",
+  "headerVolunteerIconUrl",
+  "headerVolunteerIconUrlMobile",
+  "headerDonateLabel",
+  "headerDonateHref",
+  "headerDonateIconUrl",
+  "headerVolunteerHrefTarget",
+  "headerBgColorKey",
+  "headerCtaBgColorKey",
+  "headerCtaTextColorKey",
+  "headerDonateBgColorKey",
+  "headerDonateTextColorKey",
+  "_sectionBg",
+  "_containerType",
+  "_sectionPadding",
+  "_sectionBorderSize",
+  "_sectionBorderStyle",
+  "_sectionBorderColor",
+  "_sectionShadow",
+  "headerSectionBgType",
+  "headerSectionBgImage",
+  "headerSectionBgColorKey",
+  "headerSectionPaddingTop",
+  "headerSectionPaddingRight",
+  "headerSectionPaddingBottom",
+  "headerSectionPaddingLeft",
+  "headerSectionMarginTop",
+  "headerSectionMarginBottom",
+  "headerPageContainerBgType",
+  "headerPageContainerBgImage",
+  "headerPageContainerBgColorKey",
+  "headerPageContainerPaddingTop",
+  "headerPageContainerPaddingRight",
+  "headerPageContainerPaddingBottom",
+  "headerPageContainerPaddingLeft",
+  "headerPageContainerMarginTop",
+  "headerPageContainerMarginBottom",
+  "_disableFadeAnimation",
+]);
+const REMOVED_HEADER_COMPONENT_KEYS = new Set([
+  "headerDonateIconUrlMobile",
+  "volunteerModalTitle",
+  "volunteerModalSuccessTitle",
+  "volunteerModalSuccessDescription",
+  "volunteerModalErrorTitle",
+  "volunteerModalNameLabel",
+  "volunteerModalEmailLabel",
+  "volunteerModalSubjectLabel",
+  "volunteerModalMessageLabel",
+  "volunteerModalNamePlaceholder",
+  "volunteerModalEmailPlaceholder",
+  "volunteerModalSubjectPlaceholder",
+  "volunteerModalMessagePlaceholder",
+  "volunteerModalCancelLabel",
+  "volunteerModalSendLabel",
+  "volunteerModalSendingLabel",
+  "volunteerModalNameRequiredMessage",
+  "volunteerModalEmailRequiredMessage",
+  "volunteerModalEmailInvalidMessage",
+  "volunteerModalSubjectRequiredMessage",
+  "volunteerModalSubjectMinMessage",
+  "volunteerModalMessageRequiredMessage",
+  "volunteerModalMessageMinMessage",
+  "volunteerModalBtnBg",
+  "volunteerModalBtnText",
+  "volunteerModalCancelColor",
+]);
+const FOOTER_COMPONENT_OVERRIDE_KEYS = new Set([
+  "footerLogoUrl",
+  "footerAddress",
+  "footerEmail",
+  "footerPhone",
+  "footerCol1Links",
+  "footerCol2Links",
+  "footerSocialLinks",
+  "footerCopyrightText",
+  "footerBgColorKey",
+  "footerBackgroundImageUrl",
+  "footerTextColorKey",
+  "footerCopyrightBarColorKey",
+  "footerColumnsCount",
+  "footerLayoutStyle",
+  "footerSocialIcons",
+]);
+
+function pickPreferredComponentDocs(components, { preferLayout = false } = {}) {
+  const byBase = new Map();
+  if (!Array.isArray(components)) return byBase;
+
+  for (const component of components) {
+    const baseComponent = String(component?.baseComponent || "").trim();
+    if (!baseComponent) continue;
+
+    const existing = byBase.get(baseComponent);
+    if (!existing) {
+      byBase.set(baseComponent, component);
+      continue;
+    }
+
+    if (preferLayout) {
+      const existingHasLayout =
+        Array.isArray(existing?.layout) && existing.layout.length > 0;
+      const currentHasLayout =
+        Array.isArray(component?.layout) && component.layout.length > 0;
+      if (currentHasLayout && !existingHasLayout) {
+        byBase.set(baseComponent, component);
+        continue;
+      }
+      if (!currentHasLayout && existingHasLayout) {
+        continue;
+      }
+    }
+
+    const existingUpdated = new Date(existing?.updatedAt || 0).getTime();
+    const currentUpdated = new Date(component?.updatedAt || 0).getTime();
+    if (currentUpdated > existingUpdated) {
+      byBase.set(baseComponent, component);
+      continue;
+    }
+    if (currentUpdated < existingUpdated) continue;
+
+    const existingId = String(existing?._id || "");
+    const currentId = String(component?._id || "");
+    if (currentId > existingId) {
+      byBase.set(baseComponent, component);
+    }
+  }
+
+  return byBase;
+}
+
+function shouldMergeComponentProp(baseComponent, key) {
+  if (baseComponent === "Header" && REMOVED_HEADER_COMPONENT_KEYS.has(key)) {
+    return false;
+  }
+  if (!THEME_CONFIG_OWNED_KEYS.has(key)) return true;
+  if (baseComponent === "Header") {
+    return HEADER_COMPONENT_OVERRIDE_KEYS.has(key);
+  }
+  if (baseComponent === "Footer") {
+    return FOOTER_COMPONENT_OVERRIDE_KEYS.has(key);
+  }
+  return false;
+}
 
 function normalizeTheme(theme) {
-  if (!theme) return { ...DEFAULTS, themePalette: { ...THEME_PALETTE_DEFAULTS } };
+  if (!theme) return normalizeThemeColorCollections({ ...DEFAULTS });
   const out = { ...DEFAULTS, ...theme };
+  if (!out.headerDonateIconUrl && out.headerDonateIconUrlMobile) {
+    out.headerDonateIconUrl = out.headerDonateIconUrlMobile;
+  }
+  delete out.headerDonateIconUrlMobile;
   if (!out.bodyFont && out.fontFamily) out.bodyFont = out.fontFamily;
   if (!out.headingFont && out.headingFontFamily) out.headingFont = out.headingFontFamily;
   if (out.baseFontSize == null && out.fontSize != null) out.baseFontSize = out.fontSize;
   if (!out.logoLightUrl && out.logoImageUrl) out.logoLightUrl = out.logoImageUrl;
-  if (!Array.isArray(out.colors)) out.colors = [];
-  const storedPalette = out.themePalette && typeof out.themePalette === "object" ? out.themePalette : {};
-  out.themePalette = Object.keys(storedPalette).length > 0 ? { ...storedPalette } : { ...THEME_PALETTE_DEFAULTS };
-  return out;
+  return normalizeThemeColorCollections(out);
 }
 
 const HERO_BANNER_KEYS = [
@@ -389,11 +570,16 @@ export async function GET() {
       normalized[k] = plain[k] != null ? String(plain[k]).trim() : "";
     }
     // Merge from components collection (all site components: Header, Footer, HomeHero, Subscribe + any new)
-    const comps = await Component.find({ baseComponent: { $in: getRegistryIdsFromDisk() } }).lean();
-    for (const c of comps || []) {
+    const comps = await Component.find({
+      baseComponent: { $in: getRegistryIdsFromDisk() },
+    }).lean();
+    const preferredComps = Array.from(pickPreferredComponentDocs(comps).values());
+    for (const c of preferredComps) {
       const props = c.defaultProps;
+      const baseComponent = c?.baseComponent;
       if (props && typeof props === "object") {
         for (const key of Object.keys(props)) {
+          if (!shouldMergeComponentProp(baseComponent, key)) continue;
           if (props[key] !== undefined) normalized[key] = props[key];
         }
       }

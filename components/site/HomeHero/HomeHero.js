@@ -11,33 +11,35 @@ import { ThemeButton, getColor, PageContainer } from "@/styles/Theme";
 const SliderSection = styled.section.attrs((p) => ({
   $bgImage: p.$bgImage || "",
   $clickable: p.$clickable,
+  $overlayBackground: p.$overlayBackground || "transparent",
+  $fitMode: p.$fitMode || "viewport",
+  $aspectRatio: p.$aspectRatio || "64 / 30",
 }))`
   width: 100%;
-  min-height: calc(100vh - 80px);
+  min-height: ${(p) =>
+    p.$fitMode === "ratio" ? "auto" : "calc(100vh - 80px)"};
+  aspect-ratio: ${(p) => (p.$fitMode === "ratio" ? p.$aspectRatio : "auto")};
   padding: 0;
   position: relative;
   cursor: ${(p) => (p.$clickable ? "pointer" : "default")};
-  background: ${(p) =>
-    p.$bgImage
-      ? `url(${p.$bgImage}) center/cover no-repeat`
-      : "rgba(0,0,0,0.4)"};
+  background-color: ${(p) =>
+    p.$bgImage ? (p.$fitMode === "ratio" ? "transparent" : "#000") : "rgba(0,0,0,0.4)"};
+  background-image: ${(p) => (p.$bgImage ? `url(${p.$bgImage})` : "none")};
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: ${(p) => (p.$fitMode === "ratio" ? "cover" : "contain")};
   display: flex;
   align-items: center;
   &::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(
-      90deg,
-      rgba(0, 0, 0, 0.65) 0%,
-      rgba(0, 0, 0, 0.35) 50%,
-      transparent 100%
-    );
+    background: ${(p) => p.$overlayBackground};
     pointer-events: none;
   }
   @media (max-width: 768px) {
-    padding: 0px 24px;
-    min-height: calc(90vh - 80px);
+    padding: ${(p) => (p.$fitMode === "ratio" ? "0" : "0px 24px")};
+    min-height: ${(p) => (p.$fitMode === "ratio" ? "auto" : "calc(90vh - 80px)")};
   }
   .slider-title {
     margin: 0 0 1rem;
@@ -108,6 +110,23 @@ function normalizeExternalUrl(rawUrl) {
   return "";
 }
 
+function loadImageAspectRatio(url) {
+  const src = url != null ? String(url).trim() : "";
+  if (!src) return Promise.resolve("");
+  if (typeof window === "undefined") return Promise.resolve("");
+  return new Promise((resolve) => {
+    const img = new window.Image();
+    img.onload = () => {
+      const w = Number(img.naturalWidth || 0);
+      const h = Number(img.naturalHeight || 0);
+      if (w > 0 && h > 0) resolve(`${w} / ${h}`);
+      else resolve("");
+    };
+    img.onerror = () => resolve("");
+    img.src = src;
+  });
+}
+
 function SingleSlide({
   bgImageUrl,
   title,
@@ -122,7 +141,13 @@ function SingleSlide({
   contentContainer,
   mediaType,
   videoUrl,
+  overlayEnabled,
+  slideAspectRatio,
 }) {
+  const safeTitle = title != null ? String(title).trim() : "";
+  const safeDescription = description != null ? String(description).trim() : "";
+  const safeButtonText = buttonText != null ? String(buttonText).trim() : "";
+  const safeButtonLink = buttonLink != null ? String(buttonLink).trim() : "";
   const titleStyle = titleColor ? { color: titleColor } : undefined;
   const descStyle = descColor ? { color: descColor } : undefined;
   const buttonStyle =
@@ -132,7 +157,14 @@ function SingleSlide({
           ...(buttonTextColor && { color: buttonTextColor }),
         }
       : undefined;
-  const renderButton = showButton !== false;
+  const renderButton = showButton !== false && !!safeButtonText;
+  const hasForegroundContent = !!safeTitle || !!safeDescription || renderButton;
+  const showOverlay = overlayEnabled != null ? overlayEnabled : hasForegroundContent;
+  const overlayBackground = showOverlay
+    ? "linear-gradient(90deg, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0.35) 50%, transparent 100%)"
+    : "transparent";
+  const fitMode = hasForegroundContent ? "viewport" : "ratio";
+  const aspectRatio = slideAspectRatio || "64 / 30";
   const usePageContainer = contentContainer !== "full";
   const clickableVideoUrl = normalizeExternalUrl(videoUrl);
   const isVideoSlide = mediaType === "video";
@@ -146,6 +178,9 @@ function SingleSlide({
     <SliderSection
       $bgImage={bgImageUrl}
       $clickable={!!clickableVideoUrl}
+      $overlayBackground={overlayBackground}
+      $fitMode={fitMode}
+      $aspectRatio={aspectRatio}
       onClick={handleSlideClick}
       role={clickableVideoUrl ? "button" : undefined}
       tabIndex={clickableVideoUrl ? 0 : undefined}
@@ -163,24 +198,28 @@ function SingleSlide({
         usePageContainer={usePageContainer}
         style={{ position: "relative", zIndex: 1 }}
       >
-        <h2 className="slider-title" style={titleStyle}>
-          {title != null ? title : ""}
-        </h2>
-        <p className="slider-desc" style={descStyle}>
-          {description != null ? description : ""}
-        </p>
+        {safeTitle && (
+          <h2 className="slider-title" style={titleStyle}>
+            {safeTitle}
+          </h2>
+        )}
+        {safeDescription && (
+          <p className="slider-desc" style={descStyle}>
+            {safeDescription}
+          </p>
+        )}
         {renderButton && (
           <Link
-            href={buttonLink != null && buttonLink !== "" ? buttonLink : "#"}
+            href={safeButtonLink || "#"}
             onClick={(e) => e.stopPropagation()}
           >
             {buttonStyle ? (
               <ThemeButton type="button" size="large" style={buttonStyle}>
-                {buttonText != null ? buttonText : ""} <RightCircleFilled />
+                {safeButtonText} <RightCircleFilled />
               </ThemeButton>
             ) : (
               <ThemeButton type="button" size="large">
-                {buttonText != null ? buttonText : ""} <RightCircleFilled />
+                {safeButtonText} <RightCircleFilled />
               </ThemeButton>
             )}
           </Link>
@@ -235,31 +274,25 @@ function fetchHomeHero() {
  */
 export default function HomeHero(props) {
   const [theme, setTheme] = useState(null);
-  const [isMobileView, setIsMobileView] = useState(false);
+  const [themeResolved, setThemeResolved] = useState(false);
+  const [slideAspectRatios, setSlideAspectRatios] = useState({});
   const fromPage =
     (Array.isArray(props?.homeHeroSlides) && props.homeHeroSlides.length > 0) ||
     (Array.isArray(props?.slides) && props.slides.length > 0);
 
   useEffect(() => {
-    if (fromPage) return;
-    fetchHomeHero().then(setTheme);
-    const onFocus = () => fetchHomeHero().then((t) => t != null && setTheme(t));
+    if (fromPage) {
+      setThemeResolved(true);
+      return;
+    }
+    fetchHomeHero()
+      .then(setTheme)
+      .finally(() => setThemeResolved(true));
+    const onFocus = () =>
+      fetchHomeHero().then((t) => t != null && setTheme(t));
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, [fromPage]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(max-width: 767px)");
-    const update = () => setIsMobileView(mq.matches);
-    update();
-    if (typeof mq.addEventListener === "function") {
-      mq.addEventListener("change", update);
-      return () => mq.removeEventListener("change", update);
-    }
-    mq.addListener(update);
-    return () => mq.removeListener(update);
-  }, []);
 
   const slides =
     Array.isArray(props?.homeHeroSlides) && props.homeHeroSlides.length > 0
@@ -323,6 +356,10 @@ export default function HomeHero(props) {
   const autoplaySpeed =
     props?.homeHeroAutoplaySpeed ?? theme?.homeHeroAutoplaySpeed ?? 5000;
   const speed = props?.homeHeroSpeed ?? theme?.homeHeroSpeed ?? 500;
+  const overlayEnabledRaw =
+    props?.homeHeroOverlayEnabled ?? theme?.homeHeroOverlayEnabled;
+  const overlayEnabled =
+    overlayEnabledRaw == null ? undefined : overlayEnabledRaw !== false;
 
   const slideProps = {
     titleColor,
@@ -330,27 +367,69 @@ export default function HomeHero(props) {
     buttonBgColor,
     buttonTextColor,
     contentContainer,
+    overlayEnabled,
   };
   const resolveSlideBgImage = (slide) => {
     const desktop = slide?.bgImageUrlDesktop || slide?.bgImageUrl || "";
     const mobile = slide?.bgImageUrlMobile || "";
-    if (isMobileView) return mobile || desktop;
     return desktop || mobile;
   };
 
-  if (normalizedSlides.length === 0) return null;
+  useEffect(() => {
+    const urls = [...new Set(normalizedSlides.map(resolveSlideBgImage).filter(Boolean))];
+    const unresolved = urls.filter((url) => !slideAspectRatios[url]);
+    if (unresolved.length === 0) return;
+
+    let cancelled = false;
+    Promise.all(
+      unresolved.map(async (url) => [url, await loadImageAspectRatio(url)]),
+    ).then((entries) => {
+      if (cancelled) return;
+      setSlideAspectRatios((prev) => {
+        let changed = false;
+        const next = { ...prev };
+        for (const [url, ratio] of entries) {
+          if (!url || !ratio || next[url] === ratio) continue;
+          next[url] = ratio;
+          changed = true;
+        }
+        return changed ? next : prev;
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [normalizedSlides, slideAspectRatios]);
+
+  if (normalizedSlides.length === 0) {
+    // Reserve hero space until client-side HomeHero defaults finish loading,
+    // preventing a large first-load layout shift.
+    if (!fromPage && !themeResolved) {
+      return (
+        <HomeFluidContainer data-component="HomeHero" aria-hidden="true">
+          <SliderSection />
+        </HomeFluidContainer>
+      );
+    }
+    return null;
+  }
+
+  const singleSlide = normalizedSlides[0];
+  const singleBgUrl = singleSlide ? resolveSlideBgImage(singleSlide) : "";
 
   const slideContent =
     normalizedSlides.length === 1 ? (
       <SingleSlide
-        bgImageUrl={resolveSlideBgImage(normalizedSlides[0])}
-        title={normalizedSlides[0].title}
-        description={normalizedSlides[0].description}
-        buttonText={normalizedSlides[0].buttonText}
-        buttonLink={normalizedSlides[0].buttonLink}
-        showButton={normalizedSlides[0].showButton}
-        mediaType={normalizedSlides[0].mediaType}
-        videoUrl={normalizedSlides[0].youtubeUrl || normalizedSlides[0].videoUrl}
+        bgImageUrl={singleBgUrl}
+        title={singleSlide?.title}
+        description={singleSlide?.description}
+        buttonText={singleSlide?.buttonText}
+        buttonLink={singleSlide?.buttonLink}
+        showButton={singleSlide?.showButton}
+        mediaType={singleSlide?.mediaType}
+        videoUrl={singleSlide?.youtubeUrl || singleSlide?.videoUrl}
+        slideAspectRatio={slideAspectRatios[singleBgUrl]}
         {...slideProps}
       />
     ) : (
@@ -362,20 +441,24 @@ export default function HomeHero(props) {
         dots={showDots}
         effect="fade"
       >
-        {normalizedSlides.map((slide, i) => (
-          <SingleSlide
-            key={i}
-            bgImageUrl={resolveSlideBgImage(slide)}
-            title={slide.title}
-            description={slide.description}
-            buttonText={slide.buttonText}
-            buttonLink={slide.buttonLink}
-            showButton={slide.showButton}
-            mediaType={slide.mediaType}
-            videoUrl={slide.youtubeUrl || slide.videoUrl}
-            {...slideProps}
-          />
-        ))}
+        {normalizedSlides.map((slide, i) => {
+          const bgUrl = resolveSlideBgImage(slide);
+          return (
+            <SingleSlide
+              key={i}
+              bgImageUrl={bgUrl}
+              title={slide.title}
+              description={slide.description}
+              buttonText={slide.buttonText}
+              buttonLink={slide.buttonLink}
+              showButton={slide.showButton}
+              mediaType={slide.mediaType}
+              videoUrl={slide.youtubeUrl || slide.videoUrl}
+              slideAspectRatio={slideAspectRatios[bgUrl]}
+              {...slideProps}
+            />
+          );
+        })}
       </Carousel>
     );
 

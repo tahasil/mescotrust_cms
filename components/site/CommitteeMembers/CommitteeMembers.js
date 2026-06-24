@@ -171,7 +171,10 @@ const ProfileDetailUI = styled.div`
     width: 160px;
     border-radius: 12px;
     overflow: hidden;
-    border: 1px solid ${() => getColor("themeBorder")};
+    border: 1px solid
+      ${(props) => getColor("themeBorder") || "rgba(0, 0, 0, 0.14)"};
+    background: #fff;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04);
     img {
       width: 100%;
       height: auto;
@@ -208,11 +211,21 @@ const ProfileDetailUI = styled.div`
     color: ${() => getColor("primary")};
   }
   .profile-detail-bio {
+    position: relative;
     font-size: 14px;
     line-height: 1.6;
     color: ${() => getColor("black")};
-    padding-top: 16px;
-    border-top: 1px solid ${() => getColor("themeBorder")};
+    margin-top: 18px;
+    padding-top: 18px;
+  }
+  .profile-detail-bio::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.14);
   }
 `;
 
