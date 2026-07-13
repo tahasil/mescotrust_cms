@@ -11,6 +11,7 @@ import {
   LOGO_LINK_SCHEMA,
   MENU_SCHEMA,
   CUSTOM_BUTTONS_SCHEMA,
+  ANNOUNCEMENT_BAR_SCHEMA,
   HEADER_FIELD_GROUPS,
   SECTION_SETTINGS_SCHEMA,
 } from "./headerDrawerSchemas";
@@ -37,6 +38,18 @@ function menuItemsToNavItems(menuItems) {
     if (children.length > 0) result.children = children;
     return result;
   });
+}
+
+function normalizeAnnouncementItems(items) {
+  if (!Array.isArray(items)) return [];
+  return items
+    .map((it) => ({
+      text: it?.text != null ? String(it.text).trim() : "",
+      url: it?.url != null ? String(it.url).trim() : "",
+      target:
+        String(it?.target || "").trim() === "_blank" ? "_blank" : "_self",
+    }))
+    .filter((it) => it.text);
 }
 
 /**
@@ -129,6 +142,44 @@ function HeaderEditForm(
           flat.headerDonateIconUrl = theme.headerDonateIconUrl;
         } else if (theme?.headerDonateIconUrlMobile != null) {
           flat.headerDonateIconUrl = theme.headerDonateIconUrlMobile;
+        }
+        if (theme?.headerAnnouncementEnabled != null) {
+          flat.headerAnnouncementEnabled = theme.headerAnnouncementEnabled === true;
+        }
+        if (Array.isArray(theme?.headerAnnouncementItems)) {
+          flat.headerAnnouncementItems = normalizeAnnouncementItems(theme.headerAnnouncementItems);
+        } else if (theme?.headerAnnouncementText != null) {
+          const text = String(theme.headerAnnouncementText || "").trim();
+          flat.headerAnnouncementItems = text
+            ? [
+                {
+                  text,
+                  url: String(theme?.headerAnnouncementLinkUrl || "").trim(),
+                  target:
+                    String(theme?.headerAnnouncementLinkTarget || "").trim() === "_blank"
+                      ? "_blank"
+                      : "_self",
+                },
+              ]
+            : [];
+        }
+        if (theme?.headerAnnouncementFontSize != null) {
+          flat.headerAnnouncementFontSize = theme.headerAnnouncementFontSize;
+        }
+        if (theme?.headerAnnouncementFontWeight != null) {
+          flat.headerAnnouncementFontWeight = theme.headerAnnouncementFontWeight;
+        }
+        if (theme?.headerAnnouncementTextColor != null) {
+          flat.headerAnnouncementTextColor = theme.headerAnnouncementTextColor;
+        }
+        if (theme?.headerAnnouncementBackgroundColor != null) {
+          flat.headerAnnouncementBackgroundColor = theme.headerAnnouncementBackgroundColor;
+        }
+        if (theme?.headerAnnouncementMarqueeSpeed != null) {
+          flat.headerAnnouncementMarqueeSpeed = theme.headerAnnouncementMarqueeSpeed;
+        }
+        if (theme?.headerAnnouncementPaddingX != null) {
+          flat.headerAnnouncementPaddingX = theme.headerAnnouncementPaddingX;
         }
         if (theme?.headerCtaBgColorKey != null) flat.headerCtaBgColorKey = theme.headerCtaBgColorKey;
         if (theme?.headerCtaTextColorKey != null) flat.headerCtaTextColorKey = theme.headerCtaTextColorKey;
@@ -267,6 +318,7 @@ function HeaderEditForm(
     ...NAVBAR_SCHEMA,
     ...LOGO_LINK_SCHEMA,
     ...MENU_SCHEMA,
+    ...ANNOUNCEMENT_BAR_SCHEMA,
     ...CUSTOM_BUTTONS_SCHEMA,
     ...SECTION_SETTINGS_SCHEMA,
   ];

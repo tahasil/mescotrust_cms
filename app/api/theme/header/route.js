@@ -36,6 +36,17 @@ const HEADER_DEFAULTS = {
   logoMobileUrl: "",
   logoDarkUrl: "",
   logoImageUrl: "",
+  headerAnnouncementEnabled: false,
+  headerAnnouncementItems: [],
+  headerAnnouncementText: "",
+  headerAnnouncementLinkUrl: "",
+  headerAnnouncementLinkTarget: "_self",
+  headerAnnouncementFontSize: 14,
+  headerAnnouncementFontWeight: "600",
+  headerAnnouncementTextColor: "#ffffff",
+  headerAnnouncementBackgroundColor: "#d92d20",
+  headerAnnouncementMarqueeSpeed: 20,
+  headerAnnouncementPaddingX: 24,
   headerVolunteerLabel: "",
   headerVolunteerHref: "",
   headerVolunteerHrefTarget: "_self",
@@ -87,6 +98,23 @@ const REMOVED_HEADER_KEYS = new Set([
   "volunteerModalCancelColor",
 ]);
 
+function normalizeNumber(value, fallback, min, max) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  if (Number.isFinite(min) && parsed < min) return min;
+  if (Number.isFinite(max) && parsed > max) return max;
+  return parsed;
+}
+
+function normalizeAnnouncementItem(item) {
+  const out = item && typeof item === "object" ? item : {};
+  return {
+    text: out.text != null ? String(out.text).trim() : "",
+    url: out.url != null ? String(out.url).trim() : "",
+    target: String(out.target || "").trim() === "_blank" ? "_blank" : "_self",
+  };
+}
+
 function normalizeHeaderProps(input) {
   const payload = input && typeof input === "object" ? input : {};
   const out = { ...HEADER_DEFAULTS, ...payload };
@@ -97,6 +125,49 @@ function normalizeHeaderProps(input) {
     delete out[key];
   }
   out.headerSearchEnabled = out.headerSearchEnabled === true;
+  out.headerAnnouncementEnabled = out.headerAnnouncementEnabled === true;
+  out.headerAnnouncementItems = Array.isArray(out.headerAnnouncementItems)
+    ? out.headerAnnouncementItems
+        .map(normalizeAnnouncementItem)
+        .filter((it) => it.text)
+    : [];
+  if (out.headerAnnouncementItems.length === 0) {
+    const fallbackText = String(out.headerAnnouncementText || "").trim();
+    if (fallbackText) {
+      out.headerAnnouncementItems = [
+        normalizeAnnouncementItem({
+          text: fallbackText,
+          url: out.headerAnnouncementLinkUrl,
+          target: out.headerAnnouncementLinkTarget,
+        }),
+      ];
+    }
+  }
+  out.headerAnnouncementLinkTarget =
+    String(out.headerAnnouncementLinkTarget || "").trim() === "_blank"
+      ? "_blank"
+      : "_self";
+  out.headerAnnouncementFontSize = normalizeNumber(
+    out.headerAnnouncementFontSize,
+    HEADER_DEFAULTS.headerAnnouncementFontSize,
+    10,
+    40,
+  );
+  out.headerAnnouncementMarqueeSpeed = normalizeNumber(
+    out.headerAnnouncementMarqueeSpeed,
+    HEADER_DEFAULTS.headerAnnouncementMarqueeSpeed,
+    4,
+    120,
+  );
+  out.headerAnnouncementPaddingX = normalizeNumber(
+    out.headerAnnouncementPaddingX,
+    HEADER_DEFAULTS.headerAnnouncementPaddingX,
+    0,
+    120,
+  );
+  out.headerAnnouncementFontWeight =
+    String(out.headerAnnouncementFontWeight || "").trim() ||
+    HEADER_DEFAULTS.headerAnnouncementFontWeight;
   out.headerVolunteerHrefTarget =
     String(out.headerVolunteerHrefTarget || "").trim() === "_blank" ? "_blank" : "_self";
   out.menuName = String(out.menuName || "").trim();

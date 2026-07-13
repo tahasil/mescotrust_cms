@@ -50,9 +50,63 @@ export const CUSTOM_BUTTONS_SCHEMA = [
   { key: "headerDonateIconUrl", type: "image", label: "Donate Icon" },
 ];
 
+export const ANNOUNCEMENT_BAR_SCHEMA = [
+  { key: "headerAnnouncementEnabled", type: "boolean", label: "Enable announcement bar" },
+  {
+    key: "headerAnnouncementItems",
+    type: "json",
+    label: "Announcement items",
+    itemLabel: "Announcement",
+    itemSchema: [
+      { key: "text", type: "text", label: "Announcement text" },
+      { key: "url", type: "url", label: "Link URL" },
+      {
+        key: "target",
+        type: "select",
+        label: "Link target",
+        default: "_self",
+        options: [
+          { value: "_self", label: "Same Tab" },
+          { value: "_blank", label: "New Tab" },
+        ],
+      },
+    ],
+  },
+  { key: "headerAnnouncementFontSize", type: "number", label: "Font size (px)" },
+  {
+    key: "headerAnnouncementFontWeight",
+    type: "select",
+    label: "Font weight",
+    options: [
+      { value: "400", label: "400 (Normal)" },
+      { value: "500", label: "500 (Medium)" },
+      { value: "600", label: "600 (Semi-bold)" },
+      { value: "700", label: "700 (Bold)" },
+      { value: "800", label: "800 (Extra bold)" },
+    ],
+  },
+  { key: "headerAnnouncementTextColor", type: "color", label: "Text color" },
+  { key: "headerAnnouncementBackgroundColor", type: "color", label: "Background color" },
+  { key: "headerAnnouncementMarqueeSpeed", type: "number", label: "Marquee speed (seconds)" },
+  { key: "headerAnnouncementPaddingX", type: "number", label: "Left/right padding (px)" },
+];
+
 export const HEADER_FIELD_GROUPS = [
   { label: "Logo and link", keys: ["logoType", "logoLightUrl", "logoMobileUrl", "logoDarkUrl", "logoTitle", "logoTagline", "logoUrl", "logoColor", "logoFontSize", "taglineFontSize", "sectionsOrder"] },
   { label: "Menu", keys: ["menuPosition", "navColor", "navFontSize", "navFontWeight", "navHoverColor", "navItemBackground", "navItemHoverBackground"] },
+  {
+    label: "Announcement bar",
+    keys: [
+      "headerAnnouncementEnabled",
+      "headerAnnouncementItems",
+      "headerAnnouncementFontSize",
+      "headerAnnouncementFontWeight",
+      "headerAnnouncementTextColor",
+      "headerAnnouncementBackgroundColor",
+      "headerAnnouncementMarqueeSpeed",
+      "headerAnnouncementPaddingX",
+    ],
+  },
   { label: "Navbar (Bootstrap)", keys: ["navbarExpand", "navbarFixed", "navbarSticky", "collapseOnSelect", "navbarMobileMenu", "navbarOffcanvasPlacement"] },
   { label: "Custom buttons", keys: ["headerSearchEnabled", "headerSearchLabel", "headerSearchPlaceholder", "headerVolunteerHref", "headerVolunteerHrefTarget", "headerVolunteerIconUrl", "headerDonateIconUrl"] },
 ];

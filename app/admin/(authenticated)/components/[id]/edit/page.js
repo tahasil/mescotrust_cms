@@ -45,6 +45,33 @@ const LOGO_TYPE_OPTIONS = [
   { value: "image", label: "Image" },
 ];
 
+function normalizeHeaderAnnouncementItems(theme = {}) {
+  const items = Array.isArray(theme?.headerAnnouncementItems)
+    ? theme.headerAnnouncementItems
+    : [];
+  const normalized = items
+    .map((item) => ({
+      text: item?.text != null ? String(item.text).trim() : "",
+      url: item?.url != null ? String(item.url).trim() : "",
+      target:
+        String(item?.target || "").trim() === "_blank" ? "_blank" : "_self",
+    }))
+    .filter((item) => item.text);
+  if (normalized.length > 0) return normalized;
+  const fallbackText = String(theme?.headerAnnouncementText || "").trim();
+  if (!fallbackText) return [];
+  return [
+    {
+      text: fallbackText,
+      url: String(theme?.headerAnnouncementLinkUrl || "").trim(),
+      target:
+        String(theme?.headerAnnouncementLinkTarget || "").trim() === "_blank"
+          ? "_blank"
+          : "_self",
+    },
+  ];
+}
+
 export default function AdminComponentEditPage() {
   const params = useParams();
   const router = useRouter();
@@ -155,6 +182,21 @@ export default function AdminComponentEditPage() {
             theme.headerSearchResultTypeEventLabel ?? "",
           headerSearchFallbackTitle: theme.headerSearchFallbackTitle ?? "",
           headerSearchFallbackMeta: theme.headerSearchFallbackMeta ?? "",
+          headerAnnouncementEnabled: theme.headerAnnouncementEnabled === true,
+          headerAnnouncementItems: normalizeHeaderAnnouncementItems(theme),
+          headerAnnouncementText: theme.headerAnnouncementText ?? "",
+          headerAnnouncementLinkUrl: theme.headerAnnouncementLinkUrl ?? "",
+          headerAnnouncementLinkTarget:
+            theme.headerAnnouncementLinkTarget ?? "_self",
+          headerAnnouncementFontSize: theme.headerAnnouncementFontSize,
+          headerAnnouncementFontWeight:
+            theme.headerAnnouncementFontWeight ?? "600",
+          headerAnnouncementTextColor: theme.headerAnnouncementTextColor ?? "",
+          headerAnnouncementBackgroundColor:
+            theme.headerAnnouncementBackgroundColor ?? "",
+          headerAnnouncementMarqueeSpeed:
+            theme.headerAnnouncementMarqueeSpeed,
+          headerAnnouncementPaddingX: theme.headerAnnouncementPaddingX,
           logoType: theme.logoType ?? "text",
           logoLightUrl: theme.logoLightUrl || theme.logoImageUrl || "",
           logoMobileUrl: theme.logoMobileUrl ?? "",
@@ -247,6 +289,21 @@ export default function AdminComponentEditPage() {
             theme.headerSearchResultTypeEventLabel ?? "",
           headerSearchFallbackTitle: theme.headerSearchFallbackTitle ?? "",
           headerSearchFallbackMeta: theme.headerSearchFallbackMeta ?? "",
+          headerAnnouncementEnabled: theme.headerAnnouncementEnabled === true,
+          headerAnnouncementItems: normalizeHeaderAnnouncementItems(theme),
+          headerAnnouncementText: theme.headerAnnouncementText ?? "",
+          headerAnnouncementLinkUrl: theme.headerAnnouncementLinkUrl ?? "",
+          headerAnnouncementLinkTarget:
+            theme.headerAnnouncementLinkTarget ?? "_self",
+          headerAnnouncementFontSize: theme.headerAnnouncementFontSize,
+          headerAnnouncementFontWeight:
+            theme.headerAnnouncementFontWeight ?? "600",
+          headerAnnouncementTextColor: theme.headerAnnouncementTextColor ?? "",
+          headerAnnouncementBackgroundColor:
+            theme.headerAnnouncementBackgroundColor ?? "",
+          headerAnnouncementMarqueeSpeed:
+            theme.headerAnnouncementMarqueeSpeed,
+          headerAnnouncementPaddingX: theme.headerAnnouncementPaddingX,
           logoType: theme.logoType ?? "text",
           logoLightUrl: theme.logoLightUrl || theme.logoImageUrl || "",
           logoMobileUrl: theme.logoMobileUrl ?? "",
@@ -1077,6 +1134,28 @@ export default function AdminComponentEditPage() {
                       theme.headerSearchFallbackTitle ?? "",
                     headerSearchFallbackMeta:
                       theme.headerSearchFallbackMeta ?? "",
+                    headerAnnouncementEnabled:
+                      theme.headerAnnouncementEnabled === true,
+                    headerAnnouncementItems:
+                      normalizeHeaderAnnouncementItems(theme),
+                    headerAnnouncementText:
+                      theme.headerAnnouncementText ?? "",
+                    headerAnnouncementLinkUrl:
+                      theme.headerAnnouncementLinkUrl ?? "",
+                    headerAnnouncementLinkTarget:
+                      theme.headerAnnouncementLinkTarget ?? "_self",
+                    headerAnnouncementFontSize:
+                      theme.headerAnnouncementFontSize,
+                    headerAnnouncementFontWeight:
+                      theme.headerAnnouncementFontWeight ?? "600",
+                    headerAnnouncementTextColor:
+                      theme.headerAnnouncementTextColor ?? "",
+                    headerAnnouncementBackgroundColor:
+                      theme.headerAnnouncementBackgroundColor ?? "",
+                    headerAnnouncementMarqueeSpeed:
+                      theme.headerAnnouncementMarqueeSpeed,
+                    headerAnnouncementPaddingX:
+                      theme.headerAnnouncementPaddingX,
                     logoType: theme.logoType ?? "text",
                     logoLightUrl:
                       theme.logoLightUrl || theme.logoImageUrl || "",
@@ -1186,6 +1265,28 @@ export default function AdminComponentEditPage() {
                       theme.headerSearchFallbackTitle ?? "",
                     headerSearchFallbackMeta:
                       theme.headerSearchFallbackMeta ?? "",
+                    headerAnnouncementEnabled:
+                      theme.headerAnnouncementEnabled === true,
+                    headerAnnouncementItems:
+                      normalizeHeaderAnnouncementItems(theme),
+                    headerAnnouncementText:
+                      theme.headerAnnouncementText ?? "",
+                    headerAnnouncementLinkUrl:
+                      theme.headerAnnouncementLinkUrl ?? "",
+                    headerAnnouncementLinkTarget:
+                      theme.headerAnnouncementLinkTarget ?? "_self",
+                    headerAnnouncementFontSize:
+                      theme.headerAnnouncementFontSize,
+                    headerAnnouncementFontWeight:
+                      theme.headerAnnouncementFontWeight ?? "600",
+                    headerAnnouncementTextColor:
+                      theme.headerAnnouncementTextColor ?? "",
+                    headerAnnouncementBackgroundColor:
+                      theme.headerAnnouncementBackgroundColor ?? "",
+                    headerAnnouncementMarqueeSpeed:
+                      theme.headerAnnouncementMarqueeSpeed,
+                    headerAnnouncementPaddingX:
+                      theme.headerAnnouncementPaddingX,
                     logoType: theme.logoType ?? "text",
                     logoLightUrl: theme.logoLightUrl || theme.logoImageUrl || "",
                     logoMobileUrl: theme.logoMobileUrl ?? "",
@@ -1682,6 +1783,50 @@ function HeaderPreviewBlock({ form, themePaletteData, themeHeaderSnapshot }) {
     Form.useWatch("headerSearchFallbackMeta", form) ||
     s?.headerSearchFallbackMeta ||
     "";
+  const headerAnnouncementEnabled =
+    Form.useWatch("headerAnnouncementEnabled", form) ??
+    s?.headerAnnouncementEnabled ??
+    false;
+  const headerAnnouncementItems =
+    Form.useWatch("headerAnnouncementItems", form) ||
+    s?.headerAnnouncementItems ||
+    [];
+  const headerAnnouncementText =
+    Form.useWatch("headerAnnouncementText", form) ||
+    s?.headerAnnouncementText ||
+    "";
+  const headerAnnouncementLinkUrl =
+    Form.useWatch("headerAnnouncementLinkUrl", form) ||
+    s?.headerAnnouncementLinkUrl ||
+    "";
+  const headerAnnouncementLinkTarget =
+    Form.useWatch("headerAnnouncementLinkTarget", form) ||
+    s?.headerAnnouncementLinkTarget ||
+    "_self";
+  const headerAnnouncementFontSize =
+    Form.useWatch("headerAnnouncementFontSize", form) ??
+    s?.headerAnnouncementFontSize ??
+    14;
+  const headerAnnouncementFontWeight =
+    Form.useWatch("headerAnnouncementFontWeight", form) ||
+    s?.headerAnnouncementFontWeight ||
+    "600";
+  const headerAnnouncementTextColor =
+    Form.useWatch("headerAnnouncementTextColor", form) ||
+    s?.headerAnnouncementTextColor ||
+    "#ffffff";
+  const headerAnnouncementBackgroundColor =
+    Form.useWatch("headerAnnouncementBackgroundColor", form) ||
+    s?.headerAnnouncementBackgroundColor ||
+    "#d92d20";
+  const headerAnnouncementMarqueeSpeed =
+    Form.useWatch("headerAnnouncementMarqueeSpeed", form) ??
+    s?.headerAnnouncementMarqueeSpeed ??
+    20;
+  const headerAnnouncementPaddingX =
+    Form.useWatch("headerAnnouncementPaddingX", form) ??
+    s?.headerAnnouncementPaddingX ??
+    24;
   const volunteerModalTitle =
     Form.useWatch("volunteerModalTitle", form) || s?.volunteerModalTitle || "";
   const volunteerModalSuccessTitle =
@@ -1828,6 +1973,25 @@ function HeaderPreviewBlock({ form, themePaletteData, themeHeaderSnapshot }) {
         headerSearchResultTypeEventLabel={headerSearchResultTypeEventLabel}
         headerSearchFallbackTitle={headerSearchFallbackTitle}
         headerSearchFallbackMeta={headerSearchFallbackMeta}
+        headerAnnouncementEnabled={headerAnnouncementEnabled === true}
+        headerAnnouncementItems={
+          Array.isArray(headerAnnouncementItems) ? headerAnnouncementItems : []
+        }
+        headerAnnouncementText={headerAnnouncementText}
+        headerAnnouncementLinkUrl={headerAnnouncementLinkUrl}
+        headerAnnouncementLinkTarget={headerAnnouncementLinkTarget}
+        headerAnnouncementFontSize={headerAnnouncementFontSize}
+        headerAnnouncementFontWeight={headerAnnouncementFontWeight}
+        headerAnnouncementTextColor={resolveThemeColorFromPalette(
+          themePaletteData,
+          headerAnnouncementTextColor,
+        )}
+        headerAnnouncementBackgroundColor={resolveThemeColorFromPalette(
+          themePaletteData,
+          headerAnnouncementBackgroundColor,
+        )}
+        headerAnnouncementMarqueeSpeed={headerAnnouncementMarqueeSpeed}
+        headerAnnouncementPaddingX={headerAnnouncementPaddingX}
         logoType={logoType}
         logoUrl={logoUrl}
         logoLightUrl={logoLightUrl}

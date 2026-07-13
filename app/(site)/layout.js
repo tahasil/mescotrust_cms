@@ -112,6 +112,27 @@ export default async function SiteLayout({ children }) {
         headerSearchResultTypeEventLabel={theme.headerSearchResultTypeEventLabel ?? ""}
         headerSearchFallbackTitle={theme.headerSearchFallbackTitle ?? ""}
         headerSearchFallbackMeta={theme.headerSearchFallbackMeta ?? ""}
+        headerAnnouncementEnabled={theme.headerAnnouncementEnabled === true}
+        headerAnnouncementItems={
+          Array.isArray(theme.headerAnnouncementItems)
+            ? theme.headerAnnouncementItems
+            : []
+        }
+        headerAnnouncementText={theme.headerAnnouncementText ?? ""}
+        headerAnnouncementLinkUrl={theme.headerAnnouncementLinkUrl ?? ""}
+        headerAnnouncementLinkTarget={theme.headerAnnouncementLinkTarget ?? "_self"}
+        headerAnnouncementFontSize={theme.headerAnnouncementFontSize}
+        headerAnnouncementFontWeight={theme.headerAnnouncementFontWeight ?? "600"}
+        headerAnnouncementTextColor={resolveThemeColor(
+          theme,
+          theme.headerAnnouncementTextColor ?? "",
+        )}
+        headerAnnouncementBackgroundColor={resolveThemeColor(
+          theme,
+          theme.headerAnnouncementBackgroundColor ?? "",
+        )}
+        headerAnnouncementMarqueeSpeed={theme.headerAnnouncementMarqueeSpeed}
+        headerAnnouncementPaddingX={theme.headerAnnouncementPaddingX}
         logoType={theme.logoType}
         logoLightUrl={logoUrl}
         logoMobileUrl={theme.logoMobileUrl ?? ""}
