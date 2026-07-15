@@ -163,6 +163,10 @@ const REQUIRED_LOOKUP_AUTOFILL_FIELDS = [
   "pincode",
 ];
 
+const FORM_GRID_COL_PROPS = { xs: 24, sm: 12, lg: 8 };
+const FORM_GRID_FULL_COL_PROPS = { xs: 24 };
+const FORM_TEXTAREA_COL_PROPS = { xs: 24, sm: 24, md: 24, lg: 12 };
+
 function getInitialLookupState() {
   return {
     loading: false,
@@ -1094,8 +1098,27 @@ export default function DonateNow(props = {}) {
       }, {}),
     [fieldConfig],
   );
+  const lookupBaseField = useMemo(
+    () => DONATE_NOW_BASE_FIELDS.find((item) => item.key === "lookup"),
+    [],
+  );
+  const orderedMainBaseFields = useMemo(() => {
+    const excludedKeys = new Set(["lookup", "address", "note"]);
+    return DONATE_NOW_BASE_FIELDS.filter(
+      (field) => !excludedKeys.has(field.key),
+    );
+  }, []);
+  const addressAndNoteFields = useMemo(() => {
+    const baseByKey = new Map(
+      DONATE_NOW_BASE_FIELDS.map((field) => [field.key, field]),
+    );
+    return ["address", "note"]
+      .map((key) => baseByKey.get(key))
+      .filter(Boolean);
+  }, []);
 
-  const renderBaseField = (baseField) => {
+  const renderBaseField = (baseField, options = {}) => {
+    const { colPropsOverride } = options;
     const key = baseField.key;
     const config = fieldConfig[key] || baseField;
     if (!isBaseFieldVisible(key)) return null;
@@ -1105,13 +1128,15 @@ export default function DonateNow(props = {}) {
     const value = fieldValues[key] ?? "";
     const placeholder = config.placeholder || "";
     const error = errors[key];
-
-    const colSpan = config.width === "full" || key === "lookup" ? 24 : 12;
+    const isFullWidth = config.width === "full" || key === "lookup";
+    const colProps =
+      colPropsOverride ||
+      (isFullWidth ? FORM_GRID_FULL_COL_PROPS : FORM_GRID_COL_PROPS);
 
     if (key === "purpose") {
       return (
-        <Col key={key} xs={24} md={colSpan}>
-          <FieldWrap $sectionStart>
+        <Col key={key} {...colProps}>
+          <FieldWrap>
             <FieldLabel>
               {config.label}
               {required ? <span className="req">*</span> : null}
@@ -1136,10 +1161,8 @@ export default function DonateNow(props = {}) {
 
     if (isSelectField(config)) {
       return (
-        <Col key={key} xs={24} md={colSpan}>
-          <FieldWrap
-            $sectionStart={key === "purpose" || key === "studentsCount"}
-          >
+        <Col key={key} {...colProps}>
+          <FieldWrap>
             <FieldLabel>
               {config.label}
               {required ? <span className="req">*</span> : null}
@@ -1164,16 +1187,15 @@ export default function DonateNow(props = {}) {
       );
     }
 
-    if (key === "note") {
+    if (key === "address" || key === "note") {
       return (
-        <Col key={key} xs={24} md={24}>
+        <Col key={key} {...(colPropsOverride || FORM_TEXTAREA_COL_PROPS)}>
           <FieldWrap>
             <FieldLabel>
               {config.label}
               {required ? <span className="req">*</span> : null}
             </FieldLabel>
-            <FieldInput
-              type="text"
+            <AddressTextArea
               value={value}
               placeholder={placeholder}
               disabled={disabled}
@@ -1186,7 +1208,7 @@ export default function DonateNow(props = {}) {
     }
 
     return (
-      <Col key={key} xs={24} md={colSpan}>
+      <Col key={key} {...colProps}>
         <FieldWrap>
           <FieldLabel>
             {config.label}
@@ -1223,7 +1245,6 @@ export default function DonateNow(props = {}) {
             }}
           />
           {error ? <FieldError>{error}</FieldError> : null}
-          {key === "lookup" ? <FieldSeparator /> : null}
         </FieldWrap>
       </Col>
     );
@@ -1328,7 +1349,7 @@ export default function DonateNow(props = {}) {
                 ) : null}
 
                 <Row gutter={[20, 10]}>
-                  <Col xs={24} md={24}>
+                  <Col {...FORM_GRID_COL_PROPS}>
                     <FieldWrap>
                       <FieldLabel>
                         Donor Type
@@ -1347,13 +1368,30 @@ export default function DonateNow(props = {}) {
                       ) : null}
                     </FieldWrap>
                   </Col>
+                  {isExistingDonor && lookupBaseField
+                    ? renderBaseField(lookupBaseField, {
+                        colPropsOverride: FORM_GRID_COL_PROPS,
+                      })
+                    : null}
+                </Row>
 
-                  {DONATE_NOW_BASE_FIELDS.map((fieldDef) =>
+                <Row gutter={[20, 10]}>
+                  {orderedMainBaseFields.map((fieldDef) =>
                     renderBaseField(fieldDef),
                   )}
+                </Row>
 
+                <Row gutter={[20, 10]}>
+                  {addressAndNoteFields.map((fieldDef) =>
+                    renderBaseField(fieldDef, {
+                      colPropsOverride: FORM_TEXTAREA_COL_PROPS,
+                    }),
+                  )}
+                </Row>
+
+                <Row gutter={[20, 10]}>
                   {isExistingDonor && lookupState.found && !lookupState.verified ? (
-                    <Col xs={24} md={24}>
+                    <Col {...FORM_GRID_FULL_COL_PROPS}>
                       <VerificationPanel>
                         <h4>Verify Identity to Unlock Full Details</h4>
                         <p>
@@ -1455,7 +1493,7 @@ export default function DonateNow(props = {}) {
                           .filter(Boolean);
 
                         return (
-                          <Col key={extraField.key} xs={24} md={12}>
+                          <Col key={extraField.key} {...FORM_GRID_COL_PROPS}>
                             <FieldWrap>
                               <FieldLabel>
                                 {extraField.label}
@@ -1711,13 +1749,6 @@ const FieldWrap = styled.div`
   ${(props) => (props.$sectionStart ? "margin-top: 16px;" : "")}
 `;
 
-const FieldSeparator = styled.hr`
-  border: 0;
-  height: 1px;
-  background: rgba(0, 0, 0, 0.12);
-  margin: 18px 0 14px;
-`;
-
 const FieldLabel = styled.label`
   display: block;
   margin-bottom: 7px;
@@ -1730,7 +1761,7 @@ const FieldLabel = styled.label`
   }
 `;
 
-const FIELD_CONTROL_HEIGHT = "52px";
+const FIELD_CONTROL_HEIGHT = "44px";
 const FIELD_CONTROL_INNER_HEIGHT = "50px";
 
 const FieldInput = styled.input`
@@ -1772,6 +1803,11 @@ const FieldTextArea = styled.textarea`
     border-color: ${getColor("primary")};
     box-shadow: 0 0 0 2px rgba(207, 55, 47, 0.1);
   }
+`;
+
+const AddressTextArea = styled(FieldTextArea)`
+  min-height: 96px;
+  line-height: 1.45;
 `;
 
 const FieldSelect = styled(Select)`
