@@ -203,6 +203,7 @@ export default function PopupEditorPage({ componentId }) {
         imageUrl={previewData.imageUrl}
         title={previewData.title}
         description={previewData.description}
+        formShortcode={previewData.formShortcode}
       />
 
       <Drawer

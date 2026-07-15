@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { isPopupRouteMatch, normalizePopupRoute } from "@/lib/popupRouteUtils";
+import { resolvePopupFormShortcode } from "@/lib/popupShortcode";
+import FormEmbed from "@/components/site/FormEmbed/FormEmbed";
 
 const CLOSE_ANIMATION_FALLBACK_MS = 280;
 const POPUP_REFRESH_INTERVAL_MS = 5000;
@@ -262,7 +264,13 @@ export default function RoutePopupHost() {
 
   useEffect(() => {
     if (!activePopup) return undefined;
-    if (open && closeBtnRef.current) closeBtnRef.current.focus();
+    const activePopupId = String(activePopup.componentId || "")
+      .trim()
+      .toLowerCase();
+    const shouldAutofocusClose = activePopupId !== "modalform";
+    if (open && closeBtnRef.current && shouldAutofocusClose) {
+      closeBtnRef.current.focus();
+    }
     return undefined;
   }, [activePopup, open]);
 
@@ -333,18 +341,30 @@ export default function RoutePopupHost() {
   const popupModalWidth = getPopupModalWidthPx(props);
   const link = getPopupLinkSettings(props);
   const imageSrc = normalizePopupImageUrl(props.imageUrl);
-  const imageNode = (
+  const popupComponentId = String(activePopup.componentId || "")
+    .trim()
+    .toLowerCase();
+  const isModalFormPopup = popupComponentId === "modalform";
+  const popupTitle = String(props.title || "").trim();
+  const popupDescription = String(props.description || "").trim();
+  const showPopupHeader = isModalFormPopup && Boolean(popupTitle || popupDescription);
+  const popupFormShortcodeState = resolvePopupFormShortcode(props.formShortcode);
+  const hasPopupFormShortcode = popupFormShortcodeState.isValid;
+  const imageNode = imageSrc ? (
     <img
       src={imageSrc}
-      className="w-100"
+      className="route-popup-image"
       alt={String(props.title || activePopup.displayName || "Popup image")}
     />
-  );
+  ) : null;
+  const hasPopupImage = Boolean(imageNode);
 
   return (
     <>
       <div
-        className={`route-popup-overlay ${open ? "open" : ""}`}
+        className={`route-popup-overlay ${open ? "open" : ""} ${
+          isModalFormPopup ? "is-modal-form" : ""
+        }`}
         style={{
           "--popup-duration": `${animationMs}ms`,
           "--popup-max-width": `${popupModalWidth}px`,
@@ -374,22 +394,44 @@ export default function RoutePopupHost() {
             </button>
           )}
           <div className="route-popup-content">
-            <div className="route-popup-media">
-              {link.enabled ? (
-                <a
-                  href={link.url}
-                  target={link.target}
-                  rel={
-                    link.target === "_blank" ? "noopener noreferrer" : undefined
-                  }
-                  className="route-popup-image-link"
-                >
-                  {imageNode}
-                </a>
-              ) : (
-                imageNode
-              )}
-            </div>
+            {imageNode ? (
+              <div className="route-popup-media">
+                {link.enabled ? (
+                  <a
+                    href={link.url}
+                    target={link.target}
+                    rel={
+                      link.target === "_blank" ? "noopener noreferrer" : undefined
+                    }
+                    className="route-popup-image-link"
+                  >
+                    {imageNode}
+                  </a>
+                ) : (
+                  imageNode
+                )}
+              </div>
+            ) : null}
+            {hasPopupFormShortcode ? (
+              <div
+                className={`route-popup-form ${hasPopupImage ? "has-media" : "no-media"}`}
+              >
+                {showPopupHeader ? (
+                  <div className="route-popup-form-header">
+                    {popupTitle ? (
+                      <h3 className="route-popup-form-title">{popupTitle}</h3>
+                    ) : null}
+                    {popupDescription ? (
+                      <p className="route-popup-form-description">{popupDescription}</p>
+                    ) : null}
+                  </div>
+                ) : null}
+                <FormEmbed
+                  mode="shortcode"
+                  shortcode={popupFormShortcodeState.shortcode}
+                />
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
@@ -488,9 +530,12 @@ export default function RoutePopupHost() {
         .route-popup-content {
           width: 100%;
           display: flex;
-          justify-content: center;
-          align-items: center;
-          overflow: hidden;
+          flex-direction: column;
+          justify-content: flex-start;
+          align-items: stretch;
+          overflow-x: hidden;
+          overflow-y: auto;
+          max-height: calc(100svh - 96px);
           padding: 0;
         }
         .route-popup-media {
@@ -501,6 +546,52 @@ export default function RoutePopupHost() {
           justify-content: center;
           align-items: center;
           overflow: hidden;
+        }
+        .route-popup-form {
+          width: 100%;
+          padding: 14px 14px 8px;
+          background: #ffffff;
+        }
+        .route-popup-form.has-media {
+          border-top: 1px solid rgba(15, 23, 42, 0.08);
+        }
+        .route-popup-form.no-media {
+          border-top: none;
+        }
+        .route-popup-form-header {
+          margin: 0 0 10px;
+        }
+        .route-popup-form-title {
+          margin: 0 0px 16px 0px;
+          font-size: 18px;
+          line-height: 1.2;
+          font-weight: 600;
+          color: #0f172a;
+        }
+        .route-popup-form-description {
+          margin: 8px 0 0;
+          font-size: 14px;
+          line-height: 1.45;
+          color: #475569;
+        }
+        .route-popup-overlay.is-modal-form .route-popup-close {
+          background: transparent;
+          color: #0f172a;
+          box-shadow: none;
+          border: none;
+        }
+        .route-popup-overlay.is-modal-form .route-popup-close:focus-visible {
+          outline: none;
+          box-shadow: none;
+        }
+        .route-popup-overlay.is-modal-form .route-popup-form.no-media {
+          padding-top: 8px;
+        }
+        .route-popup-form :global(.ant-alert) {
+          margin-bottom: 0;
+        }
+        .route-popup-form :global(.ant-form-item:last-child) {
+          margin-bottom: 0;
         }
         .route-popup-image {
           width: 100%;
@@ -539,6 +630,15 @@ export default function RoutePopupHost() {
           }
           .route-popup-overlay {
             --popup-image-max-height: calc(100svh - 72px);
+          }
+          .route-popup-content {
+            max-height: calc(100svh - 72px);
+          }
+          .route-popup-form {
+            padding: 12px 12px 6px;
+          }
+          .route-popup-form-title {
+            font-size: 22px;
           }
         }
         @media (prefers-reduced-motion: reduce) {

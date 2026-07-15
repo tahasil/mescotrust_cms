@@ -31,7 +31,7 @@ import {
 const HOME_ROUTE_OPTION = { label: "Home / Landing", value: "/home" };
 const REQUIRED_POPUP_IMAGE_WIDTH = 600;
 const REQUIRED_POPUP_IMAGE_HEIGHT = 600;
-const POPUP_IMAGE_REQUIRED_TEXT = "Required Size: 600 × 600 PX";
+const POPUP_IMAGE_REQUIRED_TEXT = "If uploaded, required size: 600 × 600 PX";
 const POPUP_IMAGE_INVALID_MESSAGE =
   "Invalid image resolution. Please select an image with size 600 × 600 PX.";
 const POPUP_WIDTH_PRESET_OPTIONS = [
@@ -212,6 +212,7 @@ function PopupSettingsForm({ componentId, onSuccess, onLivePreviewChange }, ref)
           imageUrl: String(data.imageUrl || ""),
           title: String(data.title || ""),
           description: String(data.description || ""),
+          formShortcode: String(data.formShortcode || ""),
           openOnPageLoad: data.openOnPageLoad !== false,
           dismissible: data.dismissible !== false,
           reShowBehavior:
@@ -246,6 +247,7 @@ function PopupSettingsForm({ componentId, onSuccess, onLivePreviewChange }, ref)
   const watchedImageUrl = Form.useWatch("imageUrl", form);
   const watchedTitle = Form.useWatch("title", form);
   const watchedDescription = Form.useWatch("description", form);
+  const watchedFormShortcode = Form.useWatch("formShortcode", form);
   const watchedModalWidthPreset = Form.useWatch("modalWidthPreset", form);
   const watchedCustomModalWidthPx = Form.useWatch("customModalWidthPx", form);
   const watchedLinkEnabled = Form.useWatch("linkEnabled", form);
@@ -369,6 +371,7 @@ function PopupSettingsForm({ componentId, onSuccess, onLivePreviewChange }, ref)
       imageUrl: String(watchedImageUrl || "").trim(),
       title: String(watchedTitle || "").trim(),
       description: String(watchedDescription || "").trim(),
+      formShortcode: String(watchedFormShortcode || "").trim(),
       modalWidthPreset: normalizeWidthPreset(watchedModalWidthPreset),
       customModalWidthPx: normalizeCustomWidthPx(watchedCustomModalWidthPx, 560),
       link: {
@@ -389,6 +392,7 @@ function PopupSettingsForm({ componentId, onSuccess, onLivePreviewChange }, ref)
     watchedImageUrl,
     watchedTitle,
     watchedDescription,
+    watchedFormShortcode,
     watchedModalWidthPreset,
     watchedCustomModalWidthPx,
     watchedLinkEnabled,
@@ -410,6 +414,7 @@ function PopupSettingsForm({ componentId, onSuccess, onLivePreviewChange }, ref)
         imageUrl: String(values.imageUrl || "").trim(),
         title: String(values.title || "").trim(),
         description: String(values.description || "").trim(),
+        formShortcode: String(values.formShortcode || "").trim(),
         openOnPageLoad: values.openOnPageLoad !== false,
         dismissible: values.dismissible !== false,
         reShowBehavior:
@@ -441,14 +446,13 @@ function PopupSettingsForm({ componentId, onSuccess, onLivePreviewChange }, ref)
       if (payload.link.enabled && !isValidPopupLinkUrl(payload.link.url)) {
         throw new Error("Please enter a valid popup URL");
       }
-      if (!payload.imageUrl) {
-        throw new Error("Please select a popup image");
-      }
-      const imageCheck = await validatePopupImageResolution(payload.imageUrl, {
-        silent: true,
-      });
-      if (!imageCheck.valid) {
-        throw new Error(POPUP_IMAGE_INVALID_MESSAGE);
+      if (payload.imageUrl) {
+        const imageCheck = await validatePopupImageResolution(payload.imageUrl, {
+          silent: true,
+        });
+        if (!imageCheck.valid) {
+          throw new Error(POPUP_IMAGE_INVALID_MESSAGE);
+        }
       }
 
       setSaving(true);
@@ -525,7 +529,6 @@ function PopupSettingsForm({ componentId, onSuccess, onLivePreviewChange }, ref)
               <>
                 <Form.Item
                   label="Popup image"
-                  required
                   validateStatus={imageResolutionError ? "error" : undefined}
                   help={imageResolutionError || undefined}
                   extra={POPUP_IMAGE_REQUIRED_TEXT}
@@ -544,13 +547,10 @@ function PopupSettingsForm({ componentId, onSuccess, onLivePreviewChange }, ref)
                   name="imageUrl"
                   hidden
                   rules={[
-                    { required: true, message: "Please select an image" },
                     {
                       validator: async (_, value) => {
                         const str = String(value || "").trim();
-                        if (!str) {
-                          return Promise.reject(new Error("Please select an image"));
-                        }
+                        if (!str) return Promise.resolve();
                         const result = await validatePopupImageResolution(str, {
                           silent: true,
                         });
@@ -568,6 +568,13 @@ function PopupSettingsForm({ componentId, onSuccess, onLivePreviewChange }, ref)
                 </Form.Item>
                 <Form.Item name="description" label="Description">
                   <Input.TextArea rows={3} placeholder="Optional popup description" />
+                </Form.Item>
+                <Form.Item
+                  name="formShortcode"
+                  label="Shortcode"
+                  extra='Form Builder shortcode (e.g. [shortcode="form-name"]).'
+                >
+                  <Input placeholder='[shortcode="form-name"]' />
                 </Form.Item>
               </>
             ),

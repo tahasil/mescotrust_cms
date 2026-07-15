@@ -133,7 +133,7 @@ export async function PUT(req, { params }) {
       try {
         patch.defaultProps = sanitizePopupPayload(settingsPayload, {
           requireTargetRoutes: true,
-          requireImageUrl: true,
+          requireImageUrl: false,
         });
         const imageValidationErrors = await validatePopupImageDimensions(
           patch.defaultProps?.imageUrl,
@@ -159,7 +159,7 @@ export async function PUT(req, { params }) {
           patch.defaultProps || doc.defaultProps,
           {
             requireTargetRoutes: true,
-            requireImageUrl: true,
+            requireImageUrl: false,
           },
         );
         const imageValidationErrors = await validatePopupImageDimensions(
