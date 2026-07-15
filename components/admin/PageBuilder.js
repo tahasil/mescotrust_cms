@@ -15,7 +15,6 @@ import {
   Tag,
   Popover,
   Modal as AntModal,
-  Segmented,
   ColorPicker,
   Divider,
   message,
@@ -44,9 +43,6 @@ import {
   TableOutlined,
   ShareAltOutlined,
   LineOutlined,
-  DesktopOutlined,
-  TabletOutlined,
-  MobileOutlined,
   CloseOutlined,
   CheckOutlined,
   ArrowUpOutlined,
@@ -2007,12 +2003,6 @@ function LayersPanel({
 
 // ─── Responsive Preview Widths ──────────────────────────────
 
-const PREVIEW_WIDTHS = {
-  desktop: "100%",
-  tablet: 768,
-  mobile: 375,
-};
-
 // ═══════════════════════════════════════════════════════════
 // Main PageBuilder Component
 // ═══════════════════════════════════════════════════════════
@@ -2036,7 +2026,6 @@ export default function PageBuilder({
   const [addDrawerOpen, setAddDrawerOpen] = useState(false);
   const [insertAtIndex, setInsertAtIndex] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [previewMode, setPreviewMode] = useState("desktop");
   const [layersPanelOpen, setLayersPanelOpen] = useState(false);
   const showLayersPanel = showLayers && layersPanelOpen;
   const [addToSectionBlockIndex, setAddToSectionBlockIndex] = useState(null);
@@ -2572,7 +2561,6 @@ export default function PageBuilder({
   };
 
   const editingBlock = editingIndex !== null ? sorted[editingIndex] : null;
-  const pw = PREVIEW_WIDTHS[previewMode];
 
   const loadMenuIntoNavItems = useCallback(
     (menuName) => {
@@ -2704,16 +2692,6 @@ export default function PageBuilder({
               )}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <Segmented
-                size="small"
-                value={previewMode}
-                onChange={setPreviewMode}
-                options={[
-                  { value: "desktop", icon: <DesktopOutlined /> },
-                  { value: "tablet", icon: <TabletOutlined /> },
-                  { value: "mobile", icon: <MobileOutlined /> },
-                ]}
-              />
               {componentBase !== "Header" && (
                 <Button
                   type="primary"
@@ -2766,26 +2744,21 @@ export default function PageBuilder({
               }}
               style={{
                 flex: 1,
-                background: previewMode === "desktop" ? "#fff" : "#f0f0f0",
-                padding: previewMode === "desktop" ? 0 : "16px",
+                background: "#fff",
+                padding: 0,
                 minWidth: 0,
-                transition: "background 0.2s",
                 overflow: "auto",
               }}
             >
               <div
                 style={{
-                  maxWidth: typeof pw === "number" ? pw : "none",
+                  maxWidth: "none",
                   margin: "0 auto",
                   background: "#fff",
                   minHeight: 300,
-                  boxShadow:
-                    previewMode !== "desktop"
-                      ? "0 2px 12px rgba(0,0,0,0.08)"
-                      : "none",
-                  borderRadius: previewMode !== "desktop" ? 8 : 0,
+                  boxShadow: "none",
+                  borderRadius: 0,
                   overflow: "hidden",
-                  transition: "max-width 0.3s",
                 }}
               >
                 {sorted.length === 0 ? (
