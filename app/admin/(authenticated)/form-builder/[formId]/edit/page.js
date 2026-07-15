@@ -123,7 +123,7 @@ function buildThemeColorOptions(theme = {}) {
 function getShortcodeSnippet(shortcode) {
   const value = String(shortcode || "").trim();
   if (!value) return "";
-  return `[form shortcode="${value}"]`;
+  return `[shortcode="${value}"]`;
 }
 
 function createId() {
