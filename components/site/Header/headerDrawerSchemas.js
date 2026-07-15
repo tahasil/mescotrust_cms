@@ -57,6 +57,8 @@ export const ANNOUNCEMENT_BAR_SCHEMA = [
     type: "json",
     label: "Announcement items",
     itemLabel: "Announcement",
+    addButtonVariant: "circle",
+    addButtonTitle: "Add Announcement",
     itemSchema: [
       { key: "text", type: "text", label: "Announcement text" },
       { key: "url", type: "url", label: "Link URL" },
@@ -88,6 +90,16 @@ export const ANNOUNCEMENT_BAR_SCHEMA = [
   { key: "headerAnnouncementTextColor", type: "color", label: "Text color" },
   { key: "headerAnnouncementBackgroundColor", type: "color", label: "Background color" },
   { key: "headerAnnouncementMarqueeSpeed", type: "number", label: "Marquee speed (seconds)" },
+  {
+    key: "headerAnnouncementDirection",
+    type: "select",
+    label: "Marquee direction",
+    default: "rtl",
+    options: [
+      { value: "rtl", label: "Right to Left" },
+      { value: "ltr", label: "Left to Right" },
+    ],
+  },
   { key: "headerAnnouncementPaddingX", type: "number", label: "Left/right padding (px)" },
 ];
 
@@ -104,6 +116,7 @@ export const HEADER_FIELD_GROUPS = [
       "headerAnnouncementTextColor",
       "headerAnnouncementBackgroundColor",
       "headerAnnouncementMarqueeSpeed",
+      "headerAnnouncementDirection",
       "headerAnnouncementPaddingX",
     ],
   },

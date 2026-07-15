@@ -207,6 +207,7 @@ export default function Header({
   headerAnnouncementTextColor = "#ffffff",
   headerAnnouncementBackgroundColor = "#d92d20",
   headerAnnouncementMarqueeSpeed = 20,
+  headerAnnouncementDirection = "rtl",
   headerAnnouncementPaddingX = 24,
   logoType = "text",
   logoUrl = "",
@@ -309,6 +310,10 @@ export default function Header({
     4,
     120,
   );
+  const announcementDirectionValue =
+    String(headerAnnouncementDirection || "").trim().toLowerCase() === "ltr"
+      ? "ltr"
+      : "rtl";
   const announcementFontSizePx = clamp(
     toNumber(headerAnnouncementFontSize, 14),
     10,
@@ -557,6 +562,7 @@ export default function Header({
           >
             <AnnouncementTrack
               $speedSeconds={announcementSpeedSeconds}
+              $direction={announcementDirectionValue}
               style={
                 announcementShiftPx > 0
                   ? {

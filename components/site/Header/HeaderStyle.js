@@ -99,7 +99,17 @@ export const AnnouncementTrack = styled.div`
   width: max-content;
   white-space: nowrap;
   will-change: transform;
-  animation: ${announcementTicker} ${(props) => props.$speedSeconds || 20}s linear infinite;
+  animation-name: ${announcementTicker};
+  animation-duration: ${(props) => props.$speedSeconds || 20}s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: ${(props) =>
+    props.$direction === "ltr" ? "reverse" : "normal"};
+  animation-fill-mode: none;
+  &:hover,
+  &:focus-within {
+    animation-play-state: paused;
+  }
   @media (prefers-reduced-motion: reduce) {
     animation: none;
     transform: translate3d(0, 0, 0);

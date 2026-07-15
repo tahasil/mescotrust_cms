@@ -71,6 +71,12 @@ export default function LayoutSwitcher({ children, data, theme, logoUrl, initial
         theme?.headerAnnouncementBackgroundColor ?? "",
       )}
       headerAnnouncementMarqueeSpeed={theme?.headerAnnouncementMarqueeSpeed}
+      headerAnnouncementDirection={
+        String(theme?.headerAnnouncementDirection || "").trim().toLowerCase() ===
+        "ltr"
+          ? "ltr"
+          : "rtl"
+      }
       headerAnnouncementPaddingX={theme?.headerAnnouncementPaddingX}
       headerDonateLabel={theme?.headerDonateLabel}
       headerDonateHref={theme?.headerDonateHref}

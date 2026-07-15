@@ -132,6 +132,12 @@ export default async function SiteLayout({ children }) {
           theme.headerAnnouncementBackgroundColor ?? "",
         )}
         headerAnnouncementMarqueeSpeed={theme.headerAnnouncementMarqueeSpeed}
+        headerAnnouncementDirection={
+          String(theme.headerAnnouncementDirection || "").trim().toLowerCase() ===
+          "ltr"
+            ? "ltr"
+            : "rtl"
+        }
         headerAnnouncementPaddingX={theme.headerAnnouncementPaddingX}
         logoType={theme.logoType}
         logoLightUrl={logoUrl}

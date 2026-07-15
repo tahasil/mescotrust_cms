@@ -84,7 +84,14 @@ function shouldUseResponsiveImageField(field = {}) {
 }
 
 export function ArrayEditor({ field, themeColorOptions }) {
-  const { key, label, itemSchema = [], itemLabel = "Item" } = field;
+  const {
+    key,
+    label,
+    itemSchema = [],
+    itemLabel = "Item",
+    addButtonVariant = "dashed",
+    addButtonTitle = "",
+  } = field;
   const defaultItem = itemSchema.reduce(
     (acc, f) => ({
       ...acc,
@@ -244,15 +251,30 @@ export function ArrayEditor({ field, themeColorOptions }) {
                 </div>
               </div>
             ))}
-            <Button
-              type="dashed"
-              onClick={() => add(defaultItem)}
-              block
-              icon={<PlusOutlined />}
-              style={{ marginTop: 4 }}
-            >
-              Add {itemLabel}
-            </Button>
+            {addButtonVariant === "circle" ? (
+              <div
+                style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}
+              >
+                <Button
+                  type="primary"
+                  shape="circle"
+                  size="large"
+                  icon={<PlusOutlined />}
+                  onClick={() => add(defaultItem)}
+                  title={addButtonTitle || `Add ${itemLabel}`}
+                />
+              </div>
+            ) : (
+              <Button
+                type="dashed"
+                onClick={() => add(defaultItem)}
+                block
+                icon={<PlusOutlined />}
+                style={{ marginTop: 4 }}
+              >
+                Add {itemLabel}
+              </Button>
+            )}
           </>
         )}
       </Form.List>

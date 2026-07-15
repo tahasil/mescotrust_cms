@@ -46,6 +46,7 @@ const HEADER_DEFAULTS = {
   headerAnnouncementTextColor: "#ffffff",
   headerAnnouncementBackgroundColor: "#d92d20",
   headerAnnouncementMarqueeSpeed: 20,
+  headerAnnouncementDirection: "rtl",
   headerAnnouncementPaddingX: 24,
   headerVolunteerLabel: "",
   headerVolunteerHref: "",
@@ -70,6 +71,7 @@ const HEADER_DEFAULTS = {
 };
 
 const REMOVED_HEADER_KEYS = new Set([
+  "headerAnnouncementLoopEnabled",
   "headerDonateIconUrlMobile",
   "volunteerModalTitle",
   "volunteerModalSuccessTitle",
@@ -159,6 +161,10 @@ function normalizeHeaderProps(input) {
     4,
     120,
   );
+  out.headerAnnouncementDirection =
+    String(out.headerAnnouncementDirection || "").trim().toLowerCase() === "ltr"
+      ? "ltr"
+      : "rtl";
   out.headerAnnouncementPaddingX = normalizeNumber(
     out.headerAnnouncementPaddingX,
     HEADER_DEFAULTS.headerAnnouncementPaddingX,

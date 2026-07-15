@@ -1,8 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Select, Collapse, Switch, message } from "antd";
-import { renderSchemaField, enrichSchema } from "@/components/admin/schemaFormUtils";
+import { Form, Select, Collapse, Switch, InputNumber, message } from "antd";
+import {
+  renderSchemaField,
+  enrichSchema,
+  ThemeColorInput,
+} from "@/components/admin/schemaFormUtils";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
@@ -178,6 +182,11 @@ function HeaderEditForm(
         if (theme?.headerAnnouncementMarqueeSpeed != null) {
           flat.headerAnnouncementMarqueeSpeed = theme.headerAnnouncementMarqueeSpeed;
         }
+        flat.headerAnnouncementDirection =
+          String(theme?.headerAnnouncementDirection || "").trim().toLowerCase() ===
+          "ltr"
+            ? "ltr"
+            : "rtl";
         if (theme?.headerAnnouncementPaddingX != null) {
           flat.headerAnnouncementPaddingX = theme.headerAnnouncementPaddingX;
         }
@@ -350,6 +359,111 @@ function HeaderEditForm(
       </div>
     );
   };
+  const renderAnnouncementToggleCard = () => {
+    const announcementControlKeys = [
+      "headerAnnouncementEnabled",
+      "headerAnnouncementDirection",
+      "headerAnnouncementFontSize",
+      "headerAnnouncementTextColor",
+      "headerAnnouncementFontWeight",
+      "headerAnnouncementBackgroundColor",
+      "headerAnnouncementMarqueeSpeed",
+      "headerAnnouncementPaddingX",
+    ];
+    const visibleKeys = announcementControlKeys.filter((k) => !!byKey[k]);
+    if (visibleKeys.length === 0) return null;
+    const controlWidth = 220;
+    const renderAnnouncementControl = (field) => {
+      if (!field) return null;
+      if (field.type === "boolean") {
+        return (
+          <Form.Item name={field.key} valuePropName="checked" noStyle>
+            <Switch />
+          </Form.Item>
+        );
+      }
+      if (field.type === "number") {
+        return (
+          <Form.Item name={field.key} noStyle>
+            <InputNumber style={{ width: controlWidth }} />
+          </Form.Item>
+        );
+      }
+      if (field.type === "select") {
+        return (
+          <Form.Item name={field.key} noStyle>
+            <Select
+              options={(field.options || []).map((o) =>
+                typeof o === "object" && o && "value" in o
+                  ? { value: o.value, label: o.label }
+                  : { value: o, label: o },
+              )}
+              allowClear
+              style={{ width: controlWidth }}
+            />
+          </Form.Item>
+        );
+      }
+      if (field.type === "color") {
+        return (
+          <div style={{ width: controlWidth }}>
+            <Form.Item name={field.key} noStyle>
+              <ThemeColorInput themeColorOptions={themeColorOptions} />
+            </Form.Item>
+          </div>
+        );
+      }
+      return byKey[field.key] ? renderField(byKey[field.key]) : null;
+    };
+    return (
+      <div
+        style={{
+          border: "1px solid rgba(0,0,0,0.08)",
+          borderRadius: 8,
+          marginBottom: 16,
+          overflow: "hidden",
+          background: "#fff",
+        }}
+      >
+        <div
+          style={{
+            padding: "10px 12px",
+            borderBottom: "1px solid rgba(0,0,0,0.06)",
+            color: "rgba(0,0,0,0.75)",
+            fontSize: 13,
+            fontWeight: 500,
+          }}
+        >
+          Announcement controls
+        </div>
+        <div>
+          {visibleKeys.map((key, index) => {
+            const field = byKey[key];
+            if (!field) return null;
+            return (
+              <div
+                key={key}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 16,
+                  padding: "10px 12px",
+                  borderTop:
+                    index > 0 ? "1px solid rgba(0,0,0,0.06)" : "none",
+                }}
+              >
+                <span style={{ color: "rgba(0,0,0,0.65)", fontSize: 14 }}>
+                  {field.label}
+                </span>
+                {renderAnnouncementControl(field)}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
 
   const headerItems = [
     {
@@ -383,9 +497,23 @@ function HeaderEditForm(
             </Form.Item>
           )}
           {grp.label === "Custom buttons" && renderSearchToggleRow()}
+          {grp.label === "Announcement bar" && renderAnnouncementToggleCard()}
           {grp.keys
             .map((k) => {
               if (grp.label === "Custom buttons" && k === "headerSearchEnabled") return null;
+              if (
+                grp.label === "Announcement bar" &&
+                (k === "headerAnnouncementEnabled" ||
+                  k === "headerAnnouncementDirection" ||
+                  k === "headerAnnouncementFontSize" ||
+                  k === "headerAnnouncementTextColor" ||
+                  k === "headerAnnouncementFontWeight" ||
+                  k === "headerAnnouncementBackgroundColor" ||
+                  k === "headerAnnouncementMarqueeSpeed" ||
+                  k === "headerAnnouncementPaddingX")
+              ) {
+                return null;
+              }
               return byKey[k] ? renderField(byKey[k]) : null;
             })
             .filter(Boolean)}

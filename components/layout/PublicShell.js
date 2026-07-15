@@ -47,6 +47,11 @@ const headerThemeProps = (props) => ({
   headerAnnouncementTextColor: props.headerAnnouncementTextColor ?? "",
   headerAnnouncementBackgroundColor: props.headerAnnouncementBackgroundColor ?? "",
   headerAnnouncementMarqueeSpeed: props.headerAnnouncementMarqueeSpeed,
+  headerAnnouncementDirection:
+    String(props.headerAnnouncementDirection || "").trim().toLowerCase() ===
+    "ltr"
+      ? "ltr"
+      : "rtl",
   headerAnnouncementPaddingX: props.headerAnnouncementPaddingX,
   logoType: props.logoType,
   logoImageUrl: props.logoImageUrl,
@@ -160,6 +165,7 @@ export default function PublicShell({
   headerAnnouncementTextColor,
   headerAnnouncementBackgroundColor,
   headerAnnouncementMarqueeSpeed,
+  headerAnnouncementDirection,
   headerAnnouncementPaddingX,
   logoType,
   logoImageUrl,
@@ -266,6 +272,7 @@ export default function PublicShell({
     headerAnnouncementTextColor,
     headerAnnouncementBackgroundColor,
     headerAnnouncementMarqueeSpeed,
+    headerAnnouncementDirection,
     headerAnnouncementPaddingX,
     logoType,
     logoImageUrl,

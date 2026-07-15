@@ -196,6 +196,12 @@ export default function AdminComponentEditPage() {
             theme.headerAnnouncementBackgroundColor ?? "",
           headerAnnouncementMarqueeSpeed:
             theme.headerAnnouncementMarqueeSpeed,
+          headerAnnouncementDirection:
+            String(theme.headerAnnouncementDirection || "")
+              .trim()
+              .toLowerCase() === "ltr"
+              ? "ltr"
+              : "rtl",
           headerAnnouncementPaddingX: theme.headerAnnouncementPaddingX,
           logoType: theme.logoType ?? "text",
           logoLightUrl: theme.logoLightUrl || theme.logoImageUrl || "",
@@ -303,6 +309,12 @@ export default function AdminComponentEditPage() {
             theme.headerAnnouncementBackgroundColor ?? "",
           headerAnnouncementMarqueeSpeed:
             theme.headerAnnouncementMarqueeSpeed,
+          headerAnnouncementDirection:
+            String(theme.headerAnnouncementDirection || "")
+              .trim()
+              .toLowerCase() === "ltr"
+              ? "ltr"
+              : "rtl",
           headerAnnouncementPaddingX: theme.headerAnnouncementPaddingX,
           logoType: theme.logoType ?? "text",
           logoLightUrl: theme.logoLightUrl || theme.logoImageUrl || "",
@@ -1154,6 +1166,12 @@ export default function AdminComponentEditPage() {
                       theme.headerAnnouncementBackgroundColor ?? "",
                     headerAnnouncementMarqueeSpeed:
                       theme.headerAnnouncementMarqueeSpeed,
+                    headerAnnouncementDirection:
+                      String(theme.headerAnnouncementDirection || "")
+                        .trim()
+                        .toLowerCase() === "ltr"
+                        ? "ltr"
+                        : "rtl",
                     headerAnnouncementPaddingX:
                       theme.headerAnnouncementPaddingX,
                     logoType: theme.logoType ?? "text",
@@ -1285,6 +1303,12 @@ export default function AdminComponentEditPage() {
                       theme.headerAnnouncementBackgroundColor ?? "",
                     headerAnnouncementMarqueeSpeed:
                       theme.headerAnnouncementMarqueeSpeed,
+                    headerAnnouncementDirection:
+                      String(theme.headerAnnouncementDirection || "")
+                        .trim()
+                        .toLowerCase() === "ltr"
+                        ? "ltr"
+                        : "rtl",
                     headerAnnouncementPaddingX:
                       theme.headerAnnouncementPaddingX,
                     logoType: theme.logoType ?? "text",
@@ -1823,6 +1847,16 @@ function HeaderPreviewBlock({ form, themePaletteData, themeHeaderSnapshot }) {
     Form.useWatch("headerAnnouncementMarqueeSpeed", form) ??
     s?.headerAnnouncementMarqueeSpeed ??
     20;
+  const headerAnnouncementDirection =
+    String(
+      Form.useWatch("headerAnnouncementDirection", form) ??
+        s?.headerAnnouncementDirection ??
+        "rtl",
+    )
+      .trim()
+      .toLowerCase() === "ltr"
+      ? "ltr"
+      : "rtl";
   const headerAnnouncementPaddingX =
     Form.useWatch("headerAnnouncementPaddingX", form) ??
     s?.headerAnnouncementPaddingX ??
@@ -1991,6 +2025,7 @@ function HeaderPreviewBlock({ form, themePaletteData, themeHeaderSnapshot }) {
           headerAnnouncementBackgroundColor,
         )}
         headerAnnouncementMarqueeSpeed={headerAnnouncementMarqueeSpeed}
+        headerAnnouncementDirection={headerAnnouncementDirection}
         headerAnnouncementPaddingX={headerAnnouncementPaddingX}
         logoType={logoType}
         logoUrl={logoUrl}
