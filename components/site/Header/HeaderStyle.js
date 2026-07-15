@@ -150,7 +150,7 @@ export const AnnouncementDivider = styled.span`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.85;
+  opacity: 0.5;
   font-size: ${(props) => props.$fontSize || 14}px;
   font-weight: ${(props) => props.$fontWeight || "600"};
   padding: 0 2px;

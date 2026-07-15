@@ -1250,8 +1250,48 @@ export default function DonateNow(props = {}) {
         ) : null}
 
         <Row gutter={[20, 20]} align="top" justify="center">
-          <Col xs={24} lg={16}>
+          <Col span={24}>
             <LeftColumn>
+              <PurposePanel>
+                <PurposeGrid>
+                  {renderedPurposes.map((purpose) => {
+                    const active = selectedPurpose?.id === purpose.id;
+                    return (
+                      <PurposeCard
+                        key={purpose.id}
+                        type="button"
+                        $active={active}
+                        onClick={() => selectPurpose(purpose.id)}
+                      >
+                        {purpose.cardIcon ? (
+                          <CardIconWrap $active={active}>
+                            <CardIcon
+                              src={purpose.cardIcon}
+                              alt={
+                                purpose.cardTitle ||
+                                purpose.name ||
+                                "Donation purpose icon"
+                              }
+                              loading="lazy"
+                            />
+                          </CardIconWrap>
+                        ) : (
+                          <CardDot $active={active} />
+                        )}
+                        <h4>{purpose.cardTitle || purpose.name}</h4>
+                        <div className="amount">
+                          {purpose.cardAmountText ||
+                            formatInr(purpose.defaultAmount)}
+                        </div>
+                        {purpose.cardDescription ? (
+                          <p>{purpose.cardDescription}</p>
+                        ) : null}
+                      </PurposeCard>
+                    );
+                  })}
+                </PurposeGrid>
+              </PurposePanel>
+
               <FormPanel>
                 <PanelTitle style={{ color: formHeadingColor }}>
                   {copy.formTitle || "Details"}
@@ -1539,50 +1579,6 @@ export default function DonateNow(props = {}) {
               ) : null}
             </LeftColumn>
           </Col>
-
-          <Col xs={24} lg={8}>
-            <RightColumn>
-              <PurposePanel>
-                <PurposeGrid>
-                  {renderedPurposes.map((purpose) => {
-                    const active = selectedPurpose?.id === purpose.id;
-                    return (
-                      <PurposeCard
-                        key={purpose.id}
-                        type="button"
-                        $active={active}
-                        onClick={() => selectPurpose(purpose.id)}
-                      >
-                        {purpose.cardIcon ? (
-                          <CardIconWrap $active={active}>
-                            <CardIcon
-                              src={purpose.cardIcon}
-                              alt={
-                                purpose.cardTitle ||
-                                purpose.name ||
-                                "Donation purpose icon"
-                              }
-                              loading="lazy"
-                            />
-                          </CardIconWrap>
-                        ) : (
-                          <CardDot $active={active} />
-                        )}
-                        <h4>{purpose.cardTitle || purpose.name}</h4>
-                        <div className="amount">
-                          {purpose.cardAmountText ||
-                            formatInr(purpose.defaultAmount)}
-                        </div>
-                        {purpose.cardDescription ? (
-                          <p>{purpose.cardDescription}</p>
-                        ) : null}
-                      </PurposeCard>
-                    );
-                  })}
-                </PurposeGrid>
-              </PurposePanel>
-            </RightColumn>
-          </Col>
         </Row>
 
         {encData ? (
@@ -1610,12 +1606,6 @@ const LeftColumn = styled.div`
   margin: 0 auto;
 `;
 
-const RightColumn = styled.div`
-  width: 100%;
-  max-width: 409px;
-  margin: 0 auto;
-`;
-
 const FormPanel = styled.div`
   background: #ffffff;
   border: 1px solid rgba(229, 231, 235, 1);
@@ -1633,9 +1623,10 @@ const PurposePanel = styled.div`
   border: 0;
   border-radius: 0;
   padding: 0;
+  margin-bottom: 22px;
   box-shadow: none;
   @media (max-width: 767px) {
-    padding: 0;
+    margin-bottom: 16px;
   }
 `;
 
@@ -1892,16 +1883,26 @@ const QrButton = styled.button`
 
 const PurposeGrid = styled.div`
   display: grid;
-  column-gap: 21px;
-  row-gap: 22px;
-  grid-template-columns: repeat(2, 194px);
-  justify-content: space-between;
-  @media (max-width: 1199px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 12px;
-    row-gap: 12px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 14px;
+  @media (max-width: 1399px) {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
-  @media (max-width: 480px) {
+  @media (max-width: 1199px) {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+  }
+  @media (max-width: 991px) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  @media (max-width: 767px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+  @media (max-width: 575px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  @media (max-width: 420px) {
     grid-template-columns: 1fr;
   }
 `;
@@ -1911,8 +1912,8 @@ const PurposeCard = styled.button`
   background: ${(props) => (props.$active ? "#fbebeb" : "#ffffff")};
   border-radius: 10px;
   text-align: center;
-  padding: 17px 8px 10px;
-  min-height: 190px;
+  padding: 14px 10px 10px;
+  min-height: 170px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -1925,6 +1926,17 @@ const PurposeCard = styled.button`
   transition:
     background-color 0.15s ease,
     border-color 0.15s ease;
+  @media (max-width: 1199px) {
+    min-height: 158px;
+  }
+  @media (max-width: 991px) {
+    min-height: 148px;
+    padding: 12px 8px 10px;
+  }
+  @media (max-width: 767px) {
+    min-height: 138px;
+    padding: 10px 8px 8px;
+  }
   &:after {
     content: "";
     position: absolute;
@@ -1945,6 +1957,10 @@ const PurposeCard = styled.button`
     line-height: 1.3;
     font-weight: 700;
     text-align: center;
+    @media (max-width: 991px) {
+      font-size: 13px;
+      line-height: 1.25;
+    }
   }
   .amount {
     color: #cf372f;
@@ -1952,6 +1968,9 @@ const PurposeCard = styled.button`
     font-weight: 700;
     line-height: 1.3;
     opacity: 0.9;
+    @media (max-width: 991px) {
+      font-size: 13px;
+    }
   }
   p {
     margin: 0;
@@ -1959,6 +1978,10 @@ const PurposeCard = styled.button`
     font-size: 12px;
     line-height: 1.3;
     text-align: center;
+    @media (max-width: 991px) {
+      font-size: 11px;
+      line-height: 1.25;
+    }
   }
 `;
 
