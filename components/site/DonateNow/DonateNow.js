@@ -1761,8 +1761,8 @@ const FieldLabel = styled.label`
   }
 `;
 
-const FIELD_CONTROL_HEIGHT = "44px";
-const FIELD_CONTROL_INNER_HEIGHT = "50px";
+const FIELD_CONTROL_HEIGHT = "40px";
+const FIELD_CONTROL_INNER_HEIGHT = "44px";
 
 const FieldInput = styled.input`
   width: 100%;
