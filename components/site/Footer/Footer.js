@@ -90,7 +90,7 @@ export default function Footer({
       <FooterInner>
         <Row gutter={[16, 16]}>
           <Col xs={24}>
-            <FooterLogo as="span">
+            <FooterLogo as="span" $hasLogo={hasLogo}>
               {hasLogo ? (
                 <img
                   loading="lazy"

@@ -93,13 +93,35 @@ export const FooterInner = styled.div`
 `;
 
 export const FooterLogo = styled.a`
-  display: inline-block;
-  margin-bottom: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+  width: fit-content;
+  max-width: 100%;
+  padding: ${(props) => (props.$hasLogo ? "8px 12px" : "0")};
+  border-radius: ${(props) => (props.$hasLogo ? "10px" : "0")};
+  background: ${(props) => (props.$hasLogo ? "#ffffff" : "transparent")};
+  box-shadow: ${(props) =>
+    props.$hasLogo ? "0 8px 20px rgba(15, 23, 42, 0.18)" : "none"};
+
+  @media (max-width: 768px) {
+    padding: ${(props) => (props.$hasLogo ? "6px 10px" : "0")};
+    border-radius: ${(props) => (props.$hasLogo ? "8px" : "0")};
+  }
+
   img {
     display: block;
     height: auto;
-    max-height: 44px;
+    max-height: 46px;
     width: auto;
+    max-width: 100%;
+  }
+
+  @media (max-width: 768px) {
+    img {
+      max-height: 40px;
+    }
   }
 `;
 
