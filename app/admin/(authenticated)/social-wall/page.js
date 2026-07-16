@@ -12,6 +12,7 @@ import {
   Form,
   Input,
   InputNumber,
+  Popconfirm,
   Row,
   Select,
   Space,
@@ -24,6 +25,7 @@ import {
 import {
   CheckOutlined,
   CloseOutlined,
+  DeleteOutlined,
   ReloadOutlined,
   SaveOutlined,
   SyncOutlined,
@@ -105,6 +107,7 @@ export default function SocialWallAdminPage() {
   const [logsLoading, setLogsLoading] = useState(false);
   const [logsData, setLogsData] = useState({ page: 1, limit: 20, total: 0, items: [] });
   const [logsKind, setLogsKind] = useState("sync");
+  const [clearLogsBusy, setClearLogsBusy] = useState(false);
 
   const loadSettings = useCallback(async () => {
     setSettingsLoading(true);
@@ -374,6 +377,33 @@ export default function SocialWallAdminPage() {
       message.error(err?.message || "Cleanup failed");
     } finally {
       setSyncBusy(false);
+    }
+  };
+
+  const runClearLogs = async () => {
+    setClearLogsBusy(true);
+    try {
+      const res = await fetch("/api/admin/social-wall/jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "clear-logs",
+          kind: logsKind === "config" ? "config" : "sync",
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || "Failed to clear logs");
+
+      const removed = Number(data?.deletedCount || 0);
+      message.success(`${removed} log entries removed`);
+      await Promise.all([
+        loadLogs(1, logsData.limit, logsKind),
+        loadDashboard(),
+      ]);
+    } catch (err) {
+      message.error(err?.message || "Failed to clear logs");
+    } finally {
+      setClearLogsBusy(false);
     }
   };
 
@@ -1106,9 +1136,27 @@ export default function SocialWallAdminPage() {
         <ThemeAdminCard
           title="Synchronization Logs"
           extra={
-            <Button icon={<ReloadOutlined />} onClick={() => loadLogs(logsData.page, logsData.limit, logsKind)}>
-              Refresh
-            </Button>
+            <Space>
+              <Popconfirm
+                title={
+                  logsKind === "config"
+                    ? "Clear all config audit logs?"
+                    : "Clear all sync logs?"
+                }
+                description="This action cannot be undone."
+                okText="Clear"
+                cancelText="Cancel"
+                okButtonProps={{ danger: true, loading: clearLogsBusy }}
+                onConfirm={runClearLogs}
+              >
+                <Button danger icon={<DeleteOutlined />} loading={clearLogsBusy}>
+                  Clear Logs
+                </Button>
+              </Popconfirm>
+              <Button icon={<ReloadOutlined />} onClick={() => loadLogs(logsData.page, logsData.limit, logsKind)}>
+                Refresh
+              </Button>
+            </Space>
           }
         >
           <div style={{ marginBottom: 12, maxWidth: 240 }}>

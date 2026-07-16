@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/socialWallModule/apiGuards";
 import {
+  clearSocialWallLogs,
   cleanupSocialWallLogs,
   refreshSocialWallTokens,
   runSocialWallSync,
@@ -23,6 +24,15 @@ export async function POST(req) {
         olderThanDays: toPositiveInt(body?.olderThanDays, 45),
       });
       return NextResponse.json({ action, jobName: "social.cleanup.logs", ...result }, {
+        headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+      });
+    }
+
+    if (action === "clear-logs") {
+      const result = await clearSocialWallLogs({
+        kind: toSafeString(body?.kind || "all"),
+      });
+      return NextResponse.json({ action, jobName: "social.clear.logs", ...result }, {
         headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
       });
     }

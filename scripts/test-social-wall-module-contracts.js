@@ -97,6 +97,7 @@ test("admin API auth boundaries are enforced for social wall module", () => {
   assert.match(syncRoute, /status:\s*429/);
   assert.match(jobsRoute, /requireAdminSession/);
   assert.match(jobsRoute, /refresh-tokens/);
+  assert.match(jobsRoute, /clear-logs/);
   assert.match(cronRoute, /SOCIAL_WALL_CRON_SECRET/);
   assert.match(cronRoute, /runSocialWallSync/);
   assert.match(cronRoute, /refreshSocialWallTokens/);
