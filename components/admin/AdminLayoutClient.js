@@ -82,6 +82,15 @@ const baseMenuItems = [
     ),
   },
   {
+    key: "/admin/social-wall",
+    icon: <AppstoreOutlined />,
+    label: (
+      <Link href="/admin/social-wall" style={linkStyle}>
+        Social Wall
+      </Link>
+    ),
+  },
+  {
     key: "/admin/form-builder",
     icon: <FileTextOutlined />,
     label: (
@@ -664,6 +673,8 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
     ? "/admin/popups"
     : String(pathname || "").startsWith("/admin/form-builder/")
       ? "/admin/form-builder"
+    : String(pathname || "").startsWith("/admin/social-wall/")
+      ? "/admin/social-wall"
     : pathname;
 
   const fetchNotifications = useCallback(() => {

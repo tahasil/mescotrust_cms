@@ -56,6 +56,9 @@ export async function GET(req) {
       if (id === "FormEmbed" && (!displayName || displayName === "FormEmbed")) {
         displayName = "Form Embed";
       }
+      if (id === "SocialWallFeed" && (!displayName || displayName === "SocialWallFeed")) {
+        displayName = "Social Wall";
+      }
       return {
         componentId: id,
         displayName,

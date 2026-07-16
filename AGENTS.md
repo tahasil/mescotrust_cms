@@ -81,6 +81,11 @@ Models in `models/`:
 - `FormSubmission`
 - `SubmissionFile`
 - `FormCounter`
+- `SocialWallSettings`
+- `SocialWallPlatformConfig`
+- `SocialWallPost`
+- `SocialWallFetchLog`
+- `SocialWallConfigAudit`
 
 For field-level schema details, use `docs/TECHNICAL_DESIGN.md`.
 
