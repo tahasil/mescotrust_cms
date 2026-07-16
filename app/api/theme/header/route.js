@@ -99,6 +99,11 @@ const REMOVED_HEADER_KEYS = new Set([
   "volunteerModalBtnText",
   "volunteerModalCancelColor",
 ]);
+const RESERVED_MENU_NAMES = new Set(["header", "footer"]);
+
+function isReservedMenuName(name) {
+  return RESERVED_MENU_NAMES.has(String(name || "").trim().toLowerCase());
+}
 
 function normalizeNumber(value, fallback, min, max) {
   const parsed = Number(value);
@@ -177,6 +182,9 @@ function normalizeHeaderProps(input) {
   out.headerVolunteerHrefTarget =
     String(out.headerVolunteerHrefTarget || "").trim() === "_blank" ? "_blank" : "_self";
   out.menuName = String(out.menuName || "").trim();
+  if (isReservedMenuName(out.menuName)) {
+    out.menuName = "";
+  }
   out.navItems = Array.isArray(out.navItems) ? out.navItems : [];
   for (const [key, value] of Object.entries(out)) {
     if (key === "navItems" || key === "menuName") continue;

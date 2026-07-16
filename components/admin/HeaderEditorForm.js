@@ -98,6 +98,30 @@ function NavItemsPreserver() {
 /** Responsive grid: 1 col (xs), 2 (sm), 3 (md), 4 (lg). */
 const FORM_COL = { xs: 24, sm: 12, md: 8, lg: 6 };
 const EMPTY_MENU_LIST = [];
+const RESERVED_MENU_NAMES = new Set(["header", "footer"]);
+
+function isReservedMenuName(name) {
+  return RESERVED_MENU_NAMES.has(String(name || "").trim().toLowerCase());
+}
+
+function filterSelectableMenus(list) {
+  if (!Array.isArray(list)) return [];
+  return list.filter((menu) => {
+    const name = String(menu?.name || "").trim();
+    return name && !isReservedMenuName(name);
+  });
+}
+
+function pickPreferredMenuName(menus, currentName = "") {
+  if (!Array.isArray(menus) || menus.length === 0) return "";
+  const current = String(currentName || "").trim();
+  if (current && menus.some((menu) => menu?.name === current)) return current;
+  const preferred =
+    menus.find((menu) =>
+      /primary|main|navigation/i.test(String(menu?.name || "")),
+    ) || menus[0];
+  return String(preferred?.name || "").trim();
+}
 
 export default function HeaderEditorForm({
   initialValues,
@@ -144,11 +168,11 @@ export default function HeaderEditorForm({
   }, []);
 
   useEffect(() => {
-    if (menuList.length > 0) setMenus(menuList);
+    if (menuList.length > 0) setMenus(filterSelectableMenus(menuList));
     else {
       fetch("/api/admin/menus")
         .then((r) => (r.ok ? r.json() : []))
-        .then((list) => setMenus(Array.isArray(list) ? list : []))
+        .then((list) => setMenus(filterSelectableMenus(list)))
         .catch(() => {});
     }
   }, [menuList]);
@@ -161,6 +185,10 @@ export default function HeaderEditorForm({
   const loadMenuIntoNav = useCallback(
     (menuName) => {
       if (!menuName) return;
+      if (isReservedMenuName(menuName)) {
+        message.warning("Please select a navigation menu.");
+        return;
+      }
       fetch(`/api/admin/menus/${encodeURIComponent(menuName)}`)
         .then((r) => (r.ok ? r.json() : null))
         .then((menu) => {
@@ -177,6 +205,19 @@ export default function HeaderEditorForm({
     },
     [form],
   );
+
+  useEffect(() => {
+    if (!Array.isArray(menus) || menus.length === 0) return;
+    const currentMenuName = String(form.getFieldValue("menuName") || "").trim();
+    const preferredMenuName = pickPreferredMenuName(menus, currentMenuName);
+    if (!preferredMenuName || preferredMenuName === currentMenuName) return;
+    const currentNavItems = form.getFieldValue("navItems");
+    if (Array.isArray(currentNavItems) && currentNavItems.length > 0) {
+      form.setFieldValue("menuName", preferredMenuName);
+      return;
+    }
+    loadMenuIntoNav(preferredMenuName);
+  }, [menus, form, loadMenuIntoNav]);
 
   return (
     <Form

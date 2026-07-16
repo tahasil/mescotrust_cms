@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import { Form, Select, Collapse, Switch, InputNumber, message } from "antd";
 import {
   renderSchemaField,
@@ -56,6 +63,31 @@ function normalizeAnnouncementItems(items) {
     .filter((it) => it.text);
 }
 
+const RESERVED_MENU_NAMES = new Set(["header", "footer"]);
+
+function isReservedMenuName(name) {
+  return RESERVED_MENU_NAMES.has(String(name || "").trim().toLowerCase());
+}
+
+function getSelectableHeaderMenus(list) {
+  if (!Array.isArray(list)) return [];
+  return list.filter((menu) => {
+    const name = String(menu?.name || "").trim();
+    return name && !isReservedMenuName(name);
+  });
+}
+
+function pickPreferredHeaderMenuName(menus, currentName = "") {
+  if (!Array.isArray(menus) || menus.length === 0) return "";
+  const current = String(currentName || "").trim();
+  if (current && menus.some((menu) => menu?.name === current)) return current;
+  const preferred =
+    menus.find((menu) =>
+      /primary|main|navigation/i.test(String(menu?.name || "")),
+    ) || menus[0];
+  return String(preferred?.name || "").trim();
+}
+
 /**
  * Header edit form – drawer lives in component; PageBuilder only calls this.
  * source="page" (or block in layout): save via onSaveToPage → pages/components layout.
@@ -91,7 +123,7 @@ function HeaderEditForm(
   useEffect(() => {
     fetch("/api/admin/menus")
       .then((r) => (r.ok ? r.json() : []))
-      .then((list) => setMenusList(Array.isArray(list) ? list : []))
+      .then((list) => setMenusList(getSelectableHeaderMenus(list)))
       .catch(() => setMenusList([]));
   }, []);
 
@@ -194,7 +226,12 @@ function HeaderEditForm(
         if (theme?.headerCtaTextColorKey != null) flat.headerCtaTextColorKey = theme.headerCtaTextColorKey;
         if (theme?.headerDonateBgColorKey != null) flat.headerDonateBgColorKey = theme.headerDonateBgColorKey;
         if (theme?.headerDonateTextColorKey != null) flat.headerDonateTextColorKey = theme.headerDonateTextColorKey;
-        if (theme?.menuName != null) flat.menuName = theme.menuName;
+        if (theme?.menuName != null) {
+          const themeMenuName = String(theme.menuName || "").trim();
+          if (themeMenuName && !isReservedMenuName(themeMenuName)) {
+            flat.menuName = themeMenuName;
+          }
+        }
         if (theme?.navItems != null) flat.navItems = theme.navItems;
         Object.assign(flat, getManageSectionInitialValues("header", theme));
         flat._sectionBg = theme?._sectionBg ?? "";
@@ -238,9 +275,13 @@ function HeaderEditForm(
       .finally(() => setLoading(false));
   }, [form, isPageBlock, initialData]);
 
-  const loadMenuIntoNavItems = (menuName) => {
+  const loadMenuIntoNavItems = useCallback((menuName) => {
     if (!menuName || !menuName.trim()) return;
     const name = String(menuName).trim();
+    if (isReservedMenuName(name)) {
+      message.warning("Please select a navigation menu.");
+      return;
+    }
     fetch(`/api/admin/menus/${encodeURIComponent(name)}`)
       .then((r) => {
         if (!r.ok) throw new Error(r.status === 404 ? "Menu not found" : "Failed to load menu");
@@ -254,7 +295,20 @@ function HeaderEditForm(
         message.success(`Loaded "${name}" (${navItems.length} item(s)). Click Apply to save.`);
       })
       .catch((e) => message.error(e?.message || "Could not load menu"));
-  };
+  }, [form]);
+
+  useEffect(() => {
+    if (!Array.isArray(menusList) || menusList.length === 0) return;
+    const currentMenuName = String(form.getFieldValue("menuName") || "").trim();
+    const preferredMenuName = pickPreferredHeaderMenuName(menusList, currentMenuName);
+    if (!preferredMenuName || preferredMenuName === currentMenuName) return;
+    const currentNavItems = form.getFieldValue("navItems");
+    if (Array.isArray(currentNavItems) && currentNavItems.length > 0) {
+      form.setFieldValue("menuName", preferredMenuName);
+      return;
+    }
+    loadMenuIntoNavItems(preferredMenuName);
+  }, [menusList, form, loadMenuIntoNavItems]);
 
   const handleUpdate = async () => {
     try {
