@@ -1,7 +1,7 @@
 # Social Media Wall Module (Standalone Plan)
 
 ## 1. Module Overview
-The `Social Media Wall` is an independent, reusable module designed for multiple projects. It aggregates posts from platforms such as Facebook, Instagram, YouTube, LinkedIn, X (Twitter), Pinterest, and Snapchat, then displays them in a unified card-based UI.
+The `Social Media Wall` is an independent, reusable module designed for a single project deployment. It aggregates posts from platforms such as Facebook, Instagram, YouTube, LinkedIn, X (Twitter), Pinterest, and Snapchat, then displays them in a unified card-based UI.
 
 Core flow:
 `Platform APIs -> Fetch Services -> Scheduler -> Database -> Moderation -> Public Feed API -> Frontend Widget`
@@ -11,11 +11,14 @@ Core flow:
 ## 2. Scope
 
 ### In Scope
+- Single-project module ownership and data boundaries
+- Dedicated admin sidebar module: `Social Wall`
 - Multi-platform post ingestion
 - Unified post normalization and storage
 - Optional moderation workflow
 - Public read API for website consumption
 - Admin module for platform setup, posts, and moderation
+- Reusable Page Builder block that can be added to any page
 - Caching, logging, error handling, and token lifecycle support
 
 ### Out of Scope (Phase 1)
@@ -23,6 +26,11 @@ Core flow:
 - Automatic translation
 - Sentiment analysis
 - Advanced recommendation ranking
+
+### Platform Support Policy (Phase 1)
+- `Instagram`, `Facebook`, `YouTube`, and `X (Twitter)` are eligible for live ingestion.
+- `LinkedIn`, `Pinterest`, and `Snapchat` are `manual-only` until API access and approval requirements are verified.
+- Each platform must expose an explicit mode: `live` or `manual-only`.
 
 ---
 
@@ -36,8 +44,9 @@ This should be maintained as a separate domain module.
 4. `Post Repository`
 5. `Moderation Service`
 6. `Public Feed API`
-7. `Admin API + Admin UI`
-8. `Analytics & Observability`
+7. `Admin API + Admin UI (Sidebar Module)`
+8. `Page Builder Integration Layer`
+9. `Analytics & Observability`
 
 ---
 
@@ -47,12 +56,31 @@ This should be maintained as a separate domain module.
 3. Duplicate storage is prevented by a unique `platform + postId` key.
 4. In moderation mode, new posts enter the `pending` state.
 5. Public APIs return only approved and visible posts.
-6. The frontend wall is fully responsive.
-7. Failures (token expiry, rate limits, quota issues) are logged with clear error categories.
+6. The Social Wall appears as a dedicated item in the admin sidebar.
+7. Admin users can manage settings, platforms, sync, posts, moderation, and logs from the module.
+8. The frontend wall block is fully responsive.
+9. The Page Builder exposes Social Wall as a reusable block for any page.
+10. Page-level configuration supports platform selection, layout, post count, filters, card style, and sorting.
+11. Failures (token expiry, rate limits, quota issues) are logged with clear error categories.
 
 ---
 
 ## 5. Data Model (Module-Owned)
+
+## 5.0 `social_wall_settings`
+- `moduleEnabled` (boolean)
+- `defaultLayout` (`grid` | `masonry` | `carousel`)
+- `defaultPostLimit` (number)
+- `defaultSortBy` (`latest` | `platform-priority` | `engagement`)
+- `defaultSortOrder` (`asc` | `desc`)
+- `filtersEnabled` (boolean)
+- `moderationMode` (`auto` | `manual`)
+- `cardStylePreset` (`clean` | `outlined` | `elevated`)
+- `updatedBy`
+- `createdAt`, `updatedAt`
+
+Indexes:
+- Single document pattern (or unique key: `moduleName`)
 
 ## 5.1 `social_platform_configs`
 - `platform` (`instagram`, `facebook`, `youtube`, `linkedin`, `twitter`, `pinterest`, `snapchat`)
@@ -99,7 +127,7 @@ Indexes:
 
 Indexes:
 - Unique: `platform + postId`
-- Composite: `status + publishedAt`
+- Composite: `status + publishedAt + _id`
 - Composite: `platform + publishedAt`
 - Composite: `featured + status`
 
@@ -159,6 +187,8 @@ Required normalized fields:
 - Enforce per-platform timeout (for example, 20s)
 - Retry only transient failures (`5xx`, timeout)
 - Apply rate-limit aware backoff
+- Use platform-level lock/lease controls to prevent overlapping runs.
+- Use idempotency keys per run window (`platform + runWindow`) to avoid duplicate writes.
 
 ---
 
@@ -195,6 +225,13 @@ Query parameters:
 - `featured`
 - `search`
 
+Pagination and ordering contract:
+- Use strict keyset pagination only (no offset pagination).
+- Sort order: `publishedAt DESC, _id DESC`.
+- `cursor` must encode `{ publishedAt, id }` from the last item (for example, base64url JSON).
+- Next page condition: `publishedAt < lastPublishedAt` OR (`publishedAt == lastPublishedAt` AND `_id < lastId`).
+- Return `nextCursor` only when additional rows exist.
+
 Response example:
 ```json
 {
@@ -214,17 +251,51 @@ Response example:
 ```
 
 ## 9.2 Admin APIs
-1. `GET /api/admin/social-wall/config`
-2. `PUT /api/admin/social-wall/config`
-3. `POST /api/admin/social-wall/fetch-now`
-4. `GET /api/admin/social-wall/posts`
-5. `PATCH /api/admin/social-wall/posts/:id/status`
-6. `PATCH /api/admin/social-wall/posts/:id/feature`
-7. `GET /api/admin/social-wall/logs`
+1. `GET /api/admin/social-wall/settings`
+2. `PUT /api/admin/social-wall/settings`
+3. `GET /api/admin/social-wall/platforms`
+4. `PUT /api/admin/social-wall/platforms`
+5. `POST /api/admin/social-wall/sync`
+6. `GET /api/admin/social-wall/posts`
+7. `PATCH /api/admin/social-wall/posts/:id/status`
+8. `PATCH /api/admin/social-wall/posts/:id/feature`
+9. `GET /api/admin/social-wall/logs`
 
 Authorization:
 - Admin-only for credentials and configuration endpoints
 - Admin/Editor for moderation endpoints, based on policy
+
+`fetch-now` guardrails:
+- Rate limit: maximum 1 manual fetch per platform per 5 minutes.
+- If cooldown is active, return `429 Too Many Requests`.
+- The response must include `retryAfterSeconds`.
+- Manual fetches must respect the same lock/idempotency rules as scheduled jobs.
+
+## 9.3 Page Builder Block Contract
+The Social Wall must be available in Page Builder as a regular block/component.
+
+Block fields (page-level, per instance):
+- `enabled`
+- `platforms[]` (selected subset to render)
+- `layoutMode` (`grid` | `masonry` | `carousel`)
+- `postLimit`
+- `filtersEnabled`
+- `sortBy`, `sortOrder`
+- `cardStylePreset`
+- `showPlatformIcon`
+- `showEngagement`
+- `showDate`
+- `title/subtitle` and section styling
+
+Resolution order:
+1. Block-level overrides (from page layout)
+2. Module defaults (`social_wall_settings`)
+3. System defaults
+
+Behavior:
+- The block does not store credentials.
+- The block reads published data via public Social Wall APIs.
+- Multiple Social Wall blocks can be added across different pages.
 
 ---
 
@@ -238,6 +309,10 @@ Sub-pages:
 4. `Moderation`
 5. `Settings`
 6. `Logs`
+
+Admin sidebar requirement:
+- Add dedicated route entry: `/admin/social-wall`
+- This module must be separate from page content editing routes.
 
 ### Posts Table Columns
 - Platform
@@ -279,6 +354,10 @@ Sub-pages:
 - Optional infinite scroll
 - Image lazy loading
 - Video thumbnail-first rendering
+
+Reusable component requirement:
+- The Social Wall block must behave like existing reusable Page Builder blocks (Slider, Accordion, Blogs, Events).
+- Admin can insert the block on any page and configure per-page rendering options without changing module credentials/settings.
 
 ---
 
@@ -331,8 +410,10 @@ Policy:
 ## 16. Rollout Plan
 
 ### Phase 1
+- Dedicated admin sidebar module shell (`/admin/social-wall`)
 - Platform configuration + adapters + runtime feed API
-- Admin platform settings UI
+- Admin settings/platforms/sync/pages for module management
+- Reusable Page Builder block registration and editor form
 - Frontend cards and filters
 
 ### Phase 2
@@ -346,10 +427,49 @@ Policy:
 
 ---
 
-## 17. Acceptance Criteria
+## 17. Mandatory Test Checklist
+The following checklist is required before each release:
+
+1. Adapter Unit Tests
+- Normalization mapping per platform
+- Error category mapping (`TOKEN_EXPIRED`, `RATE_LIMITED`, etc.)
+- Token refresh behavior where applicable
+
+2. API Contract Tests
+- Public feed schema validation
+- Keyset pagination correctness (`cursor`, `nextCursor`, stable ordering)
+- Admin endpoint auth/validation behavior
+
+3. Scheduler and Job Tests
+- Cron execution path
+- Lock/lease behavior under parallel workers
+- Idempotent upsert verification
+- `fetch-now` cooldown and `429` verification
+
+4. Moderation Workflow Tests
+- Status transition validation
+- Role-based permission checks
+- Feature/unfeature actions
+
+5. Frontend Integration Tests
+- Platform filter behavior
+- Load more / infinite scroll behavior
+- Responsive rendering checks
+
+Release gate:
+- No blocker or high-severity defects open.
+- All mandatory tests pass in CI.
+- Production configuration and credentials validated.
+
+---
+
+## 18. Acceptance Criteria
 1. Admin users can configure platforms with secure credential handling.
 2. Scheduler ingests posts without duplicates.
 3. Moderation mode correctly enforces `pending -> approved/rejected`.
 4. Public API is stable and performs within target bounds.
-5. Frontend wall is responsive and filterable.
-6. Error logs are available in an actionable format.
+5. Admin sidebar includes a dedicated `Social Wall` module with settings, platforms, sync, posts, moderation, and logs.
+6. Page Builder can add Social Wall as a reusable block on any page.
+7. Page-level block configuration supports platform selection, layout, post limit, filters, card style, and sorting.
+8. Frontend wall is responsive and filterable.
+9. Error logs are available in an actionable format.
