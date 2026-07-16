@@ -61,8 +61,6 @@ function statusTag(status) {
 
 const SETTINGS_LAYOUT_OPTIONS = [
   { label: "Grid", value: "grid" },
-  { label: "Masonry", value: "masonry" },
-  { label: "Carousel", value: "carousel" },
 ];
 const SETTINGS_SORT_OPTIONS = [
   { label: "Latest", value: "latest" },
@@ -116,7 +114,7 @@ export default function SocialWallAdminPage() {
       if (!res.ok) throw new Error(data?.error || "Failed to load settings");
       settingsForm.setFieldsValue({
         moduleEnabled: data?.moduleEnabled !== false,
-        defaultLayout: data?.defaultLayout || "masonry",
+        defaultLayout: data?.defaultLayout || "grid",
         defaultPostLimit: Number(data?.defaultPostLimit || 12),
         defaultSortBy: data?.defaultSortBy || "latest",
         defaultSortOrder: data?.defaultSortOrder || "desc",

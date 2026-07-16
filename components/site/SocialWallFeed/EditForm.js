@@ -29,8 +29,6 @@ const PREFIX = "socialWallFeed";
 
 const LAYOUT_OPTIONS = [
   { label: "Grid", value: "grid" },
-  { label: "Masonry", value: "masonry" },
-  { label: "Carousel", value: "carousel" },
 ];
 const SORT_OPTIONS = [
   { label: "Latest", value: "latest" },
@@ -60,8 +58,8 @@ function toPositiveInt(value, fallback) {
 
 function normalizeLayout(value) {
   const layout = toSafeString(value).toLowerCase();
-  if (["grid", "masonry", "carousel"].includes(layout)) return layout;
-  return "masonry";
+  if (layout === "grid") return "grid";
+  return "grid";
 }
 
 function normalizeSort(value) {
