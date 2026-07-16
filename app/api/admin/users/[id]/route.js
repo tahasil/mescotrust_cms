@@ -4,9 +4,15 @@ import bcrypt from "bcryptjs";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
-import { isAdmin } from "@/lib/permissions";
+import { isAdmin, isSuperAdmin, isSuperAdminEmail } from "@/lib/permissions";
 
 const ALLOWED_ROLES = new Set(["Admin", "Editor", "Author"]);
+const ALLOWED_STATUSES = new Set(["active", "inactive"]);
+
+function isHiddenFromNonSuperAdmin(targetUser) {
+  if (!targetUser || typeof targetUser !== "object") return false;
+  return isSuperAdminEmail(targetUser.email);
+}
 
 function guardAdmin(session) {
   if (!isAdmin(session)) {
@@ -29,6 +35,9 @@ export async function GET(req, { params }) {
     await connectDB();
     const user = await User.findById(id).select("-password").lean();
     if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (!isSuperAdmin(session) && isHiddenFromNonSuperAdmin(user)) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
     return NextResponse.json(user);
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -51,9 +60,24 @@ export async function PUT(req, { params }) {
     await connectDB();
     const user = await User.findById(id);
     if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const actorIsSuperAdmin = isSuperAdmin(session);
+    if (!actorIsSuperAdmin && isHiddenFromNonSuperAdmin(user)) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    const targetIsSuperAdmin = isSuperAdminEmail(user.email);
+
+    if (targetIsSuperAdmin && !actorIsSuperAdmin) {
+      return NextResponse.json(
+        { error: "Forbidden: Super Admin account can only be managed by Super Admin" },
+        { status: 403 },
+      );
+    }
 
     if (role !== undefined && !ALLOWED_ROLES.has(role)) {
       return NextResponse.json({ error: "Invalid role" }, { status: 400 });
+    }
+    if (status !== undefined && !ALLOWED_STATUSES.has(status)) {
+      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }
 
     const adminCount = await User.countDocuments({ role: "Admin" });
@@ -64,6 +88,12 @@ export async function PUT(req, { params }) {
     if (name !== undefined) user.name = name;
     if (email !== undefined) {
       const trimmed = email.trim().toLowerCase();
+      if (targetIsSuperAdmin && trimmed !== user.email) {
+        return NextResponse.json(
+          { error: "Super Admin email cannot be changed" },
+          { status: 400 },
+        );
+      }
       if (trimmed !== user.email) {
         const dup = await User.findOne({ email: trimmed, _id: { $ne: id } });
         if (dup) {
@@ -72,9 +102,27 @@ export async function PUT(req, { params }) {
       }
       user.email = trimmed;
     }
+    if (targetIsSuperAdmin) {
+      if (role !== undefined && role !== "Admin") {
+        return NextResponse.json(
+          { error: "Super Admin role cannot be changed" },
+          { status: 400 },
+        );
+      }
+      if (status !== undefined && status !== "active") {
+        return NextResponse.json(
+          { error: "Super Admin cannot be deactivated" },
+          { status: 400 },
+        );
+      }
+    }
     if (role !== undefined) user.role = role;
     if (status !== undefined) user.status = status;
     if (password && password.length >= 6) user.password = await bcrypt.hash(password, 10);
+    if (targetIsSuperAdmin) {
+      user.role = "Admin";
+      user.status = "active";
+    }
     await user.save();
     const out = await User.findById(id).select("-password").lean();
     return NextResponse.json(out);
@@ -97,6 +145,23 @@ export async function DELETE(req, { params }) {
     await connectDB();
     const user = await User.findById(id);
     if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const actorIsSuperAdmin = isSuperAdmin(session);
+    if (!actorIsSuperAdmin && isHiddenFromNonSuperAdmin(user)) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    const targetIsSuperAdmin = isSuperAdminEmail(user.email);
+    if (targetIsSuperAdmin) {
+      if (!actorIsSuperAdmin) {
+        return NextResponse.json(
+          { error: "Forbidden: Super Admin account can only be managed by Super Admin" },
+          { status: 403 },
+        );
+      }
+      return NextResponse.json(
+        { error: "Super Admin account cannot be deleted" },
+        { status: 400 },
+      );
+    }
     if (user.role === "Admin") {
       const adminCount = await User.countDocuments({ role: "Admin" });
       if (adminCount <= 1) {

@@ -3,9 +3,10 @@ import bcrypt from "bcryptjs";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
-import { isAdmin } from "@/lib/permissions";
+import { isAdmin, isSuperAdmin, isSuperAdminEmail } from "@/lib/permissions";
 
 const ALLOWED_ROLES = new Set(["Admin", "Editor", "Author"]);
+const ALLOWED_STATUSES = new Set(["active", "inactive"]);
 
 function guardAdmin(session) {
   if (!isAdmin(session)) {
@@ -22,7 +23,16 @@ export async function GET(req) {
 
   try {
     await connectDB();
-    const users = await User.find().select("-password").sort({ createdAt: -1 }).lean();
+    const users = await User.find()
+      .select("-password")
+      .sort({ createdAt: -1 })
+      .lean();
+    if (!isSuperAdmin(session)) {
+      const visibleUsers = users.filter((u) => {
+        return !isSuperAdminEmail(u?.email);
+      });
+      return NextResponse.json(visibleUsers);
+    }
     return NextResponse.json(users);
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -47,13 +57,24 @@ export async function POST(req) {
       return NextResponse.json({ error: "Email already in use" }, { status: 400 });
     }
     const hashed = await bcrypt.hash(password, 10);
-    const safeRole = ALLOWED_ROLES.has(role) ? role : "Editor";
+    const normalizedEmail = email.trim().toLowerCase();
+    const isSuperAdminAccount = isSuperAdminEmail(normalizedEmail);
+    const safeRole = isSuperAdminAccount
+      ? "Admin"
+      : ALLOWED_ROLES.has(role)
+        ? role
+        : "Editor";
+    const safeStatus = isSuperAdminAccount
+      ? "active"
+      : ALLOWED_STATUSES.has(status)
+        ? status
+        : "active";
     const user = await User.create({
       name: name.trim(),
-      email: email.trim().toLowerCase(),
+      email: normalizedEmail,
       password: hashed,
       role: safeRole,
-      status: status === "inactive" ? "inactive" : "active",
+      status: safeStatus,
     });
     const out = await User.findById(user._id).select("-password").lean();
     return NextResponse.json(out);

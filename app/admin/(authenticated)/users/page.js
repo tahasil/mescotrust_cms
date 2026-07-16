@@ -5,11 +5,25 @@ import { Table, Tag, Button, Space, message, Modal, Form, Input, Select } from "
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 
+const SUPER_ADMIN_EMAIL = "superadmin@aiolos.cloud";
 const ROLE_OPTIONS = [
   { value: "Admin", label: "Admin" },
   { value: "Editor", label: "Editor" },
   { value: "Author", label: "Author" },
 ];
+const FILTER_ROLE_OPTIONS = [
+  { value: "SuperAdmin", label: "Super Admin" },
+  ...ROLE_OPTIONS,
+];
+
+function isSuperAdminUser(user) {
+  return String(user?.email || "").trim().toLowerCase() === SUPER_ADMIN_EMAIL;
+}
+
+function getDisplayRole(user) {
+  if (isSuperAdminUser(user)) return "SuperAdmin";
+  return String(user?.role || "").trim();
+}
 
 export default function AdminUsersPage() {
   const [list, setList] = useState([]);
@@ -19,6 +33,7 @@ export default function AdminUsersPage() {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [editingRecord, setEditingRecord] = useState(null);
   const [filterRole, setFilterRole] = useState(null);
   const [filterStatus, setFilterStatus] = useState(null);
   const [searchText, setSearchText] = useState("");
@@ -47,7 +62,13 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     let result = list;
-    if (filterRole) result = result.filter((u) => u.role === filterRole);
+    if (filterRole) {
+      if (filterRole === "SuperAdmin") {
+        result = result.filter((u) => isSuperAdminUser(u));
+      } else {
+        result = result.filter((u) => u.role === filterRole && !isSuperAdminUser(u));
+      }
+    }
     if (filterStatus) result = result.filter((u) => u.status === filterStatus);
     if (searchText.trim()) {
       const q = searchText.trim().toLowerCase();
@@ -100,6 +121,7 @@ export default function AdminUsersPage() {
       status: record.status,
     });
     setEditModalOpen(true);
+    setEditingRecord(record);
   };
 
   const handleEditSubmit = async () => {
@@ -121,6 +143,7 @@ export default function AdminUsersPage() {
       message.success("User updated");
       setEditModalOpen(false);
       setEditingId(null);
+      setEditingRecord(null);
       fetchList();
     } catch (e) {
       if (e.errorFields) return;
@@ -164,9 +187,6 @@ export default function AdminUsersPage() {
         </Button>
       }
     >
-      <p style={{ color: "#666", marginBottom: 16 }}>
-        Admin, Editor, and Author accounts. Only Admins can manage users. Create initial admin via <code>npm run seed</code>.
-      </p>
       <Input.Search
           placeholder="Search name or email"
           allowClear
@@ -180,7 +200,7 @@ export default function AdminUsersPage() {
           style={{ width: 130, marginLeft: 8, marginBottom: 16 }}
           value={filterRole}
           onChange={setFilterRole}
-          options={ROLE_OPTIONS}
+          options={FILTER_ROLE_OPTIONS}
         />
         <Select
           placeholder="Status"
@@ -201,11 +221,22 @@ export default function AdminUsersPage() {
             title: "Role",
             dataIndex: "role",
             key: "role",
-            render: (r) => (
-              <Tag color={r === "Admin" ? "blue" : r === "Author" ? "purple" : "default"}>
-                {r}
-              </Tag>
-            ),
+            render: (_, record) => {
+              const role = getDisplayRole(record);
+              const color =
+                role === "SuperAdmin"
+                  ? "gold"
+                  : role === "Admin"
+                    ? "blue"
+                    : role === "Author"
+                      ? "purple"
+                      : "default";
+              return (
+                <Tag color={color}>
+                  {role === "SuperAdmin" ? "Super Admin" : role}
+                </Tag>
+              );
+            },
           },
           {
             title: "Status",
@@ -221,9 +252,11 @@ export default function AdminUsersPage() {
                 <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
                   Edit
                 </Button>
-                <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)}>
-                  Delete
-                </Button>
+                {!isSuperAdminUser(record) ? (
+                  <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)}>
+                    Delete
+                  </Button>
+                ) : null}
               </Space>
             ),
           },
@@ -250,22 +283,27 @@ export default function AdminUsersPage() {
         </Form>
       </Modal>
 
-      <Modal title="Edit user" open={editModalOpen} onOk={handleEditSubmit} onCancel={() => { setEditModalOpen(false); setEditingId(null); }} okText="Save">
+      <Modal title="Edit user" open={editModalOpen} onOk={handleEditSubmit} onCancel={() => { setEditModalOpen(false); setEditingId(null); setEditingRecord(null); }} okText="Save">
         <Form form={editForm} layout="vertical">
+          {isSuperAdminUser(editingRecord) ? (
+            <p style={{ color: "#8a6d3b", marginBottom: 12 }}>
+              Super Admin account is protected. Email, role, and status cannot be changed.
+            </p>
+          ) : null}
           <Form.Item name="name" label="Name" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
           <Form.Item name="email" label="Email" rules={[{ required: true, type: "email" }]}>
-            <Input type="email" />
+            <Input type="email" disabled={isSuperAdminUser(editingRecord)} />
           </Form.Item>
           <Form.Item name="password" label="New password (leave blank to keep)">
             <Input.Password placeholder="Min 6 characters" />
           </Form.Item>
           <Form.Item name="role" label="Role">
-            <Select options={ROLE_OPTIONS} />
+            <Select options={ROLE_OPTIONS} disabled={isSuperAdminUser(editingRecord)} />
           </Form.Item>
           <Form.Item name="status" label="Status">
-            <Select options={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]} />
+            <Select options={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]} disabled={isSuperAdminUser(editingRecord)} />
           </Form.Item>
         </Form>
       </Modal>
