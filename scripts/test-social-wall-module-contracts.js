@@ -69,6 +69,16 @@ test("posts service implements keyset cursor and admin date range filters", () =
   assert.match(source, /encodeCursor/);
   assert.match(source, /\$push:\s*\{\s*moderationHistory/s);
   assert.match(source, /isAllowedStatusTransition/);
+  assert.match(source, /allowedPlatforms/);
+  assert.match(source, /listSocialWallPublicAvailablePlatforms/);
+});
+
+test("public service resolves frontend platforms dynamically from active connected platforms with approved posts", () => {
+  const source = readFile("lib/socialWallModule/publicService.js");
+  assert.match(source, /isPlatformConnectedForPublicFeed/);
+  assert.match(source, /listSocialWallPublicAvailablePlatforms/);
+  assert.match(source, /resolvedPlatformRows/);
+  assert.match(source, /platformConfigs:\s*resolvedPlatformRows\.map/);
 });
 
 test("admin API auth boundaries are enforced for social wall module", () => {

@@ -244,6 +244,7 @@ export default function SocialWallFeed(props) {
   const [activePlatform, setActivePlatform] = useState("all");
   const [availablePlatforms, setAvailablePlatforms] = useState([]);
   const loadMoreSentinelRef = useRef(null);
+  const showFilterTabs = filtersEnabled && availablePlatforms.length > 1;
 
   const { sectionClassName, sectionStyle, pageStyle } = useMemo(
     () => applySectionStyles(props, prefix),
@@ -344,6 +345,14 @@ export default function SocialWallFeed(props) {
   }, [loadFeed]);
 
   useEffect(() => {
+    if (activePlatform === "all") return;
+    const exists = availablePlatforms.some((item) => item.platform === activePlatform);
+    if (exists) return;
+    setActivePlatform("all");
+    loadFeed({ append: false, platform: "all" });
+  }, [activePlatform, availablePlatforms, loadFeed]);
+
+  useEffect(() => {
     if (!infiniteScroll) return undefined;
     if (!nextCursor || loadingMore || loading) return undefined;
     const sentinel = loadMoreSentinelRef.current;
@@ -371,9 +380,9 @@ export default function SocialWallFeed(props) {
     <FullWidthBackground className={sectionClassName} style={sectionStyle}>
       <PageContainer style={pageStyle}>
         {subtitle ? <SubTitle>{subtitle}</SubTitle> : null}
-        {title ? <MainTitle color={titleColor}>{title}</MainTitle> : null}
+        {title ? <MainTitle className="mb-4" color={titleColor}>{title}</MainTitle> : null}
 
-        {filtersEnabled ? (
+        {showFilterTabs ? (
           <FilterRow>
             <FilterChip
               type="button"

@@ -5,6 +5,7 @@ import {
   upsertSocialWallPlatformConfigs,
 } from "@/lib/socialWallModule/platformService";
 import { getSocialWallSupportedPlatforms } from "@/lib/socialWallModule/platformAdapters";
+import { invalidatePublicSocialWallFeedCache } from "@/lib/socialWallModule/publicService";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +44,7 @@ export async function PUT(req) {
         updatedBy: session?.email || session?.name || "",
       },
     );
+    invalidatePublicSocialWallFeedCache();
     return NextResponse.json(
       {
         supportedPlatforms: getSocialWallSupportedPlatforms(),

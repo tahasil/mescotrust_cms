@@ -37,6 +37,7 @@ test("new SocialWallFeed component pulls module feed and supports filters + load
   assert.match(feedComponent, /\/api\/public\/social-wall\/feed/);
   assert.match(feedComponent, /FilterChip/);
   assert.match(feedComponent, /activePlatform/);
+  assert.match(feedComponent, /showFilterTabs/);
   assert.match(feedComponent, /Load More/);
   assert.match(feedComponent, /layoutMode === "carousel"/);
 });

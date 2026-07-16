@@ -4,6 +4,7 @@ import {
   getSocialWallSettings,
   updateSocialWallSettings,
 } from "@/lib/socialWallModule/settingsService";
+import { invalidatePublicSocialWallFeedCache } from "@/lib/socialWallModule/publicService";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,7 @@ export async function PUT(req) {
     const settings = await updateSocialWallSettings(body || {}, {
       updatedBy: session?.email || session?.name || "",
     });
+    invalidatePublicSocialWallFeedCache();
     return NextResponse.json(settings, {
       headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
     });

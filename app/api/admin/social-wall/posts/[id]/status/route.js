@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireEditorOrAdminSession } from "@/lib/socialWallModule/apiGuards";
 import { updateSocialWallPostStatus } from "@/lib/socialWallModule/postsService";
+import { invalidatePublicSocialWallFeedCache } from "@/lib/socialWallModule/publicService";
 import { toSafeString } from "@/lib/socialWallModule/utils";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +23,7 @@ export async function PATCH(req, { params }) {
     if (!updated) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
+    invalidatePublicSocialWallFeedCache();
     return NextResponse.json(updated, {
       headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
     });

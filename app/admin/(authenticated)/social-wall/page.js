@@ -771,7 +771,30 @@ export default function SocialWallAdminPage() {
           }
         >
           <Space direction="vertical" style={{ width: "100%" }} size={12}>
-            {platformRows.map((row) => (
+            {platformRows.map((row) => {
+              const platformKey = safeString(row.platform).toLowerCase();
+              const accessTokenLabel =
+                platformKey === "facebook"
+                  ? "PAGE_ACCESS_TOKEN"
+                  : platformKey === "twitter"
+                    ? "BEARER_TOKEN"
+                    : "ACCESS_TOKEN";
+              const accountIdLabel =
+                platformKey === "facebook"
+                  ? "PAGE_ID (not App ID)"
+                  : platformKey === "youtube"
+                    ? "CHANNEL_ID"
+                    : platformKey === "instagram" || platformKey === "twitter"
+                      ? "USER_ID"
+                      : "ACCOUNT_ID";
+              const apiKeyLabel =
+                platformKey === "youtube" ? "YOUTUBE_API_KEY" : "API_KEY (not used)";
+              const apiKeyEditable = platformKey === "youtube";
+              const showFacebookAccountHint =
+                platformKey === "facebook" &&
+                safeString(row.lastSyncError).toUpperCase().includes("FACEBOOK_API_400");
+
+              return (
               <Card
                 key={row.platform}
                 size="small"
@@ -844,7 +867,7 @@ export default function SocialWallAdminPage() {
                   </Col>
                   <Col xs={24} md={8}>
                     <Input.Password
-                      placeholder={`ACCESS_TOKEN ${
+                      placeholder={`${accessTokenLabel} ${
                         row.accessTokenMasked ? `(current: ${row.accessTokenMasked})` : ""
                       }`}
                       value={row.accessToken || ""}
@@ -855,7 +878,7 @@ export default function SocialWallAdminPage() {
                   </Col>
                   <Col xs={24} md={8}>
                     <Input
-                      placeholder={`ACCOUNT_ID ${
+                      placeholder={`${accountIdLabel} ${
                         row.accountIdMasked ? `(current: ${row.accountIdMasked})` : ""
                       }`}
                       value={row.accountId || ""}
@@ -866,13 +889,23 @@ export default function SocialWallAdminPage() {
                   </Col>
                   <Col xs={24} md={8}>
                     <Input.Password
-                      placeholder={`API_KEY ${row.apiKeyMasked ? `(current: ${row.apiKeyMasked})` : ""}`}
+                      placeholder={`${apiKeyLabel} ${row.apiKeyMasked ? `(current: ${row.apiKeyMasked})` : ""}`}
                       value={row.apiKey || ""}
+                      disabled={!apiKeyEditable}
                       onChange={(event) =>
                         updatePlatformField(row.platform, "apiKey", event.target.value)
                       }
                     />
                   </Col>
+                  {showFacebookAccountHint ? (
+                    <Col xs={24}>
+                      <Alert
+                        type="warning"
+                        showIcon
+                        message="Facebook requires PAGE_ID and PAGE_ACCESS_TOKEN. App ID/App Secret will not fetch posts."
+                      />
+                    </Col>
+                  ) : null}
                   {row.lastSyncError ? (
                     <Col xs={24}>
                       <Alert type="error" showIcon message={row.lastSyncError} />
@@ -880,7 +913,7 @@ export default function SocialWallAdminPage() {
                   ) : null}
                 </Row>
               </Card>
-            ))}
+            )})}
           </Space>
         </ThemeAdminCard>
       ),

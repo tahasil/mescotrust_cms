@@ -5,6 +5,7 @@ import {
   refreshSocialWallTokens,
   runSocialWallSync,
 } from "@/lib/socialWallModule/syncService";
+import { invalidatePublicSocialWallFeedCache } from "@/lib/socialWallModule/publicService";
 import { toPositiveInt, toSafeString } from "@/lib/socialWallModule/utils";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +33,7 @@ export async function POST(req) {
         force: body?.force === true,
         requestedBy: session?.email || session?.name || "",
       });
+      invalidatePublicSocialWallFeedCache();
       return NextResponse.json({ action, ...refreshResult }, {
         headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
       });
@@ -42,6 +44,7 @@ export async function POST(req) {
       trigger: "scheduled",
       requestedBy: session?.email || session?.name || "",
     });
+    invalidatePublicSocialWallFeedCache();
     return NextResponse.json(
       { action: action || "scheduled-sync", ...syncResult },
       {

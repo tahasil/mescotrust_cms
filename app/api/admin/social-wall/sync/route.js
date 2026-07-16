@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/socialWallModule/apiGuards";
 import { runSocialWallSync } from "@/lib/socialWallModule/syncService";
+import { invalidatePublicSocialWallFeedCache } from "@/lib/socialWallModule/publicService";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +44,7 @@ export async function POST(req) {
       );
     }
 
+    invalidatePublicSocialWallFeedCache();
     return NextResponse.json(result, {
       headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
     });
