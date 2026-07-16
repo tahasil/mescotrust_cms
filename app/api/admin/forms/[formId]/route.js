@@ -10,6 +10,12 @@ function normalizeSubmissionSettings(input) {
   const source = input && typeof input === "object" ? input : {};
   const submitButtonAlignment = String(source.submitButtonAlignment || "").trim().toLowerCase();
   const captchaType = String(source.captchaType || "").trim().toLowerCase();
+  const normalizedRecaptchaSiteKey = String(
+    source.recaptchaSiteKey || source.siteKey || source.googleRecaptchaSiteKey || "",
+  ).trim();
+  const normalizedRecaptchaSecretKey = String(
+    source.recaptchaSecretKey || source.secretKey || source.googleRecaptchaSecretKey || "",
+  ).trim();
   const normalizedSubmitButtonAlignment =
     submitButtonAlignment === "center" ||
     submitButtonAlignment === "right" ||
@@ -39,6 +45,8 @@ function normalizeSubmissionSettings(input) {
         ? FORM_DEFAULTS.submissionSettings.captchaEnabled
         : Boolean(source.captchaEnabled),
     captchaType: normalizedCaptchaType,
+    recaptchaSiteKey: normalizedRecaptchaSiteKey,
+    recaptchaSecretKey: normalizedRecaptchaSecretKey,
   };
 }
 
@@ -156,6 +164,23 @@ export async function PUT(req, { params }) {
     }
     if (!nextSuccessMessage) {
       return NextResponse.json({ error: "successMessage is required" }, { status: 400 });
+    }
+    if (
+      nextSubmissionSettings.captchaEnabled &&
+      nextSubmissionSettings.captchaType === "checkbox_v2"
+    ) {
+      if (!nextSubmissionSettings.recaptchaSiteKey) {
+        return NextResponse.json(
+          { error: "Google reCAPTCHA site key is required." },
+          { status: 400 },
+        );
+      }
+      if (!nextSubmissionSettings.recaptchaSecretKey) {
+        return NextResponse.json(
+          { error: "Google reCAPTCHA secret key is required." },
+          { status: 400 },
+        );
+      }
     }
 
     form.name = nextName;

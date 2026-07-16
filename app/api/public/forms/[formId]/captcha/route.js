@@ -19,6 +19,18 @@ function normalizeSubmissionSettings(input) {
       source.captchaType,
       FORM_DEFAULTS.submissionSettings.captchaType,
     ),
+    recaptchaSiteKey: String(
+      source.recaptchaSiteKey ||
+        source.siteKey ||
+        source.googleRecaptchaSiteKey ||
+        FORM_DEFAULTS.submissionSettings.recaptchaSiteKey,
+    ).trim(),
+    recaptchaSecretKey: String(
+      source.recaptchaSecretKey ||
+        source.secretKey ||
+        source.googleRecaptchaSecretKey ||
+        FORM_DEFAULTS.submissionSettings.recaptchaSecretKey,
+    ).trim(),
   };
 }
 
@@ -46,6 +58,7 @@ export async function GET(req, { params }) {
     const challenge = generateCaptchaChallenge({
       formId,
       captchaType: submissionSettings.captchaType,
+      submissionSettings,
     });
 
     return NextResponse.json(

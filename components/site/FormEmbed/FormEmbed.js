@@ -785,30 +785,81 @@ export default function FormEmbed(props = {}) {
     if (window.grecaptcha?.render) return window.grecaptcha;
 
     const scriptId = "google-recaptcha-api-script";
-    const existing = document.getElementById(scriptId);
-    if (existing) {
-      await new Promise((resolve, reject) => {
-        if (window.grecaptcha?.render) {
-          resolve();
-          return;
-        }
-        existing.addEventListener("load", resolve, { once: true });
-        existing.addEventListener("error", reject, { once: true });
-      });
-      return window.grecaptcha;
+    const scriptSources = [
+      "/api/public/recaptcha/script",
+      "https://www.google.com/recaptcha/api.js?render=explicit",
+      "https://www.recaptcha.net/recaptcha/api.js?render=explicit",
+    ];
+
+    async function waitForGrecaptchaRender(timeoutMs = 5000) {
+      const start = Date.now();
+      while (Date.now() - start < timeoutMs) {
+        if (window.grecaptcha?.render) return window.grecaptcha;
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      throw new Error("Google reCAPTCHA runtime did not initialize.");
     }
 
-    await new Promise((resolve, reject) => {
-      const script = document.createElement("script");
-      script.id = scriptId;
-      script.src = "https://www.google.com/recaptcha/api.js?render=explicit";
-      script.async = true;
-      script.defer = true;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error("Failed to load Google reCAPTCHA script"));
-      document.head.appendChild(script);
-    });
-    return window.grecaptcha;
+    async function loadScriptSource(src) {
+      return new Promise((resolve, reject) => {
+        const current = document.getElementById(scriptId);
+        if (current && !window.grecaptcha?.render) {
+          const status = normalizeText(current.getAttribute("data-status")).toLowerCase();
+          const currentSrc = normalizeText(current.getAttribute("src"));
+          if (status === "error" || (currentSrc && currentSrc !== src)) {
+            current.remove();
+          }
+        }
+
+        const existing = document.getElementById(scriptId);
+        if (existing) {
+          if (window.grecaptcha?.render) {
+            resolve(window.grecaptcha);
+            return;
+          }
+          existing.addEventListener("load", () => resolve(window.grecaptcha), { once: true });
+          existing.addEventListener(
+            "error",
+            () => reject(new Error("Failed to load Google reCAPTCHA script")),
+            { once: true },
+          );
+          return;
+        }
+
+        const script = document.createElement("script");
+        script.id = scriptId;
+        script.src = src;
+        script.crossOrigin = "anonymous";
+        script.async = true;
+        script.defer = true;
+        script.setAttribute("data-status", "loading");
+        script.onload = () => {
+          script.setAttribute("data-status", "loaded");
+          resolve(window.grecaptcha);
+        };
+        script.onerror = () => {
+          script.setAttribute("data-status", "error");
+          script.remove();
+          reject(new Error("Failed to load Google reCAPTCHA script"));
+        };
+        document.head.appendChild(script);
+      });
+    }
+
+    let lastError = null;
+    for (const src of scriptSources) {
+      try {
+        await loadScriptSource(src);
+        return await waitForGrecaptchaRender();
+      } catch (err) {
+        lastError = err;
+      }
+    }
+
+    throw (
+      lastError ||
+      new Error("Failed to load Google reCAPTCHA script from all available sources.")
+    );
   }, []);
 
   const resetGoogleRecaptcha = useCallback(() => {
@@ -914,9 +965,11 @@ export default function FormEmbed(props = {}) {
           },
         });
         recaptchaWidgetIdRef.current = widgetId;
-      } catch {
+      } catch (err) {
         if (!cancelled) {
-          setCaptchaError("Failed to load Google reCAPTCHA.");
+          setCaptchaError(
+            normalizeText(err?.message || "Failed to load Google reCAPTCHA."),
+          );
         }
       }
     }

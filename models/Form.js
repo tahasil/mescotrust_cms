@@ -71,6 +71,8 @@ const formSubmissionSettingsSchema = new mongoose.Schema(
       default: "alphanumeric",
       trim: true,
     },
+    recaptchaSiteKey: { type: String, default: "", trim: true },
+    recaptchaSecretKey: { type: String, default: "", trim: true },
   },
   { _id: false },
 );
