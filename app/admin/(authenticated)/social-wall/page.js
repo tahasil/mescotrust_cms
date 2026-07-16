@@ -826,7 +826,7 @@ export default function SocialWallAdminPage() {
               <Card
                 key={row.platform}
                 size="small"
-                title={`${row.label || row.platform} (${row.platform})`}
+                title={row.label || row.platform}
               >
                 <Row gutter={[12, 12]}>
                   <Col xs={24} md={3}>
