@@ -101,6 +101,27 @@ function withPathname(req) {
   return NextResponse.next({ request: newRequest });
 }
 
+function clearSessionCookies(req, response) {
+  const sessionCookiePrefixes = [
+    "next-auth.session-token",
+    "__Secure-next-auth.session-token",
+  ];
+  for (const cookie of req.cookies.getAll()) {
+    if (sessionCookiePrefixes.some((prefix) => cookie.name === prefix || cookie.name.startsWith(`${prefix}.`))) {
+      response.cookies.delete(cookie.name);
+    }
+  }
+  return response;
+}
+
+function roleUpdatedLoginUrl(req, reason = "role-updated") {
+  const url = req.nextUrl.clone();
+  url.pathname = loginPath;
+  url.search = "";
+  url.searchParams.set("reason", String(reason || "role-updated"));
+  return url;
+}
+
 export async function middleware(req) {
   const { pathname } = req.nextUrl;
 
@@ -130,9 +151,16 @@ export async function middleware(req) {
 
   if (pathname === loginPath) {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    const reason = String(req.nextUrl.searchParams.get("reason") || "");
+    const requiresFreshLogin =
+      token?.forceReauth || reason === "role-updated" || reason === "account-deactivated";
+    if (requiresFreshLogin) {
+      return clearSessionCookies(req, withPathname(req));
+    }
     if (token) {
       const url = req.nextUrl.clone();
       url.pathname = "/admin";
+      url.search = "";
       return NextResponse.redirect(url);
     }
     return withPathname(req);
@@ -144,6 +172,12 @@ export async function middleware(req) {
     url.pathname = loginPath;
     url.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(url);
+  }
+  if (token.forceReauth) {
+    const response = NextResponse.redirect(
+      roleUpdatedLoginUrl(req, token.forceReauthReason),
+    );
+    return clearSessionCookies(req, response);
   }
   const tokenPermissionKeys = Array.isArray(token.permissionKeys)
     ? token.permissionKeys
@@ -176,7 +210,6 @@ export async function middleware(req) {
     }
     return NextResponse.redirect(url);
   }
-
   return withPathname(req);
 }
 

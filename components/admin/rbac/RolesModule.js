@@ -5,14 +5,12 @@ import {
   Alert,
   Button,
   Checkbox,
-  Col,
   Divider,
   Form,
   Input,
   InputNumber,
   Modal,
   Popconfirm,
-  Row,
   Space,
   Table,
   Tag,
@@ -218,38 +216,34 @@ export default function RolesModule() {
         okText={modalMode === "edit" ? "Save changes" : "Create role"}
         confirmLoading={saving}
         width={940}
-        styles={{ body: { maxHeight: "calc(100vh - 220px)", overflowY: "auto", paddingRight: 4 } }}
+        styles={{
+          body: {
+            maxHeight: "calc(100vh - 220px)",
+            overflowY: "auto",
+            overflowX: "hidden",
+          },
+        }}
       >
         <Form form={form} layout="vertical">
-          <Row gutter={12}>
-            <Col xs={24} md={12}>
-              <Form.Item name="name" label="Role name" rules={[{ required: true, message: "Role name is required" }]}>
-                <Input placeholder="Content Manager" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item
-                name="key"
-                label="Role key"
-                tooltip="Generated from the role name when left blank."
-                rules={[{ pattern: /^[a-z0-9_]*$/, message: "Use lowercase letters, numbers, and underscores" }]}
-              >
-                <Input placeholder="content_manager" disabled={modalMode === "edit"} />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={12}>
-            <Col xs={24} md={12}>
-              <Form.Item name="priority" label="Priority">
-                <InputNumber min={1} max={2000} style={{ width: "100%" }} />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item name="isActive" label="Status" valuePropName="checked">
-                <Checkbox>Role is active</Checkbox>
-              </Form.Item>
-            </Col>
-          </Row>
+          <div className="rbac-form-grid">
+            <Form.Item name="name" label="Role name" rules={[{ required: true, message: "Role name is required" }]}>
+              <Input placeholder="Content Manager" />
+            </Form.Item>
+            <Form.Item
+              name="key"
+              label="Role key"
+              tooltip="Generated from the role name when left blank."
+              rules={[{ pattern: /^[a-z0-9_]*$/, message: "Use lowercase letters, numbers, and underscores" }]}
+            >
+              <Input placeholder="content_manager" disabled={modalMode === "edit"} />
+            </Form.Item>
+            <Form.Item name="priority" label="Priority">
+              <InputNumber min={1} max={2000} style={{ width: "100%" }} />
+            </Form.Item>
+            <Form.Item name="isActive" label="Status" valuePropName="checked">
+              <Checkbox>Role is active</Checkbox>
+            </Form.Item>
+          </div>
           <Form.Item name="description" label="Description">
             <Input.TextArea rows={2} placeholder="Optional role description" />
           </Form.Item>
@@ -270,15 +264,15 @@ export default function RolesModule() {
                           <Button type="link" size="small" disabled={selectedCount === 0} onClick={() => toggleModule(group.permissions, false)}>Clear</Button>
                         </Space>
                       </div>
-                      <Row gutter={[8, 8]} style={{ marginTop: 10 }}>
+                      <div className="rbac-permission-grid">
                         {group.permissions.map((permission) => (
-                          <Col key={permission.key} xs={24} sm={12} lg={8}>
+                          <div key={permission.key} className="rbac-permission-item">
                             <Checkbox value={permission.key} disabled={permission.assignable === false}>
                               {permission.label.replace(`${group.label} - `, "")}
                             </Checkbox>
-                          </Col>
+                          </div>
                         ))}
-                      </Row>
+                      </div>
                     </div>
                   );
                 })}
@@ -289,12 +283,50 @@ export default function RolesModule() {
         </Form>
       </Modal>
       <style jsx global>{`
-        .rbac-permission-group { border: 1px solid rgba(0, 0, 0, 0.09); border-radius: 10px; padding: 14px; }
+        .ant-modal.rbac-role-modal .ant-modal-body {
+          max-width: 100%;
+          overflow-x: hidden !important;
+        }
+        .rbac-form-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          column-gap: 12px;
+        }
+        .rbac-permission-group {
+          min-width: 0;
+          max-width: 100%;
+          overflow: hidden;
+          border: 1px solid rgba(0, 0, 0, 0.09);
+          border-radius: 10px;
+          padding: 14px;
+          box-sizing: border-box;
+        }
+        .rbac-permission-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 8px;
+          margin-top: 10px;
+        }
+        .rbac-permission-item {
+          min-width: 0;
+          overflow-wrap: anywhere;
+        }
+        .rbac-permission-item .ant-checkbox-wrapper {
+          min-width: 0;
+          max-width: 100%;
+          white-space: normal;
+        }
+        @media (max-width: 767px) {
+          .rbac-form-grid,
+          .rbac-permission-grid {
+            grid-template-columns: 1fr;
+          }
+        }
         @media (max-width: 575px) {
           .rbac-role-modal { padding-bottom: 0; }
-          .rbac-role-modal .ant-modal { width: calc(100vw - 16px) !important; max-width: none; top: 8px; margin: 0 8px; padding-bottom: 8px; }
-          .rbac-role-modal .ant-modal-content { padding: 16px 12px; }
-          .rbac-role-modal .ant-modal-body { max-height: calc(100vh - 180px) !important; }
+          .ant-modal.rbac-role-modal { width: calc(100vw - 16px) !important; max-width: none; top: 8px; margin: 0 8px; padding-bottom: 8px; }
+          .ant-modal.rbac-role-modal .ant-modal-content { padding: 16px 12px; }
+          .ant-modal.rbac-role-modal .ant-modal-body { max-height: calc(100vh - 180px) !important; }
         }
       `}</style>
     </ThemeAdminCard>
