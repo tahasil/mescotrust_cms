@@ -39,6 +39,7 @@ import {
 import { signOut } from "next-auth/react";
 import { roleLabelFromKey } from "@/lib/rbac/constants";
 import { canAccessMenu } from "@/lib/rbac/clientPermissions";
+import { AdminAuthProvider } from "@/components/admin/AdminAuthContext";
 
 const { Header, Content } = Layout;
 
@@ -1485,7 +1486,9 @@ export default function AdminLayoutClient({ children, userName, userRole, userRo
           }}
         >
           <Content style={{ padding: isMobile ? 8 : 10 }}>
-            {children}
+            <AdminAuthProvider value={authContext}>
+              {children}
+            </AdminAuthProvider>
           </Content>
           <div className={`admin-route-loader ${routeLoading ? "visible" : ""}`}>
             <div className="admin-route-loader-spinner" />
