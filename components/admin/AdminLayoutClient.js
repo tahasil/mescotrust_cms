@@ -34,9 +34,11 @@ import {
   MessageOutlined,
   DollarOutlined,
   CloseOutlined,
+  SafetyCertificateOutlined,
 } from "@ant-design/icons";
 import { signOut } from "next-auth/react";
-import { normalizeRole } from "@/lib/permissions";
+import { roleLabelFromKey } from "@/lib/rbac/constants";
+import { canAccessMenu } from "@/lib/rbac/clientPermissions";
 
 const { Header, Content } = Layout;
 
@@ -310,7 +312,28 @@ const baseMenuItems = [
       </Link>
     ),
   },
+  {
+    key: "/admin/rbac/roles",
+    icon: <SafetyCertificateOutlined />,
+    label: (
+      <Link href="/admin/rbac/roles" style={linkStyle}>
+        Roles & Permissions
+      </Link>
+    ),
+  },
 ];
+
+function filterMenuItemsByPermission(items, authContext) {
+  return items
+    .map((item) => {
+      if (Array.isArray(item.children)) {
+        const children = filterMenuItemsByPermission(item.children, authContext);
+        return children.length > 0 ? { ...item, children } : null;
+      }
+      return canAccessMenu(authContext, item.key) ? item : null;
+    })
+    .filter(Boolean);
+}
 
 const DEFAULT_ADMIN_THEME = {
   adminSiteName: "",
@@ -331,10 +354,10 @@ const DEFAULT_ADMIN_THEME = {
   adminLoaderBgColor: "rgba(255,255,255,0.5)",
 };
 
-export default function AdminLayoutClient({ children, userName, userRole }) {
+export default function AdminLayoutClient({ children, userName, userRole, userRoleKey, permissionKeys = [] }) {
   const router = useRouter();
-  const normalizedRole = normalizeRole(userRole);
-  const roleLabel = normalizedRole || String(userRole || "").trim();
+  const normalizedRoleKey = String(userRoleKey || userRole || "").trim().toLowerCase();
+  const roleLabel = userRole || roleLabelFromKey(normalizedRoleKey);
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -649,26 +672,12 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
 
   const sidebarVisible = isMobile ? mobileOpen : !collapsed;
   const contentMarginLeft = isMobile ? 0 : collapsed ? 0 : SIDEBAR_WIDTH;
-  let menuItems = baseMenuItems;
-  if (normalizedRole === "Author") {
-    const dashboard = baseMenuItems.find((item) => item.key === "/admin");
-    const blogGroup = baseMenuItems.find((item) => item.key === "group:admin:blogs");
-    const eventsGroup = baseMenuItems.find((item) => item.key === "group:admin:events");
-    menuItems = [
-      dashboard,
-      blogGroup
-        ? {
-            ...blogGroup,
-            children: (blogGroup.children || []).filter(
-              (child) => child.key === "/admin/blogs" || child.key === "/admin/blogs/new",
-            ),
-          }
-        : null,
-      eventsGroup,
-    ].filter(Boolean);
-  } else if (normalizedRole !== "Admin") {
-    menuItems = baseMenuItems.filter((item) => item.key !== "/admin/users");
-  }
+  const authContext = {
+    role: userRole,
+    roleKey: normalizedRoleKey,
+    permissionKeys,
+  };
+  const menuItems = filterMenuItemsByPermission(baseMenuItems, authContext);
   const selectedMenuKey = String(pathname || "").startsWith("/admin/popups/")
     ? "/admin/popups"
     : String(pathname || "").startsWith("/admin/form-builder/")
@@ -678,7 +687,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
     : pathname;
 
   const fetchNotifications = useCallback(() => {
-    if (normalizedRole === "Author") {
+    if (normalizedRoleKey === "author") {
       setNotifications([]);
       prevCountRef.current = 0;
       return;
@@ -784,7 +793,7 @@ export default function AdminLayoutClient({ children, userName, userRole }) {
         setNotifications(sliced);
       })
       .catch(() => {});
-  }, [normalizedRole]);
+  }, [normalizedRoleKey]);
 
   useEffect(() => {
     fetchNotifications();

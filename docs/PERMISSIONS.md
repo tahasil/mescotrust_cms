@@ -1,55 +1,34 @@
-# Permission Matrix
+# Roles and Permissions
 
-## Roles
+The admin uses database-backed role-based access control (RBAC). The permission catalog is generated from the current Mesco Trust admin module manifest in `lib/rbac/catalog.js`; it is not shared with or copied from another CMS.
 
-| Role     | Description |
-|----------|-------------|
-| **Admin**  | Full access to all admin routes and APIs. Can manage users, theme, settings, and all content. |
-| **Editor** | Can create and edit pages, blog posts, components, media, contacts, and menus. Cannot access user management, theme settings, or system settings. |
+## System roles
 
-## Route Permissions
+| Role | Default scope |
+|------|---------------|
+| Super Admin | Every permission, including protected role management |
+| Admin | All current admin modules except Roles & Permissions |
+| Editor | Content and operations modules; excludes Admin-only settings/actions, Users, Theme, and Roles & Permissions |
+| Author | Dashboard plus Blog/Event content actions; excludes category/comment management |
 
-| Route / Action                  | Admin | Editor |
-|---------------------------------|:-----:|:------:|
-| `/admin` (dashboard)            | ✅    | ✅     |
-| `/admin/pages` (CRUD)           | ✅    | ✅     |
-| `/admin/blogs` (CRUD)           | ✅    | ✅     |
-| `/admin/blog-categories` (CRUD) | ✅    | ✅     |
-| `/admin/components` (CRUD)      | ✅    | ✅     |
-| `/admin/media` (upload/delete)  | ✅    | ✅     |
-| `/admin/menus` (CRUD)           | ✅    | ✅     |
-| `/admin/contacts` (read/delete) | ✅    | ✅     |
-| `/admin/users` (CRUD)           | ✅    | ❌     |
-| `/admin/theme` (edit)           | ✅    | ❌     |
-| Draft preview (`/preview/[id]`) | ✅    | ✅     |
+Custom roles can be created at `/admin/rbac/roles` and assigned from `/admin/users`. Permissions are attached to roles only; direct per-user permission assignment is rejected.
 
-## API Permissions
+## Current module catalog
 
-| API Route                       | Admin | Editor | Public |
-|---------------------------------|:-----:|:------:|:------:|
-| `GET /api/health`               | ✅    | ✅     | ✅     |
-| `GET /api/theme`                | ✅    | ✅     | ✅     |
-| `PUT /api/theme`                | ✅    | ❌     | ❌     |
-| `POST /api/contact`             | ✅    | ✅     | ✅     |
-| `GET /api/public/*`             | ✅    | ✅     | ✅     |
-| `GET/POST /api/admin/pages`     | ✅    | ✅     | ❌     |
-| `GET/POST /api/admin/blogs`     | ✅    | ✅     | ❌     |
-| `GET/POST /api/admin/components`| ✅    | ✅     | ❌     |
-| `GET/POST /api/admin/media`     | ✅    | ✅     | ❌     |
-| `GET/POST /api/admin/menus`     | ✅    | ✅     | ❌     |
-| `GET /api/admin/contacts`       | ✅    | ✅     | ❌     |
-| `GET/POST /api/admin/users`     | ✅    | ❌     | ❌     |
+The catalog covers Dashboard, Pages, Components, Social Wall, Form Builder, Sliders, Popups, Team, Blogs, Events, Media, Menus, Chatbot, Theme, Submissions, Users, and Roles & Permissions.
+
+Supported actions are generated per module from: `view`, `create`, `edit`, `delete`, `manage`, `publish`, `settings_access`, `user_management`, and `role_management`.
 
 ## Enforcement
 
-- **Middleware** (`middleware.js`): Blocks unauthenticated access to `/admin/*` and `/api/admin/*`. Blocks Editor role from `/admin/users`, `/admin/theme`, `/api/admin/users`.
-- **API-level** (`lib/apiAuth.js`): Each admin API calls `requireAuth()`. Admin-only APIs (users, theme PUT) additionally check `session.role === "Admin"` via `isAdmin()`.
-- **Permission helper** (`lib/permissions.js`): Exports `isAdmin(session)` and `isEditor(session)` for role checks in route handlers and components.
+- `middleware.js` checks the JWT permission snapshot before admin page/API routing.
+- `app/admin/(authenticated)/layout.js` resolves current database permissions and blocks unauthorized pages.
+- `lib/apiAuth.js` resolves the active user and role before every existing admin API operation.
+- `components/admin/AdminLayoutClient.js` hides sidebar items the current role cannot access.
+- Role or permission changes increment affected users' permission/session versions and require a fresh login.
 
-## Editor Content Scope
+The special configured Super Admin email remains protected. System roles cannot be deleted or deactivated, custom roles assigned to users cannot be deleted, and non-Super-Admins cannot grant protected permissions or roles at an equal/higher priority.
 
-Currently, Editors can edit **all** pages and blog posts (not limited to own content). To restrict to own content, add `createdBy` field to Page/Blog models and filter queries by `session.id` for Editors.
+## Catalog synchronization
 
-## Password Reset
-
-Password reset for admin users is **not implemented**. Admins are managed via the seed script (`npm run seed`) or by another Admin through `/admin/users`. For production, consider implementing a forgot-password flow (Phase 6 optional).
+`ensureRbacBootstrap()` upserts current permission definitions, deactivates stale definitions, initializes system-role mappings once per catalog version, and migrates legacy users to `roleKey` plus permission/session versions. Existing content collections and public APIs are unchanged.

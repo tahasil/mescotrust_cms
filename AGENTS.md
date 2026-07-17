@@ -48,10 +48,10 @@ Core rendering flow:
   - `lib/apiAuth.js` -> `requireAuth(req)` used by admin APIs
 - Role helpers:
   - `lib/permissions.js` -> `isAdmin`, `isEditor`
-- Admin-only paths enforced in middleware:
-  - `/admin/users`
-  - `/admin/theme`
-  - `/api/admin/users`
+- RBAC:
+  - `lib/rbac/catalog.js` maps the current admin modules/pages/APIs to generated permissions
+  - `lib/rbac/resolver.js` resolves active database-backed role permissions
+  - middleware, the authenticated admin layout, and `requireAuth` enforce permissions
 
 Security notes currently implemented:
 - Login rate limiting in middleware for auth POST.
@@ -86,6 +86,10 @@ Models in `models/`:
 - `SocialWallPost`
 - `SocialWallFetchLog`
 - `SocialWallConfigAudit`
+- `AdminRole`
+- `Permission`
+- `RolePermission`
+- `PermissionAuditLog`
 
 For field-level schema details, use `docs/TECHNICAL_DESIGN.md`.
 
@@ -104,6 +108,7 @@ Key public groups:
 Key admin groups:
 - Pages, blogs, categories, comments, components, site-components, menus
 - Media, contacts, users, subscribers, donations, events, event-registrations, volunteers-feedback, fonts
+- Roles and permissions under `/api/admin/rbac/*`
 
 Use `docs/API.md` for endpoint behavior and request/response contracts.
 
@@ -237,6 +242,9 @@ Key implementation files:
 - `middleware.js`
 - `lib/auth.js`
 - `lib/apiAuth.js`
+- `lib/rbac/catalog.js`
+- `lib/rbac/bootstrap.js`
+- `lib/rbac/resolver.js`
 - `lib/layoutData.js`
 - `components/cms/ComponentRenderer.js`
 - `components/layout/PublicShell.js`

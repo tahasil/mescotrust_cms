@@ -1,310 +1,199 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Table, Tag, Button, Space, message, Modal, Form, Input, Select } from "antd";
-import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { useEffect, useMemo, useState } from "react";
+import { Button, Form, Input, Modal, Select, Space, Table, Tag, message } from "antd";
+import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 
-const SUPER_ADMIN_EMAIL = "superadmin@aiolos.cloud";
-const ROLE_OPTIONS = [
-  { value: "Admin", label: "Admin" },
-  { value: "Editor", label: "Editor" },
-  { value: "Author", label: "Author" },
-];
-const FILTER_ROLE_OPTIONS = [
-  { value: "SuperAdmin", label: "Super Admin" },
-  ...ROLE_OPTIONS,
-];
-
-function isSuperAdminUser(user) {
-  return String(user?.email || "").trim().toLowerCase() === SUPER_ADMIN_EMAIL;
+async function fetchJson(url, options) {
+  const response = await fetch(url, { cache: "no-store", ...options });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Request failed");
+  return data;
 }
 
-function getDisplayRole(user) {
-  if (isSuperAdminUser(user)) return "SuperAdmin";
-  return String(user?.role || "").trim();
+function isSuperAdminUser(user) {
+  return user?.roleKey === "super_admin";
 }
 
 export default function AdminUsersPage() {
-  const [list, setList] = useState([]);
-  const [filtered, setFiltered] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [forbidden, setForbidden] = useState(false);
-  const [addModalOpen, setAddModalOpen] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [editingRecord, setEditingRecord] = useState(null);
-  const [filterRole, setFilterRole] = useState(null);
-  const [filterStatus, setFilterStatus] = useState(null);
+  const [modalMode, setModalMode] = useState("create");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [filterRole, setFilterRole] = useState();
+  const [filterStatus, setFilterStatus] = useState();
   const [searchText, setSearchText] = useState("");
   const [form] = Form.useForm();
-  const [editForm] = Form.useForm();
 
-  const fetchList = () => {
+  const roleOptions = useMemo(
+    () => roles.filter((role) => role.isActive !== false).map((role) => ({ value: role.key, label: role.name })),
+    [roles],
+  );
+
+  const filteredUsers = useMemo(() => {
+    const query = searchText.trim().toLowerCase();
+    return users.filter((user) => {
+      if (filterRole && user.roleKey !== filterRole) return false;
+      if (filterStatus && user.status !== filterStatus) return false;
+      if (query && !String(user.name || "").toLowerCase().includes(query) && !String(user.email || "").toLowerCase().includes(query)) return false;
+      return true;
+    });
+  }, [users, filterRole, filterStatus, searchText]);
+
+  const loadData = async () => {
     setLoading(true);
-    setForbidden(false);
-    fetch("/api/admin/users")
-      .then((res) => {
-        if (res.status === 403) {
-          setForbidden(true);
-          return [];
-        }
-        return res.ok ? res.json() : [];
-      })
-      .then(setList)
-      .catch(() => message.error("Failed to load users"))
-      .finally(() => setLoading(false));
+    try {
+      const [userData, roleData] = await Promise.all([
+        fetchJson("/api/admin/users"),
+        fetchJson("/api/admin/rbac/roles?scope=assignable"),
+      ]);
+      setUsers(Array.isArray(userData) ? userData : []);
+      setRoles(Array.isArray(roleData) ? roleData : []);
+    } catch (error) {
+      message.error(error.message || "Failed to load users");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    fetchList();
+    loadData();
   }, []);
 
-  useEffect(() => {
-    let result = list;
-    if (filterRole) {
-      if (filterRole === "SuperAdmin") {
-        result = result.filter((u) => isSuperAdminUser(u));
-      } else {
-        result = result.filter((u) => u.role === filterRole && !isSuperAdminUser(u));
-      }
-    }
-    if (filterStatus) result = result.filter((u) => u.status === filterStatus);
-    if (searchText.trim()) {
-      const q = searchText.trim().toLowerCase();
-      result = result.filter(
-        (u) => u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q)
-      );
-    }
-    setFiltered(result);
-  }, [list, filterRole, filterStatus, searchText]);
-
-  const handleAdd = () => {
+  const openCreate = () => {
+    setModalMode("create");
+    setEditingUser(null);
     form.resetFields();
-    setAddModalOpen(true);
+    form.setFieldsValue({ roleKey: roleOptions.find((role) => role.value === "editor")?.value || roleOptions[0]?.value, status: "active" });
+    setModalOpen(true);
   };
 
-  const handleAddSubmit = async () => {
+  const openEdit = (user) => {
+    setModalMode("edit");
+    setEditingUser(user);
+    form.resetFields();
+    form.setFieldsValue({
+      name: user.name,
+      email: user.email,
+      roleKey: user.roleKey,
+      status: user.status,
+    });
+    setModalOpen(true);
+  };
+
+  const saveUser = async () => {
     try {
       const values = await form.validateFields();
-      const res = await fetch("/api/admin/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: values.name,
-          email: values.email,
-          password: values.password,
-          role: values.role,
-          status: values.status,
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        message.error(data.error || "Failed to create");
-        return;
+      setSaving(true);
+      const isEdit = modalMode === "edit";
+      const body = {
+        name: values.name,
+        email: values.email,
+        roleKey: values.roleKey,
+        status: values.status,
+      };
+      if (!isEdit || values.password) body.password = values.password;
+      const data = await fetchJson(
+        isEdit ? `/api/admin/users/${editingUser._id}` : "/api/admin/users",
+        {
+          method: isEdit ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        },
+      );
+      message.success(isEdit ? "User updated" : "User created");
+      setModalOpen(false);
+      await loadData();
+      if (data.affectsCurrentSession && data.reloginRequired) {
+        message.warning("Your access changed. Sign in again to continue with the new role.");
       }
-      message.success("User created");
-      setAddModalOpen(false);
-      fetchList();
-    } catch (e) {
-      if (e.errorFields) return;
-      message.error(e.message || "Error");
+    } catch (error) {
+      if (error?.errorFields) return;
+      message.error(error.message || "Failed to save user");
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleEdit = (record) => {
-    setEditingId(record._id);
-    editForm.setFieldsValue({
-      name: record.name,
-      email: record.email,
-      role: record.role,
-      status: record.status,
-    });
-    setEditModalOpen(true);
-    setEditingRecord(record);
-  };
-
-  const handleEditSubmit = async () => {
-    if (!editingId) return;
-    try {
-      const values = await editForm.validateFields();
-      const body = { name: values.name, email: values.email, role: values.role, status: values.status };
-      if (values.password) body.password = values.password;
-      const res = await fetch(`/api/admin/users/${editingId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        message.error(data.error || "Failed to update");
-        return;
-      }
-      message.success("User updated");
-      setEditModalOpen(false);
-      setEditingId(null);
-      setEditingRecord(null);
-      fetchList();
-    } catch (e) {
-      if (e.errorFields) return;
-      message.error(e.message || "Error");
-    }
-  };
-
-  const handleDelete = (record) => {
+  const deleteUser = (user) => {
     Modal.confirm({
       title: "Delete user?",
-      content: `Remove ${record.name} (${record.email})? This cannot be undone.`,
+      content: `Remove ${user.name} (${user.email})? This cannot be undone.`,
       okText: "Delete",
       okType: "danger",
       onOk: async () => {
-        const res = await fetch(`/api/admin/users/${record._id}`, { method: "DELETE" });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          message.error(data.error || "Delete failed");
-          return;
+        try {
+          await fetchJson(`/api/admin/users/${user._id}`, { method: "DELETE" });
+          message.success("User deleted");
+          await loadData();
+        } catch (error) {
+          message.error(error.message || "Delete failed");
         }
-        message.success("User deleted");
-        fetchList();
       },
     });
   };
 
-  if (forbidden) {
-    return (
-      <ThemeAdminCard title="Users">
-        <p style={{ color: "#c00" }}>Only Admins can access user management.</p>
-      </ThemeAdminCard>
-    );
-  }
+  const superAdminEditing = isSuperAdminUser(editingUser);
 
   return (
     <ThemeAdminCard
       title="Users"
-      extra={
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-          Add user
-        </Button>
-      }
+      extra={<Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>Add user</Button>}
     >
-      <Input.Search
+      <Space wrap style={{ marginBottom: 16 }}>
+        <Input.Search
           placeholder="Search name or email"
           allowClear
-          style={{ width: 220, marginBottom: 16 }}
+          style={{ width: 240 }}
           onSearch={setSearchText}
-          onChange={(e) => { if (!e.target.value) setSearchText(""); }}
+          onChange={(event) => setSearchText(event.target.value)}
         />
-        <Select
-          placeholder="Role"
-          allowClear
-          style={{ width: 130, marginLeft: 8, marginBottom: 16 }}
-          value={filterRole}
-          onChange={setFilterRole}
-          options={FILTER_ROLE_OPTIONS}
-        />
-        <Select
-          placeholder="Status"
-          allowClear
-          style={{ width: 130, marginLeft: 8, marginBottom: 16 }}
-          value={filterStatus}
-          onChange={setFilterStatus}
-          options={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]}
-        />
+        <Select placeholder="Role" allowClear style={{ width: 160 }} value={filterRole} onChange={setFilterRole} options={roleOptions} />
+        <Select placeholder="Status" allowClear style={{ width: 140 }} value={filterStatus} onChange={setFilterStatus} options={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]} />
+      </Space>
       <Table
         rowKey="_id"
         loading={loading}
-        dataSource={filtered}
+        dataSource={filteredUsers}
+        scroll={{ x: 760 }}
         columns={[
-          { title: "Name", dataIndex: "name", key: "name" },
-          { title: "Email", dataIndex: "email", key: "email" },
-          {
-            title: "Role",
-            dataIndex: "role",
-            key: "role",
-            render: (_, record) => {
-              const role = getDisplayRole(record);
-              const color =
-                role === "SuperAdmin"
-                  ? "gold"
-                  : role === "Admin"
-                    ? "blue"
-                    : role === "Author"
-                      ? "purple"
-                      : "default";
-              return (
-                <Tag color={color}>
-                  {role === "SuperAdmin" ? "Super Admin" : role}
-                </Tag>
-              );
-            },
-          },
-          {
-            title: "Status",
-            dataIndex: "status",
-            key: "status",
-            render: (s) => (s === "active" ? <Tag color="green">Active</Tag> : <Tag>Inactive</Tag>),
-          },
+          { title: "Name", dataIndex: "name", key: "name", width: 180 },
+          { title: "Email", dataIndex: "email", key: "email", width: 230 },
+          { title: "Role", key: "role", width: 150, render: (_, user) => <Tag color={isSuperAdminUser(user) ? "gold" : user.roleKey === "admin" ? "blue" : "default"}>{user.role}</Tag> },
+          { title: "Status", dataIndex: "status", key: "status", width: 100, render: (status) => <Tag color={status === "active" ? "green" : "default"}>{status === "active" ? "Active" : "Inactive"}</Tag> },
           {
             title: "Actions",
             key: "actions",
-            render: (_, record) => (
+            width: 180,
+            render: (_, user) => (
               <Space>
-                <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
-                  Edit
-                </Button>
-                {!isSuperAdminUser(record) ? (
-                  <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)}>
-                    Delete
-                  </Button>
-                ) : null}
+                <Button type="link" size="small" icon={<EditOutlined />} onClick={() => openEdit(user)}>Edit</Button>
+                {!isSuperAdminUser(user) ? <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => deleteUser(user)}>Delete</Button> : null}
               </Space>
             ),
           },
         ]}
       />
 
-      <Modal title="Add user" open={addModalOpen} onOk={handleAddSubmit} onCancel={() => setAddModalOpen(false)} okText="Create">
+      <Modal
+        title={modalMode === "edit" ? "Edit user" : "Add user"}
+        open={modalOpen}
+        onOk={saveUser}
+        onCancel={() => setModalOpen(false)}
+        okText={modalMode === "edit" ? "Save" : "Create"}
+        confirmLoading={saving}
+      >
         <Form form={form} layout="vertical">
-          <Form.Item name="name" label="Name" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="email" label="Email" rules={[{ required: true, type: "email" }]}>
-            <Input type="email" />
-          </Form.Item>
-          <Form.Item name="password" label="Password" rules={[{ required: true, min: 6 }]}>
-            <Input.Password />
-          </Form.Item>
-          <Form.Item name="role" label="Role" initialValue="Editor">
-            <Select options={ROLE_OPTIONS} />
-          </Form.Item>
-          <Form.Item name="status" label="Status" initialValue="active">
-            <Select options={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]} />
-          </Form.Item>
-        </Form>
-      </Modal>
-
-      <Modal title="Edit user" open={editModalOpen} onOk={handleEditSubmit} onCancel={() => { setEditModalOpen(false); setEditingId(null); setEditingRecord(null); }} okText="Save">
-        <Form form={editForm} layout="vertical">
-          {isSuperAdminUser(editingRecord) ? (
-            <p style={{ color: "#8a6d3b", marginBottom: 12 }}>
-              Super Admin account is protected. Email, role, and status cannot be changed.
-            </p>
-          ) : null}
-          <Form.Item name="name" label="Name" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="email" label="Email" rules={[{ required: true, type: "email" }]}>
-            <Input type="email" disabled={isSuperAdminUser(editingRecord)} />
-          </Form.Item>
-          <Form.Item name="password" label="New password (leave blank to keep)">
-            <Input.Password placeholder="Min 6 characters" />
-          </Form.Item>
-          <Form.Item name="role" label="Role">
-            <Select options={ROLE_OPTIONS} disabled={isSuperAdminUser(editingRecord)} />
-          </Form.Item>
-          <Form.Item name="status" label="Status">
-            <Select options={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]} disabled={isSuperAdminUser(editingRecord)} />
-          </Form.Item>
+          {superAdminEditing ? <p style={{ color: "#8a6d3b" }}>The Super Admin email, role, and status are protected.</p> : null}
+          <Form.Item name="name" label="Name" rules={[{ required: true }]}><Input /></Form.Item>
+          <Form.Item name="email" label="Email" rules={[{ required: true, type: "email" }]}><Input type="email" disabled={superAdminEditing} /></Form.Item>
+          <Form.Item name="password" label={modalMode === "edit" ? "New password (leave blank to keep)" : "Password"} rules={modalMode === "create" ? [{ required: true, min: 6 }] : [{ min: 6 }]}><Input.Password /></Form.Item>
+          <Form.Item name="roleKey" label="Role" rules={[{ required: true }]}><Select options={roleOptions} disabled={superAdminEditing} /></Form.Item>
+          <Form.Item name="status" label="Status"><Select options={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]} disabled={superAdminEditing} /></Form.Item>
         </Form>
       </Modal>
     </ThemeAdminCard>
