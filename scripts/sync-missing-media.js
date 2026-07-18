@@ -11,7 +11,7 @@ const fs = require("fs");
 const { mkdir, writeFile, rm } = require("fs/promises");
 
 const projectRoot = path.resolve(__dirname, "..");
-require("dotenv").config({ path: path.join(projectRoot, ".env") });
+require("dotenv").config({ path: path.join(projectRoot, ".env"), override: true });
 
 const { connectDB } = require("../lib/db");
 const { getSiteUrl } = require("../lib/env");

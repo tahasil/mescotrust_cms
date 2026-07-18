@@ -14,7 +14,7 @@ const { MongoClient } = require("mongodb");
 const { EJSON } = require("bson");
 
 const projectRoot = path.resolve(__dirname, "..");
-require("dotenv").config({ path: path.join(projectRoot, ".env") });
+require("dotenv").config({ path: path.join(projectRoot, ".env"), override: true });
 
 const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
 const defaultBackupRoot = path.resolve(

@@ -8,7 +8,7 @@
 
 const path = require("path");
 const projectRoot = path.resolve(__dirname, "..");
-require("dotenv").config({ path: path.join(projectRoot, ".env") });
+require("dotenv").config({ path: path.join(projectRoot, ".env"), override: true });
 
 const mongoose = require("mongoose");
 

@@ -3,7 +3,7 @@ const fs = require("fs/promises");
 const mongoose = require("mongoose");
 
 const projectRoot = path.resolve(__dirname, "..");
-require("dotenv").config({ path: path.join(projectRoot, ".env") });
+require("dotenv").config({ path: path.join(projectRoot, ".env"), override: true });
 
 const SubmissionFile = require("../models/SubmissionFile");
 
