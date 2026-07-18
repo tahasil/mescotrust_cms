@@ -1,10 +1,11 @@
 import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
-import { isAdmin, normalizeRole } from "@/lib/permissions";
+import { getDefaultPermissionKeysForRole, getPermissionForAdminPage, getRequiredPermissionsForAdminApi } from "@/lib/rbac/catalog";
+import { isConfiguredSuperAdminEmail, ROLE_KEYS } from "@/lib/rbac/constants";
+import { hasAnyPermissionKey, hasPermissionKey } from "@/lib/rbac/permissionUtils";
 
 const adminPathPrefix = "/admin";
 const loginPath = "/admin/login";
-const FORM_BUILDER_PATH_PREFIXES = ["/admin/form-builder", "/api/admin/forms"];
 const CSRF_ORIGIN_EXEMPT_PATHS = new Set([
   "/api/payment/callback",
 ]);
@@ -36,23 +37,6 @@ function getIp(req) {
 
 function isAdminRoute(pathname) {
   return pathname.startsWith(adminPathPrefix) || pathname.startsWith("/api/admin");
-}
-
-function isFormBuilderPath(pathname) {
-  return FORM_BUILDER_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix));
-}
-
-function isAuthorAllowedAdminPath(pathname) {
-  return pathname === "/admin" || pathname.startsWith("/admin/blogs") || pathname.startsWith("/admin/events");
-}
-
-function isAuthorAllowedAdminApi(pathname, method) {
-  return (
-    pathname.startsWith("/api/admin/dashboard") ||
-    pathname.startsWith("/api/admin/blogs") ||
-    pathname.startsWith("/api/admin/events") ||
-    (method === "GET" && pathname.startsWith("/api/admin/blog-categories"))
-  );
 }
 
 function isMediaObjectIdPath(pathname) {
@@ -117,6 +101,27 @@ function withPathname(req) {
   return NextResponse.next({ request: newRequest });
 }
 
+function clearSessionCookies(req, response) {
+  const sessionCookiePrefixes = [
+    "next-auth.session-token",
+    "__Secure-next-auth.session-token",
+  ];
+  for (const cookie of req.cookies.getAll()) {
+    if (sessionCookiePrefixes.some((prefix) => cookie.name === prefix || cookie.name.startsWith(`${prefix}.`))) {
+      response.cookies.delete(cookie.name);
+    }
+  }
+  return response;
+}
+
+function roleUpdatedLoginUrl(req, reason = "role-updated") {
+  const url = req.nextUrl.clone();
+  url.pathname = loginPath;
+  url.search = "";
+  url.searchParams.set("reason", String(reason || "role-updated"));
+  return url;
+}
+
 export async function middleware(req) {
   const { pathname } = req.nextUrl;
 
@@ -146,9 +151,16 @@ export async function middleware(req) {
 
   if (pathname === loginPath) {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    const reason = String(req.nextUrl.searchParams.get("reason") || "");
+    const requiresFreshLogin =
+      token?.forceReauth || reason === "role-updated" || reason === "account-deactivated";
+    if (requiresFreshLogin) {
+      return clearSessionCookies(req, withPathname(req));
+    }
     if (token) {
       const url = req.nextUrl.clone();
       url.pathname = "/admin";
+      url.search = "";
       return NextResponse.redirect(url);
     }
     return withPathname(req);
@@ -161,42 +173,43 @@ export async function middleware(req) {
     url.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(url);
   }
-  const role = normalizeRole(token);
-  const isAdminUser = isAdmin(token);
+  if (token.forceReauth) {
+    const response = NextResponse.redirect(
+      roleUpdatedLoginUrl(req, token.forceReauthReason),
+    );
+    return clearSessionCookies(req, response);
+  }
+  const tokenPermissionKeys = Array.isArray(token.permissionKeys)
+    ? token.permissionKeys
+    : Array.from(
+        getDefaultPermissionKeysForRole(
+          isConfiguredSuperAdminEmail(token.email)
+            ? ROLE_KEYS.SUPER_ADMIN
+            : token.roleKey || token.role,
+        ),
+      );
+  const requiredPermission = pathname.startsWith("/api/")
+    ? getRequiredPermissionsForAdminApi(pathname, req.method)
+    : getPermissionForAdminPage(pathname);
+  const allowed = !requiredPermission || (Array.isArray(requiredPermission)
+    ? hasAnyPermissionKey(tokenPermissionKeys, requiredPermission)
+    : hasPermissionKey(tokenPermissionKeys, requiredPermission));
 
-  const adminOnlyPaths = ["/admin/users", "/admin/theme", "/api/admin/users"];
-  if (!isAdminUser && adminOnlyPaths.some((p) => pathname.startsWith(p))) {
+  if (!allowed) {
     if (pathname.startsWith("/api/")) {
-      return NextResponse.json({ error: "Forbidden: Admin only" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Forbidden: insufficient permission", requiredPermission },
+        { status: 403 },
+      );
     }
     const url = req.nextUrl.clone();
-    url.pathname = "/admin";
-    url.searchParams.set("forbidden", "1");
+    url.pathname = "/admin/forbidden";
+    url.searchParams.set("from", pathname);
+    if (typeof requiredPermission === "string") {
+      url.searchParams.set("requiredPermission", requiredPermission);
+    }
     return NextResponse.redirect(url);
   }
-
-  if (isFormBuilderPath(pathname) && !isAdminUser && role !== "Editor") {
-    if (pathname.startsWith("/api/")) {
-      return NextResponse.json({ error: "Forbidden: Form Builder access requires Admin or Editor role" }, { status: 403 });
-    }
-    const url = req.nextUrl.clone();
-    url.pathname = "/admin";
-    url.searchParams.set("forbidden", "1");
-    return NextResponse.redirect(url);
-  }
-
-  if (!isAdminUser && role === "Author") {
-    if (pathname.startsWith("/api/admin") && !isAuthorAllowedAdminApi(pathname, req.method)) {
-      return NextResponse.json({ error: "Forbidden: Author access limited to blog/event APIs" }, { status: 403 });
-    }
-    if (pathname.startsWith("/admin") && !isAuthorAllowedAdminPath(pathname)) {
-      const url = req.nextUrl.clone();
-      url.pathname = "/admin";
-      url.searchParams.set("forbidden", "1");
-      return NextResponse.redirect(url);
-    }
-  }
-
   return withPathname(req);
 }
 

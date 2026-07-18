@@ -18,7 +18,6 @@ import {
 import {
   ArrowLeftOutlined,
   SaveOutlined,
-  DeleteOutlined,
   EditOutlined,
   PlusOutlined,
   CheckOutlined,

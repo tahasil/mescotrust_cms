@@ -6,6 +6,7 @@ import { Table, Button, message, Modal, Form, Input, Switch, Row, Col } from "an
 import { CopyOutlined, EditOutlined, PlusOutlined, SaveOutlined, SearchOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { ThemeAdminCard } from "@/styles/Theme";
+import { useAdminPermission } from "@/components/admin/AdminAuthContext";
 
 const EXCLUDED_COMPONENT_IDS = new Set([
   "ImageSlider",
@@ -32,6 +33,8 @@ function getComponentShortcodeSnippet(componentId) {
 export default function AdminComponentsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const canCreateComponent = useAdminPermission("components.create");
+  const canEditComponent = useAdminPermission("components.edit");
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newModalOpen, setNewModalOpen] = useState(false);
@@ -54,10 +57,14 @@ export default function AdminComponentsPage() {
 
   useEffect(() => {
     if (searchParams.get("new") === "1") {
-      setNewModalOpen(true);
+      if (canCreateComponent) {
+        setNewModalOpen(true);
+      } else {
+        message.warning("You do not have permission to create components.");
+      }
       router.replace("/admin/components", { scroll: false });
     }
-  }, [searchParams, router]);
+  }, [canCreateComponent, searchParams, router]);
 
   const fetchList = useCallback(({ background = false } = {}) => {
     if (!background) setLoading(true);
@@ -102,6 +109,11 @@ export default function AdminComponentsPage() {
   }, [fetchList]);
 
   const handleCreateSubmit = async () => {
+    if (!canCreateComponent) {
+      message.error("You do not have permission to create components.");
+      setNewModalOpen(false);
+      return;
+    }
     try {
       const values = await form.validateFields();
       setSaving(true);
@@ -181,13 +193,15 @@ export default function AdminComponentsPage() {
       width: 220,
       render: (_, record) => (
         <>
-          <Link
-            href={`/admin/components/${encodeURIComponent(record.componentId)}/edit`}
-          >
-            <Button type="link" size="small" icon={<EditOutlined />}>
-              Edit
-            </Button>
-          </Link>
+          {canEditComponent ? (
+            <Link
+              href={`/admin/components/${encodeURIComponent(record.componentId)}/edit`}
+            >
+              <Button type="link" size="small" icon={<EditOutlined />}>
+                Edit
+              </Button>
+            </Link>
+          ) : null}
           <Button
             type="link"
             size="small"
@@ -215,9 +229,11 @@ export default function AdminComponentsPage() {
               allowClear
               style={{ width: 250 }}
             />
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => setNewModalOpen(true)} disabled={saving}>
-              New component
-            </Button>
+            {canCreateComponent ? (
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => setNewModalOpen(true)} disabled={saving}>
+                New component
+              </Button>
+            ) : null}
           </div>
         }
       >
@@ -233,7 +249,7 @@ export default function AdminComponentsPage() {
 
       <Modal
         title="New component"
-        open={newModalOpen}
+        open={canCreateComponent && newModalOpen}
         onCancel={() => {
           if (saving) return;
           setNewModalOpen(false);
