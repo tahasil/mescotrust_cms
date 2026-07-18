@@ -728,7 +728,7 @@ export default function SocialWallAdminPage() {
             </Button>
           }
         >
-          <Form form={settingsForm} layout="vertical">
+          <Form form={settingsForm} layout="vertical" autoComplete="off">
             <Row gutter={[16, 16]}>
               <Col xs={24} md={8}>
                 <Form.Item name="moduleEnabled" label="Module enabled" valuePropName="checked">
@@ -742,7 +742,7 @@ export default function SocialWallAdminPage() {
               </Col>
               <Col xs={24} md={8}>
                 <Form.Item name="defaultPostLimit" label="Default post limit">
-                  <InputNumber min={1} max={60} style={{ width: "100%" }} />
+                  <InputNumber min={1} max={60} style={{ width: "100%" }} autoComplete="off" />
                 </Form.Item>
               </Col>
               <Col xs={24} md={8}>
@@ -852,6 +852,7 @@ export default function SocialWallAdminPage() {
                   <Col xs={24} md={4}>
                     <div style={{ marginBottom: 6 }}>Display Order</div>
                     <InputNumber
+                      autoComplete="off"
                       min={1}
                       max={99}
                       style={{ width: "100%" }}
@@ -864,6 +865,7 @@ export default function SocialWallAdminPage() {
                   <Col xs={24} md={4}>
                     <div style={{ marginBottom: 6 }}>Post Limit</div>
                     <InputNumber
+                      autoComplete="off"
                       min={1}
                       max={60}
                       style={{ width: "100%" }}
@@ -876,6 +878,7 @@ export default function SocialWallAdminPage() {
                   <Col xs={24} md={4}>
                     <div style={{ marginBottom: 6 }}>Fetch Interval (min)</div>
                     <InputNumber
+                      autoComplete="off"
                       min={5}
                       max={1440}
                       style={{ width: "100%" }}
@@ -895,6 +898,7 @@ export default function SocialWallAdminPage() {
                   </Col>
                   <Col xs={24} md={8}>
                     <Input.Password
+                      autoComplete="new-password"
                       placeholder={`${accessTokenLabel} ${
                         row.accessTokenMasked ? `(current: ${row.accessTokenMasked})` : ""
                       }`}
@@ -906,6 +910,7 @@ export default function SocialWallAdminPage() {
                   </Col>
                   <Col xs={24} md={8}>
                     <Input
+                      autoComplete="off"
                       placeholder={`${accountIdLabel} ${
                         row.accountIdMasked ? `(current: ${row.accountIdMasked})` : ""
                       }`}
@@ -917,6 +922,7 @@ export default function SocialWallAdminPage() {
                   </Col>
                   <Col xs={24} md={8}>
                     <Input.Password
+                      autoComplete="new-password"
                       placeholder={`${apiKeyLabel} ${row.apiKeyMasked ? `(current: ${row.apiKeyMasked})` : ""}`}
                       value={row.apiKey || ""}
                       disabled={!apiKeyEditable}
@@ -1055,6 +1061,7 @@ export default function SocialWallAdminPage() {
             </Col>
             <Col xs={24} md={6}>
               <DatePicker.RangePicker
+                autoComplete="off"
                 style={{ width: "100%" }}
                 onChange={(_, dateStrings) =>
                   setPostFilters((prev) => ({
@@ -1067,6 +1074,7 @@ export default function SocialWallAdminPage() {
             </Col>
             <Col xs={24} md={4}>
               <Input
+                autoComplete="off"
                 allowClear
                 placeholder="Search caption, hashtag, author"
                 value={postFilters.search}
