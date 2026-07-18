@@ -15,7 +15,7 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
  * When source="page": data from block.props (pages collection); save updates layout only.
  * Otherwise: load/save via /api/theme/footer (components collection).
  */
-function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [] }, ref) {
+function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [], dataEndpoint = "/api/theme/footer", appearanceMode = false }, ref) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -38,6 +38,7 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
       const social = Array.isArray(data.footerSocialLinks) ? data.footerSocialLinks.map((it) => ({ platform: it?.platform ?? "facebook", url: it?.url ?? "" })) : [];
       setInitialData({
         footerLogoUrl: data.footerLogoUrl != null ? String(data.footerLogoUrl).trim() : "",
+        footerDescription: data.footerDescription != null ? String(data.footerDescription).trim() : "",
         footerAddress: data.footerAddress != null ? String(data.footerAddress).trim() : "",
         footerEmail: data.footerEmail != null ? String(data.footerEmail).trim() : "",
         footerPhone: data.footerPhone != null ? String(data.footerPhone).trim() : "",
@@ -45,6 +46,13 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
         footerCol2Links: col2,
         footerSocialLinks: social,
         footerCopyrightText: data.footerCopyrightText != null ? String(data.footerCopyrightText).trim() : "",
+        footerCol1Title: data.footerCol1Title != null ? String(data.footerCol1Title).trim() : "",
+        footerCol2Title: data.footerCol2Title != null ? String(data.footerCol2Title).trim() : "",
+        footerContactTitle: data.footerContactTitle != null ? String(data.footerContactTitle).trim() : "",
+        footerPrivacyLabel: data.footerPrivacyLabel != null ? String(data.footerPrivacyLabel).trim() : "",
+        footerPrivacyUrl: data.footerPrivacyUrl != null ? String(data.footerPrivacyUrl).trim() : "",
+        footerRefundLabel: data.footerRefundLabel != null ? String(data.footerRefundLabel).trim() : "",
+        footerRefundUrl: data.footerRefundUrl != null ? String(data.footerRefundUrl).trim() : "",
         footerBgColorKey: data.footerBgColorKey != null ? String(data.footerBgColorKey).trim() : "",
         footerBackgroundImageUrl: data.footerBackgroundImageUrl != null ? String(data.footerBackgroundImageUrl).trim() : "",
         footerTextColorKey: data.footerTextColorKey != null ? String(data.footerTextColorKey).trim() : "",
@@ -75,7 +83,7 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
     componentDataLoadedRef.current = true;
     setInitialData(null);
     Promise.all([
-      fetch("/api/theme/footer", { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
+      fetch(dataEndpoint, { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
       fetch("/api/theme", { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
     ])
       .then(([footer, theme]) => {
@@ -84,6 +92,7 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
         const social = Array.isArray(footer?.footerSocialLinks) ? footer.footerSocialLinks.map((it) => ({ platform: it?.platform ?? "facebook", url: it?.url ?? "" })) : [];
         setInitialData({
           footerLogoUrl: footer?.footerLogoUrl != null ? String(footer.footerLogoUrl).trim() : "",
+          footerDescription: footer?.footerDescription != null ? String(footer.footerDescription).trim() : "",
           footerAddress: footer?.footerAddress != null ? String(footer.footerAddress).trim() : "",
           footerEmail: footer?.footerEmail != null ? String(footer.footerEmail).trim() : "",
           footerPhone: footer?.footerPhone != null ? String(footer.footerPhone).trim() : "",
@@ -91,6 +100,13 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
           footerCol2Links: col2,
           footerSocialLinks: social,
           footerCopyrightText: footer?.footerCopyrightText != null ? String(footer.footerCopyrightText).trim() : "",
+          footerCol1Title: footer?.footerCol1Title != null ? String(footer.footerCol1Title).trim() : "",
+          footerCol2Title: footer?.footerCol2Title != null ? String(footer.footerCol2Title).trim() : "",
+          footerContactTitle: footer?.footerContactTitle != null ? String(footer.footerContactTitle).trim() : "",
+          footerPrivacyLabel: footer?.footerPrivacyLabel != null ? String(footer.footerPrivacyLabel).trim() : "",
+          footerPrivacyUrl: footer?.footerPrivacyUrl != null ? String(footer.footerPrivacyUrl).trim() : "",
+          footerRefundLabel: footer?.footerRefundLabel != null ? String(footer.footerRefundLabel).trim() : "",
+          footerRefundUrl: footer?.footerRefundUrl != null ? String(footer.footerRefundUrl).trim() : "",
           footerBgColorKey: footer?.footerBgColorKey != null ? String(footer.footerBgColorKey).trim() : "",
           footerBackgroundImageUrl: footer?.footerBackgroundImageUrl != null ? String(footer.footerBackgroundImageUrl).trim() : "",
           footerTextColorKey: footer?.footerTextColorKey != null ? String(footer.footerTextColorKey).trim() : "",
@@ -104,7 +120,7 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
       })
       .catch(() => message.error("Failed to load Footer"))
       .finally(() => setLoading(false));
-  }, [isPageBlock, initialDataProp]);
+  }, [isPageBlock, initialDataProp, dataEndpoint]);
 
   useEffect(() => {
     if (initialData) {
@@ -131,6 +147,18 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
         footerCol2Links: col2,
         footerSocialLinks: social,
         footerCopyrightText: String(values.footerCopyrightText ?? "").trim(),
+        ...(appearanceMode
+          ? {
+              footerDescription: String(values.footerDescription ?? "").trim(),
+              footerCol1Title: String(values.footerCol1Title ?? "").trim(),
+              footerCol2Title: String(values.footerCol2Title ?? "").trim(),
+              footerContactTitle: String(values.footerContactTitle ?? "").trim(),
+              footerPrivacyLabel: String(values.footerPrivacyLabel ?? "").trim(),
+              footerPrivacyUrl: String(values.footerPrivacyUrl ?? "").trim(),
+              footerRefundLabel: String(values.footerRefundLabel ?? "").trim(),
+              footerRefundUrl: String(values.footerRefundUrl ?? "").trim(),
+            }
+          : {}),
         ...getManageSectionPayload("footer", values),
         footerBgColorKey: bgType === "color" ? String(values.footerBgColorKey ?? "").trim() : "",
         footerBackgroundImageUrl: bgType === "image" ? String(values.footerBackgroundImageUrl ?? "").trim() : "",
@@ -144,7 +172,7 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
         return;
       }
       setSaving(true);
-      fetch("/api/theme/footer", {
+      fetch(dataEndpoint, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -202,6 +230,11 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
                 <Form.Item name="footerLogoUrl" label="Footer logo image URL">
                   <MediaPickerInput placeholder="/images/footer-logo.svg" />
                 </Form.Item>
+                {appearanceMode ? (
+                  <Form.Item name="footerDescription" label="Organisation description">
+                    <Input.TextArea rows={4} />
+                  </Form.Item>
+                ) : null}
                 <Form.Item name="footerAddress" label="Address">
                   <Input.TextArea rows={2} placeholder="Full address" />
                 </Form.Item>
@@ -238,6 +271,21 @@ function FooterEditForm({ source, initialData: initialDataProp, onSaveToPage, on
                 <Form.Item name="footerCopyrightText" label={copyrightLabel}>
                   <Input placeholder={`Copyright © ${currentYear} All Rights Reserved.`} />
                 </Form.Item>
+                {appearanceMode ? (
+                  <>
+                    <Row gutter={16}>
+                      <Col xs={24} md={12}><Form.Item name="footerCol1Title" label="Column 1 title"><Input /></Form.Item></Col>
+                      <Col xs={24} md={12}><Form.Item name="footerCol2Title" label="Column 2 title"><Input /></Form.Item></Col>
+                    </Row>
+                    <Form.Item name="footerContactTitle" label="Contact column title"><Input /></Form.Item>
+                    <Row gutter={16}>
+                      <Col xs={24} md={12}><Form.Item name="footerPrivacyLabel" label="Privacy link label"><Input /></Form.Item></Col>
+                      <Col xs={24} md={12}><Form.Item name="footerPrivacyUrl" label="Privacy link URL"><Input /></Form.Item></Col>
+                      <Col xs={24} md={12}><Form.Item name="footerRefundLabel" label="Refund link label"><Input /></Form.Item></Col>
+                      <Col xs={24} md={12}><Form.Item name="footerRefundUrl" label="Refund link URL"><Input /></Form.Item></Col>
+                    </Row>
+                  </>
+                ) : null}
               </>
             ),
           },

@@ -85,6 +85,29 @@ const baseMenuItems = [
     ),
   },
   {
+    key: "group:admin:appearance",
+    icon: <BgColorsOutlined />,
+    label: "Appearance",
+    children: [
+      {
+        key: "/admin/appearance/header",
+        label: (
+          <Link href="/admin/appearance/header" style={linkStyle}>
+            Header
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/appearance/footer",
+        label: (
+          <Link href="/admin/appearance/footer" style={linkStyle}>
+            Footer
+          </Link>
+        ),
+      },
+    ],
+  },
+  {
     key: "/admin/social-wall",
     icon: <AppstoreOutlined />,
     label: (

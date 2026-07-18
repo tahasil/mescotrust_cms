@@ -34,9 +34,10 @@ Primary goals:
 Core rendering flow:
 1. Middleware sets `x-pathname` on requests.
 2. `app/(site)/layout.js` calls `getLayoutData(pathname)` from `lib/layoutData.js`.
-3. Theme + menus + site component metadata + global component settings are assembled.
-4. Page layouts are rendered by `components/cms/ComponentRenderer.js`.
-5. Site components are dynamically registered from `components/site/index.js`.
+3. Theme + menus + site component metadata + independent Appearance Header/Footer settings are assembled.
+4. `components/layout/PublicShell.js` renders the Appearance shell (falling back to legacy Header/Footer components when Appearance is unavailable).
+5. Page layouts are rendered by `components/cms/ComponentRenderer.js`.
+6. Site components are dynamically registered from `components/site/index.js`.
 
 ## 3. Authentication and Permissions
 
@@ -63,6 +64,7 @@ Models in `models/`:
 - `Page`
 - `Component`
 - `SiteComponentMeta`
+- `Appearance` (collection: `appearance`; independent Header/Footer shell configuration)
 - `ThemeConfig`
 - `Menu`
 - `User`
@@ -107,6 +109,7 @@ Key public groups:
 
 Key admin groups:
 - Pages, blogs, categories, comments, components, site-components, menus
+- Appearance Header/Footer under `/api/admin/appearance/*`
 - Media, contacts, users, subscribers, donations, events, event-registrations, volunteers-feedback, fonts
 - Roles and permissions under `/api/admin/rbac/*`
 
@@ -238,9 +241,15 @@ Key implementation files:
 - `lib/layoutData.js`
 - `components/cms/ComponentRenderer.js`
 - `components/layout/PublicShell.js`
+- `components/admin/AppearanceEditor.js`
+- `components/appearance/AppearanceHeader.js`
+- `components/appearance/AppearanceFooter.js`
+- `models/Appearance.js`
+- `lib/appearance.js`
 - `lib/siteComponentRegistry.js`
 - `components/site/index.js`
 - `app/api/admin/site-components/route.js`
+- `app/api/admin/appearance/[module]/route.js`
 - `app/admin/(authenticated)/components/[id]/edit/page.js`
 
 ---

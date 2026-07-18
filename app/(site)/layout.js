@@ -75,6 +75,86 @@ export default async function SiteLayout({ children }) {
   const data = await getLayoutData(pathname);
   const theme = data?.theme || {};
   const logoUrl = theme.logoLightUrl || theme.logoImageUrl || "";
+  const appearanceHeaderRecord = data?.appearance?.header || null;
+  const appearanceFooterRecord = data?.appearance?.footer || null;
+  const appearanceHeaderProps = appearanceHeaderRecord?.defaultProps || {};
+  const appearanceFooterProps = appearanceFooterRecord?.defaultProps || {};
+  const appearanceHeader = appearanceHeaderRecord
+    ? {
+        ...appearanceHeaderProps,
+        active: appearanceHeaderRecord.active !== false,
+        siteTitle: theme.siteTitle || "MESCO Trust",
+        menuItems:
+          Array.isArray(appearanceHeaderProps.navItems) &&
+          appearanceHeaderProps.navItems.length > 0
+            ? appearanceHeaderProps.navItems
+            : data?.headerItems || [],
+        logoImageUrl: appearanceHeaderProps.logoLightUrl || "",
+        volunteerLabel: appearanceHeaderProps.headerVolunteerLabel || "",
+        volunteerHref: appearanceHeaderProps.headerVolunteerHref || "",
+        volunteerHrefTarget:
+          appearanceHeaderProps.headerVolunteerHrefTarget || "_self",
+        volunteerIconUrl: appearanceHeaderProps.headerVolunteerIconUrl || "",
+        volunteerIconUrlMobile:
+          appearanceHeaderProps.headerVolunteerIconUrlMobile || "",
+        donateLabel: appearanceHeaderProps.headerDonateLabel || "",
+        donateHref: appearanceHeaderProps.headerDonateHref || "",
+        donateIconUrl: appearanceHeaderProps.headerDonateIconUrl || "",
+        headerAnnouncementTextColor: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerAnnouncementTextColor,
+        ),
+        headerAnnouncementBackgroundColor: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerAnnouncementBackgroundColor,
+        ),
+        headerBgValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerBgColorKey,
+        ),
+        headerCtaBgValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerCtaBgColorKey,
+        ),
+        headerCtaTextValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerCtaTextColorKey,
+        ),
+        headerDonateBgValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerDonateBgColorKey,
+        ),
+        headerDonateTextValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerDonateTextColorKey,
+        ),
+        sectionBg: appearanceHeaderProps._sectionBg || "",
+        sectionPadding: appearanceHeaderProps._sectionPadding || "",
+        sectionBorderSize: appearanceHeaderProps._sectionBorderSize || "",
+        sectionBorderStyle: appearanceHeaderProps._sectionBorderStyle || "",
+        sectionBorderColor: appearanceHeaderProps._sectionBorderColor || "",
+        sectionShadow: appearanceHeaderProps._sectionShadow || "",
+      }
+    : null;
+  const appearanceFooter = appearanceFooterRecord
+    ? {
+        ...appearanceFooterProps,
+        active: appearanceFooterRecord.active !== false,
+        siteTitle: theme.siteTitle || "MESCO Trust",
+        footerBgValue: resolveThemeColor(
+          theme,
+          appearanceFooterProps.footerBgColorKey,
+        ),
+        footerTextValue: resolveThemeColor(
+          theme,
+          appearanceFooterProps.footerTextColorKey,
+        ),
+        footerCopyrightBarValue: resolveThemeColor(
+          theme,
+          appearanceFooterProps.footerCopyrightBarColorKey,
+        ),
+      }
+    : null;
 
   const headerBgKey = theme.headerBgColorKey ?? "";
   const headerCtaBgKey = theme.headerCtaBgColorKey ?? "";
@@ -107,6 +187,8 @@ export default async function SiteLayout({ children }) {
       <SmoothScroll />
       <PublicShell
         globalTheme={theme}
+        appearanceHeader={appearanceHeader}
+        appearanceFooter={appearanceFooter}
         headerItems={data?.headerItems || []}
         footerItems={data?.footerItems || []}
         customHeaderLayout={data?.customHeaderLayout || null}

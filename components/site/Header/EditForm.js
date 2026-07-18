@@ -102,6 +102,7 @@ function HeaderEditForm(
     onCancel,
     paletteComponent = null,
     themeColorOptions: themeColorOptionsProp = [],
+    dataEndpoint = "/api/theme/header",
   },
   ref,
 ) {
@@ -139,9 +140,25 @@ function HeaderEditForm(
       return;
     }
     themeLoadedOnceRef.current = true;
-    fetch("/api/theme", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : {}))
-      .then((theme) => {
+    Promise.all([
+      fetch("/api/theme", { cache: "no-store" }).then((r) =>
+        r.ok ? r.json() : {},
+      ),
+      dataEndpoint === "/api/theme/header"
+        ? Promise.resolve(null)
+        : fetch(dataEndpoint, { cache: "no-store" }).then((r) =>
+            r.ok ? r.json() : Promise.reject(new Error("Failed to load header")),
+          ),
+    ])
+      .then(([globalTheme, moduleData]) => {
+        const theme = moduleData
+          ? {
+              ...moduleData,
+              siteTitle: globalTheme?.siteTitle,
+              themePalette: globalTheme?.themePalette,
+              colors: globalTheme?.colors,
+            }
+          : globalTheme;
         const flat = theme?.header ? { ...theme.header } : {};
         if (theme?.logoType != null) flat.logoType = theme.logoType;
         if (theme?.logoLightUrl != null) flat.logoLightUrl = theme.logoLightUrl;
@@ -273,7 +290,7 @@ function HeaderEditForm(
       })
       .catch(() => message.error("Failed to load header"))
       .finally(() => setLoading(false));
-  }, [form, isPageBlock, initialData]);
+  }, [form, isPageBlock, initialData, dataEndpoint]);
 
   const loadMenuIntoNavItems = useCallback((menuName) => {
     if (!menuName || !menuName.trim()) return;
@@ -347,7 +364,7 @@ function HeaderEditForm(
 
     setSaving(true);
     try {
-      const res = await fetch("/api/theme/header", {
+      const res = await fetch(dataEndpoint, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

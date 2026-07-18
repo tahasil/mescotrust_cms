@@ -100,6 +100,25 @@ Metadata for site-level components (Header, Footer, HomeHero, etc.). Component I
 - **Public API:** `GET /api/public/site-components` returns `{ before, after }` from this collection (global components in render order).
 - **Server (SSR):** `lib/layoutData.js` â†’ `getLayoutData()` reads `SiteComponentMeta` for `globalBefore` / `globalAfter`; the public layout uses this to render global components (no client-side call to the public API).
 
+### 2.3.1 Appearance
+
+**File:** `models/Appearance.js`
+**Collection:** `appearance`
+
+Independent public-shell configuration. Initial records use `moduleKey: "header"` and `moduleKey: "footer"`; the schema supports future modules without changing the collection shape.
+
+| Field | Type | Notes |
+|---|---|---|
+| `moduleKey` | String | Unique lowercase module identifier |
+| `displayName` | String | Admin-facing name |
+| `template` | String | Active design template (`mesco-fable`) |
+| `defaultProps` | Mixed | Module-owned content and styling settings |
+| `layout` | Mixed | Reserved visual-layout data for future Appearance modules |
+| `active` | Boolean | Enables the module in the public shell |
+| `publishedAt` | Date | Last successful save/publish time |
+
+The collection is lazily initialized by `lib/appearance.js`. Appearance records never read from or write to legacy Header/Footer documents in the `components` collection.
+
 ---
 
 ### 2.4 User
@@ -421,6 +440,7 @@ Base URL: `/api`. Auth: public (no auth), admin (JWT via NextAuth + `requireAuth
 | GET | `/api/admin/components/ensure/[base]` | Ensure component exists by baseComponent |
 | GET, POST | `/api/admin/site-components` | List, create site components (meta + file/registry) |
 | GET, PUT, DELETE | `/api/admin/site-components/[id]` | Get, update, delete site component meta (DELETE also removes file and registry entry) |
+| GET, PUT | `/api/admin/appearance/[module]` | Load or immediately publish independent Header/Footer Appearance settings |
 | GET, POST | `/api/admin/media` | List, upload media |
 | GET, PUT, DELETE | `/api/admin/media/[id]` | Get, update, delete media |
 | POST | `/api/admin/media/[id]/replace` | Replace media file for same media ID |

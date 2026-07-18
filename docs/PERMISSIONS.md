@@ -15,7 +15,7 @@ Custom roles can be created at `/admin/rbac/roles` and assigned from `/admin/use
 
 ## Current module catalog
 
-The catalog covers Dashboard, Pages, Components, Social Wall, Form Builder, Sliders, Popups, Team, Blogs, Events, Media, Menus, Chatbot, Theme, Submissions, Users, and Roles & Permissions.
+The catalog covers Dashboard, Pages, Components, Appearance, Social Wall, Form Builder, Sliders, Popups, Team, Blogs, Events, Media, Menus, Chatbot, Theme, Submissions, Users, and Roles & Permissions.
 
 Supported actions are generated per module from: `view`, `create`, `edit`, `delete`, `manage`, `publish`, `settings_access`, `user_management`, and `role_management`.
 

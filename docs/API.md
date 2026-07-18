@@ -11,6 +11,7 @@ All API routes live under `/api/`. The convention is:
 | `/api/public/*` | None (public) | Read-only endpoints for published content |
 | `/api/admin/*` | JWT (NextAuth) | Protected CRUD endpoints for admin panel |
 | `/api/theme` | GET: public, PUT: Admin | Theme configuration |
+| `/api/admin/appearance/[module]` | GET, PUT: Admin | Independent Appearance Header/Footer configuration (`module`: `header` or `footer`) |
 | `/api/contact` | None (rate-limited) | Contact form submission |
 | `/api/health` | None | Health check (DB connectivity) |
 | `/api/auth/*` | NextAuth internal | Authentication (login/session) |

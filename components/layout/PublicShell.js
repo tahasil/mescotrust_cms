@@ -5,6 +5,8 @@ import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import * as SiteComponents from "@/components/site/publicComponents";
 import RoutePopupHost from "@/components/layout/RoutePopupHost";
 import ChatbotWidget from "@/components/site/ChatbotWidget";
+import AppearanceHeader from "@/components/appearance/AppearanceHeader";
+import AppearanceFooter from "@/components/appearance/AppearanceFooter";
 
 const hasHeaderBlock = (layout) =>
   Array.isArray(layout) && layout.some((b) => (b?.baseComponent || b?.componentId?.baseComponent) === "Header");
@@ -130,6 +132,8 @@ const footerThemeProps = (props) => ({
 
 export default function PublicShell({
   globalTheme = {},
+  appearanceHeader = null,
+  appearanceFooter = null,
   headerItems,
   footerItems,
   customHeaderLayout,
@@ -239,6 +243,10 @@ export default function PublicShell({
 }) {
   const hasCustomHeader = Array.isArray(customHeaderLayout) && customHeaderLayout.length > 0;
   const hasCustomFooter = Array.isArray(customFooterLayout) && customFooterLayout.length > 0;
+  const hasAppearanceHeader =
+    appearanceHeader && appearanceHeader.active !== false;
+  const hasAppearanceFooter =
+    appearanceFooter && appearanceFooter.active !== false;
 
   const themeProps = {
     headerItems,
@@ -347,8 +355,16 @@ export default function PublicShell({
   const renderGlobalComponent = (id, key) => {
     const Comp = SiteComponents[id];
     if (!Comp) return null;
-    if (id === "Header") return <Comp key={key ?? id} {...headerThemeProps(themeProps)} />;
-    if (id === "Footer") return <Comp key={key ?? id} {...footerThemeProps(themeProps)} />;
+    if (id === "Header") {
+      return hasAppearanceHeader
+        ? <AppearanceHeader key={key ?? id} {...appearanceHeader} />
+        : <Comp key={key ?? id} {...headerThemeProps(themeProps)} />;
+    }
+    if (id === "Footer") {
+      return hasAppearanceFooter
+        ? <AppearanceFooter key={key ?? id} {...appearanceFooter} />
+        : <Comp key={key ?? id} {...footerThemeProps(themeProps)} />;
+    }
     return <Comp key={key ?? id} {...globalTheme} />;
   };
 
@@ -363,7 +379,9 @@ export default function PublicShell({
     hasCustomFooter && hasFooterBlock(customFooterLayout);
 
   const fallbackHeader =
-    useSiteHeaderForLayout ? (
+    hasAppearanceHeader ? (
+      <AppearanceHeader key="appearance-header" {...appearanceHeader} />
+    ) : useSiteHeaderForLayout ? (
       <SiteComponents.Header key="site-header" {...headerThemeProps(themeProps)} />
     ) : hasCustomHeader ? (
       <ComponentRenderer layout={customHeaderLayout} />
@@ -371,7 +389,9 @@ export default function PublicShell({
       <SiteComponents.Header key="site-header" {...headerThemeProps(themeProps)} />
     );
   const fallbackFooter =
-    useSiteFooterForLayout ? (
+    hasAppearanceFooter ? (
+      <AppearanceFooter key="appearance-footer" {...appearanceFooter} />
+    ) : useSiteFooterForLayout ? (
       <SiteComponents.Footer key="site-footer" {...footerThemeProps(themeProps)} />
     ) : hasCustomFooter ? (
       <ComponentRenderer layout={customFooterLayout} />
@@ -393,7 +413,7 @@ export default function PublicShell({
           ? <Fragment key={`fallback-header-${index}`}>{fallbackHeader}</Fragment>
           : renderGlobalComponent(id, `before-${id}-${index}`),
       )}
-      {!hasGlobalHeader && useSiteHeaderForLayout && layoutWithoutHeaderBlocks(customHeaderLayout).length > 0 && (
+      {!hasGlobalHeader && !hasAppearanceHeader && useSiteHeaderForLayout && layoutWithoutHeaderBlocks(customHeaderLayout).length > 0 && (
         <ComponentRenderer layout={layoutWithoutHeaderBlocks(customHeaderLayout)} />
       )}
       <div style={{ flex: 1 }}>{children}</div>
@@ -402,7 +422,7 @@ export default function PublicShell({
           ? <Fragment key={`fallback-footer-${index}`}>{fallbackFooter}</Fragment>
           : renderGlobalComponent(id, `after-${id}-${index}`),
       )}
-      {!hasGlobalFooter && useSiteFooterForLayout && layoutWithoutFooterBlocks(customFooterLayout).length > 0 && (
+      {!hasGlobalFooter && !hasAppearanceFooter && useSiteFooterForLayout && layoutWithoutFooterBlocks(customFooterLayout).length > 0 && (
         <ComponentRenderer layout={layoutWithoutFooterBlocks(customFooterLayout)} />
       )}
       <ChatbotWidget />
