@@ -274,7 +274,7 @@ export default function HomeSlider(props) {
         .home-slider-pill:hover { background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.4); }
         .home-slider-pill > svg:first-child { flex: 0 0 auto; color: #f2867f; }
         .home-slider-pill span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .home-slider-title { max-width: 12ch; margin: 0 0 clamp(18px,2.6vh,28px); color: var(--home-slider-heading) !important; font-family: var(--home-slider-display) !important; font-size: clamp(40px,6.4vw,96px) !important; font-weight: 650 !important; line-height: 1.03 !important; letter-spacing: -.028em !important; }
+        .home-slider-title { max-width: 20ch; margin: 0 0 clamp(18px,2.6vh,28px); color: var(--home-slider-heading) !important; font-family: var(--home-slider-display) !important; font-size: clamp(40px,6.4vw,96px) !important; font-weight: 650 !important; line-height: 1.03 !important; letter-spacing: -.028em !important; }
         .home-slider-title > span { display: block; font-family: inherit !important; }
         .home-slider-title em { color: var(--home-slider-highlight); font-family: inherit !important; font-style: normal; }
         .home-slider-description { max-width: 42ch; margin: 0 0 clamp(24px,3.4vh,36px); color: var(--home-slider-description); opacity: .82; font-size: clamp(15px,1.3vw,18px); line-height: 1.6; }

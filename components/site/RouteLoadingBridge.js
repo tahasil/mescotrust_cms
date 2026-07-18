@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePageReadyTask } from "@/lib/pageReadiness";
 
 function emitRouteLoading(active) {
   if (typeof window === "undefined") return;
@@ -16,6 +17,8 @@ function emitRouteLoading(active) {
  * Used by PageTransitionLoader to keep the loader visible until server route data is ready.
  */
 export default function RouteLoadingBridge() {
+  usePageReadyTask(true, "route-loading-boundary");
+
   useEffect(() => {
     emitRouteLoading(true);
     return () => emitRouteLoading(false);

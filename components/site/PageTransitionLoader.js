@@ -110,7 +110,12 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
   }, [FAIL_SAFE_MS, SHOW_DELAY_MS, clearTimers, enabled, hideNow]);
 
   const startNavigationLoader = useCallback(() => {
+    if (!routeReadyRef.current || pendingBoundariesRef.current > 0) {
+      showLoader();
+      return;
+    }
     routeReadyRef.current = false;
+    window.__mescoPageReady?.reset?.();
     showLoader();
   }, [showLoader]);
 
@@ -118,6 +123,7 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
     if (!enabled) return;
     if (pendingBoundariesRef.current > 0) return;
     if (!routeReadyRef.current) return;
+    if (window.__mescoPageReady && !window.__mescoPageReady.isReady?.()) return;
     hideLoader();
   }, [enabled, hideLoader]);
 
@@ -183,6 +189,7 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
     const onVisibility = () => {
       if (document.visibilityState === "visible") tryHideLoader();
     };
+    const onPageReadinessChange = () => tryHideLoader();
     const onRouteLoadingBoundary = (event) => {
       const active = event?.detail?.active === true;
       if (active) {
@@ -200,6 +207,7 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
     window.addEventListener("pageshow", onPageShow);
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("site-route-loading", onRouteLoadingBoundary);
+    window.addEventListener("site-page-readiness-change", onPageReadinessChange);
     window.addEventListener("unhandledrejection", onUnhandledRejection);
     window.addEventListener("error", onWindowError);
 
@@ -209,6 +217,7 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
       window.removeEventListener("pageshow", onPageShow);
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("site-route-loading", onRouteLoadingBoundary);
+      window.removeEventListener("site-page-readiness-change", onPageReadinessChange);
       window.removeEventListener("unhandledrejection", onUnhandledRejection);
       window.removeEventListener("error", onWindowError);
       window.history.pushState = originalPushState;

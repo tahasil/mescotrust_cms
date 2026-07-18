@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { connectDB } from "@/lib/db";
 
@@ -25,16 +24,6 @@ export async function generateMetadata({ params }) {
     fallbackCanonical: `/${slug}`,
     fallbackOpenGraphUrl: `/${slug}`,
   });
-}
-
-function ContentSkeleton() {
-  return (
-    <div>
-      <div style={{ height: 20, width: "100%", background: "#f0f0f0", marginBottom: 12, borderRadius: 4 }} />
-      <div style={{ height: 20, width: "90%", background: "#f0f0f0", marginBottom: 12, borderRadius: 4 }} />
-      <div style={{ height: 20, width: "75%", background: "#f0f0f0", borderRadius: 4 }} />
-    </div>
-  );
 }
 
 /** Page content (layout + block props) is loaded only from the pages collection. */
@@ -83,9 +72,7 @@ export default function DynamicPage({ params }) {
 
   return (
     <main>
-      <Suspense fallback={<ContentSkeleton />}>
-        <PageContent slug={slug} />
-      </Suspense>
+      <PageContent slug={slug} />
     </main>
   );
 }

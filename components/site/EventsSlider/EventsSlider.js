@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Carousel, Col, Row, Spin } from "antd";
+import { Carousel, Col, Row } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import styled from "styled-components";
 import {
@@ -18,6 +18,7 @@ import {
 } from "@/components/events/eventDisplay";
 import { parseMarginTopBottomString } from "@/lib/manageSectionFields";
 import MediaImage from "@/components/shared/MediaImage";
+import { usePageReadyTask } from "@/lib/pageReadiness";
 
 const SliderWrapper = styled.div`
   .carousel-shell {
@@ -365,6 +366,7 @@ export default function EventsSlider(props) {
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  usePageReadyTask(loading, "events-slider");
 
   useEffect(() => {
     let cancelled = false;
@@ -389,13 +391,7 @@ export default function EventsSlider(props) {
   }, [limit, sort]);
 
   if (loading) {
-    return (
-      <PageContainer>
-        <div style={{ textAlign: "center", padding: "48px 0" }}>
-          <Spin />
-        </div>
-      </PageContainer>
-    );
+    return null;
   }
 
   if (!items.length) return null;

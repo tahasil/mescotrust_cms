@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Col, Row } from "antd";
 import FormEmbed from "@/components/site/FormEmbed/FormEmbed";
+import * as PublicSiteComponents from "@/components/site/publicComponents";
 import { SITE_COMPONENT_IDS } from "@/lib/siteComponentRegistry";
+import { usePageReadyTask } from "@/lib/pageReadiness";
 import {
   buildShortcodeFromSelection,
   normalizeShortcodeText,
@@ -283,31 +285,16 @@ export default function ShortCode(props) {
     [props],
   );
 
-  const [siteComponentsMap, setSiteComponentsMap] = useState({});
-  const [componentsRegistryReady, setComponentsRegistryReady] = useState(false);
   const [moduleProps, setModuleProps] = useState({});
   const [moduleLoading, setModuleLoading] = useState(false);
   const [moduleError, setModuleError] = useState("");
-
-  useEffect(() => {
-    let cancelled = false;
-
-    import("@/components/site/publicComponents")
-      .then((mod) => {
-        if (cancelled) return;
-        setSiteComponentsMap(mod?.default || mod || {});
-        setComponentsRegistryReady(true);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setSiteComponentsMap({});
-        setComponentsRegistryReady(true);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const [loadedComponentId, setLoadedComponentId] = useState("");
+  const moduleNeedsInitialData = Boolean(
+    resolvedComponentId &&
+      resolvedComponentId !== "ShortCode" &&
+      loadedComponentId !== resolvedComponentId,
+  );
+  usePageReadyTask(moduleNeedsInitialData, `shortcode-${resolvedComponentId || "module"}`);
 
   useEffect(() => {
     let cancelled = false;
@@ -317,6 +304,7 @@ export default function ShortCode(props) {
         setModuleLoading(false);
         setModuleError("");
         setModuleProps({});
+        setLoadedComponentId("");
         return;
       }
 
@@ -331,7 +319,10 @@ export default function ShortCode(props) {
           setModuleError(err?.message || "Failed to load shortcode target");
         }
       } finally {
-        if (!cancelled) setModuleLoading(false);
+        if (!cancelled) {
+          setModuleLoading(false);
+          setLoadedComponentId(resolvedComponentId);
+        }
       }
     }
 
@@ -367,15 +358,9 @@ export default function ShortCode(props) {
     }
 
     if (resolvedComponentId) {
-      if (!componentsRegistryReady) {
-        return (
-          <div style={{ color: "rgba(0,0,0,0.65)" }}>
-            Loading module renderer...
-          </div>
-        );
-      }
+      if (moduleNeedsInitialData || moduleLoading) return null;
 
-      const ComponentToRender = siteComponentsMap[resolvedComponentId];
+      const ComponentToRender = PublicSiteComponents[resolvedComponentId];
       if (typeof ComponentToRender !== "function") {
         return (
           <div style={{ color: "#b42318" }}>
@@ -397,11 +382,6 @@ export default function ShortCode(props) {
 
       return (
         <>
-          {moduleLoading ? (
-            <div style={{ color: "rgba(0,0,0,0.65)", marginBottom: 10 }}>
-              Loading module settings...
-            </div>
-          ) : null}
           {moduleError ? (
             <div style={{ color: "#b42318", marginBottom: 10 }}>
               {moduleError}

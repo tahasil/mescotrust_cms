@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Row, Col } from "antd";
 import styled from "styled-components";
+import { usePageReadyTask } from "@/lib/pageReadiness";
 import {
   FullWidthBackground,
   getColor,
@@ -559,54 +560,6 @@ const EmptyState = styled.div`
   background: rgba(255, 255, 255, 0.6);
 `;
 
-const SkeletonCard = styled.div`
-  break-inside: avoid;
-  margin-bottom: ${(props) => props.$gap}px;
-  border-radius: 14px;
-  overflow: hidden;
-  background: #fff;
-  border: 1px solid rgba(16, 24, 40, 0.1);
-  .block {
-    background: linear-gradient(90deg, #f2f4f7, #eceff3, #f2f4f7);
-    background-size: 220% 100%;
-    animation: pulse 1.2s linear infinite;
-  }
-  .media {
-    height: 246px;
-    @media (max-width: 1199px) {
-      height: 230px;
-    }
-    @media (max-width: 991px) {
-      height: 220px;
-    }
-    @media (max-width: 767px) {
-      height: 206px;
-    }
-    @media (max-width: 575px) {
-      height: 192px;
-    }
-  }
-  .line {
-    height: 12px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-  }
-  .line:last-child {
-    margin-bottom: 0;
-  }
-  .body {
-    padding: 14px;
-  }
-  @keyframes pulse {
-    0% {
-      background-position: 200% 0;
-    }
-    100% {
-      background-position: -20% 0;
-    }
-  }
-`;
-
 const ModalScrollBody = styled(ThemeModal)`
   .ant-modal {
     width: min(940px, calc(100vw - 24px)) !important;
@@ -844,7 +797,11 @@ export default function SocialMediaWall(props) {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
   const [livePosts, setLivePosts] = useState([]);
-  const [loadingLive, setLoadingLive] = useState(false);
+  const [loadingLive, setLoadingLive] = useState(
+    props?.socialMediaWallEnabled !== false &&
+      props?.socialMediaWallEnableLivePosts !== false,
+  );
+  usePageReadyTask(loadingLive, "social-media-wall");
   const [runtimePlatformConfigs, setRuntimePlatformConfigs] = useState([]);
 
   const componentEnabled = props?.socialMediaWallEnabled !== false;
@@ -1121,6 +1078,7 @@ export default function SocialMediaWall(props) {
   useEffect(() => {
     if (!componentEnabled || !enableLivePosts) {
       setLivePosts([]);
+      setLoadingLive(false);
       return () => {};
     }
 
@@ -1380,45 +1338,6 @@ export default function SocialMediaWall(props) {
                 {mergedPosts.map((post) => renderPostCard(post))}
               </PostsLayout>
             ))}
-
-          {loadingLive && mergedPosts.length === 0 && (
-            <>
-              {layoutMode === "carousel" ? (
-                <CarouselTrack $gap={cardGap}>
-                  {Array.from({ length: Math.min(globalPostLimit, 6) }).map((_, index) => (
-                    <SkeletonCard key={`skeleton-${index}`} $gap={cardGap}>
-                      <div className="block media" />
-                      <div className="body">
-                        <div className="block line" style={{ width: "60%" }} />
-                        <div className="block line" style={{ width: "100%" }} />
-                        <div className="block line" style={{ width: "84%" }} />
-                      </div>
-                    </SkeletonCard>
-                  ))}
-                </CarouselTrack>
-              ) : (
-                <PostsLayout
-                  $layout={layoutMode}
-                  $gap={cardGap}
-                  $colsDesktop={colDesktop}
-                  $colsLaptop={colLaptop}
-                  $colsTablet={colTablet}
-                  $colsMobile={colMobile}
-                >
-                  {Array.from({ length: Math.min(globalPostLimit, 6) }).map((_, index) => (
-                    <SkeletonCard key={`skeleton-${index}`} $gap={cardGap}>
-                      <div className="block media" />
-                      <div className="body">
-                        <div className="block line" style={{ width: "60%" }} />
-                        <div className="block line" style={{ width: "100%" }} />
-                        <div className="block line" style={{ width: "84%" }} />
-                      </div>
-                    </SkeletonCard>
-                  ))}
-                </PostsLayout>
-              )}
-            </>
-          )}
 
           {!loadingLive && mergedPosts.length === 0 && (
             <EmptyState>{emptyStateMessage}</EmptyState>

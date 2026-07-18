@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { connectDB } from "@/lib/db";
 import Page from "@/models/Page";
@@ -6,39 +5,6 @@ import Component from "@/models/Component";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
 
 export const dynamic = "force-dynamic";
-
-function ContentSkeleton() {
-  return (
-    <div>
-      <div
-        style={{
-          height: 20,
-          width: "100%",
-          background: "#f0f0f0",
-          marginBottom: 12,
-          borderRadius: 4,
-        }}
-      />
-      <div
-        style={{
-          height: 20,
-          width: "90%",
-          background: "#f0f0f0",
-          marginBottom: 12,
-          borderRadius: 4,
-        }}
-      />
-      <div
-        style={{
-          height: 20,
-          width: "75%",
-          background: "#f0f0f0",
-          borderRadius: 4,
-        }}
-      />
-    </div>
-  );
-}
 
 async function PageContent({ slug }) {
   let page;
@@ -101,9 +67,7 @@ export default function ResolvedSlugPage({ params }) {
   const slug = Array.isArray(params.slug) ? params.slug.join("/") : params.slug;
   return (
     <main>
-      <Suspense fallback={<ContentSkeleton />}>
-        <PageContent slug={slug} />
-      </Suspense>
+      <PageContent slug={slug} />
     </main>
   );
 }

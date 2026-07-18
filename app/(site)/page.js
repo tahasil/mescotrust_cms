@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import Link from "next/link";
 import { connectDB } from "@/lib/db";
 import Page from "@/models/Page";
@@ -16,16 +15,6 @@ export async function generateMetadata() {
     fallbackCanonical: "/",
     fallbackOpenGraphUrl: "/",
   });
-}
-
-function HomeSkeleton() {
-  return (
-    <div>
-      <div style={{ height: 32, width: "40%", background: "#f0f0f0", marginBottom: 16, borderRadius: 4 }} />
-      <div style={{ height: 16, width: "100%", background: "#f0f0f0", marginBottom: 8, borderRadius: 4 }} />
-      <div style={{ height: 16, width: "90%", background: "#f0f0f0", borderRadius: 4 }} />
-    </div>
-  );
 }
 
 /** Home content (layout + block props) is loaded only from the pages collection. */
@@ -75,9 +64,7 @@ async function HomeContent() {
 export default function HomePage() {
   return (
     <main>
-      <Suspense fallback={<HomeSkeleton />}>
-        <HomeContent />
-      </Suspense>
+      <HomeContent />
     </main>
   );
 }

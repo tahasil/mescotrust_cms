@@ -1,12 +1,13 @@
 "use client";
 
-import { Fragment } from "react";
+import { Fragment, Suspense } from "react";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import * as SiteComponents from "@/components/site/publicComponents";
 import RoutePopupHost from "@/components/layout/RoutePopupHost";
 import ChatbotWidget from "@/components/site/ChatbotWidget";
 import AppearanceHeader from "@/components/appearance/AppearanceHeader";
 import AppearanceFooter from "@/components/appearance/AppearanceFooter";
+import PublicPageReadySignal from "@/components/site/PublicPageReadySignal";
 
 const hasHeaderBlock = (layout) =>
   Array.isArray(layout) && layout.some((b) => (b?.baseComponent || b?.componentId?.baseComponent) === "Header");
@@ -425,6 +426,9 @@ export default function PublicShell({
       {!hasGlobalFooter && !hasAppearanceFooter && useSiteFooterForLayout && layoutWithoutFooterBlocks(customFooterLayout).length > 0 && (
         <ComponentRenderer layout={layoutWithoutFooterBlocks(customFooterLayout)} />
       )}
+      <Suspense fallback={null}>
+        <PublicPageReadySignal />
+      </Suspense>
       <ChatbotWidget />
     </div>
   );

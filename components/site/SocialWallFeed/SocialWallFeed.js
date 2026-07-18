@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styled, { css, keyframes } from "styled-components";
-import { Button, Empty, Spin } from "antd";
+import { Button, Empty } from "antd";
 import {
   CalendarOutlined,
   FacebookFilled,
@@ -22,6 +22,7 @@ import {
   SubTitle,
   getColor,
 } from "@/styles/Theme";
+import { usePageReadyTask } from "@/lib/pageReadiness";
 
 function toSafeString(value) {
   return value == null ? "" : String(value).trim();
@@ -624,7 +625,9 @@ export default function SocialWallFeed(props) {
   const showDate = props?.socialWallFeedShowDate !== false;
   const infiniteScroll = props?.socialWallFeedInfiniteScroll === true;
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(enabled);
+  const [initialLoading, setInitialLoading] = useState(enabled);
+  usePageReadyTask(enabled && initialLoading, "social-wall-feed");
   const [loadingMore, setLoadingMore] = useState(false);
   const [items, setItems] = useState([]);
   const [nextCursor, setNextCursor] = useState(null);
@@ -727,7 +730,10 @@ export default function SocialWallFeed(props) {
         setAvailablePlatforms([]);
       } finally {
         if (append) setLoadingMore(false);
-        else setLoading(false);
+        else {
+          setLoading(false);
+          setInitialLoading(false);
+        }
       }
     },
     [blockConfig, enabled, postLimit],
@@ -969,6 +975,7 @@ export default function SocialWallFeed(props) {
   );
 
   if (!enabled) return null;
+  if (initialLoading) return null;
 
   const title = toSafeString(props?.mainTitle || "Social Media Wall");
   const subtitle = toSafeString(props?.subTitle || "");
@@ -1018,11 +1025,7 @@ export default function SocialWallFeed(props) {
             </FilterRow>
           ) : null}
 
-          {loading ? (
-            <div style={{ textAlign: "center", padding: "30px 0" }}>
-              <Spin />
-            </div>
-          ) : items.length === 0 ? (
+          {items.length === 0 ? (
             <Empty description="No social posts available" />
           ) : (
             <CardsContainer>{items.map((item, index) => renderCard(item, index))}</CardsContainer>

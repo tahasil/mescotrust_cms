@@ -12,6 +12,7 @@ import {
   HomeOutlined,
   MessageOutlined,
 } from "@ant-design/icons";
+import { usePageReadyTask } from "@/lib/pageReadiness";
 
 const chatbotTypingPulse = keyframes`
   0%, 80%, 100% {
@@ -493,6 +494,7 @@ export default function ChatbotWidget() {
   });
 
   const [loading, setLoading] = useState(true);
+  usePageReadyTask(loading, "chatbot");
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [openedAt, setOpenedAt] = useState(0);

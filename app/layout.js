@@ -358,15 +358,91 @@ html.page-loading,body.page-loading{overflow:hidden;margin:0;padding:0}
             <script dangerouslySetInnerHTML={{ __html: `
 (function(){
   var d=${loaderMinDuration};
+  var started=Date.now();
+  var loaded=document.readyState==="complete";
+  var hydrated=false;
+  var pending=window.__mescoPendingReadyTasks instanceof Set
+    ? window.__mescoPendingReadyTasks
+    : new Set();
+  var hideTimer=null;
+  var failSafeTimer=null;
+  window.__mescoPendingReadyTasks=pending;
+
   function hide(){
     var el=document.getElementById("page-loader");
     if(el){el.classList.add("page-loader-hidden");el.setAttribute("aria-hidden","true")}
     document.documentElement.classList.remove("page-loading");
     document.body.classList.remove("page-loading");
   }
-  function ready(){setTimeout(hide,d)}
-  if(document.readyState==="complete"){ready()}
-  else{window.addEventListener("load",ready)}
+
+  function show(){
+    var el=document.getElementById("page-loader");
+    if(el){el.classList.remove("page-loader-hidden");el.setAttribute("aria-hidden","false")}
+    document.documentElement.classList.add("page-loading");
+    document.body.classList.add("page-loading");
+  }
+
+  function isReady(){return loaded&&hydrated&&pending.size===0}
+
+  function emit(){
+    window.dispatchEvent(new CustomEvent("site-page-readiness-change",{
+      detail:{ready:isReady(),pending:pending.size}
+    }));
+  }
+
+  function tryHide(){
+    if(!isReady())return;
+    if(hideTimer)clearTimeout(hideTimer);
+    var wait=Math.max(0,d-(Date.now()-started));
+    hideTimer=setTimeout(function(){
+      if(!isReady())return;
+      requestAnimationFrame(function(){requestAnimationFrame(function(){
+        if(isReady())hide();
+      })});
+    },wait);
+  }
+
+  function armFailSafe(){
+    if(failSafeTimer)clearTimeout(failSafeTimer);
+    failSafeTimer=setTimeout(hide,20000);
+  }
+
+  window.__mescoPageReady={
+    register:function(id){
+      if(!id)return;
+      pending.add(id);
+      emit();
+    },
+    resolve:function(id){
+      if(!id)return;
+      pending.delete(id);
+      emit();
+      tryHide();
+    },
+    reset:function(){
+      if(hideTimer)clearTimeout(hideTimer);
+      pending.clear();
+      hydrated=false;
+      loaded=true;
+      started=Date.now();
+      show();
+      armFailSafe();
+      emit();
+    },
+    markHydrated:function(){hydrated=true;emit();tryHide()},
+    isReady:isReady,
+    pendingCount:function(){return pending.size},
+    tryHide:tryHide
+  };
+
+  function onLoad(){
+    loaded=true;
+    if(window.location.pathname.indexOf("/admin")===0)hydrated=true;
+    emit();
+    tryHide();
+  }
+  if(loaded){onLoad()}else{window.addEventListener("load",onLoad,{once:true})}
+  armFailSafe();
 })();
 ` }} />
           </>
