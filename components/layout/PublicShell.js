@@ -1,22 +1,12 @@
 "use client";
 
 import { Fragment, Suspense } from "react";
-import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import * as SiteComponents from "@/components/site/publicComponents";
 import RoutePopupHost from "@/components/layout/RoutePopupHost";
 import ChatbotWidget from "@/components/site/ChatbotWidget";
 import AppearanceHeader from "@/components/appearance/AppearanceHeader";
 import AppearanceFooter from "@/components/appearance/AppearanceFooter";
 import PublicPageReadySignal from "@/components/site/PublicPageReadySignal";
-
-const hasHeaderBlock = (layout) =>
-  Array.isArray(layout) && layout.some((b) => (b?.baseComponent || b?.componentId?.baseComponent) === "Header");
-const layoutWithoutHeaderBlocks = (layout) =>
-  Array.isArray(layout) ? layout.filter((b) => (b?.baseComponent || b?.componentId?.baseComponent) !== "Header") : [];
-const hasFooterBlock = (layout) =>
-  Array.isArray(layout) && layout.some((b) => (b?.baseComponent || b?.componentId?.baseComponent) === "Footer");
-const layoutWithoutFooterBlocks = (layout) =>
-  Array.isArray(layout) ? layout.filter((b) => (b?.baseComponent || b?.componentId?.baseComponent) !== "Footer") : [];
 
 const headerThemeProps = (props) => ({
   menuItems: props.headerItems,
@@ -137,8 +127,6 @@ export default function PublicShell({
   appearanceFooter = null,
   headerItems,
   footerItems,
-  customHeaderLayout,
-  customFooterLayout,
   globalBefore = [],
   globalAfter = [],
   siteTitle,
@@ -242,8 +230,6 @@ export default function PublicShell({
   footerCopyrightBarValue,
   children,
 }) {
-  const hasCustomHeader = Array.isArray(customHeaderLayout) && customHeaderLayout.length > 0;
-  const hasCustomFooter = Array.isArray(customFooterLayout) && customFooterLayout.length > 0;
   const hasAppearanceHeader =
     appearanceHeader && appearanceHeader.active !== false;
   const hasAppearanceFooter =
@@ -354,18 +340,24 @@ export default function PublicShell({
   };
 
   const renderGlobalComponent = (id, key) => {
-    const Comp = SiteComponents[id];
-    if (!Comp) return null;
     if (id === "Header") {
-      return hasAppearanceHeader
-        ? <AppearanceHeader key={key ?? id} {...appearanceHeader} />
-        : <Comp key={key ?? id} {...headerThemeProps(themeProps)} />;
+      return (
+        <AppearanceHeader
+          key={key ?? id}
+          {...(hasAppearanceHeader ? appearanceHeader : headerThemeProps(themeProps))}
+        />
+      );
     }
     if (id === "Footer") {
-      return hasAppearanceFooter
-        ? <AppearanceFooter key={key ?? id} {...appearanceFooter} />
-        : <Comp key={key ?? id} {...footerThemeProps(themeProps)} />;
+      return (
+        <AppearanceFooter
+          key={key ?? id}
+          {...(hasAppearanceFooter ? appearanceFooter : footerThemeProps(themeProps))}
+        />
+      );
     }
+    const Comp = SiteComponents[id];
+    if (!Comp) return null;
     return <Comp key={key ?? id} {...globalTheme} />;
   };
 
@@ -374,30 +366,17 @@ export default function PublicShell({
   const hasGlobalHeader = beforeGlobalIds.includes("Header");
   const hasGlobalFooter = afterGlobalIds.includes("Footer");
 
-  const useSiteHeaderForLayout =
-    hasCustomHeader && hasHeaderBlock(customHeaderLayout);
-  const useSiteFooterForLayout =
-    hasCustomFooter && hasFooterBlock(customFooterLayout);
-
   const fallbackHeader =
     hasAppearanceHeader ? (
       <AppearanceHeader key="appearance-header" {...appearanceHeader} />
-    ) : useSiteHeaderForLayout ? (
-      <SiteComponents.Header key="site-header" {...headerThemeProps(themeProps)} />
-    ) : hasCustomHeader ? (
-      <ComponentRenderer layout={customHeaderLayout} />
     ) : (
-      <SiteComponents.Header key="site-header" {...headerThemeProps(themeProps)} />
+      <AppearanceHeader key="appearance-header" {...headerThemeProps(themeProps)} />
     );
   const fallbackFooter =
     hasAppearanceFooter ? (
       <AppearanceFooter key="appearance-footer" {...appearanceFooter} />
-    ) : useSiteFooterForLayout ? (
-      <SiteComponents.Footer key="site-footer" {...footerThemeProps(themeProps)} />
-    ) : hasCustomFooter ? (
-      <ComponentRenderer layout={customFooterLayout} />
     ) : (
-      <SiteComponents.Footer key="site-footer" {...footerThemeProps(themeProps)} />
+      <AppearanceFooter key="appearance-footer" {...footerThemeProps(themeProps)} />
     );
   const beforeRenderOrder = hasGlobalHeader
     ? beforeGlobalIds
@@ -414,17 +393,11 @@ export default function PublicShell({
           ? <Fragment key={`fallback-header-${index}`}>{fallbackHeader}</Fragment>
           : renderGlobalComponent(id, `before-${id}-${index}`),
       )}
-      {!hasGlobalHeader && !hasAppearanceHeader && useSiteHeaderForLayout && layoutWithoutHeaderBlocks(customHeaderLayout).length > 0 && (
-        <ComponentRenderer layout={layoutWithoutHeaderBlocks(customHeaderLayout)} />
-      )}
       <div style={{ flex: 1 }}>{children}</div>
       {afterRenderOrder.map((id, index) =>
         id === "__fallback_footer__"
           ? <Fragment key={`fallback-footer-${index}`}>{fallbackFooter}</Fragment>
           : renderGlobalComponent(id, `after-${id}-${index}`),
-      )}
-      {!hasGlobalFooter && !hasAppearanceFooter && useSiteFooterForLayout && layoutWithoutFooterBlocks(customFooterLayout).length > 0 && (
-        <ComponentRenderer layout={layoutWithoutFooterBlocks(customFooterLayout)} />
       )}
       <Suspense fallback={null}>
         <PublicPageReadySignal />

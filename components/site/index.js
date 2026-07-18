@@ -3,8 +3,6 @@
  * EDITABLE_SITE_EDIT_FORMS: drawer content lives in component; PageBuilder only calls these.
  * PageBuilder → save to pages. Components edit page → save to components collection.
  */
-export { default as Header, HeaderEditForm } from "./Header";
-export { default as Footer, FooterEditForm } from "./Footer/index";
 export { default as HomeHero, HomeHeroEditForm } from "./HomeHero/index";
 export { default as HomeSlider, HomeSliderEditForm } from "./HomeSlider/index";
 export { default as Marquee, MarqueeEditForm } from "./Marquee/index";
@@ -105,12 +103,8 @@ import EventRegistrationFormEditForm from "./EventRegistrationForm/EditForm";
 import SocialMediaWallEditForm from "./SocialMediaWall/EditForm";
 import SocialWallFeedEditForm from "./SocialWallFeed/EditForm";
 import FormEmbedEditForm from "./FormEmbed/EditForm";
-import HeaderEditForm from "./Header/EditForm";
-import FooterEditForm from "./Footer/EditForm";
 /** componentId -> EditForm for drawer (Admin → Components and Page Builder use same form). Add new editable site components here. */
 export const EDITABLE_SITE_EDIT_FORMS = {
-  Header: HeaderEditForm,
-  Footer: FooterEditForm,
   HomeHero: HomeHeroEditForm,
   HomeSlider: HomeSliderEditForm,
   Marquee: MarqueeEditForm,

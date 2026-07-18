@@ -9,7 +9,9 @@ export async function GET(req) {
 
   try {
     await connectDB();
-    const components = await Component.find()
+    const components = await Component.find({
+      baseComponent: { $nin: ["Header", "Footer"] },
+    })
       .sort({ category: 1, name: 1 })
       .lean();
     return NextResponse.json(components);
@@ -40,6 +42,12 @@ export async function POST(req) {
   try {
     const body = await req.json();
     const { name, displayName, type, category, baseComponent, propsSchema, defaultProps, active } = body;
+    if (["Header", "Footer"].includes(String(baseComponent || name || "").trim())) {
+      return NextResponse.json(
+        { error: "Header and Footer are managed under Appearance." },
+        { status: 400 },
+      );
+    }
 
     const schema = propsSchema || [];
     const defaults = defaultProps || {};

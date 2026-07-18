@@ -308,102 +308,6 @@ const THEME_CONFIG_OWNED_KEYS = new Set([
   ...Object.keys(DEFAULTS),
   ...THEME_SCHEMA_KEYS,
 ]);
-const HEADER_COMPONENT_OVERRIDE_KEYS = new Set([
-  "menuName",
-  "navItems",
-  "logoType",
-  "logoUrl",
-  "logoLightUrl",
-  "logoMobileUrl",
-  "logoDarkUrl",
-  "logoImageUrl",
-  "headerVolunteerLabel",
-  "headerVolunteerHref",
-  "headerVolunteerIconUrl",
-  "headerVolunteerIconUrlMobile",
-  "headerDonateLabel",
-  "headerDonateHref",
-  "headerDonateIconUrl",
-  "headerVolunteerHrefTarget",
-  "headerBgColorKey",
-  "headerCtaBgColorKey",
-  "headerCtaTextColorKey",
-  "headerDonateBgColorKey",
-  "headerDonateTextColorKey",
-  "_sectionBg",
-  "_containerType",
-  "_sectionPadding",
-  "_sectionBorderSize",
-  "_sectionBorderStyle",
-  "_sectionBorderColor",
-  "_sectionShadow",
-  "headerSectionBgType",
-  "headerSectionBgImage",
-  "headerSectionBgColorKey",
-  "headerSectionPaddingTop",
-  "headerSectionPaddingRight",
-  "headerSectionPaddingBottom",
-  "headerSectionPaddingLeft",
-  "headerSectionMarginTop",
-  "headerSectionMarginBottom",
-  "headerPageContainerBgType",
-  "headerPageContainerBgImage",
-  "headerPageContainerBgColorKey",
-  "headerPageContainerPaddingTop",
-  "headerPageContainerPaddingRight",
-  "headerPageContainerPaddingBottom",
-  "headerPageContainerPaddingLeft",
-  "headerPageContainerMarginTop",
-  "headerPageContainerMarginBottom",
-  "_disableFadeAnimation",
-]);
-const REMOVED_HEADER_COMPONENT_KEYS = new Set([
-  "headerAnnouncementLoopEnabled",
-  "headerDonateIconUrlMobile",
-  "volunteerModalTitle",
-  "volunteerModalSuccessTitle",
-  "volunteerModalSuccessDescription",
-  "volunteerModalErrorTitle",
-  "volunteerModalNameLabel",
-  "volunteerModalEmailLabel",
-  "volunteerModalSubjectLabel",
-  "volunteerModalMessageLabel",
-  "volunteerModalNamePlaceholder",
-  "volunteerModalEmailPlaceholder",
-  "volunteerModalSubjectPlaceholder",
-  "volunteerModalMessagePlaceholder",
-  "volunteerModalCancelLabel",
-  "volunteerModalSendLabel",
-  "volunteerModalSendingLabel",
-  "volunteerModalNameRequiredMessage",
-  "volunteerModalEmailRequiredMessage",
-  "volunteerModalEmailInvalidMessage",
-  "volunteerModalSubjectRequiredMessage",
-  "volunteerModalSubjectMinMessage",
-  "volunteerModalMessageRequiredMessage",
-  "volunteerModalMessageMinMessage",
-  "volunteerModalBtnBg",
-  "volunteerModalBtnText",
-  "volunteerModalCancelColor",
-]);
-const FOOTER_COMPONENT_OVERRIDE_KEYS = new Set([
-  "footerLogoUrl",
-  "footerAddress",
-  "footerEmail",
-  "footerPhone",
-  "footerCol1Links",
-  "footerCol2Links",
-  "footerSocialLinks",
-  "footerCopyrightText",
-  "footerBgColorKey",
-  "footerBackgroundImageUrl",
-  "footerTextColorKey",
-  "footerCopyrightBarColorKey",
-  "footerColumnsCount",
-  "footerLayoutStyle",
-  "footerSocialIcons",
-]);
-
 function pickPreferredComponentDocs(components, { preferLayout = false } = {}) {
   const byBase = new Map();
   if (!Array.isArray(components)) return byBase;
@@ -450,18 +354,8 @@ function pickPreferredComponentDocs(components, { preferLayout = false } = {}) {
   return byBase;
 }
 
-function shouldMergeComponentProp(baseComponent, key) {
-  if (baseComponent === "Header" && REMOVED_HEADER_COMPONENT_KEYS.has(key)) {
-    return false;
-  }
-  if (!THEME_CONFIG_OWNED_KEYS.has(key)) return true;
-  if (baseComponent === "Header") {
-    return HEADER_COMPONENT_OVERRIDE_KEYS.has(key);
-  }
-  if (baseComponent === "Footer") {
-    return FOOTER_COMPONENT_OVERRIDE_KEYS.has(key);
-  }
-  return false;
+function shouldMergeComponentProp(key) {
+  return !THEME_CONFIG_OWNED_KEYS.has(key);
 }
 
 function normalizeTheme(theme) {
@@ -574,17 +468,16 @@ export async function GET() {
     for (const k of SUBSCRIBE_KEYS) {
       normalized[k] = plain[k] != null ? String(plain[k]).trim() : "";
     }
-    // Merge from components collection (all site components: Header, Footer, HomeHero, Subscribe + any new)
+    // Merge non-theme-owned props from registered site components.
     const comps = await Component.find({
       baseComponent: { $in: getRegistryIdsFromDisk() },
     }).lean();
     const preferredComps = Array.from(pickPreferredComponentDocs(comps).values());
     for (const c of preferredComps) {
       const props = c.defaultProps;
-      const baseComponent = c?.baseComponent;
       if (props && typeof props === "object") {
         for (const key of Object.keys(props)) {
-          if (!shouldMergeComponentProp(baseComponent, key)) continue;
+          if (!shouldMergeComponentProp(key)) continue;
           if (props[key] !== undefined) normalized[key] = props[key];
         }
       }

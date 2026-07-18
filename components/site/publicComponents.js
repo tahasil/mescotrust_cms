@@ -1,7 +1,5 @@
 // Public runtime component exports only.
 // Keep this file free of EditForm imports so public bundles stay smaller.
-export { default as Header } from "./Header/Header";
-export { default as Footer } from "./Footer/Footer";
 export { default as HomeHero } from "./HomeHero/HomeHero";
 export { default as HomeSlider } from "./HomeSlider/HomeSlider";
 export { default as Marquee } from "./Marquee/Marquee";

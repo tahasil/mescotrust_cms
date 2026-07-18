@@ -23,6 +23,8 @@ function sanitizeDisplayNameForTemplate(value) {
     .slice(0, 80);
 }
 
+const APPEARANCE_ONLY_IDS = new Set(["Header", "Footer"]);
+
 /** GET: list all site components (registry + custom from DB) with metadata */
 export async function GET(req) {
   const session = await requireAuth(req);
@@ -31,7 +33,7 @@ export async function GET(req) {
   try {
     await connectDB();
     const allMetas = await SiteComponentMeta.find(
-      {},
+      { componentId: { $nin: [...APPEARANCE_ONLY_IDS] } },
       "componentId displayName global order position enabled",
     ).lean();
     const metaById = {};
@@ -98,6 +100,12 @@ export async function POST(req) {
     const displayName = (body.displayName || "").trim();
     if (!displayName) {
       return NextResponse.json({ error: "Display name is required" }, { status: 400 });
+    }
+    if (APPEARANCE_ONLY_IDS.has(displayName.replace(/\s+/g, ""))) {
+      return NextResponse.json(
+        { error: "Header and Footer are managed under Appearance." },
+        { status: 400 },
+      );
     }
 
     // System-generated component ID from display name: no spaces, alphanumeric, unique

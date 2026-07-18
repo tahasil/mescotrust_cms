@@ -57,7 +57,7 @@ import {
   SearchResultTitle,
   SearchResultMeta,
   SearchState,
-} from "./HeaderStyle";
+} from "./ResponsiveHeaderStyle";
 
 const SCROLL_THRESHOLD_PX = 10;
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import CurrentHeader from "@/components/site/Header/Header";
+import ResponsiveHeader from "./ResponsiveHeader";
 
 const SearchIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -266,7 +266,7 @@ export default function AppearanceHeader(props) {
         </header>
       </div>
       <div className="current-mobile">
-        <CurrentHeader
+        <ResponsiveHeader
           {...props}
           logoTarget={logoTarget}
           donateHrefTarget={donateHrefTarget}

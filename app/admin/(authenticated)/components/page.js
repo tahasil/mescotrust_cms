@@ -15,7 +15,7 @@ const EXCLUDED_COMPONENT_IDS = new Set([
   "HomeSlider",
   "CommitteeMembers",
 ]);
-const COMPONENTS_LIST_CACHE_KEY = "admin-components-list-cache-v1";
+const COMPONENTS_LIST_CACHE_KEY = "admin-components-list-cache-v2";
 const COMPONENTS_LIST_CACHE_TTL_MS = 20_000;
 
 function deriveComponentId(displayName) {

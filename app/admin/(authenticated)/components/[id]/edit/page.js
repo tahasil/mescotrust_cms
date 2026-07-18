@@ -32,10 +32,10 @@ import {
   MANAGE_SECTION_PREFIX_BY_COMPONENT_ID,
 } from "@/lib/manageSectionFields";
 
-const HeaderPreview = dynamic(() => import("@/components/site/Header"), {
+const HeaderPreview = dynamic(() => import("@/components/appearance/AppearanceHeader"), {
   ssr: false,
 });
-const FooterPreview = dynamic(() => import("@/components/site/Footer"), {
+const FooterPreview = dynamic(() => import("@/components/appearance/AppearanceFooter"), {
   ssr: false,
 });
 
@@ -115,6 +115,10 @@ export default function AdminComponentEditPage() {
 
   useEffect(() => {
     if (!id) return;
+    if (id === "Header" || id === "Footer") {
+      router.replace(`/admin/appearance/${id.toLowerCase()}`);
+      return;
+    }
     setLoading(true);
     fetch(`/api/admin/site-components/${encodeURIComponent(id)}`)
       .then(async (res) => {

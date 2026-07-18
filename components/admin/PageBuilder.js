@@ -2213,14 +2213,9 @@ export default function PageBuilder({
     return groups;
   }, [components, searchQuery]);
 
-  /** Site components filtered by enabled + search (for Add Component drawer). Header/Footer always shown. */
+  /** Site components filtered by enabled + search for the Add Component drawer. */
   const filteredSiteComponents = useMemo(() => {
-    const enabledOnly = siteComponentsList.filter(
-      (c) =>
-        c.enabled !== false ||
-        c.componentId === "Header" ||
-        c.componentId === "Footer",
-    );
+    const enabledOnly = siteComponentsList.filter((c) => c.enabled !== false);
     const q = searchQuery.toLowerCase().trim();
     if (!q) return enabledOnly;
     return enabledOnly.filter(

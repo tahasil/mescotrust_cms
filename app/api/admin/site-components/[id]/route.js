@@ -8,6 +8,7 @@ import Page from "@/models/Page";
 import { SITE_COMPONENT_IDS } from "@/lib/siteComponentRegistry";
 
 const COMPONENT_ID_RE = /^[A-Za-z][A-Za-z0-9]*$/;
+const APPEARANCE_ONLY_IDS = new Set(["Header", "Footer"]);
 
 function isValidComponentId(value) {
   return COMPONENT_ID_RE.test(String(value || ""));
@@ -53,6 +54,9 @@ export async function GET(req, { params }) {
   if (!id || !isValidComponentId(id)) {
     return NextResponse.json({ error: "Invalid component id" }, { status: 400 });
   }
+  if (APPEARANCE_ONLY_IDS.has(id)) {
+    return NextResponse.json({ error: "Component not found" }, { status: 404 });
+  }
 
   try {
     await connectDB();
@@ -62,7 +66,7 @@ export async function GET(req, { params }) {
       return NextResponse.json({ error: "Component not found" }, { status: 404 });
     }
 
-    const defaultPosition = id === "Header" ? "before" : "after";
+    const defaultPosition = "after";
     const defaultOrder = Math.max(0, SITE_COMPONENT_IDS.indexOf(id));
     const payload = {
       componentId: id,
@@ -90,6 +94,9 @@ export async function PUT(req, { params }) {
       { status: 400 },
     );
   }
+  if (APPEARANCE_ONLY_IDS.has(id)) {
+    return NextResponse.json({ error: "Component not found" }, { status: 404 });
+  }
 
   try {
     const body = await req.json();
@@ -110,7 +117,7 @@ export async function PUT(req, { params }) {
         displayName: id,
         global: false,
         order: SITE_COMPONENT_IDS.indexOf(id),
-        position: id === "Header" ? "before" : "after",
+        position: "after",
         enabled: typeof enabled === "boolean" ? enabled : true,
       });
     }
@@ -142,11 +149,8 @@ export async function DELETE(req, { params }) {
       { status: 400 },
     );
   }
-  if (id === "Header" || id === "Footer") {
-    return NextResponse.json(
-      { error: "Header and Footer cannot be deleted" },
-      { status: 400 },
-    );
+  if (APPEARANCE_ONLY_IDS.has(id)) {
+    return NextResponse.json({ error: "Component not found" }, { status: 404 });
   }
 
   try {

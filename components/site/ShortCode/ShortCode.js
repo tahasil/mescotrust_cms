@@ -20,8 +20,6 @@ import {
 } from "@/styles/Theme";
 
 const API_PATH_BY_COMPONENT_ID = {
-  Header: "/api/theme/header",
-  Footer: "/api/theme/footer",
   HomeHero: "/api/theme/home-hero",
   Marquee: "/api/theme/marquee",
   Subscribe: "/api/theme/subscribe",
