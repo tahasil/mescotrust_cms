@@ -138,7 +138,8 @@ export default function AppearanceFooter({
       </div>
       <style jsx global>{`
         .appearance-footer, .appearance-footer * { box-sizing: border-box; }
-        .appearance-footer { width: 100%; color: rgba(250,246,239,.82); background: #211e30 center/cover no-repeat; font-family: "Instrument Sans", system-ui, sans-serif; line-height: 1.6; }
+        .appearance-footer { width: 100%; color: rgba(250,246,239,.82); background: #211e30 center/cover no-repeat; font-family: "Instrument Sans", system-ui, sans-serif; font-synthesis: none; line-height: 1.6; }
+        .appearance-footer *, .appearance-footer *::before, .appearance-footer *::after { font-family: "Instrument Sans", system-ui, sans-serif; }
         .appearance-footer .footer-grid { width: 100%; max-width: 1400px; margin: 0 auto; padding: clamp(64px,7vw,96px) clamp(20px,4vw,48px); display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.4fr; gap: clamp(32px,3.6vw,64px); }
         .appearance-footer .footer-brand { display: flex; flex-direction: column; gap: 20px; align-items: flex-start; }
         .appearance-footer .footer-logo-link { display: inline-flex; text-decoration: none !important; }

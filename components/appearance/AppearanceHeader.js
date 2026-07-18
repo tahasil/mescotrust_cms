@@ -320,7 +320,8 @@ export default function AppearanceHeader(props) {
       </div>
       <style jsx global>{`
         .appearance-header, .appearance-header * { box-sizing: border-box; }
-        .appearance-header { position: relative; z-index: 100; font-family: "Instrument Sans", system-ui, sans-serif; }
+        .appearance-header { position: relative; z-index: 100; font-family: "Instrument Sans", system-ui, sans-serif; font-synthesis: none; }
+        .appearance-header *, .appearance-header *::before, .appearance-header *::after { font-family: "Instrument Sans", system-ui, sans-serif; }
         .appearance-header .current-mobile { display: none; }
         .appearance-header .appearance-nav { position: fixed; top: 14px; left: 0; right: 0; padding: 0 24px; z-index: 100; background: transparent; transition: top .3s; }
         .appearance-header.is-preview .appearance-nav { position: relative; top: auto; padding: 14px 18px; }

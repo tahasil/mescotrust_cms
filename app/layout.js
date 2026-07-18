@@ -194,6 +194,9 @@ function buildGoogleFontsUrl(fonts) {
   return `https://fonts.googleapis.com/css2?${families}&display=swap`;
 }
 
+const APPEARANCE_DESIGN_FONTS_URL =
+  "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap";
+
 function sanitizeInlineScript(value) {
   return String(value || "").replace(/<\/script/gi, "<\\/script");
 }
@@ -292,6 +295,9 @@ export default async function RootLayout({ children }) {
     <html lang={theme.defaultLocale} dir={dir} style={cssVars} data-header-layout={theme.headerLayout} data-card-style={theme.cardStyle} className={loaderEnabled ? "page-loading" : undefined}>
       <head>
         {theme.faviconUrl && <link rel="icon" href={theme.faviconUrl} />}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="stylesheet" href={APPEARANCE_DESIGN_FONTS_URL} />
         {googleFontsUrl && <link rel="stylesheet" href={googleFontsUrl} />}
         {safeCustomFontUrl && (
           <style
