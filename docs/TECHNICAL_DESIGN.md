@@ -111,13 +111,15 @@ Independent public-shell configuration. Initial records use `moduleKey: "header"
 |---|---|---|
 | `moduleKey` | String | Unique lowercase module identifier |
 | `displayName` | String | Admin-facing name |
-| `template` | String | Active design template (`mesco-fable`) |
+| `template` | String | Active design template (`appearance-default`) |
 | `defaultProps` | Mixed | Module-owned content and styling settings |
 | `layout` | Mixed | Reserved visual-layout data for future Appearance modules |
 | `active` | Boolean | Enables the module in the public shell |
 | `publishedAt` | Date | Last successful save/publish time |
 
 The collection is lazily initialized by `lib/appearance.js`. Appearance records never read from or write to legacy Header/Footer documents in the `components` collection.
+
+Appearance editor forms live in `components/appearance/AppearanceHeaderEditForm.js` and `AppearanceFooterEditForm.js`. They replace legacy Header/Footer drawer schemas only for the Appearance routes. The desktop Header retains the public search contract (`GET /api/public/search?q=...`) and the responsive legacy Header remains active at widths up to 992px. Header navigation is resolved from the selected `Menu` document so menu content and `openInNewTab` targets remain owned by the Menus module.
 
 ---
 

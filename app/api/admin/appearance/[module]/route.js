@@ -89,7 +89,10 @@ export async function PUT(req, { params }) {
     }
     if (typeof body?.active === "boolean") doc.active = body.active;
     if (Array.isArray(body?.layout)) doc.layout = body.layout;
-    doc.defaultProps = { ...(doc.defaultProps || {}), ...incomingProps };
+    doc.defaultProps =
+      body?.replaceDefaultProps === true
+        ? incomingProps
+        : { ...(doc.defaultProps || {}), ...incomingProps };
     doc.publishedAt = new Date();
     doc.markModified("defaultProps");
     doc.markModified("layout");

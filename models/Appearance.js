@@ -10,7 +10,7 @@ const appearanceSchema = new mongoose.Schema(
       trim: true,
     },
     displayName: { type: String, required: true, trim: true },
-    template: { type: String, default: "mesco-fable", trim: true },
+    template: { type: String, default: "appearance-default", trim: true },
     defaultProps: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
     layout: { type: mongoose.Schema.Types.Mixed, default: () => [] },
     active: { type: Boolean, default: true },

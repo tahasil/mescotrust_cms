@@ -211,6 +211,7 @@ export default function Header({
   headerAnnouncementPaddingX = 24,
   logoType = "text",
   logoUrl = "",
+  logoTarget = "_self",
   logoImageUrl = "",
   logoLightUrl = "",
   logoMobileUrl = "",
@@ -223,6 +224,7 @@ export default function Header({
   volunteerHref = "",
   volunteerHrefTarget = "_self",
   donateHref = "",
+  donateHrefTarget = "_self",
   volunteerIconUrl = "",
   volunteerIconUrlMobile,
   donateIconUrl = "",
@@ -268,9 +270,12 @@ export default function Header({
   const logoImage = logoLightUrl || logoImageUrl;
   const logoUrlMobile = logoMobileUrl || logoImage;
   const logoHref = String(logoUrl || "").trim();
+  const logoHrefTarget = logoTarget === "_blank" ? "_blank" : "_self";
   const volunteerHrefValue = String(volunteerHref || "").trim();
   const volunteerTarget =
     String(volunteerHrefTarget || "").trim() === "_blank" ? "_blank" : "_self";
+  const donateTarget =
+    String(donateHrefTarget || "").trim() === "_blank" ? "_blank" : "_self";
   const title = siteTitle ?? "";
   const volunteerIconMobile = volunteerIconUrlMobile ?? volunteerIconUrl;
   const volunteerIconDesktopSrc =
@@ -586,6 +591,8 @@ export default function Header({
             <Logo
               as={logoHref ? "a" : "span"}
               href={logoHref || undefined}
+              target={logoHref ? logoHrefTarget : undefined}
+              rel={logoHref && logoHrefTarget === "_blank" ? "noopener noreferrer" : undefined}
               onClick={closeMobile}
             >
               {logoType === "image" && logoImage ? (
@@ -706,6 +713,8 @@ export default function Header({
               {(donateLabel || donateHref) && donateHref && (
                 <BtnDonate
                   href={donateHref}
+                  target={donateTarget}
+                  rel={donateTarget === "_blank" ? "noopener noreferrer" : undefined}
                   $headerDonateBgValue={headerDonateBgValue}
                   $headerDonateTextValue={headerDonateTextValue}
                 >
@@ -749,6 +758,8 @@ export default function Header({
           <MobileMenuLogo
             as={logoHref ? "a" : "span"}
             href={logoHref || undefined}
+            target={logoHref ? logoHrefTarget : undefined}
+            rel={logoHref && logoHrefTarget === "_blank" ? "noopener noreferrer" : undefined}
             onClick={closeMobile}
           >
             {logoType === "image" && logoUrlMobile ? (
@@ -863,6 +874,8 @@ export default function Header({
           {(donateLabel || donateHref) && donateHref && (
             <MobileBtnDonate
               href={donateHref}
+              target={donateTarget}
+              rel={donateTarget === "_blank" ? "noopener noreferrer" : undefined}
               onClick={closeMobile}
               $headerDonateBgValue={headerDonateBgValue}
               $headerDonateTextValue={headerDonateTextValue}

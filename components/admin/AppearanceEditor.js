@@ -12,8 +12,8 @@ import {
 import { ThemeAdminCard } from "@/styles/Theme";
 import AppearanceHeader from "@/components/appearance/AppearanceHeader";
 import AppearanceFooter from "@/components/appearance/AppearanceFooter";
-import HeaderEditForm from "@/components/site/Header/EditForm";
-import FooterEditForm from "@/components/site/Footer/EditForm";
+import AppearanceHeaderEditForm from "@/components/appearance/AppearanceHeaderEditForm";
+import AppearanceFooterEditForm from "@/components/appearance/AppearanceFooterEditForm";
 
 function resolveThemeColor(theme, key) {
   const value = String(key || "").trim();
@@ -49,6 +49,7 @@ function headerPreviewProps(props, theme) {
     volunteerIconUrlMobile: props?.headerVolunteerIconUrlMobile || "",
     donateLabel: props?.headerDonateLabel || "",
     donateHref: props?.headerDonateHref || "",
+    donateHrefTarget: props?.headerDonateHrefTarget || "_self",
     donateIconUrl: props?.headerDonateIconUrl || "",
     headerAnnouncementTextColor: resolveThemeColor(
       theme,
@@ -212,7 +213,7 @@ export default function AppearanceEditor({ moduleKey }) {
         }
       >
         {normalizedModule === "header" ? (
-          <HeaderEditForm
+          <AppearanceHeaderEditForm
             ref={editFormRef}
             dataEndpoint={endpoint}
             themeColorOptions={themeColorOptions}
@@ -223,10 +224,9 @@ export default function AppearanceEditor({ moduleKey }) {
             onCancel={() => setDrawerOpen(false)}
           />
         ) : (
-          <FooterEditForm
+          <AppearanceFooterEditForm
             ref={editFormRef}
             dataEndpoint={endpoint}
-            appearanceMode
             themeColorOptions={themeColorOptions}
             onSuccess={async () => {
               await loadData();

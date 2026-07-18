@@ -33,7 +33,7 @@ A long settings page divided into clear sections. Scroll down to find each secti
 
 ## 2. Colours
 
-The named website palette mirrors the Mesco Fable design. Its core tokens are
+The named website palette mirrors the current website design. Its core tokens are
 Primary (`#E03C33`), Black (`#2A283E`), Cream (`#FBFAF7`), Surface
 (`#F2F0EA`), White (`#FFFFFF`), Dark (`#211E30`), and Border
 (`rgba(42, 40, 62, 0.14)`). Accent, muted, gradient, transparent, and image

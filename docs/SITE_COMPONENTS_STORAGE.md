@@ -24,6 +24,8 @@ GET `/api/theme` still returns the full theme (from `themeconfigs`) and **merges
 
 Appearance uses authenticated `GET/PUT /api/admin/appearance/header` and `GET/PUT /api/admin/appearance/footer`. `lib/layoutData.js` loads the published records directly for server rendering; `PublicShell` renders them immediately on the next request after a save.
 
+The Appearance drawers are design-specific rather than legacy component-schema forms. Header exposes logo, live menu selection, search, action buttons, and rendered colors. Footer exposes only brand/contact, two link columns, social links, legal links, and rendered colors/background. Configurable links store `target` as `_self` or `_blank`; menu links continue to use the existing `Menu.items[].openInNewTab` field managed under Admin → Menus.
+
 ## Metadata (all site components)
 
 - **sitecomponentmetas**: One doc per site component with `componentId`, `displayName`, `global`, `order`, `position`, `enabled`. Updated via PUT `/api/admin/site-components/[id]`.

@@ -98,6 +98,8 @@ export default async function SiteLayout({ children }) {
           appearanceHeaderProps.headerVolunteerIconUrlMobile || "",
         donateLabel: appearanceHeaderProps.headerDonateLabel || "",
         donateHref: appearanceHeaderProps.headerDonateHref || "",
+        donateHrefTarget:
+          appearanceHeaderProps.headerDonateHrefTarget || "_self",
         donateIconUrl: appearanceHeaderProps.headerDonateIconUrl || "",
         headerAnnouncementTextColor: resolveThemeColor(
           theme,

@@ -6,7 +6,6 @@ import {
   Button,
   Form,
   Input,
-  Switch,
   Space,
   message,
   Modal,
@@ -240,12 +239,18 @@ function SortableMenuItem({
                 />
               </Form.Item>
             )}
-            <Form.Item style={{ marginBottom: 0 }}>
+            <Form.Item label="Target" style={{ marginBottom: 0 }}>
               <Space wrap>
-                <Switch
-                  checked={item.openInNewTab}
-                  onChange={(v) => onUpdate({ ...item, openInNewTab: v })}
-                  checkedChildren="New tab"
+                <Select
+                  value={item.openInNewTab ? "_blank" : "_self"}
+                  onChange={(value) =>
+                    onUpdate({ ...item, openInNewTab: value === "_blank" })
+                  }
+                  style={{ minWidth: 180 }}
+                  options={[
+                    { value: "_self", label: "Same Tab (_self)" },
+                    { value: "_blank", label: "New Tab (_blank)" },
+                  ]}
                 />
                 {depth > 0 && onPromote && (
                   <Button
