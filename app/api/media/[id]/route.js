@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import path from "path";
-import { readFile } from "fs/promises";
+import { createReadStream } from "fs";
+import { readFile, stat } from "fs/promises";
+import { Readable } from "stream";
 import { connectDB } from "@/lib/db";
 import Media from "@/models/Media";
 import { getStorageAdapter } from "@/lib/storage";
@@ -181,7 +183,7 @@ async function tryServeRequestedFormatResponse(media, size, format, req) {
   }
 }
 
-async function tryServeFromLocalStorage(media, selectedUrl) {
+async function tryServeFromLocalStorage(media, selectedUrl, req) {
   if (String(media?.storageProvider || "local").toLowerCase() !== "local") return null;
 
   const storageKey = toStorageKey(selectedUrl);
@@ -192,13 +194,42 @@ async function tryServeFromLocalStorage(media, selectedUrl) {
 
   const absolutePath = adapter.toAbsolutePath(storageKey);
   try {
-    const fileBuffer = await readFile(absolutePath);
-    return new NextResponse(fileBuffer, {
+    const fileSize = (await stat(absolutePath)).size;
+    const contentType = resolveContentType(storageKey, media?.mimeType);
+    const rangeHeader = String(req?.headers?.get("range") || "").trim();
+    const rangeMatch = rangeHeader.match(/^bytes=(\d*)-(\d*)$/i);
+    const headers = {
+      "Content-Type": contentType,
+      "Cache-Control": "public, max-age=31536000, immutable",
+      "Accept-Ranges": "bytes",
+    };
+
+    if (contentType.startsWith("video/") && rangeMatch) {
+      const start = rangeMatch[1] ? Number(rangeMatch[1]) : 0;
+      const requestedEnd = rangeMatch[2] ? Number(rangeMatch[2]) : fileSize - 1;
+      const end = Math.min(requestedEnd, fileSize - 1);
+      if (!Number.isInteger(start) || start < 0 || start >= fileSize || end < start) {
+        return new NextResponse(null, {
+          status: 416,
+          headers: { ...headers, "Content-Range": `bytes */${fileSize}` },
+        });
+      }
+      const contentLength = end - start + 1;
+      const stream = Readable.toWeb(createReadStream(absolutePath, { start, end }));
+      return new NextResponse(stream, {
+        status: 206,
+        headers: {
+          ...headers,
+          "Content-Length": String(contentLength),
+          "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+        },
+      });
+    }
+
+    const stream = Readable.toWeb(createReadStream(absolutePath));
+    return new NextResponse(stream, {
       status: 200,
-      headers: {
-        "Content-Type": resolveContentType(storageKey, media?.mimeType),
-        "Cache-Control": "public, max-age=31536000, immutable",
-      },
+      headers: { ...headers, "Content-Length": String(fileSize) },
     });
   } catch {
     return null;
@@ -232,7 +263,7 @@ export async function GET(req, { params }) {
     const url = pickVariantUrl(media, size, format);
     if (!url) return NextResponse.json({ error: "No media file found" }, { status: 404 });
 
-    const localFileResponse = await tryServeFromLocalStorage(media, url);
+    const localFileResponse = await tryServeFromLocalStorage(media, url, req);
     if (localFileResponse) return localFileResponse;
 
     const target = url.startsWith("http")

@@ -83,8 +83,10 @@ export default function HomeSlider(props) {
 
   useEffect(() => {
     const videos = rootRef.current?.querySelectorAll("video[data-home-slider-video]") || [];
-    videos.forEach((video, index) => {
-      if (index === current) {
+    videos.forEach((video) => {
+      const slideIndex = Number(video.dataset.slideIndex);
+      if (slideIndex === current) {
+        video.muted = true;
         video.play?.().catch(() => {});
       } else {
         video.pause?.();
@@ -155,13 +157,20 @@ export default function HomeSlider(props) {
               {mediaType === "video" && slide.videoUrl ? (
                 <video
                   data-home-slider-video
+                  data-slide-index={index}
                   className="home-slider-media"
                   src={slide.videoUrl}
                   poster={slide.videoPoster || slide.image || undefined}
+                  autoPlay={isActive}
                   muted
                   loop
                   playsInline
                   preload={isActive ? "auto" : "metadata"}
+                  onCanPlay={(event) => {
+                    if (index !== currentRef.current) return;
+                    event.currentTarget.muted = true;
+                    event.currentTarget.play?.().catch(() => {});
+                  }}
                   aria-label={slide.alt || ""}
                   style={{ objectPosition: slide.backgroundPosition || "center center" }}
                 />
