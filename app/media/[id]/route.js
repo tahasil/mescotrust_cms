@@ -16,6 +16,8 @@ const MIME_BY_EXT = {
   ".gif": "image/gif",
   ".svg": "image/svg+xml",
   ".pdf": "application/pdf",
+  ".mp4": "video/mp4",
+  ".webm": "video/webm",
 };
 
 function getSharpOrNull() {

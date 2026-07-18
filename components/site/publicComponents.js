@@ -3,6 +3,7 @@
 export { default as Header } from "./Header/Header";
 export { default as Footer } from "./Footer/Footer";
 export { default as HomeHero } from "./HomeHero/HomeHero";
+export { default as HomeSlider } from "./HomeSlider/HomeSlider";
 export { default as Marquee } from "./Marquee/Marquee";
 export { default as Subscribe } from "./Subscribe/Subscribe";
 export { default as Cards1 } from "./Cards1/Cards1";

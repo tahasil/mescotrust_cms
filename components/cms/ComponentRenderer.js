@@ -147,10 +147,10 @@ function normalizePropsForOverviewOfOurWork(props) {
 }
 
 /** Site components that must not be wrapped in PageContainer so their background can be full viewport width. */
-const FULL_BLEED_SITE_COMPONENTS = ["HomeHero", "HomeHero2", "Marquee", "Subscribe"];
+const FULL_BLEED_SITE_COMPONENTS = ["HomeHero", "HomeSlider", "HomeHero2", "Marquee", "Subscribe"];
 
 /** Components that should NOT get the FadeInSection scroll animation. */
-const NO_FADE_COMPONENTS = ["Header", "Footer", "HomeHero"];
+const NO_FADE_COMPONENTS = ["Header", "Footer", "HomeHero", "HomeSlider"];
 
 function extractSectionProps(props) {
   const section = {};

@@ -855,7 +855,7 @@ export default function AdminMediaLibrary() {
         </div>
         <Dragger
           multiple
-          accept=".jpg,.jpeg,.png,.webp,.avif,.gif,.svg,.pdf"
+          accept=".jpg,.jpeg,.png,.webp,.avif,.gif,.svg,.pdf,.mp4,.webm"
           customRequest={uploadRequest}
           fileList={uploadFileList}
           onChange={({ fileList }) => setUploadFileList(fileList.slice(-80))}

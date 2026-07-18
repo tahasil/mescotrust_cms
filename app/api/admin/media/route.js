@@ -60,7 +60,8 @@ export async function GET(req) {
     }
     if (status) filter.status = status;
     if (type === "image") filter.mimeType = { $regex: "^image/" };
-    if (type === "document") filter.mimeType = { $not: /^image\// };
+    if (type === "video") filter.mimeType = { $regex: "^video/" };
+    if (type === "document") filter.mimeType = "application/pdf";
     if (month) {
       const match = month.match(/^(\d{4})-(\d{2})$/);
       if (!match) {
@@ -158,7 +159,7 @@ export async function POST(req) {
         {
           error: `Unsupported file type${
             mimeType ? `: ${mimeType}` : ""
-          }. Allowed: JPG, JPEG, PNG, WEBP, AVIF, GIF, SVG, PDF.`,
+          }. Allowed: JPG, JPEG, PNG, WEBP, AVIF, GIF, SVG, PDF, MP4, WEBM.`,
         },
         { status: 400 },
       );

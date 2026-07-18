@@ -24,7 +24,7 @@ const API_PATH_BY_COMPONENT_ID = {
   Marquee: "/api/theme/marquee",
   Subscribe: "/api/theme/subscribe",
 };
-const PASSTHROUGH_COMPONENT_SHORTCODES = new Set(["Testimonials"]);
+const PASSTHROUGH_COMPONENT_SHORTCODES = new Set(["Testimonials", "HomeSlider"]);
 
 function sanitizePayload(data) {
   if (!data || typeof data !== "object") return {};

@@ -12,6 +12,7 @@ const EXCLUDED_COMPONENT_IDS = new Set([
   "ImageSlider",
   "StoriesSlider",
   "EventsSlider",
+  "HomeSlider",
   "CommitteeMembers",
 ]);
 const COMPONENTS_LIST_CACHE_KEY = "admin-components-list-cache-v1";

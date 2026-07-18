@@ -6,6 +6,7 @@
 export { default as Header, HeaderEditForm } from "./Header";
 export { default as Footer, FooterEditForm } from "./Footer/index";
 export { default as HomeHero, HomeHeroEditForm } from "./HomeHero/index";
+export { default as HomeSlider, HomeSliderEditForm } from "./HomeSlider/index";
 export { default as Marquee, MarqueeEditForm } from "./Marquee/index";
 export { default as Subscribe, SubscribeEditForm } from "./Subscribe/index";
 export { default as ShortCode, ShortCodeEditForm } from "./ShortCode/index";
@@ -94,6 +95,7 @@ import NoticesEditForm from "./Notices/EditForm";
 import VideoPlayingEditForm from "./VideoPlaying/EditForm";
 import WelcometoMESCOEditForm from "./WelcometoMESCO/EditForm";
 import HomeHero2EditForm from "./HomeHero2/EditForm";
+import HomeSliderEditForm from "./HomeSlider/EditForm";
 import OverviewOfOurWorkEditForm from "./OverviewOfOurWork/EditForm";
 import TestimonialsEditForm from "./Testimonials/EditForm";
 import LatestEvents1EditForm from "./LatestEvents1/EditForm";
@@ -110,6 +112,7 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   Header: HeaderEditForm,
   Footer: FooterEditForm,
   HomeHero: HomeHeroEditForm,
+  HomeSlider: HomeSliderEditForm,
   Marquee: MarqueeEditForm,
   Subscribe: SubscribeEditForm,
   Cards1: Cards1EditForm,

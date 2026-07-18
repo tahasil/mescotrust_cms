@@ -79,6 +79,7 @@ import {
   MANAGE_SECTION_PREFIX_BY_COMPONENT_ID,
 } from "@/lib/manageSectionFields";
 import { getDefaultTitleAndColorsProps } from "@/lib/titleAndColorsConfig";
+import { HOME_SLIDER_DEFAULT_PROPS } from "@/components/site/HomeSlider/defaults";
 
 /** Site components that have full edit flow in page builder. Header/Footer excluded. */
 const EDITABLE_SITE_COMPONENTS = SITE_COMPONENT_IDS.filter(
@@ -189,6 +190,12 @@ function getDefaultPropsForNewSiteComponent(componentId) {
         homeHeroShowDots: true,
         homeHeroAutoplaySpeed: 5000,
         homeHeroSpeed: 500,
+      };
+    case "HomeSlider":
+      return {
+        ...base,
+        ...HOME_SLIDER_DEFAULT_PROPS,
+        homeSliderSlides: HOME_SLIDER_DEFAULT_PROPS.homeSliderSlides.map((slide) => ({ ...slide })),
       };
     case "Marquee":
       return { ...base, marqueeItems: [], marqueeTitle: "" };

@@ -79,8 +79,11 @@ export default function MediaPickerInput({
   mediaType = "image",
 }) {
   const normalizedMediaType =
-    mediaType === "document" || mediaType === "all" ? mediaType : "image";
+    mediaType === "document" || mediaType === "video" || mediaType === "all"
+      ? mediaType
+      : "image";
   const isDocumentMode = normalizedMediaType === "document";
+  const isVideoMode = normalizedMediaType === "video";
   const parsed = useMemo(() => parseMediaValue(value), [value]);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -246,7 +249,11 @@ export default function MediaPickerInput({
 
       onSuccess?.(data);
       message.success(
-        normalizedMediaType === "document" ? "Document uploaded" : "Image uploaded",
+        normalizedMediaType === "document"
+          ? "Document uploaded"
+          : normalizedMediaType === "video"
+            ? "Video uploaded"
+            : "Image uploaded",
       );
       setPage(1);
       fetchLibrary(1);
@@ -278,11 +285,17 @@ export default function MediaPickerInput({
   const isStacked = uiVariant === "stacked";
   const activeMediaMimeType = String(activeMedia?.mimeType || "").toLowerCase();
   const activeMediaIsImage = activeMediaMimeType.startsWith("image/");
+  const activeMediaIsVideo = activeMediaMimeType.startsWith("video/");
   const previewLooksPdf = /\.pdf(?:[?#].*)?$/i.test(String(previewSrc || ""));
   const canShowImagePreview =
     Boolean(previewSrc) &&
     !isDocumentMode &&
+    !isVideoMode &&
     (activeMedia ? activeMediaIsImage : !previewLooksPdf);
+  const canShowVideoPreview =
+    Boolean(previewSrc) &&
+    isVideoMode &&
+    (activeMedia ? activeMediaIsVideo : /\.(mp4|webm)(?:[?#].*)?$/i.test(previewSrc));
   const documentPreviewName =
     activeMedia?.originalName ||
     activeMedia?.title ||
@@ -291,8 +304,10 @@ export default function MediaPickerInput({
   const uploadAccept =
     normalizedMediaType === "document"
       ? ".pdf,application/pdf"
+      : normalizedMediaType === "video"
+        ? ".mp4,.webm,video/mp4,video/webm"
       : normalizedMediaType === "all"
-        ? "image/*,.svg,.pdf,application/pdf"
+        ? "image/*,.svg,.pdf,.mp4,.webm,application/pdf,video/mp4,video/webm"
         : "image/*,.svg";
 
   return (
@@ -324,6 +339,14 @@ export default function MediaPickerInput({
                   background: "#fff",
                 }}
               />
+            ) : canShowVideoPreview ? (
+              <video
+                src={previewSrc}
+                controls
+                muted
+                preload="metadata"
+                style={{ width: "100%", maxHeight: 180, borderRadius: 6, background: "#111" }}
+              />
             ) : previewSrc ? (
               <div
                 style={{
@@ -352,7 +375,7 @@ export default function MediaPickerInput({
             ) : (
               <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description="No image selected"
+                description={isVideoMode ? "No video selected" : "No image selected"}
                 style={{ margin: 0 }}
               />
             )}
@@ -470,6 +493,14 @@ export default function MediaPickerInput({
                     background: "#fff",
                   }}
                 />
+              ) : canShowVideoPreview ? (
+                <video
+                  src={previewSrc}
+                  controls
+                  muted
+                  preload="metadata"
+                  style={{ width: "100%", maxHeight: 110, borderRadius: 6, background: "#111" }}
+                />
               ) : (
                 <div
                   style={{
@@ -492,7 +523,7 @@ export default function MediaPickerInput({
                   type="secondary"
                   style={{ fontSize: 12, marginTop: 6, display: "block" }}
                 >
-                  {activeMedia.originalName || activeMedia.title || "Selected image"}
+                  {activeMedia.originalName || activeMedia.title || (isVideoMode ? "Selected video" : "Selected image")}
                 </Typography.Text>
               ) : null}
             </div>
@@ -532,7 +563,11 @@ export default function MediaPickerInput({
             disabled={uploading}
           >
             <Button icon={<UploadOutlined />} loading={uploading} type="primary">
-              {normalizedMediaType === "document" ? "Upload document" : "Upload image"}
+              {normalizedMediaType === "document"
+                ? "Upload document"
+                : normalizedMediaType === "video"
+                  ? "Upload video"
+                  : "Upload image"}
             </Button>
           </Upload>
         </div>
@@ -544,7 +579,11 @@ export default function MediaPickerInput({
         ) : items.length === 0 ? (
           <Empty
             description={
-              normalizedMediaType === "document" ? "No documents found" : "No images found"
+              normalizedMediaType === "document"
+                ? "No documents found"
+                : normalizedMediaType === "video"
+                  ? "No videos found"
+                  : "No images found"
             }
           />
         ) : (
@@ -559,6 +598,7 @@ export default function MediaPickerInput({
               {items.map((item) => {
                 const itemMimeType = String(item?.mimeType || "").toLowerCase();
                 const itemIsImage = itemMimeType.startsWith("image/");
+                const itemIsVideo = itemMimeType.startsWith("video/");
                 const thumb = itemIsImage ? getImagePreview(item) : "";
                 const isActive = String(item?._id || "") === mediaId;
                 return (
@@ -591,6 +631,13 @@ export default function MediaPickerInput({
                         <img
                           src={thumb}
                           alt={item.originalName || item.title || "media"}
+                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        />
+                      ) : itemIsVideo ? (
+                        <video
+                          src={getImagePreview(item)}
+                          muted
+                          preload="metadata"
                           style={{ width: "100%", height: "100%", objectFit: "cover" }}
                         />
                       ) : (

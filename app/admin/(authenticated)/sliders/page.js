@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Button, Table, Tag, message } from "antd";
+import { Button, Switch, Table, Tag, message } from "antd";
 import { EditOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { ThemeAdminCard } from "@/styles/Theme";
 
-const SLIDER_COMPONENT_IDS = ["ImageSlider", "StoriesSlider", "EventsSlider"];
+const SLIDER_COMPONENT_IDS = ["HomeSlider", "ImageSlider", "StoriesSlider", "EventsSlider"];
 
 const SLIDER_LABELS = {
+  HomeSlider: "Home Slider",
   ImageSlider: "Circular Slider",
   StoriesSlider: "Stories Slider",
   EventsSlider: "Events Slider",
@@ -17,6 +18,31 @@ const SLIDER_LABELS = {
 export default function AdminSlidersPage() {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState("");
+
+  const updateSliderStatus = async (record, enabled) => {
+    setUpdatingId(record.componentId);
+    try {
+      const response = await fetch(
+        `/api/admin/site-components/${encodeURIComponent(record.componentId)}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ enabled }),
+        },
+      );
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data?.error || "Failed to update slider status");
+      setList((current) => current.map((item) =>
+        item.componentId === record.componentId ? { ...item, enabled } : item,
+      ));
+      message.success(`${record.displayName} ${enabled ? "enabled" : "disabled"}`);
+    } catch (error) {
+      message.error(error?.message || "Failed to update slider status");
+    } finally {
+      setUpdatingId("");
+    }
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -65,10 +91,18 @@ export default function AdminSlidersPage() {
       dataIndex: "enabled",
       key: "enabled",
       width: 120,
-      render: (enabled) => (
-        <Tag color={enabled ? "green" : "default"}>
-          {enabled ? "Enabled" : "Disabled"}
-        </Tag>
+      render: (enabled, record) => (
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+          <Switch
+            size="small"
+            checked={enabled}
+            loading={updatingId === record.componentId}
+            onChange={(checked) => updateSliderStatus(record, checked)}
+          />
+          <Tag color={enabled ? "green" : "default"}>
+            {enabled ? "Enabled" : "Disabled"}
+          </Tag>
+        </span>
       ),
     },
     {

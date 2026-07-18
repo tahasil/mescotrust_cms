@@ -53,6 +53,9 @@ export async function GET(req) {
       if (id === "ImageSlider" && (!displayName || displayName === "ImageSlider")) {
         displayName = "Circular Slider";
       }
+      if (id === "HomeSlider" && (!displayName || displayName === "HomeSlider")) {
+        displayName = "Home Slider";
+      }
       if (id === "FormEmbed" && (!displayName || displayName === "FormEmbed")) {
         displayName = "Form Embed";
       }

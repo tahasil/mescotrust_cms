@@ -52,7 +52,7 @@ export async function POST(req, { params }) {
     const mimeType = rawMimeType || UPLOAD_MIME_BY_EXT[ext] || "";
     if (!ALLOWED_UPLOAD_MIME_TYPES.includes(mimeType)) {
       return NextResponse.json(
-        { error: "Unsupported file type. Allowed: JPG, JPEG, PNG, WEBP, AVIF, GIF, SVG, PDF." },
+        { error: "Unsupported file type. Allowed: JPG, JPEG, PNG, WEBP, AVIF, GIF, SVG, PDF, MP4, WEBM." },
         { status: 400 },
       );
     }
