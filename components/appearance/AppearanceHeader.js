@@ -270,6 +270,7 @@ export default function AppearanceHeader(props) {
           {...props}
           logoTarget={logoTarget}
           donateHrefTarget={donateHrefTarget}
+          appearanceResponsive
         />
       </div>
       <div
@@ -320,8 +321,8 @@ export default function AppearanceHeader(props) {
       </div>
       <style jsx global>{`
         .appearance-header, .appearance-header * { box-sizing: border-box; }
-        .appearance-header { position: relative; z-index: 100; font-family: "Instrument Sans", system-ui, sans-serif; font-synthesis: none; }
-        .appearance-header *, .appearance-header *::before, .appearance-header *::after { font-family: "Instrument Sans", system-ui, sans-serif; }
+        .appearance-header { --appearance-font-body: "Instrument Sans", system-ui, sans-serif; --appearance-font-display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif; position: relative; z-index: 100; font-family: var(--appearance-font-body); font-synthesis: none; -webkit-font-smoothing: antialiased; }
+        .appearance-header *, .appearance-header *::before, .appearance-header *::after { font-family: var(--appearance-font-body); }
         .appearance-header .current-mobile { display: none; }
         .appearance-header .appearance-nav { position: fixed; top: 14px; left: 0; right: 0; padding: 0 24px; z-index: 100; background: transparent; transition: top .3s; }
         .appearance-header.is-preview .appearance-nav { position: relative; top: auto; padding: 14px 18px; }
@@ -366,13 +367,33 @@ export default function AppearanceHeader(props) {
         .appearance-header .appearance-search-result-type { display: block; margin-bottom: 4px; color: #8c1c13; -webkit-text-fill-color: #8c1c13; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
         .appearance-header .appearance-search-result-title { display: block; font-size: 15.5px; font-weight: 600; line-height: 1.35; }
         .appearance-header .appearance-search-result-meta { display: block; margin-top: 4px; color: rgba(42,40,62,.65); -webkit-text-fill-color: rgba(42,40,62,.65); font-size: 13px; }
-        @media (max-width: 992px) {
+        @media (max-width: 1023px) {
           .appearance-header .appearance-desktop { display: none; }
           .appearance-header .current-mobile { display: block; }
+          .appearance-header .current-mobile .site-header-shell { position: fixed !important; top: 14px !important; left: 0 !important; right: 0 !important; width: 100% !important; padding: 0 12px !important; background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; }
+          .appearance-header.is-preview .current-mobile .site-header-shell { position: relative !important; top: auto !important; padding: 12px !important; }
+          .appearance-header .current-mobile .site-header-content { width: 100% !important; padding: 0 !important; }
+          .appearance-header .current-mobile .site-header-main { width: 100% !important; max-width: 1240px !important; height: 64px !important; margin: 0 auto !important; padding: 0 10px 0 14px !important; display: flex !important; align-items: center !important; justify-content: flex-start !important; gap: 12px !important; background: ${headerBgValue || "rgba(27,24,38,.72)"} !important; border: 1px solid rgba(255,255,255,.14) !important; border-radius: 999px !important; backdrop-filter: blur(18px) !important; -webkit-backdrop-filter: blur(18px) !important; box-shadow: 0 18px 50px rgba(15,12,26,.35) !important; }
+          .appearance-header .current-mobile .site-header-shell.is-scrolled .site-header-main { background: rgba(27,24,38,.92) !important; }
+          .appearance-header .current-mobile .site-header-logo { flex: 0 0 auto !important; display: inline-flex !important; align-items: center !important; }
+          .appearance-header .current-mobile .site-header-logo img { display: block !important; width: auto !important; height: 38px !important; max-width: 112px !important; object-fit: contain !important; background: #fbfaf7 !important; border-radius: 999px !important; padding: 4px 8px !important; }
+          .appearance-header .current-mobile .site-header-nav { display: none !important; }
+          .appearance-header .current-mobile .site-header-actions { display: flex !important; align-items: center !important; gap: 0 !important; margin-left: auto !important; }
+          .appearance-header .current-mobile .site-header-search,
+          .appearance-header .current-mobile .site-header-volunteer { display: none !important; }
+          .appearance-header .current-mobile .site-header-donate { display: none !important; }
+          .appearance-header .current-mobile .site-header-hamburger { display: flex !important; flex: 0 0 44px !important; width: 44px !important; height: 44px !important; padding: 0 !important; color: #faf6ef !important; background: transparent !important; border: 0 !important; border-radius: 0 !important; }
+          .appearance-header .current-mobile .site-header-hamburger:hover { background: transparent !important; }
+          .appearance-header .current-mobile .site-mobile-overlay,
+          .appearance-header .current-mobile .site-mobile-menu { display: block !important; }
+          .appearance-header .current-mobile .site-mobile-menu nav,
+          .appearance-header .current-mobile .site-mobile-menu nav * { font-family: var(--appearance-font-display); }
+          .appearance-header .current-mobile .site-mobile-menu > div:last-child,
+          .appearance-header .current-mobile .site-mobile-menu > div:last-child * { font-family: var(--appearance-font-body); }
           .appearance-header .appearance-search-overlay { padding-top: 72px; }
           .appearance-header .appearance-search-panel { max-height: calc(100vh - 96px); border-radius: 14px; }
         }
-        @media (min-width: 993px) {
+        @media (min-width: 1024px) {
           .appearance-header .appearance-desktop { display: block; }
           .appearance-header .current-mobile { display: none; }
         }

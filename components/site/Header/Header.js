@@ -144,6 +144,21 @@ const MenuIcon = () => (
   </svg>
 );
 
+const CompactMenuIcon = () => (
+  <svg
+    width="26"
+    height="18"
+    viewBox="0 0 26 18"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    aria-hidden="true"
+  >
+    <path d="M1 5h24M1 13h24" />
+  </svg>
+);
+
 const ChevronDown = () => (
   <svg
     width="12"
@@ -240,6 +255,7 @@ export default function Header({
   sectionBorderStyle = "",
   sectionBorderColor = "",
   sectionShadow = "",
+  appearanceResponsive = false,
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openAccordion, setOpenAccordion] = useState(null);
@@ -557,7 +573,7 @@ export default function Header({
         $sectionBorderStyle={sectionBorderStyle}
         $sectionBorderColor={sectionBorderColor}
         $sectionShadow={sectionShadow}
-        className={scrolled && !preview ? "is-scrolled" : ""}
+        className={`site-header-shell${scrolled && !preview ? " is-scrolled" : ""}`}
       >
         {hasAnnouncementBar && (
           <AnnouncementBar
@@ -586,9 +602,10 @@ export default function Header({
             </AnnouncementTrack>
           </AnnouncementBar>
         )}
-        <HeaderContent $sectionPadding={sectionPadding}>
-          <HeaderMainWrapper>
+        <HeaderContent className="site-header-content" $sectionPadding={sectionPadding}>
+          <HeaderMainWrapper className="site-header-main">
             <Logo
+              className="site-header-logo"
               as={logoHref ? "a" : "span"}
               href={logoHref || undefined}
               target={logoHref ? logoHrefTarget : undefined}
@@ -609,7 +626,7 @@ export default function Header({
               )}
             </Logo>
 
-            <Nav>
+            <Nav className="site-header-nav">
               {items.map((item) => (
                 <NavItem key={item.label}>
                   {item.submenu ? (
@@ -680,9 +697,10 @@ export default function Header({
               ))}
             </Nav>
 
-            <Actions>
+            <Actions className="site-header-actions">
               {hasSearchAction && (
                 <SearchBtn
+                  className="site-header-search"
                   type="button"
                   onClick={() => setSearchOpen(true)}
                   aria-label={headerSearchOpenAriaLabel || headerSearchLabel}
@@ -693,6 +711,7 @@ export default function Header({
               )}
               {hasVolunteerAction && (
                 <BtnVolunteer
+                  className="site-header-volunteer"
                   href={volunteerHrefValue}
                   target={volunteerTarget}
                   rel={volunteerTarget === "_blank" ? "noopener noreferrer" : undefined}
@@ -712,6 +731,7 @@ export default function Header({
               )}
               {(donateLabel || donateHref) && donateHref && (
                 <BtnDonate
+                  className="site-header-donate"
                   href={donateHref}
                   target={donateTarget}
                   rel={donateTarget === "_blank" ? "noopener noreferrer" : undefined}
@@ -732,24 +752,27 @@ export default function Header({
             </Actions>
 
             <HamburgerBtn
+              className="site-header-hamburger"
               type="button"
               aria-label="Toggle menu"
               aria-expanded={mobileOpen}
               onClick={() => setMobileOpen((o) => !o)}
             >
-              {mobileOpen ? <CloseIcon /> : <MenuIcon />}
+              {mobileOpen ? <CloseIcon /> : appearanceResponsive ? <CompactMenuIcon /> : <MenuIcon />}
             </HamburgerBtn>
           </HeaderMainWrapper>
         </HeaderContent>
       </HeaderWrapper>
 
       <MobileOverlay
+        className="site-mobile-overlay"
         $open={mobileOpen}
         $preview={preview}
         onClick={closeMobile}
         aria-hidden="true"
       />
       <MobileMenu
+        className="site-mobile-menu"
         $open={mobileOpen}
         $preview={preview}
         $headerBgValue={headerBgValue}
