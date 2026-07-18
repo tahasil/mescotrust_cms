@@ -123,7 +123,7 @@ function buildThemeColorOptions(theme = {}) {
 function getShortcodeSnippet(shortcode) {
   const value = String(shortcode || "").trim();
   if (!value) return "";
-  return `[form shortcode="${value}"]`;
+  return `[shortcode="${value}"]`;
 }
 
 function createId() {
@@ -151,6 +151,12 @@ function normalizeSubmissionSettings(input) {
   const source = input && typeof input === "object" ? input : {};
   const submitButtonAlignment = String(source.submitButtonAlignment || "").trim().toLowerCase();
   const captchaType = String(source.captchaType || "").trim().toLowerCase();
+  const normalizedRecaptchaSiteKey = String(
+    source.recaptchaSiteKey || source.siteKey || source.googleRecaptchaSiteKey || "",
+  ).trim();
+  const normalizedRecaptchaSecretKey = String(
+    source.recaptchaSecretKey || source.secretKey || source.googleRecaptchaSecretKey || "",
+  ).trim();
   const normalizedSubmitButtonAlignment =
     submitButtonAlignment === "center" ||
     submitButtonAlignment === "right" ||
@@ -180,6 +186,8 @@ function normalizeSubmissionSettings(input) {
         ? DEFAULT_SUBMISSION_SETTINGS.captchaEnabled
         : Boolean(source.captchaEnabled),
     captchaType: normalizedCaptchaType,
+    recaptchaSiteKey: normalizedRecaptchaSiteKey,
+    recaptchaSecretKey: normalizedRecaptchaSecretKey,
   };
 }
 
@@ -455,6 +463,17 @@ export default function FormBuilderEditorPage() {
       String(successMessage || "").trim() || FORM_SUCCESS_MESSAGE_DEFAULT;
     const nextSubmissionSettings = normalizeSubmissionSettings(submissionSettings);
     const nextStyleSettings = normalizeStyleSettings(styleSettings);
+    const requiresGoogleRecaptchaKeys =
+      nextSubmissionSettings.captchaEnabled &&
+      nextSubmissionSettings.captchaType === "checkbox_v2";
+    if (requiresGoogleRecaptchaKeys && !nextSubmissionSettings.recaptchaSiteKey) {
+      message.error("Google reCAPTCHA Site Key is required");
+      return;
+    }
+    if (requiresGoogleRecaptchaKeys && !nextSubmissionSettings.recaptchaSecretKey) {
+      message.error("Google reCAPTCHA Secret Key is required");
+      return;
+    }
     const nameChanged = nextName !== initialRef.current.name;
     const submitLabelChanged = nextSubmitLabel !== initialRef.current.submitLabel;
     const successMessageChanged = nextSuccessMessage !== initialRef.current.successMessage;
@@ -1358,33 +1377,72 @@ export default function FormBuilderEditorPage() {
               />
 
               {submissionSettings?.captchaEnabled ? (
-                <List
-                  size="small"
-                  bordered
-                  split
-                  dataSource={[{ key: "captchaType", label: "Captcha Type" }]}
-                  renderItem={(item) => (
-                    <List.Item
-                      actions={[
-                        <Select
-                          key={item.key}
-                          size="small"
-                          style={{ width: 220 }}
-                          value={submissionSettings?.captchaType || "alphanumeric"}
-                          options={CAPTCHA_TYPE_OPTIONS}
-                          onChange={(value) =>
-                            setSubmissionSettings((prev) => ({
-                              ...normalizeSubmissionSettings(prev),
-                              captchaType: value,
-                            }))
-                          }
-                        />,
-                      ]}
-                    >
-                      <Typography.Text type="secondary">{item.label}</Typography.Text>
-                    </List.Item>
-                  )}
-                />
+                <Space direction="vertical" size={12} style={{ width: "100%" }}>
+                  <List
+                    size="small"
+                    bordered
+                    split
+                    dataSource={[{ key: "captchaType", label: "Captcha Type" }]}
+                    renderItem={(item) => (
+                      <List.Item
+                        actions={[
+                          <Select
+                            key={item.key}
+                            size="small"
+                            style={{ width: 220 }}
+                            value={submissionSettings?.captchaType || "alphanumeric"}
+                            options={CAPTCHA_TYPE_OPTIONS}
+                            onChange={(value) =>
+                              setSubmissionSettings((prev) => ({
+                                ...normalizeSubmissionSettings(prev),
+                                captchaType: value,
+                              }))
+                            }
+                          />,
+                        ]}
+                      >
+                        <Typography.Text type="secondary">{item.label}</Typography.Text>
+                      </List.Item>
+                    )}
+                  />
+
+                  {submissionSettings?.captchaType === "checkbox_v2" ? (
+                    <Card size="small">
+                      <Space direction="vertical" size={10} style={{ width: "100%" }}>
+                        <Space direction="vertical" size={4} style={{ width: "100%" }}>
+                          <Typography.Text type="secondary">Site Key</Typography.Text>
+                          <Input
+                            size="small"
+                            value={submissionSettings?.recaptchaSiteKey || ""}
+                            placeholder="Required"
+                            onChange={(event) =>
+                              setSubmissionSettings((prev) => ({
+                                ...normalizeSubmissionSettings(prev),
+                                recaptchaSiteKey: event?.target?.value ?? "",
+                              }))
+                            }
+                          />
+                        </Space>
+
+                        <Space direction="vertical" size={4} style={{ width: "100%" }}>
+                          <Typography.Text type="secondary">Secret Key</Typography.Text>
+                          <Input.Password
+                            size="small"
+                            value={submissionSettings?.recaptchaSecretKey || ""}
+                            placeholder="Required"
+                            autoComplete="new-password"
+                            onChange={(event) =>
+                              setSubmissionSettings((prev) => ({
+                                ...normalizeSubmissionSettings(prev),
+                                recaptchaSecretKey: event?.target?.value ?? "",
+                              }))
+                            }
+                          />
+                        </Space>
+                      </Space>
+                    </Card>
+                  ) : null}
+                </Space>
               ) : null}
             </Space>
           </Card>

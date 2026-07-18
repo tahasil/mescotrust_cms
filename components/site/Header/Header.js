@@ -3,7 +3,14 @@
 import { useState, useEffect, useRef, Fragment } from "react";
 import {
   HeaderWrapper,
+  HeaderContent,
   HeaderMainWrapper,
+  AnnouncementBar,
+  AnnouncementTrack,
+  AnnouncementSequence,
+  AnnouncementItemText,
+  AnnouncementItemLink,
+  AnnouncementDivider,
   Logo,
   Nav,
   NavItem,
@@ -190,6 +197,18 @@ export default function Header({
   headerSearchResultTypeEventLabel = "",
   headerSearchFallbackTitle = "",
   headerSearchFallbackMeta = "",
+  headerAnnouncementEnabled = false,
+  headerAnnouncementItems = [],
+  headerAnnouncementText = "",
+  headerAnnouncementLinkUrl = "",
+  headerAnnouncementLinkTarget = "_self",
+  headerAnnouncementFontSize = 14,
+  headerAnnouncementFontWeight = "600",
+  headerAnnouncementTextColor = "#ffffff",
+  headerAnnouncementBackgroundColor = "#d92d20",
+  headerAnnouncementMarqueeSpeed = 20,
+  headerAnnouncementDirection = "rtl",
+  headerAnnouncementPaddingX = 24,
   logoType = "text",
   logoUrl = "",
   logoImageUrl = "",
@@ -228,6 +247,12 @@ export default function Header({
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState("");
   const searchInputRef = useRef(null);
+  const announcementBarRef = useRef(null);
+  const announcementSequenceRef = useRef(null);
+  const [announcementLayout, setAnnouncementLayout] = useState({
+    containerWidth: 0,
+    sequenceWidth: 0,
+  });
 
   useEffect(() => {
     if (searchOpen) {
@@ -254,6 +279,112 @@ export default function Header({
     String(volunteerIconMobile || "").trim() || volunteerIconDesktopSrc;
   const donateIconSrc =
     String(donateIconUrl || "").trim() || "/images/donate-now-icon.svg";
+  const announcementEnabled = headerAnnouncementEnabled === true;
+  const normalizeAnnouncementItem = (item) => ({
+    text: item?.text != null ? String(item.text).trim() : "",
+    url: item?.url != null ? String(item.url).trim() : "",
+    target: String(item?.target || "").trim() === "_blank" ? "_blank" : "_self",
+  });
+  const announcementItems = Array.isArray(headerAnnouncementItems)
+    ? headerAnnouncementItems.map(normalizeAnnouncementItem).filter((it) => it.text)
+    : [];
+  if (announcementItems.length === 0) {
+    const fallbackText = String(headerAnnouncementText || "").trim();
+    if (fallbackText) {
+      announcementItems.push(
+        normalizeAnnouncementItem({
+          text: fallbackText,
+          url: headerAnnouncementLinkUrl,
+          target: headerAnnouncementLinkTarget,
+        }),
+      );
+    }
+  }
+  const toNumber = (value, fallback) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  };
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+  const announcementSpeedSeconds = clamp(
+    toNumber(headerAnnouncementMarqueeSpeed, 20),
+    4,
+    120,
+  );
+  const announcementDirectionValue =
+    String(headerAnnouncementDirection || "").trim().toLowerCase() === "ltr"
+      ? "ltr"
+      : "rtl";
+  const announcementFontSizePx = clamp(
+    toNumber(headerAnnouncementFontSize, 14),
+    10,
+    40,
+  );
+  const announcementPaddingXpx = clamp(
+    toNumber(headerAnnouncementPaddingX, 24),
+    0,
+    120,
+  );
+  const announcementFontWeightValue =
+    String(headerAnnouncementFontWeight || "").trim() || "600";
+  const hasAnnouncementBar =
+    announcementEnabled && Array.isArray(announcementItems) && announcementItems.length > 0;
+  const announcementSignature = announcementItems
+    .map((item) => `${item.text}|${item.url}|${item.target}`)
+    .join("||");
+  const announcementShiftPx = announcementLayout.sequenceWidth;
+  const announcementCopies =
+    announcementLayout.sequenceWidth > 0 && announcementLayout.containerWidth > 0
+      ? Math.max(
+          2,
+          Math.ceil(
+            announcementLayout.containerWidth / announcementLayout.sequenceWidth,
+          ) + 1,
+        )
+      : 2;
+
+  const renderAnnouncementSequence = (
+    sequenceKey,
+    hidden = false,
+    sequenceRef = undefined,
+  ) => (
+    <AnnouncementSequence key={sequenceKey} aria-hidden={hidden} ref={sequenceRef}>
+      {announcementItems.map((item, index) => (
+        <Fragment key={`${sequenceKey}-${index}`}>
+          {item.url ? (
+            <AnnouncementItemLink
+              href={item.url}
+              target={item.target}
+              rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
+              aria-label={item.text}
+            >
+              <AnnouncementItemText
+                $fontSize={announcementFontSizePx}
+                $fontWeight={announcementFontWeightValue}
+                $paddingX={announcementPaddingXpx}
+              >
+                {item.text}
+              </AnnouncementItemText>
+            </AnnouncementItemLink>
+          ) : (
+            <AnnouncementItemText
+              $fontSize={announcementFontSizePx}
+              $fontWeight={announcementFontWeightValue}
+              $paddingX={announcementPaddingXpx}
+            >
+              {item.text}
+            </AnnouncementItemText>
+          )}
+          <AnnouncementDivider
+            aria-hidden="true"
+            $fontSize={announcementFontSizePx}
+            $fontWeight={announcementFontWeightValue}
+          >
+            |
+          </AnnouncementDivider>
+        </Fragment>
+      ))}
+    </AnnouncementSequence>
+  );
 
   useEffect(() => {
     const onScroll = () =>
@@ -264,6 +395,45 @@ export default function Header({
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    if (!hasAnnouncementBar) return;
+    const measure = () => {
+      const containerWidth = announcementBarRef.current?.offsetWidth || 0;
+      const sequenceWidth = announcementSequenceRef.current?.offsetWidth || 0;
+      setAnnouncementLayout((prev) => {
+        if (
+          prev.containerWidth === containerWidth &&
+          prev.sequenceWidth === sequenceWidth
+        ) {
+          return prev;
+        }
+        return { containerWidth, sequenceWidth };
+      });
+    };
+
+    measure();
+
+    let observer = null;
+    if (typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(() => measure());
+      if (announcementBarRef.current) observer.observe(announcementBarRef.current);
+      if (announcementSequenceRef.current) {
+        observer.observe(announcementSequenceRef.current);
+      }
+    }
+    window.addEventListener("resize", measure);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [
+    hasAnnouncementBar,
+    announcementSignature,
+    announcementFontSizePx,
+    announcementFontWeightValue,
+    announcementPaddingXpx,
+  ]);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -378,162 +548,190 @@ export default function Header({
       <HeaderWrapper
         $preview={preview}
         $sectionBg={sectionBg}
-        $sectionPadding={sectionPadding}
         $sectionBorderSize={sectionBorderSize}
         $sectionBorderStyle={sectionBorderStyle}
         $sectionBorderColor={sectionBorderColor}
         $sectionShadow={sectionShadow}
         className={scrolled && !preview ? "is-scrolled" : ""}
       >
-        <HeaderMainWrapper>
-          <Logo
-            as={logoHref ? "a" : "span"}
-            href={logoHref || undefined}
-            onClick={closeMobile}
+        {hasAnnouncementBar && (
+          <AnnouncementBar
+            ref={announcementBarRef}
+            $textColor={headerAnnouncementTextColor}
+            $background={headerAnnouncementBackgroundColor}
           >
-            {logoType === "image" && logoImage ? (
-              <img
-                loading="eager"
-                fetchPriority="high"
-                decoding="async"
-                src={logoImage}
-                alt={title}
-                className="img-fluid"
-              />
-            ) : (
-              <span>{title}</span>
-            )}
-          </Logo>
-
-          <Nav>
-            {items.map((item) => (
-              <NavItem key={item.label}>
-                {item.submenu ? (
-                  <>
-                    <NavLink as="span" tabIndex={0}>
-                      {item.label} <DropdownChevron />
-                    </NavLink>
-                    <Dropdown>
-                      {item.submenu.map((sub) =>
-                        sub.submenu ? (
-                          <DropdownParentRow key={sub.label}>
-                            <DropdownParentTrigger>
-                              {sub.label}
-                              <RightArrow />
-                            </DropdownParentTrigger>
-                            <DropdownSubmenu>
-                              {sub.submenu.map((child) => (
-                                <DropdownItem
-                                  key={child.label}
-                                  href={child.href}
-                                  target={child.target}
-                                  rel={
-                                    child.target === "_blank"
-                                      ? "noopener noreferrer"
-                                      : undefined
-                                  }
-                                >
-                                  {child.label}
-                                </DropdownItem>
-                              ))}
-                            </DropdownSubmenu>
-                          </DropdownParentRow>
-                        ) : sub.isLabel ? (
-                          <DropdownLabel key={sub.label}>
-                            {sub.label}
-                          </DropdownLabel>
-                        ) : (
-                          <DropdownItem
-                            key={sub.label}
-                            href={sub.href}
-                            target={sub.target}
-                            rel={
-                              sub.target === "_blank"
-                                ? "noopener noreferrer"
-                                : undefined
-                            }
-                          >
-                            {sub.label}
-                          </DropdownItem>
-                        ),
-                      )}
-                    </Dropdown>
-                  </>
-                ) : (
-                  <NavLink
-                    href={item.href}
-                    target={item.target}
-                    rel={
-                      item.target === "_blank"
-                        ? "noopener noreferrer"
-                        : undefined
+            <AnnouncementTrack
+              $speedSeconds={announcementSpeedSeconds}
+              $direction={announcementDirectionValue}
+              style={
+                announcementShiftPx > 0
+                  ? {
+                      "--announcement-shift": `${announcementShiftPx}px`,
                     }
-                  >
-                    {item.label}
-                  </NavLink>
-                )}
-              </NavItem>
-            ))}
-          </Nav>
+                  : undefined
+              }
+            >
+              {Array.from({ length: announcementCopies }).map((_, index) =>
+                renderAnnouncementSequence(
+                  `sequence-${index}`,
+                  index > 0,
+                  index === 0 ? announcementSequenceRef : undefined,
+                ),
+              )}
+            </AnnouncementTrack>
+          </AnnouncementBar>
+        )}
+        <HeaderContent $sectionPadding={sectionPadding}>
+          <HeaderMainWrapper>
+            <Logo
+              as={logoHref ? "a" : "span"}
+              href={logoHref || undefined}
+              onClick={closeMobile}
+            >
+              {logoType === "image" && logoImage ? (
+                <img
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
+                  src={logoImage}
+                  alt={title}
+                  className="img-fluid"
+                />
+              ) : (
+                <span>{title}</span>
+              )}
+            </Logo>
 
-          <Actions>
-            {hasSearchAction && (
-              <SearchBtn
-                type="button"
-                onClick={() => setSearchOpen(true)}
-                aria-label={headerSearchOpenAriaLabel || headerSearchLabel}
-              >
-                <SearchIcon />
-                {headerSearchLabel}
-              </SearchBtn>
-            )}
-            {hasVolunteerAction && (
-              <BtnVolunteer
-                href={volunteerHrefValue}
-                target={volunteerTarget}
-                rel={volunteerTarget === "_blank" ? "noopener noreferrer" : undefined}
-                $headerCtaBgValue={headerCtaBgValue}
-                $headerCtaTextValue={headerCtaTextValue}
-              >
-                <span className="btn-label">{volunteerLabel}</span>
-                <IconWrap>
-                  <img
-                    loading="eager"
-                    decoding="async"
-                    src={volunteerIconDesktopSrc}
-                    alt={volunteerLabel}
-                  />
-                </IconWrap>
-              </BtnVolunteer>
-            )}
-            {(donateLabel || donateHref) && donateHref && (
-              <BtnDonate
-                href={donateHref}
-                $headerDonateBgValue={headerDonateBgValue}
-                $headerDonateTextValue={headerDonateTextValue}
-              >
-                <span className="btn-label">{donateLabel}</span>
-                <IconWrap>
-                  <img
-                    loading="eager"
-                    decoding="async"
-                    src={donateIconSrc}
-                    alt={donateLabel}
-                  />
-                </IconWrap>
-              </BtnDonate>
-            )}
-          </Actions>
+            <Nav>
+              {items.map((item) => (
+                <NavItem key={item.label}>
+                  {item.submenu ? (
+                    <>
+                      <NavLink as="span" tabIndex={0}>
+                        {item.label} <DropdownChevron />
+                      </NavLink>
+                      <Dropdown>
+                        {item.submenu.map((sub) =>
+                          sub.submenu ? (
+                            <DropdownParentRow key={sub.label}>
+                              <DropdownParentTrigger>
+                                {sub.label}
+                                <RightArrow />
+                              </DropdownParentTrigger>
+                              <DropdownSubmenu>
+                                {sub.submenu.map((child) => (
+                                  <DropdownItem
+                                    key={child.label}
+                                    href={child.href}
+                                    target={child.target}
+                                    rel={
+                                      child.target === "_blank"
+                                        ? "noopener noreferrer"
+                                        : undefined
+                                    }
+                                  >
+                                    {child.label}
+                                  </DropdownItem>
+                                ))}
+                              </DropdownSubmenu>
+                            </DropdownParentRow>
+                          ) : sub.isLabel ? (
+                            <DropdownLabel key={sub.label}>
+                              {sub.label}
+                            </DropdownLabel>
+                          ) : (
+                            <DropdownItem
+                              key={sub.label}
+                              href={sub.href}
+                              target={sub.target}
+                              rel={
+                                sub.target === "_blank"
+                                  ? "noopener noreferrer"
+                                  : undefined
+                              }
+                            >
+                              {sub.label}
+                            </DropdownItem>
+                          ),
+                        )}
+                      </Dropdown>
+                    </>
+                  ) : (
+                    <NavLink
+                      href={item.href}
+                      target={item.target}
+                      rel={
+                        item.target === "_blank"
+                          ? "noopener noreferrer"
+                          : undefined
+                      }
+                    >
+                      {item.label}
+                    </NavLink>
+                  )}
+                </NavItem>
+              ))}
+            </Nav>
 
-          <HamburgerBtn
-            type="button"
-            aria-label="Toggle menu"
-            aria-expanded={mobileOpen}
-            onClick={() => setMobileOpen((o) => !o)}
-          >
-            {mobileOpen ? <CloseIcon /> : <MenuIcon />}
-          </HamburgerBtn>
-        </HeaderMainWrapper>
+            <Actions>
+              {hasSearchAction && (
+                <SearchBtn
+                  type="button"
+                  onClick={() => setSearchOpen(true)}
+                  aria-label={headerSearchOpenAriaLabel || headerSearchLabel}
+                >
+                  <SearchIcon />
+                  {headerSearchLabel}
+                </SearchBtn>
+              )}
+              {hasVolunteerAction && (
+                <BtnVolunteer
+                  href={volunteerHrefValue}
+                  target={volunteerTarget}
+                  rel={volunteerTarget === "_blank" ? "noopener noreferrer" : undefined}
+                  $headerCtaBgValue={headerCtaBgValue}
+                  $headerCtaTextValue={headerCtaTextValue}
+                >
+                  <span className="btn-label">{volunteerLabel}</span>
+                  <IconWrap>
+                    <img
+                      loading="eager"
+                      decoding="async"
+                      src={volunteerIconDesktopSrc}
+                      alt={volunteerLabel}
+                    />
+                  </IconWrap>
+                </BtnVolunteer>
+              )}
+              {(donateLabel || donateHref) && donateHref && (
+                <BtnDonate
+                  href={donateHref}
+                  $headerDonateBgValue={headerDonateBgValue}
+                  $headerDonateTextValue={headerDonateTextValue}
+                >
+                  <span className="btn-label">{donateLabel}</span>
+                  <IconWrap>
+                    <img
+                      loading="eager"
+                      decoding="async"
+                      src={donateIconSrc}
+                      alt={donateLabel}
+                    />
+                  </IconWrap>
+                </BtnDonate>
+              )}
+            </Actions>
+
+            <HamburgerBtn
+              type="button"
+              aria-label="Toggle menu"
+              aria-expanded={mobileOpen}
+              onClick={() => setMobileOpen((o) => !o)}
+            >
+              {mobileOpen ? <CloseIcon /> : <MenuIcon />}
+            </HamburgerBtn>
+          </HeaderMainWrapper>
+        </HeaderContent>
       </HeaderWrapper>
 
       <MobileOverlay

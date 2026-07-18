@@ -33,7 +33,7 @@ All API routes live under `/api/`. The convention is:
 
 ## Admin APIs
 
-All admin APIs require authentication via JWT (enforced by middleware and `requireAuth`).
+All admin APIs require authentication via JWT and the operation-specific permission resolved by `requireAuth`. The role names below describe the default system-role grants; custom roles can receive the same permissions.
 
 | Method | Endpoint | Role | Description |
 |--------|----------|------|-------------|
@@ -71,6 +71,9 @@ All admin APIs require authentication via JWT (enforced by middleware and `requi
 | DELETE | `/api/admin/contacts/[id]` | Admin, Editor | Delete contact submission |
 | GET/POST | `/api/admin/users` | Admin only | List/create users |
 | GET/PUT/DELETE | `/api/admin/users/[id]` | Admin only | Read/update/delete user |
+| GET | `/api/admin/rbac/permissions` | Role Manager | List the active, current-project permission catalog |
+| GET/POST | `/api/admin/rbac/roles` | User Manager / Role Manager | List assignable roles or create a custom role |
+| GET/PUT/DELETE | `/api/admin/rbac/roles/[key]` | User Manager / Role Manager | Read, update, or safely delete a role |
 | PUT | `/api/theme` | Admin only | Update theme configuration |
 | GET/POST/DELETE | `/api/admin/fonts` | Admin, Editor | List/upload/delete custom fonts |
 

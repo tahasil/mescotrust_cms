@@ -5,6 +5,7 @@ import {
   getSupportedSocialPlatforms,
 } from "@/lib/socialMediaFetcher";
 import { getEffectiveSocialWallPlatformRows } from "@/lib/socialWallPlatformConfig";
+import { getPublicSocialWallFeed } from "@/lib/socialWallModule/publicService";
 
 export const dynamic = "force-dynamic";
 const DEFAULT_PLATFORM_POST_LIMIT = 8;
@@ -121,15 +122,69 @@ async function parseRequestConfig(req) {
       platformConfigs,
       globalLimit: searchParams.get("globalLimit"),
       orderMode: searchParams.get("orderMode"),
+      view: searchParams.get("view"),
+      module: searchParams.get("module"),
+      limit: searchParams.get("limit"),
+      cursor: searchParams.get("cursor"),
+      platform: searchParams.get("platform"),
+      featured: searchParams.get("featured"),
+      search: searchParams.get("search"),
+      device: searchParams.get("device"),
+      sortBy: searchParams.get("sortBy"),
+      sortOrder: searchParams.get("sortOrder"),
+      blockConfig: searchParams.get("blockConfig"),
+      legacy: searchParams.get("legacy"),
     };
   } catch {
     return {};
   }
 }
 
+function isModuleFeedRequest(config = {}, method = "GET") {
+  const view = toSafeString(config?.view || config?.mode).toLowerCase();
+  const moduleFlag = toSafeString(config?.module).toLowerCase();
+  const legacyFlag = toSafeString(config?.legacy).toLowerCase();
+  if (legacyFlag === "1" || legacyFlag === "true") return false;
+  return (
+    view === "module" ||
+    view === "v2" ||
+    moduleFlag === "1" ||
+    moduleFlag === "true" ||
+    toSafeString(method).toUpperCase() === "GET"
+  );
+}
+
 async function handleFeedRequest(req) {
   try {
     const config = await parseRequestConfig(req);
+    if (isModuleFeedRequest(config, req.method)) {
+      let blockConfig = config?.blockConfig;
+      if (typeof blockConfig === "string") {
+        try {
+          blockConfig = JSON.parse(blockConfig);
+        } catch {
+          blockConfig = {};
+        }
+      }
+      const payload = await getPublicSocialWallFeed({
+        blockConfig: blockConfig && typeof blockConfig === "object" ? blockConfig : {},
+        limit: config?.limit,
+        cursor: config?.cursor,
+        platform: config?.platform,
+        featured: config?.featured,
+        search: config?.search,
+        device: config?.device,
+        sortBy: config?.sortBy,
+        sortOrder: config?.sortOrder,
+      });
+      return NextResponse.json(payload, {
+        headers:
+          req.method === "POST"
+            ? { "Cache-Control": "no-store, no-cache, must-revalidate" }
+            : { "Cache-Control": "public, max-age=60, stale-while-revalidate=300" },
+      });
+    }
+
     const runtime = await getEffectiveSocialWallPlatformRows();
     const effectivePlatformConfigs = buildEffectivePlatformConfigs(
       runtime?.rows,

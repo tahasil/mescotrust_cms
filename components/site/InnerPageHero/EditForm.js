@@ -12,8 +12,10 @@ import {
 } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
+import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
+import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/InnerPageHero";
 const PREFIX = "innerPageHero";
@@ -104,6 +106,24 @@ function InnerPageHeroEditForm(
         ...getManageSectionInitialValues(PREFIX, data),
         title: data?.title != null ? String(data.title).trim() : "Page Title",
         description: data?.description != null ? String(data.description).trim() : "",
+        titleColorKey:
+          data?.titleColorKey != null ? String(data.titleColorKey).trim() : "",
+        innerPageHeroDescriptionColorKey:
+          data?.innerPageHeroDescriptionColorKey != null
+            ? String(data.innerPageHeroDescriptionColorKey).trim()
+            : "",
+        innerPageHeroBreadcrumbColor1Key:
+          data?.innerPageHeroBreadcrumbColor1Key != null
+            ? String(data.innerPageHeroBreadcrumbColor1Key).trim()
+            : data?.innerPageHeroBreadcrumbColorKey != null
+              ? String(data.innerPageHeroBreadcrumbColorKey).trim()
+              : "",
+        innerPageHeroBreadcrumbColor2Key:
+          data?.innerPageHeroBreadcrumbColor2Key != null
+            ? String(data.innerPageHeroBreadcrumbColor2Key).trim()
+            : data?.innerPageHeroBreadcrumbColorKey != null
+              ? String(data.innerPageHeroBreadcrumbColorKey).trim()
+              : "",
         bgImageDesktop:
           data?.bgImageDesktop != null
             ? String(data.bgImageDesktop).trim()
@@ -163,6 +183,27 @@ function InnerPageHeroEditForm(
         ...getManageSectionPayload(PREFIX, values),
         title: values.title != null ? String(values.title).trim() : "Page Title",
         description: values.description != null ? String(values.description).trim() : "",
+        titleColorKey:
+          values.titleColorKey != null
+            ? String(values.titleColorKey).trim()
+            : "",
+        innerPageHeroDescriptionColorKey:
+          values.innerPageHeroDescriptionColorKey != null
+            ? String(values.innerPageHeroDescriptionColorKey).trim()
+            : "",
+        innerPageHeroBreadcrumbColor1Key:
+          values.innerPageHeroBreadcrumbColor1Key != null
+            ? String(values.innerPageHeroBreadcrumbColor1Key).trim()
+            : "",
+        innerPageHeroBreadcrumbColor2Key:
+          values.innerPageHeroBreadcrumbColor2Key != null
+            ? String(values.innerPageHeroBreadcrumbColor2Key).trim()
+            : "",
+        // Backward compatibility for older renderer/configs.
+        innerPageHeroBreadcrumbColorKey:
+          values.innerPageHeroBreadcrumbColor1Key != null
+            ? String(values.innerPageHeroBreadcrumbColor1Key).trim()
+            : "",
         bgImageDesktop:
           values.bgImageDesktop != null
             ? String(values.bgImageDesktop).trim()
@@ -280,6 +321,17 @@ function InnerPageHeroEditForm(
                   </Form.Item>
                 </Col>
               </Row>
+            ),
+          },
+          {
+            key: "title-colors",
+            label: "Colors",
+            children: (
+              <TitleAndColorsSection
+                form={form}
+                themeColorOptions={themeColorOptions}
+                {...getTitleAndColorsConfig("InnerPageHero")}
+              />
             ),
           },
           {

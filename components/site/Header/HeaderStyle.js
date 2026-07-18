@@ -12,6 +12,19 @@ const dropdownFadeIn = keyframes`
   }
 `;
 
+const announcementTicker = keyframes`
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(
+      calc(-1 * var(--announcement-shift, 50%)),
+      0,
+      0
+    );
+  }
+`;
+
 export const HeaderMainWrapper = styled.div`
   width: 90%;
   max-width: 1400px;
@@ -19,6 +32,20 @@ export const HeaderMainWrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
+`;
+
+export const HeaderContent = styled.div`
+  width: 100%;
+  padding: ${(props) =>
+    props.$sectionPadding && String(props.$sectionPadding).trim()
+      ? props.$sectionPadding
+      : "16px 0"};
+  @media (max-width: ${BREAKPOINT}) {
+    padding: ${(props) =>
+      props.$sectionPadding && String(props.$sectionPadding).trim()
+        ? props.$sectionPadding
+        : "12px 0"};
+  }
 `;
 
 export const HeaderWrapper = styled.header`
@@ -32,10 +59,7 @@ export const HeaderWrapper = styled.header`
       return props.$sectionBg;
     return props.$preview ? "rgba(255, 255, 255, 0.98)" : "transparent";
   }};
-  padding: ${(props) =>
-    props.$sectionPadding && String(props.$sectionPadding).trim()
-      ? props.$sectionPadding
-      : "16px 0"};
+  padding: 0;
   z-index: ${(props) => (props.$preview ? 0 : 1000)};
   transition:
     background 0.25s ease,
@@ -52,12 +76,6 @@ export const HeaderWrapper = styled.header`
     props.$sectionShadow && String(props.$sectionShadow).trim()
       ? `box-shadow: ${props.$sectionShadow};`
       : ""}
-  @media (max-width: ${BREAKPOINT}) {
-    padding: ${(props) =>
-      props.$sectionPadding && String(props.$sectionPadding).trim()
-        ? props.$sectionPadding
-        : "12px 0"};
-  }
   &.is-scrolled {
     background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(8px);
@@ -66,6 +84,76 @@ export const HeaderWrapper = styled.header`
         ? props.$sectionShadow
         : "0 2px 12px rgba(0, 0, 0, 0.08)"};
   }
+`;
+
+export const AnnouncementBar = styled.div`
+  width: 100%;
+  overflow: hidden;
+  color: ${(props) => props.$textColor || "#fff"};
+  background: ${(props) => props.$background || "#d92d20"};
+`;
+
+export const AnnouncementTrack = styled.div`
+  display: flex;
+  align-items: center;
+  width: max-content;
+  white-space: nowrap;
+  will-change: transform;
+  animation-name: ${announcementTicker};
+  animation-duration: ${(props) => props.$speedSeconds || 20}s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: ${(props) =>
+    props.$direction === "ltr" ? "reverse" : "normal"};
+  animation-fill-mode: none;
+  &:hover,
+  &:focus-within {
+    animation-play-state: paused;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    transform: translate3d(0, 0, 0);
+  }
+`;
+
+export const AnnouncementSequence = styled.div`
+  display: inline-flex;
+  align-items: center;
+  min-width: max-content;
+`;
+
+const AnnouncementItemBase = styled.span`
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  line-height: 1.2;
+  padding: 10px ${(props) => props.$paddingX || 24}px;
+  font-size: ${(props) => props.$fontSize || 14}px;
+  font-weight: ${(props) => props.$fontWeight || "600"};
+`;
+
+export const AnnouncementItemText = styled(AnnouncementItemBase)``;
+
+export const AnnouncementItemLink = styled.a`
+  color: inherit;
+  text-decoration: none;
+  &:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.85);
+    outline-offset: -2px;
+  }
+  ${AnnouncementItemBase} {
+    text-decoration: inherit;
+  }
+`;
+
+export const AnnouncementDivider = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+  font-size: ${(props) => props.$fontSize || 14}px;
+  font-weight: ${(props) => props.$fontWeight || "600"};
+  padding: 0 2px;
 `;
 
 export const Logo = styled.a`

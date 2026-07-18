@@ -1,8 +1,19 @@
 "use client";
 
-import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Select, Collapse, Switch, message } from "antd";
-import { renderSchemaField, enrichSchema } from "@/components/admin/schemaFormUtils";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
+import { Form, Select, Collapse, Switch, InputNumber, message } from "antd";
+import {
+  renderSchemaField,
+  enrichSchema,
+  ThemeColorInput,
+} from "@/components/admin/schemaFormUtils";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
@@ -11,6 +22,7 @@ import {
   LOGO_LINK_SCHEMA,
   MENU_SCHEMA,
   CUSTOM_BUTTONS_SCHEMA,
+  ANNOUNCEMENT_BAR_SCHEMA,
   HEADER_FIELD_GROUPS,
   SECTION_SETTINGS_SCHEMA,
 } from "./headerDrawerSchemas";
@@ -37,6 +49,43 @@ function menuItemsToNavItems(menuItems) {
     if (children.length > 0) result.children = children;
     return result;
   });
+}
+
+function normalizeAnnouncementItems(items) {
+  if (!Array.isArray(items)) return [];
+  return items
+    .map((it) => ({
+      text: it?.text != null ? String(it.text).trim() : "",
+      url: it?.url != null ? String(it.url).trim() : "",
+      target:
+        String(it?.target || "").trim() === "_blank" ? "_blank" : "_self",
+    }))
+    .filter((it) => it.text);
+}
+
+const RESERVED_MENU_NAMES = new Set(["header", "footer"]);
+
+function isReservedMenuName(name) {
+  return RESERVED_MENU_NAMES.has(String(name || "").trim().toLowerCase());
+}
+
+function getSelectableHeaderMenus(list) {
+  if (!Array.isArray(list)) return [];
+  return list.filter((menu) => {
+    const name = String(menu?.name || "").trim();
+    return name && !isReservedMenuName(name);
+  });
+}
+
+function pickPreferredHeaderMenuName(menus, currentName = "") {
+  if (!Array.isArray(menus) || menus.length === 0) return "";
+  const current = String(currentName || "").trim();
+  if (current && menus.some((menu) => menu?.name === current)) return current;
+  const preferred =
+    menus.find((menu) =>
+      /primary|main|navigation/i.test(String(menu?.name || "")),
+    ) || menus[0];
+  return String(preferred?.name || "").trim();
 }
 
 /**
@@ -74,7 +123,7 @@ function HeaderEditForm(
   useEffect(() => {
     fetch("/api/admin/menus")
       .then((r) => (r.ok ? r.json() : []))
-      .then((list) => setMenusList(Array.isArray(list) ? list : []))
+      .then((list) => setMenusList(getSelectableHeaderMenus(list)))
       .catch(() => setMenusList([]));
   }, []);
 
@@ -130,11 +179,59 @@ function HeaderEditForm(
         } else if (theme?.headerDonateIconUrlMobile != null) {
           flat.headerDonateIconUrl = theme.headerDonateIconUrlMobile;
         }
+        if (theme?.headerAnnouncementEnabled != null) {
+          flat.headerAnnouncementEnabled = theme.headerAnnouncementEnabled === true;
+        }
+        if (Array.isArray(theme?.headerAnnouncementItems)) {
+          flat.headerAnnouncementItems = normalizeAnnouncementItems(theme.headerAnnouncementItems);
+        } else if (theme?.headerAnnouncementText != null) {
+          const text = String(theme.headerAnnouncementText || "").trim();
+          flat.headerAnnouncementItems = text
+            ? [
+                {
+                  text,
+                  url: String(theme?.headerAnnouncementLinkUrl || "").trim(),
+                  target:
+                    String(theme?.headerAnnouncementLinkTarget || "").trim() === "_blank"
+                      ? "_blank"
+                      : "_self",
+                },
+              ]
+            : [];
+        }
+        if (theme?.headerAnnouncementFontSize != null) {
+          flat.headerAnnouncementFontSize = theme.headerAnnouncementFontSize;
+        }
+        if (theme?.headerAnnouncementFontWeight != null) {
+          flat.headerAnnouncementFontWeight = theme.headerAnnouncementFontWeight;
+        }
+        if (theme?.headerAnnouncementTextColor != null) {
+          flat.headerAnnouncementTextColor = theme.headerAnnouncementTextColor;
+        }
+        if (theme?.headerAnnouncementBackgroundColor != null) {
+          flat.headerAnnouncementBackgroundColor = theme.headerAnnouncementBackgroundColor;
+        }
+        if (theme?.headerAnnouncementMarqueeSpeed != null) {
+          flat.headerAnnouncementMarqueeSpeed = theme.headerAnnouncementMarqueeSpeed;
+        }
+        flat.headerAnnouncementDirection =
+          String(theme?.headerAnnouncementDirection || "").trim().toLowerCase() ===
+          "ltr"
+            ? "ltr"
+            : "rtl";
+        if (theme?.headerAnnouncementPaddingX != null) {
+          flat.headerAnnouncementPaddingX = theme.headerAnnouncementPaddingX;
+        }
         if (theme?.headerCtaBgColorKey != null) flat.headerCtaBgColorKey = theme.headerCtaBgColorKey;
         if (theme?.headerCtaTextColorKey != null) flat.headerCtaTextColorKey = theme.headerCtaTextColorKey;
         if (theme?.headerDonateBgColorKey != null) flat.headerDonateBgColorKey = theme.headerDonateBgColorKey;
         if (theme?.headerDonateTextColorKey != null) flat.headerDonateTextColorKey = theme.headerDonateTextColorKey;
-        if (theme?.menuName != null) flat.menuName = theme.menuName;
+        if (theme?.menuName != null) {
+          const themeMenuName = String(theme.menuName || "").trim();
+          if (themeMenuName && !isReservedMenuName(themeMenuName)) {
+            flat.menuName = themeMenuName;
+          }
+        }
         if (theme?.navItems != null) flat.navItems = theme.navItems;
         Object.assign(flat, getManageSectionInitialValues("header", theme));
         flat._sectionBg = theme?._sectionBg ?? "";
@@ -178,9 +275,13 @@ function HeaderEditForm(
       .finally(() => setLoading(false));
   }, [form, isPageBlock, initialData]);
 
-  const loadMenuIntoNavItems = (menuName) => {
+  const loadMenuIntoNavItems = useCallback((menuName) => {
     if (!menuName || !menuName.trim()) return;
     const name = String(menuName).trim();
+    if (isReservedMenuName(name)) {
+      message.warning("Please select a navigation menu.");
+      return;
+    }
     fetch(`/api/admin/menus/${encodeURIComponent(name)}`)
       .then((r) => {
         if (!r.ok) throw new Error(r.status === 404 ? "Menu not found" : "Failed to load menu");
@@ -194,7 +295,20 @@ function HeaderEditForm(
         message.success(`Loaded "${name}" (${navItems.length} item(s)). Click Apply to save.`);
       })
       .catch((e) => message.error(e?.message || "Could not load menu"));
-  };
+  }, [form]);
+
+  useEffect(() => {
+    if (!Array.isArray(menusList) || menusList.length === 0) return;
+    const currentMenuName = String(form.getFieldValue("menuName") || "").trim();
+    const preferredMenuName = pickPreferredHeaderMenuName(menusList, currentMenuName);
+    if (!preferredMenuName || preferredMenuName === currentMenuName) return;
+    const currentNavItems = form.getFieldValue("navItems");
+    if (Array.isArray(currentNavItems) && currentNavItems.length > 0) {
+      form.setFieldValue("menuName", preferredMenuName);
+      return;
+    }
+    loadMenuIntoNavItems(preferredMenuName);
+  }, [menusList, form, loadMenuIntoNavItems]);
 
   const handleUpdate = async () => {
     try {
@@ -267,6 +381,7 @@ function HeaderEditForm(
     ...NAVBAR_SCHEMA,
     ...LOGO_LINK_SCHEMA,
     ...MENU_SCHEMA,
+    ...ANNOUNCEMENT_BAR_SCHEMA,
     ...CUSTOM_BUTTONS_SCHEMA,
     ...SECTION_SETTINGS_SCHEMA,
   ];
@@ -295,6 +410,111 @@ function HeaderEditForm(
         <Form.Item name="headerSearchEnabled" valuePropName="checked" noStyle>
           <Switch />
         </Form.Item>
+      </div>
+    );
+  };
+  const renderAnnouncementToggleCard = () => {
+    const announcementControlKeys = [
+      "headerAnnouncementEnabled",
+      "headerAnnouncementDirection",
+      "headerAnnouncementFontSize",
+      "headerAnnouncementTextColor",
+      "headerAnnouncementFontWeight",
+      "headerAnnouncementBackgroundColor",
+      "headerAnnouncementMarqueeSpeed",
+      "headerAnnouncementPaddingX",
+    ];
+    const visibleKeys = announcementControlKeys.filter((k) => !!byKey[k]);
+    if (visibleKeys.length === 0) return null;
+    const controlWidth = 220;
+    const renderAnnouncementControl = (field) => {
+      if (!field) return null;
+      if (field.type === "boolean") {
+        return (
+          <Form.Item name={field.key} valuePropName="checked" noStyle>
+            <Switch />
+          </Form.Item>
+        );
+      }
+      if (field.type === "number") {
+        return (
+          <Form.Item name={field.key} noStyle>
+            <InputNumber style={{ width: controlWidth }} />
+          </Form.Item>
+        );
+      }
+      if (field.type === "select") {
+        return (
+          <Form.Item name={field.key} noStyle>
+            <Select
+              options={(field.options || []).map((o) =>
+                typeof o === "object" && o && "value" in o
+                  ? { value: o.value, label: o.label }
+                  : { value: o, label: o },
+              )}
+              allowClear
+              style={{ width: controlWidth }}
+            />
+          </Form.Item>
+        );
+      }
+      if (field.type === "color") {
+        return (
+          <div style={{ width: controlWidth }}>
+            <Form.Item name={field.key} noStyle>
+              <ThemeColorInput themeColorOptions={themeColorOptions} />
+            </Form.Item>
+          </div>
+        );
+      }
+      return byKey[field.key] ? renderField(byKey[field.key]) : null;
+    };
+    return (
+      <div
+        style={{
+          border: "1px solid rgba(0,0,0,0.08)",
+          borderRadius: 8,
+          marginBottom: 16,
+          overflow: "hidden",
+          background: "#fff",
+        }}
+      >
+        <div
+          style={{
+            padding: "10px 12px",
+            borderBottom: "1px solid rgba(0,0,0,0.06)",
+            color: "rgba(0,0,0,0.75)",
+            fontSize: 13,
+            fontWeight: 500,
+          }}
+        >
+          Announcement controls
+        </div>
+        <div>
+          {visibleKeys.map((key, index) => {
+            const field = byKey[key];
+            if (!field) return null;
+            return (
+              <div
+                key={key}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 16,
+                  padding: "10px 12px",
+                  borderTop:
+                    index > 0 ? "1px solid rgba(0,0,0,0.06)" : "none",
+                }}
+              >
+                <span style={{ color: "rgba(0,0,0,0.65)", fontSize: 14 }}>
+                  {field.label}
+                </span>
+                {renderAnnouncementControl(field)}
+              </div>
+            );
+          })}
+        </div>
       </div>
     );
   };
@@ -331,9 +551,23 @@ function HeaderEditForm(
             </Form.Item>
           )}
           {grp.label === "Custom buttons" && renderSearchToggleRow()}
+          {grp.label === "Announcement bar" && renderAnnouncementToggleCard()}
           {grp.keys
             .map((k) => {
               if (grp.label === "Custom buttons" && k === "headerSearchEnabled") return null;
+              if (
+                grp.label === "Announcement bar" &&
+                (k === "headerAnnouncementEnabled" ||
+                  k === "headerAnnouncementDirection" ||
+                  k === "headerAnnouncementFontSize" ||
+                  k === "headerAnnouncementTextColor" ||
+                  k === "headerAnnouncementFontWeight" ||
+                  k === "headerAnnouncementBackgroundColor" ||
+                  k === "headerAnnouncementMarqueeSpeed" ||
+                  k === "headerAnnouncementPaddingX")
+              ) {
+                return null;
+              }
               return byKey[k] ? renderField(byKey[k]) : null;
             })
             .filter(Boolean)}

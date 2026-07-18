@@ -4,6 +4,7 @@ import { Fragment } from "react";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import * as SiteComponents from "@/components/site/publicComponents";
 import RoutePopupHost from "@/components/layout/RoutePopupHost";
+import ChatbotWidget from "@/components/site/ChatbotWidget";
 
 const hasHeaderBlock = (layout) =>
   Array.isArray(layout) && layout.some((b) => (b?.baseComponent || b?.componentId?.baseComponent) === "Header");
@@ -34,6 +35,24 @@ const headerThemeProps = (props) => ({
   headerSearchResultTypeEventLabel: props.headerSearchResultTypeEventLabel ?? "",
   headerSearchFallbackTitle: props.headerSearchFallbackTitle ?? "",
   headerSearchFallbackMeta: props.headerSearchFallbackMeta ?? "",
+  headerAnnouncementEnabled: props.headerAnnouncementEnabled === true,
+  headerAnnouncementItems: Array.isArray(props.headerAnnouncementItems)
+    ? props.headerAnnouncementItems
+    : [],
+  headerAnnouncementText: props.headerAnnouncementText ?? "",
+  headerAnnouncementLinkUrl: props.headerAnnouncementLinkUrl ?? "",
+  headerAnnouncementLinkTarget: props.headerAnnouncementLinkTarget ?? "_self",
+  headerAnnouncementFontSize: props.headerAnnouncementFontSize,
+  headerAnnouncementFontWeight: props.headerAnnouncementFontWeight ?? "600",
+  headerAnnouncementTextColor: props.headerAnnouncementTextColor ?? "",
+  headerAnnouncementBackgroundColor: props.headerAnnouncementBackgroundColor ?? "",
+  headerAnnouncementMarqueeSpeed: props.headerAnnouncementMarqueeSpeed,
+  headerAnnouncementDirection:
+    String(props.headerAnnouncementDirection || "").trim().toLowerCase() ===
+    "ltr"
+      ? "ltr"
+      : "rtl",
+  headerAnnouncementPaddingX: props.headerAnnouncementPaddingX,
   logoType: props.logoType,
   logoImageUrl: props.logoImageUrl,
   logoLightUrl: props.logoLightUrl,
@@ -136,6 +155,18 @@ export default function PublicShell({
   headerSearchResultTypeEventLabel,
   headerSearchFallbackTitle,
   headerSearchFallbackMeta,
+  headerAnnouncementEnabled,
+  headerAnnouncementItems,
+  headerAnnouncementText,
+  headerAnnouncementLinkUrl,
+  headerAnnouncementLinkTarget,
+  headerAnnouncementFontSize,
+  headerAnnouncementFontWeight,
+  headerAnnouncementTextColor,
+  headerAnnouncementBackgroundColor,
+  headerAnnouncementMarqueeSpeed,
+  headerAnnouncementDirection,
+  headerAnnouncementPaddingX,
   logoType,
   logoImageUrl,
   logoLightUrl,
@@ -231,6 +262,18 @@ export default function PublicShell({
     headerSearchResultTypeEventLabel,
     headerSearchFallbackTitle,
     headerSearchFallbackMeta,
+    headerAnnouncementEnabled,
+    headerAnnouncementItems,
+    headerAnnouncementText,
+    headerAnnouncementLinkUrl,
+    headerAnnouncementLinkTarget,
+    headerAnnouncementFontSize,
+    headerAnnouncementFontWeight,
+    headerAnnouncementTextColor,
+    headerAnnouncementBackgroundColor,
+    headerAnnouncementMarqueeSpeed,
+    headerAnnouncementDirection,
+    headerAnnouncementPaddingX,
     logoType,
     logoImageUrl,
     logoLightUrl,
@@ -362,6 +405,7 @@ export default function PublicShell({
       {!hasGlobalFooter && useSiteFooterForLayout && layoutWithoutFooterBlocks(customFooterLayout).length > 0 && (
         <ComponentRenderer layout={layoutWithoutFooterBlocks(customFooterLayout)} />
       )}
+      <ChatbotWidget />
     </div>
   );
 }

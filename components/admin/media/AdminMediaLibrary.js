@@ -851,11 +851,11 @@ export default function AdminMediaLibrary() {
         ]}
       >
         <div className={styles.uploadHint}>
-          Raster images require crop confirmation before upload.
+          Crop confirmation is required for JPG, PNG, WEBP, and AVIF uploads.
         </div>
         <Dragger
           multiple
-          accept=".jpg,.jpeg,.png,.webp,.avif,.svg,.pdf"
+          accept=".jpg,.jpeg,.png,.webp,.avif,.gif,.svg,.pdf"
           customRequest={uploadRequest}
           fileList={uploadFileList}
           onChange={({ fileList }) => setUploadFileList(fileList.slice(-80))}

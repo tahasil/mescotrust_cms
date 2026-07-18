@@ -112,10 +112,24 @@ Metadata for site-level components (Header, Footer, HomeHero, etc.). Component I
 | name     | String | yes      | Display name |
 | email    | String | yes      | Unique, lowercase |
 | password | String | yes      | Hashed; `select: false` by default |
-| role     | String | no       | `"Admin"` \| `"Editor"` (default: `"Editor"`) |
+| role     | String | no       | Display name for the assigned system or custom role |
+| roleKey  | String | no       | Stable key referencing `AdminRole.key` |
+| permissionVersion | Number | no | Increments when effective role permissions change |
+| sessionVersion | Number | no | Increments when active JWT sessions must be invalidated |
 | status   | String | no       | `"active"` \| `"inactive"` (default: `"active"`) |
 | createdAt| Date   | auto     | Timestamps |
 | updatedAt| Date   | auto     | Timestamps |
+
+---
+
+### 2.4.1 RBAC models
+
+- `models/AdminRole.js` (`adminroles`): system/custom roles, priority, active/system flags, catalog version, and safe-delete metadata.
+- `models/Permission.js` (`permissions`): generated module/action catalog with active and protected flags.
+- `models/RolePermission.js` (`rolepermissions`): unique role-to-permission mappings with safe-delete metadata.
+- `models/PermissionAuditLog.js` (`permissionauditlogs`): role create/update/delete audit records.
+
+The catalog and page/API/menu mappings are defined in `lib/rbac/catalog.js`. `lib/rbac/bootstrap.js` synchronizes the catalog and legacy users without changing content schemas.
 
 ---
 

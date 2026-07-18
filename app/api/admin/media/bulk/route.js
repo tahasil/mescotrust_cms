@@ -242,6 +242,20 @@ export async function POST(req) {
           continue;
         }
 
+        if (
+          action === "convert" &&
+          String(media.mimeType || "").toLowerCase() === "image/gif"
+        ) {
+          skipped += 1;
+          results.push({
+            id,
+            status: "skipped",
+            code: "GIF_CONVERSION_SKIPPED",
+            message: "GIF conversion skipped to preserve animation",
+          });
+          continue;
+        }
+
         const optimized = await optimizeExistingMediaFromDisk({
           media: media.toObject(),
           settings,

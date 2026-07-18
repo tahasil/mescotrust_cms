@@ -158,7 +158,7 @@ export async function POST(req) {
         {
           error: `Unsupported file type${
             mimeType ? `: ${mimeType}` : ""
-          }. Allowed: JPG, JPEG, PNG, WEBP, AVIF, SVG, PDF.`,
+          }. Allowed: JPG, JPEG, PNG, WEBP, AVIF, GIF, SVG, PDF.`,
         },
         { status: 400 },
       );

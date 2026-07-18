@@ -9,7 +9,12 @@ import {
   Button,
   ColorPicker,
 } from "antd";
-import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+import {
+  PlusOutlined,
+  DeleteOutlined,
+  ArrowUpOutlined,
+  ArrowDownOutlined,
+} from "@ant-design/icons";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 
@@ -79,7 +84,14 @@ function shouldUseResponsiveImageField(field = {}) {
 }
 
 export function ArrayEditor({ field, themeColorOptions }) {
-  const { key, label, itemSchema = [], itemLabel = "Item" } = field;
+  const {
+    key,
+    label,
+    itemSchema = [],
+    itemLabel = "Item",
+    addButtonVariant = "dashed",
+    addButtonTitle = "",
+  } = field;
   const defaultItem = itemSchema.reduce(
     (acc, f) => ({
       ...acc,
@@ -91,7 +103,7 @@ export function ArrayEditor({ field, themeColorOptions }) {
   return (
     <Form.Item label={label}>
       <Form.List name={key}>
-        {(fields, { add, remove }) => (
+        {(fields, { add, remove, move }) => (
           <>
             {fields.map(({ key: listKey, name }) => (
               <div
@@ -115,13 +127,35 @@ export function ArrayEditor({ field, themeColorOptions }) {
                   <span style={{ fontSize: 12, fontWeight: 600, color: "#666" }}>
                     {itemLabel} #{name + 1}
                   </span>
-                  <Button
-                    type="text"
-                    size="small"
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={() => remove(name)}
-                  />
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<ArrowUpOutlined />}
+                      onClick={() => {
+                        if (name > 0) move(name, name - 1);
+                      }}
+                      disabled={name <= 0}
+                      aria-label={`Move ${itemLabel} ${name + 1} up`}
+                    />
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<ArrowDownOutlined />}
+                      onClick={() => {
+                        if (name < fields.length - 1) move(name, name + 1);
+                      }}
+                      disabled={name >= fields.length - 1}
+                      aria-label={`Move ${itemLabel} ${name + 1} down`}
+                    />
+                    <Button
+                      type="text"
+                      size="small"
+                      danger
+                      icon={<DeleteOutlined />}
+                      onClick={() => remove(name)}
+                    />
+                  </div>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
                   {itemSchema.map((subField) => {
@@ -217,15 +251,30 @@ export function ArrayEditor({ field, themeColorOptions }) {
                 </div>
               </div>
             ))}
-            <Button
-              type="dashed"
-              onClick={() => add(defaultItem)}
-              block
-              icon={<PlusOutlined />}
-              style={{ marginTop: 4 }}
-            >
-              Add {itemLabel}
-            </Button>
+            {addButtonVariant === "circle" ? (
+              <div
+                style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}
+              >
+                <Button
+                  type="primary"
+                  shape="circle"
+                  size="large"
+                  icon={<PlusOutlined />}
+                  onClick={() => add(defaultItem)}
+                  title={addButtonTitle || `Add ${itemLabel}`}
+                />
+              </div>
+            ) : (
+              <Button
+                type="dashed"
+                onClick={() => add(defaultItem)}
+                block
+                icon={<PlusOutlined />}
+                style={{ marginTop: 4 }}
+              >
+                Add {itemLabel}
+              </Button>
+            )}
           </>
         )}
       </Form.List>

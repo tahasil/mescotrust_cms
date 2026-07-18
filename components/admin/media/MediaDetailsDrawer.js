@@ -58,6 +58,9 @@ export default function MediaDetailsDrawer({
   onProcess,
   onCopyUrl,
 }) {
+  const mimeType = String(item?.mimeType || "").toLowerCase();
+  const isAnimatedGif = mimeType === "image/gif";
+
   return (
     <Drawer
       title="Attachment details"
@@ -142,7 +145,7 @@ export default function MediaDetailsDrawer({
             <Space wrap>
               <Upload
                 beforeUpload={() => false}
-                accept=".jpg,.jpeg,.png,.webp,.avif,.svg,.pdf"
+                accept=".jpg,.jpeg,.png,.webp,.avif,.gif,.svg,.pdf"
                 fileList={replaceFileList}
                 onChange={({ fileList }) => setReplaceFileList(fileList.slice(-1))}
                 maxCount={1}
@@ -189,7 +192,7 @@ export default function MediaDetailsDrawer({
               icon={<SwapOutlined />}
               onClick={() => onProcess("convert")}
               loading={processingAction === "convert"}
-              disabled={Boolean(item.webpUrl) && Boolean(item.avifUrl)}
+              disabled={isAnimatedGif || (Boolean(item.webpUrl) && Boolean(item.avifUrl))}
             >
               Convert WebP / AVIF
             </Button>

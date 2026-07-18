@@ -51,7 +51,7 @@ export async function GET() {
         try {
           props = sanitizePopupPayload(doc?.defaultProps || {}, {
             requireTargetRoutes: true,
-            requireImageUrl: true,
+            requireImageUrl: false,
           });
         } catch {
           return null;

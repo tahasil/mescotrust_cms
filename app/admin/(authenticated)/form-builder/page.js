@@ -23,7 +23,7 @@ const STATUS_COLORS = {
 function getShortcodeSnippet(shortcode) {
   const value = String(shortcode || "").trim();
   if (!value) return "";
-  return `[form shortcode="${value}"]`;
+  return `[shortcode="${value}"]`;
 }
 
 export default function FormBuilderListPage() {

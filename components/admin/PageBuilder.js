@@ -15,7 +15,6 @@ import {
   Tag,
   Popover,
   Modal as AntModal,
-  Segmented,
   ColorPicker,
   Divider,
   message,
@@ -44,9 +43,6 @@ import {
   TableOutlined,
   ShareAltOutlined,
   LineOutlined,
-  DesktopOutlined,
-  TabletOutlined,
-  MobileOutlined,
   CloseOutlined,
   CheckOutlined,
   ArrowUpOutlined,
@@ -1055,6 +1051,33 @@ function menuItemsToNavItems(menuItems) {
   });
 }
 
+const RESERVED_MENU_NAMES = new Set(["header", "footer"]);
+
+function isReservedMenuName(name) {
+  return RESERVED_MENU_NAMES.has(String(name || "").trim().toLowerCase());
+}
+
+function filterSelectableMenus(list) {
+  if (!Array.isArray(list)) return [];
+  return list.filter((menu) => {
+    const name = String(menu?.name || "").trim();
+    return name && !isReservedMenuName(name);
+  });
+}
+
+function pickPreferredHeaderMenuName(menus, currentName = "") {
+  if (!Array.isArray(menus) || menus.length === 0) return "";
+  const current = String(currentName || "").trim();
+  if (current && menus.some((menu) => String(menu?.name || "").trim() === current)) {
+    return current;
+  }
+  const preferred =
+    menus.find((menu) =>
+      /primary|main|navigation/i.test(String(menu?.name || "")),
+    ) || menus[0];
+  return String(preferred?.name || "").trim();
+}
+
 /** React Bootstrap Navbar options – shown in Header edit drawer (see https://react-bootstrap.netlify.app/docs/components/navbar). */
 const NAVBAR_SCHEMA = [
   {
@@ -2007,12 +2030,6 @@ function LayersPanel({
 
 // ─── Responsive Preview Widths ──────────────────────────────
 
-const PREVIEW_WIDTHS = {
-  desktop: "100%",
-  tablet: 768,
-  mobile: 375,
-};
-
 // ═══════════════════════════════════════════════════════════
 // Main PageBuilder Component
 // ═══════════════════════════════════════════════════════════
@@ -2036,7 +2053,6 @@ export default function PageBuilder({
   const [addDrawerOpen, setAddDrawerOpen] = useState(false);
   const [insertAtIndex, setInsertAtIndex] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [previewMode, setPreviewMode] = useState("desktop");
   const [layersPanelOpen, setLayersPanelOpen] = useState(false);
   const showLayersPanel = showLayers && layersPanelOpen;
   const [addToSectionBlockIndex, setAddToSectionBlockIndex] = useState(null);
@@ -2572,13 +2588,16 @@ export default function PageBuilder({
   };
 
   const editingBlock = editingIndex !== null ? sorted[editingIndex] : null;
-  const pw = PREVIEW_WIDTHS[previewMode];
 
   const loadMenuIntoNavItems = useCallback(
     (menuName) => {
       if (!menuName || typeof menuName !== "string") return;
       const name = String(menuName).trim();
       if (!name) return;
+      if (isReservedMenuName(name)) {
+        message.warning("Please select a navigation menu.");
+        return;
+      }
       fetch(`/api/admin/menus/${encodeURIComponent(name)}`)
         .then((res) => {
           if (!res.ok)
@@ -2614,30 +2633,24 @@ export default function PageBuilder({
     fetch("/api/admin/menus")
       .then((res) => (res.ok ? res.json() : []))
       .then((list) => {
-        const menus = Array.isArray(list) ? list : [];
+        const menus = filterSelectableMenus(list);
         setAdminMenusList(menus);
         if (cancelled || menus.length === 0) return null;
         const savedName = editingBlock?.props?.menuName;
-        const preferred = savedName
-          ? menus.find((m) => m.name === savedName)
-          : menus.find(
-              (m) => m.name && /header|main|primary/i.test(String(m.name)),
-            ) || menus[0];
-        const menuName = preferred?.name;
+        const menuName = pickPreferredHeaderMenuName(menus, savedName);
         if (!menuName) return null;
-        return fetch(`/api/admin/menus/${encodeURIComponent(menuName)}`).then(
-          (r) => (r.ok ? r.json() : null),
-        );
+        return fetch(`/api/admin/menus/${encodeURIComponent(menuName)}`)
+          .then((r) => (r.ok ? r.json() : null))
+          .then((menu) => ({ menu, menuName }));
       })
-      .then((menu) => {
+      .then((result) => {
         if (cancelled) return;
+        const menu = result?.menu;
+        const menuName = String(result?.menuName || "").trim();
         if (menu?.items?.length) {
           const navItems = menuItemsToNavItems(menu.items);
           form.setFieldValue("navItems", navItems);
-          form.setFieldValue(
-            "menuName",
-            editingBlock?.props?.menuName ?? menu.name,
-          );
+          form.setFieldValue("menuName", menuName || menu.name);
           lastLoadedNavItemsRef.current = JSON.parse(JSON.stringify(navItems));
         }
       })
@@ -2704,16 +2717,6 @@ export default function PageBuilder({
               )}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <Segmented
-                size="small"
-                value={previewMode}
-                onChange={setPreviewMode}
-                options={[
-                  { value: "desktop", icon: <DesktopOutlined /> },
-                  { value: "tablet", icon: <TabletOutlined /> },
-                  { value: "mobile", icon: <MobileOutlined /> },
-                ]}
-              />
               {componentBase !== "Header" && (
                 <Button
                   type="primary"
@@ -2766,26 +2769,21 @@ export default function PageBuilder({
               }}
               style={{
                 flex: 1,
-                background: previewMode === "desktop" ? "#fff" : "#f0f0f0",
-                padding: previewMode === "desktop" ? 0 : "16px",
+                background: "#fff",
+                padding: 0,
                 minWidth: 0,
-                transition: "background 0.2s",
                 overflow: "auto",
               }}
             >
               <div
                 style={{
-                  maxWidth: typeof pw === "number" ? pw : "none",
+                  maxWidth: "none",
                   margin: "0 auto",
                   background: "#fff",
                   minHeight: 300,
-                  boxShadow:
-                    previewMode !== "desktop"
-                      ? "0 2px 12px rgba(0,0,0,0.08)"
-                      : "none",
-                  borderRadius: previewMode !== "desktop" ? 8 : 0,
+                  boxShadow: "none",
+                  borderRadius: 0,
                   overflow: "hidden",
-                  transition: "max-width 0.3s",
                 }}
               >
                 {sorted.length === 0 ? (
