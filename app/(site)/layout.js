@@ -85,10 +85,9 @@ export default async function SiteLayout({ children }) {
         active: appearanceHeaderRecord.active !== false,
         siteTitle: theme.siteTitle || "MESCO Trust",
         menuItems:
-          Array.isArray(appearanceHeaderProps.navItems) &&
-          appearanceHeaderProps.navItems.length > 0
-            ? appearanceHeaderProps.navItems
-            : data?.headerItems || [],
+          Array.isArray(data?.headerItems) && data.headerItems.length > 0
+            ? data.headerItems
+            : appearanceHeaderProps.navItems || [],
         logoImageUrl: appearanceHeaderProps.logoLightUrl || "",
         volunteerLabel: appearanceHeaderProps.headerVolunteerLabel || "",
         volunteerHref: appearanceHeaderProps.headerVolunteerHref || "",

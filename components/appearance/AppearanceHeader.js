@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import CurrentHeader from "@/components/site/Header/Header";
 
 function normalizeMenuItems(items) {
@@ -30,14 +31,34 @@ function DesktopMenuItem({ item }) {
       {hasChildren ? (
         <div className="fable-dropdown">
           {item.children.map((child, index) => (
-            <a
+            <DesktopDropdownItem
               key={`${child.label}-${index}`}
-              href={child.url}
-              target={child.openInNewTab ? "_blank" : undefined}
-              rel={child.openInNewTab ? "noopener noreferrer" : undefined}
-            >
-              {child.label}
-            </a>
+              item={child}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function DesktopDropdownItem({ item }) {
+  const hasChildren = item.children.length > 0;
+  const target = item.openInNewTab ? "_blank" : undefined;
+  return (
+    <div className={`fable-dropdown-item${hasChildren ? " has-children" : ""}`}>
+      <a
+        href={item.url}
+        target={target}
+        rel={target ? "noopener noreferrer" : undefined}
+      >
+        {item.label}
+        {hasChildren ? <span aria-hidden="true">›</span> : null}
+      </a>
+      {hasChildren ? (
+        <div className="fable-submenu">
+          {item.children.map((child, index) => (
+            <DesktopDropdownItem key={`${child.label}-${index}`} item={child} />
           ))}
         </div>
       ) : null}
@@ -46,6 +67,7 @@ function DesktopMenuItem({ item }) {
 }
 
 export default function AppearanceHeader(props) {
+  const [scrolled, setScrolled] = useState(false);
   const {
     menuItems = [],
     siteTitle = "MESCO Trust",
@@ -73,8 +95,16 @@ export default function AppearanceHeader(props) {
   const showAnnouncement = headerAnnouncementEnabled === true && announcements.length > 0;
   const volunteerTarget = volunteerHrefTarget === "_blank" ? "_blank" : undefined;
 
+  useEffect(() => {
+    if (preview) return;
+    const handleScroll = () => setScrolled(window.scrollY >= 10);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [preview]);
+
   return (
-    <div className={`appearance-header${preview ? " is-preview" : ""}`}>
+    <div className={`appearance-header${preview ? " is-preview" : ""}${scrolled ? " is-scrolled" : ""}`}>
       <div className="fable-desktop">
         {showAnnouncement ? (
           <div className="fable-announcement">
@@ -90,7 +120,15 @@ export default function AppearanceHeader(props) {
           </div>
         ) : null}
         <header className="fable-nav">
-          <div className="fable-nav-inner" style={{ background: headerBgValue || undefined }}>
+          <div
+            className="fable-nav-inner"
+            style={{
+              background:
+                scrolled && !preview
+                  ? "rgba(27,24,38,.92)"
+                  : headerBgValue || "rgba(27,24,38,.72)",
+            }}
+          >
             <a className="fable-logo" href={logoUrl || "/"} aria-label={`${siteTitle} home`}>
               {logoType === "image" && logo ? (
                 <img src={logo} alt={siteTitle} />
@@ -134,7 +172,7 @@ export default function AppearanceHeader(props) {
         .appearance-header .current-mobile { display: none; }
         .appearance-header .fable-nav { position: fixed; top: ${showAnnouncement ? "48px" : "14px"}; left: 0; right: 0; padding: 0 24px; z-index: 100; background: transparent; transition: top .3s; }
         .appearance-header.is-preview .fable-nav { position: relative; top: auto; padding: 14px 18px; }
-        .appearance-header .fable-nav-inner { width: 100%; max-width: 1240px; height: 74px; margin: 0 auto; padding: 0 10px 0 14px; display: flex; align-items: center; justify-content: space-between; gap: 24px; background: rgba(27,24,38,.92); border: 1px solid rgba(255,255,255,.14); border-radius: 999px; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: 0 18px 50px rgba(15,12,26,.35); }
+        .appearance-header .fable-nav-inner { width: 100%; max-width: 1240px; height: 74px; margin: 0 auto; padding: 0 10px 0 14px; display: flex; align-items: center; justify-content: space-between; gap: 24px; border: 1px solid rgba(255,255,255,.14); border-radius: 999px; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: 0 18px 50px rgba(15,12,26,.35); transition: background .35s; }
         .appearance-header .fable-logo { flex: 0 0 auto; display: inline-flex; align-items: center; color: #faf6ef; font-weight: 700; text-decoration: none; }
         .appearance-header .fable-logo img { display: block; width: auto; height: 42px; max-width: 150px; object-fit: contain; background: #faf6ef; border-radius: 999px; padding: 5px 12px; }
         .appearance-header .fable-links { display: flex; align-items: center; justify-content: center; gap: clamp(18px,2.6vw,38px); min-width: 0; margin: 0; }
@@ -144,8 +182,11 @@ export default function AppearanceHeader(props) {
         .appearance-header .fable-nav-item:hover > a::after, .appearance-header .fable-nav-item:focus-within > a::after { transform: scaleX(1); transform-origin: left; }
         .appearance-header .fable-dropdown { position: absolute; top: calc(100% + 14px); left: -18px; min-width: 250px; padding: 10px; display: flex; flex-direction: column; background: #2a283e; border: 1px solid rgba(250,246,239,.12); border-radius: 16px; box-shadow: 0 24px 60px rgba(0,0,0,.4); opacity: 0; visibility: hidden; transform: translateY(8px); transition: opacity .25s, transform .25s, visibility .25s; }
         .appearance-header .fable-nav-item:hover .fable-dropdown, .appearance-header .fable-nav-item:focus-within .fable-dropdown { opacity: 1; visibility: visible; transform: translateY(0); }
-        .appearance-header .fable-dropdown a { padding: 10px 14px; border-radius: 10px; color: #faf6ef !important; font-size: 14.5px; font-weight: 550; text-decoration: none !important; }
-        .appearance-header .fable-dropdown a:hover, .appearance-header .fable-dropdown a:focus-visible { color: #f2867f !important; background: rgba(250,246,239,.08); }
+        .appearance-header .fable-dropdown-item { position: relative; }
+        .appearance-header .fable-dropdown-item > a { width: 100%; padding: 10px 14px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; gap: 20px; color: #faf6ef !important; -webkit-text-fill-color: #faf6ef !important; font-size: 14.5px; font-weight: 550; text-decoration: none !important; }
+        .appearance-header .fable-dropdown-item > a:hover, .appearance-header .fable-dropdown-item > a:focus-visible { color: #f2867f !important; -webkit-text-fill-color: #f2867f !important; background: rgba(250,246,239,.08); }
+        .appearance-header .fable-submenu { position: absolute; top: -10px; left: calc(100% + 10px); min-width: 250px; padding: 10px; display: flex; flex-direction: column; background: #2a283e; border: 1px solid rgba(250,246,239,.12); border-radius: 16px; box-shadow: 0 24px 60px rgba(0,0,0,.4); opacity: 0; visibility: hidden; transform: translateX(8px); transition: opacity .2s, transform .2s, visibility .2s; }
+        .appearance-header .fable-dropdown-item:hover > .fable-submenu, .appearance-header .fable-dropdown-item:focus-within > .fable-submenu { opacity: 1; visibility: visible; transform: translateX(0); }
         .appearance-header .fable-actions { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; }
         .appearance-header .fable-actions a { display: inline-flex; align-items: center; padding: 13px 26px; border-radius: 999px; font-size: 15px; font-weight: 600; line-height: 1.2; text-decoration: none !important; white-space: nowrap; transition: transform .25s, background .25s, border-color .25s; }
         .appearance-header .fable-volunteer { color: #faf6ef !important; background: transparent; border: 1px solid rgba(250,246,239,.32); }
