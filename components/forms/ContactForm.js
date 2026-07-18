@@ -37,7 +37,7 @@ const FormWrapper = styled.div`
     color: rgba(0, 0, 0, 0.85);
   }
   .form-label .required {
-    color: #cf372f;
+    color: #E03C33;
   }
   .form-field {
     width: 100%;
@@ -75,7 +75,7 @@ const FormWrapper = styled.div`
     margin-top: 6px;
     font-size: 12px;
     line-height: 1.4;
-    color: #cf372f;
+    color: #E03C33;
   }
 `;
 
@@ -186,9 +186,9 @@ export default function ContactForm({
   const [state, formAction] = useFormState(submitContact, null);
   const formRef = useRef(null);
   const [errors, setErrors] = useState({});
-  const resolvedBtnBg = btnBgColor || "var(--primary-color, #cf372f)";
+  const resolvedBtnBg = btnBgColor || "var(--primary-color, #E03C33)";
   const resolvedBtnText = btnTextColor || "#fff";
-  const resolvedIconColor = iconColor || "#cf372f";
+  const resolvedIconColor = iconColor || "#E03C33";
 
   const subjects =
     Array.isArray(subjectOptions) && subjectOptions.length > 0
@@ -275,7 +275,7 @@ export default function ContactForm({
                 className="form-field"
                 placeholder="Your name"
                 onChange={() => errors.name && setErrors((prev) => ({ ...prev, name: "" }))}
-                style={errors.name ? { borderColor: "#cf372f" } : undefined}
+                style={errors.name ? { borderColor: "#E03C33" } : undefined}
               />
               {errors.name ? <div className="error-text">{errors.name}</div> : null}
             </div>
@@ -291,7 +291,7 @@ export default function ContactForm({
                 className="form-field"
                 placeholder="your@email.com"
                 onChange={() => errors.email && setErrors((prev) => ({ ...prev, email: "" }))}
-                style={errors.email ? { borderColor: "#cf372f" } : undefined}
+                style={errors.email ? { borderColor: "#E03C33" } : undefined}
               />
               {errors.email ? <div className="error-text">{errors.email}</div> : null}
             </div>
@@ -307,7 +307,7 @@ export default function ContactForm({
                 className="form-field"
                 placeholder="+91 00000 00000"
                 onChange={() => errors.phone && setErrors((prev) => ({ ...prev, phone: "" }))}
-                style={errors.phone ? { borderColor: "#cf372f" } : undefined}
+                style={errors.phone ? { borderColor: "#E03C33" } : undefined}
               />
               {errors.phone ? <div className="error-text">{errors.phone}</div> : null}
             </div>
@@ -322,7 +322,7 @@ export default function ContactForm({
                 className="form-field"
                 defaultValue=""
                 onChange={() => errors.subject && setErrors((prev) => ({ ...prev, subject: "" }))}
-                style={errors.subject ? { borderColor: "#cf372f" } : undefined}
+                style={errors.subject ? { borderColor: "#E03C33" } : undefined}
               >
                 <option value="" disabled>
                   Select a subject
@@ -347,7 +347,7 @@ export default function ContactForm({
                 placeholder="How can we help you?"
                 rows={5}
                 onChange={() => errors.message && setErrors((prev) => ({ ...prev, message: "" }))}
-                style={errors.message ? { borderColor: "#cf372f" } : undefined}
+                style={errors.message ? { borderColor: "#E03C33" } : undefined}
               />
               {errors.message ? <div className="error-text">{errors.message}</div> : null}
             </div>

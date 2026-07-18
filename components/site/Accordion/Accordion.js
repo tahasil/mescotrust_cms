@@ -31,7 +31,7 @@ const StyledCollapse = styled(Collapse)`
       padding: 20px 24px !important;
       font-size: 20px;
       font-weight: 600;
-      color: ${(p) => p.$headerColor || "#050505"} !important;
+      color: ${(p) => p.$headerColor || "#2A283E"} !important;
       align-items: center !important;
       @media (max-width: 768px) {
         padding: 16px 20px !important;
@@ -43,7 +43,7 @@ const StyledCollapse = styled(Collapse)`
         padding-inline-start: 16px !important;
         svg {
           font-size: 20px;
-          color: ${(p) => p.$headerColor || "#050505"};
+          color: ${(p) => p.$headerColor || "#2A283E"};
           transition: transform 0.3s ease;
           @media (max-width: 768px) {
             font-size: 16px;
@@ -74,7 +74,7 @@ const StyledCollapse = styled(Collapse)`
       font-size: 16px;
       font-weight: 400;
       line-height: 26px;
-      color: ${(p) => p.$contentColor || "#050505"};
+      color: ${(p) => p.$contentColor || "#2A283E"};
       opacity: 0.8;
       @media (max-width: 768px) {
         padding: 16px 20px !important;

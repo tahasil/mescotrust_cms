@@ -99,7 +99,7 @@ export default function Alerts(props) {
 
   /* ── Colors ── */
   const iconColorKey = (props?.alertsIconColorKey ?? "").toString().trim();
-  const iconColor = iconColorKey ? getColor(iconColorKey) : "#cf372f";
+  const iconColor = iconColorKey ? getColor(iconColorKey) : "#E03C33";
   const headingColorKey = (props?.alertsHeadingColorKey ?? "")
     .toString()
     .trim();

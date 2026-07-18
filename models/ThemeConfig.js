@@ -280,8 +280,8 @@ const themeConfigSchema = new mongoose.Schema(
 
     // ─── 11. Page Loader ────────────────────────────────────────
     pageLoaderEnabled: { type: Boolean, default: true },
-    pageLoaderBgColor: { type: String, default: "#000000" },
-    pageLoaderBarColor: { type: String, default: "#CF372F" },
+    pageLoaderBgColor: { type: String, default: "#211E30" },
+    pageLoaderBarColor: { type: String, default: "#E03C33" },
     pageLoaderMinDuration: { type: Number, default: 400 },
 
     // ─── 12. Advanced ───────────────────────────────────────────

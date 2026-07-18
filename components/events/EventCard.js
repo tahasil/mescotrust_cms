@@ -117,7 +117,7 @@ export default function EventCard({ event }) {
               padding: "10px 14px",
               borderRadius: 999,
               background:
-                "var(--gradient-color, linear-gradient(90deg, #CF372F 0%, #691C18 100%))",
+                "var(--gradient-color, linear-gradient(90deg, #E03C33 0%, #B92E27 100%))",
               color: "#fff",
               fontSize: 14,
               fontWeight: 500,

@@ -33,37 +33,16 @@ A long settings page divided into clear sections. Scroll down to find each secti
 
 ## 2. Colours
 
-The Theme settings page exposes a wide range of colours. They are grouped into logical sections — change one or many depending on what you need.
+The named website palette mirrors the Mesco Fable design. Its core tokens are
+Primary (`#E03C33`), Black (`#2A283E`), Cream (`#FBFAF7`), Surface
+(`#F2F0EA`), White (`#FFFFFF`), Dark (`#211E30`), and Border
+(`rgba(42, 40, 62, 0.14)`). Accent, muted, gradient, transparent, and image
+filter tokens are available in the same list.
 
-**Main brand colours**
-
-- **Primary Colour** — your main brand colour (used for buttons, links, highlights)
-- **Secondary Colour** — accent colour
-
-**Background colours**
-
-- **Body Background** — overall page background
-- **Section Background** — used inside sections
-- **Card Background** — used inside cards
-- **Header Background** — top strip
-- **Footer Background** — bottom strip
-
-**Text colours**
-
-- **Heading Colour** — H1–H6 headings
-- **Paragraph Colour** — regular text
-- **Link Colour** / **Link Hover Colour**
-- **Muted Text Colour** — captions, subtitles, etc.
-
-**Borders & UI**
-
-- **Border Colour** — generic border lines
-- **Divider Colour** — divider rules between sections
-- **Input Border Colour** — form input borders
-
-**Custom palette**
-
-You can also add **custom named colours** at the bottom of the colour section. Click **+ Add Colour**, give it a name (e.g. "Donate Red"), set the value (hex code like `#cf372f`), and save. Custom colours can then be referenced from individual blocks and site components.
+Click **+ Add color** to add a project-specific named color. Saved color names
+become selectable from block and site-component editors. Existing installations
+using the former default Mesco palette are upgraded automatically; genuinely
+custom color collections are preserved.
 
 ---
 

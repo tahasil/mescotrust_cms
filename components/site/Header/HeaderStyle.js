@@ -550,7 +550,7 @@ export const MobileMenuHeader = styled.div`
     right: -20px;
     bottom: 0;
     height: 1px;
-    background: rgba(5, 5, 5, 0.12);
+    background: rgba(42, 40, 62, 0.12);
   }
 `;
 

@@ -150,7 +150,7 @@ export default async function BlogListPage({ searchParams }) {
                 background: !categorySlug
                   ? "var(--primary-color, #8b1a1a)"
                   : "transparent",
-                color: !categorySlug ? "#fff" : "#050505",
+                color: !categorySlug ? "#fff" : "#2A283E",
               }}
             >
               All
@@ -173,7 +173,7 @@ export default async function BlogListPage({ searchParams }) {
                     categorySlug === cat.slug
                       ? "var(--primary-color, #8b1a1a)"
                       : "transparent",
-                  color: categorySlug === cat.slug ? "#fff" : "#050505",
+                  color: categorySlug === cat.slug ? "#fff" : "#2A283E",
                 }}
               >
                 {cat.name}

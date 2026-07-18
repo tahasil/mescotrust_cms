@@ -1711,8 +1711,8 @@ const VerificationPanel = styled.div`
   margin-bottom: 16px;
   padding: 14px 14px 12px;
   border-radius: 10px;
-  border: 1px solid rgba(207, 55, 47, 0.25);
-  background: rgba(207, 55, 47, 0.05);
+  border: 1px solid rgba(224, 60, 51, 0.25);
+  background: rgba(224, 60, 51, 0.05);
   h4 {
     margin: 0 0 6px;
     font-size: 14px;
@@ -1756,7 +1756,7 @@ const FieldLabel = styled.label`
   font-weight: 600;
   color: #1d1f21;
   .req {
-    color: #cf372f;
+    color: #E03C33;
     margin-left: 3px;
   }
 `;
@@ -1768,7 +1768,7 @@ const FieldInput = styled.input`
   width: 100%;
   height: ${FIELD_CONTROL_HEIGHT};
   border-radius: 10px;
-  border: 1px solid rgba(5, 5, 5, 0.1);
+  border: 1px solid rgba(42, 40, 62, 0.1);
   padding: 0 13px;
   outline: none;
   font-size: 14px;
@@ -1779,7 +1779,7 @@ const FieldInput = styled.input`
     box-shadow 0.15s ease;
   &:focus {
     border-color: ${getColor("primary")};
-    box-shadow: 0 0 0 2px rgba(207, 55, 47, 0.1);
+    box-shadow: 0 0 0 2px rgba(224, 60, 51, 0.1);
   }
   &:disabled {
     background: rgba(0, 0, 0, 0.04);
@@ -1791,7 +1791,7 @@ const FieldTextArea = styled.textarea`
   width: 100%;
   min-height: 52px;
   border-radius: 10px;
-  border: 1px solid rgba(5, 5, 5, 0.1);
+  border: 1px solid rgba(42, 40, 62, 0.1);
   padding: 10px 13px;
   outline: none;
   resize: vertical;
@@ -1801,7 +1801,7 @@ const FieldTextArea = styled.textarea`
     box-shadow 0.15s ease;
   &:focus {
     border-color: ${getColor("primary")};
-    box-shadow: 0 0 0 2px rgba(207, 55, 47, 0.1);
+    box-shadow: 0 0 0 2px rgba(224, 60, 51, 0.1);
   }
 `;
 
@@ -1819,7 +1819,7 @@ const FieldSelect = styled(Select)`
     box-sizing: border-box !important;
     display: flex !important;
     align-items: center !important;
-    border: 1px solid rgba(5, 5, 5, 0.1) !important;
+    border: 1px solid rgba(42, 40, 62, 0.1) !important;
     padding-inline: 12px !important;
     padding-right: 36px !important;
     font-size: 14px !important;
@@ -1858,13 +1858,13 @@ const FieldSelect = styled(Select)`
   &.ant-select-focused .ant-select-selector,
   &.ant-select-open .ant-select-selector {
     border-color: ${getColor("primary")} !important;
-    box-shadow: 0 0 0 2px rgba(207, 55, 47, 0.1) !important;
+    box-shadow: 0 0 0 2px rgba(224, 60, 51, 0.1) !important;
   }
 `;
 
 const FieldError = styled.div`
   margin-top: 6px;
-  color: #cf372f;
+  color: #E03C33;
   font-size: 12px;
 `;
 
@@ -1944,7 +1944,7 @@ const PurposeGrid = styled.div`
 `;
 
 const PurposeCard = styled.button`
-  border: 1px solid rgba(207, 55, 47, 0.2);
+  border: 1px solid rgba(224, 60, 51, 0.2);
   background: ${(props) => (props.$active ? "#fbebeb" : "#ffffff")};
   border-radius: 10px;
   text-align: center;
@@ -1980,10 +1980,10 @@ const PurposeCard = styled.button`
     right: 0;
     bottom: 0;
     height: 2px;
-    background: #cf372f;
+    background: #E03C33;
   }
   &:hover {
-    border-color: rgba(207, 55, 47, 0.35);
+    border-color: rgba(224, 60, 51, 0.35);
     background: ${(props) => (props.$active ? "#fbebeb" : "#fff6f5")};
   }
   h4 {
@@ -1999,7 +1999,7 @@ const PurposeCard = styled.button`
     }
   }
   .amount {
-    color: #cf372f;
+    color: #E03C33;
     font-size: 14px;
     font-weight: 700;
     line-height: 1.3;
@@ -2081,7 +2081,7 @@ const FooterBanner = styled.div`
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
   overflow-wrap: anywhere;
   strong {
-    color: #cf372f;
+    color: #E03C33;
     width: 100%;
     display: block;
   }

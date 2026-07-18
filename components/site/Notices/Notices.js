@@ -15,7 +15,7 @@ const HomeLongButton = styled.button`
   position: relative;
   height: auto;
   padding: 20px;
-  border: 1px solid rgba(5, 5, 5, 0.1);
+  border: 1px solid rgba(42, 40, 62, 0.1);
   border-radius: 20px;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.05) !important;
   display: flex;
@@ -81,7 +81,7 @@ const HomeLongButton = styled.button`
   }
   &:active {
     transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(207, 55, 47, 0.15) !important;
+    box-shadow: 0 4px 16px rgba(224, 60, 51, 0.15) !important;
   }
 `;
 

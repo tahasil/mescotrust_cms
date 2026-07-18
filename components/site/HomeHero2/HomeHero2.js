@@ -41,7 +41,7 @@ const HomeContainer = styled.section`
       margin-top: -10px;
     }
     span {
-      background: linear-gradient(90deg, #cf372f 0%, #691c18 100%);
+      background: linear-gradient(90deg, #E03C33 0%, #B92E27 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;

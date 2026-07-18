@@ -96,7 +96,7 @@ export default function DonorTestimonials(props) {
     .trim();
   const quoteIconColor = quoteIconColorKey
     ? getColor(quoteIconColorKey)
-    : "#cf372f";
+    : "#E03C33";
   const nameColorKey = (props?.donorTestimonialsNameColorKey ?? "")
     .toString()
     .trim();

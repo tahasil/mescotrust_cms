@@ -42,7 +42,7 @@ const PdfIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  /* background-color: rgba(207, 55, 47, 0.1); */
+  /* background-color: rgba(224, 60, 51, 0.1); */
   @media (max-width: 576px) {
     width: 36px;
     height: 36px;
@@ -147,9 +147,9 @@ export default function Newsletters(props) {
 
   /* Colors */
   const iconColorKey = (props?.newslettersIconColorKey ?? "").toString().trim();
-  const iconColor = iconColorKey ? resolveThemeColor(iconColorKey) : "#cf372f";
+  const iconColor = iconColorKey ? resolveThemeColor(iconColorKey) : "#E03C33";
   const viewColorKey = (props?.newslettersViewColorKey ?? "").toString().trim();
-  const viewColor = viewColorKey ? resolveThemeColor(viewColorKey) : "#cf372f";
+  const viewColor = viewColorKey ? resolveThemeColor(viewColorKey) : "#E03C33";
   const viewBgColorKey = (props?.newslettersViewBgColorKey ?? "")
     .toString()
     .trim();
@@ -178,7 +178,7 @@ export default function Newsletters(props) {
     .trim();
   const iconBgColor = iconBgColorKey
     ? resolveThemeColor(iconBgColorKey)
-    : "rgba(207, 55, 47, 0.08)";
+    : "rgba(224, 60, 51, 0.08)";
 
   /* Items */
   const items = Array.isArray(props?.newslettersItems)

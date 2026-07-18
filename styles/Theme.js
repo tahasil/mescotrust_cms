@@ -18,29 +18,55 @@ export const HEADER_OFFSET_MOBILE = "56px";
 
 /** Semantic aliases map to CSS vars injected from DB-backed theme config. */
 export const THEME_COLOR_ALIASES = {
-  primary: "var(--primary-color, var(--theme-primary, rgba(207, 55, 47, 1)))",
-  secondary: "var(--secondary-color, var(--theme-secondary, #050505))",
+  primary: "var(--primary-color, var(--theme-primary, #E03C33))",
+  primaryDark: "var(--theme-primary-dark, #B92E27)",
+  primarySoft: "var(--theme-primary-soft, #F2867F)",
+  primaryPale: "var(--theme-primary-pale, #F2A19B)",
+  secondary: "var(--secondary-color, var(--theme-black, #2A283E))",
   white: "var(--theme-white, #FFFFFF)",
-  black: "var(--theme-black, #050505)",
+  cream: "var(--theme-cream, #FBFAF7)",
+  warmWhite: "var(--theme-warm-white, #FAF6EF)",
+  surface: "var(--theme-surface, #F2F0EA)",
+  black: "var(--theme-black, #2A283E)",
+  blackLight: "var(--theme-black-light, rgba(42, 40, 62, 0.76))",
+  blackMuted: "var(--theme-black-muted, rgba(42, 40, 62, 0.52))",
+  dark: "var(--theme-dark, #211E30)",
+  border: "var(--theme-border, rgba(42, 40, 62, 0.14))",
   headerBg: "var(--theme-header-bg)",
   headerCta: "var(--theme-header-cta)",
-  ctaBorder: "var(--theme-cta-border)",
+  ctaBorder: "var(--theme-cta-border, var(--theme-border, rgba(42, 40, 62, 0.14)))",
   gradient:
-    "var(--theme-gradient, linear-gradient(90deg, #CF372F 0%, #691C18 100%))",
-  primaryLight: "var(--theme-primary-light, rgba(207, 55, 47, 0.1))",
-  themeBorder: "var(--theme-theme-border, var(--border-color))",
-  imgFillWhite: "var(--theme-img-fill-white)",
-  imgFillTheme: "var(--theme-img-fill-theme)",
+    "var(--theme-gradient, linear-gradient(90deg, #E03C33 0%, #B92E27 100%))",
+  primaryLight: "var(--theme-primary-light, rgba(224, 60, 51, 0.1))",
+  themeBorder: "var(--theme-theme-border, var(--theme-border, rgba(42, 40, 62, 0.14)))",
+  imgWhite:
+    "var(--theme-img-white, var(--theme-img-fill-white, brightness(0) saturate(100%) invert(100%)))",
+  imgColor:
+    "var(--theme-img-color, var(--theme-img-fill-theme, brightness(0) saturate(100%) invert(29%) sepia(88%) saturate(1615%) hue-rotate(339deg) brightness(90%) contrast(95%)))",
+  imgFillWhite:
+    "var(--theme-img-fill-white, var(--theme-img-white, brightness(0) saturate(100%) invert(100%)))",
+  imgFillTheme:
+    "var(--theme-img-fill-theme, var(--theme-img-color, brightness(0) saturate(100%) invert(29%) sepia(88%) saturate(1615%) hue-rotate(339deg) brightness(90%) contrast(95%)))",
+  transparent: "var(--theme-transparent, transparent)",
 };
 
 const THEME_COLOR_FALLBACKS = {
-  primary: "rgba(207, 55, 47, 1)",
-  secondary: "#050505",
-  black: "#050505",
+  primary: "#E03C33",
+  "primary-dark": "#B92E27",
+  "primary-soft": "#F2867F",
+  "primary-pale": "#F2A19B",
+  secondary: "#2A283E",
+  black: "#2A283E",
+  "black-light": "rgba(42, 40, 62, 0.76)",
+  "black-muted": "rgba(42, 40, 62, 0.52)",
   white: "#FFFFFF",
-  "primary-light": "rgba(207, 55, 47, 0.1)",
-  gradient: "linear-gradient(90deg, #CF372F 0%, #691C18 100%)",
-  border: "rgba(0, 0, 0, 0.1)",
+  cream: "#FBFAF7",
+  "warm-white": "#FAF6EF",
+  surface: "#F2F0EA",
+  dark: "#211E30",
+  "primary-light": "rgba(224, 60, 51, 0.1)",
+  gradient: "linear-gradient(90deg, #E03C33 0%, #B92E27 100%)",
+  border: "rgba(42, 40, 62, 0.14)",
   transparent: "transparent",
 };
 
@@ -99,8 +125,8 @@ export const GlobalStyle = createGlobalStyle`
     margin: 0px;
     padding: 0px;
     font-family: ${Theme.fonts.sans};
-    background: ${getColor("white")};
-    color: ${getColor("black")};
+    background: ${getColor("cream")};
+    color: ${getColor("blackLight")};
   }
 `;
 export const PageContainer = styled.div`
@@ -110,7 +136,7 @@ export const PageContainer = styled.div`
   position: relative;
   padding: 80px 0px;
   &.lightBackground {
-    background: #f0f0f0;
+    background: ${getColor("surface")};
   }
   @media (max-width: 768px) {
     width: 100%;
@@ -120,7 +146,7 @@ export const PageContainer = styled.div`
 export const ThemeButton = styled(ButtonWrapper)`
   background: ${getColor("gradient")};
   border: 1px solid ${getColor("ctaBorder")};
-  box-shadow: 0px 0px 10px rgba(207, 55, 47, 0.25);
+  box-shadow: 0px 0px 10px rgba(224, 60, 51, 0.25);
   border-radius: 30px;
   color: ${getColor("white")};
   padding: 10px 20px;
@@ -135,11 +161,11 @@ export const ThemeButton = styled(ButtonWrapper)`
     border-color: ${getColor("primary")} !important;
     color: ${getColor("primary")} !important;
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(207, 55, 47, 0.35);
+    box-shadow: 0 6px 20px rgba(224, 60, 51, 0.35);
   }
   &:active {
     transform: translateY(0);
-    box-shadow: 0 2px 10px rgba(207, 55, 47, 0.25);
+    box-shadow: 0 2px 10px rgba(224, 60, 51, 0.25);
   }
   &.impact-showcase-btn {
     color: var(--impact-btn-text, inherit) !important;
@@ -189,7 +215,7 @@ export const ThemeButton = styled(ButtonWrapper)`
     }
   }
   &.volunteer {
-    background: rgba(207, 55, 47, 0.1);
+    background: ${getColor("primaryLight")};
     box-shadow: none;
     border: 1px solid transparent;
     color: ${getColor("primary")};
@@ -210,7 +236,7 @@ export const ThemeButton = styled(ButtonWrapper)`
       background: ${getColor("primary")};
       color: ${getColor("white")};
       border: 1px solid ${getColor("primary")};
-      box-shadow: 0px 0px 10px rgba(207, 55, 47, 0.25);
+      box-shadow: 0px 0px 10px rgba(224, 60, 51, 0.25);
       img {
         background: ${getColor("white")};
         border: 1px solid ${getColor("primary")};

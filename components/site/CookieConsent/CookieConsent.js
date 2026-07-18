@@ -156,8 +156,8 @@ export default function CookieConsent() {
           transform: translateY(-1px);
         }
         .mesco-cookie-btn-primary {
-          background: var(--primary-color, #cf372f);
-          border-color: var(--primary-color, #cf372f);
+          background: var(--primary-color, #E03C33);
+          border-color: var(--primary-color, #E03C33);
           color: var(--button-color, #ffffff);
         }
         .mesco-cookie-btn-secondary {

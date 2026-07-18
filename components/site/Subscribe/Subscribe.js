@@ -167,7 +167,7 @@ export default function Subscribe(props) {
             </SubscribeButton>
           </SubscribeFieldRow>
           {emailError ? (
-            <div style={{ color: "#cf372f", fontSize: 12, marginTop: 6, paddingLeft: 12 }}>
+            <div style={{ color: "#E03C33", fontSize: 12, marginTop: 6, paddingLeft: 12 }}>
               {emailError}
             </div>
           ) : null}

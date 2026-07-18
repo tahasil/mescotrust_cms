@@ -129,7 +129,7 @@ export const SubscribeFieldRow = styled.div`
   transition: border-color 0.2s, box-shadow 0.2s;
   &:focus-within {
     border-color: ${() => getColor("primary")};
-    box-shadow: 0 0 0 2px rgba(207, 55, 47, 0.12);
+    box-shadow: 0 0 0 2px rgba(224, 60, 51, 0.12);
   }
   @media (max-width: 576px) {
     min-height: 54px;
@@ -186,7 +186,7 @@ export const SubscribeButton = styled(Button).attrs((p) => ({
     color: ${() => getColor("primary")} !important;
     border: 1px solid ${() => getColor("primary")} !important;
     background: ${() => getColor("white")} !important;
-    box-shadow: 0 3px 10px rgba(207, 55, 47, 0.35);
+    box-shadow: 0 3px 10px rgba(224, 60, 51, 0.35);
   }
   @media (max-width: 768px) {
     height: 44px;

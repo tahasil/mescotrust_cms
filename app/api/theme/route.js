@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 /** Single theme doc: match by themeKey or legacy docs without themeKey */
 const THEME_QUERY = { $or: [{ themeKey: "default" }, { themeKey: { $exists: false } }] };
 
-/** Legacy theme colors are recovered when missing; stored themePalette is preserved (except known bad generated keys). */
+/** Reference theme colors are recovered/migrated; custom palette entries are preserved. */
 
 function slugToCamel(slug) {
   return slug.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
@@ -66,7 +66,11 @@ function syncColorsToThemeJs(paletteColors, colors, themePath) {
 
   const linesToAdd = [];
   for (const [name, value] of byName) {
-    const slug = String(name).toLowerCase().trim().replace(/\s+/g, "-");
+    const slug = String(name)
+      .trim()
+      .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+      .toLowerCase()
+      .replace(/\s+/g, "-");
     const slugClean = slug.replace(/[^a-z0-9-]/gi, "") || "custom";
     const camelKey = slugToCamel(slugClean);
     const cssVar = `--theme-${slugClean}`;
@@ -214,8 +218,8 @@ const DEFAULTS = {
   blogFeaturedImageRatio: "16/9",
   blogMetaStyle: "minimal",
   pageLoaderEnabled: true,
-  pageLoaderBgColor: "#000000",
-  pageLoaderBarColor: "#CF372F",
+  pageLoaderBgColor: "#211E30",
+  pageLoaderBarColor: "#E03C33",
   pageLoaderMinDuration: 400,
   customCss: "",
   customJs: "",

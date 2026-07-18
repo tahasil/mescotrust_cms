@@ -401,7 +401,7 @@ export default function VolunteersFeedback(props = {}) {
   );
   const errorColor = colorFromKey(
     values.volunteersFeedbackErrorColorKey,
-    "#cf372f",
+    "#E03C33",
   );
   const buttonBgColor = colorFromKey(
     values.volunteersFeedbackButtonBgColorKey,
@@ -940,7 +940,7 @@ const FieldInput = styled.input`
 
   &:focus {
     border-color: var(--vf-input-border);
-    box-shadow: 0 0 0 3px rgba(207, 55, 47, 0.1);
+    box-shadow: 0 0 0 3px rgba(224, 60, 51, 0.1);
   }
 
   &::placeholder {
@@ -971,7 +971,7 @@ const FieldTextArea = styled.textarea`
 
   &:focus {
     border-color: var(--vf-input-border);
-    box-shadow: 0 0 0 3px rgba(207, 55, 47, 0.1);
+    box-shadow: 0 0 0 3px rgba(224, 60, 51, 0.1);
   }
 
   &::placeholder {

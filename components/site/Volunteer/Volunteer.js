@@ -55,8 +55,8 @@ const Wrapper = styled.div`
   --volunteer-side-item-size: 13px;
   --volunteer-label-size: 13px;
   --volunteer-input-size: 14px;
-  --volunteer-required-color: #cf372f;
-  --volunteer-error-color: #cf372f;
+  --volunteer-required-color: #E03C33;
+  --volunteer-error-color: #E03C33;
 
   .volunteer-shell {
     align-items: stretch;
@@ -175,7 +175,7 @@ const Wrapper = styled.div`
     min-height: 80px;
     color: #fff;
     border: 1px solid transparent;
-    background: linear-gradient(148deg, #cf372f 0%, #741f1b 100%);
+    background: linear-gradient(148deg, #E03C33 0%, #B92E27 100%);
   }
 
   .volunteer-side-title {
@@ -601,8 +601,8 @@ export default function Volunteer(props = {}) {
   );
   const checkboxColor = colorFromKey(checkboxColorKey, getColor("primary"));
   const areasTextColor = colorFromKey(areasTextColorKey, labelColor);
-  const requiredStarColor = colorFromKey(requiredStarColorKey, "#cf372f");
-  const errorTextColor = colorFromKey(errorTextColorKey, "#cf372f");
+  const requiredStarColor = colorFromKey(requiredStarColorKey, "#E03C33");
+  const errorTextColor = colorFromKey(errorTextColorKey, "#E03C33");
 
   const submitCustomBackground = text(props?.volunteerButtonBackground);
   const submitBtnBgColor =
@@ -618,7 +618,7 @@ export default function Volunteer(props = {}) {
     sideCustomBackground ||
     colorFromKey(
       sideBgColorKey,
-      "linear-gradient(148deg, #cf372f 0%, #741f1b 100%)",
+      "linear-gradient(148deg, #E03C33 0%, #B92E27 100%)",
     );
   const sideTitleColor = colorFromKey(sideTitleColorKey, "#ffffff");
   const sideTextColor = colorFromKey(sideTextColorKey, "#ffffff");

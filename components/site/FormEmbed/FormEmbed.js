@@ -459,7 +459,7 @@ const FormShell = styled.div`
   }
 
   .ant-form-item-label > label.ant-form-item-required::before {
-    color: var(--form-required-indicator-color, #cf372f) !important;
+    color: var(--form-required-indicator-color, #E03C33) !important;
   }
 
   .ant-input,
@@ -476,8 +476,8 @@ const FormShell = styled.div`
   .ant-input-focused,
   .ant-select-focused .ant-select-selector,
   .ant-picker-focused {
-    border-color: var(--form-input-focus-color, #cf372f) !important;
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--form-input-focus-color, #cf372f) 20%, transparent) !important;
+    border-color: var(--form-input-focus-color, #E03C33) !important;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--form-input-focus-color, #E03C33) 20%, transparent) !important;
   }
 
   .ant-select-selector {
@@ -527,14 +527,14 @@ const FormShell = styled.div`
   .ant-form-item-explain-error {
     margin-top: 6px;
     font-size: 12px;
-    color: var(--form-error-message-color, #cf372f);
+    color: var(--form-error-message-color, #E03C33);
   }
 
   .ant-form-item-has-error .ant-input,
   .ant-form-item-has-error .ant-select-selector,
   .ant-form-item-has-error .ant-picker {
-    border-color: var(--form-input-error-color, #cf372f) !important;
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--form-input-error-color, #cf372f) 20%, transparent) !important;
+    border-color: var(--form-input-error-color, #E03C33) !important;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--form-input-error-color, #E03C33) 20%, transparent) !important;
   }
 
   .form-submit-btn.ant-btn.ant-btn-primary {
@@ -543,8 +543,8 @@ const FormShell = styled.div`
     font-size: 14px;
     font-weight: 700;
     padding-inline: 20px;
-    background: var(--form-button-bg-color, #cf372f) !important;
-    border-color: var(--form-button-bg-color, #cf372f) !important;
+    background: var(--form-button-bg-color, #E03C33) !important;
+    border-color: var(--form-button-bg-color, #E03C33) !important;
     color: var(--form-button-text-color, #ffffff) !important;
   }
 
@@ -555,7 +555,7 @@ const FormShell = styled.div`
   }
 
   .form-submit-btn.ant-btn.ant-btn-primary:focus-visible {
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--form-button-focus-color, #cf372f) 25%, transparent) !important;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--form-button-focus-color, #E03C33) 25%, transparent) !important;
   }
 
   .form-submit-actions {
@@ -594,30 +594,30 @@ const FormShell = styled.div`
 
   .ant-checkbox-checked .ant-checkbox-inner,
   .ant-checkbox-indeterminate .ant-checkbox-inner:after {
-    background-color: var(--form-checkbox-color, #cf372f) !important;
-    border-color: var(--form-checkbox-color, #cf372f) !important;
+    background-color: var(--form-checkbox-color, #E03C33) !important;
+    border-color: var(--form-checkbox-color, #E03C33) !important;
   }
 
   .ant-checkbox-wrapper:hover .ant-checkbox-inner,
   .ant-checkbox:hover .ant-checkbox-inner {
-    border-color: var(--form-checkbox-color, #cf372f) !important;
+    border-color: var(--form-checkbox-color, #E03C33) !important;
   }
 
   .ant-radio-checked .ant-radio-inner {
-    border-color: var(--form-radio-color, #cf372f) !important;
+    border-color: var(--form-radio-color, #E03C33) !important;
     background-color: #fff !important;
   }
 
   .ant-radio-checked .ant-radio-inner:after {
-    background-color: var(--form-radio-color, #cf372f) !important;
+    background-color: var(--form-radio-color, #E03C33) !important;
   }
 
   .ant-radio-wrapper:hover .ant-radio-inner {
-    border-color: var(--form-radio-color, #cf372f) !important;
+    border-color: var(--form-radio-color, #E03C33) !important;
   }
 
   .ant-switch.ant-switch-checked {
-    background: var(--form-switch-color, #cf372f) !important;
+    background: var(--form-switch-color, #E03C33) !important;
   }
 `;
 

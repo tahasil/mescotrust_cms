@@ -24,8 +24,8 @@ const DEFAULT_PARAGRAPHS = [
   "MESCO is a Secular Trust registered in 1968 with the Charity Commissioner of Mumbai. The organization is a selfless effort for serving mankind which began with a few friends who constituted the first Managing Committee.",
 ];
 
-const LIGHT_COLOR = "rgba(5, 5, 5, 0.25)";
-const DARK_COLOR = "rgb(5, 5, 5)";
+const LIGHT_COLOR = "rgba(42, 40, 62, 0.25)";
+const DARK_COLOR = "rgb(42, 40, 62)";
 
 /**
  * Site component: AnimationsText (Scroll Reveal Text).

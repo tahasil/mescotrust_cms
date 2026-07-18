@@ -375,7 +375,7 @@ export default function EventRegistrationForm(props = {}) {
                             name="name"
                             required
                             placeholder="Your name"
-                            $borderColor={errors.name ? "#cf372f" : inputBorderColor}
+                            $borderColor={errors.name ? "#E03C33" : inputBorderColor}
                             onChange={() => {
                               if (errors.name) {
                                 setErrors((prev) => ({ ...prev, name: "" }));
@@ -395,7 +395,7 @@ export default function EventRegistrationForm(props = {}) {
                             type="email"
                             required
                             placeholder="you@example.com"
-                            $borderColor={errors.email ? "#cf372f" : inputBorderColor}
+                            $borderColor={errors.email ? "#E03C33" : inputBorderColor}
                             onChange={() => {
                               if (errors.email) {
                                 setErrors((prev) => ({ ...prev, email: "" }));
@@ -414,7 +414,7 @@ export default function EventRegistrationForm(props = {}) {
                           <Input
                             name="phone"
                             placeholder="+91 ..."
-                            $borderColor={errors.phone ? "#cf372f" : inputBorderColor}
+                            $borderColor={errors.phone ? "#E03C33" : inputBorderColor}
                             onChange={() => {
                               if (errors.phone) {
                                 setErrors((prev) => ({ ...prev, phone: "" }));
@@ -560,7 +560,7 @@ const ErrorText = styled.div`
   margin-top: 6px;
   font-size: 12px;
   line-height: 1.4;
-  color: #cf372f;
+  color: #E03C33;
 `;
 
 const Input = styled.input`
@@ -577,7 +577,7 @@ const Input = styled.input`
   appearance: none;
   &:focus {
     border-color: ${getColor("primary")};
-    box-shadow: 0 0 0 3px rgba(207, 55, 47, 0.08);
+    box-shadow: 0 0 0 3px rgba(224, 60, 51, 0.08);
   }
   /* Use 16px on mobile to avoid iOS Safari auto-zoom on focus */
   @media (max-width: 640px) {
@@ -601,7 +601,7 @@ const Textarea = styled.textarea`
   appearance: none;
   &:focus {
     border-color: ${getColor("primary")};
-    box-shadow: 0 0 0 3px rgba(207, 55, 47, 0.08);
+    box-shadow: 0 0 0 3px rgba(224, 60, 51, 0.08);
   }
   @media (max-width: 640px) {
     font-size: 16px;

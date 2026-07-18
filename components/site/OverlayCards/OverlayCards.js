@@ -47,7 +47,7 @@ const CardsWrapper = styled.div`
         content: "";
         position: absolute;
         inset: 0;
-        background: var(--overlay-cards-hover-color, rgba(207, 55, 47, 0.5));
+        background: var(--overlay-cards-hover-color, rgba(224, 60, 51, 0.5));
         pointer-events: none;
       }
     }
@@ -82,7 +82,7 @@ const CardsWrapper = styled.div`
     }
 
     &:hover {
-      border-color: var(--overlay-cards-hover-color, rgba(207, 55, 47, 0.5));
+      border-color: var(--overlay-cards-hover-color, rgba(224, 60, 51, 0.5));
       .cardBackground {
         opacity: 1;
       }

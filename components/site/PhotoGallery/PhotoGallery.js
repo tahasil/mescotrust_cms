@@ -50,7 +50,7 @@ const GalleryTab = styled.button`
   color: ${(p) =>
     p.$active
       ? p.$tabTextColor || "#fff"
-      : p.$tabInactiveTextColor || "#050505"};
+      : p.$tabInactiveTextColor || "#2A283E"};
   &:hover {
     border-color: ${(p) =>
       p.$tabHoverBorderColor || p.$tabBgColor || getColor("primary")};
@@ -83,7 +83,7 @@ const GalleryCard = styled.div`
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(5, 5, 5, 0) 0%, #050505 100%);
+    background: linear-gradient(180deg, rgba(42, 40, 62, 0) 0%, #2A283E 100%);
     pointer-events: none;
   }
 `;

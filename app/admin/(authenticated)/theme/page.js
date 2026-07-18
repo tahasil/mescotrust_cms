@@ -228,8 +228,8 @@ const initialFormValues = {
   fadeAnimationDistance: 20,
   fadeAnimationThreshold: 0.1,
   pageLoaderEnabled: true,
-  pageLoaderBgColor: "#000000",
-  pageLoaderBarColor: "#CF372F",
+  pageLoaderBgColor: "#211E30",
+  pageLoaderBarColor: "#E03C33",
   pageLoaderMinDuration: 400,
   customCss: "",
   customJs: "",
@@ -715,12 +715,12 @@ export default function AdminThemePage() {
           <Row gutter={16}>
             <Col xs={24} sm={12}>
               <Form.Item name="pageLoaderBgColor" label="Background color">
-                <ColorCodeInput placeholder="#000000 or rgba(0,0,0,0.8)" />
+                <ColorCodeInput placeholder="#211E30 or rgba(33,30,48,0.8)" />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12}>
               <Form.Item name="pageLoaderBarColor" label="Bar color">
-                <ColorCodeInput placeholder="#CF372F or rgba(207,55,47,1)" />
+                <ColorCodeInput placeholder="#E03C33 or rgba(224,60,51,1)" />
               </Form.Item>
             </Col>
           </Row>

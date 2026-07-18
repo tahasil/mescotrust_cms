@@ -90,15 +90,55 @@ const NAME_TO_CSS_VAR = {
   "section-background": "--section-bg-color",
 };
 
+function toColorSlug(name) {
+  return String(name || "")
+    .trim()
+    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
+}
+
 function buildCssVarsFromColors(colors) {
   const vars = {};
   if (!Array.isArray(colors)) return vars;
+  const valuesBySlug = new Map();
   colors.forEach((c) => {
     if (!c?.name || c.value == null) return;
-    const slug = c.name.toLowerCase().trim().replace(/\s+/g, "-");
-    const cssKey = NAME_TO_CSS_VAR[slug] || `--theme-${slug.replace(/[^a-z0-9-]/gi, "")}`;
+    const slug = toColorSlug(c.name);
+    if (!slug) return;
+    const cssKey = NAME_TO_CSS_VAR[slug] || `--theme-${slug}`;
     vars[cssKey] = c.value;
+    valuesBySlug.set(slug, c.value);
   });
+
+  const setAlias = (cssVar, slug) => {
+    const value = valuesBySlug.get(slug);
+    if (value != null && String(value).trim() !== "") vars[cssVar] = value;
+  };
+
+  // Semantic variables used by global CSS and reusable site components.
+  setAlias("--secondary-color", "black");
+  setAlias("--bg-color", "cream");
+  setAlias("--section-bg-color", "cream");
+  setAlias("--card-bg-color", "white");
+  setAlias("--text-color", "black-light");
+  setAlias("--heading-color", "black");
+  setAlias("--link-color", "primary");
+  setAlias("--link-hover-color", "primary-dark");
+  setAlias("--muted-text-color", "black-muted");
+  setAlias("--border-color", "border");
+  setAlias("--divider-color", "border");
+  setAlias("--input-border-color", "border");
+
+  // Compatibility aliases for long-standing component keys.
+  setAlias("--theme-secondary", "black");
+  setAlias("--theme-cta-border", "border");
+  setAlias("--theme-theme-border", "border");
+  setAlias("--theme-img-fill-white", "img-white");
+  setAlias("--theme-img-fill-theme", "img-color");
+  setAlias("--theme-imgwhite", "img-white");
+  setAlias("--theme-imgcolor", "img-color");
   return vars;
 }
 
@@ -228,8 +268,8 @@ export default async function RootLayout({ children }) {
   };
 
   const loaderEnabled = !isAdmin && theme.pageLoaderEnabled !== false;
-  const loaderBg = sanitizeCssToken(theme.pageLoaderBgColor, "#000000");
-  const loaderBar = sanitizeCssToken(theme.pageLoaderBarColor, "#CF372F");
+  const loaderBg = sanitizeCssToken(theme.pageLoaderBgColor, "#211E30");
+  const loaderBar = sanitizeCssToken(theme.pageLoaderBarColor, "#E03C33");
   const loaderMinDuration = Number.isFinite(Number(theme.pageLoaderMinDuration))
     ? Math.max(100, Math.min(5000, Number(theme.pageLoaderMinDuration)))
     : 400;

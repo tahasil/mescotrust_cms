@@ -21,12 +21,32 @@ export const revalidate = 0;
 function resolveThemeColor(theme, key) {
   if (!key) return "";
   const k = String(key).trim();
+  const normalizedKey = k
+    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+    .toLowerCase()
+    .replace(/[\s_-]+/g, "");
   // 1. Look up by name in palette
   const palette = theme.themePalette || {};
-  if (palette[k] != null && String(palette[k]).trim() !== "") return String(palette[k]).trim();
+  const paletteEntry = Object.entries(palette).find(
+    ([name, value]) =>
+      value != null &&
+      String(value).trim() !== "" &&
+      String(name)
+        .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+        .toLowerCase()
+        .replace(/[\s_-]+/g, "") === normalizedKey,
+  );
+  if (paletteEntry) return String(paletteEntry[1]).trim();
   // 2. Look up by name in custom colors
   const custom = Array.isArray(theme.colors) ? theme.colors : [];
-  const found = custom.find((c) => c && String(c.name).trim() === k);
+  const found = custom.find(
+    (c) =>
+      c &&
+      String(c.name || "")
+        .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+        .toLowerCase()
+        .replace(/[\s_-]+/g, "") === normalizedKey,
+  );
   if (found && found.value != null) return String(found.value).trim();
   // 3. Look up by value in custom colors (handles legacy stored hex/rgba values)
   const byValue = custom.find((c) => c && String(c.value).trim() === k);

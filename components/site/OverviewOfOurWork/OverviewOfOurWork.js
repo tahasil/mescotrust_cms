@@ -22,7 +22,7 @@ const CardsWrapper = styled.div`
   --button-color: ${(p) => p.$buttonColor || getColor("white")};
   --icon-hover-color: ${(p) => p.$iconHoverColor || "transparent"};
   --hover-overlay-color: ${(p) =>
-    p.$hoverOverlayColor || "rgba(207, 55, 47, 0.5)"};
+    p.$hoverOverlayColor || "rgba(224, 60, 51, 0.5)"};
   --hover-overlay-opacity: ${(p) =>
     typeof p.$hoverOverlayOpacity === "number" &&
     p.$hoverOverlayOpacity >= 0 &&
@@ -513,7 +513,7 @@ export default function OverviewOfOurWork(props) {
     : getColor("white");
   const hoverOverlayColor = hoverColorKey
     ? getColor(hoverColorKey)
-    : "rgba(207, 55, 47, 0.5)";
+    : "rgba(224, 60, 51, 0.5)";
   const iconHoverColor = iconHoverColorKey
     ? getColor(iconHoverColorKey)
     : undefined;

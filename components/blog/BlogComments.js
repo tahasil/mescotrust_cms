@@ -110,13 +110,13 @@ const CommentForm = styled.div`
     font-size: 14px;
   }
   .req {
-    color: #cf372f;
+    color: #E03C33;
   }
   .error-text {
     margin-top: 6px;
     font-size: 12px;
     line-height: 1.4;
-    color: #cf372f;
+    color: #E03C33;
   }
 `;
 
@@ -269,7 +269,7 @@ export default function BlogComments({ slug }) {
                     if (errors.name) setErrors((prev) => ({ ...prev, name: "" }));
                   }}
                   required
-                  style={errors.name ? { borderColor: "#cf372f" } : undefined}
+                  style={errors.name ? { borderColor: "#E03C33" } : undefined}
                 />
                 {errors.name ? <div className="error-text">{errors.name}</div> : null}
               </div>
@@ -289,7 +289,7 @@ export default function BlogComments({ slug }) {
                     if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
                   }}
                   required
-                  style={errors.email ? { borderColor: "#cf372f" } : undefined}
+                  style={errors.email ? { borderColor: "#E03C33" } : undefined}
                 />
                 {errors.email ? <div className="error-text">{errors.email}</div> : null}
               </div>
@@ -308,7 +308,7 @@ export default function BlogComments({ slug }) {
                 if (errors.comment) setErrors((prev) => ({ ...prev, comment: "" }));
               }}
               required
-              style={errors.comment ? { borderColor: "#cf372f" } : undefined}
+              style={errors.comment ? { borderColor: "#E03C33" } : undefined}
             />
             {errors.comment ? <div className="error-text">{errors.comment}</div> : null}
           </div>

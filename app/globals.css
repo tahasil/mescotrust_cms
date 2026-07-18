@@ -2,13 +2,19 @@
 @import "cropperjs/dist/cropper.css";
 
 :root {
-  --primary-color: #1890ff;
-  --secondary-color: #722ed1;
-  --bg-color: #ffffff;
-  --text-color: #333333;
-  --heading-color: inherit;
-  --link-color: #1890ff;
-  --section-bg-color: transparent;
+  --primary-color: #e03c33;
+  --secondary-color: #2a283e;
+  --bg-color: #fbfaf7;
+  --section-bg-color: #fbfaf7;
+  --card-bg-color: #ffffff;
+  --text-color: rgba(42, 40, 62, 0.76);
+  --heading-color: #2a283e;
+  --link-color: #e03c33;
+  --link-hover-color: #b92e27;
+  --muted-text-color: rgba(42, 40, 62, 0.52);
+  --border-color: rgba(42, 40, 62, 0.14);
+  --divider-color: rgba(42, 40, 62, 0.14);
+  --input-border-color: rgba(42, 40, 62, 0.14);
   --font-family: system-ui, sans-serif;
   --heading-font: system-ui, sans-serif;
   --font-size: 16px;
