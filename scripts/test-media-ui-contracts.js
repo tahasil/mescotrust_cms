@@ -14,7 +14,7 @@ test("AdminMediaLibrary keeps raster crop-before-upload and replace contracts", 
   assert.match(source, /import RasterCropConfirmModal from "\.\/RasterCropConfirmModal";/);
   assert.match(source, /requestRasterCrop\(file,\s*"Crop image before upload"\)/);
   assert.match(source, /requestRasterCrop\(file,\s*"Crop replacement image"\)/);
-  assert.match(source, /Raster images require crop confirmation before upload\./);
+  assert.match(source, /Crop confirmation is required for JPG, PNG, WEBP, and AVIF uploads\./);
   assert.match(source, /<RasterCropConfirmModal/);
 });
 

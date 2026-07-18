@@ -2,6 +2,14 @@
 
 ## MongoDB Backup
 
+Run the project backup command from the repository root:
+
+```bash
+npm run backup-db
+```
+
+It exports every collection as gzip-compressed canonical Extended JSON and records collection options and indexes in a manifest. Output is stored outside the repository under `../mescotrust_cms_backups/YYYY-MM-DD_HH-mm-ss/database/`. Set `BACKUP_ROOT` in the process environment to select another external location.
+
 ### Using mongodump (self-hosted)
 
 ```bash

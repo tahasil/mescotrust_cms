@@ -11,7 +11,6 @@ const fs = require("fs");
 const { mkdir, writeFile, rm } = require("fs/promises");
 
 const projectRoot = path.resolve(__dirname, "..");
-require("dotenv").config({ path: path.join(projectRoot, ".env.local") });
 require("dotenv").config({ path: path.join(projectRoot, ".env") });
 
 const { connectDB } = require("../lib/db");
@@ -324,7 +323,7 @@ async function main() {
 
   const mongoUri = process.env.MONGODB_URI;
   if (!mongoUri) {
-    throw new Error("Missing MONGODB_URI in .env.local/.env");
+    throw new Error("Missing MONGODB_URI in .env");
   }
 
   if (!baseUrl) {

@@ -125,7 +125,7 @@ Common optional env vars:
 - `NEXT_PUBLIC_SITE_URL`
 - Social media wall provider credentials
 
-Reference: `.env.example`
+The project uses one environment file: `.env`.
 
 NPM scripts:
 - `npm run dev` -> start development server
@@ -135,13 +135,13 @@ NPM scripts:
 - `npm run seed` -> initial admin + baseline CMS setup
 - `npm run check-db` -> DB connectivity check script
 - `npm run seed-subscribe` -> seed subscribers from source data
-- `npm run backup-db` -> JSON backup snapshot under `backup/`
+- `npm run backup-db` -> complete Extended JSON database backup outside the repository
 
 ## 7. Standard Workflows
 
 ### A) First-time local setup
 1. Install dependencies: `npm install`
-2. Configure `.env.local` from `.env.example`
+2. Configure `.env`
 3. Seed baseline data: `npm run seed`
 4. Start app: `npm run dev`
 5. Verify:
@@ -181,7 +181,7 @@ Detailed checklist: `docs/NEW_SITE_COMPONENT_CHECKLIST.md`
 
 ### E) Backup workflow before risky changes
 1. Run `npm run backup-db`
-2. Confirm timestamped output under `backup/YYYY-MM-DD_HH-mm-ss/`
+2. Confirm timestamped output under `../mescotrust_cms_backups/YYYY-MM-DD_HH-mm-ss/database/`
 3. If media changed, back up `public/uploads/` as well
 
 Reference: `docs/BACKUPS.md`
@@ -212,7 +212,6 @@ Reference: `docs/BACKUPS.md`
 ## 9. Operational Notes
 
 - Working tree may contain unrelated changes; do not revert unless explicitly requested.
-- `docs/media-optimization-plan.md` exists as an untracked planning document in this workspace.
 - There is no formal automated test suite wired in `package.json`; validation is currently lint + build + manual smoke tests + targeted scripts.
 
 ## 10. Reference Index
@@ -228,15 +227,6 @@ Core docs:
 - `docs/BACKUPS.md`
 - `docs/ANALYTICS.md`
 - `docs/I18N.md`
-- `docs/ROADMAP.md`
-- `docs/BLOG_IMPLEMENTATION_PLAN.md`
-- `SOCIAL_MEDIA_WALL_INTEGRATION.md`
-
-Planning/history docs:
-- `IMPLEMENTATION_PLAN.md`
-- `CMS_FEATURE_PLAN.md`
-- `MESCO_GAP_ANALYSIS_AND_IMPLEMENTATION_PLAN.md`
-- `docs/media-optimization-plan.md` (currently untracked)
 
 Key implementation files:
 - `middleware.js`

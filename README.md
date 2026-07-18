@@ -1,6 +1,6 @@
 # Mesco Trust CMS
 
-Next.js 14 CMS with MongoDB, NextAuth, and Ant Design admin. Aligned with [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) and [CMS_FEATURE_PLAN.md](CMS_FEATURE_PLAN.md).
+Next.js 14 CMS with MongoDB, NextAuth, and Ant Design admin.
 
 ## Stack
 
@@ -20,7 +20,7 @@ Next.js 14 CMS with MongoDB, NextAuth, and Ant Design admin. Aligned with [IMPLE
 
 2. **Environment**
 
-   Copy `.env.example` to `.env.local` and set:
+   Configure the single project environment file, `.env`, with:
 
    - `MONGODB_URI` — MongoDB connection string
    - `NEXTAUTH_SECRET` — long random string (e.g. `openssl rand -base64 32`)
@@ -59,7 +59,7 @@ These slugs cannot be used for CMS pages: `admin`, `blog`, `contact`, `search`, 
   `GET/POST /api/admin/blogs`, `GET/PUT/DELETE /api/admin/blogs/[id]`,  
   `GET/POST /api/admin/blog-categories`, `GET/PUT/DELETE /api/admin/blog-categories/[id]`
 
-New block types (components) require implementing the React component and registering it in the component map (code deploy). See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) Phase 2.
+New block types (components) require implementing the React component and registering it in the component map (code deploy). See [docs/NEW_SITE_COMPONENT_CHECKLIST.md](docs/NEW_SITE_COMPONENT_CHECKLIST.md).
 
 ## How to edit, add, or remove components
 

@@ -6,7 +6,6 @@
 const path = require("path");
 
 const projectRoot = path.resolve(__dirname, "..");
-require("dotenv").config({ path: path.join(projectRoot, ".env.local") });
 require("dotenv").config({ path: path.join(projectRoot, ".env") });
 
 const mongoose = require("mongoose");
@@ -22,7 +21,7 @@ const SUBSCRIBE_VALUES_FROM_MESCOTRUST = {
 async function seedSubscribe() {
   const MONGODB_URI = process.env.MONGODB_URI;
   if (!MONGODB_URI) {
-    console.error("Missing MONGODB_URI in .env or .env.local");
+    console.error("Missing MONGODB_URI in .env");
     process.exit(1);
   }
 

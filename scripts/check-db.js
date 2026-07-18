@@ -1,6 +1,5 @@
 const path = require("path");
 const projectRoot = path.resolve(__dirname, "..");
-require("dotenv").config({ path: path.join(projectRoot, ".env.local") });
 require("dotenv").config({ path: path.join(projectRoot, ".env") });
 
 const mongoose = require("mongoose");
@@ -8,7 +7,7 @@ const mongoose = require("mongoose");
 async function check() {
   const uri = process.env.MONGODB_URI;
   if (!uri) {
-    console.error("Missing MONGODB_URI in .env.local or .env");
+    console.error("Missing MONGODB_URI in .env");
     process.exit(1);
   }
 

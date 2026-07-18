@@ -3,12 +3,11 @@
  * and all prop keys awardsRecognition* → overviewOfOurWork* in DB.
  *
  * Run from project root: node scripts/migrate-awards-recognition-to-overview-of-our-work.js
- * Requires MONGODB_URI in .env.local or .env
+ * Requires MONGODB_URI in .env
  */
 
 const path = require("path");
 const projectRoot = path.resolve(__dirname, "..");
-require("dotenv").config({ path: path.join(projectRoot, ".env.local") });
 require("dotenv").config({ path: path.join(projectRoot, ".env") });
 
 const mongoose = require("mongoose");
@@ -54,7 +53,7 @@ function renamePropsInObject(obj) {
 async function run() {
   const MONGODB_URI = process.env.MONGODB_URI;
   if (!MONGODB_URI) {
-    console.error("Missing MONGODB_URI in .env.local or .env");
+    console.error("Missing MONGODB_URI in .env");
     process.exit(1);
   }
 

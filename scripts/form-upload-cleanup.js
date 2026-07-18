@@ -3,7 +3,6 @@ const fs = require("fs/promises");
 const mongoose = require("mongoose");
 
 const projectRoot = path.resolve(__dirname, "..");
-require("dotenv").config({ path: path.join(projectRoot, ".env.local") });
 require("dotenv").config({ path: path.join(projectRoot, ".env") });
 
 const SubmissionFile = require("../models/SubmissionFile");
@@ -46,7 +45,7 @@ async function run() {
   const { dryRun } = parseArgs(process.argv.slice(2));
   const uri = process.env.MONGODB_URI;
   if (!uri) {
-    throw new Error("Missing MONGODB_URI in .env.local or .env");
+    throw new Error("Missing MONGODB_URI in .env");
   }
 
   await mongoose.connect(uri);

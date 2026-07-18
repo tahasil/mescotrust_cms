@@ -44,4 +44,4 @@ GET `/api/theme` still returns the full theme (from `themeconfigs`) and **merges
 
 ## DB backup
 
-- **`npm run backup-db`** exports `users`, `themeconfigs`, `menus`, `pages`, `components`, `sitecomponentmetas` to **`backup/YYYY-MM-DD_HH-mm-ss/*.json`**. Run before major schema or data changes.
+- **`npm run backup-db`** exports every collection, including indexes and collection metadata, to **`../mescotrust_cms_backups/YYYY-MM-DD_HH-mm-ss/database/`**. Run before major schema or data changes.

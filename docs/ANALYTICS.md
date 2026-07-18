@@ -68,4 +68,4 @@ Record events from middleware or API routes and display in admin dashboard.
 
 ## Environment Variable
 
-Add `NEXT_PUBLIC_GA_ID` to `.env.local` for dynamic configuration.
+Add `NEXT_PUBLIC_GA_ID` to `.env` for dynamic configuration.
