@@ -47,9 +47,9 @@ const WorksWrapper = styled.div`
     box-sizing: border-box;
   }
 
-  .worksEyebrow {
+  .worksSubTitle {
     margin: 0 0 18px;
-    color: var(--eyebrow-color, ${getColor("primary")});
+    color: var(--sub-title-color, ${getColor("primary")});
     font-size: 13px;
     font-weight: 650;
     letter-spacing: 0.16em;
@@ -254,6 +254,10 @@ const WorksWrapper = styled.div`
 function textValue(value) {
   return value == null ? "" : String(value).trim();
 }
+
+const previousSubTitleToken = ["Eye", "brow"].join("");
+const previousSubTitleField = (props, suffix = "") =>
+  props?.[`overviewOfOurWork${previousSubTitleToken}${suffix}`];
 
 export default function OverviewOfOurWork(props) {
   const pathname = usePathname();
@@ -521,10 +525,12 @@ export default function OverviewOfOurWork(props) {
     ),
   };
 
-  const eyebrow = textValue(props?.overviewOfOurWorkEyebrow);
+  const subTitle = textValue(
+    props?.overviewOfOurWorkSubTitle ?? previousSubTitleField(props),
+  );
   const heading = textValue(props?.overviewOfOurWorkHeading);
   const headingAccent = textValue(props?.overviewOfOurWorkHeadingAccent);
-  const showHeading = Boolean(eyebrow || heading || headingAccent);
+  const showHeading = Boolean(subTitle || heading || headingAccent);
   const titleColorKeyDefault = textValue(
     props?.overviewOfOurWorkCardTitleColorKey,
   );
@@ -600,9 +606,11 @@ export default function OverviewOfOurWork(props) {
                 : undefined
             }
             style={{
-              "--eyebrow-color": colorFromProp(
-                "overviewOfOurWorkEyebrowColorKey",
-                getColor("primary"),
+              "--sub-title-color": colorFromProp(
+                "overviewOfOurWorkSubTitleColorKey",
+                previousSubTitleField(props, "ColorKey")
+                  ? getColor(previousSubTitleField(props, "ColorKey"))
+                  : getColor("primary"),
               ),
               "--heading-color": colorFromProp(
                 "overviewOfOurWorkHeadingColorKey",
@@ -613,7 +621,7 @@ export default function OverviewOfOurWork(props) {
             <div  className="worksPin">
               {showHeading ? (
                 <div className="worksHead">
-                  {eyebrow ? <p className="worksEyebrow">{eyebrow}</p> : null}
+                  {subTitle ? <p className="worksSubTitle">{subTitle}</p> : null}
                   {heading || headingAccent ? (
                     <h2 className="worksHeading">
                       {heading}

@@ -155,7 +155,7 @@ For each component below: **what it shows**, **what items you can add to its lis
 #### OverviewOfOurWork
 **Shows:** Horizontally panning work cards (Education, Medical, Clinics, Relief of Poverty etc.) with a pinned desktop scroll effect and touch-friendly mobile scroll.
 **List items:** `title`, `description`, `linkText`, `link`, `bgImageUrl`, `icon`, `titleColorKey`
-**Section settings:** eyebrow, heading/accent, hover overlay opacity (0–1), and colour keys.
+**Section settings:** sub title, heading/accent, hover overlay opacity (0–1), and colour keys.
 **Storage:** per-page or global
 
 > Note: this is the component that **replaced** the older "AwardsRecognition" component in a previous migration. To show "Awards & Recognition" content, configure this block with the appropriate cards.

@@ -588,7 +588,15 @@ export default function AdminComponentEditPage() {
       .then((data) => {
         const items = Array.isArray(data?.latestEvents1Items)
           ? data.latestEvents1Items.map((it) => ({
+              ...it,
+              imageUrlDesktop:
+                it?.imageUrlDesktop != null
+                  ? String(it.imageUrlDesktop).trim()
+                  : it?.imageUrl != null
+                    ? String(it.imageUrl).trim()
+                    : "",
               imageUrl: it?.imageUrl != null ? String(it.imageUrl).trim() : "",
+              tag: it?.tag != null ? String(it.tag).trim() : "",
               date: it?.date != null ? String(it.date).trim() : "",
               title: it?.title != null ? String(it.title).trim() : "",
               description:
@@ -602,6 +610,7 @@ export default function AdminComponentEditPage() {
             }))
           : [];
         setThemeLatestEvents1Snapshot({
+          ...data,
           latestEvents1SubTitle:
             data?.latestEvents1SubTitle != null
               ? String(data.latestEvents1SubTitle).trim()
@@ -1546,10 +1555,18 @@ export default function AdminComponentEditPage() {
                 } else if (cid === "LatestEvents1") {
                   const items = Array.isArray(theme?.latestEvents1Items)
                     ? theme.latestEvents1Items.map((it) => ({
+                        ...it,
+                        imageUrlDesktop:
+                          it?.imageUrlDesktop != null
+                            ? String(it.imageUrlDesktop).trim()
+                            : it?.imageUrl != null
+                              ? String(it.imageUrl).trim()
+                              : "",
                         imageUrl:
                           it?.imageUrl != null
                             ? String(it.imageUrl).trim()
                             : "",
+                        tag: it?.tag != null ? String(it.tag).trim() : "",
                         date: it?.date != null ? String(it.date).trim() : "",
                         title: it?.title != null ? String(it.title).trim() : "",
                         description:
@@ -1567,6 +1584,7 @@ export default function AdminComponentEditPage() {
                       }))
                     : [];
                   setThemeLatestEvents1Snapshot({
+                    ...theme,
                     latestEvents1SubTitle:
                       theme?.latestEvents1SubTitle != null
                         ? String(theme.latestEvents1SubTitle).trim()

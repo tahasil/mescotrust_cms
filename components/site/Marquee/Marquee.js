@@ -35,7 +35,7 @@ const PartnersSection = styled.section`
     flex-wrap: wrap;
   }
 
-  .partners-eyebrow {
+  .partners-sub-title {
     margin: 0;
     font-size: 13px;
     font-weight: 650;
@@ -315,7 +315,7 @@ export default function Marquee(props) {
             <div className="partners-head">
               {partnersTitle ? (
                 <h2
-                  className="partners-eyebrow"
+                  className="partners-sub-title"
                   style={{ color: partnersTitleColor }}
                 >
                   {partnersTitle}

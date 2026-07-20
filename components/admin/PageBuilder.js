@@ -227,10 +227,47 @@ function getDefaultPropsForNewSiteComponent(componentId) {
         eventsSliderButtonRadius: 999,
         eventsSliderButtonSize: "md",
       };
+    case "OurImpact":
+      return {
+        ...base,
+        ourImpactHeading: "Numbers that",
+        ourImpactHeadingAccent: "carry names.",
+        ourImpactNote: "Cumulative impact since 1968, audited year after year.",
+        ourImpactFooterText:
+          "Every number here is a person with a name in MESCO's files.",
+        ourImpactLinkLabel: "See the audited annual reports",
+        ourImpactLinkUrl: "/annual-reports",
+        ourImpactLinkTarget: "_self",
+        ourImpactNumberLocale: "en-IN",
+        ourImpactItems: [
+          {
+            index: "01",
+            number: 89052,
+            label: "Educational scholarships awarded to students",
+          },
+          {
+            index: "02",
+            number: 12199,
+            label: "Patients supported with medical aid",
+          },
+          {
+            index: "03",
+            number: 833000,
+            label: "Cases treated at clinics & dispensaries",
+          },
+          {
+            index: "04",
+            number: 2509,
+            label: "Sewing machines given as general aid",
+          },
+        ],
+        ourImpactCountEnabled: true,
+        ourImpactRevealEnabled: true,
+      };
     case "OverviewOfOurWork":
       return {
         ...base,
-        overviewOfOurWorkEyebrow: "",
+        overviewOfOurWorkSubTitle: "",
         overviewOfOurWorkHeading: "",
         overviewOfOurWorkHeadingAccent: "",
         overviewOfOurWorkTitleFontFamily: "",

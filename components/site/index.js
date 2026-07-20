@@ -45,6 +45,7 @@ export { default as VideoPlaying, VideoPlayingEditForm } from "./VideoPlaying/in
 export { default as WelcometoMESCO, WelcometoMESCOEditForm } from "./WelcometoMESCO/index";
 export { default as HomeHero2, HomeHero2EditForm } from "./HomeHero2/index";
 export { default as OverviewOfOurWork, OverviewOfOurWorkEditForm } from "./OverviewOfOurWork/index";
+export { default as OurImpact, OurImpactEditForm } from "./OurImpact/index";
 export { default as Testimonials, TestimonialsEditForm } from "./Testimonials/index";
 export { default as LatestEvents1, LatestEvents1EditForm } from "./LatestEvents1/index";
 export { default as EventsSlider, EventsSliderEditForm } from "./EventsSlider/index";
@@ -95,6 +96,7 @@ import WelcometoMESCOEditForm from "./WelcometoMESCO/EditForm";
 import HomeHero2EditForm from "./HomeHero2/EditForm";
 import HomeSliderEditForm from "./HomeSlider/EditForm";
 import OverviewOfOurWorkEditForm from "./OverviewOfOurWork/EditForm";
+import OurImpactEditForm from "./OurImpact/EditForm";
 import TestimonialsEditForm from "./Testimonials/EditForm";
 import LatestEvents1EditForm from "./LatestEvents1/EditForm";
 import EventsSliderEditForm from "./EventsSlider/EditForm";
@@ -119,6 +121,7 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   EventsSlider: EventsSliderEditForm,
   Testimonials: TestimonialsEditForm,
   OverviewOfOurWork: OverviewOfOurWorkEditForm,
+  OurImpact: OurImpactEditForm,
   HomeHero2: HomeHero2EditForm,
   WelcometoMESCO: WelcometoMESCOEditForm,
   VideoPlaying: VideoPlayingEditForm,

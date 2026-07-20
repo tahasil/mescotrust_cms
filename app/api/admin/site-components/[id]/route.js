@@ -68,9 +68,10 @@ export async function GET(req, { params }) {
 
     const defaultPosition = "after";
     const defaultOrder = Math.max(0, SITE_COMPONENT_IDS.indexOf(id));
+    const fallbackDisplayName = id === "OurImpact" ? "Our Impact" : id;
     const payload = {
       componentId: id,
-      displayName: doc?.displayName || id,
+      displayName: doc?.displayName || fallbackDisplayName,
       global: doc?.global ?? false,
       order: doc?.order ?? defaultOrder,
       position: doc?.position || defaultPosition,
@@ -114,7 +115,7 @@ export async function PUT(req, { params }) {
       }
       doc = await SiteComponentMeta.create({
         componentId: id,
-        displayName: id,
+        displayName: id === "OurImpact" ? "Our Impact" : id,
         global: false,
         order: SITE_COMPONENT_IDS.indexOf(id),
         position: "after",

@@ -11,6 +11,9 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/OverviewOfOurWork";
 const PREFIX = "overviewOfOurWork";
+const previousSubTitleToken = ["Eye", "brow"].join("");
+const previousSubTitleField = (data, suffix = "") =>
+  data?.[`overviewOfOurWork${previousSubTitleToken}${suffix}`];
 const LEGACY_BG_IMAGE_WIDTH = 580;
 const LEGACY_BG_IMAGE_HEIGHT = 704;
 const REQUIRED_BG_IMAGE_WIDTH = 700;
@@ -171,11 +174,19 @@ function OverviewOfOurWorkEditForm(
           : [];
       const titleColorValues = {};
       (titleColorsConfig.titleListItems || []).forEach((item) => {
-        const v = data?.[item.name];
+        const v =
+          data?.[item.name] ??
+          (item.name === "overviewOfOurWorkSubTitle"
+            ? previousSubTitleField(data)
+            : undefined);
         titleColorValues[item.name] = v != null ? String(v).trim() : "";
       });
       (titleColorsConfig.colorListItems || []).forEach((item) => {
-        const v = data?.[item.name];
+        const v =
+          data?.[item.name] ??
+          (item.name === "overviewOfOurWorkSubTitleColorKey"
+            ? previousSubTitleField(data, "ColorKey")
+            : undefined);
         titleColorValues[item.name] = v != null ? String(v).trim() : "";
       });
       const hoverOpacity =

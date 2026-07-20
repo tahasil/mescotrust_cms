@@ -41,6 +41,7 @@ export { default as VideoPlaying } from "./VideoPlaying/VideoPlaying";
 export { default as WelcometoMESCO } from "./WelcometoMESCO/WelcometoMESCO";
 export { default as HomeHero2 } from "./HomeHero2/HomeHero2";
 export { default as OverviewOfOurWork } from "./OverviewOfOurWork/OverviewOfOurWork";
+export { default as OurImpact } from "./OurImpact/OurImpact";
 export { default as Testimonials } from "./Testimonials/Testimonials";
 export { default as LatestEvents1 } from "./LatestEvents1/LatestEvents1";
 export { default as EventsSlider } from "./EventsSlider/EventsSlider";

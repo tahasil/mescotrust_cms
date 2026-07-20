@@ -52,6 +52,9 @@ export async function GET(req) {
       if (id === "OverviewOfOurWork" && (!displayName || displayName === "Awards Recognition")) {
         displayName = "Overview of Our Work";
       }
+      if (id === "OurImpact" && (!displayName || displayName === "OurImpact")) {
+        displayName = "Our Impact";
+      }
       if (id === "ImageSlider" && (!displayName || displayName === "ImageSlider")) {
         displayName = "Circular Slider";
       }

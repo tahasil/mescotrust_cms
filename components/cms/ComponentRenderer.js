@@ -157,6 +157,8 @@ const NO_FADE_COMPONENTS = [
   "HomeHero",
   "HomeSlider",
   "OverviewOfOurWork",
+  "WelcometoMESCO",
+  "OurImpact",
 ];
 
 function extractSectionProps(props) {

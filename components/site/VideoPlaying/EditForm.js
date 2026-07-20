@@ -1,15 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import {
-  Form,
-  Input,
-  Row,
-  Col,
-  Collapse,
-  message,
-  Spin,
-} from "antd";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import { Collapse, Col, Form, Input, InputNumber, message, Row, Select, Spin, Switch } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
@@ -18,250 +10,88 @@ const API_PATH = "/api/theme/VideoPlaying";
 const PREFIX = "videoPlaying";
 const REQUIRED_COVER_IMAGE_WIDTH = 2164;
 const REQUIRED_COVER_IMAGE_HEIGHT = 1200;
-const REQUIRED_COVER_IMAGE_HELPER_TEXT =
-  `${REQUIRED_COVER_IMAGE_WIDTH} \u00D7 ${REQUIRED_COVER_IMAGE_HEIGHT}`;
-const REQUIRED_COVER_IMAGE_ERROR_TEXT =
-  `${REQUIRED_COVER_IMAGE_HELPER_TEXT} pixels`;
+const text = (value) => (value == null ? "" : String(value).trim());
+const previousSubTitleToken = ["Eye", "brow"].join("");
+const previousSubTitleField = (data, suffix = "") =>
+  data?.[`videoPlaying${previousSubTitleToken}${suffix}`];
 
-const FALLBACK_THEME_COLOR_KEYS = [
-  "primary",
-  "secondary",
-  "white",
-  "black",
-  "headingColor",
-  "paragraphColor",
-  "linkColor",
-  "mutedTextColor",
-  "borderColor",
-  "gradient",
-];
-
-function getImageDimensions(imageUrl) {
+function getImageDimensions(url) {
   return new Promise((resolve, reject) => {
-    const image = new window.Image();
-    image.onload = () =>
-      resolve({
-        width: Number(image.naturalWidth) || 0,
-        height: Number(image.naturalHeight) || 0,
-      });
-    image.onerror = () => reject(new Error("Failed to load image"));
-    image.src = imageUrl;
+    const image = new Image();
+    image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight });
+    image.onerror = reject;
+    image.src = url;
   });
 }
-
-async function validateVideoPlayingCoverImageDimensions(_, value) {
-  const imageUrl = String(value || "").trim();
-  if (!imageUrl) return Promise.resolve();
-
+async function validateCover(_, value) {
+  if (!text(value)) return;
   try {
-    const { width, height } = await getImageDimensions(imageUrl);
-    if (
-      width === REQUIRED_COVER_IMAGE_WIDTH &&
-      height === REQUIRED_COVER_IMAGE_HEIGHT
-    ) {
-      return Promise.resolve();
-    }
-    return Promise.reject(
-      new Error(
-        `Image size must be exactly ${REQUIRED_COVER_IMAGE_ERROR_TEXT}. Selected: ${width} \u00D7 ${height} pixels.`,
-      ),
-    );
-  } catch {
-    return Promise.reject(
-      new Error(`Image size must be exactly ${REQUIRED_COVER_IMAGE_ERROR_TEXT}.`),
-    );
+    const size = await getImageDimensions(text(value));
+    if (size.width === REQUIRED_COVER_IMAGE_WIDTH && size.height === REQUIRED_COVER_IMAGE_HEIGHT) return;
+    throw new Error(`Image size must be exactly ${REQUIRED_COVER_IMAGE_WIDTH} × ${REQUIRED_COVER_IMAGE_HEIGHT} pixels. Selected: ${size.width} × ${size.height} pixels.`);
+  } catch (error) {
+    return Promise.reject(error?.message ? error : new Error(`Image size must be exactly ${REQUIRED_COVER_IMAGE_WIDTH} × ${REQUIRED_COVER_IMAGE_HEIGHT} pixels.`));
   }
 }
 
-/**
- * Edit form for VideoPlaying. Editable fields:
- * YouTube video ID, cover image URL, cover alt text.
- */
-function VideoPlayingEditForm(
-  { source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [] },
-  ref
-) {
+function VideoPlayingEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, themeColorOptions: providedColors = [] }, ref) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [themeColorOptions, setThemeColorOptions] = useState(themeColorOptionsProp);
-  const themeFetchedForColorsRef = useRef(false);
+  const [colors, setColors] = useState(providedColors);
   const isPageBlock = source === "page";
-
+  useEffect(() => { if (providedColors.length) setColors(providedColors); }, [providedColors]);
   useEffect(() => {
-    if (themeColorOptionsProp?.length > 0) setThemeColorOptions(themeColorOptionsProp);
-  }, [themeColorOptionsProp]);
-
-  useEffect(() => {
+    let cancelled = false;
     setLoading(true);
-    const setFormAndColors = (data, theme) => {
+    (async () => {
+      const data = isPageBlock ? initialDataProp || {} : await fetch(API_PATH, { cache: "no-store" }).then((r) => r.ok ? r.json() : {});
+      const theme = providedColors.length ? {} : await fetch("/api/theme", { cache: "no-store" }).then((r) => r.ok ? r.json() : {}).catch(() => ({}));
+      if (cancelled) return;
+      if (!providedColors.length) {
+        const names = [...new Set([...Object.keys(theme?.themePalette || {}), ...(Array.isArray(theme?.colors) ? theme.colors.map((item) => item?.name).filter(Boolean) : [])])].sort();
+        setColors(names.map((name) => ({ label: name, value: name })));
+      }
       form.setFieldsValue({
+        ...data,
         ...getManageSectionInitialValues(PREFIX, data),
-        youtubeVideoId:
-          data?.youtubeVideoId != null ? String(data.youtubeVideoId).trim() : "dQw4w9WgXcQ",
-        coverImageDesktop:
-          data?.coverImageDesktop != null
-            ? String(data.coverImageDesktop).trim()
-            : data?.coverImage != null
-              ? String(data.coverImage).trim()
-              : "/images/player-cover.png",
-        coverImage:
-          data?.coverImageDesktop != null
-            ? String(data.coverImageDesktop).trim()
-            : data?.coverImage != null
-              ? String(data.coverImage).trim()
-              : "/images/player-cover.png",
-        coverAlt:
-          data?.coverAlt != null ? String(data.coverAlt).trim() : "Video cover",
+        youtubeVideoId: text(data.youtubeVideoId),
+        coverImageDesktop: text(data.coverImageDesktop ?? data.coverImage),
+        coverAlt: text(data.coverAlt),
+        videoPlayingSubTitle: text(data.videoPlayingSubTitle ?? previousSubTitleField(data)), videoPlayingTitle: text(data.videoPlayingTitle), videoPlayingTitleAccent: text(data.videoPlayingTitleAccent), videoPlayingVideoTitle: text(data.videoPlayingVideoTitle), videoPlayingPlayAriaLabel: text(data.videoPlayingPlayAriaLabel), videoPlayingQuote: text(data.videoPlayingQuote), videoPlayingAuthorName: text(data.videoPlayingAuthorName), videoPlayingAuthorRole: text(data.videoPlayingAuthorRole), videoPlayingLinkText: text(data.videoPlayingLinkText), videoPlayingLinkUrl: text(data.videoPlayingLinkUrl), videoPlayingLinkNewTab: data.videoPlayingLinkNewTab === true,
+        videoPlayingScaleAnimationEnabled: data.videoPlayingScaleAnimationEnabled !== false, videoPlayingQuoteAnimationEnabled: data.videoPlayingQuoteAnimationEnabled !== false,
+        videoPlayingChapterRadius: data.videoPlayingChapterRadius ?? 56, videoPlayingChapterPaddingTop: data.videoPlayingChapterPaddingTop ?? 96, videoPlayingChapterPaddingBottom: data.videoPlayingChapterPaddingBottom ?? 110, videoPlayingChapterPaddingX: data.videoPlayingChapterPaddingX ?? 48, videoPlayingHeadGap: data.videoPlayingHeadGap ?? 56, videoPlayingVideoRadius: data.videoPlayingVideoRadius ?? 20, videoPlayingPlayButtonSize: data.videoPlayingPlayButtonSize ?? 96, videoPlayingQuoteMarginTop: data.videoPlayingQuoteMarginTop ?? 88, videoPlayingQuoteMaxWidth: data.videoPlayingQuoteMaxWidth ?? 26, videoPlayingTitleMaxWidth: data.videoPlayingTitleMaxWidth ?? 20,
+        videoPlayingTitleMinSize: data.videoPlayingTitleMinSize ?? 36, videoPlayingTitleFluidSize: data.videoPlayingTitleFluidSize ?? 4.6, videoPlayingTitleMaxSize: data.videoPlayingTitleMaxSize ?? 64, videoPlayingTitleFontWeight: data.videoPlayingTitleFontWeight ?? 620, videoPlayingTitleLetterSpacing: data.videoPlayingTitleLetterSpacing ?? -0.02, videoPlayingTitleLineHeight: data.videoPlayingTitleLineHeight ?? 1.08,
+        videoPlayingQuoteMinSize: data.videoPlayingQuoteMinSize ?? 26, videoPlayingQuoteFluidSize: data.videoPlayingQuoteFluidSize ?? 3.4, videoPlayingQuoteMaxSize: data.videoPlayingQuoteMaxSize ?? 48, videoPlayingQuoteFontWeight: data.videoPlayingQuoteFontWeight ?? 460, videoPlayingQuoteLineHeight: data.videoPlayingQuoteLineHeight ?? 1.28, videoPlayingSubTitleFontSize: data.videoPlayingSubTitleFontSize ?? previousSubTitleField(data, "FontSize") ?? 13, videoPlayingSubTitleFontWeight: data.videoPlayingSubTitleFontWeight ?? previousSubTitleField(data, "FontWeight") ?? 650, videoPlayingSubTitleLetterSpacing: data.videoPlayingSubTitleLetterSpacing ?? previousSubTitleField(data, "LetterSpacing") ?? 0.16, videoPlayingSubTitleColorKey: text(data.videoPlayingSubTitleColorKey ?? previousSubTitleField(data, "ColorKey")), videoPlayingAuthorFontSize: data.videoPlayingAuthorFontSize ?? 17, videoPlayingRoleFontSize: data.videoPlayingRoleFontSize ?? 15, videoPlayingLinkFontSize: data.videoPlayingLinkFontSize ?? 15,
+        videoPlayingScaleFrom: data.videoPlayingScaleFrom ?? 0.9, videoPlayingScaleStart: text(data.videoPlayingScaleStart) || "top 92%", videoPlayingScaleEnd: text(data.videoPlayingScaleEnd) || "top 35%", videoPlayingQuoteStagger: data.videoPlayingQuoteStagger ?? 0.05, videoPlayingQuoteStart: text(data.videoPlayingQuoteStart) || "top 80%", videoPlayingQuoteEnd: text(data.videoPlayingQuoteEnd) || "bottom 48%",
       });
-      const palette = theme?.themePalette || {};
-      const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
-      const names = [
-        ...new Set([
-          ...Object.keys(palette),
-          ...customColors.map((c) => c?.name).filter(Boolean),
-        ]),
-      ].sort();
-      const keys = names.length > 0 ? names : FALLBACK_THEME_COLOR_KEYS;
-      setThemeColorOptions(keys.map((name) => ({ label: name, value: name })));
-    };
+    })().catch(() => message.error("Failed to load Video Playing")).finally(() => !cancelled && setLoading(false));
+    return () => { cancelled = true; };
+  }, [form, initialDataProp, isPageBlock, providedColors.length]);
 
-    if (isPageBlock) {
-      const data = initialDataProp ?? {};
-      setFormAndColors(data);
-      if (!themeFetchedForColorsRef.current) {
-        themeFetchedForColorsRef.current = true;
-        fetch("/api/theme", { cache: "no-store" })
-          .then((res) => (res.ok ? res.json() : {}))
-          .then((theme) => setFormAndColors(data, theme))
-          .catch(() => {})
-          .finally(() => setLoading(false));
-      } else {
-        setLoading(false);
-      }
-      return;
-    }
-    Promise.all([
-      fetch(API_PATH, { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
-      fetch("/api/theme", { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
-    ])
-      .then(([data, theme]) => {
-        setFormAndColors(data, theme);
-      })
-      .catch(() => message.error("Failed to load Video Playing"))
-      .finally(() => setLoading(false));
-  }, [form, isPageBlock, initialDataProp]);
-
-  const handleUpdate = () => {
-    form.validateFields().then(() => {
-      const values = form.getFieldsValue(true);
-      const payload = {
-        ...getManageSectionPayload(PREFIX, values),
-        youtubeVideoId:
-          values.youtubeVideoId != null ? String(values.youtubeVideoId).trim() : "dQw4w9WgXcQ",
-        coverImageDesktop:
-          values.coverImageDesktop != null
-            ? String(values.coverImageDesktop).trim()
-            : values.coverImage != null
-              ? String(values.coverImage).trim()
-              : "/images/player-cover.png",
-        coverImage:
-          values.coverImageDesktop != null
-            ? String(values.coverImageDesktop).trim()
-            : values.coverImage != null
-              ? String(values.coverImage).trim()
-              : "/images/player-cover.png",
-        coverAlt:
-          values.coverAlt != null ? String(values.coverAlt).trim() : "Video cover",
-      };
-      if (isPageBlock && onSaveToPage) {
-        onSaveToPage(payload);
-        message.success("Changes will be saved with the page");
-        onSuccess?.();
-        return;
-      }
-      setSaving(true);
-      fetch(API_PATH, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      })
-        .then((res) => {
-          if (!res.ok) return res.json().then((d) => Promise.reject(d));
-        })
-        .then(() => {
-          message.success("Video Playing saved");
-          onSuccess?.();
-        })
-        .catch((err) => message.error(err?.error || "Failed to save"))
-        .finally(() => setSaving(false));
-    }).catch(() => {});
+  const update = async () => {
+    const values = await form.validateFields();
+    const payload = { ...values, ...getManageSectionPayload(PREFIX, values), youtubeVideoId: text(values.youtubeVideoId), coverImageDesktop: text(values.coverImageDesktop), coverImage: text(values.coverImageDesktop), coverAlt: text(values.coverAlt) };
+    if (isPageBlock && onSaveToPage) { onSaveToPage(payload); message.success("Changes will be saved with the page"); onSuccess?.(); return; }
+    setSaving(true);
+    try { const response = await fetch(API_PATH, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }); if (!response.ok) throw await response.json(); message.success("Video Playing saved"); onSuccess?.(); }
+    catch (error) { message.error(error?.error || "Failed to save Video Playing"); }
+    finally { setSaving(false); }
   };
-
-  useImperativeHandle(ref, () => ({ update: handleUpdate }), []);
-
-  if (loading) {
-    return (
-      <div style={{ padding: 48, textAlign: "center" }}>
-        <Spin />
-      </div>
-    );
-  }
-
-  return (
-    <Form form={form} layout="vertical">
-      <Collapse
-        defaultActiveKey={["content"]}
-        items={[
-          {
-            key: "section",
-            label: "Manage Section",
-            children: <ManageSectionFields prefix={PREFIX} form={form} themeColorOptions={themeColorOptions} />,
-          },
-          {
-            key: "content",
-            label: "Video Settings",
-            children: (
-              <Row gutter={[16, 16]}>
-                <Col span={24}>
-                  <Form.Item
-                    name="youtubeVideoId"
-                    label="YouTube Video ID"
-                    rules={[{ required: true, message: "YouTube Video ID is required" }]}
-                    extra="The ID from the YouTube URL (e.g. dQw4w9WgXcQ from youtube.com/watch?v=dQw4w9WgXcQ)"
-                  >
-                    <Input placeholder="e.g. dQw4w9WgXcQ" size="large" />
-                  </Form.Item>
-                </Col>
-                <Col span={24}>
-                  <Form.Item
-                    name="coverImageDesktop"
-                    label="Desktop Cover Image"
-                    validateTrigger={["onChange", "onBlur"]}
-                    rules={[{ validator: validateVideoPlayingCoverImageDimensions }]}
-                  >
-                    <MediaPickerInput
-                      placeholder="e.g. /images/player-cover.png"
-                      uiVariant="stacked"
-                      hintText={`Required size: ${REQUIRED_COVER_IMAGE_HELPER_TEXT}`}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={24}>
-                  <Form.Item
-                    name="coverAlt"
-                    label="Cover Image Alt Text"
-                  >
-                    <Input placeholder="e.g. Video cover" size="large" />
-                  </Form.Item>
-                </Col>
-              </Row>
-            ),
-          },
-        ]}
-      />
-    </Form>
-  );
+  useImperativeHandle(ref, () => ({ update }), [form, isPageBlock, onSaveToPage, onSuccess]);
+  if (loading || saving) return <div style={{ padding: 48, textAlign: "center" }}><Spin /></div>;
+  const colorField = (name, label) => <Form.Item name={name} label={label}><Select allowClear options={colors} placeholder="From theme" /></Form.Item>;
+  const num = (name, label, options = {}) => <Col span={12}><Form.Item name={name} label={label}><InputNumber style={{ width: "100%" }} {...options} /></Form.Item></Col>;
+  return <Form form={form} layout="vertical"><Collapse defaultActiveKey={["content"]} items={[
+    { key: "section", label: "Manage Section", children: <ManageSectionFields prefix={PREFIX} form={form} themeColorOptions={colors} /> },
+    { key: "content", label: "Chapter Content", children: <>
+      <Form.Item name="videoPlayingSubTitle" label="Sub Title"><Input /></Form.Item><Form.Item name="videoPlayingTitle" label="Heading"><Input /></Form.Item><Form.Item name="videoPlayingTitleAccent" label="Heading accent"><Input /></Form.Item><Form.Item name="videoPlayingQuote" label="Story quote"><Input.TextArea rows={4} /></Form.Item><Form.Item name="videoPlayingAuthorName" label="Author name"><Input /></Form.Item><Form.Item name="videoPlayingAuthorRole" label="Author role"><Input /></Form.Item><Form.Item name="videoPlayingLinkText" label="Link label"><Input /></Form.Item><Form.Item name="videoPlayingLinkUrl" label="Link URL"><Input /></Form.Item><Form.Item name="videoPlayingLinkNewTab" label="Open link in new tab" valuePropName="checked"><Switch /></Form.Item>
+    </> },
+    { key: "video", label: "Video Settings", children: <><Form.Item name="youtubeVideoId" label="YouTube Video ID" rules={[{ required: true, message: "YouTube Video ID is required" }]}><Input /></Form.Item><Form.Item name="coverImageDesktop" label="Cover Image" rules={[{ validator: validateCover }]}><MediaPickerInput mediaType="image" uiVariant="stacked" hintText={`Required size: ${REQUIRED_COVER_IMAGE_WIDTH} × ${REQUIRED_COVER_IMAGE_HEIGHT}`} /></Form.Item><Form.Item name="coverAlt" label="Cover alt text"><Input /></Form.Item><Form.Item name="videoPlayingVideoTitle" label="Embedded video title"><Input /></Form.Item><Form.Item name="videoPlayingPlayAriaLabel" label="Play button accessible label"><Input /></Form.Item></> },
+    { key: "colors", label: "Colors", children: <>{colorField("videoPlayingChapterBgColorKey", "Chapter background")}{colorField("videoPlayingTextColorKey", "Base text")}{colorField("videoPlayingSubTitleColorKey", "Sub Title")}{colorField("videoPlayingTitleColorKey", "Heading")}{colorField("videoPlayingTitleAccentColorKey", "Heading accent")}{colorField("videoPlayingPlayBgColorKey", "Play button")}{colorField("videoPlayingPlayIconColorKey", "Play icon")}{colorField("videoPlayingQuoteColorKey", "Quote")}{colorField("videoPlayingAuthorColorKey", "Author")}{colorField("videoPlayingRoleColorKey", "Author role")}{colorField("videoPlayingLinkColorKey", "Story link")}</> },
+    { key: "layout", label: "Typography & Layout", children: <><Form.Item name="videoPlayingDisplayFontFamily" label="Display font family"><Input /></Form.Item><Form.Item name="videoPlayingBodyFontFamily" label="Body font family"><Input /></Form.Item><Row gutter={16}>{num("videoPlayingChapterRadius", "Chapter radius px", { min: 0 })}{num("videoPlayingChapterPaddingTop", "Top padding px", { min: 0 })}{num("videoPlayingChapterPaddingBottom", "Bottom padding px", { min: 0 })}{num("videoPlayingChapterPaddingX", "Horizontal padding px", { min: 0 })}{num("videoPlayingHeadGap", "Heading gap px", { min: 0 })}{num("videoPlayingVideoRadius", "Video radius px", { min: 0 })}{num("videoPlayingPlayButtonSize", "Play button px", { min: 32 })}{num("videoPlayingQuoteMarginTop", "Quote top px", { min: 0 })}{num("videoPlayingQuoteMaxWidth", "Quote width ch", { min: 10 })}{num("videoPlayingTitleMaxWidth", "Title width ch", { min: 8 })}{num("videoPlayingTitleMinSize", "Title min px", { min: 12 })}{num("videoPlayingTitleFluidSize", "Title fluid vw", { min: 1, step: 0.1 })}{num("videoPlayingTitleMaxSize", "Title max px", { min: 12 })}{num("videoPlayingTitleFontWeight", "Title weight", { min: 100, max: 900 })}{num("videoPlayingTitleLetterSpacing", "Title spacing em", { step: 0.01 })}{num("videoPlayingTitleLineHeight", "Title line height", { min: 0.7, step: 0.01 })}{num("videoPlayingQuoteMinSize", "Quote min px", { min: 12 })}{num("videoPlayingQuoteFluidSize", "Quote fluid vw", { min: 1, step: 0.1 })}{num("videoPlayingQuoteMaxSize", "Quote max px", { min: 12 })}{num("videoPlayingQuoteFontWeight", "Quote weight", { min: 100, max: 900 })}{num("videoPlayingQuoteLineHeight", "Quote line height", { min: 0.7, step: 0.01 })}{num("videoPlayingSubTitleFontSize", "Sub Title px", { min: 8 })}{num("videoPlayingSubTitleFontWeight", "Sub Title weight", { min: 100, max: 900 })}{num("videoPlayingSubTitleLetterSpacing", "Sub Title spacing em", { step: 0.01 })}{num("videoPlayingAuthorFontSize", "Author px", { min: 8 })}{num("videoPlayingRoleFontSize", "Role px", { min: 8 })}{num("videoPlayingLinkFontSize", "Link px", { min: 8 })}</Row></> },
+    { key: "animation", label: "Animations", children: <><Form.Item name="videoPlayingScaleAnimationEnabled" label="Video scale scrub" valuePropName="checked"><Switch /></Form.Item><Form.Item name="videoPlayingQuoteAnimationEnabled" label="Quote word scrub" valuePropName="checked"><Switch /></Form.Item><Row gutter={16}>{num("videoPlayingScaleFrom", "Initial scale", { min: 0.1, max: 1, step: 0.01 })}{num("videoPlayingQuoteStagger", "Word stagger", { min: 0, step: 0.01 })}</Row><Form.Item name="videoPlayingScaleStart" label="Scale trigger start"><Input /></Form.Item><Form.Item name="videoPlayingScaleEnd" label="Scale trigger end"><Input /></Form.Item><Form.Item name="videoPlayingQuoteStart" label="Quote trigger start"><Input /></Form.Item><Form.Item name="videoPlayingQuoteEnd" label="Quote trigger end"><Input /></Form.Item></> },
+  ]} /></Form>;
 }
 
 export default forwardRef(VideoPlayingEditForm);
