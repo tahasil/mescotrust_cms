@@ -76,7 +76,9 @@ const previousSubTitleField = (data, suffix = "") =>
 
 function normalizeInlineImages(items) {
   return (Array.isArray(items) ? items : []).map((item) => ({
-    imageUrl: textValue(item?.imageUrl),
+    imageUrl: textValue(
+      item?.imageUrl ?? item?.urlDesktop ?? item?.url ?? item?.src,
+    ),
     alt: textValue(item?.alt),
     afterWord: Number.isFinite(Number(item?.afterWord))
       ? Math.max(0, Math.round(Number(item.afterWord)))
@@ -93,6 +95,7 @@ function initialValues(data = {}) {
     data.welcometoMESCOSecondaryLinkTarget ??
       (data.welcometoMESCOSecondaryLinkNewTab === true ? "_blank" : "_self"),
   );
+  const hasSavedImages = Array.isArray(data.welcometoMESCOInlineImages);
   const savedImages = normalizeInlineImages(data.welcometoMESCOInlineImages);
 
   return {
@@ -139,7 +142,7 @@ function initialValues(data = {}) {
         ? textValue(data.welcometoMESCOEstablishmentText)
         : INITIAL_CONTENT.welcometoMESCOEstablishmentText,
     welcometoMESCOInlineImages:
-      savedImages.length > 0
+      hasSavedImages
         ? savedImages
         : INITIAL_CONTENT.welcometoMESCOInlineImages,
     ...Object.fromEntries(
@@ -255,7 +258,7 @@ function WelcometoMESCOEditForm(
 
     if (isPageBlock && onSaveToPage) {
       onSaveToPage(payload);
-      message.success("Changes will be saved with the page");
+      message.success("Component updated. Click the page Save button to persist changes.");
       onSuccess?.();
       return;
     }
@@ -301,7 +304,7 @@ function WelcometoMESCOEditForm(
   return (
     <Form form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={["content"]}
+        defaultActiveKey={["content", "inline-images", "buttons"]}
         items={[
           {
             key: "section",

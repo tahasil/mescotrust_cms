@@ -216,12 +216,34 @@ function createStatementNodes(statement, images) {
   const words = statement.split(/\s+/).filter(Boolean);
   const imagesByPosition = new Map();
   images.forEach((item, imageIndex) => {
-    const position = Math.max(0, Math.round(numberValue(item?.afterWord, 0)));
+    const position = Math.min(
+      words.length,
+      Math.max(0, Math.round(numberValue(item?.afterWord, 0))),
+    );
     if (!imagesByPosition.has(position)) imagesByPosition.set(position, []);
     imagesByPosition.get(position).push({ ...item, imageIndex });
   });
 
   const nodes = [];
+  const appendImages = (position) => {
+    (imagesByPosition.get(position) || []).forEach((item) => {
+      const imageUrl = textValue(
+        item.imageUrl ?? item.urlDesktop ?? item.url ?? item.src,
+      );
+      if (!imageUrl) return;
+      nodes.push(
+        <img
+          className="statementWord statementChip"
+          src={imageUrl}
+          alt={textValue(item.alt)}
+          loading="lazy"
+          key={`image-${item.imageIndex}`}
+        />,
+      );
+    });
+  };
+
+  appendImages(0);
   words.forEach((word, wordIndex) => {
     nodes.push(
       <span className="statementWord" key={`word-${wordIndex}`}>
@@ -229,18 +251,7 @@ function createStatementNodes(statement, images) {
         {word}
       </span>,
     );
-    (imagesByPosition.get(wordIndex + 1) || []).forEach((item) => {
-      if (!textValue(item.imageUrl)) return;
-      nodes.push(
-        <img
-          className="statementWord statementChip"
-          src={textValue(item.imageUrl)}
-          alt={textValue(item.alt)}
-          loading="lazy"
-          key={`image-${item.imageIndex}`}
-        />,
-      );
-    });
+    appendImages(wordIndex + 1);
   });
   return nodes;
 }
@@ -318,7 +329,16 @@ export default function WelcometoMESCO(props) {
 
     requestAnimationFrame(() => ScrollTrigger.refresh());
     return () => context.revert();
-  }, [isEditorPreview, statementNodes]);
+  }, [
+    isEditorPreview,
+    statementNodes,
+    props?.welcometoMESCOPrimaryButtonText,
+    props?.welcometoMESCOPrimaryButtonLink,
+    props?.welcometoMESCOSecondaryLinkText,
+    props?.welcometoMESCOSecondaryLinkUrl,
+    props?.welcometoMESCOEstablishmentLabel,
+    props?.welcometoMESCOEstablishmentText,
+  ]);
 
   const sectionBgType = textValue(
     props?.welcometoMESCOSectionBgType || "default",
