@@ -551,7 +551,7 @@ export default function OverviewOfOurWork(props) {
     titleLetterSpacingValue === 0 &&
     titleLineHeightValue === 1.2;
   return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
+    <FullWidthBackground ref={pinRef} className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
         <WorksSection>
           <WorksWrapper
@@ -609,7 +609,7 @@ export default function OverviewOfOurWork(props) {
               ),
             }}
           >
-            <div ref={pinRef} className="worksPin">
+            <div  className="worksPin">
               {showHeading ? (
                 <div className="worksHead">
                   {eyebrow ? <p className="worksEyebrow">{eyebrow}</p> : null}
