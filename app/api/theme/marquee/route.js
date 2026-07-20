@@ -13,6 +13,10 @@ export const dynamic = "force-dynamic";
 
 const MARQUEE_DEFAULTS = {
   marqueeTitle: "Our CSR Partners | Awards & Recognition",
+  marqueePartnersTitle: "Our CSR Partners",
+  marqueeAwardsTitle: "Awards & Recognition",
+  marqueePartnersTitleColorKey: "",
+  marqueeAwardsTitleColorKey: "",
   marqueeItems: [],
   marqueeTitleColorKey: "",
 };
@@ -41,12 +45,27 @@ function normalizeMarqueeProps(input) {
     out.marqueeTitle != null
       ? String(out.marqueeTitle).trim()
       : MARQUEE_DEFAULTS.marqueeTitle;
+  const legacyTitleParts = out.marqueeTitle.split("|").map((part) => part.trim());
+  out.marqueePartnersTitle =
+    payload.marqueePartnersTitle != null
+      ? String(payload.marqueePartnersTitle).trim()
+      : legacyTitleParts[0] || MARQUEE_DEFAULTS.marqueePartnersTitle;
+  out.marqueeAwardsTitle =
+    payload.marqueeAwardsTitle != null
+      ? String(payload.marqueeAwardsTitle).trim()
+      : legacyTitleParts.slice(1).join(" | ") || MARQUEE_DEFAULTS.marqueeAwardsTitle;
   out.marqueeItems = Array.isArray(out.marqueeItems)
     ? out.marqueeItems.map(normalizeItem)
     : [];
   if (out.marqueeTitleColorKey != null) {
     out.marqueeTitleColorKey = String(out.marqueeTitleColorKey).trim();
   }
+  out.marqueePartnersTitleColorKey = String(
+    out.marqueePartnersTitleColorKey || out.marqueeTitleColorKey || "",
+  ).trim();
+  out.marqueeAwardsTitleColorKey = String(
+    out.marqueeAwardsTitleColorKey || "",
+  ).trim();
   for (const [key, value] of Object.entries(out)) {
     if (
       key === "marqueeTitle" ||

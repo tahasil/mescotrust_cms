@@ -7,14 +7,18 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styled from "styled-components";
-import { getColor } from "@/styles/Theme";
+import {
+  FullWidthBackground,
+  getColor,
+  PageContainer,
+} from "@/styles/Theme";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const WorksSection = styled.div`
   position: relative;
   width: 100%;
-  background: ${getColor("cream")} no-repeat center;
+  /* background: ${getColor("cream")} no-repeat center; */
   background-size: cover;
 `;
 
@@ -29,15 +33,14 @@ const WorksWrapper = styled.div`
 
   .worksPin {
     width: 100%;
-    overflow: hidden;
-    padding-block: clamp(64px, 8vh, 96px);
+    overflow: visible;
   }
 
   .worksHead {
     width: 100%;
-    max-width: 1400px;
-    margin-inline: auto;
-    padding-inline: clamp(20px, 4vw, 48px);
+    max-width: none;
+    margin-inline: 0;
+    padding-inline: 0;
     padding-top: 0;
     padding-bottom: 0;
     margin-bottom: clamp(36px, 5vh, 56px);
@@ -73,6 +76,7 @@ const WorksWrapper = styled.div`
     display: flex;
     gap: clamp(20px, 2.4vw, 36px);
     width: max-content;
+    margin-left: calc(50% - 50vw);
     padding-inline: clamp(20px, 4vw, 48px);
     will-change: transform;
   }
@@ -193,7 +197,7 @@ const WorksWrapper = styled.div`
     }
 
     .worksTrack {
-      width: auto;
+      width: 100vw;
       overflow-x: auto;
       padding-bottom: 10px;
       scroll-snap-type: x mandatory;
@@ -479,7 +483,7 @@ export default function OverviewOfOurWork(props) {
   const pageContainerBgColorKey = textValue(
     props?.overviewOfOurWorkPageContainerBgColorKey,
   );
-  const pageContainerStyleBase =
+  const pageContainerBgStyleBase =
     pageContainerBgType === "image" && pageContainerBgImage
       ? {
           backgroundImage: `url(${pageContainerBgImage})`,
@@ -501,8 +505,8 @@ export default function OverviewOfOurWork(props) {
     marginTop: props?.overviewOfOurWorkPageContainerMarginTop,
     marginBottom: props?.overviewOfOurWorkPageContainerMarginBottom,
   };
-  const pageContainerStyle = {
-    ...(pageContainerStyleBase || {}),
+  const pageContainerBgStyle = {
+    ...(pageContainerBgStyleBase || {}),
     ...Object.fromEntries(
       Object.entries(containerSpacing)
         .filter(
@@ -547,129 +551,140 @@ export default function OverviewOfOurWork(props) {
     titleLetterSpacingValue === 0 &&
     titleLineHeightValue === 1.2;
   return (
-    <WorksSection
-      className={sectionBgClassName}
-      style={Object.keys(sectionBgStyle).length ? sectionBgStyle : undefined}
-    >
-      <WorksWrapper
-        ref={wrapperRef}
-        className={isEditorPreview ? "isEditorPreview" : undefined}
-        $buttonColor={colorFromProp(
-          "overviewOfOurWorkButtonColorKey",
-          getColor("white"),
-        )}
-        $descriptionColor={colorFromProp(
-          "overviewOfOurWorkDescriptionColorKey",
-          "rgba(255, 255, 255, 0.88)",
-        )}
-        $titleFontFamily={textValue(
-          props?.overviewOfOurWorkTitleFontFamily,
-        )}
-        $titleFontSize={
-          !usesLegacyGeneratedTypography && Number.isFinite(titleFontSizeValue)
-            ? titleFontSizeValue
-            : undefined
-        }
-        $titleFontStyle={
-          !usesLegacyGeneratedTypography &&
-          textValue(props?.overviewOfOurWorkTitleFontStyle) === "italic"
-            ? "italic"
-            : undefined
-        }
-        $titleFontWeight={
-          !usesLegacyGeneratedTypography &&
-          Number.isFinite(titleFontWeightValue)
-            ? titleFontWeightValue
-            : undefined
-        }
-        $titleLetterSpacing={
-          !usesLegacyGeneratedTypography &&
-          Number.isFinite(titleLetterSpacingValue)
-            ? titleLetterSpacingValue
-            : undefined
-        }
-        $titleLineHeight={
-          !usesLegacyGeneratedTypography && Number.isFinite(titleLineHeightValue)
-            ? titleLineHeightValue
-            : undefined
-        }
-        style={{
-          "--eyebrow-color": colorFromProp(
-            "overviewOfOurWorkEyebrowColorKey",
-            getColor("primary"),
-          ),
-          "--heading-color": colorFromProp(
-            "overviewOfOurWorkHeadingColorKey",
-            getColor("black"),
-          ),
-        }}
-      >
-        <div ref={pinRef} className="worksPin">
-          {showHeading ? (
-            <div className="worksHead" style={pageContainerStyle}>
-              {eyebrow ? <p className="worksEyebrow">{eyebrow}</p> : null}
-              {heading || headingAccent ? (
-                <h2 className="worksHeading">
-                  {heading}
-                  {heading && headingAccent ? " " : null}
-                  {headingAccent ? <em>{headingAccent}</em> : null}
-                </h2>
+    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
+      <PageContainer style={pageContainerBgStyle}>
+        <WorksSection>
+          <WorksWrapper
+            ref={wrapperRef}
+            className={isEditorPreview ? "isEditorPreview" : undefined}
+            $buttonColor={colorFromProp(
+              "overviewOfOurWorkButtonColorKey",
+              getColor("white"),
+            )}
+            $descriptionColor={colorFromProp(
+              "overviewOfOurWorkDescriptionColorKey",
+              "rgba(255, 255, 255, 0.88)",
+            )}
+            $titleFontFamily={textValue(
+              props?.overviewOfOurWorkTitleFontFamily,
+            )}
+            $titleFontSize={
+              !usesLegacyGeneratedTypography &&
+              Number.isFinite(titleFontSizeValue)
+                ? titleFontSizeValue
+                : undefined
+            }
+            $titleFontStyle={
+              !usesLegacyGeneratedTypography &&
+              textValue(props?.overviewOfOurWorkTitleFontStyle) === "italic"
+                ? "italic"
+                : undefined
+            }
+            $titleFontWeight={
+              !usesLegacyGeneratedTypography &&
+              Number.isFinite(titleFontWeightValue)
+                ? titleFontWeightValue
+                : undefined
+            }
+            $titleLetterSpacing={
+              !usesLegacyGeneratedTypography &&
+              Number.isFinite(titleLetterSpacingValue)
+                ? titleLetterSpacingValue
+                : undefined
+            }
+            $titleLineHeight={
+              !usesLegacyGeneratedTypography &&
+              Number.isFinite(titleLineHeightValue)
+                ? titleLineHeightValue
+                : undefined
+            }
+            style={{
+              "--eyebrow-color": colorFromProp(
+                "overviewOfOurWorkEyebrowColorKey",
+                getColor("primary"),
+              ),
+              "--heading-color": colorFromProp(
+                "overviewOfOurWorkHeadingColorKey",
+                getColor("black"),
+              ),
+            }}
+          >
+            <div ref={pinRef} className="worksPin">
+              {showHeading ? (
+                <div className="worksHead">
+                  {eyebrow ? <p className="worksEyebrow">{eyebrow}</p> : null}
+                  {heading || headingAccent ? (
+                    <h2 className="worksHeading">
+                      {heading}
+                      {heading && headingAccent ? " " : null}
+                      {headingAccent ? <em>{headingAccent}</em> : null}
+                    </h2>
+                  ) : null}
+                </div>
               ) : null}
-            </div>
-          ) : null}
 
-          {cards.length ? (
-            <div ref={trackRef} className="worksTrack">
-              {cards.map((card, index) => {
-                const hasLink = Boolean(card.link && card.linkText);
-                return (
-                  <article className="workCard" key={`${card.title}-${index}`}>
-                    {card.bgImageUrl ? (
-                      <img
-                        className="workCardBackground"
-                        src={card.bgImageUrl}
-                        alt=""
-                        aria-hidden="true"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <span className="workCardFallback" aria-hidden="true" />
-                    )}
-                    <span className="workCardScrim" aria-hidden="true" />
-                    <div className="workCardBody">
-                      {card.icon ? (
-                        <img
-                          className="workCardIcon"
-                          src={card.icon}
-                          alt=""
-                          width={56}
-                          height={56}
-                        />
-                      ) : null}
-                      <h3 style={{ color: titleColor(card.titleColorKey) }}>
-                        {card.title}
-                      </h3>
-                      {card.description ? (
-                        <p className="workCardDescription">{card.description}</p>
-                      ) : null}
-                      {hasLink ? (
-                        <Link className="workCardLink" href={card.link}>
-                          <span>{card.linkText}</span>
-                          <ArrowRightOutlined aria-hidden="true" />
-                        </Link>
-                      ) : null}
-                    </div>
-                  </article>
-                );
-              })}
+              {cards.length ? (
+                <div ref={trackRef} className="worksTrack">
+                  {cards.map((card, index) => {
+                    const hasLink = Boolean(card.link && card.linkText);
+                    return (
+                      <article
+                        className="workCard"
+                        key={`${card.title}-${index}`}
+                      >
+                        {card.bgImageUrl ? (
+                          <img
+                            className="workCardBackground"
+                            src={card.bgImageUrl}
+                            alt=""
+                            aria-hidden="true"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <span
+                            className="workCardFallback"
+                            aria-hidden="true"
+                          />
+                        )}
+                        <span className="workCardScrim" aria-hidden="true" />
+                        <div className="workCardBody">
+                          {card.icon ? (
+                            <img
+                              className="workCardIcon"
+                              src={card.icon}
+                              alt=""
+                              width={56}
+                              height={56}
+                            />
+                          ) : null}
+                          <h3 style={{ color: titleColor(card.titleColorKey) }}>
+                            {card.title}
+                          </h3>
+                          {card.description ? (
+                            <p className="workCardDescription">
+                              {card.description}
+                            </p>
+                          ) : null}
+                          {hasLink ? (
+                            <Link className="workCardLink" href={card.link}>
+                              <span>{card.linkText}</span>
+                              <ArrowRightOutlined aria-hidden="true" />
+                            </Link>
+                          ) : null}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="emptyState">
+                  No cards yet. Edit this component and add items under Content.
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="emptyState">
-              No cards yet. Edit this component and add items under Content.
-            </div>
-          )}
-        </div>
-      </WorksWrapper>
-    </WorksSection>
+          </WorksWrapper>
+        </WorksSection>
+      </PageContainer>
+    </FullWidthBackground>
   );
 }

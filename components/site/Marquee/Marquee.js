@@ -3,7 +3,11 @@
 import { useState, useEffect } from "react";
 import styled from "styled-components";
 import ReactMarquee from "react-fast-marquee";
-import { getColor } from "@/styles/Theme";
+import {
+  FullWidthBackground,
+  getColor,
+  PageContainer,
+} from "@/styles/Theme";
 
 function fetchMarquee() {
   return fetch("/api/theme/marquee", {
@@ -18,14 +22,12 @@ const PartnersSection = styled.section`
   width: 100%;
   position: relative;
   background: transparent;
-  overflow: hidden;
-  padding-block: clamp(72px, 8vw, 110px);
-  border-top: 1px solid ${getColor("border")};
+  overflow: visible;
+  /* border-top: 1px solid ${getColor("border")}; */
 
   .partners-head {
-    width: 90%;
-    max-width: var(--layout-width, 1400px);
-    margin: 0 auto 40px;
+    width: 100%;
+    margin: 0 0 40px;
     display: flex;
     align-items: baseline;
     justify-content: space-between;
@@ -50,6 +52,8 @@ const PartnersSection = styled.section`
   }
 
   .partners-marquee {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
     overflow: hidden;
     ${(p) =>
       p.$showGradient
@@ -86,7 +90,6 @@ const PartnersSection = styled.section`
   @media (max-width: 768px) {
     .partners-head {
       width: 100%;
-      padding-inline: 20px;
     }
 
     .marquee-item img {
@@ -149,6 +152,8 @@ export default function Marquee(props) {
   const [data, setData] = useState(null);
   const fromPage =
     props?.marqueeTitle != null ||
+    props?.marqueePartnersTitle != null ||
+    props?.marqueeAwardsTitle != null ||
     (Array.isArray(props?.marqueeItems) && props.marqueeItems.length > 0) ||
     props?.title != null ||
     (Array.isArray(props?.images) && props.images.length > 0);
@@ -178,63 +183,188 @@ export default function Marquee(props) {
 
   if (imageItems.length === 0) return null;
 
-  const titleColor = getColor(props?.marqueeTitleColorKey || "black");
+  const settings = fromPage ? props : { ...(data || {}), ...(props || {}) };
   const titleParts = String(title || "")
     .split("|")
     .map((part) => part.trim());
-  const eyebrow = titleParts.shift() || "";
-  const note = titleParts.join(" | ");
-  const showGradient = props?.gradient !== false;
+  const legacyPartnersTitle = titleParts.shift() || "";
+  const legacyAwardsTitle = titleParts.join(" | ");
+  const partnersTitle =
+    settings?.marqueePartnersTitle != null
+      ? String(settings.marqueePartnersTitle).trim()
+      : legacyPartnersTitle;
+  const awardsTitle =
+    settings?.marqueeAwardsTitle != null
+      ? String(settings.marqueeAwardsTitle).trim()
+      : legacyAwardsTitle;
+  const partnersTitleColor = getColor(
+    settings?.marqueePartnersTitleColorKey ||
+      settings?.marqueeTitleColorKey ||
+      "black",
+  );
+  const awardsTitleColor = getColor(
+    settings?.marqueeAwardsTitleColorKey || "blackMuted",
+  );
+  const showGradient = settings?.gradient !== false;
+
+  const sectionBgType = String(
+    settings?.marqueeSectionBgType ?? "default",
+  );
+  const sectionBgImage = String(
+    settings?.marqueeSectionBgImage ?? "",
+  ).trim();
+  const sectionBgColorKey = String(
+    settings?.marqueeSectionBgColorKey ?? "",
+  ).trim();
+  const sectionBgClassName =
+    sectionBgType === "default" ? "defaultBackground" : undefined;
+  const sectionBgStyleBase =
+    sectionBgType === "image" && sectionBgImage
+      ? {
+          backgroundImage: `url(${sectionBgImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center center",
+          backgroundRepeat: "no-repeat",
+        }
+      : sectionBgType === "color" && sectionBgColorKey
+        ? {
+            backgroundColor: getColor(sectionBgColorKey),
+            backgroundImage: "none",
+          }
+        : undefined;
+  const sectionSpacing = {
+    paddingTop: settings?.marqueeSectionPaddingTop,
+    paddingBottom: settings?.marqueeSectionPaddingBottom,
+    marginTop: settings?.marqueeSectionMarginTop,
+    marginBottom: settings?.marqueeSectionMarginBottom,
+  };
+  const sectionBgStyle = {
+    ...(sectionBgStyleBase || {}),
+    ...Object.fromEntries(
+      Object.entries(sectionSpacing)
+        .filter(
+          ([, value]) =>
+            value != null &&
+            value !== "" &&
+            Number.isFinite(Number(value)) &&
+            Number(value) >= 0,
+        )
+        .map(([key, value]) => [key, `${Number(value)}px`]),
+    ),
+  };
+
+  const pageContainerBgType = String(
+    settings?.marqueePageContainerBgType ?? "default",
+  );
+  const pageContainerBgImage = String(
+    settings?.marqueePageContainerBgImage ?? "",
+  ).trim();
+  const pageContainerBgColorKey = String(
+    settings?.marqueePageContainerBgColorKey ?? "",
+  ).trim();
+  const pageContainerBgStyleBase =
+    pageContainerBgType === "image" && pageContainerBgImage
+      ? {
+          backgroundImage: `url(${pageContainerBgImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }
+      : pageContainerBgType === "color" && pageContainerBgColorKey
+        ? {
+            backgroundColor: getColor(pageContainerBgColorKey),
+            backgroundImage: "none",
+          }
+        : undefined;
+  const pageContainerSpacing = {
+    paddingTop: settings?.marqueePageContainerPaddingTop,
+    paddingRight: settings?.marqueePageContainerPaddingRight,
+    paddingBottom: settings?.marqueePageContainerPaddingBottom,
+    paddingLeft: settings?.marqueePageContainerPaddingLeft,
+    marginTop: settings?.marqueePageContainerMarginTop,
+    marginBottom: settings?.marqueePageContainerMarginBottom,
+  };
+  const pageContainerBgStyle = {
+    ...(pageContainerBgStyleBase || {}),
+    ...Object.fromEntries(
+      Object.entries(pageContainerSpacing)
+        .filter(
+          ([, value]) =>
+            value != null &&
+            value !== "" &&
+            Number.isFinite(Number(value)) &&
+            Number(value) >= 0,
+        )
+        .map(([key, value]) => [key, `${Number(value)}px`]),
+    ),
+  };
 
   return (
-    <PartnersSection
-      className="site-component-marquee"
-      data-component="Marquee"
-      $showGradient={showGradient}
-      aria-label={title || undefined}
-    >
-      {eyebrow || note ? (
-        <div className="partners-head">
-          {eyebrow ? (
-            <h2 className="partners-eyebrow" style={{ color: titleColor }}>
-              {eyebrow}
-            </h2>
-          ) : null}
-          {note ? <p className="partners-note">{note}</p> : null}
-        </div>
-      ) : null}
-      <ReactMarquee
-        className="partners-marquee"
-        loop={0}
-        speed={props?.speed ?? 25}
-        pauseOnHover={props?.pauseOnHover !== false}
-        gradient={false}
-        autoFill={true}
-      >
-        {imageItems.map((rawItem, i) => {
-          const item = normalizeImageItem(rawItem);
-          const desktop = item.desktop || item.mobile;
-          if (!desktop) return null;
-          return (
-          <div
-            key={`${i}-${item.key}`}
-            className="marquee-item"
-          >
-            <picture>
-              {item.mobile ? (
-                <source media="(max-width: 767px)" srcSet={item.mobile} />
+    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
+      <PageContainer style={pageContainerBgStyle}>
+        <PartnersSection
+          className="site-component-marquee"
+          data-component="Marquee"
+          $showGradient={showGradient}
+          aria-label={
+            [partnersTitle, awardsTitle].filter(Boolean).join(" | ") ||
+            undefined
+          }
+        >
+          {partnersTitle || awardsTitle ? (
+            <div className="partners-head">
+              {partnersTitle ? (
+                <h2
+                  className="partners-eyebrow"
+                  style={{ color: partnersTitleColor }}
+                >
+                  {partnersTitle}
+                </h2>
               ) : null}
-              <img
-                loading="lazy"
-                className="img-fluid"
-                src={desktop}
-                alt={item.alt}
-              />
-            </picture>
-          </div>
-          );
-        })}
-      </ReactMarquee>
-    </PartnersSection>
+              {awardsTitle ? (
+                <p
+                  className="partners-note"
+                  style={{ color: awardsTitleColor }}
+                >
+                  {awardsTitle}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+          <ReactMarquee
+            className="partners-marquee"
+            loop={0}
+            speed={settings?.speed ?? 25}
+            pauseOnHover={settings?.pauseOnHover !== false}
+            gradient={false}
+            autoFill={true}
+          >
+            {imageItems.map((rawItem, i) => {
+              const item = normalizeImageItem(rawItem);
+              const desktop = item.desktop || item.mobile;
+              if (!desktop) return null;
+              return (
+                <div key={`${i}-${item.key}`} className="marquee-item">
+                  <picture>
+                    {item.mobile ? (
+                      <source
+                        media="(max-width: 767px)"
+                        srcSet={item.mobile}
+                      />
+                    ) : null}
+                    <img
+                      loading="lazy"
+                      className="img-fluid"
+                      src={desktop}
+                      alt={item.alt}
+                    />
+                  </picture>
+                </div>
+              );
+            })}
+          </ReactMarquee>
+        </PartnersSection>
+      </PageContainer>
+    </FullWidthBackground>
   );
 }

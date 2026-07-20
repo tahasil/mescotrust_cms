@@ -75,6 +75,33 @@ function normalizeItem(it) {
   };
 }
 
+function getHeadingValues(data, fallbackToDefaults = false) {
+  const legacyTitle =
+    data?.marqueeTitle != null ? String(data.marqueeTitle).trim() : "";
+  const legacyParts = legacyTitle.split("|").map((part) => part.trim());
+  return {
+    marqueePartnersTitle:
+      data?.marqueePartnersTitle != null
+        ? String(data.marqueePartnersTitle).trim()
+        : legacyParts[0] || (fallbackToDefaults ? "Our CSR Partners" : ""),
+    marqueeAwardsTitle:
+      data?.marqueeAwardsTitle != null
+        ? String(data.marqueeAwardsTitle).trim()
+        : legacyParts.slice(1).join(" | ") ||
+          (fallbackToDefaults ? "Awards & Recognition" : ""),
+    marqueePartnersTitleColorKey:
+      data?.marqueePartnersTitleColorKey != null
+        ? String(data.marqueePartnersTitleColorKey).trim()
+        : data?.marqueeTitleColorKey != null
+          ? String(data.marqueeTitleColorKey).trim()
+          : "",
+    marqueeAwardsTitleColorKey:
+      data?.marqueeAwardsTitleColorKey != null
+        ? String(data.marqueeAwardsTitleColorKey).trim()
+        : "",
+  };
+}
+
 function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [] }, ref) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
@@ -101,6 +128,7 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
         marqueeTitle: title,
         marqueeItems: items,
         marqueeTitleColorKey: data?.marqueeTitleColorKey != null ? String(data.marqueeTitleColorKey).trim() : "",
+        ...getHeadingValues(data),
         ...getManageSectionInitialValues("marquee", data),
       });
       if (!themeFetchedForColorsRef.current) {
@@ -134,6 +162,7 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
           marqueeTitle: title,
           marqueeItems: items,
           marqueeTitleColorKey: data?.marqueeTitleColorKey != null ? String(data.marqueeTitleColorKey).trim() : "",
+          ...getHeadingValues(data, true),
           ...getManageSectionInitialValues("marquee", data),
         });
         const palette = theme?.themePalette || {};
@@ -153,10 +182,32 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
       const items = Array.isArray(rawItems)
         ? rawItems.map(normalizeItem)
         : [];
+      const partnersTitle =
+        values.marqueePartnersTitle != null
+          ? String(values.marqueePartnersTitle).trim()
+          : "";
+      const awardsTitle =
+        values.marqueeAwardsTitle != null
+          ? String(values.marqueeAwardsTitle).trim()
+          : "";
       const payload = {
-        marqueeTitle: title,
+        marqueeTitle:
+          [partnersTitle, awardsTitle].filter(Boolean).join(" | ") || title,
+        marqueePartnersTitle: partnersTitle,
+        marqueeAwardsTitle: awardsTitle,
         marqueeItems: items,
-        marqueeTitleColorKey: values.marqueeTitleColorKey != null ? String(values.marqueeTitleColorKey).trim() : "",
+        marqueeTitleColorKey:
+          values.marqueePartnersTitleColorKey != null
+            ? String(values.marqueePartnersTitleColorKey).trim()
+            : "",
+        marqueePartnersTitleColorKey:
+          values.marqueePartnersTitleColorKey != null
+            ? String(values.marqueePartnersTitleColorKey).trim()
+            : "",
+        marqueeAwardsTitleColorKey:
+          values.marqueeAwardsTitleColorKey != null
+            ? String(values.marqueeAwardsTitleColorKey).trim()
+            : "",
         ...getManageSectionPayload("marquee", values),
       };
       if (isPageBlock && onSaveToPage) {

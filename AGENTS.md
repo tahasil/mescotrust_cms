@@ -212,6 +212,21 @@ Reference: `docs/BACKUPS.md`
 - For public rendering, map by `baseComponent` through `ComponentRenderer`.
 - Prefer existing patterns in equivalent modules before introducing new abstractions.
 
+### Permanent site-component wrapper invariant
+
+When editing or redesigning any site component, never remove, replace, rename,
+or modify these outer wrapper elements:
+
+```jsx
+<FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
+  <PageContainer style={pageContainerBgStyle}>
+```
+
+New design markup, styling, and behavior must be implemented only inside these
+wrappers. Preserve each component as an independent, self-contained component;
+do not couple or merge its logic, styles, data, or animations with another
+component.
+
 ## 9. Operational Notes
 
 - Working tree may contain unrelated changes; do not revert unless explicitly requested.

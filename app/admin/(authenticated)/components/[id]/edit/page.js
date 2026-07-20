@@ -144,6 +144,8 @@ export default function AdminComponentEditPage() {
         if (found.componentId === "Marquee") {
           initialValues.marqueeTitle =
             "Our CSR Partners | Awards & Recognition";
+          initialValues.marqueePartnersTitle = "Our CSR Partners";
+          initialValues.marqueeAwardsTitle = "Awards & Recognition";
           initialValues.marqueeItems = [];
         }
         form.setFieldsValue(initialValues);
@@ -527,7 +529,7 @@ export default function AdminComponentEditPage() {
   useEffect(() => {
     if (!isMarquee) return;
     setThemeLoading(true);
-    fetch("/api/theme", { cache: "no-store" })
+    fetch("/api/theme/marquee", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : {}))
       .then((theme) => {
         const title =
@@ -542,10 +544,29 @@ export default function AdminComponentEditPage() {
           : [];
         setThemeMarqueeSnapshot({
           marqueeTitle: title,
+          marqueePartnersTitle:
+            theme?.marqueePartnersTitle != null
+              ? String(theme.marqueePartnersTitle).trim()
+              : title.split("|")[0]?.trim() || "Our CSR Partners",
+          marqueeAwardsTitle:
+            theme?.marqueeAwardsTitle != null
+              ? String(theme.marqueeAwardsTitle).trim()
+              : title.split("|").slice(1).join(" | ").trim() ||
+                "Awards & Recognition",
           marqueeItems: items,
           marqueeTitleColorKey:
             theme?.marqueeTitleColorKey != null
               ? String(theme.marqueeTitleColorKey).trim()
+              : "",
+          marqueePartnersTitleColorKey:
+            theme?.marqueePartnersTitleColorKey != null
+              ? String(theme.marqueePartnersTitleColorKey).trim()
+              : theme?.marqueeTitleColorKey != null
+                ? String(theme.marqueeTitleColorKey).trim()
+                : "",
+          marqueeAwardsTitleColorKey:
+            theme?.marqueeAwardsTitleColorKey != null
+              ? String(theme.marqueeAwardsTitleColorKey).trim()
               : "",
           ...getManageSectionSnapshot(
             MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Marquee,
@@ -1113,7 +1134,10 @@ export default function AdminComponentEditPage() {
                   message.success(`${record?.displayName || cid} saved`);
                   return;
                 }
-                const res = await fetch("/api/theme", { cache: "no-store" });
+                const res = await fetch(
+                  cid === "Marquee" ? "/api/theme/marquee" : "/api/theme",
+                  { cache: "no-store" },
+                );
                 if (!res.ok) return;
                 const theme = await res.json();
                 if (cid === "Header") {
@@ -1467,6 +1491,14 @@ export default function AdminComponentEditPage() {
                       theme.marqueeTitle != null
                         ? String(theme.marqueeTitle).trim()
                         : "",
+                    marqueePartnersTitle:
+                      theme?.marqueePartnersTitle != null
+                        ? String(theme.marqueePartnersTitle).trim()
+                        : "",
+                    marqueeAwardsTitle:
+                      theme?.marqueeAwardsTitle != null
+                        ? String(theme.marqueeAwardsTitle).trim()
+                        : "",
                     marqueeItems: Array.isArray(theme.marqueeItems)
                       ? theme.marqueeItems.map((it) => ({
                           url: it?.url ?? "",
@@ -1476,6 +1508,16 @@ export default function AdminComponentEditPage() {
                     marqueeTitleColorKey:
                       theme?.marqueeTitleColorKey != null
                         ? String(theme.marqueeTitleColorKey).trim()
+                        : "",
+                    marqueePartnersTitleColorKey:
+                      theme?.marqueePartnersTitleColorKey != null
+                        ? String(theme.marqueePartnersTitleColorKey).trim()
+                        : theme?.marqueeTitleColorKey != null
+                          ? String(theme.marqueeTitleColorKey).trim()
+                          : "",
+                    marqueeAwardsTitleColorKey:
+                      theme?.marqueeAwardsTitleColorKey != null
+                        ? String(theme.marqueeAwardsTitleColorKey).trim()
                         : "",
                     ...getManageSectionSnapshot(
                       MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Marquee,

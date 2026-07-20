@@ -198,7 +198,15 @@ function getDefaultPropsForNewSiteComponent(componentId) {
         homeSliderSlides: HOME_SLIDER_DEFAULT_PROPS.homeSliderSlides.map((slide) => ({ ...slide })),
       };
     case "Marquee":
-      return { ...base, marqueeItems: [], marqueeTitle: "" };
+      return {
+        ...base,
+        marqueeItems: [],
+        marqueeTitle: "",
+        marqueePartnersTitle: "",
+        marqueeAwardsTitle: "",
+        marqueePartnersTitleColorKey: "",
+        marqueeAwardsTitleColorKey: "",
+      };
     case "LatestEvents1":
       return { ...base, latestEvents1Items: [] };
     case "EventsSlider":
