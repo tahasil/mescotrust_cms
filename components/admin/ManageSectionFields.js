@@ -3,6 +3,7 @@
 import { Form, Input, Select, Switch, Collapse, Tooltip } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
+import { normalizeSectionId } from "@/lib/manageSectionFields";
 
 const REQUIRED_SECTION_BG_WIDTH = 1440;
 const REQUIRED_SECTION_BG_HEIGHT = 620;
@@ -69,6 +70,29 @@ export default function ManageSectionFields({
 
   return (
     <>
+      <Form.Item
+        name={prefix + "SectionId"}
+        label="Section ID"
+        tooltip="Unique anchor name for linking directly to this section. Use it in a button URL as #our-works on the same page or /page#our-works from another page."
+        normalize={normalizeSectionId}
+        rules={[
+          {
+            validator: (_, value) => {
+              const sectionId = normalizeSectionId(value);
+              if (!sectionId || /^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(sectionId)) {
+                return Promise.resolve();
+              }
+              return Promise.reject(
+                new Error("Use only letters, numbers, hyphens, or underscores."),
+              );
+            },
+          },
+        ]}
+        extra="Enter without #. Keep this ID unique on the page."
+        style={{ marginBottom: 12 }}
+      >
+        <Input placeholder="e.g. our-works" size="large" allowClear />
+      </Form.Item>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, padding: "8px 0" }}>
         <Tooltip title="Turn off the fade-in scroll animation for this section">
           <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4, color: "rgba(0,0,0,0.65)" }}>

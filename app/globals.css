@@ -143,6 +143,17 @@ a {
   width: 100%;
 }
 
+/* Offset hash-link targets below the fixed public header. */
+.cms-section-anchor {
+  scroll-margin-top: 104px;
+}
+
+@media (max-width: 768px) {
+  .cms-section-anchor {
+    scroll-margin-top: 72px;
+  }
+}
+
 /* Container: constrained to layout width */
 .cms-container {
   max-width: var(--layout-width);

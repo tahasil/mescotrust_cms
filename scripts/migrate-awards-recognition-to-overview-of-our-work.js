@@ -18,6 +18,7 @@ const NEW_DISPLAY_NAME = "Overview of Our Work";
 
 const PROP_RENAMES = {
   awardsRecognitionItems: "overviewOfOurWorkItems",
+  awardsRecognitionSectionId: "overviewOfOurWorkSectionId",
   awardsRecognitionSectionBgType: "overviewOfOurWorkSectionBgType",
   awardsRecognitionSectionBgImage: "overviewOfOurWorkSectionBgImage",
   awardsRecognitionSectionBgColorKey: "overviewOfOurWorkSectionBgColorKey",

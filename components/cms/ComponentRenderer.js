@@ -43,6 +43,10 @@ import AntSpaceBlock from "@/components/cms/blocks/antd/AntSpace";
 import * as SiteComponents from "@/components/site/publicComponents";
 import { PageContainer } from "@/styles/Theme";
 import FadeInSection from "@/components/cms/FadeInSection";
+import {
+  getManageSectionPrefix,
+  normalizeSectionId,
+} from "@/lib/manageSectionFields";
 
 const COMPONENT_MAP = {
   Paragraph: ParagraphBlock,
@@ -108,6 +112,7 @@ const SECTION_PROPS = [
 /** Legacy: AwardsRecognition was renamed to OverviewOfOurWork. Map old prop keys to new. */
 const AWARDS_TO_OVERVIEW_PROP_KEYS = {
   awardsRecognitionItems: "overviewOfOurWorkItems",
+  awardsRecognitionSectionId: "overviewOfOurWorkSectionId",
   awardsRecognitionSectionBgType: "overviewOfOurWorkSectionBgType",
   awardsRecognitionSectionBgImage: "overviewOfOurWorkSectionBgImage",
   awardsRecognitionSectionBgColorKey: "overviewOfOurWorkSectionBgColorKey",
@@ -146,7 +151,13 @@ function normalizePropsForOverviewOfOurWork(props) {
 const FULL_BLEED_SITE_COMPONENTS = ["HomeHero", "HomeSlider", "HomeHero2", "Marquee", "Subscribe"];
 
 /** Components that should NOT get the FadeInSection scroll animation. */
-const NO_FADE_COMPONENTS = ["Header", "Footer", "HomeHero", "HomeSlider"];
+const NO_FADE_COMPONENTS = [
+  "Header",
+  "Footer",
+  "HomeHero",
+  "HomeSlider",
+  "OverviewOfOurWork",
+];
 
 function extractSectionProps(props) {
   const section = {};
@@ -216,6 +227,14 @@ export default function ComponentRenderer({
           Math.random().toString(36);
 
         const { section, clean } = extractSectionProps(allProps);
+        const manageSectionPrefix = getManageSectionPrefix(baseComponent);
+        const sectionIdProp = manageSectionPrefix
+          ? `${manageSectionPrefix}SectionId`
+          : "";
+        const sectionAnchorId = sectionIdProp
+          ? normalizeSectionId(clean[sectionIdProp])
+          : "";
+        if (sectionIdProp) delete clean[sectionIdProp];
         const sectionBg = section._sectionBg || "";
         const sectionPadding = section._sectionPadding || "";
         const sectionBorderSize = section._sectionBorderSize || "";
@@ -278,7 +297,12 @@ export default function ComponentRenderer({
 
         if (isFullBleed) {
           const inner = (
-            <div key={key} className="cms-full-bleed" style={{ width: "100%" }}>
+            <div
+              key={key}
+              id={sectionAnchorId || undefined}
+              className={`cms-full-bleed${sectionAnchorId ? " cms-section-anchor" : ""}`}
+              style={{ width: "100%" }}
+            >
               <Component {...clean} {...elementClickProp} />
             </div>
           );
@@ -290,7 +314,8 @@ export default function ComponentRenderer({
         const inner = (
           <section
             key={key}
-            className={sectionClassName}
+            id={sectionAnchorId || undefined}
+            className={`${sectionClassName}${sectionAnchorId ? " cms-section-anchor" : ""}`}
             data-component={baseComponent}
             style={hasSectionStyle ? sectionStyle : undefined}
           >

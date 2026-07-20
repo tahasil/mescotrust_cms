@@ -18,6 +18,15 @@ Every component listed here is added the same way:
 
 > **Important**: most components store their content **per page**. If the same testimonial should appear on the Home page AND the Impact page, you must add a Testimonials block on each page and enter the items on each one. A few components (Header, Footer, Subscribe, Marquee) are global — edit them once and the change applies everywhere.
 
+### Link directly to a section
+
+In a component's **Manage Section** panel, enter a unique **Section ID** such as `our-works` (without `#`). Then use:
+
+- `#our-works` in a button or link on the same page.
+- `/another-page#our-works` in a button or link from another page.
+
+Section IDs may contain letters, numbers, hyphens, and underscores. Keep every Section ID unique on its page.
+
 ---
 
 ## Quick lookup by purpose
@@ -144,9 +153,9 @@ For each component below: **what it shows**, **what items you can add to its lis
 ### PROGRAMS & WORK
 
 #### OverviewOfOurWork
-**Shows:** 4-card grid (Education, Medical, Clinics, Relief of Poverty etc.) with background image, title, optional icon, link, and hover overlay.
-**List items:** `title`, `linkText`, `link`, `bgImageUrl`, `icon`, `titleColorKey`
-**Section settings:** hover overlay opacity (0–1), section title, colour keys.
+**Shows:** Horizontally panning work cards (Education, Medical, Clinics, Relief of Poverty etc.) with a pinned desktop scroll effect and touch-friendly mobile scroll.
+**List items:** `title`, `description`, `linkText`, `link`, `bgImageUrl`, `icon`, `titleColorKey`
+**Section settings:** eyebrow, heading/accent, hover overlay opacity (0–1), and colour keys.
 **Storage:** per-page or global
 
 > Note: this is the component that **replaced** the older "AwardsRecognition" component in a previous migration. To show "Awards & Recognition" content, configure this block with the appropriate cards.

@@ -222,6 +222,9 @@ function getDefaultPropsForNewSiteComponent(componentId) {
     case "OverviewOfOurWork":
       return {
         ...base,
+        overviewOfOurWorkEyebrow: "",
+        overviewOfOurWorkHeading: "",
+        overviewOfOurWorkHeadingAccent: "",
         overviewOfOurWorkTitleFontFamily: "",
         overviewOfOurWorkTitleFontSize: 24,
         overviewOfOurWorkTitleFontWeight: 700,
@@ -286,6 +289,7 @@ function generateId() {
 /** Legacy: normalize AwardsRecognition block props so OverviewOfOurWork EditForm can read them. */
 const AWARDS_TO_OVERVIEW_KEYS = {
   awardsRecognitionItems: "overviewOfOurWorkItems",
+  awardsRecognitionSectionId: "overviewOfOurWorkSectionId",
   awardsRecognitionSectionBgType: "overviewOfOurWorkSectionBgType",
   awardsRecognitionSectionBgImage: "overviewOfOurWorkSectionBgImage",
   awardsRecognitionSectionBgColorKey: "overviewOfOurWorkSectionBgColorKey",

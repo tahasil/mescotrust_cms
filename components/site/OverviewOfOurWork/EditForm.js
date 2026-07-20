@@ -11,16 +11,18 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/OverviewOfOurWork";
 const PREFIX = "overviewOfOurWork";
-const REQUIRED_BG_IMAGE_WIDTH = 580;
-const REQUIRED_BG_IMAGE_HEIGHT = 704;
-const REQUIRED_BG_IMAGE_SIZE_TEXT =
-  `${REQUIRED_BG_IMAGE_WIDTH} \u00D7 ${REQUIRED_BG_IMAGE_HEIGHT} pixels`;
-const REQUIRED_ICON_IMAGE_WIDTH = 48;
-const REQUIRED_ICON_IMAGE_HEIGHT = 48;
-const REQUIRED_ICON_IMAGE_SIZE_TEXT =
-  `${REQUIRED_ICON_IMAGE_WIDTH} \u00D7 ${REQUIRED_ICON_IMAGE_HEIGHT} pixels`;
-const REQUIRED_ICON_IMAGE_SIZE_LABEL_TEXT =
-  `${REQUIRED_ICON_IMAGE_WIDTH} \u00D7 ${REQUIRED_ICON_IMAGE_HEIGHT} px`;
+const LEGACY_BG_IMAGE_WIDTH = 580;
+const LEGACY_BG_IMAGE_HEIGHT = 704;
+const MIN_BG_IMAGE_WIDTH = 700;
+const MIN_BG_IMAGE_HEIGHT = 525;
+const BG_IMAGE_SIZE_TEXT =
+  `landscape, minimum ${MIN_BG_IMAGE_WIDTH} \u00D7 ${MIN_BG_IMAGE_HEIGHT} px`;
+const LEGACY_ICON_IMAGE_WIDTH = 48;
+const LEGACY_ICON_IMAGE_HEIGHT = 48;
+const MIN_ICON_IMAGE_WIDTH = 120;
+const MIN_ICON_IMAGE_HEIGHT = 120;
+const ICON_IMAGE_SIZE_TEXT =
+  `minimum ${MIN_ICON_IMAGE_WIDTH} \u00D7 ${MIN_ICON_IMAGE_HEIGHT} px`;
 
 function getImageDimensions(imageUrl) {
   return new Promise((resolve, reject) => {
@@ -41,20 +43,23 @@ async function validateOverviewBackgroundImageDimensions(_, value) {
 
   try {
     const { width, height } = await getImageDimensions(imageUrl);
-    if (
-      width === REQUIRED_BG_IMAGE_WIDTH &&
-      height === REQUIRED_BG_IMAGE_HEIGHT
-    ) {
+    const isLegacySize =
+      width === LEGACY_BG_IMAGE_WIDTH && height === LEGACY_BG_IMAGE_HEIGHT;
+    const isSupportedLandscape =
+      width >= MIN_BG_IMAGE_WIDTH &&
+      height >= MIN_BG_IMAGE_HEIGHT &&
+      width >= height;
+    if (isLegacySize || isSupportedLandscape) {
       return Promise.resolve();
     }
     return Promise.reject(
       new Error(
-        `Image size must be exactly ${REQUIRED_BG_IMAGE_SIZE_TEXT}. Selected: ${width} \u00D7 ${height} pixels.`,
+        `Image must be ${BG_IMAGE_SIZE_TEXT}. Selected: ${width} \u00D7 ${height} px.`,
       ),
     );
   } catch {
     return Promise.reject(
-      new Error(`Image size must be exactly ${REQUIRED_BG_IMAGE_SIZE_TEXT}.`),
+      new Error(`Image must be ${BG_IMAGE_SIZE_TEXT}.`),
     );
   }
 }
@@ -65,20 +70,21 @@ async function validateOverviewIconImageDimensions(_, value) {
 
   try {
     const { width, height } = await getImageDimensions(imageUrl);
-    if (
-      width === REQUIRED_ICON_IMAGE_WIDTH &&
-      height === REQUIRED_ICON_IMAGE_HEIGHT
-    ) {
+    const isLegacySize =
+      width === LEGACY_ICON_IMAGE_WIDTH && height === LEGACY_ICON_IMAGE_HEIGHT;
+    const isSupportedSize =
+      width >= MIN_ICON_IMAGE_WIDTH && height >= MIN_ICON_IMAGE_HEIGHT;
+    if (isLegacySize || isSupportedSize) {
       return Promise.resolve();
     }
     return Promise.reject(
       new Error(
-        `Icon image size must be exactly ${REQUIRED_ICON_IMAGE_SIZE_TEXT}. Selected: ${width} \u00D7 ${height} pixels.`,
+        `Icon image must be ${ICON_IMAGE_SIZE_TEXT}. Selected: ${width} \u00D7 ${height} px.`,
       ),
     );
   } catch {
     return Promise.reject(
-      new Error(`Icon image size must be exactly ${REQUIRED_ICON_IMAGE_SIZE_TEXT}.`),
+      new Error(`Icon image must be ${ICON_IMAGE_SIZE_TEXT}.`),
     );
   }
 }
@@ -96,6 +102,14 @@ function normalizeItem(it) {
             : "";
   return {
     title: (it?.title != null ? String(it.title).trim() : "") || "Card",
+    description:
+      it?.description != null
+        ? String(it.description).trim()
+        : it?.body != null
+          ? String(it.body).trim()
+          : it?.text != null
+            ? String(it.text).trim()
+            : "",
     bgImageUrlDesktop: bgImageDesktop,
     bgImageUrl: bgImageDesktop,
     link: it?.link != null ? String(it.link).trim() : it?.url != null ? String(it.url).trim() : "",
@@ -489,6 +503,14 @@ function OverviewOfOurWorkEditForm(
                             </Form.Item>
                           </Col>
                           <Col span={24}>
+                            <Form.Item {...restField} name={[name, "description"]} label="Description">
+                              <Input.TextArea
+                                placeholder="Short description shown on the card"
+                                autoSize={{ minRows: 2, maxRows: 5 }}
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}>
                             <Form.Item {...restField} name={[name, "linkText"]} label="Link text">
                               <Input placeholder="e.g. More Details, Learn More" />
                             </Form.Item>
@@ -509,7 +531,7 @@ function OverviewOfOurWorkEditForm(
                               <MediaPickerInput
                                 placeholder="https://... or /images/..."
                                 uiVariant="stacked"
-                                hintText={`Required size: ${REQUIRED_BG_IMAGE_WIDTH} \u00D7 ${REQUIRED_BG_IMAGE_HEIGHT}`}
+                                hintText={`Recommended: ${BG_IMAGE_SIZE_TEXT}`}
                               />
                             </Form.Item>
                           </Col>
@@ -518,13 +540,13 @@ function OverviewOfOurWorkEditForm(
                               {...restField}
                               name={[name, "icon"]}
                               label="Icon (image URL)"
-                              extra={`Required size: ${REQUIRED_ICON_IMAGE_SIZE_LABEL_TEXT}`}
+                              extra={`Recommended: ${ICON_IMAGE_SIZE_TEXT}`}
                               validateTrigger={["onChange", "onBlur"]}
                               rules={[{ validator: validateOverviewIconImageDimensions }]}
                             >
                               <MediaPickerInput
                                 placeholder="/images/icon.svg or https://..."
-                                hintText={`Required size: ${REQUIRED_ICON_IMAGE_SIZE_LABEL_TEXT}`}
+                                hintText={`Recommended: ${ICON_IMAGE_SIZE_TEXT}`}
                               />
                             </Form.Item>
                           </Col>

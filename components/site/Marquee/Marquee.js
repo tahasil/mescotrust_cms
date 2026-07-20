@@ -19,37 +19,90 @@ const PartnersSection = styled.section`
   position: relative;
   background: transparent;
   overflow: hidden;
-  padding: 80px 0px;
-  h2 {
-    margin: 0px;
-    font-size: 24px;
-    font-weight: 600;
-    color: ${getColor("black")};
-    text-align: center;
-    margin-bottom: 24px;
-    @media (max-width: 768px) {
-      font-size: 20px;
-    }
+  padding-block: clamp(72px, 8vw, 110px);
+  border-top: 1px solid ${getColor("border")};
+
+  .partners-head {
+    width: 90%;
+    max-width: var(--layout-width, 1400px);
+    margin: 0 auto 40px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
   }
+
+  .partners-eyebrow {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1.4;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .partners-note {
+    margin: 0;
+    color: ${getColor("blackMuted")};
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .partners-marquee {
+    overflow: hidden;
+    ${(p) =>
+      p.$showGradient
+        ? `
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+      mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    `
+        : ""}
+  }
+
   .marquee-item {
     flex-shrink: 0;
     white-space: nowrap;
-    padding: 0px;
-    margin-right: 40px;
-    @media (max-width: 992px) {
-      width: 80px;
-      margin-right: 20px;
+    padding: 0;
+    margin-right: clamp(44px, 5.5vw, 88px);
+  }
+
+  .marquee-item img {
+    display: block;
+    width: auto;
+    max-width: 190px;
+    height: 72px;
+    object-fit: contain;
+    filter: grayscale(1);
+    opacity: 0.72;
+    transition: filter 0.3s ease, opacity 0.3s ease;
+  }
+
+  .marquee-item img:hover {
+    filter: none;
+    opacity: 1;
+  }
+
+  @media (max-width: 768px) {
+    .partners-head {
+      width: 100%;
+      padding-inline: 20px;
     }
-    @media (max-width: 576px) {
-      width: 70px;
-      margin-right: 10px;
+
+    .marquee-item img {
+      max-width: 150px;
+      height: 60px;
     }
   }
-  .marquee-item img {
-    max-width: 100%;
-    max-height: 90px;
-    height: auto;
-    display: block;
+
+  @media (prefers-reduced-motion: reduce) {
+    .rfm-marquee {
+      animation-play-state: paused !important;
+    }
+
+    .marquee-item img {
+      transition: none;
+    }
   }
 `;
 
@@ -126,18 +179,36 @@ export default function Marquee(props) {
   if (imageItems.length === 0) return null;
 
   const titleColor = getColor(props?.marqueeTitleColorKey || "black");
+  const titleParts = String(title || "")
+    .split("|")
+    .map((part) => part.trim());
+  const eyebrow = titleParts.shift() || "";
+  const note = titleParts.join(" | ");
+  const showGradient = props?.gradient !== false;
 
   return (
     <PartnersSection
       className="site-component-marquee"
       data-component="Marquee"
+      $showGradient={showGradient}
+      aria-label={title || undefined}
     >
-      <h2 style={{ color: titleColor }}>{title}</h2>
+      {eyebrow || note ? (
+        <div className="partners-head">
+          {eyebrow ? (
+            <h2 className="partners-eyebrow" style={{ color: titleColor }}>
+              {eyebrow}
+            </h2>
+          ) : null}
+          {note ? <p className="partners-note">{note}</p> : null}
+        </div>
+      ) : null}
       <ReactMarquee
+        className="partners-marquee"
         loop={0}
         speed={props?.speed ?? 25}
         pauseOnHover={props?.pauseOnHover !== false}
-        gradient={props?.gradient !== false}
+        gradient={false}
         autoFill={true}
       >
         {imageItems.map((rawItem, i) => {
