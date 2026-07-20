@@ -1,289 +1,34 @@
 "use client";
 
-import { Row, Col } from "antd";
+import { useLayoutEffect, useRef } from "react";
+import { ArrowRightOutlined, ArrowUpOutlined } from "@ant-design/icons";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { usePathname } from "next/navigation";
 import styled from "styled-components";
-import { ArrowRightOutlined } from "@ant-design/icons";
-import {
-  FullWidthBackground,
-  getColor,
-  MainTitle,
-  PageContainer,
-} from "@/styles/Theme";
+import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 
-const HomeLongButton = styled.button`
-  width: 100%;
-  position: relative;
-  height: auto;
-  padding: 20px;
-  border: 1px solid rgba(42, 40, 62, 0.1);
-  border-radius: 20px;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.05) !important;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 22px;
-  font-weight: 600;
-  color: ${() => getColor("black")};
-  background: #fff !important;
-  transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease,
-    border-color 0.25s ease,
-    color 0.25s ease,
-    background 0.25s ease;
-  margin-bottom: 10px;
-  cursor: pointer;
-  @media (max-width: 768px) {
-    padding: 16px;
-    font-size: 18px;
-  }
-  &:last-child {
-    margin-bottom: 0px;
-  }
-  .buttonIcon {
-    margin: 0px;
-    padding: 0px;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: ${() => getColor("primary")};
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    rotate: -45deg;
-    transition: all 0.3s ease;
-    color: ${() => getColor("white")};
-    flex-shrink: 0;
-    @media (max-width: 768px) {
-      width: 30px;
-      height: 30px;
-    }
-    svg {
-      width: 20px;
-      height: 20px;
-      object-fit: contain;
-    }
-  }
-  &:hover {
-    border-color: ${() => getColor("white")} !important;
-    color: ${() => getColor("primary")} !important;
-    transform: translateY(-3px);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
-    .buttonIcon {
-      background: ${() => getColor("white")} !important;
-      border: 1px solid ${() => getColor("primary")} !important;
-    }
-    svg {
-      rotate: 0deg !important;
-      color: ${() => getColor("primary")} !important;
-    }
-  }
-  &:active {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(224, 60, 51, 0.15) !important;
-  }
+gsap.registerPlugin(ScrollTrigger);
+
+const NoticeBoard=styled.div`
+  width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:clamp(40px,5vw,90px);align-items:start;color:var(--notice-ink);font-family:"Instrument Sans",system-ui,sans-serif;
+  .noticeSubTitle{margin:0 0 18px;color:var(--notice-subtitle);font-size:13px;font-weight:650;letter-spacing:.16em;line-height:1.4;text-transform:uppercase}
+  .noticeHeading{margin:0 0 12px;color:var(--notice-heading);font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:clamp(36px,4.6vw,64px);font-weight:620;line-height:1.08;letter-spacing:-.02em}
+  .noticeHeading em{color:var(--notice-accent);font-style:normal}.noticeIntro{max-width:42ch;margin:0;color:var(--notice-copy);font-size:16px;line-height:1.7}
+  .ledger{display:flex;flex-direction:column}.ledgerRow{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:clamp(14px,1.6vw,24px);padding-block:clamp(20px,2.2vw,28px);border-bottom:1px solid var(--notice-border);color:inherit;text-decoration:none;transition:padding-left .3s cubic-bezier(.16,1,.3,1)}
+  .ledgerRow:first-child{border-top:1px solid var(--notice-border)}.ledgerRow:hover{padding-left:10px}.ledgerNo{color:var(--notice-muted);font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:650;font-size:15px}
+  .ledgerRow h3{margin:0;color:var(--notice-title);font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:560;font-size:clamp(16.5px,1.5vw,20px);line-height:1.3}.ledgerSub{margin:3px 0 0;color:var(--notice-muted);font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+  .ledgerArrow{color:var(--notice-arrow);font-size:20px;transition:color .2s,transform .3s}.ledgerRow:hover .ledgerArrow{color:var(--notice-arrow-hover);transform:translate(3px,-3px)}
+  .ledgerMore{display:inline-flex;align-items:center;align-self:flex-start;gap:9px;margin-top:24px;padding-bottom:5px;border-bottom:1px solid currentColor;color:var(--notice-link);font-size:14px;font-weight:650;text-decoration:none}.ledgerMore svg{transition:transform .3s cubic-bezier(.16,1,.3,1)}.ledgerMore:hover svg{transform:translateX(4px)}
+  @media(max-width:1023px){grid-template-columns:1fr}@media(max-width:600px){.ledgerRow{grid-template-columns:34px minmax(0,1fr) auto}}
 `;
-
-const DEFAULT_ITEMS = [
-  { label: "Form5A PF", link: "" },
-  { label: "Form5A PF", link: "" },
-  { label: "Form5A PF", link: "" },
-];
-
-function normalizeItem(it) {
-  return {
-    label: it?.label != null ? String(it.label).trim() : "",
-    link: it?.link != null ? String(it.link).trim() : "",
-  };
-}
-
-/**
- * Site component: Notices.
- * Title + list of notice buttons with arrow icons.
- * All elements are editable via EditForm.
- */
-export default function Notices(props) {
-  /* ── Title ── */
-  const mainTitle = (props?.mainTitle ?? "Important Notices").toString().trim();
-  const titleEnabled = props?.noticesTitleEnabled !== false;
-  const titleColorKey = (props?.titleColorKey ?? "").toString().trim();
-  const titleColor = titleColorKey ? getColor(titleColorKey) : undefined;
-
-  /* ── Items ── */
-  const rawItems = props?.noticesItems;
-  const items =
-    Array.isArray(rawItems) && rawItems.length > 0
-      ? rawItems.map(normalizeItem)
-      : DEFAULT_ITEMS;
-
-  /* ── Section background ── */
-  const sectionBgType = (props?.noticesSectionBgType ?? "default").toString();
-  const sectionBgImage = (props?.noticesSectionBgImage ?? "").toString().trim();
-  const sectionBgColorKey = (props?.noticesSectionBgColorKey ?? "")
-    .toString()
-    .trim();
-  const sectionBgClassName =
-    sectionBgType === "default" ? "defaultBackground" : undefined;
-  const sectionBgStyleBase =
-    sectionBgType === "image" && sectionBgImage
-      ? {
-          backgroundImage: `url(${sectionBgImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center center",
-          backgroundRepeat: "no-repeat",
-        }
-      : sectionBgType === "color" && sectionBgColorKey
-        ? {
-            backgroundColor: getColor(sectionBgColorKey),
-            backgroundImage: "none",
-          }
-        : undefined;
-  const sectionPaddingTop =
-    props?.noticesSectionPaddingTop != null
-      ? Number(props.noticesSectionPaddingTop)
-      : null;
-  const sectionPaddingBottom =
-    props?.noticesSectionPaddingBottom != null
-      ? Number(props.noticesSectionPaddingBottom)
-      : null;
-  const sectionMarginTop =
-    props?.noticesSectionMarginTop != null
-      ? Number(props.noticesSectionMarginTop)
-      : null;
-  const sectionMarginBottom =
-    props?.noticesSectionMarginBottom != null
-      ? Number(props.noticesSectionMarginBottom)
-      : null;
-  const sectionBgStyle =
-    sectionBgStyleBase ||
-    sectionPaddingTop != null ||
-    sectionPaddingBottom != null ||
-    sectionMarginTop != null ||
-    sectionMarginBottom != null
-      ? {
-          ...(sectionBgStyleBase || {}),
-          ...(sectionPaddingTop != null && sectionPaddingTop >= 0
-            ? { paddingTop: `${sectionPaddingTop}px` }
-            : {}),
-          ...(sectionPaddingBottom != null && sectionPaddingBottom >= 0
-            ? { paddingBottom: `${sectionPaddingBottom}px` }
-            : {}),
-          ...(sectionMarginTop != null && sectionMarginTop >= 0
-            ? { marginTop: `${sectionMarginTop}px` }
-            : {}),
-          ...(sectionMarginBottom != null && sectionMarginBottom >= 0
-            ? { marginBottom: `${sectionMarginBottom}px` }
-            : {}),
-        }
-      : undefined;
-
-  /* ── Page container background ── */
-  const pageContainerBgType = (
-    props?.noticesPageContainerBgType ?? "default"
-  ).toString();
-  const pageContainerBgImage = (props?.noticesPageContainerBgImage ?? "")
-    .toString()
-    .trim();
-  const pageContainerBgColorKey = (props?.noticesPageContainerBgColorKey ?? "")
-    .toString()
-    .trim();
-  const pageContainerBgStyleBase =
-    pageContainerBgType === "image" && pageContainerBgImage
-      ? {
-          backgroundImage: `url(${pageContainerBgImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }
-      : pageContainerBgType === "color" && pageContainerBgColorKey
-        ? {
-            backgroundColor: getColor(pageContainerBgColorKey),
-            backgroundImage: "none",
-          }
-        : undefined;
-  const containerPaddingTop =
-    props?.noticesPageContainerPaddingTop != null
-      ? Number(props.noticesPageContainerPaddingTop)
-      : null;
-  const containerPaddingRight =
-    props?.noticesPageContainerPaddingRight != null
-      ? Number(props.noticesPageContainerPaddingRight)
-      : null;
-  const containerPaddingBottom =
-    props?.noticesPageContainerPaddingBottom != null
-      ? Number(props.noticesPageContainerPaddingBottom)
-      : null;
-  const containerPaddingLeft =
-    props?.noticesPageContainerPaddingLeft != null
-      ? Number(props.noticesPageContainerPaddingLeft)
-      : null;
-  const containerMarginTop =
-    props?.noticesPageContainerMarginTop != null
-      ? Number(props.noticesPageContainerMarginTop)
-      : null;
-  const containerMarginBottom =
-    props?.noticesPageContainerMarginBottom != null
-      ? Number(props.noticesPageContainerMarginBottom)
-      : null;
-  const pageContainerBgStyle =
-    pageContainerBgStyleBase ||
-    containerPaddingTop != null ||
-    containerPaddingRight != null ||
-    containerPaddingBottom != null ||
-    containerPaddingLeft != null ||
-    containerMarginTop != null ||
-    containerMarginBottom != null
-      ? {
-          ...(pageContainerBgStyleBase || {}),
-          ...(containerPaddingTop != null && containerPaddingTop >= 0
-            ? { paddingTop: `${containerPaddingTop}px` }
-            : {}),
-          ...(containerPaddingRight != null && containerPaddingRight >= 0
-            ? { paddingRight: `${containerPaddingRight}px` }
-            : {}),
-          ...(containerPaddingBottom != null && containerPaddingBottom >= 0
-            ? { paddingBottom: `${containerPaddingBottom}px` }
-            : {}),
-          ...(containerPaddingLeft != null && containerPaddingLeft >= 0
-            ? { paddingLeft: `${containerPaddingLeft}px` }
-            : {}),
-          ...(containerMarginTop != null && containerMarginTop >= 0
-            ? { marginTop: `${containerMarginTop}px` }
-            : {}),
-          ...(containerMarginBottom != null && containerMarginBottom >= 0
-            ? { marginBottom: `${containerMarginBottom}px` }
-            : {}),
-        }
-      : undefined;
-
-  const handleClick = (link) => {
-    if (link) window.open(link, "_blank", "noopener,noreferrer");
-  };
-
-  return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-      <PageContainer style={pageContainerBgStyle}>
-        {titleEnabled && (
-          <Row gutter={[16, 16]}>
-            <Col span={24} className="mb-4 text-center">
-              <MainTitle color={titleColor}>{mainTitle}</MainTitle>
-            </Col>
-          </Row>
-        )}
-        {items.map((item, i) => (
-          <HomeLongButton
-            key={i}
-            type="button"
-            onClick={() => handleClick(item.link)}
-          >
-            {item.label}
-            <span className="buttonIcon">
-              <ArrowRightOutlined />
-            </span>
-          </HomeLongButton>
-        ))}
-      </PageContainer>
-    </FullWidthBackground>
-  );
-}
+const text=(v)=>v==null?"":String(v).trim();const num=(v,f)=>Number.isFinite(Number(v))?Number(v):f;const color=(v,f)=>text(v)?getColor(text(v)):f;
+function backgrounds(props){const type=text(props?.noticesSectionBgType||"default"),image=text(props?.noticesSectionBgImage),key=text(props?.noticesSectionBgColorKey);const sectionBgClassName=type==="default"?"defaultBackground":undefined;const sectionBgStyle={...(type==="image"&&image?{backgroundImage:`url(${image})`,backgroundSize:"cover",backgroundPosition:"center",backgroundRepeat:"no-repeat"}:type==="color"&&key?{backgroundColor:getColor(key),backgroundImage:"none"}:{}),...Object.fromEntries([["paddingTop",props?.noticesSectionPaddingTop],["paddingBottom",props?.noticesSectionPaddingBottom],["marginTop",props?.noticesSectionMarginTop],["marginBottom",props?.noticesSectionMarginBottom]].filter(([,v])=>v!==""&&v!=null&&num(v,-1)>=0).map(([k,v])=>[k,`${num(v,0)}px`]))};const ct=text(props?.noticesPageContainerBgType||"default"),ci=text(props?.noticesPageContainerBgImage),ck=text(props?.noticesPageContainerBgColorKey);const pageContainerBgStyle={...(ct==="image"&&ci?{backgroundImage:`url(${ci})`,backgroundSize:"cover",backgroundPosition:"center",backgroundRepeat:"no-repeat"}:ct==="color"&&ck?{backgroundColor:getColor(ck),backgroundImage:"none"}:{}),...Object.fromEntries([["paddingTop",props?.noticesPageContainerPaddingTop],["paddingRight",props?.noticesPageContainerPaddingRight],["paddingBottom",props?.noticesPageContainerPaddingBottom],["paddingLeft",props?.noticesPageContainerPaddingLeft],["marginTop",props?.noticesPageContainerMarginTop],["marginBottom",props?.noticesPageContainerMarginBottom]].filter(([,v])=>v!==""&&v!=null&&num(v,-1)>=0).map(([k,v])=>[k,`${num(v,0)}px`]))};return{sectionBgClassName,sectionBgStyle,pageContainerBgStyle};}
+export default function Notices(props){const rootRef=useRef(null);const pathname=usePathname();const isEditor=pathname?.startsWith("/admin")===true;const items=Array.isArray(props?.noticesItems)?props.noticesItems:[];const {sectionBgClassName,sectionBgStyle,pageContainerBgStyle}=backgrounds(props);const moreTarget=text(props?.noticesMoreTarget)||"_self";useLayoutEffect(()=>{if(isEditor||!rootRef.current||props?.noticesRevealEnabled===false||window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;const targets=rootRef.current.querySelectorAll(".noticeReveal");const context=gsap.context(()=>ScrollTrigger.batch(targets,{start:text(props?.noticesRevealStart)||"top 86%",once:true,onEnter:(els)=>gsap.fromTo(els,{autoAlpha:0,y:num(props?.noticesRevealDistance,30)},{autoAlpha:1,y:0,duration:num(props?.noticesRevealDuration,.9),stagger:num(props?.noticesRevealStagger,.08),ease:"power3.out",overwrite:true})}),rootRef);return()=>context.revert();},[isEditor,items,props]);return <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
+  <PageContainer style={pageContainerBgStyle}>
+    <NoticeBoard ref={rootRef} style={{"--notice-ink":color(props?.noticesTextColorKey,"#2A283E"),"--notice-subtitle":color(props?.noticesSubTitleColorKey||props?.titleColorKey,"#E03C33"),"--notice-heading":color(props?.noticesHeadingColorKey,"#2A283E"),"--notice-accent":color(props?.noticesAccentColorKey,"#2A283E"),"--notice-copy":color(props?.noticesDescriptionColorKey,"rgba(42,40,62,.7)"),"--notice-border":color(props?.noticesBorderColorKey,"rgba(42,40,62,.14)"),"--notice-muted":color(props?.noticesMetaColorKey,"rgba(42,40,62,.55)"),"--notice-title":color(props?.noticesItemTitleColorKey,"#2A283E"),"--notice-arrow":color(props?.noticesArrowColorKey,"rgba(42,40,62,.55)"),"--notice-arrow-hover":color(props?.noticesArrowHoverColorKey,"#E03C33"),"--notice-link":color(props?.noticesLinkColorKey,"#2A283E")}}>
+      <div className="noticeReveal"><p className="noticeSubTitle">{text(props?.noticesSubTitle||props?.mainTitle)}</p>{text(props?.noticesHeading)||text(props?.noticesHeadingAccent)?<h2 className="noticeHeading">{text(props?.noticesHeading)}{text(props?.noticesHeading)&&text(props?.noticesHeadingAccent)?" ":null}<em>{text(props?.noticesHeadingAccent)}</em></h2>:null}{text(props?.noticesDescription)?<p className="noticeIntro">{text(props.noticesDescription)}</p>:null}</div>
+      <div className="ledger">{items.map((item,index)=>{const target=text(item?.target)||"_self";return <a className="ledgerRow noticeReveal" href={text(item?.link)||"#"} target={target} rel={target==="_blank"?"noopener noreferrer":undefined} key={`${text(item?.label)}-${index}`}><span className="ledgerNo">{text(item?.indexLabel)||String(index+1).padStart(2,"0")}</span><div><h3>{text(item?.label)}</h3>{text(item?.subLabel)?<p className="ledgerSub">{text(item.subLabel)}</p>:null}</div><ArrowUpOutlined className="ledgerArrow" rotate={45} aria-hidden="true" /></a>})}{text(props?.noticesMoreLabel)&&text(props?.noticesMoreUrl)?<a className="ledgerMore noticeReveal" href={text(props.noticesMoreUrl)} target={moreTarget} rel={moreTarget==="_blank"?"noopener noreferrer":undefined}>{text(props.noticesMoreLabel)} <ArrowRightOutlined /></a>:null}</div>
+    </NoticeBoard>
+  </PageContainer>
+</FullWidthBackground>;}

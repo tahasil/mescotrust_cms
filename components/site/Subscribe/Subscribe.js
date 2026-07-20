@@ -1,178 +1,44 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { notification } from "antd";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { usePathname } from "next/navigation";
+import styled from "styled-components";
 import { isValidEmail, normalizeText } from "@/lib/formValidation";
-import {
-  SubscribeWrapper,
-  SubscribeCard,
-  SubscribeContent,
-  StyledSubTitle,
-  StyledMainTitle,
-  SubscribeForm,
-  SubscribeFieldRow,
-  SubscribeInput,
-  SubscribeButton,
-} from "./SubscribeStyle";
-import { PageContainer } from "@/styles/Theme";
+import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 
-/**
- * Subscribe: content from page block props (pages collection) first, else GET /api/theme/subscribe (components collection).
- * When block is on a page, props (subscribeSubtitle, subscribeTitle, etc.) come from the page document.
- */
-export default function Subscribe(props) {
-  const [email, setEmail] = useState("");
-  const [theme, setTheme] = useState(null);
-  const [emailError, setEmailError] = useState("");
+gsap.registerPlugin(ScrollTrigger);
 
-  // No page/block props → fetch from components collection (e.g. global Subscribe block)
-  useEffect(() => {
-    const hasPageProps =
-      props &&
-      (props.subscribeSubtitle !== undefined ||
-        props.subscribeTitle !== undefined);
-    if (hasPageProps) return;
-    fetch("/api/theme/subscribe", {
-      cache: "no-store",
-      headers: { "Cache-Control": "no-cache, no-store, must-revalidate" },
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then(setTheme)
-      .catch(() => setTheme(null));
-  }, [props?.subscribeSubtitle, props?.subscribeTitle]);
-
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const trimmedEmail = normalizeText(email);
-    if (!trimmedEmail) {
-      setEmailError("Email is required");
-      return;
-    }
-    if (!isValidEmail(trimmedEmail)) {
-      setEmailError("Please enter a valid email address");
-      return;
-    }
-    setEmailError("");
-    setSubmitting(true);
-    try {
-      const res = await fetch("/api/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: trimmedEmail,
-          source: "subscribe-section",
-        }),
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        notification.success({
-          message: "Success",
-          description: data.message || "Successfully subscribed!",
-          placement: "bottomRight",
-        });
-        setEmail("");
-        setEmailError("");
-      } else {
-        notification.error({
-          message: "Subscription failed",
-          description: data.error || "Failed to subscribe",
-          placement: "bottomRight",
-        });
-      }
-    } catch {
-      notification.error({
-        message: "Subscription failed",
-        description: "Something went wrong. Please try again.",
-        placement: "bottomRight",
-      });
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // Admin: props = themeSubscribeSnapshot (from DB via EditForm). Frontend: theme = GET /api/theme (from DB).
-  const raw =
-    props &&
-    (props.subscribeSubtitle !== undefined ||
-      props.subscribeTitle !== undefined)
-      ? props
-      : theme;
-  const subtitle = (raw?.subscribeSubtitle ?? raw?.subtitle ?? "")
-    .toString()
-    .trim();
-  const title = (raw?.subscribeTitle ?? raw?.title ?? "").toString().trim();
-  const placeholder = (raw?.subscribePlaceholder ?? raw?.placeholder ?? "")
-    .toString()
-    .trim();
-  const buttonText = (raw?.subscribeButtonText ?? raw?.buttonText ?? "")
-    .toString()
-    .trim();
-  const bgDesktop = (
-    raw?.subscribeBgDesktop ?? raw?.subscribeBgUrl ?? raw?.bgUrl ?? ""
-  )
-    .toString()
-    .trim();
-  const bgMobile = (raw?.subscribeBgMobile ?? "").toString().trim();
-  const subtitleColorKey = (raw?.subscribeSubtitleColorKey ?? "")
-    .toString()
-    .trim();
-  const titleColorKey = (raw?.subscribeTitleColorKey ?? "").toString().trim();
-  const buttonBgColorKey = (raw?.subscribeButtonBgColorKey ?? "")
-    .toString()
-    .trim();
-  const buttonTextColorKey = (raw?.subscribeButtonTextColorKey ?? "")
-    .toString()
-    .trim();
-
-  return (
-    <section className="site-component-subscribe" data-component="Subscribe">
-      <SubscribeWrapper
-        $bgDesktop={bgDesktop}
-        $bgMobile={bgMobile}
-      />
-      <SubscribeCard as={PageContainer}>
-        <SubscribeContent>
-          <StyledSubTitle $subtitleColorKey={subtitleColorKey || undefined}>
-            {subtitle}
-          </StyledSubTitle>
-          <StyledMainTitle $titleColorKey={titleColorKey || undefined}>
-            {title}
-          </StyledMainTitle>
-        </SubscribeContent>
-        <SubscribeForm onSubmit={handleSubmit}>
-          <SubscribeFieldRow>
-            <SubscribeInput
-              type="email"
-              placeholder={placeholder}
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                if (emailError) setEmailError("");
-              }}
-              size="large"
-              status={emailError ? "error" : ""}
-            />
-            <SubscribeButton
-              type="primary"
-              htmlType="submit"
-              size="large"
-              loading={submitting}
-              disabled={submitting}
-              $buttonBgColorKey={buttonBgColorKey || undefined}
-              $buttonTextColorKey={buttonTextColorKey || undefined}
-            >
-              {buttonText}
-            </SubscribeButton>
-          </SubscribeFieldRow>
-          {emailError ? (
-            <div style={{ color: "#E03C33", fontSize: 12, marginTop: 6, paddingLeft: 12 }}>
-              {emailError}
-            </div>
-          ) : null}
-        </SubscribeForm>
-      </SubscribeCard>
-    </section>
-  );
+const Finale=styled.div`
+  width:100%;padding-block:clamp(100px,12vw,180px);text-align:center;color:var(--finale-ink);font-family:"Instrument Sans",system-ui,sans-serif;
+  .finaleTitle{position:relative;margin:0 0 clamp(36px,4.5vw,56px);font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:650;font-size:clamp(48px,9vw,140px);line-height:1.06;letter-spacing:-.025em}
+  .finaleTitle em{font-style:normal;padding-bottom:5px}.finaleGhost{display:block;color:transparent;-webkit-text-stroke:1.5px var(--finale-stroke)}.finaleFill{position:absolute;inset:0;display:block;color:var(--finale-title);clip-path:inset(0 100% 0 0)}.finaleFill em{color:var(--finale-accent)}
+  .finaleRow{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:clamp(44px,5vw,64px)}.finaleButton{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:15px 30px;border:1px solid transparent;border-radius:999px;font-size:16px;font-weight:650;text-decoration:none;transition:transform .25s cubic-bezier(.16,1,.3,1),box-shadow .25s}.finaleButton:hover{transform:translateY(-2px)}.finalePrimary{background:var(--finale-primary-bg);color:var(--finale-primary-text);box-shadow:0 12px 30px var(--finale-primary-shadow)}.finaleSecondary{background:var(--finale-secondary-bg);color:var(--finale-secondary-text)}
+  .finaleForm{max-width:560px;margin-inline:auto}.finaleForm label{display:block;margin-bottom:14px;color:var(--finale-label);font-size:15px;font-weight:550}.finaleFormRow{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}.finaleInput{flex:1 1 260px;padding:15px 24px;border-radius:999px;border:1px solid var(--finale-border);background:var(--finale-input-bg);color:var(--finale-input-text);font:16px "Instrument Sans",system-ui,sans-serif}.finaleInput:focus{outline:2px solid var(--finale-focus);outline-offset:2px}.finaleSubmit{min-height:52px;padding:14px 26px;border:0;border-radius:999px;background:var(--finale-submit-bg);color:var(--finale-submit-text);font-size:15px;font-weight:650;cursor:pointer}.finaleSubmit:disabled{opacity:.65;cursor:wait}.finaleError{margin-top:8px;color:var(--finale-error);font-size:12px}
+  @media(max-width:767px){.finaleRow .finaleButton{width:100%}.finaleFormRow>*{width:100%}.finaleTitle{font-size:clamp(44px,15vw,78px)}}
+  @media(max-width:767px){background-image:var(--subscribe-mobile-bg,none);background-size:cover;background-position:center}
+  @media(prefers-reduced-motion:reduce){.finaleFill{clip-path:inset(0 0 0 0)!important}}
+`;
+const text=(v)=>v==null?"":String(v).trim();const num=(v,f)=>Number.isFinite(Number(v))?Number(v):f;const color=(v,f)=>text(v)?getColor(text(v)):f;
+function splitAccent(title,accent){const clean=text(title),mark=text(accent);return <>{clean}{clean&&mark?" ":null}{mark?<em>{mark}</em>:null}</>;}
+export default function Subscribe(props){
+  const[email,setEmail]=useState("");const[emailError,setEmailError]=useState("");const[submitting,setSubmitting]=useState(false);const[theme,setTheme]=useState(null);const rootRef=useRef(null);const pathname=usePathname();const isEditor=pathname?.startsWith("/admin")===true;
+  useEffect(()=>{const has=props&&(props.subscribeTitle!==undefined||props.subscribeSubtitle!==undefined);if(has)return;fetch("/api/theme/subscribe",{cache:"no-store"}).then((res)=>res.ok?res.json():null).then(setTheme).catch(()=>setTheme(null));},[props?.subscribeTitle,props?.subscribeSubtitle]);
+  const raw=props&&(props.subscribeTitle!==undefined||props.subscribeSubtitle!==undefined)?props:theme||{};
+  useLayoutEffect(()=>{if(isEditor||!rootRef.current||typeof window==="undefined"||window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;const context=gsap.context(()=>gsap.fromTo(rootRef.current.querySelector(".finaleFill"),{clipPath:"inset(0 100% 0 0)"},{clipPath:"inset(0 0% 0 0)",ease:"none",scrollTrigger:{trigger:rootRef.current.querySelector(".finaleTitle"),start:text(raw?.subscribeFillStart)||"top 85%",end:text(raw?.subscribeFillEnd)||"top 30%",scrub:num(raw?.subscribeFillScrub,1)}}),rootRef);return()=>context.revert();},[isEditor,raw?.subscribeTitle,raw?.subscribeHeadingAccent,raw?.subscribeFillStart,raw?.subscribeFillEnd,raw?.subscribeFillScrub]);
+  const submit=async(e)=>{e.preventDefault();const value=normalizeText(email);if(!value){setEmailError("Email is required");return}if(!isValidEmail(value)){setEmailError("Please enter a valid email address");return}setEmailError("");setSubmitting(true);try{const res=await fetch("/api/subscribe",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:value,source:"subscribe-section"})});const data=await res.json();if(res.ok&&data.success){notification.success({message:"Success",description:data.message||"Successfully subscribed!",placement:"bottomRight"});setEmail("")}else notification.error({message:"Subscription failed",description:data.error||"Failed to subscribe",placement:"bottomRight"})}catch{notification.error({message:"Subscription failed",description:"Something went wrong. Please try again.",placement:"bottomRight"})}finally{setSubmitting(false)}};
+  const bgDesktop=text(raw?.subscribeBgDesktop||raw?.subscribeBgUrl||raw?.bgUrl),bgMobile=text(raw?.subscribeBgMobile);const bgType=text(raw?.subscribeSectionBgType||"default"),bgKey=text(raw?.subscribeSectionBgColorKey);const sectionBgClassName=bgType==="default"&&!bgDesktop?"defaultBackground":undefined;const sectionBgStyle={...(bgDesktop?{backgroundImage:`url(${bgDesktop})`,backgroundSize:"cover",backgroundPosition:"center"}:bgType==="color"&&bgKey?{backgroundColor:getColor(bgKey),backgroundImage:"none"}:{}),...(bgMobile?{"--subscribe-mobile-bg":`url(${bgMobile})`}:{}),...Object.fromEntries([["paddingTop",raw?.subscribeSectionPaddingTop],["paddingBottom",raw?.subscribeSectionPaddingBottom],["marginTop",raw?.subscribeSectionMarginTop],["marginBottom",raw?.subscribeSectionMarginBottom]].filter(([,v])=>v!==""&&v!=null&&num(v,-1)>=0).map(([k,v])=>[k,`${num(v,0)}px`]))};
+  const containerType=text(raw?.subscribePageContainerBgType||"default"),containerImage=text(raw?.subscribePageContainerBgImage),containerKey=text(raw?.subscribePageContainerBgColorKey);const pageContainerBgStyle={...(containerType==="image"&&containerImage?{backgroundImage:`url(${containerImage})`,backgroundSize:"cover",backgroundPosition:"center",backgroundRepeat:"no-repeat"}:containerType==="color"&&containerKey?{backgroundColor:getColor(containerKey),backgroundImage:"none"}:{}),...Object.fromEntries([["paddingTop",raw?.subscribePageContainerPaddingTop],["paddingRight",raw?.subscribePageContainerPaddingRight],["paddingBottom",raw?.subscribePageContainerPaddingBottom],["paddingLeft",raw?.subscribePageContainerPaddingLeft],["marginTop",raw?.subscribePageContainerMarginTop],["marginBottom",raw?.subscribePageContainerMarginBottom]].filter(([,v])=>v!==""&&v!=null&&num(v,-1)>=0).map(([k,v])=>[k,`${num(v,0)}px`]))};
+  const pTarget=text(raw?.subscribePrimaryButtonTarget)||"_self",sTarget=text(raw?.subscribeSecondaryButtonTarget)||"_self";
+  return <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
+    <PageContainer style={pageContainerBgStyle}>
+      <Finale ref={rootRef} style={{"--finale-ink":color(raw?.subscribeTitleColorKey,"#2A283E"),"--finale-title":color(raw?.subscribeTitleColorKey,"#2A283E"),"--finale-accent":color(raw?.subscribeAccentColorKey,"#E03C33"),"--finale-stroke":color(raw?.subscribeOutlineColorKey,"rgba(33,30,46,.4)"),"--finale-primary-bg":color(raw?.subscribePrimaryButtonBgColorKey,"#E03C33"),"--finale-primary-text":color(raw?.subscribePrimaryButtonTextColorKey,"#fff"),"--finale-primary-shadow":"rgba(224,60,51,.2)","--finale-secondary-bg":color(raw?.subscribeSecondaryButtonBgColorKey,"#211E2E"),"--finale-secondary-text":color(raw?.subscribeSecondaryButtonTextColorKey,"#FAF6EF"),"--finale-label":color(raw?.subscribeSubtitleColorKey,"rgba(42,40,62,.7)"),"--finale-border":color(raw?.subscribeInputBorderColorKey,"rgba(42,40,62,.14)"),"--finale-input-bg":color(raw?.subscribeInputBgColorKey,"#fff"),"--finale-input-text":color(raw?.subscribeInputTextColorKey,"#2A283E"),"--finale-focus":color(raw?.subscribeFocusColorKey,"#E03C33"),"--finale-submit-bg":color(raw?.subscribeButtonBgColorKey,"#211E2E"),"--finale-submit-text":color(raw?.subscribeButtonTextColorKey,"#FAF6EF"),"--finale-error":color(raw?.subscribeErrorColorKey,"#E03C33")}}>
+        <h2 className="finaleTitle" aria-label={`${text(raw?.subscribeTitle)} ${text(raw?.subscribeHeadingAccent)}`.trim()}><span className="finaleGhost" aria-hidden="true">{splitAccent(raw?.subscribeTitle,raw?.subscribeHeadingAccent)}</span><span className="finaleFill" aria-hidden="true">{splitAccent(raw?.subscribeTitle,raw?.subscribeHeadingAccent)}</span></h2>
+        <div className="finaleRow">{text(raw?.subscribePrimaryButtonLabel)&&text(raw?.subscribePrimaryButtonUrl)?<a className="finaleButton finalePrimary" href={text(raw.subscribePrimaryButtonUrl)} target={pTarget} rel={pTarget==="_blank"?"noopener noreferrer":undefined}>{text(raw.subscribePrimaryButtonLabel)}</a>:null}{text(raw?.subscribeSecondaryButtonLabel)&&text(raw?.subscribeSecondaryButtonUrl)?<a className="finaleButton finaleSecondary" href={text(raw.subscribeSecondaryButtonUrl)} target={sTarget} rel={sTarget==="_blank"?"noopener noreferrer":undefined}>{text(raw.subscribeSecondaryButtonLabel)}</a>:null}</div>
+        <form className="finaleForm" onSubmit={submit} noValidate><label htmlFor="subscribe-email">{text(raw?.subscribeSubtitle)}</label><div className="finaleFormRow"><input id="subscribe-email" className="finaleInput" type="email" autoComplete="email" required placeholder={text(raw?.subscribePlaceholder)} value={email} onChange={(e)=>{setEmail(e.target.value);if(emailError)setEmailError("")}} aria-invalid={Boolean(emailError)} /><button className="finaleSubmit" type="submit" disabled={submitting}>{text(raw?.subscribeButtonText)}</button></div>{emailError?<div className="finaleError" role="alert">{emailError}</div>:null}</form>
+      </Finale>
+    </PageContainer>
+  </FullWidthBackground>;
 }

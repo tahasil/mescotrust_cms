@@ -1,539 +1,148 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Row, Col, Carousel } from "antd";
-import { LeftOutlined, RightOutlined } from "@ant-design/icons";
+import { useLayoutEffect, useRef } from "react";
+import { ArrowLeftOutlined, ArrowRightOutlined } from "@ant-design/icons";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { usePathname } from "next/navigation";
 import styled from "styled-components";
-import {
-  FullWidthBackground,
-  getColor,
-  MainTitle,
-  PageContainer,
-  SubTitle,
-} from "@/styles/Theme";
+import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 
-const REQUIRED_STORY_IMAGE_WIDTH = 400;
-const REQUIRED_STORY_IMAGE_HEIGHT = 400;
+gsap.registerPlugin(ScrollTrigger);
 
-/* ── Styled Components ── */
-const SliderWrapper = styled.div`
-  .slide-card {
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 24px;
-    overflow: hidden;
-    background: #fff;
-    padding: 40px;
-    @media (max-width: 991px) {
-      padding: 32px;
-      border-radius: 20px;
-    }
-    @media (max-width: 576px) {
-      padding: 20px;
-      border-radius: 16px;
-    }
+const Board = styled.div`
+  width: 100%;
+  color: var(--story-ink);
+  font-family: "Instrument Sans", system-ui, sans-serif;
+
+  .storyHead { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-bottom: clamp(36px, 4vw, 56px); }
+  .storySubTitle { margin: 0 0 18px; color: var(--story-subtitle); font-size: 13px; font-weight: 650; letter-spacing: .16em; line-height: 1.4; text-transform: uppercase; }
+  .storyHeading { margin: 0; max-width: 18ch; color: var(--story-heading); font-family: "Bricolage Grotesque", system-ui, sans-serif; font-size: clamp(36px, 4.6vw, 64px); font-weight: 620; letter-spacing: -.02em; line-height: 1.08; }
+  .storyHeading em { color: var(--story-accent); font-style: normal; }
+  .storyNav { display: flex; align-items: center; gap: 12px; }
+  .storyLink { display: inline-flex; align-items: center; gap: 9px; margin-right: 10px; color: var(--story-link); font-size: 14px; font-weight: 650; text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 5px; }
+  .storyLink svg { transition: transform .3s cubic-bezier(.16,1,.3,1); }
+  .storyLink:hover svg { transform: translateX(4px); }
+  .storyButton { width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1px solid var(--story-border); background: var(--story-button-bg); color: var(--story-button-icon); font-size: 18px; display: grid; place-items: center; cursor: pointer; transition: background .2s,color .2s,border-color .2s,transform .25s cubic-bezier(.16,1,.3,1); }
+  .storyButton:hover { background: var(--story-button-hover-bg); color: var(--story-button-hover-icon); border-color: var(--story-button-hover-bg); transform: translateY(-2px); }
+  .storyTrack { display: flex; gap: clamp(18px, 2vw, 30px); overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 4px; scrollbar-width: none; -ms-overflow-style: none; }
+  .storyTrack::-webkit-scrollbar { display: none; }
+  .storyPanel { flex: 0 0 auto; width: clamp(290px, 27vw, 400px); min-height: 460px; margin: 0; border-radius: var(--story-radius); overflow: hidden; scroll-snap-align: start; display: flex; flex-direction: column; background: var(--story-card-bg); border: 1px solid var(--story-border); color: inherit; text-decoration: none; }
+  .storyPanel.is-ink { background: var(--story-ink-card-bg); color: var(--story-ink-card-text); border-color: transparent; }
+  .storyPanel.is-tint { background: var(--story-tint-card-bg); }
+  .storyImage { width: 100%; height: 210px; object-fit: cover; display: block; }
+  .storyBody { padding: clamp(22px, 2.2vw, 30px); display: flex; flex-direction: column; gap: 12px; flex: 1; }
+  .storyIndex { color: var(--story-index); font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 650; font-size: 14px; letter-spacing: .08em; }
+  .is-ink .storyIndex { color: var(--story-ink-index); }
+  .storyQuote { margin: 0; color: inherit; font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 480; font-size: clamp(17px, 1.5vw, 20px); line-height: 1.45; letter-spacing: -.005em; flex: 1; }
+  .is-ink .storyQuote { font-size: clamp(19px, 1.7vw, 23px); }
+  .storyWho { margin-top: 4px; }
+  .storyWho strong { display: block; color: var(--story-name); font-size: 15px; }
+  .storyWho span { display: block; color: var(--story-role); font-size: 13.5px; }
+  .is-ink .storyWho strong { color: var(--story-ink-card-text); }
+  .is-ink .storyWho span { color: var(--story-ink-role); }
+
+  @media (max-width: 767px) {
+    .storyPanel { width: 82vw; min-height: 0; }
+    .storyHead { align-items: flex-start; }
+    .storyNav { width: 100%; }
+    .storyLink { margin-right: auto; }
   }
-
-  .slide-image {
-    width: 100%;
-    aspect-ratio: 400 / 400;
-    height: auto;
-    background: rgba(0, 0, 0, 0.04);
-    border-radius: 16px;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    picture {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-    @media (max-width: 991px) {
-      border-radius: 12px;
-    }
-  }
-
-  .slide-content {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    height: 100%;
-    @media (max-width: 991px) {
-      margin-top: 16px;
-    }
-  }
-
-  .slide-quote {
-    font-size: 15px;
-    line-height: 1.7;
-    color: rgba(0, 0, 0, 0.75);
-    margin-bottom: 24px;
-    @media (max-width: 991px) {
-      font-size: 14px;
-      margin-bottom: 16px;
-    }
-    @media (max-width: 576px) {
-      font-size: 13px;
-      line-height: 1.6;
-      margin-bottom: 12px;
-    }
-  }
-
-  .slide-divider {
-    border: none;
-    border-top: 2px dashed rgba(0, 0, 0, 0.12);
-    margin: 0 0 16px 0;
-    @media (max-width: 576px) {
-      margin: 0 0 12px 0;
-    }
-  }
-
-  .slide-name {
-    font-size: 18px;
-    font-weight: 700;
-    line-height: 1.4;
-    margin-bottom: 4px;
-    @media (max-width: 576px) {
-      font-size: 16px;
-    }
-  }
-
-  .slide-role {
-    font-size: 14px;
-    color: rgba(0, 0, 0, 0.55);
-    line-height: 1.4;
-    @media (max-width: 576px) {
-      font-size: 13px;
-    }
-  }
-
-  .slider-nav {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    margin-top: 32px;
-    @media (max-width: 576px) {
-      margin-top: 20px;
-      gap: 8px;
-    }
-  }
-
-  .nav-btn {
-    width: 32px;
-    height: 32px;
-    border: none;
-    background: transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: var(--stories-arrow-color, rgba(0, 0, 0, 0.35));
-    font-size: 16px;
-    padding: 0;
-    &:hover {
-      color: var(--stories-arrow-color, rgba(0, 0, 0, 0.7));
-      opacity: 0.8;
-    }
-  }
-
-  .slider-dots {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .dot {
-    width: 28px;
-    height: 4px;
-    border-radius: 2px;
-    background: var(--stories-dot-inactive, rgba(0, 0, 0, 0.12));
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    transition: all 0.3s ease;
-    &.active {
-      background: var(--stories-dot-active, rgba(0, 0, 0, 0.7));
-      width: 36px;
-    }
-  }
-
-  /* Hide default Ant carousel dots */
-  .ant-carousel .slick-dots {
-    display: none !important;
-  }
+  @media (prefers-reduced-motion: reduce) { .storyReveal { opacity: 1 !important; transform: none !important; } }
 `;
 
-/**
- * Site component: StoriesSlider.
- * Carousel with image left + quote/name/role right.
- */
+const text = (value) => value == null ? "" : String(value).trim();
+const num = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
+const color = (value, fallback) => text(value) ? getColor(text(value)) : fallback;
+
+function backgroundProps(props, prefix) {
+  const sectionType = text(props?.[`${prefix}SectionBgType`] || "default");
+  const sectionImage = text(props?.[`${prefix}SectionBgImage`]);
+  const sectionKey = text(props?.[`${prefix}SectionBgColorKey`]);
+  const sectionBgClassName = sectionType === "default" ? "defaultBackground" : undefined;
+  const sectionBgStyle = {
+    ...(sectionType === "image" && sectionImage ? { backgroundImage: `url(${sectionImage})`, backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" } : sectionType === "color" && sectionKey ? { backgroundColor: getColor(sectionKey), backgroundImage: "none" } : {}),
+    ...Object.fromEntries([["paddingTop", props?.[`${prefix}SectionPaddingTop`]], ["paddingBottom", props?.[`${prefix}SectionPaddingBottom`]], ["marginTop", props?.[`${prefix}SectionMarginTop`]], ["marginBottom", props?.[`${prefix}SectionMarginBottom`]]].filter(([,v]) => v !== "" && v != null && num(v,-1) >= 0).map(([k,v]) => [k, `${num(v,0)}px`])),
+  };
+  const containerType = text(props?.[`${prefix}PageContainerBgType`] || "default");
+  const containerImage = text(props?.[`${prefix}PageContainerBgImage`]);
+  const containerKey = text(props?.[`${prefix}PageContainerBgColorKey`]);
+  const pageContainerBgStyle = {
+    ...(containerType === "image" && containerImage ? { backgroundImage: `url(${containerImage})`, backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" } : containerType === "color" && containerKey ? { backgroundColor: getColor(containerKey), backgroundImage: "none" } : {}),
+    ...Object.fromEntries([["paddingTop", props?.[`${prefix}PageContainerPaddingTop`]], ["paddingRight", props?.[`${prefix}PageContainerPaddingRight`]], ["paddingBottom", props?.[`${prefix}PageContainerPaddingBottom`]], ["paddingLeft", props?.[`${prefix}PageContainerPaddingLeft`]], ["marginTop", props?.[`${prefix}PageContainerMarginTop`]], ["marginBottom", props?.[`${prefix}PageContainerMarginBottom`]]].filter(([,v]) => v !== "" && v != null && num(v,-1) >= 0).map(([k,v]) => [k, `${num(v,0)}px`])),
+  };
+  return { sectionBgClassName, sectionBgStyle, pageContainerBgStyle };
+}
+
 export default function StoriesSlider(props) {
-  const carouselRef = useRef(null);
+  const rootRef = useRef(null);
+  const trackRef = useRef(null);
+  const pathname = usePathname();
+  const isEditor = pathname?.startsWith("/admin") === true;
+  const items = Array.isArray(props?.storiesSliderItems) ? props.storiesSliderItems : [];
+  const { sectionBgClassName, sectionBgStyle, pageContainerBgStyle } = backgroundProps(props, "storiesSlider");
 
-  /* ── Title fields ── */
-  const mainTitle = (props?.mainTitle ?? "").toString().trim();
-  const subTitle = (props?.subTitle ?? "").toString().trim();
-  const titleEnabled = props?.storiesSliderTitleEnabled !== false;
-  const subTitleEnabled = props?.storiesSliderSubTitleEnabled !== false;
-  const titleColorKey = (props?.titleColorKey ?? "").toString().trim();
-  const titleColor = titleColorKey
-    ? getColor(titleColorKey)
-    : getColor("primary");
-  const subTitleColorKey = (props?.storiesSliderSubTitleColorKey ?? "")
-    .toString()
-    .trim();
-  const subTitleColor = subTitleColorKey
-    ? getColor(subTitleColorKey)
-    : undefined;
+  useLayoutEffect(() => {
+    if (isEditor || !rootRef.current || props?.storiesSliderRevealEnabled === false || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const targets = rootRef.current.querySelectorAll(".storyReveal");
+    const context = gsap.context(() => ScrollTrigger.batch(targets, { start: text(props?.storiesSliderRevealStart) || "top 86%", once: true, onEnter: (els) => gsap.fromTo(els, { autoAlpha: 0, y: num(props?.storiesSliderRevealDistance, 30) }, { autoAlpha: 1, y: 0, duration: num(props?.storiesSliderRevealDuration, .9), stagger: num(props?.storiesSliderRevealStagger, .08), ease: "power3.out", overwrite: true }) }), rootRef);
+    return () => context.revert();
+  }, [isEditor, items, props]);
 
-  /* ── Colors ── */
-  const nameColorKey = (props?.storiesSliderNameColorKey ?? "")
-    .toString()
-    .trim();
-  const nameColor = nameColorKey ? getColor(nameColorKey) : getColor("primary");
-  const quoteColorKey = (props?.storiesSliderQuoteColorKey ?? "")
-    .toString()
-    .trim();
-  const quoteColor = quoteColorKey ? getColor(quoteColorKey) : undefined;
-  const roleColorKey = (props?.storiesSliderRoleColorKey ?? "")
-    .toString()
-    .trim();
-  const roleColor = roleColorKey ? getColor(roleColorKey) : undefined;
-  const arrowColorKey = (props?.storiesSliderArrowColorKey ?? "")
-    .toString()
-    .trim();
-  const arrowColor = arrowColorKey ? getColor(arrowColorKey) : undefined;
-  const dotActiveColorKey = (props?.storiesSliderDotActiveColorKey ?? "")
-    .toString()
-    .trim();
-  const dotActiveColor = dotActiveColorKey
-    ? getColor(dotActiveColorKey)
-    : undefined;
+  const scroll = (direction) => {
+    const track = trackRef.current;
+    const first = track?.firstElementChild;
+    if (!track) return;
+    const gap = parseFloat(getComputedStyle(track).gap) || 24;
+    track.scrollBy({ left: direction * ((first?.getBoundingClientRect().width || 400) + gap), behavior: "smooth" });
+  };
 
-  /* ── Slider settings ── */
-  const autoplay = props?.storiesSliderAutoplay === true;
-  const showArrows = props?.storiesSliderShowArrows !== false;
-  const showDots = props?.storiesSliderShowDots !== false;
-  const infinite = props?.storiesSliderInfinite !== false;
-  const autoplaySpeed =
-    props?.storiesSliderAutoplaySpeed != null
-      ? Number(props.storiesSliderAutoplaySpeed)
-      : 5000;
-  const speed =
-    props?.storiesSliderSpeed != null ? Number(props.storiesSliderSpeed) : 400;
-
-  /* ── Items ── */
-  const items = Array.isArray(props?.storiesSliderItems)
-    ? props.storiesSliderItems
-    : [];
-
-  /* ── Current slide for dots ── */
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  /* ── Section bg ── */
-  const sectionBgType = (
-    props?.storiesSliderSectionBgType ?? "default"
-  ).toString();
-  const sectionBgImage = (props?.storiesSliderSectionBgImage ?? "")
-    .toString()
-    .trim();
-  const sectionBgColorKey = (props?.storiesSliderSectionBgColorKey ?? "")
-    .toString()
-    .trim();
-  const sectionBgClassName =
-    sectionBgType === "default" ? "defaultBackground" : undefined;
-  const sectionBgStyleBase =
-    sectionBgType === "image" && sectionBgImage
-      ? {
-          backgroundImage: `url(${sectionBgImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center center",
-          backgroundRepeat: "no-repeat",
-        }
-      : sectionBgType === "color" && sectionBgColorKey
-        ? {
-            backgroundColor: getColor(sectionBgColorKey),
-            backgroundImage: "none",
-          }
-        : undefined;
-  const sectionPaddingTop =
-    props?.storiesSliderSectionPaddingTop != null
-      ? Number(props.storiesSliderSectionPaddingTop)
-      : null;
-  const sectionPaddingBottom =
-    props?.storiesSliderSectionPaddingBottom != null
-      ? Number(props.storiesSliderSectionPaddingBottom)
-      : null;
-  const sectionMarginTop =
-    props?.storiesSliderSectionMarginTop != null
-      ? Number(props.storiesSliderSectionMarginTop)
-      : null;
-  const sectionMarginBottom =
-    props?.storiesSliderSectionMarginBottom != null
-      ? Number(props.storiesSliderSectionMarginBottom)
-      : null;
-  const sectionBgStyle =
-    sectionBgStyleBase ||
-    sectionPaddingTop != null ||
-    sectionPaddingBottom != null ||
-    sectionMarginTop != null ||
-    sectionMarginBottom != null
-      ? {
-          ...(sectionBgStyleBase || {}),
-          ...(sectionPaddingTop != null && sectionPaddingTop >= 0
-            ? { paddingTop: `${sectionPaddingTop}px` }
-            : {}),
-          ...(sectionPaddingBottom != null && sectionPaddingBottom >= 0
-            ? { paddingBottom: `${sectionPaddingBottom}px` }
-            : {}),
-          ...(sectionMarginTop != null && sectionMarginTop >= 0
-            ? { marginTop: `${sectionMarginTop}px` }
-            : {}),
-          ...(sectionMarginBottom != null && sectionMarginBottom >= 0
-            ? { marginBottom: `${sectionMarginBottom}px` }
-            : {}),
-        }
-      : undefined;
-
-  const pageContainerBgType = (
-    props?.storiesSliderPageContainerBgType ?? "default"
-  ).toString();
-  const pageContainerBgImage = (props?.storiesSliderPageContainerBgImage ?? "")
-    .toString()
-    .trim();
-  const pageContainerBgColorKey = (
-    props?.storiesSliderPageContainerBgColorKey ?? ""
-  )
-    .toString()
-    .trim();
-  const pageContainerBgStyleBase =
-    pageContainerBgType === "image" && pageContainerBgImage
-      ? {
-          backgroundImage: `url(${pageContainerBgImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }
-      : pageContainerBgType === "color" && pageContainerBgColorKey
-        ? {
-            backgroundColor: getColor(pageContainerBgColorKey),
-            backgroundImage: "none",
-          }
-        : undefined;
-  const containerPaddingTop =
-    props?.storiesSliderPageContainerPaddingTop != null
-      ? Number(props.storiesSliderPageContainerPaddingTop)
-      : null;
-  const containerPaddingRight =
-    props?.storiesSliderPageContainerPaddingRight != null
-      ? Number(props.storiesSliderPageContainerPaddingRight)
-      : null;
-  const containerPaddingBottom =
-    props?.storiesSliderPageContainerPaddingBottom != null
-      ? Number(props.storiesSliderPageContainerPaddingBottom)
-      : null;
-  const containerPaddingLeft =
-    props?.storiesSliderPageContainerPaddingLeft != null
-      ? Number(props.storiesSliderPageContainerPaddingLeft)
-      : null;
-  const containerMarginTop =
-    props?.storiesSliderPageContainerMarginTop != null
-      ? Number(props.storiesSliderPageContainerMarginTop)
-      : null;
-  const containerMarginBottom =
-    props?.storiesSliderPageContainerMarginBottom != null
-      ? Number(props.storiesSliderPageContainerMarginBottom)
-      : null;
-  const pageContainerBgStyle =
-    pageContainerBgStyleBase ||
-    containerPaddingTop != null ||
-    containerPaddingRight != null ||
-    containerPaddingBottom != null ||
-    containerPaddingLeft != null ||
-    containerMarginTop != null ||
-    containerMarginBottom != null
-      ? {
-          ...(pageContainerBgStyleBase || {}),
-          ...(containerPaddingTop != null && containerPaddingTop >= 0
-            ? { paddingTop: `${containerPaddingTop}px` }
-            : {}),
-          ...(containerPaddingRight != null && containerPaddingRight >= 0
-            ? { paddingRight: `${containerPaddingRight}px` }
-            : {}),
-          ...(containerPaddingBottom != null && containerPaddingBottom >= 0
-            ? { paddingBottom: `${containerPaddingBottom}px` }
-            : {}),
-          ...(containerPaddingLeft != null && containerPaddingLeft >= 0
-            ? { paddingLeft: `${containerPaddingLeft}px` }
-            : {}),
-          ...(containerMarginTop != null && containerMarginTop >= 0
-            ? { marginTop: `${containerMarginTop}px` }
-            : {}),
-          ...(containerMarginBottom != null && containerMarginBottom >= 0
-            ? { marginBottom: `${containerMarginBottom}px` }
-            : {}),
-        }
-      : undefined;
-
+  const linkTarget = text(props?.storiesSliderViewAllTarget) || "_self";
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
-        {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) && (
-          <Row gutter={[16, 16]}>
-            <Col span={24} className="mb-4">
-              {subTitleEnabled && subTitle && (
-                <SubTitle
-                  style={subTitleColor ? { color: subTitleColor } : undefined}
-                >
-                  {subTitle}
-                </SubTitle>
-              )}
-              {titleEnabled && mainTitle && (
-                <MainTitle color={titleColor}>{mainTitle}</MainTitle>
-              )}
-            </Col>
-          </Row>
-        )}
-        {items.length > 0 && (
-          <SliderWrapper
-            style={{
-              ...(arrowColor ? { "--stories-arrow-color": arrowColor } : {}),
-              ...(dotActiveColor
-                ? { "--stories-dot-active": dotActiveColor }
-                : {}),
-            }}
-          >
-            <Carousel
-              ref={carouselRef}
-              dots={false}
-              infinite={infinite && items.length > 1}
-              autoplay={autoplay}
-              autoplaySpeed={autoplaySpeed}
-              speed={speed}
-              afterChange={(idx) => setCurrentSlide(idx)}
-            >
-              {items.map((item, idx) => {
-                const quote = (item?.quote ?? "").toString().trim();
-                const name = (item?.name ?? "").toString().trim();
-                const role = (item?.role ?? "").toString().trim();
-                const image = (item?.image ?? "").toString().trim();
-                const mobileImage = (item?.mobileImage ?? "").toString().trim();
-                const hasImage = image || mobileImage;
-                return (
-                  <div key={idx}>
-                    <div className="slide-card">
-                      <Row gutter={[32, 24]} align="stretch">
-                        <Col xs={24} md={24} lg={10}>
-                          <div className="slide-image">
-                            {hasImage ? (
-                              <picture>
-                                {mobileImage && (
-                                  <source
-                                    media="(max-width: 767px)"
-                                    srcSet={mobileImage}
-                                  />
-                                )}
-                                <img loading="lazy"
-                                  src={image || mobileImage}
-                                  alt={name || "Story"}
-                                  width={REQUIRED_STORY_IMAGE_WIDTH}
-                                  height={REQUIRED_STORY_IMAGE_HEIGHT}
-                                />
-                              </picture>
-                            ) : (
-                              <span
-                                style={{
-                                  color: "rgba(0,0,0,0.25)",
-                                  fontSize: 16,
-                                  fontWeight: 500,
-                                }}
-                              >
-                                IMAGE PLACEHOLDER
-                              </span>
-                            )}
-                          </div>
-                        </Col>
-                        <Col xs={24} md={24} lg={14}>
-                          <div className="slide-content">
-                            {quote && (
-                              <div
-                                className="slide-quote"
-                                style={
-                                  quoteColor ? { color: quoteColor } : undefined
-                                }
-                              >
-                                {quote}
-                              </div>
-                            )}
-                            <hr className="slide-divider" />
-                            {name && (
-                              <div
-                                className="slide-name"
-                                style={{ color: nameColor }}
-                              >
-                                {name}
-                              </div>
-                            )}
-                            {role && (
-                              <div
-                                className="slide-role"
-                                style={
-                                  roleColor ? { color: roleColor } : undefined
-                                }
-                              >
-                                {role}
-                              </div>
-                            )}
-                          </div>
-                        </Col>
-                      </Row>
-                    </div>
-                  </div>
-                );
-              })}
-            </Carousel>
-
-            {items.length > 1 && (showArrows || showDots) && (
-              <div className="slider-nav">
-                {showArrows && (
-                  <button
-                    className="nav-btn"
-                    onClick={() => carouselRef.current?.prev()}
-                  >
-                    <LeftOutlined />
-                  </button>
-                )}
-                {showDots && (
-                  <div className="slider-dots">
-                    {items.map((_, idx) => (
-                      <button
-                        key={idx}
-                        className={`dot${idx === currentSlide ? " active" : ""}`}
-                        onClick={() => carouselRef.current?.goTo(idx)}
-                      />
-                    ))}
-                  </div>
-                )}
-                {showArrows && (
-                  <button
-                    className="nav-btn"
-                    onClick={() => carouselRef.current?.next()}
-                  >
-                    <RightOutlined />
-                  </button>
-                )}
-              </div>
-            )}
-          </SliderWrapper>
-        )}
+        <Board ref={rootRef} style={{
+          "--story-ink": color(props?.storiesSliderTextColorKey, "#2A283E"),
+          "--story-subtitle": color(props?.storiesSliderSubTitleColorKey, "#E03C33"),
+          "--story-heading": color(props?.titleColorKey, "#2A283E"),
+          "--story-accent": color(props?.storiesSliderHeadingAccentColorKey, "#2A283E"),
+          "--story-link": color(props?.storiesSliderLinkColorKey, "#2A283E"),
+          "--story-card-bg": color(props?.storiesSliderCardBgColorKey, "#fff"),
+          "--story-tint-card-bg": color(props?.storiesSliderTintCardBgColorKey, "#F5F0E8"),
+          "--story-ink-card-bg": color(props?.storiesSliderInkCardBgColorKey, "#211E2E"),
+          "--story-ink-card-text": color(props?.storiesSliderInkCardTextColorKey, "#FAF6EF"),
+          "--story-index": color(props?.storiesSliderIndexColorKey, "#E03C33"),
+          "--story-ink-index": color(props?.storiesSliderInkIndexColorKey, "#F2867F"),
+          "--story-name": color(props?.storiesSliderNameColorKey, "#2A283E"),
+          "--story-role": color(props?.storiesSliderRoleColorKey, "rgba(42,40,62,.55)"),
+          "--story-ink-role": color(props?.storiesSliderInkRoleColorKey, "rgba(250,246,239,.6)"),
+          "--story-border": color(props?.storiesSliderBorderColorKey, "rgba(42,40,62,.14)"),
+          "--story-button-bg": color(props?.storiesSliderButtonBgColorKey, "#fff"),
+          "--story-button-icon": color(props?.storiesSliderArrowColorKey, "#2A283E"),
+          "--story-button-hover-bg": color(props?.storiesSliderButtonHoverBgColorKey, "#2A283E"),
+          "--story-button-hover-icon": color(props?.storiesSliderButtonHoverIconColorKey, "#FAF6EF"),
+          "--story-radius": `${num(props?.storiesSliderCardRadius, 18)}px`,
+        }}>
+          <div className="storyHead storyReveal">
+            <div>
+              {props?.storiesSliderSubTitleEnabled !== false && text(props?.subTitle) ? <p className="storySubTitle">{text(props.subTitle)}</p> : null}
+              {props?.storiesSliderTitleEnabled !== false && (text(props?.mainTitle) || text(props?.storiesSliderHeadingAccent)) ? <h2 className="storyHeading">{text(props?.mainTitle)}{text(props?.mainTitle) && text(props?.storiesSliderHeadingAccent) ? " " : null}<em>{text(props?.storiesSliderHeadingAccent)}</em></h2> : null}
+            </div>
+            <div className="storyNav">
+              {text(props?.storiesSliderViewAllLabel) && text(props?.storiesSliderViewAllUrl) ? <a className="storyLink" href={text(props.storiesSliderViewAllUrl)} target={linkTarget} rel={linkTarget === "_blank" ? "noopener noreferrer" : undefined}>{text(props.storiesSliderViewAllLabel)} <ArrowRightOutlined aria-hidden="true" /></a> : null}
+              {props?.storiesSliderShowArrows !== false && items.length > 1 ? <><button type="button" className="storyButton" onClick={() => scroll(-1)} aria-label={text(props?.storiesSliderPreviousLabel) || "Previous story"}><ArrowLeftOutlined /></button><button type="button" className="storyButton" onClick={() => scroll(1)} aria-label={text(props?.storiesSliderNextLabel) || "Next story"}><ArrowRightOutlined /></button></> : null}
+            </div>
+          </div>
+          <div className="storyTrack storyReveal" ref={trackRef}>
+            {items.map((item, index) => {
+              const image = text(item?.image || item?.mobileImage);
+              const style = text(item?.panelStyle) || (index % 4 === 1 ? "ink" : index % 4 === 3 ? "tint" : "default");
+              const target = text(item?.target) || "_self";
+              const content = <><picture>{text(item?.mobileImage) ? <source media="(max-width: 767px)" srcSet={text(item.mobileImage)} /> : null}{image ? <img className="storyImage" src={image} alt={text(item?.imageAlt || item?.name)} loading="lazy" /> : null}</picture><div className="storyBody"><span className="storyIndex">{text(item?.indexLabel) || String(index + 1).padStart(2, "0")}{text(item?.category) ? ` · ${text(item.category)}` : ""}</span>{text(item?.quote) ? <p className="storyQuote">{text(item.quote)}</p> : null}<figcaption className="storyWho"><strong>{text(item?.name)}</strong><span>{text(item?.role)}</span></figcaption></div></>;
+              return text(item?.link) ? <a className={`storyPanel is-${style}`} href={text(item.link)} target={target} rel={target === "_blank" ? "noopener noreferrer" : undefined} key={`${text(item?.name)}-${index}`}>{content}</a> : <figure className={`storyPanel is-${style}`} key={`${text(item?.name)}-${index}`}>{content}</figure>;
+            })}
+          </div>
+        </Board>
       </PageContainer>
     </FullWidthBackground>
   );

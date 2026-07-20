@@ -120,11 +120,21 @@ function TestimonialsEditForm(
             ? String(data.testimonialsAvatarTextColorKey).trim()
             : "",
         testimonialsTitleEnabled: data?.testimonialsTitleEnabled !== false,
-        testimonialsAutoplay: data?.testimonialsAutoplay ?? false,
+        testimonialsAutoplay: data?.testimonialsAutoplay ?? true,
         testimonialsAutoplaySpeed:
           data?.testimonialsAutoplaySpeed != null
             ? Number(data.testimonialsAutoplaySpeed)
-            : 5000,
+            : 6500,
+        testimonialsViewAllLabel: String(data?.testimonialsViewAllLabel ?? "").trim(),
+        testimonialsViewAllUrl: String(data?.testimonialsViewAllUrl ?? "").trim(),
+        testimonialsViewAllTarget: data?.testimonialsViewAllTarget === "_blank" ? "_blank" : "_self",
+        testimonialsDotsLabel: String(data?.testimonialsDotsLabel ?? "Choose testimonial").trim(),
+        testimonialsDotLabel: String(data?.testimonialsDotLabel ?? "Show testimonial").trim(),
+        testimonialsRevealEnabled: data?.testimonialsRevealEnabled !== false,
+        testimonialsRevealStart: String(data?.testimonialsRevealStart ?? "top 86%").trim(),
+        testimonialsRevealDuration: data?.testimonialsRevealDuration ?? 0.9,
+        testimonialsRevealDistance: data?.testimonialsRevealDistance ?? 30,
+        ...Object.fromEntries(["testimonialsQuoteMarkColorKey","testimonialsQuoteColorKey","testimonialsDotColorKey","testimonialsDotActiveColorKey","testimonialsLinkColorKey"].map((key)=>[key,String(data?.[key]??"").trim()])),
         testimonialsShowArrows: data?.testimonialsShowArrows ?? true,
         testimonialsShowDots: data?.testimonialsShowDots ?? true,
         testimonialsSpeed:
@@ -235,7 +245,17 @@ function TestimonialsEditForm(
         testimonialsAutoplaySpeed:
           values.testimonialsAutoplaySpeed != null
             ? Math.max(1000, Number(values.testimonialsAutoplaySpeed))
-            : 5000,
+            : 6500,
+        testimonialsViewAllLabel: String(values.testimonialsViewAllLabel ?? "").trim(),
+        testimonialsViewAllUrl: String(values.testimonialsViewAllUrl ?? "").trim(),
+        testimonialsViewAllTarget: values.testimonialsViewAllTarget === "_blank" ? "_blank" : "_self",
+        testimonialsDotsLabel: String(values.testimonialsDotsLabel ?? "").trim(),
+        testimonialsDotLabel: String(values.testimonialsDotLabel ?? "").trim(),
+        testimonialsRevealEnabled: values.testimonialsRevealEnabled !== false,
+        testimonialsRevealStart: String(values.testimonialsRevealStart ?? "").trim(),
+        testimonialsRevealDuration: Number(values.testimonialsRevealDuration ?? 0.9),
+        testimonialsRevealDistance: Number(values.testimonialsRevealDistance ?? 30),
+        ...Object.fromEntries(["testimonialsQuoteMarkColorKey","testimonialsQuoteColorKey","testimonialsDotColorKey","testimonialsDotActiveColorKey","testimonialsLinkColorKey"].map((key)=>[key,String(values?.[key]??"").trim()])),
         testimonialsShowArrows: values.testimonialsShowArrows !== false,
         testimonialsShowDots: values.testimonialsShowDots !== false,
         testimonialsSpeed:
@@ -483,6 +503,11 @@ function TestimonialsEditForm(
             ),
           },
           {
+            key: "link-accessibility",
+            label: "Link & Accessibility",
+            children: <><Form.Item name="testimonialsViewAllLabel" label="View all label"><Input /></Form.Item><Form.Item name="testimonialsViewAllUrl" label="View all URL"><Input /></Form.Item><Form.Item name="testimonialsViewAllTarget" label="Target"><Select options={[{label:"Same Tab (_self)",value:"_self"},{label:"New Tab (_blank)",value:"_blank"}]} /></Form.Item><Row gutter={16}><Col span={12}><Form.Item name="testimonialsDotsLabel" label="Dots aria label"><Input /></Form.Item></Col><Col span={12}><Form.Item name="testimonialsDotLabel" label="Dot aria prefix"><Input /></Form.Item></Col></Row><Form.Item name="testimonialsRevealEnabled" label="Reveal on scroll" valuePropName="checked"><Switch /></Form.Item><Form.Item name="testimonialsRevealStart" label="Reveal trigger"><Input /></Form.Item><Row gutter={16}><Col span={12}><Form.Item name="testimonialsRevealDuration" label="Duration s"><InputNumber min={0} step={0.05} style={{width:"100%"}} /></Form.Item></Col><Col span={12}><Form.Item name="testimonialsRevealDistance" label="Distance px"><InputNumber min={0} style={{width:"100%"}} /></Form.Item></Col></Row></>,
+          },
+          {
             key: "items",
             label: "Manage Items",
             children: (
@@ -533,26 +558,6 @@ function TestimonialsEditForm(
                         <Col span={24}>
                           <Form.Item {...restField} name={[name, "title"]} label="Title / Role">
                             <Input placeholder="e.g. Customer Contact Specialist" size="large" />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "rating"]} label="Rating (1-5)" initialValue={5}>
-                            <Select
-                              options={[
-                                { label: "1", value: 1 },
-                                { label: "1.5", value: 1.5 },
-                                { label: "2", value: 2 },
-                                { label: "2.5", value: 2.5 },
-                                { label: "3", value: 3 },
-                                { label: "3.5", value: 3.5 },
-                                { label: "4", value: 4 },
-                                { label: "4.5", value: 4.5 },
-                                { label: "5", value: 5 },
-                              ]}
-                              placeholder="Select rating"
-                              style={{ width: "100%" }}
-                              size="large"
-                            />
                           </Form.Item>
                         </Col>
                       </Row>

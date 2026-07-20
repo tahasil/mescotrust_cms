@@ -7,6 +7,8 @@ import {
   Row,
   Col,
   Collapse,
+  Select,
+  Switch,
   message,
   Spin,
 } from "antd";
@@ -34,8 +36,11 @@ const FALLBACK_THEME_COLOR_KEYS = [
 
 function normalizeItem(it) {
   return {
+    indexLabel: it?.indexLabel != null ? String(it.indexLabel).trim() : "",
     label: it?.label != null ? String(it.label).trim() : "",
+    subLabel: it?.subLabel != null ? String(it.subLabel).trim() : "",
     link: it?.link != null ? String(it.link).trim() : "",
+    target: it?.target === "_blank" ? "_blank" : "_self",
   };
 }
 
@@ -73,6 +78,19 @@ function NoticesEditForm(
         noticesTitleEnabled: data?.noticesTitleEnabled !== false,
         titleColorKey:
           data?.titleColorKey != null ? String(data.titleColorKey).trim() : "",
+        noticesSubTitle: String(data?.noticesSubTitle ?? data?.mainTitle ?? "").trim(),
+        noticesHeading: String(data?.noticesHeading ?? "").trim(),
+        noticesHeadingAccent: String(data?.noticesHeadingAccent ?? "").trim(),
+        noticesDescription: String(data?.noticesDescription ?? "").trim(),
+        noticesMoreLabel: String(data?.noticesMoreLabel ?? "").trim(),
+        noticesMoreUrl: String(data?.noticesMoreUrl ?? "").trim(),
+        noticesMoreTarget: data?.noticesMoreTarget === "_blank" ? "_blank" : "_self",
+        noticesRevealEnabled: data?.noticesRevealEnabled !== false,
+        noticesRevealStart: String(data?.noticesRevealStart ?? "top 86%").trim(),
+        noticesRevealDuration: data?.noticesRevealDuration ?? 0.9,
+        noticesRevealStagger: data?.noticesRevealStagger ?? 0.08,
+        noticesRevealDistance: data?.noticesRevealDistance ?? 30,
+        ...Object.fromEntries(["noticesSubTitleColorKey","noticesHeadingColorKey","noticesAccentColorKey","noticesDescriptionColorKey","noticesBorderColorKey","noticesMetaColorKey","noticesItemTitleColorKey","noticesArrowColorKey","noticesArrowHoverColorKey","noticesLinkColorKey"].map((key)=>[key,String(data?.[key]??"").trim()])),
         noticesItems:
           items.length > 0 ? items : [normalizeItem({}), normalizeItem({}), normalizeItem({})],
       });
@@ -126,6 +144,19 @@ function NoticesEditForm(
         noticesTitleEnabled: values.noticesTitleEnabled !== false,
         titleColorKey:
           values.titleColorKey != null ? String(values.titleColorKey).trim() : "",
+        noticesSubTitle: String(values.noticesSubTitle ?? "").trim(),
+        noticesHeading: String(values.noticesHeading ?? "").trim(),
+        noticesHeadingAccent: String(values.noticesHeadingAccent ?? "").trim(),
+        noticesDescription: String(values.noticesDescription ?? "").trim(),
+        noticesMoreLabel: String(values.noticesMoreLabel ?? "").trim(),
+        noticesMoreUrl: String(values.noticesMoreUrl ?? "").trim(),
+        noticesMoreTarget: values.noticesMoreTarget === "_blank" ? "_blank" : "_self",
+        noticesRevealEnabled: values.noticesRevealEnabled !== false,
+        noticesRevealStart: String(values.noticesRevealStart ?? "").trim(),
+        noticesRevealDuration: Number(values.noticesRevealDuration ?? 0.9),
+        noticesRevealStagger: Number(values.noticesRevealStagger ?? 0.08),
+        noticesRevealDistance: Number(values.noticesRevealDistance ?? 30),
+        ...Object.fromEntries(["noticesSubTitleColorKey","noticesHeadingColorKey","noticesAccentColorKey","noticesDescriptionColorKey","noticesBorderColorKey","noticesMetaColorKey","noticesItemTitleColorKey","noticesArrowColorKey","noticesArrowHoverColorKey","noticesLinkColorKey"].map((key)=>[key,String(values?.[key]??"").trim()])),
         noticesItems: items,
       };
       if (isPageBlock && onSaveToPage) {
@@ -178,6 +209,11 @@ function NoticesEditForm(
             children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("Notices")} />,
           },
           {
+            key: "more-link",
+            label: "All Notices Link",
+            children: <><Form.Item name="noticesMoreLabel" label="Label"><Input /></Form.Item><Form.Item name="noticesMoreUrl" label="URL"><Input /></Form.Item><Form.Item name="noticesMoreTarget" label="Target"><Select options={[{label:"Same Tab (_self)",value:"_self"},{label:"New Tab (_blank)",value:"_blank"}]} /></Form.Item><Form.Item name="noticesRevealEnabled" label="Reveal on scroll" valuePropName="checked"><Switch /></Form.Item><Form.Item name="noticesRevealStart" label="Reveal trigger"><Input /></Form.Item><Row gutter={16}><Col span={8}><Form.Item name="noticesRevealDuration" label="Duration s"><Input type="number" /></Form.Item></Col><Col span={8}><Form.Item name="noticesRevealStagger" label="Stagger s"><Input type="number" /></Form.Item></Col><Col span={8}><Form.Item name="noticesRevealDistance" label="Distance px"><Input type="number" /></Form.Item></Col></Row></>,
+          },
+          {
             key: "items",
             label: "Notice Items",
             children: (
@@ -191,8 +227,11 @@ function NoticesEditForm(
                     itemLabel="Notice"
                     addButtonText="Add notice"
                     defaultAddPayload={{
+                      indexLabel: "",
                       label: "",
+                      subLabel: "",
                       link: "",
+                      target: "_self",
                     }}
                     reorderMovedIndex={reorderMovedIndex}
                     reorderDirection={reorderDirection}
@@ -203,6 +242,8 @@ function NoticesEditForm(
                     }}
                     renderItemContent={(name, restField) => (
                       <Row gutter={[16, 16]}>
+                        <Col span={8}><Form.Item {...restField} name={[name, "indexLabel"]} label="Index"><Input placeholder="01" /></Form.Item></Col>
+                        <Col span={16}><Form.Item {...restField} name={[name, "subLabel"]} label="Type / meta"><Input placeholder="PDF download" /></Form.Item></Col>
                         <Col span={24}>
                           <Form.Item
                             {...restField}
@@ -213,6 +254,7 @@ function NoticesEditForm(
                             <Input placeholder="e.g. Form5A PF" size="large" />
                           </Form.Item>
                         </Col>
+                        <Col span={24}><Form.Item {...restField} name={[name, "target"]} label="Target"><Select options={[{label:"Same Tab (_self)",value:"_self"},{label:"New Tab (_blank)",value:"_blank"}]} /></Form.Item></Col>
                         <Col span={24}>
                           <Form.Item
                             {...restField}

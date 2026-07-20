@@ -12,55 +12,13 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/PhotoGallery";
 const PREFIX = "photoGallery";
-const REQUIRED_COVER_IMAGE_WIDTH = 446;
-const REQUIRED_COVER_IMAGE_HEIGHT = 334;
-const REQUIRED_COVER_IMAGE_TEXT =
-  `${REQUIRED_COVER_IMAGE_WIDTH} \u00D7 ${REQUIRED_COVER_IMAGE_HEIGHT}`;
-const REQUIRED_COVER_IMAGE_ERROR_TEXT = `${REQUIRED_COVER_IMAGE_TEXT} pixels`;
-
-function getImageDimensions(imageUrl) {
-  return new Promise((resolve, reject) => {
-    const image = new window.Image();
-    image.onload = () =>
-      resolve({
-        width: Number(image.naturalWidth) || 0,
-        height: Number(image.naturalHeight) || 0,
-      });
-    image.onerror = () => reject(new Error("Failed to load image"));
-    image.src = imageUrl;
-  });
-}
-
-async function validatePhotoGalleryCoverImageDimensions(_, value) {
-  const imageUrl = String(value || "").trim();
-  if (!imageUrl) return Promise.resolve();
-
-  try {
-    const { width, height } = await getImageDimensions(imageUrl);
-    if (
-      width === REQUIRED_COVER_IMAGE_WIDTH &&
-      height === REQUIRED_COVER_IMAGE_HEIGHT
-    ) {
-      return Promise.resolve();
-    }
-    return Promise.reject(
-      new Error(
-        `Image size must be exactly ${REQUIRED_COVER_IMAGE_ERROR_TEXT}. Selected: ${width} \u00D7 ${height} pixels.`,
-      ),
-    );
-  } catch {
-    return Promise.reject(
-      new Error(`Image size must be exactly ${REQUIRED_COVER_IMAGE_ERROR_TEXT}.`),
-    );
-  }
-}
-
 function normalizeGalleryImage(img) {
   if (typeof img === "string") {
     const desktop = img.trim();
     return {
       urlDesktop: desktop,
       url: desktop,
+      alt: "",
     };
   }
   const desktop =
@@ -76,6 +34,7 @@ function normalizeGalleryImage(img) {
   return {
     urlDesktop: desktop,
     url: desktop,
+    alt: img?.alt != null ? String(img.alt).trim() : "",
   };
 }
 
@@ -117,6 +76,22 @@ function applyFormValues(form, data) {
     ? data.photoGalleryTabs
     : ["All", "Education", "Medical", "Events", "Community"];
   form.setFieldsValue({
+    photoGallerySubTitle: String(data?.photoGallerySubTitle ?? "").trim(),
+    photoGalleryTitle: String(data?.photoGalleryTitle ?? "").trim(),
+    photoGalleryHeadingAccent: String(data?.photoGalleryHeadingAccent ?? "").trim(),
+    photoGalleryViewAllText: String(data?.photoGalleryViewAllText ?? data?.photoGalleryViewMoreText ?? "").trim(),
+    photoGalleryViewAllLink: String(data?.photoGalleryViewAllLink ?? data?.photoGalleryViewMoreLink ?? "").trim(),
+    photoGalleryViewAllTarget: data?.photoGalleryViewAllTarget === "_blank" ? "_blank" : "_self",
+    photoGallerySpeed: data?.photoGallerySpeed ?? 54,
+    photoGalleryFirstDirection: data?.photoGalleryFirstDirection ?? 1,
+    photoGallerySecondDirection: data?.photoGallerySecondDirection ?? -1,
+    photoGalleryVelocityBoost: data?.photoGalleryVelocityBoost ?? 0.8,
+    photoGalleryImageRadius: data?.photoGalleryImageRadius ?? 18,
+    photoGalleryRevealEnabled: data?.photoGalleryRevealEnabled !== false,
+    photoGalleryRevealStart: String(data?.photoGalleryRevealStart ?? "top 86%").trim(),
+    photoGalleryRevealDuration: data?.photoGalleryRevealDuration ?? 0.9,
+    photoGalleryRevealDistance: data?.photoGalleryRevealDistance ?? 30,
+    ...Object.fromEntries(["photoGallerySubTitleColorKey","photoGalleryTitleColorKey","photoGalleryAccentTextColorKey","photoGalleryLinkColorKey","photoGalleryTextColorKey"].map((key)=>[key,String(data?.[key]??"").trim()])),
     photoGalleryAccentColorKey: data?.photoGalleryAccentColorKey ?? "",
     photoGalleryNavButtonBgColorKey: data?.photoGalleryNavButtonBgColorKey ?? "",
     photoGalleryNavArrowColorKey: data?.photoGalleryNavArrowColorKey ?? "",
@@ -197,6 +172,22 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
     form.validateFields().then(() => {
       const values = form.getFieldsValue(true);
       const payload = {
+        photoGallerySubTitle: String(values.photoGallerySubTitle ?? "").trim(),
+        photoGalleryTitle: String(values.photoGalleryTitle ?? "").trim(),
+        photoGalleryHeadingAccent: String(values.photoGalleryHeadingAccent ?? "").trim(),
+        photoGalleryViewAllText: String(values.photoGalleryViewAllText ?? "").trim(),
+        photoGalleryViewAllLink: String(values.photoGalleryViewAllLink ?? "").trim(),
+        photoGalleryViewAllTarget: values.photoGalleryViewAllTarget === "_blank" ? "_blank" : "_self",
+        photoGallerySpeed: Number(values.photoGallerySpeed ?? 54),
+        photoGalleryFirstDirection: Number(values.photoGalleryFirstDirection ?? 1),
+        photoGallerySecondDirection: Number(values.photoGallerySecondDirection ?? -1),
+        photoGalleryVelocityBoost: Number(values.photoGalleryVelocityBoost ?? 0.8),
+        photoGalleryImageRadius: Number(values.photoGalleryImageRadius ?? 18),
+        photoGalleryRevealEnabled: values.photoGalleryRevealEnabled !== false,
+        photoGalleryRevealStart: String(values.photoGalleryRevealStart ?? "").trim(),
+        photoGalleryRevealDuration: Number(values.photoGalleryRevealDuration ?? 0.9),
+        photoGalleryRevealDistance: Number(values.photoGalleryRevealDistance ?? 30),
+        ...Object.fromEntries(["photoGallerySubTitleColorKey","photoGalleryTitleColorKey","photoGalleryAccentTextColorKey","photoGalleryLinkColorKey","photoGalleryTextColorKey"].map((key)=>[key,String(values?.[key]??"").trim()])),
         photoGalleryAccentColorKey: values.photoGalleryAccentColorKey ?? "",
         photoGalleryNavButtonBgColorKey: values.photoGalleryNavButtonBgColorKey ?? "",
         photoGalleryNavArrowColorKey: values.photoGalleryNavArrowColorKey ?? "",
@@ -257,63 +248,20 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
             children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("PhotoGallery")} />,
           },
           {
-            key: "view-more",
-            label: "View More Button",
+            key: "marquee",
+            label: "Marquee Settings",
             children: (
               <>
-                <Form.Item name="photoGalleryLimitEnabled" label="Enable item limit" valuePropName="checked">
-                  <Switch />
-                </Form.Item>
-                <Form.Item noStyle dependencies={["photoGalleryLimitEnabled"]}>
-                  {() => form.getFieldValue("photoGalleryLimitEnabled") && (
-                    <>
-                      <Form.Item name="photoGalleryLimitCount" label="Items to show">
-                        <InputNumber min={1} max={100} size="large" style={{ width: "100%" }} />
-                      </Form.Item>
-                      <Form.Item name="photoGalleryViewMoreText" label="Button text">
-                        <Input placeholder="View More" size="large" />
-                      </Form.Item>
-                      <Form.Item name="photoGalleryViewMoreLink" label="Button link" rules={[{ required: true, message: "Link is required when limit is enabled" }]}>
-                        <Input placeholder="/media/image-gallery" size="large" />
-                      </Form.Item>
-                      <Form.Item name="photoGalleryViewMoreButtonBgColorKey" label="Button background color">
-                        <Select
-                          allowClear
-                          showSearch
-                          optionFilterProp="label"
-                          placeholder="Select color"
-                          size="large"
-                          options={themeColorOptions}
-                        />
-                      </Form.Item>
-                      <Form.Item name="photoGalleryViewMoreButtonTextColorKey" label="Button text color">
-                        <Select
-                          allowClear
-                          showSearch
-                          optionFilterProp="label"
-                          placeholder="Select color"
-                          size="large"
-                          options={themeColorOptions}
-                        />
-                      </Form.Item>
-                    </>
-                  )}
-                </Form.Item>
+                <Form.Item name="photoGalleryViewAllText" label="View gallery label"><Input /></Form.Item>
+                <Form.Item name="photoGalleryViewAllLink" label="View gallery URL"><Input /></Form.Item>
+                <Form.Item name="photoGalleryViewAllTarget" label="Target"><Select options={[{label:"Same Tab (_self)",value:"_self"},{label:"New Tab (_blank)",value:"_blank"}]} /></Form.Item>
+                <Row gutter={16}><Col span={12}><Form.Item name="photoGallerySpeed" label="Base speed (px/sec)"><InputNumber min={0} max={300} style={{width:"100%"}} /></Form.Item></Col><Col span={12}><Form.Item name="photoGalleryVelocityBoost" label="Scroll velocity boost"><InputNumber min={0} max={5} step={0.1} style={{width:"100%"}} /></Form.Item></Col></Row>
+                <Row gutter={16}><Col span={12}><Form.Item name="photoGalleryFirstDirection" label="First row direction"><Select options={[{label:"Left",value:1},{label:"Right",value:-1}]} /></Form.Item></Col><Col span={12}><Form.Item name="photoGallerySecondDirection" label="Second row direction"><Select options={[{label:"Left",value:1},{label:"Right",value:-1}]} /></Form.Item></Col></Row>
+                <Form.Item name="photoGalleryImageRadius" label="Image corner radius px"><InputNumber min={0} max={100} style={{width:"100%"}} /></Form.Item>
+                <Form.Item name="photoGalleryRevealEnabled" label="Reveal heading on scroll" valuePropName="checked"><Switch /></Form.Item>
+                <Form.Item name="photoGalleryRevealStart" label="Reveal trigger"><Input /></Form.Item>
+                <Row gutter={16}><Col span={12}><Form.Item name="photoGalleryRevealDuration" label="Reveal duration s"><InputNumber min={0} step={0.05} style={{width:"100%"}} /></Form.Item></Col><Col span={12}><Form.Item name="photoGalleryRevealDistance" label="Reveal distance px"><InputNumber min={0} style={{width:"100%"}} /></Form.Item></Col></Row>
               </>
-            ),
-          },
-          {
-            key: "tabs",
-            label: "Manage Tabs",
-            children: (
-              <Form.Item name="photoGalleryTabs" label="Category Tabs">
-                <Select
-                  mode="tags"
-                  placeholder="Type tab name and press Enter"
-                  size="large"
-                  tokenSeparators={[","]}
-                />
-              </Form.Item>
             ),
           },
           {
@@ -327,8 +275,8 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                     add={add}
                     remove={remove}
                     move={move}
-                    itemLabel="Album"
-                    addButtonText="Add album"
+                    itemLabel="Gallery item"
+                    addButtonText="Add gallery item"
                     defaultAddPayload={normalizeItem({})}
                     reorderMovedIndex={reorderMovedIndex}
                     reorderDirection={reorderDirection}
@@ -351,7 +299,7 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "title"]} label="Album Title">
+                          <Form.Item {...restField} name={[name, "title"]} label="Item Title">
                             <Input placeholder="e.g. Annual Function 2024" size="large" />
                           </Form.Item>
                         </Col>
@@ -359,23 +307,17 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                           <Form.Item
                             {...restField}
                             name={[name, "imageDesktop"]}
-                            label="Desktop Cover Image"
+                            label="Cover Image"
                             validateTrigger={["onChange", "onBlur"]}
                             rules={[
                               { required: true, message: "Cover image is required" },
-                              { validator: validatePhotoGalleryCoverImageDimensions },
                             ]}
                           >
                             <MediaPickerInput
                               placeholder="/uploads/album-cover.webp"
                               uiVariant="stacked"
-                              hintText={`Required size: ${REQUIRED_COVER_IMAGE_TEXT} px`}
+                              hintText="Recommended: landscape, 4:3 ratio"
                             />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "categories"]} label="Categories">
-                            <Select mode="multiple" placeholder="Select categories" size="large" options={categoryOptions} />
                           </Form.Item>
                         </Col>
                         <Form.Item noStyle shouldUpdate={(prev, curr) => prev?.photoGalleryItems?.[name]?.type !== curr?.photoGalleryItems?.[name]?.type}>
@@ -424,6 +366,7 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                                                 uiVariant="stacked"
                                               />
                                             </Form.Item>
+                                            <Form.Item {...imgRest} name={[imgName, "alt"]} label="Alt text" style={{ marginTop: 10, marginBottom: 0 }}><Input /></Form.Item>
                                             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
                                               <Button
                                                 type="text"
@@ -439,7 +382,7 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                                             type="primary"
                                             shape="circle"
                                             icon={<PlusOutlined />}
-                                            onClick={() => addImg({ urlDesktop: "", url: "" })}
+                                            onClick={() => addImg({ urlDesktop: "", url: "", alt: "" })}
                                           />
                                         </div>
                                       </>

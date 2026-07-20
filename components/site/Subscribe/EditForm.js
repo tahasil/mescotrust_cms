@@ -30,6 +30,17 @@ function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage,
     const normalize = (data) => ({
       subscribeSubtitle: data?.subscribeSubtitle != null ? String(data.subscribeSubtitle).trim() : "",
       subscribeTitle: data?.subscribeTitle != null ? String(data.subscribeTitle).trim() : "",
+      subscribeHeadingAccent: String(data?.subscribeHeadingAccent ?? "").trim(),
+      subscribePrimaryButtonLabel: String(data?.subscribePrimaryButtonLabel ?? "").trim(),
+      subscribePrimaryButtonUrl: String(data?.subscribePrimaryButtonUrl ?? "").trim(),
+      subscribePrimaryButtonTarget: data?.subscribePrimaryButtonTarget === "_blank" ? "_blank" : "_self",
+      subscribeSecondaryButtonLabel: String(data?.subscribeSecondaryButtonLabel ?? "").trim(),
+      subscribeSecondaryButtonUrl: String(data?.subscribeSecondaryButtonUrl ?? "").trim(),
+      subscribeSecondaryButtonTarget: data?.subscribeSecondaryButtonTarget === "_blank" ? "_blank" : "_self",
+      subscribeFillStart: String(data?.subscribeFillStart ?? "top 85%").trim(),
+      subscribeFillEnd: String(data?.subscribeFillEnd ?? "top 30%").trim(),
+      subscribeFillScrub: data?.subscribeFillScrub ?? 1,
+      ...Object.fromEntries(["subscribeAccentColorKey","subscribeOutlineColorKey","subscribePrimaryButtonBgColorKey","subscribePrimaryButtonTextColorKey","subscribeSecondaryButtonBgColorKey","subscribeSecondaryButtonTextColorKey","subscribeInputBorderColorKey","subscribeInputBgColorKey","subscribeInputTextColorKey","subscribeFocusColorKey","subscribeErrorColorKey"].map((key)=>[key,String(data?.[key]??"").trim()])),
       subscribePlaceholder: data?.subscribePlaceholder != null ? String(data.subscribePlaceholder).trim() : "",
       subscribeButtonText: data?.subscribeButtonText != null ? String(data.subscribeButtonText).trim() : "",
       subscribeBgDesktop:
@@ -104,6 +115,17 @@ function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage,
       const payload = {
         subscribeSubtitle: String(values.subscribeSubtitle ?? "").trim(),
         subscribeTitle: String(values.subscribeTitle ?? "").trim(),
+        subscribeHeadingAccent: String(values.subscribeHeadingAccent ?? "").trim(),
+        subscribePrimaryButtonLabel: String(values.subscribePrimaryButtonLabel ?? "").trim(),
+        subscribePrimaryButtonUrl: String(values.subscribePrimaryButtonUrl ?? "").trim(),
+        subscribePrimaryButtonTarget: values.subscribePrimaryButtonTarget === "_blank" ? "_blank" : "_self",
+        subscribeSecondaryButtonLabel: String(values.subscribeSecondaryButtonLabel ?? "").trim(),
+        subscribeSecondaryButtonUrl: String(values.subscribeSecondaryButtonUrl ?? "").trim(),
+        subscribeSecondaryButtonTarget: values.subscribeSecondaryButtonTarget === "_blank" ? "_blank" : "_self",
+        subscribeFillStart: String(values.subscribeFillStart ?? "").trim(),
+        subscribeFillEnd: String(values.subscribeFillEnd ?? "").trim(),
+        subscribeFillScrub: Number(values.subscribeFillScrub ?? 1),
+        ...Object.fromEntries(["subscribeAccentColorKey","subscribeOutlineColorKey","subscribePrimaryButtonBgColorKey","subscribePrimaryButtonTextColorKey","subscribeSecondaryButtonBgColorKey","subscribeSecondaryButtonTextColorKey","subscribeInputBorderColorKey","subscribeInputBgColorKey","subscribeInputTextColorKey","subscribeFocusColorKey","subscribeErrorColorKey"].map((key)=>[key,String(values?.[key]??"").trim()])),
         subscribePlaceholder: String(values.subscribePlaceholder ?? "").trim(),
         subscribeButtonText: String(values.subscribeButtonText ?? "").trim(),
         subscribeBgDesktop:
@@ -188,6 +210,14 @@ function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage,
             children: (
               <Row gutter={[16, 12]}>
                 <Col span={24}>
+                  <Form.Item name="subscribePrimaryButtonLabel" label="Primary button label"><Input size="large" /></Form.Item>
+                </Col>
+                <Col span={16}><Form.Item name="subscribePrimaryButtonUrl" label="Primary button URL"><Input size="large" /></Form.Item></Col>
+                <Col span={8}><Form.Item name="subscribePrimaryButtonTarget" label="Target"><Select options={[{label:"_self",value:"_self"},{label:"_blank",value:"_blank"}]} /></Form.Item></Col>
+                <Col span={24}><Form.Item name="subscribeSecondaryButtonLabel" label="Secondary button label"><Input size="large" /></Form.Item></Col>
+                <Col span={16}><Form.Item name="subscribeSecondaryButtonUrl" label="Secondary button URL"><Input size="large" /></Form.Item></Col>
+                <Col span={8}><Form.Item name="subscribeSecondaryButtonTarget" label="Target"><Select options={[{label:"_self",value:"_self"},{label:"_blank",value:"_blank"}]} /></Form.Item></Col>
+                <Col span={24}>
                   <Form.Item name="subscribePlaceholder" label="Email placeholder">
                     <Input placeholder="e.g. Enter email address" size="large" />
                   </Form.Item>
@@ -217,6 +247,11 @@ function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage,
                 </Col>
               </Row>
             ),
+          },
+          {
+            key: "animation",
+            label: "Headline Animation",
+            children: <><Form.Item name="subscribeFillStart" label="Start trigger"><Input placeholder="top 85%" /></Form.Item><Form.Item name="subscribeFillEnd" label="End trigger"><Input placeholder="top 30%" /></Form.Item><Form.Item name="subscribeFillScrub" label="Scrub smoothing"><Input type="number" min="0" step="0.1" /></Form.Item></>,
           },
         ]}
       />

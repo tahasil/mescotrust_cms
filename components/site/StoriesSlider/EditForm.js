@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, InputNumber, Row, Col, Collapse, List, Switch, Tooltip, message, Spin, Card } from "antd";
+import { Form, Input, InputNumber, Row, Col, Collapse, List, Select, Switch, Tooltip, message, Spin, Card } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
@@ -12,81 +12,23 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/StoriesSlider";
 const PREFIX = "storiesSlider";
-const REQUIRED_STORY_IMAGE_WIDTH = 400;
-const REQUIRED_STORY_IMAGE_HEIGHT = 400;
-const REQUIRED_STORY_IMAGE_TEXT =
-  `${REQUIRED_STORY_IMAGE_WIDTH} \u00D7 ${REQUIRED_STORY_IMAGE_HEIGHT} px`;
+const DEFAULT_ITEMS = [];
 
-const DEFAULT_ITEMS = [
-  {
-    quote: "For me, MESCO is a god sent help, they have helped me financially from the very moment I have been a part of the organization.",
-    name: "Ms. Acharya Priyanka Vasudev",
-    role: "Trainer Coach, Epicenter Technologies Ltd.",
-    image: "",
-  },
-  {
-    quote: "MESCO has been instrumental in shaping my career and providing the support I needed during my academic years.",
-    name: "Mr. Ahmed Khan",
-    role: "Software Engineer",
-    image: "",
-  },
-];
-
-function normalizeItem(it) {
+function normalizeItem(it, index = 0) {
   return {
+    indexLabel: it?.indexLabel != null ? String(it.indexLabel).trim() : "",
+    category: it?.category != null ? String(it.category).trim() : "",
     quote: it?.quote != null ? String(it.quote).trim() : "",
     name: it?.name != null ? String(it.name).trim() : "",
     role: it?.role != null ? String(it.role).trim() : "",
     image: it?.image != null ? String(it.image).trim() : "",
     mobileImage: it?.mobileImage != null ? String(it.mobileImage).trim() : "",
+    imageAlt: it?.imageAlt != null ? String(it.imageAlt).trim() : "",
+    panelStyle: ["default", "ink", "tint"].includes(it?.panelStyle) ? it.panelStyle : index % 4 === 1 ? "ink" : index % 4 === 3 ? "tint" : "default",
+    link: it?.link != null ? String(it.link).trim() : "",
+    target: it?.target === "_blank" ? "_blank" : "_self",
   };
 }
-
-function getImageDimensions(imageUrl) {
-  return new Promise((resolve, reject) => {
-    const image = new window.Image();
-    image.onload = () =>
-      resolve({
-        width: Number(image.naturalWidth) || 0,
-        height: Number(image.naturalHeight) || 0,
-      });
-    image.onerror = () => reject(new Error("Failed to load image"));
-    image.src = imageUrl;
-  });
-}
-
-function createStoryImageDimensionValidator(fieldLabel) {
-  return async (_, value) => {
-    const imageUrl = String(value || "").trim();
-    if (!imageUrl) return Promise.resolve();
-
-    try {
-      const { width, height } = await getImageDimensions(imageUrl);
-      if (
-        width === REQUIRED_STORY_IMAGE_WIDTH &&
-        height === REQUIRED_STORY_IMAGE_HEIGHT
-      ) {
-        return Promise.resolve();
-      }
-      return Promise.reject(
-        new Error(
-          `${fieldLabel} size must be exactly ${REQUIRED_STORY_IMAGE_TEXT}. Selected: ${width} \u00D7 ${height} px.`,
-        ),
-      );
-    } catch {
-      return Promise.reject(
-        new Error(
-          `${fieldLabel} size must be exactly ${REQUIRED_STORY_IMAGE_TEXT}.`,
-        ),
-      );
-    }
-  };
-}
-
-const validateStoryDesktopImageDimensions =
-  createStoryImageDimensionValidator("Desktop image");
-const validateStoryMobileImageDimensions =
-  createStoryImageDimensionValidator("Mobile image");
 
 function StoriesSliderEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [] }, ref) {
   const [form] = Form.useForm();
@@ -116,6 +58,24 @@ function StoriesSliderEditForm({ source, initialData: initialDataProp, onSaveToP
         storiesSliderTitleEnabled: data?.storiesSliderTitleEnabled !== false,
         storiesSliderSubTitleEnabled: data?.storiesSliderSubTitleEnabled !== false,
         storiesSliderSubTitleColorKey: data?.storiesSliderSubTitleColorKey != null ? String(data.storiesSliderSubTitleColorKey).trim() : "",
+        storiesSliderHeadingAccent: data?.storiesSliderHeadingAccent != null ? String(data.storiesSliderHeadingAccent).trim() : "",
+        storiesSliderViewAllLabel: data?.storiesSliderViewAllLabel != null ? String(data.storiesSliderViewAllLabel).trim() : "",
+        storiesSliderViewAllUrl: data?.storiesSliderViewAllUrl != null ? String(data.storiesSliderViewAllUrl).trim() : "",
+        storiesSliderViewAllTarget: data?.storiesSliderViewAllTarget === "_blank" ? "_blank" : "_self",
+        storiesSliderPreviousLabel: data?.storiesSliderPreviousLabel != null ? String(data.storiesSliderPreviousLabel).trim() : "Previous story",
+        storiesSliderNextLabel: data?.storiesSliderNextLabel != null ? String(data.storiesSliderNextLabel).trim() : "Next story",
+        storiesSliderRevealEnabled: data?.storiesSliderRevealEnabled !== false,
+        storiesSliderRevealStart: data?.storiesSliderRevealStart || "top 86%",
+        storiesSliderRevealDuration: data?.storiesSliderRevealDuration ?? 0.9,
+        storiesSliderRevealStagger: data?.storiesSliderRevealStagger ?? 0.08,
+        storiesSliderRevealDistance: data?.storiesSliderRevealDistance ?? 30,
+        ...Object.fromEntries([
+          "storiesSliderHeadingAccentColorKey", "storiesSliderLinkColorKey", "storiesSliderCardBgColorKey",
+          "storiesSliderTintCardBgColorKey", "storiesSliderInkCardBgColorKey", "storiesSliderInkCardTextColorKey",
+          "storiesSliderIndexColorKey", "storiesSliderBorderColorKey", "storiesSliderInkIndexColorKey",
+          "storiesSliderInkRoleColorKey", "storiesSliderButtonBgColorKey", "storiesSliderButtonHoverBgColorKey",
+          "storiesSliderButtonHoverIconColorKey",
+        ].map((key) => [key, String(data?.[key] ?? "").trim()])),
         storiesSliderNameColorKey: data?.storiesSliderNameColorKey != null ? String(data.storiesSliderNameColorKey).trim() : "",
         storiesSliderRoleColorKey: data?.storiesSliderRoleColorKey != null ? String(data.storiesSliderRoleColorKey).trim() : "",
         storiesSliderQuoteColorKey: data?.storiesSliderQuoteColorKey != null ? String(data.storiesSliderQuoteColorKey).trim() : "",
@@ -174,6 +134,24 @@ function StoriesSliderEditForm({ source, initialData: initialDataProp, onSaveToP
         storiesSliderTitleEnabled: values.storiesSliderTitleEnabled !== false,
         storiesSliderSubTitleEnabled: values.storiesSliderSubTitleEnabled !== false,
         storiesSliderSubTitleColorKey: values.storiesSliderSubTitleColorKey != null ? String(values.storiesSliderSubTitleColorKey).trim() : "",
+        storiesSliderHeadingAccent: String(values.storiesSliderHeadingAccent ?? "").trim(),
+        storiesSliderViewAllLabel: String(values.storiesSliderViewAllLabel ?? "").trim(),
+        storiesSliderViewAllUrl: String(values.storiesSliderViewAllUrl ?? "").trim(),
+        storiesSliderViewAllTarget: values.storiesSliderViewAllTarget === "_blank" ? "_blank" : "_self",
+        storiesSliderPreviousLabel: String(values.storiesSliderPreviousLabel ?? "").trim(),
+        storiesSliderNextLabel: String(values.storiesSliderNextLabel ?? "").trim(),
+        storiesSliderRevealEnabled: values.storiesSliderRevealEnabled !== false,
+        storiesSliderRevealStart: String(values.storiesSliderRevealStart || "top 86%").trim(),
+        storiesSliderRevealDuration: Number(values.storiesSliderRevealDuration ?? 0.9),
+        storiesSliderRevealStagger: Number(values.storiesSliderRevealStagger ?? 0.08),
+        storiesSliderRevealDistance: Number(values.storiesSliderRevealDistance ?? 30),
+        ...Object.fromEntries([
+          "storiesSliderHeadingAccentColorKey", "storiesSliderLinkColorKey", "storiesSliderCardBgColorKey",
+          "storiesSliderTintCardBgColorKey", "storiesSliderInkCardBgColorKey", "storiesSliderInkCardTextColorKey",
+          "storiesSliderIndexColorKey", "storiesSliderBorderColorKey", "storiesSliderInkIndexColorKey",
+          "storiesSliderInkRoleColorKey", "storiesSliderButtonBgColorKey", "storiesSliderButtonHoverBgColorKey",
+          "storiesSliderButtonHoverIconColorKey",
+        ].map((key) => [key, String(values?.[key] ?? "").trim()])),
         storiesSliderNameColorKey: values.storiesSliderNameColorKey != null ? String(values.storiesSliderNameColorKey).trim() : "",
         storiesSliderRoleColorKey: values.storiesSliderRoleColorKey != null ? String(values.storiesSliderRoleColorKey).trim() : "",
         storiesSliderQuoteColorKey: values.storiesSliderQuoteColorKey != null ? String(values.storiesSliderQuoteColorKey).trim() : "",
@@ -288,6 +266,21 @@ function StoriesSliderEditForm({ source, initialData: initialDataProp, onSaveToP
             ),
           },
           {
+            key: "links-animation",
+            label: "Links & Animation",
+            children: (
+              <>
+                <Form.Item name="storiesSliderViewAllLabel" label="View all label"><Input /></Form.Item>
+                <Form.Item name="storiesSliderViewAllUrl" label="View all URL"><Input /></Form.Item>
+                <Form.Item name="storiesSliderViewAllTarget" label="View all target"><Select options={[{ label: "Same Tab (_self)", value: "_self" }, { label: "New Tab (_blank)", value: "_blank" }]} /></Form.Item>
+                <Row gutter={16}><Col span={12}><Form.Item name="storiesSliderPreviousLabel" label="Previous aria label"><Input /></Form.Item></Col><Col span={12}><Form.Item name="storiesSliderNextLabel" label="Next aria label"><Input /></Form.Item></Col></Row>
+                <Form.Item name="storiesSliderRevealEnabled" label="Reveal on scroll" valuePropName="checked"><Switch /></Form.Item>
+                <Form.Item name="storiesSliderRevealStart" label="Reveal trigger"><Input placeholder="top 86%" /></Form.Item>
+                <Row gutter={16}><Col span={8}><Form.Item name="storiesSliderRevealDuration" label="Duration s"><InputNumber min={0} step={0.05} style={{ width: "100%" }} /></Form.Item></Col><Col span={8}><Form.Item name="storiesSliderRevealStagger" label="Stagger s"><InputNumber min={0} step={0.01} style={{ width: "100%" }} /></Form.Item></Col><Col span={8}><Form.Item name="storiesSliderRevealDistance" label="Distance px"><InputNumber min={0} style={{ width: "100%" }} /></Form.Item></Col></Row>
+              </>
+            ),
+          },
+          {
             key: "items",
             label: "Manage Stories",
             children: (
@@ -306,6 +299,12 @@ function StoriesSliderEditForm({ source, initialData: initialDataProp, onSaveToP
                       role: "",
                       image: "",
                       mobileImage: "",
+                      indexLabel: "",
+                      category: "",
+                      imageAlt: "",
+                      panelStyle: "default",
+                      link: "",
+                      target: "_self",
                     }}
                     reorderMovedIndex={reorderMovedIndex}
                     reorderDirection={reorderDirection}
@@ -316,6 +315,8 @@ function StoriesSliderEditForm({ source, initialData: initialDataProp, onSaveToP
                     }}
                     renderItemContent={(name, restField) => (
                       <Row gutter={[16, 16]}>
+                        <Col span={12}><Form.Item {...restField} name={[name, "indexLabel"]} label="Index"><Input placeholder="01" /></Form.Item></Col>
+                        <Col span={12}><Form.Item {...restField} name={[name, "category"]} label="Category"><Input placeholder="Medical Aid" /></Form.Item></Col>
                         <Col span={24}>
                           <Form.Item
                             {...restField}
@@ -347,13 +348,12 @@ function StoriesSliderEditForm({ source, initialData: initialDataProp, onSaveToP
                               {...restField}
                               name={[name, "image"]}
                               validateTrigger={["onChange", "onBlur"]}
-                              rules={[{ validator: validateStoryDesktopImageDimensions }]}
                               style={{ marginBottom: 0 }}
                             >
                               <MediaPickerInput
                                 placeholder="/uploads/story-desktop.webp"
                                 uiVariant="stacked"
-                                hintText={`Required size: ${REQUIRED_STORY_IMAGE_TEXT}`}
+                                hintText="Recommended: landscape, 4:3 ratio"
                               />
                             </Form.Item>
                           </Card>
@@ -364,17 +364,20 @@ function StoriesSliderEditForm({ source, initialData: initialDataProp, onSaveToP
                               {...restField}
                               name={[name, "mobileImage"]}
                               validateTrigger={["onChange", "onBlur"]}
-                              rules={[{ validator: validateStoryMobileImageDimensions }]}
                               style={{ marginBottom: 0 }}
                             >
                               <MediaPickerInput
                                 placeholder="/uploads/story-mobile.webp"
                                 uiVariant="stacked"
-                                hintText={`Optional. Required size: ${REQUIRED_STORY_IMAGE_TEXT}`}
+                                hintText="Optional mobile override"
                               />
                             </Form.Item>
                           </Card>
                         </Col>
+                        <Col span={12}><Form.Item {...restField} name={[name, "imageAlt"]} label="Image alt text"><Input /></Form.Item></Col>
+                        <Col span={12}><Form.Item {...restField} name={[name, "panelStyle"]} label="Panel style"><Select options={[{ label: "Standard", value: "default" }, { label: "Dark", value: "ink" }, { label: "Tinted", value: "tint" }]} /></Form.Item></Col>
+                        <Col span={16}><Form.Item {...restField} name={[name, "link"]} label="Story URL"><Input /></Form.Item></Col>
+                        <Col span={8}><Form.Item {...restField} name={[name, "target"]} label="Target"><Select options={[{ label: "_self", value: "_self" }, { label: "_blank", value: "_blank" }]} /></Form.Item></Col>
                       </Row>
                     )}
                   />
