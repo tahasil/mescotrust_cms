@@ -219,6 +219,7 @@ const WorksWrapper = styled.div`
     .worksTrack {
       width: 100%;
       max-width: 100%;
+      margin-left: 0;
       overflow-x: auto;
       padding-bottom: 12px;
       scroll-snap-type: x mandatory;

@@ -13,10 +13,10 @@ const API_PATH = "/api/theme/OverviewOfOurWork";
 const PREFIX = "overviewOfOurWork";
 const LEGACY_BG_IMAGE_WIDTH = 580;
 const LEGACY_BG_IMAGE_HEIGHT = 704;
-const MIN_BG_IMAGE_WIDTH = 700;
-const MIN_BG_IMAGE_HEIGHT = 525;
+const REQUIRED_BG_IMAGE_WIDTH = 700;
+const REQUIRED_BG_IMAGE_HEIGHT = 550;
 const BG_IMAGE_SIZE_TEXT =
-  `landscape, minimum ${MIN_BG_IMAGE_WIDTH} \u00D7 ${MIN_BG_IMAGE_HEIGHT} px`;
+  `${REQUIRED_BG_IMAGE_WIDTH} X ${REQUIRED_BG_IMAGE_HEIGHT} px`;
 const LEGACY_ICON_IMAGE_WIDTH = 48;
 const LEGACY_ICON_IMAGE_HEIGHT = 48;
 const MIN_ICON_IMAGE_WIDTH = 120;
@@ -45,11 +45,10 @@ async function validateOverviewBackgroundImageDimensions(_, value) {
     const { width, height } = await getImageDimensions(imageUrl);
     const isLegacySize =
       width === LEGACY_BG_IMAGE_WIDTH && height === LEGACY_BG_IMAGE_HEIGHT;
-    const isSupportedLandscape =
-      width >= MIN_BG_IMAGE_WIDTH &&
-      height >= MIN_BG_IMAGE_HEIGHT &&
-      width >= height;
-    if (isLegacySize || isSupportedLandscape) {
+    const isRequiredSize =
+      width === REQUIRED_BG_IMAGE_WIDTH &&
+      height === REQUIRED_BG_IMAGE_HEIGHT;
+    if (isLegacySize || isRequiredSize) {
       return Promise.resolve();
     }
     return Promise.reject(
@@ -531,7 +530,7 @@ function OverviewOfOurWorkEditForm(
                               <MediaPickerInput
                                 placeholder="https://... or /images/..."
                                 uiVariant="stacked"
-                                hintText={`Recommended: ${BG_IMAGE_SIZE_TEXT}`}
+                                hintText={`Required size: ${BG_IMAGE_SIZE_TEXT}`}
                               />
                             </Form.Item>
                           </Col>
