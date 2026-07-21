@@ -14,7 +14,7 @@ The public site shell is a separate concern: Admin → Appearance stores its Hea
 | **Marquee**   | `components` | GET/PUT `/api/theme/marquee`    |
 | **HomeHero**  | `components` | GET/PUT `/api/theme/home-hero`  |
 
-- **Subscribe**: `baseComponent: "Subscribe"`; `defaultProps` stores the finale heading/accent, two CTA links and targets, newsletter label/input/button text, and semantic theme-color keys. Background images are not part of this component.
+- **Subscribe**: `baseComponent: "Subscribe"`; `defaultProps` stores the finale heading/accent, two CTA links and targets, newsletter label/input/button text, semantic theme-color keys, and the standard shared Manage Section settings. There are no separate Subscribe-specific background-image fields.
 - **Header**: `baseComponent: "Header"`, `defaultProps: { logoType, logoLightUrl, headerVolunteerLabel, ... }`.
 - **Footer**: `baseComponent: "Footer"`, `defaultProps: { footerLogoUrl, footerAddress, footerCol1Links, ... }`.
 - **Marquee**: `baseComponent: "Marquee"`, `defaultProps: { marqueeTitle, marqueeItems }`.

@@ -22,7 +22,6 @@ const SUBSCRIBE_VALUES_FROM_MESCOTRUST = {
   subscribeSecondaryButtonTarget: "_self",
   subscribePlaceholder: "you@example.com",
   subscribeButtonText: "Subscribe",
-  subscribeSectionBgColorKey: "cream",
   subscribeTitleColorKey: "black",
   subscribeAccentColorKey: "primary",
   subscribeOutlineColorKey: "blackLight",

@@ -385,7 +385,7 @@ Single-document (or keyed) theme; typically queried by `themeKey: "default"`.
 - **Footer:** `footerLogoUrl`, address/email/phone, column links, `footerBgColorKey`, `footerBackgroundImageUrl`, `footerTextColorKey`, `footerCopyrightBarColorKey`, `footerColumnsCount`, `footerLayoutStyle`, `footerSocialIcons`
 - **Hero/Hero banner:** `heroBanner*`, `homeHeroSlides[]` (bgImageUrl, title, description, buttonText, buttonLink, showButton), `homeHeroSlider*`, `homeHeroBackgroundContainer`, `homeHeroContentContainer`
 - **Marquee:** `marqueeTitle`, `marqueeItems[]` (url, alt)
-- **Subscribe:** finale heading/accent, primary and secondary CTA links/targets, newsletter label/input/button text, and semantic theme-color keys. The new design does not accept a background image.
+- **Subscribe:** finale heading/accent, primary and secondary CTA links/targets, newsletter label/input/button text, semantic theme-color keys, and standard shared Manage Section settings. No separate Subscribe-specific background-image fields are used.
 - **Buttons:** `buttonBackground`, `buttonTextColor`, `buttonHoverBackground`, `buttonHoverTextColor`, `buttonPadding`
 - **Component styles:** `cardStyle`, `alertStyle`, `badgeStyle`, `tableStyle`, `formStyle`, `inputStyle` (enum values)
 - **Responsive:** `mobileFontSize`, `mobileSectionSpacing`, `hideSectionOnMobile`

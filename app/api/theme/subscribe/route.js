@@ -23,7 +23,6 @@ const SUBSCRIBE_DEFAULTS = {
   subscribeSecondaryButtonTarget: "_self",
   subscribePlaceholder: "you@example.com",
   subscribeButtonText: "Subscribe",
-  subscribeSectionBgColorKey: "cream",
   subscribeSubtitleColorKey: "blackLight",
   subscribeTitleColorKey: "black",
   subscribeButtonBgColorKey: "dark",
@@ -63,6 +62,23 @@ const SUBSCRIBE_DEFAULTS = {
 
 const LEGACY_SUBSCRIBE_TITLE =
   "To get weekly & monthly news, Subscribe to our newsletter.";
+const SUBSCRIBE_DESIGN_COLOR_KEYS = [
+  "subscribeSubtitleColorKey",
+  "subscribeTitleColorKey",
+  "subscribeButtonBgColorKey",
+  "subscribeButtonTextColorKey",
+  "subscribeAccentColorKey",
+  "subscribeOutlineColorKey",
+  "subscribePrimaryButtonBgColorKey",
+  "subscribePrimaryButtonTextColorKey",
+  "subscribeSecondaryButtonBgColorKey",
+  "subscribeSecondaryButtonTextColorKey",
+  "subscribeInputBorderColorKey",
+  "subscribeInputBgColorKey",
+  "subscribeInputTextColorKey",
+  "subscribeFocusColorKey",
+  "subscribeErrorColorKey",
+];
 
 function normalizeSubscribeProps(input) {
   const payload = input && typeof input === "object" ? input : {};
@@ -91,10 +107,8 @@ function normalizeSubscribeProps(input) {
     out.subscribeSecondaryButtonLabel = SUBSCRIBE_DEFAULTS.subscribeSecondaryButtonLabel;
     out.subscribeSecondaryButtonUrl = SUBSCRIBE_DEFAULTS.subscribeSecondaryButtonUrl;
     out.subscribePlaceholder = SUBSCRIBE_DEFAULTS.subscribePlaceholder;
-    for (const key of Object.keys(SUBSCRIBE_DEFAULTS)) {
-      if (key.endsWith("ColorKey")) {
-        out[key] = SUBSCRIBE_DEFAULTS[key];
-      }
+    for (const key of SUBSCRIBE_DESIGN_COLOR_KEYS) {
+      out[key] = SUBSCRIBE_DEFAULTS[key];
     }
   }
   out.subscribePrimaryButtonTarget =

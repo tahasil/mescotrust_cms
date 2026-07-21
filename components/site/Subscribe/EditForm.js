@@ -8,7 +8,6 @@ import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/ma
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const SUBSCRIBE_COLOR_FIELDS = [
-  "subscribeSectionBgColorKey",
   "subscribeTitleColorKey",
   "subscribeAccentColorKey",
   "subscribeOutlineColorKey",
@@ -26,7 +25,6 @@ const SUBSCRIBE_COLOR_FIELDS = [
   "subscribeErrorColorKey",
 ];
 const SUBSCRIBE_DEFAULT_COLORS = {
-  subscribeSectionBgColorKey: "cream",
   subscribeTitleColorKey: "black",
   subscribeAccentColorKey: "primary",
   subscribeOutlineColorKey: "blackLight",
