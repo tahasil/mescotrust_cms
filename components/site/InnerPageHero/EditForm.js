@@ -63,6 +63,14 @@ function InnerPageHeroEditForm(
         description: data?.description != null ? String(data.description).trim() : "",
         titleColorKey:
           data?.titleColorKey != null ? String(data.titleColorKey).trim() : "",
+        innerPageHeroAccentColorKey:
+          data?.innerPageHeroAccentColorKey != null
+            ? String(data.innerPageHeroAccentColorKey).trim()
+            : "Primary Soft",
+        innerPageHeroGlowColorKey:
+          data?.innerPageHeroGlowColorKey != null
+            ? String(data.innerPageHeroGlowColorKey).trim()
+            : "Primary",
         innerPageHeroDescriptionColorKey:
           data?.innerPageHeroDescriptionColorKey != null
             ? String(data.innerPageHeroDescriptionColorKey).trim()
@@ -141,6 +149,14 @@ function InnerPageHeroEditForm(
         titleColorKey:
           values.titleColorKey != null
             ? String(values.titleColorKey).trim()
+            : "",
+        innerPageHeroAccentColorKey:
+          values.innerPageHeroAccentColorKey != null
+            ? String(values.innerPageHeroAccentColorKey).trim()
+            : "",
+        innerPageHeroGlowColorKey:
+          values.innerPageHeroGlowColorKey != null
+            ? String(values.innerPageHeroGlowColorKey).trim()
             : "",
         innerPageHeroDescriptionColorKey:
           values.innerPageHeroDescriptionColorKey != null

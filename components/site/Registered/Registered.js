@@ -1,6 +1,5 @@
 "use client";
 
-import { BankOutlined, FileDoneOutlined, FileTextOutlined, GlobalOutlined } from "@ant-design/icons";
 import {
   FullWidthBackground,
   getColor,
@@ -10,6 +9,12 @@ import {
 function normalizeItem(it) {
   return {
     text: it?.text != null ? String(it.text).trim() : "",
+    iconUrl:
+      it?.iconUrl != null
+        ? String(it.iconUrl).trim()
+        : it?.icon != null
+          ? String(it.icon).trim()
+          : "",
   };
 }
 
@@ -49,7 +54,6 @@ export default function Registered(props) {
   const cardText = cardTextKey ? getColor(cardTextKey) : undefined;
   const iconColorKey = (props?.registeredIconColorKey ?? "").toString().trim();
   const iconColor = iconColorKey ? getColor(iconColorKey) : undefined;
-  const icons = [FileTextOutlined, BankOutlined, FileDoneOutlined, GlobalOutlined];
 
   const rawItems = props?.registeredItems;
   const items =
@@ -125,9 +129,15 @@ export default function Registered(props) {
           <div className="fable-badges">
           {items.map((item, index) => (
             <div className="fable-badge" style={cardBg ? { background: cardBg } : undefined} key={`${item.text}-${index}`}>
-                <span className="fable-badge__icon" style={iconColor ? { color: iconColor } : undefined} aria-hidden="true">
-                  {(() => { const Icon = icons[index % icons.length]; return <Icon />; })()}
-                </span>
+                {item.iconUrl ? (
+                  <span
+                    className="fable-badge__icon"
+                    style={iconColor ? { color: iconColor } : undefined}
+                    aria-hidden="true"
+                  >
+                    <img src={item.iconUrl} alt="" loading="lazy" />
+                  </span>
+                ) : null}
                 <p style={cardText ? { color: cardText } : undefined}>
                   <RenderCardText text={item.text} />
                 </p>

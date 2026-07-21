@@ -5,6 +5,7 @@ import { Form, Input, Row, Col, Collapse, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -14,6 +15,12 @@ const PREFIX = "registered";
 function normalizeItem(it) {
   return {
     text: it?.text != null ? String(it.text).trim() : "",
+    iconUrl:
+      it?.iconUrl != null
+        ? String(it.iconUrl).trim()
+        : it?.icon != null
+          ? String(it.icon).trim()
+          : "",
   };
 }
 
@@ -165,11 +172,7 @@ function RegisteredEditForm({ source, initialData: initialDataProp, onSaveToPage
             key: "items",
             label: "Manage Items",
             children: (
-              <>
-                <p style={{ color: "#888", fontSize: 13, marginBottom: 16 }}>
-                  Wrap text in <b>*asterisks*</b> to highlight in primary color. e.g. <code>The Societies Registration Act, *1860.*</code>
-                </p>
-                <Form.List name="registeredItems">
+              <Form.List name="registeredItems">
                   {(fields, { add, remove, move }) => (
                     <SortableFormList
                       fields={fields}
@@ -191,6 +194,20 @@ function RegisteredEditForm({ source, initialData: initialDataProp, onSaveToPage
                           <Col span={24}>
                             <Form.Item
                               {...restField}
+                              name={[name, "iconUrl"]}
+                              label="Icon/Image"
+                            >
+                              <MediaPickerInput
+                                mediaType="image"
+                                uiVariant="stacked"
+                                allowManual={false}
+                                placeholder="Select an icon or image"
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}>
+                            <Form.Item
+                              {...restField}
                               name={[name, "text"]}
                               label="Text"
                               rules={[{ required: true, message: "Text is required" }]}
@@ -203,7 +220,6 @@ function RegisteredEditForm({ source, initialData: initialDataProp, onSaveToPage
                     />
                   )}
                 </Form.List>
-              </>
             ),
           },
         ]}
