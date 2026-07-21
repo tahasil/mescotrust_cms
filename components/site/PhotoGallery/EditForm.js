@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle, useMemo } from "react";
-import { Form, Input, InputNumber, Row, Col, Collapse, Select, Switch, Button, message, Spin } from "antd";
+import { Form, Input, InputNumber, Row, Col, Collapse, Select, Button, message, Spin } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
@@ -87,8 +87,6 @@ function applyFormValues(form, data) {
     photoGallerySecondDirection: data?.photoGallerySecondDirection ?? -1,
     photoGalleryVelocityBoost: data?.photoGalleryVelocityBoost ?? 0.8,
     photoGalleryImageRadius: data?.photoGalleryImageRadius ?? 18,
-    photoGalleryRevealEnabled: data?.photoGalleryRevealEnabled !== false,
-    photoGalleryRevealStart: String(data?.photoGalleryRevealStart ?? "top 86%").trim(),
     photoGalleryRevealDuration: data?.photoGalleryRevealDuration ?? 0.9,
     photoGalleryRevealDistance: data?.photoGalleryRevealDistance ?? 30,
     ...Object.fromEntries(["photoGallerySubTitleColorKey","photoGalleryTitleColorKey","photoGalleryAccentTextColorKey","photoGalleryLinkColorKey","photoGalleryTextColorKey"].map((key)=>[key,String(data?.[key]??"").trim()])),
@@ -183,8 +181,6 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
         photoGallerySecondDirection: Number(values.photoGallerySecondDirection ?? -1),
         photoGalleryVelocityBoost: Number(values.photoGalleryVelocityBoost ?? 0.8),
         photoGalleryImageRadius: Number(values.photoGalleryImageRadius ?? 18),
-        photoGalleryRevealEnabled: values.photoGalleryRevealEnabled !== false,
-        photoGalleryRevealStart: String(values.photoGalleryRevealStart ?? "").trim(),
         photoGalleryRevealDuration: Number(values.photoGalleryRevealDuration ?? 0.9),
         photoGalleryRevealDistance: Number(values.photoGalleryRevealDistance ?? 30),
         ...Object.fromEntries(["photoGallerySubTitleColorKey","photoGalleryTitleColorKey","photoGalleryAccentTextColorKey","photoGalleryLinkColorKey","photoGalleryTextColorKey"].map((key)=>[key,String(values?.[key]??"").trim()])),
@@ -258,8 +254,6 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                 <Row gutter={16}><Col span={12}><Form.Item name="photoGallerySpeed" label="Base speed (px/sec)"><InputNumber min={0} max={300} style={{width:"100%"}} /></Form.Item></Col><Col span={12}><Form.Item name="photoGalleryVelocityBoost" label="Scroll velocity boost"><InputNumber min={0} max={5} step={0.1} style={{width:"100%"}} /></Form.Item></Col></Row>
                 <Row gutter={16}><Col span={12}><Form.Item name="photoGalleryFirstDirection" label="First row direction"><Select options={[{label:"Left",value:1},{label:"Right",value:-1}]} /></Form.Item></Col><Col span={12}><Form.Item name="photoGallerySecondDirection" label="Second row direction"><Select options={[{label:"Left",value:1},{label:"Right",value:-1}]} /></Form.Item></Col></Row>
                 <Form.Item name="photoGalleryImageRadius" label="Image corner radius px"><InputNumber min={0} max={100} style={{width:"100%"}} /></Form.Item>
-                <Form.Item name="photoGalleryRevealEnabled" label="Reveal heading on scroll" valuePropName="checked"><Switch /></Form.Item>
-                <Form.Item name="photoGalleryRevealStart" label="Reveal trigger"><Input /></Form.Item>
                 <Row gutter={16}><Col span={12}><Form.Item name="photoGalleryRevealDuration" label="Reveal duration s"><InputNumber min={0} step={0.05} style={{width:"100%"}} /></Form.Item></Col><Col span={12}><Form.Item name="photoGalleryRevealDistance" label="Reveal distance px"><InputNumber min={0} style={{width:"100%"}} /></Form.Item></Col></Row>
               </>
             ),

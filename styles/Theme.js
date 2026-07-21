@@ -131,7 +131,6 @@ export const GlobalStyle = createGlobalStyle`
 `;
 export const PageContainer = styled.div`
   width: 90%;
-  max-width: var(--layout-width, 1400px);
   margin: 0 auto;
   position: relative;
   padding: 80px 0px;

@@ -128,10 +128,7 @@ function TestimonialsEditForm(
         testimonialsViewAllLabel: String(data?.testimonialsViewAllLabel ?? "").trim(),
         testimonialsViewAllUrl: String(data?.testimonialsViewAllUrl ?? "").trim(),
         testimonialsViewAllTarget: data?.testimonialsViewAllTarget === "_blank" ? "_blank" : "_self",
-        testimonialsDotsLabel: String(data?.testimonialsDotsLabel ?? "Choose testimonial").trim(),
-        testimonialsDotLabel: String(data?.testimonialsDotLabel ?? "Show testimonial").trim(),
         testimonialsRevealEnabled: data?.testimonialsRevealEnabled !== false,
-        testimonialsRevealStart: String(data?.testimonialsRevealStart ?? "top 86%").trim(),
         testimonialsRevealDuration: data?.testimonialsRevealDuration ?? 0.9,
         testimonialsRevealDistance: data?.testimonialsRevealDistance ?? 30,
         ...Object.fromEntries(["testimonialsQuoteMarkColorKey","testimonialsQuoteColorKey","testimonialsDotColorKey","testimonialsDotActiveColorKey","testimonialsLinkColorKey"].map((key)=>[key,String(data?.[key]??"").trim()])),
@@ -249,10 +246,7 @@ function TestimonialsEditForm(
         testimonialsViewAllLabel: String(values.testimonialsViewAllLabel ?? "").trim(),
         testimonialsViewAllUrl: String(values.testimonialsViewAllUrl ?? "").trim(),
         testimonialsViewAllTarget: values.testimonialsViewAllTarget === "_blank" ? "_blank" : "_self",
-        testimonialsDotsLabel: String(values.testimonialsDotsLabel ?? "").trim(),
-        testimonialsDotLabel: String(values.testimonialsDotLabel ?? "").trim(),
         testimonialsRevealEnabled: values.testimonialsRevealEnabled !== false,
-        testimonialsRevealStart: String(values.testimonialsRevealStart ?? "").trim(),
         testimonialsRevealDuration: Number(values.testimonialsRevealDuration ?? 0.9),
         testimonialsRevealDistance: Number(values.testimonialsRevealDistance ?? 30),
         ...Object.fromEntries(["testimonialsQuoteMarkColorKey","testimonialsQuoteColorKey","testimonialsDotColorKey","testimonialsDotActiveColorKey","testimonialsLinkColorKey"].map((key)=>[key,String(values?.[key]??"").trim()])),
@@ -505,7 +499,43 @@ function TestimonialsEditForm(
           {
             key: "link-accessibility",
             label: "Link & Accessibility",
-            children: <><Form.Item name="testimonialsViewAllLabel" label="View all label"><Input /></Form.Item><Form.Item name="testimonialsViewAllUrl" label="View all URL"><Input /></Form.Item><Form.Item name="testimonialsViewAllTarget" label="Target"><Select options={[{label:"Same Tab (_self)",value:"_self"},{label:"New Tab (_blank)",value:"_blank"}]} /></Form.Item><Row gutter={16}><Col span={12}><Form.Item name="testimonialsDotsLabel" label="Dots aria label"><Input /></Form.Item></Col><Col span={12}><Form.Item name="testimonialsDotLabel" label="Dot aria prefix"><Input /></Form.Item></Col></Row><Form.Item name="testimonialsRevealEnabled" label="Reveal on scroll" valuePropName="checked"><Switch /></Form.Item><Form.Item name="testimonialsRevealStart" label="Reveal trigger"><Input /></Form.Item><Row gutter={16}><Col span={12}><Form.Item name="testimonialsRevealDuration" label="Duration s"><InputNumber min={0} step={0.05} style={{width:"100%"}} /></Form.Item></Col><Col span={12}><Form.Item name="testimonialsRevealDistance" label="Distance px"><InputNumber min={0} style={{width:"100%"}} /></Form.Item></Col></Row></>,
+            children: (
+              <>
+                <Form.Item name="testimonialsViewAllLabel" label="View all label">
+                  <Input />
+                </Form.Item>
+                <Form.Item name="testimonialsViewAllUrl" label="View all URL">
+                  <Input />
+                </Form.Item>
+                <Form.Item name="testimonialsViewAllTarget" label="Target">
+                  <Select
+                    options={[
+                      { label: "Same Tab (_self)", value: "_self" },
+                      { label: "New Tab (_blank)", value: "_blank" },
+                    ]}
+                  />
+                </Form.Item>
+                <Form.Item
+                  name="testimonialsRevealEnabled"
+                  label="Reveal on scroll"
+                  valuePropName="checked"
+                >
+                  <Switch />
+                </Form.Item>
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item name="testimonialsRevealDuration" label="Duration s">
+                      <InputNumber min={0} step={0.05} style={{ width: "100%" }} />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item name="testimonialsRevealDistance" label="Distance px">
+                      <InputNumber min={0} style={{ width: "100%" }} />
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </>
+            ),
           },
           {
             key: "items",
