@@ -4,6 +4,7 @@ export { default as HomeHero } from "./HomeHero/HomeHero";
 export { default as HomeSlider } from "./HomeSlider/HomeSlider";
 export { default as Marquee } from "./Marquee/Marquee";
 export { default as Subscribe } from "./Subscribe/Subscribe";
+export { default as CTABanner } from "./CTABanner/CTABanner";
 export { default as Cards1 } from "./Cards1/Cards1";
 export { default as VolunteersFeedback } from "./VolunteersFeedback/VolunteersFeedback";
 export { default as Internshiplifecycle } from "./Internshiplifecycle/Internshiplifecycle";

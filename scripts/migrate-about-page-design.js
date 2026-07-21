@@ -20,6 +20,15 @@ const DEFAULT_MISSION_VISION = {
   missionVisionTextColorKey: "Black Light",
   _disableFadeAnimation: false,
 };
+const DEFAULT_CTA_BANNER = {
+  ctaBannerTitle: "Be someone's *tomorrow.*",
+  ctaBannerDonateText: "Donate Now",
+  ctaBannerDonateLink: "/donate-now",
+  ctaBannerDonateTarget: "_self",
+  ctaBannerVolunteerText: "Become a Volunteer",
+  ctaBannerVolunteerLink: "/about-us/volunteer",
+  ctaBannerVolunteerTarget: "_self",
+};
 
 function blockBy(layout, component) {
   return layout.find((block) => block.baseComponent === component);
@@ -50,7 +59,7 @@ async function main() {
     const aims = blockBy(layout, "AimsObjectives");
     const people = blockBy(layout, "Helpingpeople");
     const registered = blockBy(layout, "Registered");
-    const shortcode = blockBy(layout, "ShortCode");
+    const ctaBanner = blockBy(layout, "CTABanner");
     if (!hero || !impact || !aims || !people || !registered) {
       throw new Error("The About page is missing one or more expected source blocks");
     }
@@ -137,7 +146,7 @@ async function main() {
       pageBlock(aims, "AimsObjectives", 3, aimsProps),
       pageBlock(people, "Helpingpeople", 4, peopleProps),
       pageBlock(registered, "Registered", 5, registeredProps),
-      ...(shortcode ? [pageBlock(shortcode, "ShortCode", 6, shortcode.props)] : []),
+      pageBlock(ctaBanner, "CTABanner", 6, ctaBanner?.props || DEFAULT_CTA_BANNER),
     ];
 
     await pages.updateOne({ _id: page._id }, { $set: { layout: nextLayout, updatedAt: new Date() } });
@@ -150,9 +159,22 @@ async function main() {
       },
       { upsert: true },
     );
+    await components.updateOne(
+      { baseComponent: "CTABanner" },
+      {
+        $set: { name: "CTABanner", displayName: "CTA Banner", type: "custom", category: "content", active: true, updatedAt: new Date() },
+        $setOnInsert: { baseComponent: "CTABanner", defaultProps: DEFAULT_CTA_BANNER, propsSchema: [], layout: [], createdAt: new Date() },
+      },
+      { upsert: true },
+    );
     await db.collection("sitecomponentmetas").updateOne(
       { componentId: "MissionVision" },
       { $set: { displayName: "Mission & Vision", enabled: true, global: false, position: "after", updatedAt: new Date() }, $setOnInsert: { componentId: "MissionVision", createdAt: new Date() } },
+      { upsert: true },
+    );
+    await db.collection("sitecomponentmetas").updateOne(
+      { componentId: "CTABanner" },
+      { $set: { displayName: "CTA Banner", enabled: true, global: false, position: "after", updatedAt: new Date() }, $setOnInsert: { componentId: "CTABanner", createdAt: new Date() } },
       { upsert: true },
     );
     console.log(`Updated ${PAGE_SLUG}: ${nextLayout.map((block) => block.baseComponent).join(" > ")}`);
