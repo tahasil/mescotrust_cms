@@ -91,11 +91,11 @@ export default function InnerPageHero(props) {
         }
         .fable-page-hero > div { z-index: 1; }
         .fable-page-hero .fable-page-hero__content { padding-block: clamp(30px, 4vw, 53px); }
-        .fable-page-hero__crumb { margin-bottom: 22px; color: color-mix(in srgb, ${getColor("cream")} 52%, transparent); font-size: 13.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+        .fable-page-hero__crumb {opacity:0.8;  margin-bottom: 22px; color: color-mix(in srgb, ${getColor("cream")} 52%, transparent); font-size: 13.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
         .fable-page-hero__crumb a:hover { color: ${getColor("primarySoft")}; }
         .fable-page-hero__title { max-width: 16ch; margin: 0 0 20px; color: ${getColor("cream")}; font-family: var(--fable-display); font-size: clamp(40px, 6.4vw, 92px); font-weight: 630; letter-spacing: -.02em; line-height: 1.05; }
         .fable-page-hero__title em { color: ${getColor("primarySoft")}; font-style: normal; }
-        .fable-page-hero__description { max-width: 56ch; margin: 0; color: color-mix(in srgb, ${getColor("cream")} 76%, transparent); font-size: clamp(16px, 1.4vw, 19px); }
+        .fable-page-hero__description {opacity:0.8; max-width: 56ch; margin: 0; color: color-mix(in srgb, ${getColor("cream")} 76%, transparent); font-size: clamp(16px, 1.4vw, 19px); }
         @media (max-width: 767px) { .fable-page-hero { padding-top: 72px; } }
       `}</style>
     </InnerBanner>

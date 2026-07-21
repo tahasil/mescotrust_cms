@@ -72,7 +72,7 @@ async function main() {
       impactShowcaseBody2: "The approach has always been to uphold ethical values in delivering, and to be a channel from those who want to give to those who need it most. MESCO is trusted by individuals, families, foundations, charities and corporates in India and abroad.",
       impactShowcaseStatValue: "15,000+",
       impactShowcaseStatLabel: "families touched every year",
-      impactShowcaseImageDesktop: "https://mescotrust.org/assets/img/common/about.png",
+      impactShowcaseImageDesktop: "/media/6a5f69859579fedf145ba239?size=original&format=auto",
       impactShowcaseImageMobile: "",
       impactShowcaseImageAlt: "MESCO: helping people live a better tomorrow",
       impactShowcaseSubTitleColorKey: "Primary",

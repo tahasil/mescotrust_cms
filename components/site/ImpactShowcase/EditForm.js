@@ -8,6 +8,12 @@ import RichTextEditor from "@/components/admin/RichTextEditor";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
+import {
+  IMPACT_SHOWCASE_DESKTOP_ALLOWED_COMPACT_TEXT,
+  IMPACT_SHOWCASE_DESKTOP_ALLOWED_SIZES,
+  IMPACT_SHOWCASE_DESKTOP_REQUIRED_TEXT,
+  createDesktopImageDimensionValidator,
+} from "@/lib/helpingpeopleImageConfig";
 
 const API_PATH = "/api/theme/ImpactShowcase";
 const PREFIX = "impactShowcase";
@@ -27,6 +33,10 @@ const COLOR_FIELDS = [
 ];
 const CONTENT_FIELDS = Object.keys(FALLBACK);
 const clean = (value) => value == null ? "" : String(value).trim();
+const validateDesktopImageDimensions = createDesktopImageDimensionValidator({
+  allowedSizes: IMPACT_SHOWCASE_DESKTOP_ALLOWED_SIZES,
+  allowedCompactText: IMPACT_SHOWCASE_DESKTOP_ALLOWED_COMPACT_TEXT,
+});
 
 function ImpactShowcaseEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, themeColorOptions: suppliedColors = [] }, ref) {
   const [form] = Form.useForm();
@@ -105,7 +115,17 @@ function ImpactShowcaseEditForm({ source, initialData: initialDataProp, onSaveTo
           <Form.Item name="impactShowcaseBody2" label="Second paragraph"><RichTextEditor /></Form.Item>
           <Form.Item name="impactShowcaseStatValue" label="Statistic value"><Input /></Form.Item>
           <Form.Item name="impactShowcaseStatLabel" label="Statistic label"><Input /></Form.Item>
-          <Form.Item name="impactShowcaseImageDesktop" label="Desktop image"><MediaPickerInput uiVariant="stacked" /></Form.Item>
+          <Form.Item
+            name="impactShowcaseImageDesktop"
+            label="Desktop image"
+            validateTrigger={["onChange", "onBlur"]}
+            rules={[{ validator: validateDesktopImageDimensions }]}
+          >
+            <MediaPickerInput
+              uiVariant="stacked"
+              hintText={`Required size: ${IMPACT_SHOWCASE_DESKTOP_REQUIRED_TEXT}`}
+            />
+          </Form.Item>
           <Form.Item name="impactShowcaseImageMobile" label="Mobile image"><MediaPickerInput uiVariant="stacked" hintText="Optional. Desktop image is used when empty." /></Form.Item>
           <Form.Item name="impactShowcaseImageAlt" label="Image alt text"><Input /></Form.Item>
         </> },
