@@ -1,6 +1,6 @@
 "use client";
 
-import { TrademarkCircleOutlined } from "@ant-design/icons";
+import { BankOutlined, FileDoneOutlined, FileTextOutlined, GlobalOutlined } from "@ant-design/icons";
 import {
   FullWidthBackground,
   getColor,
@@ -37,9 +37,19 @@ const DEFAULT_ITEMS = [
  * Centered title + 2x2 grid of cards with trademark icon.
  */
 export default function Registered(props) {
-  const mainTitle = (props?.registeredMainTitle ?? "Registered Under").toString().trim();
-  const titleColorKey = (props?.registeredTitleColorKey ?? "").toString().trim();
+  const subTitle = (props?.registeredSubTitle ?? props?.registeredMainTitle ?? "Registered Under").toString().trim();
+  const mainTitle = (props?.registeredHeading ?? "Accountable, *by design.*").toString().trim();
+  const subTitleColorKey = (props?.registeredSubTitleColorKey ?? "").toString().trim();
+  const subTitleColor = subTitleColorKey ? getColor(subTitleColorKey) : getColor("primary");
+  const titleColorKey = (props?.registeredHeadingColorKey ?? props?.registeredTitleColorKey ?? "").toString().trim();
   const titleColor = titleColorKey ? getColor(titleColorKey) : undefined;
+  const cardBgKey = (props?.registeredCardBgColorKey ?? "").toString().trim();
+  const cardBg = cardBgKey ? getColor(cardBgKey) : undefined;
+  const cardTextKey = (props?.registeredCardTextColorKey ?? "").toString().trim();
+  const cardText = cardTextKey ? getColor(cardTextKey) : undefined;
+  const iconColorKey = (props?.registeredIconColorKey ?? "").toString().trim();
+  const iconColor = iconColorKey ? getColor(iconColorKey) : undefined;
+  const icons = [FileTextOutlined, BankOutlined, FileDoneOutlined, GlobalOutlined];
 
   const rawItems = props?.registeredItems;
   const items =
@@ -108,16 +118,17 @@ export default function Registered(props) {
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
         <div className="fable-section">
-          <h2 className="fable-heading" style={titleColor ? { color: titleColor } : undefined}>
-            {mainTitle}
-          </h2>
+          <header className="fable-section-heading">
+            {subTitle ? <p className="fable-eyebrow" style={{ color: subTitleColor }}>{subTitle}</p> : null}
+            <h2 className="fable-heading" style={titleColor ? { color: titleColor } : undefined}><RenderCardText text={mainTitle} /></h2>
+          </header>
           <div className="fable-badges">
           {items.map((item, index) => (
-            <div className="fable-badge" key={`${item.text}-${index}`}>
-                <span className="fable-badge__icon" aria-hidden="true">
-                  <TrademarkCircleOutlined />
+            <div className="fable-badge" style={cardBg ? { background: cardBg } : undefined} key={`${item.text}-${index}`}>
+                <span className="fable-badge__icon" style={iconColor ? { color: iconColor } : undefined} aria-hidden="true">
+                  {(() => { const Icon = icons[index % icons.length]; return <Icon />; })()}
                 </span>
-                <p>
+                <p style={cardText ? { color: cardText } : undefined}>
                   <RenderCardText text={item.text} />
                 </p>
             </div>

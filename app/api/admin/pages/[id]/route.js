@@ -12,6 +12,7 @@ import {
 import { clearUsageForRef, syncMediaUsageForPage } from "@/lib/media/usageTracker";
 import { sanitizeVideoPlayingLayout } from "@/lib/videoPlayingImageValidation";
 import { sanitizePhotoGalleryLayout } from "@/lib/photoGalleryImageValidation";
+import { normalizeAboutPageDesign } from "@/lib/aboutPageDesign";
 
 /**
  * Recursively find and remove a menu item by pageSlug.
@@ -150,8 +151,9 @@ export async function PUT(req, { params }) {
     if (title !== undefined) page.title = title;
     if (status !== undefined) page.status = status;
     if (Array.isArray(layout)) {
+      const normalizedLayout = normalizeAboutPageDesign(nextSlug, layout);
       const safeLayout = sanitizePhotoGalleryLayout(
-        sanitizeVideoPlayingLayout(layout),
+        sanitizeVideoPlayingLayout(normalizedLayout),
       );
       const validationErrors = await validateLayoutProps(safeLayout);
       const blockingValidationErrors = filterLayoutValidationErrors(

@@ -13,6 +13,7 @@ import SafeHtml from "@/components/cms/SafeHtml";
  * Uses "aboutUs" className on FullWidthBackground for dark bg.
  */
 export default function Helpingpeople(props) {
+  const subTitle = (props?.helpingpeopleSubTitle ?? "").toString().trim();
   const mainTitle = (
     props?.helpingpeopleMainTitle ?? "Helping people live better tomorrow"
   )
@@ -41,6 +42,8 @@ export default function Helpingpeople(props) {
     .toString()
     .trim();
   const textColor = textColorKey ? getColor(textColorKey) : undefined;
+  const subTitleColorKey = (props?.helpingpeopleSubTitleColorKey ?? "").toString().trim();
+  const subTitleColor = subTitleColorKey ? getColor(subTitleColorKey) : getColor("primary");
 
   const PREFIX = "helpingpeople";
 
@@ -193,13 +196,14 @@ export default function Helpingpeople(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
-        <div className="fable-section fable-split is-reversed">
+        <div className="fable-section fable-about-people">
           <div>
+            {subTitle ? <p className="fable-eyebrow" style={{ color: subTitleColor }}>{subTitle}</p> : null}
             <h2
               className="fable-heading"
               style={titleColor ? { color: titleColor } : undefined}
             >
-              {mainTitle}
+              {String(mainTitle).split(/(\*[^*]+\*)/g).map((part, index) => part.startsWith("*") && part.endsWith("*") ? <em key={index}>{part.slice(1, -1)}</em> : <span key={index}>{part}</span>)}
             </h2>
             {paragraph && (
               <div

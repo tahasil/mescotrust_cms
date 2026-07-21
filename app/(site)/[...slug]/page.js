@@ -7,6 +7,7 @@ import Component from "@/models/Component";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import { filterLayoutBlocksForPath } from "@/lib/routeComponentRules";
 import { getPageSeoMetadata } from "@/lib/seo";
+import { normalizeAboutPageDesign } from "@/lib/aboutPageDesign";
 
 const RESERVED = ["admin", "blog", "contact", "search", "api", "preview"];
 
@@ -43,7 +44,8 @@ async function PageContent({ slug }) {
 
   if (!page) notFound();
 
-  const layoutBlocks = filterLayoutBlocksForPath(page.layout || [], `/${slug}`);
+  const normalizedLayout = normalizeAboutPageDesign(slug, page.layout || []);
+  const layoutBlocks = filterLayoutBlocksForPath(normalizedLayout, `/${slug}`);
   const baseComponents = [...new Set(layoutBlocks.map((b) => b.baseComponent || (typeof b.componentId === "object" && b.componentId?.baseComponent) || (typeof b.componentId === "string" ? b.componentId : null) || "Paragraph"))].filter(Boolean);
   const componentDocs = await Component.find({ baseComponent: { $in: baseComponents } }).lean();
   const defaultPropsByBase = {};

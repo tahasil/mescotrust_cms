@@ -28,6 +28,10 @@ function applyFormValues(form, data) {
     ? data.videogalleryTabs
     : ["All", "Education", "Medical", "Events", "Community"];
   form.setFieldsValue({
+    videogallerySubTitle: data?.videogallerySubTitle ?? "",
+    videogalleryMainTitle: data?.videogalleryMainTitle ?? "",
+    videogallerySubTitleColorKey: data?.videogallerySubTitleColorKey ?? "",
+    videogalleryTitleColorKey: data?.videogalleryTitleColorKey ?? "",
     videogalleryAccentColorKey: data?.videogalleryAccentColorKey ?? "",
     videogalleryTabBgColorKey: data?.videogalleryTabBgColorKey ?? "",
     videogalleryTabTextColorKey: data?.videogalleryTabTextColorKey ?? "",
@@ -104,6 +108,10 @@ function VideogalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
     form.validateFields().then(() => {
       const values = form.getFieldsValue(true);
       const payload = {
+        videogallerySubTitle: values.videogallerySubTitle ?? "",
+        videogalleryMainTitle: values.videogalleryMainTitle ?? "",
+        videogallerySubTitleColorKey: values.videogallerySubTitleColorKey ?? "",
+        videogalleryTitleColorKey: values.videogalleryTitleColorKey ?? "",
         videogalleryAccentColorKey: values.videogalleryAccentColorKey ?? "",
         videogalleryTabBgColorKey: values.videogalleryTabBgColorKey ?? "",
         videogalleryTabTextColorKey: values.videogalleryTabTextColorKey ?? "",

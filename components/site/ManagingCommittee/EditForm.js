@@ -101,6 +101,7 @@ async function validateDesktopImageDimensions(_, value) {
 
 function applyFormValues(form, data) {
   form.setFieldsValue({
+    managingCommitteeSubTitle: data?.managingCommitteeSubTitle ?? "",
     managingCommitteeMainTitle: data?.managingCommitteeMainTitle ?? "Managing Committee",
     managingCommitteeParagraph: data?.managingCommitteeParagraph ?? "",
     managingCommitteeImageDesktop:
@@ -114,6 +115,7 @@ function applyFormValues(form, data) {
       "/images/good-governance-2.png",
     managingCommitteeImageAlt: data?.managingCommitteeImageAlt ?? "Managing Committee",
     managingCommitteeTitleColorKey: data?.managingCommitteeTitleColorKey ?? "",
+    managingCommitteeSubTitleColorKey: data?.managingCommitteeSubTitleColorKey ?? "",
     managingCommitteeTextColorKey: data?.managingCommitteeTextColorKey ?? "",
     ...getManageSectionInitialValues(PREFIX, data),
   });
@@ -171,6 +173,7 @@ function ManagingCommitteeEditForm({ source, initialData: initialDataProp, onSav
     form.validateFields().then(() => {
       const values = form.getFieldsValue(true);
       const payload = {
+        managingCommitteeSubTitle: values.managingCommitteeSubTitle ?? "",
         managingCommitteeMainTitle: values.managingCommitteeMainTitle ?? "",
         managingCommitteeParagraph: values.managingCommitteeParagraph ?? "",
         managingCommitteeImageDesktop:
@@ -180,6 +183,7 @@ function ManagingCommitteeEditForm({ source, initialData: initialDataProp, onSav
           values.managingCommitteeImageDesktop ?? values.managingCommitteeImageUrl ?? "",
         managingCommitteeImageAlt: values.managingCommitteeImageAlt ?? "",
         managingCommitteeTitleColorKey: values.managingCommitteeTitleColorKey ?? "",
+        managingCommitteeSubTitleColorKey: values.managingCommitteeSubTitleColorKey ?? "",
         managingCommitteeTextColorKey: values.managingCommitteeTextColorKey ?? "",
         ...getManageSectionPayload(PREFIX, values),
       };

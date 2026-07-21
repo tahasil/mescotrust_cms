@@ -10,6 +10,14 @@ function normalizeItem(it) {
   return { text: it?.text != null ? String(it.text).trim() : "" };
 }
 
+const ROMAN_NUMERALS = ["i.", "ii.", "iii.", "iv.", "v.", "vi.", "vii.", "viii.", "ix.", "x."];
+
+function renderTitle(value) {
+  return String(value || "").split(/(\*[^*]+\*)/g).map((part, index) =>
+    part.startsWith("*") && part.endsWith("*") ? <em key={index}>{part.slice(1, -1)}</em> : <span key={index}>{part}</span>,
+  );
+}
+
 const DEFAULT_ITEMS = [
   { text: "To promote education amongst the weaker section of society primarily and others generally. The promotion of education shall include the promotion of Science and Literature." },
   { text: "To work for the social upliftment of the backward sections of society." },
@@ -21,11 +29,18 @@ const DEFAULT_ITEMS = [
  * Centered title + stacked dark cards with white left border.
  */
 export default function AimsObjectives(props) {
-  const mainTitle = (props?.aimsObjectivesMainTitle ?? "Aims & Objectives").toString().trim();
-  const titleColorKey = (props?.aimsObjectivesTitleColorKey ?? "").toString().trim();
-  const titleColor = titleColorKey ? getColor(titleColorKey) : undefined;
+  const subTitle = (props?.aimsObjectivesSubTitle ?? props?.aimsObjectivesMainTitle ?? "Aims & Objectives").toString().trim();
+  const mainTitle = (props?.aimsObjectivesHeading ?? "What we *work toward.*").toString().trim();
+  const subTitleColorKey = (props?.aimsObjectivesSubTitleColorKey ?? "").toString().trim();
+  const subTitleColor = subTitleColorKey ? getColor(subTitleColorKey) : getColor("primary");
+  const titleColorKey = (props?.aimsObjectivesHeadingColorKey ?? props?.aimsObjectivesTitleColorKey ?? "").toString().trim();
+  const titleColor = titleColorKey ? getColor(titleColorKey) : getColor("black");
   const textColorKey = (props?.aimsObjectivesTextColorKey ?? "").toString().trim();
   const textColor = textColorKey ? getColor(textColorKey) : undefined;
+  const numberColorKey = (props?.aimsObjectivesNumberColorKey ?? "").toString().trim();
+  const numberColor = numberColorKey ? getColor(numberColorKey) : undefined;
+  const borderColorKey = (props?.aimsObjectivesBorderColorKey ?? "").toString().trim();
+  const borderColor = borderColorKey ? getColor(borderColorKey) : undefined;
 
   const rawItems = props?.aimsObjectivesItems;
   const items =
@@ -94,16 +109,15 @@ export default function AimsObjectives(props) {
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
         <div className="fable-section">
-          {mainTitle ? (
-            <h2 className="fable-heading" style={titleColor ? { color: titleColor } : undefined}>
-              {mainTitle}
-            </h2>
-          ) : null}
+          <header className="fable-section-heading">
+            {subTitle ? <p className="fable-eyebrow" style={{ color: subTitleColor }}>{subTitle}</p> : null}
+            {mainTitle ? <h2 className="fable-heading" style={{ color: titleColor }}>{renderTitle(mainTitle)}</h2> : null}
+          </header>
           <div className="fable-aims">
             {items.map((item, index) => (
-              <div className="fable-aim" key={`${item.text}-${index}`}>
-                <span className="fable-aim__number" aria-hidden="true">
-                  {`${index + 1}.`}
+              <div className="fable-aim" key={`${item.text}-${index}`} style={borderColor ? { borderColor } : undefined}>
+                <span className="fable-aim__number" style={numberColor ? { color: numberColor } : undefined} aria-hidden="true">
+                  {ROMAN_NUMERALS[index] || `${index + 1}.`}
                 </span>
                 <p style={textColor ? { color: textColor } : undefined}>{item.text}</p>
               </div>

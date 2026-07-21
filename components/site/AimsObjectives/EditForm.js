@@ -84,9 +84,15 @@ function AimsObjectivesEditForm({ source, initialData: initialDataProp, onSaveTo
         ? rawItems.map(normalizeItem)
         : [normalizeItem({})];
     form.setFieldsValue({
+      aimsObjectivesSubTitle: data?.aimsObjectivesSubTitle != null ? String(data.aimsObjectivesSubTitle).trim() : data?.aimsObjectivesMainTitle != null ? String(data.aimsObjectivesMainTitle).trim() : "Aims & Objectives",
+      aimsObjectivesHeading: data?.aimsObjectivesHeading != null ? String(data.aimsObjectivesHeading).trim() : "What we *work toward.*",
       aimsObjectivesMainTitle: data?.aimsObjectivesMainTitle != null ? String(data.aimsObjectivesMainTitle).trim() : "Aims & Objectives",
+      aimsObjectivesSubTitleColorKey: data?.aimsObjectivesSubTitleColorKey != null ? String(data.aimsObjectivesSubTitleColorKey).trim() : "",
+      aimsObjectivesHeadingColorKey: data?.aimsObjectivesHeadingColorKey != null ? String(data.aimsObjectivesHeadingColorKey).trim() : data?.aimsObjectivesTitleColorKey != null ? String(data.aimsObjectivesTitleColorKey).trim() : "",
       aimsObjectivesTitleColorKey: data?.aimsObjectivesTitleColorKey != null ? String(data.aimsObjectivesTitleColorKey).trim() : "",
       aimsObjectivesTextColorKey: data?.aimsObjectivesTextColorKey != null ? String(data.aimsObjectivesTextColorKey).trim() : "",
+      aimsObjectivesNumberColorKey: data?.aimsObjectivesNumberColorKey != null ? String(data.aimsObjectivesNumberColorKey).trim() : "",
+      aimsObjectivesBorderColorKey: data?.aimsObjectivesBorderColorKey != null ? String(data.aimsObjectivesBorderColorKey).trim() : "",
       aimsObjectivesItems: items,
       ...getManageSectionInitialValues(PREFIX, data),
     });
@@ -135,9 +141,15 @@ function AimsObjectivesEditForm({ source, initialData: initialDataProp, onSaveTo
       const rawItems = values.aimsObjectivesItems ?? [];
       const items = Array.isArray(rawItems) ? rawItems.map(normalizeItem) : [];
       const payload = {
-        aimsObjectivesMainTitle: values.aimsObjectivesMainTitle != null ? String(values.aimsObjectivesMainTitle).trim() : "",
+        aimsObjectivesSubTitle: values.aimsObjectivesSubTitle != null ? String(values.aimsObjectivesSubTitle).trim() : "",
+        aimsObjectivesHeading: values.aimsObjectivesHeading != null ? String(values.aimsObjectivesHeading).trim() : "",
+        aimsObjectivesMainTitle: values.aimsObjectivesSubTitle != null ? String(values.aimsObjectivesSubTitle).trim() : "",
+        aimsObjectivesSubTitleColorKey: values.aimsObjectivesSubTitleColorKey != null ? String(values.aimsObjectivesSubTitleColorKey).trim() : "",
+        aimsObjectivesHeadingColorKey: values.aimsObjectivesHeadingColorKey != null ? String(values.aimsObjectivesHeadingColorKey).trim() : "",
         aimsObjectivesTitleColorKey: values.aimsObjectivesTitleColorKey != null ? String(values.aimsObjectivesTitleColorKey).trim() : "",
         aimsObjectivesTextColorKey: values.aimsObjectivesTextColorKey != null ? String(values.aimsObjectivesTextColorKey).trim() : "",
+        aimsObjectivesNumberColorKey: values.aimsObjectivesNumberColorKey != null ? String(values.aimsObjectivesNumberColorKey).trim() : "",
+        aimsObjectivesBorderColorKey: values.aimsObjectivesBorderColorKey != null ? String(values.aimsObjectivesBorderColorKey).trim() : "",
         aimsObjectivesItems: items,
         ...getManageSectionPayload(PREFIX, values),
       };

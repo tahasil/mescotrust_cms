@@ -77,7 +77,9 @@ function applyFormValues(form, data) {
     ? data.committeeMembersItems.map(normalizeItem)
     : [normalizeItem({})];
   form.setFieldsValue({
+    committeeMembersSubTitle: data?.committeeMembersSubTitle ?? "",
     committeeMembersMainTitle: data?.committeeMembersMainTitle ?? "Committee Members",
+    committeeMembersSubTitleColorKey: data?.committeeMembersSubTitleColorKey ?? "",
     committeeMembersTitleColorKey: data?.committeeMembersTitleColorKey ?? "",
     committeeMembersTitleFontSize: data?.committeeMembersTitleFontSize ?? 24,
     committeeMembersTitleFontWeight: data?.committeeMembersTitleFontWeight ?? 600,
@@ -140,7 +142,9 @@ function CommitteeMembersEditForm({ source, initialData: initialDataProp, onSave
     form.validateFields().then(() => {
       const values = form.getFieldsValue(true);
       const payload = {
+        committeeMembersSubTitle: values.committeeMembersSubTitle ?? "",
         committeeMembersMainTitle: values.committeeMembersMainTitle ?? "",
+        committeeMembersSubTitleColorKey: values.committeeMembersSubTitleColorKey ?? "",
         committeeMembersTitleColorKey: values.committeeMembersTitleColorKey ?? "",
         committeeMembersTitleFontSize: values.committeeMembersTitleFontSize ?? 24,
         committeeMembersTitleFontWeight: values.committeeMembersTitleFontWeight ?? 600,

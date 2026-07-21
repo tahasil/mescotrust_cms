@@ -29,6 +29,7 @@ export { default as ManagingCommittee } from "./ManagingCommittee/ManagingCommit
 export { default as CommitteeMembers } from "./CommitteeMembers/CommitteeMembers";
 export { default as Mission } from "./Mission/Mission";
 export { default as Vision } from "./Vision/Vision";
+export { default as MissionVision } from "./MissionVision/MissionVision";
 export { default as AimsObjectives } from "./AimsObjectives/AimsObjectives";
 export { default as Registered } from "./Registered/Registered";
 export { default as Helpingpeople } from "./Helpingpeople/Helpingpeople";

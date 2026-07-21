@@ -117,6 +117,7 @@ function HelpingpeopleEditForm({ source, initialData: initialDataProp, onSaveToP
 
   function applyFormValues(data) {
     form.setFieldsValue({
+      helpingpeopleSubTitle: data?.helpingpeopleSubTitle != null ? String(data.helpingpeopleSubTitle).trim() : "The People",
       helpingpeopleMainTitle: data?.helpingpeopleMainTitle != null ? String(data.helpingpeopleMainTitle).trim() : "Helping people live better tomorrow",
       helpingpeopleParagraph: data?.helpingpeopleParagraph != null ? String(data.helpingpeopleParagraph).trim() : "",
       helpingpeopleImageDesktop:
@@ -137,6 +138,7 @@ function HelpingpeopleEditForm({ source, initialData: initialDataProp, onSaveToP
             : "/images/about-mesco-3.png",
       helpingpeopleImageAlt: data?.helpingpeopleImageAlt != null ? String(data.helpingpeopleImageAlt).trim() : "Helping people",
       helpingpeopleTitleColorKey: data?.helpingpeopleTitleColorKey != null ? String(data.helpingpeopleTitleColorKey).trim() : "",
+      helpingpeopleSubTitleColorKey: data?.helpingpeopleSubTitleColorKey != null ? String(data.helpingpeopleSubTitleColorKey).trim() : "",
       helpingpeopleTextColorKey: data?.helpingpeopleTextColorKey != null ? String(data.helpingpeopleTextColorKey).trim() : "",
       ...getManageSectionInitialValues(PREFIX, data),
     });
@@ -183,6 +185,7 @@ function HelpingpeopleEditForm({ source, initialData: initialDataProp, onSaveToP
     form.validateFields().then(() => {
       const values = form.getFieldsValue(true);
       const payload = {
+        helpingpeopleSubTitle: values.helpingpeopleSubTitle != null ? String(values.helpingpeopleSubTitle).trim() : "",
         helpingpeopleMainTitle: values.helpingpeopleMainTitle != null ? String(values.helpingpeopleMainTitle).trim() : "",
         helpingpeopleParagraph: values.helpingpeopleParagraph != null ? String(values.helpingpeopleParagraph).trim() : "",
         helpingpeopleImageDesktop:
@@ -203,6 +206,7 @@ function HelpingpeopleEditForm({ source, initialData: initialDataProp, onSaveToP
               : "",
         helpingpeopleImageAlt: values.helpingpeopleImageAlt != null ? String(values.helpingpeopleImageAlt).trim() : "",
         helpingpeopleTitleColorKey: values.helpingpeopleTitleColorKey != null ? String(values.helpingpeopleTitleColorKey).trim() : "",
+        helpingpeopleSubTitleColorKey: values.helpingpeopleSubTitleColorKey != null ? String(values.helpingpeopleSubTitleColorKey).trim() : "",
         helpingpeopleTextColorKey: values.helpingpeopleTextColorKey != null ? String(values.helpingpeopleTextColorKey).trim() : "",
         ...getManageSectionPayload(PREFIX, values),
       };

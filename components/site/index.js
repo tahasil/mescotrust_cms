@@ -33,6 +33,7 @@ export { default as ManagingCommittee, ManagingCommitteeEditForm } from "./Manag
 export { default as CommitteeMembers, CommitteeMembersEditForm } from "./CommitteeMembers/index";
 export { default as Mission, MissionEditForm } from "./Mission/index";
 export { default as Vision, VisionEditForm } from "./Vision/index";
+export { default as MissionVision, MissionVisionEditForm } from "./MissionVision/index";
 export { default as AimsObjectives, AimsObjectivesEditForm } from "./AimsObjectives/index";
 export { default as Registered, RegisteredEditForm } from "./Registered/index";
 export { default as Helpingpeople, HelpingpeopleEditForm } from "./Helpingpeople/index";
@@ -83,6 +84,7 @@ import ManagingCommitteeEditForm from "./ManagingCommittee/EditForm";
 import CommitteeMembersEditForm from "./CommitteeMembers/EditForm";
 import MissionEditForm from "./Mission/EditForm";
 import VisionEditForm from "./Vision/EditForm";
+import MissionVisionEditForm from "./MissionVision/EditForm";
 import AimsObjectivesEditForm from "./AimsObjectives/EditForm";
 import RegisteredEditForm from "./Registered/EditForm";
 import HelpingpeopleEditForm from "./Helpingpeople/EditForm";
@@ -136,6 +138,7 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   Registered: RegisteredEditForm,
   AimsObjectives: AimsObjectivesEditForm,
   Vision: VisionEditForm,
+  MissionVision: MissionVisionEditForm,
   Mission: MissionEditForm,
   CommitteeMembers: CommitteeMembersEditForm,
   ManagingCommittee: ManagingCommitteeEditForm,

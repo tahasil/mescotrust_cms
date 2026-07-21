@@ -293,6 +293,9 @@ export default function CommitteeMembers(props) {
   const mainTitle = (props?.committeeMembersMainTitle ?? "Committee Members")
     .toString()
     .trim();
+  const subTitle = (props?.committeeMembersSubTitle ?? "").toString().trim();
+  const subTitleColorKey = (props?.committeeMembersSubTitleColorKey ?? "").toString().trim();
+  const subTitleColor = subTitleColorKey ? getColor(subTitleColorKey) : getColor("primary");
   const titleColorKey = (props?.committeeMembersTitleColorKey ?? "")
     .toString()
     .trim();
@@ -463,6 +466,7 @@ export default function CommitteeMembers(props) {
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
         <div className="fable-section">
+            {subTitle ? <p className="fable-eyebrow" style={{ color: subTitleColor }}>{subTitle}</p> : null}
             <h2
               className="fable-heading"
               style={{
@@ -471,7 +475,7 @@ export default function CommitteeMembers(props) {
                 fontWeight: titleFontWeight,
               }}
             >
-              {mainTitle}
+              {String(mainTitle).split(/(\*[^*]+\*)/g).map((part, index) => part.startsWith("*") && part.endsWith("*") ? <em key={index}>{part.slice(1, -1)}</em> : <span key={index}>{part}</span>)}
             </h2>
         <div className="fable-people">
           {members.map((member, idx) => (

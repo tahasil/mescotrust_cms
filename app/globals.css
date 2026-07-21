@@ -1013,7 +1013,30 @@ a {
   letter-spacing: -.02em;
   line-height: 1.08;
 }
-.fable-heading em { color: var(--fable-primary); font-style: normal; }
+.fable-heading em { color: inherit; font-style: normal; }
+.fable-about-intro {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(0,1.1fr);
+  gap: clamp(44px,6vw,110px);
+  align-items: center;
+}
+.fable-about-intro__arch { overflow: hidden; aspect-ratio: 4/4.7; background: var(--fable-surface); border-radius: 999px 999px 20px 20px; }
+.fable-about-intro__arch picture { display: block; width: 100%; height: 100%; }
+.fable-about-intro__arch img { width: 100%; height: 112%; object-fit: cover; transition: transform .7s cubic-bezier(.16,1,.3,1); }
+.fable-about-intro__arch:hover img { transform: scale(1.04); }
+.fable-about-intro__stat { margin: 18px 0 0; color: var(--fable-ink-muted); font-size: 14.5px; }
+.fable-about-intro__stat strong { margin-right: 10px; color: var(--fable-ink); font-weight: 700; }
+.fable-about-intro__copy .fable-heading { margin-bottom: 22px; }
+.fable-about-intro__copy .fable-heading em,
+.fable-about-people .fable-heading em,
+.fable-section-heading .fable-heading em { color: inherit; }
+.fable-about-intro__copy .fable-prose { max-width: 50ch; }
+.fable-about-intro__copy .fable-prose + .fable-prose { margin-top: 20px; }
+.fable-about-intro__copy .fable-prose p { margin: 0; }
+.fable-about-people { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: clamp(36px,5vw,90px); align-items: center; }
+.fable-about-people .fable-heading { margin-bottom: 20px; }
+.fable-section-heading { margin-bottom: clamp(32px,4vw,56px); }
+.fable-section-heading .fable-heading { margin-bottom: 0; }
 .fable-prose { color: var(--fable-ink-soft); font-size: 17px; }
 .fable-prose > :last-child { margin-bottom: 0; }
 .fable-prose p { margin: 0 0 18px; }
@@ -1089,6 +1112,9 @@ a {
 .fable-feature.is-tint { background: var(--fable-surface); }
 .fable-feature h3 { margin: 0 0 12px; font-family: var(--fable-display); font-size: clamp(22px,2.2vw,30px); font-weight: 620; }
 .fable-feature p { margin: 0; color: var(--fable-ink-soft); font-size: 16px; }
+.fable-mission-vision .fable-feature { transition: transform .3s cubic-bezier(.16,1,.3,1), border-color .3s, box-shadow .3s; }
+.fable-mission-vision .fable-feature:hover { transform: translateY(-4px); border-color: color-mix(in srgb,var(--fable-primary) 38%,transparent); box-shadow: 0 22px 44px color-mix(in srgb,var(--fable-dark) 8%,transparent); }
+.fable-mission-vision__icon { display: block; width: 36px; margin-bottom: 18px; color: var(--fable-primary); font-size: 36px; }
 .fable-aims { display: flex; flex-direction: column; }
 .fable-aim { display: grid; grid-template-columns: 90px minmax(0,1fr); gap: clamp(20px,3vw,48px); padding-block: clamp(26px,3vw,40px); border-bottom: 1px solid var(--fable-border); }
 .fable-aim:first-child { border-top: 1px solid var(--fable-border); }
@@ -1150,7 +1176,7 @@ a {
 .fable-button { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: fit-content; padding: 13px 26px; color: var(--fable-white); background: var(--fable-primary); border: 1px solid transparent; border-radius: 999px; font: 600 15px var(--fable-body); cursor: pointer; transition: transform .25s,background .25s; }
 .fable-button:hover { color: var(--fable-white); background: var(--fable-primary-dark); transform: translateY(-2px); }
 @media (max-width: 1023px) {
-  .fable-split, .fable-feature-grid { grid-template-columns: 1fr; }
+  .fable-split, .fable-feature-grid, .fable-about-intro, .fable-about-people { grid-template-columns: 1fr; }
   .fable-split.is-reversed .fable-media { order: 0; }
   .fable-card-grid, .fable-testimonials, .fable-video-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .fable-people, .fable-badges { grid-template-columns: repeat(2,minmax(0,1fr)); }

@@ -43,8 +43,15 @@ function RegisteredEditForm({ source, initialData: initialDataProp, onSaveToPage
         ? rawItems.map(normalizeItem)
         : [normalizeItem({})];
     form.setFieldsValue({
+      registeredSubTitle: data?.registeredSubTitle != null ? String(data.registeredSubTitle).trim() : data?.registeredMainTitle != null ? String(data.registeredMainTitle).trim() : "Registered Under",
+      registeredHeading: data?.registeredHeading != null ? String(data.registeredHeading).trim() : "Accountable, *by design.*",
       registeredMainTitle: data?.registeredMainTitle != null ? String(data.registeredMainTitle).trim() : "Registered Under",
+      registeredSubTitleColorKey: data?.registeredSubTitleColorKey != null ? String(data.registeredSubTitleColorKey).trim() : "",
+      registeredHeadingColorKey: data?.registeredHeadingColorKey != null ? String(data.registeredHeadingColorKey).trim() : data?.registeredTitleColorKey != null ? String(data.registeredTitleColorKey).trim() : "",
       registeredTitleColorKey: data?.registeredTitleColorKey != null ? String(data.registeredTitleColorKey).trim() : "",
+      registeredCardBgColorKey: data?.registeredCardBgColorKey != null ? String(data.registeredCardBgColorKey).trim() : "",
+      registeredCardTextColorKey: data?.registeredCardTextColorKey != null ? String(data.registeredCardTextColorKey).trim() : "",
+      registeredIconColorKey: data?.registeredIconColorKey != null ? String(data.registeredIconColorKey).trim() : "",
       registeredItems: items,
       ...getManageSectionInitialValues(PREFIX, data),
     });
@@ -93,8 +100,15 @@ function RegisteredEditForm({ source, initialData: initialDataProp, onSaveToPage
       const rawItems = values.registeredItems ?? [];
       const items = Array.isArray(rawItems) ? rawItems.map(normalizeItem) : [];
       const payload = {
-        registeredMainTitle: values.registeredMainTitle != null ? String(values.registeredMainTitle).trim() : "",
+        registeredSubTitle: values.registeredSubTitle != null ? String(values.registeredSubTitle).trim() : "",
+        registeredHeading: values.registeredHeading != null ? String(values.registeredHeading).trim() : "",
+        registeredMainTitle: values.registeredSubTitle != null ? String(values.registeredSubTitle).trim() : "",
+        registeredSubTitleColorKey: values.registeredSubTitleColorKey != null ? String(values.registeredSubTitleColorKey).trim() : "",
+        registeredHeadingColorKey: values.registeredHeadingColorKey != null ? String(values.registeredHeadingColorKey).trim() : "",
         registeredTitleColorKey: values.registeredTitleColorKey != null ? String(values.registeredTitleColorKey).trim() : "",
+        registeredCardBgColorKey: values.registeredCardBgColorKey != null ? String(values.registeredCardBgColorKey).trim() : "",
+        registeredCardTextColorKey: values.registeredCardTextColorKey != null ? String(values.registeredCardTextColorKey).trim() : "",
+        registeredIconColorKey: values.registeredIconColorKey != null ? String(values.registeredIconColorKey).trim() : "",
         registeredItems: items,
         ...getManageSectionPayload(PREFIX, values),
       };

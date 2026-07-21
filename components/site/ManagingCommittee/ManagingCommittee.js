@@ -12,6 +12,7 @@ import SafeHtml from "@/components/cms/SafeHtml";
  * Two-column layout: image left, title + paragraph right.
  */
 export default function ManagingCommittee(props) {
+  const subTitle = (props?.managingCommitteeSubTitle ?? "").toString().trim();
   const mainTitle = (props?.managingCommitteeMainTitle ?? "Managing Committee").toString().trim();
   const paragraph = (props?.managingCommitteeParagraph ?? "").toString().trim();
   const imageDesktop = (
@@ -28,6 +29,8 @@ export default function ManagingCommittee(props) {
   const titleColor = titleColorKey ? getColor(titleColorKey) : undefined;
   const textColorKey = (props?.managingCommitteeTextColorKey ?? "").toString().trim();
   const textColor = textColorKey ? getColor(textColorKey) : undefined;
+  const subTitleColorKey = (props?.managingCommitteeSubTitleColorKey ?? "").toString().trim();
+  const subTitleColor = subTitleColorKey ? getColor(subTitleColorKey) : getColor("primary");
 
   const PREFIX = "managingCommittee";
 
@@ -105,11 +108,12 @@ export default function ManagingCommittee(props) {
             )}
           </div>
           <div>
+            {subTitle ? <p className="fable-eyebrow" style={{ color: subTitleColor }}>{subTitle}</p> : null}
             <h2
               className="fable-heading"
               style={titleColor ? { color: titleColor } : undefined}
             >
-              {mainTitle}
+              {String(mainTitle).split(/(\*[^*]+\*)/g).map((part, index) => part.startsWith("*") && part.endsWith("*") ? <em key={index}>{part.slice(1, -1)}</em> : <span key={index}>{part}</span>)}
             </h2>
             {paragraph && (
               <div

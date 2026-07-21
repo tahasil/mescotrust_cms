@@ -221,6 +221,12 @@ function normalizeItem(it) {
 const DEFAULT_TABS = ["All", "Education", "Medical", "Events", "Community"];
 
 export default function Videogallery(props) {
+  const subTitle = (props?.videogallerySubTitle ?? "").toString().trim();
+  const mainTitle = (props?.videogalleryMainTitle ?? "").toString().trim();
+  const subTitleColorKey = (props?.videogallerySubTitleColorKey ?? "").toString().trim();
+  const titleColorKey = (props?.videogalleryTitleColorKey ?? "").toString().trim();
+  const subTitleColor = subTitleColorKey ? getColor(subTitleColorKey) : getColor("primary");
+  const titleColor = titleColorKey ? getColor(titleColorKey) : getColor("black");
   const rawItems =
     Array.isArray(props?.videogalleryItems) &&
     props.videogalleryItems.length > 0
@@ -462,6 +468,12 @@ export default function Videogallery(props) {
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
         <div className="fable-section">
+        {(subTitle || mainTitle) ? (
+          <header className="fable-section-heading">
+            {subTitle ? <p className="fable-eyebrow" style={{ color: subTitleColor }}>{subTitle}</p> : null}
+            {mainTitle ? <h2 className="fable-heading" style={{ color: titleColor }}>{mainTitle.split(/(\*[^*]+\*)/g).map((part, index) => part.startsWith("*") && part.endsWith("*") ? <em key={index}>{part.slice(1, -1)}</em> : <span key={index}>{part}</span>)}</h2> : null}
+          </header>
+        ) : null}
         <GalleryTabs className="fable-filters">
           {tabs.map((tab) => (
             <GalleryTab
