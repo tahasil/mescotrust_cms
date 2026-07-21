@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
  * EventRegistration — visitor submissions for events.
  *
  * The "event" itself is NOT a separate document. Events live as items inside
- * the props of a `LatestEvents1` (or similar) block on a Page. To avoid
+ * the props of a `LatestNews` (or similar) block on a Page. To avoid
  * coupling registrations to a fragile primary key, we store the event title
  * and date as plain strings (`eventTitle`, `eventDate`) at submission time —
  * effectively a snapshot. If the editor later renames or removes the event

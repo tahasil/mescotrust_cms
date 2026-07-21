@@ -19,7 +19,7 @@ import {
   INNER_PAGE_HERO_REQUIRED_IMAGE_WIDTH,
   validateInnerPageHeroBackgroundImage,
 } from "@/lib/innerPageHeroImageValidation";
-import { validateLatestEvents1Images } from "@/lib/latestEvents1ImageValidation";
+import { validateLatestNewsImages } from "@/lib/latestNewsImageValidation";
 import { validateStoriesSliderImages } from "@/lib/storiesSliderImageValidation";
 import { validateImpactShowcaseImages } from "@/lib/impactShowcaseImageValidation";
 import { validateHelpingpeopleImage } from "@/lib/helpingpeopleImageValidation";
@@ -52,6 +52,20 @@ const SHORT_CODE_REQUIRED_IMAGE_WIDTH = 1440;
 const SHORT_CODE_REQUIRED_IMAGE_HEIGHT = 378;
 const HOME_HERO_2_MIN_BACKGROUND_IMAGE_WIDTH = 1440;
 const HOME_HERO_2_MIN_BACKGROUND_IMAGE_HEIGHT = 620;
+const LATEST_NEWS_ID = "LatestNews";
+const LEGACY_LATEST_NEWS_ID = "LatestEvents1";
+
+function componentQuery(componentId) {
+  return componentId === LATEST_NEWS_ID
+    ? { baseComponent: { $in: [LATEST_NEWS_ID, LEGACY_LATEST_NEWS_ID] } }
+    : { baseComponent: componentId };
+}
+
+function canonicalComponentId(componentId) {
+  return componentId === LEGACY_LATEST_NEWS_ID
+    ? LATEST_NEWS_ID
+    : componentId;
+}
 
 function sanitizeComponentDefaultProps(componentId, props) {
   if (componentId === "VideoPlaying") {
@@ -96,14 +110,18 @@ function getManageSectionBackgroundValidationOptions(componentId) {
 }
 
 export async function GET(req, { params }) {
-  const componentId = (params?.componentId || "").trim();
+  const componentId = canonicalComponentId(
+    (params?.componentId || "").trim(),
+  );
   if (!isAllowed(componentId)) {
     return NextResponse.json({ error: "Unknown or reserved component id" }, { status: 400 });
   }
   try {
     await connectDB();
     const [doc, themeDoc] = await Promise.all([
-      Component.findOne({ baseComponent: componentId }).lean(),
+      Component.findOne(componentQuery(componentId))
+        .sort({ baseComponent: -1 })
+        .lean(),
       ThemeConfig.findOne(THEME_QUERY).sort({ updatedAt: -1 }).lean(),
     ]);
     const payload =
@@ -141,7 +159,9 @@ export async function PUT(req, { params }) {
   if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (!isAdmin(token)) return NextResponse.json({ error: "Forbidden: Admin only" }, { status: 403 });
 
-  const componentId = (params?.componentId || "").trim();
+  const componentId = canonicalComponentId(
+    (params?.componentId || "").trim(),
+  );
   if (!isAllowed(componentId)) {
     return NextResponse.json({ error: "Unknown or reserved component id" }, { status: 400 });
   }
@@ -200,8 +220,8 @@ export async function PUT(req, { params }) {
       }
     }
 
-    if (componentId === "LatestEvents1") {
-      const validationErrors = await validateLatestEvents1Images(defaultProps);
+    if (componentId === "LatestNews") {
+      const validationErrors = await validateLatestNewsImages(defaultProps);
       if (validationErrors.length > 0) {
         return NextResponse.json(
           { error: validationErrors[0] },
@@ -353,7 +373,9 @@ export async function PUT(req, { params }) {
       }
     }
 
-    let doc = await Component.findOne({ baseComponent: componentId });
+    let doc = await Component.findOne(componentQuery(componentId)).sort({
+      baseComponent: -1,
+    });
     if (!doc) {
       doc = await Component.create({
         name: componentId,
@@ -365,6 +387,14 @@ export async function PUT(req, { params }) {
         active: true,
       });
     } else {
+      if (
+        componentId === LATEST_NEWS_ID &&
+        doc.baseComponent === LEGACY_LATEST_NEWS_ID
+      ) {
+        doc.baseComponent = LATEST_NEWS_ID;
+        doc.name = LATEST_NEWS_ID;
+        doc.displayName = "Latest News";
+      }
       const mergedDefaultProps = { ...(doc.defaultProps || {}), ...safeDefaultProps };
       doc.defaultProps = sanitizeComponentDefaultProps(
         componentId,

@@ -1,8 +1,8 @@
 # New Site Component Checklist
 
-**Important:** Jab bhi naya site component create karein, **exact same pattern** follow karein jaise **LatestEvents1** (aur HomeHero / Subscribe) — structure, EditForm, API, aur Admin edit page sab same flow hona chahiye.
+**Important:** Jab bhi naya site component create karein, **exact same pattern** follow karein jaise **LatestNews** (aur HomeHero / Subscribe) — structure, EditForm, API, aur Admin edit page sab same flow hona chahiye.
 
-Reference implementation: `components/site/LatestEvents1/` (LatestEvents1.js, EditForm.js, index.js).
+Reference implementation: `components/site/LatestNews/` (LatestNews.js, EditForm.js, index.js).
 
 ---
 
@@ -34,7 +34,7 @@ Admin se **Create component** karne par ye structure API (`app/api/admin/site-co
 
 ---
 
-## 4. EditForm.js (same flow as LatestEvents1 / HomeHero / Subscribe)
+## 4. EditForm.js (same flow as LatestNews / HomeHero / Subscribe)
 
 - **Load:** `source === "page"` nahi to `GET /api/theme/{componentId}` + optional `GET /api/theme` for theme color options.
 - **Save:** `PUT /api/theme/{componentId}` with payload; success par `onSuccess?.()`.
@@ -46,15 +46,15 @@ Admin se **Create component** karne par ye structure API (`app/api/admin/site-co
 
 ## 5. Main component JS — content from props
 
-- Sab editable content **props** se aana chahiye (e.g. `props.latestEvents1SubTitle`, `props.latestEvents1Items`). Layout `getLayoutData()` sab site components ke `defaultProps` theme me merge karta hai, to PublicShell `theme` as props pass karta hai.
+- Sab editable content **props** se aana chahiye (e.g. a component-specific subtitle and items field). Layout `getLayoutData()` sab site components ke `defaultProps` theme me merge karta hai, to PublicShell `theme` as props pass karta hai.
 - Default/fallback values component me hi define karein jab prop missing ho.
-- Colors: theme color **keys** (e.g. `latestEvents1ButtonColorKey`) use karein aur `getColor(key)` se resolve karein (admin custom colors + fallbacks).
+- Colors: component-specific theme color **keys** use karein aur `getColor(key)` se resolve karein (admin custom colors + fallbacks).
 
 ---
 
 ## 6. Admin component edit page (`app/admin/(authenticated)/components/[id]/edit/page.js`)
 
-Naye editable component ke liye **Edit** button aur preview ke liye ye steps follow karein (LatestEvents1 jaisa):
+Naye editable component ke liye **Edit** button aur preview ke liye ye steps follow karein (LatestNews jaisa):
 
 1. **State:** `const [theme{ComponentId}Snapshot, setTheme{ComponentId}Snapshot] = useState(null);`
 2. **Flag:** `const is{ComponentId} = record?.componentId === "{ComponentId}";`
@@ -84,8 +84,8 @@ Naye editable component ke liye **Edit** button aur preview ke liye ye steps fol
 | 6 | Edit page: snapshot state, fetch, preview block, refetch on save, exclude from “other” |
 | 7 | Component doc in DB (create API se) |
 
-**Jab bhi naya component add ho, is checklist ko follow karein taaki create + edit flow LatestEvents1 / HomeHero / Subscribe jaisa hi rahe.**
+**Jab bhi naya component add ho, is checklist ko follow karein taaki create + edit flow LatestNews / HomeHero / Subscribe jaisa hi rahe.**
 
 ---
 
-*Last updated: 2025-03-06 — LatestEvents1 as reference.*
+*Last updated: 2026-07-21 — LatestNews as reference.*

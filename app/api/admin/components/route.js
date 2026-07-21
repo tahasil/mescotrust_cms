@@ -14,7 +14,34 @@ export async function GET(req) {
     })
       .sort({ category: 1, name: 1 })
       .lean();
-    return NextResponse.json(components);
+    const normalizedByBaseComponent = new Map();
+    for (const component of components) {
+      const isLegacyLatestNews = component.baseComponent === "LatestEvents1";
+      const baseComponent = isLegacyLatestNews
+        ? "LatestNews"
+        : component.baseComponent;
+      const needsLatestNewsDisplayName =
+        baseComponent === "LatestNews" &&
+        (!component.displayName ||
+          component.displayName === "LatestEvents1" ||
+          component.displayName === "Latest Events");
+      const normalizedComponent =
+        isLegacyLatestNews || needsLatestNewsDisplayName
+          ? {
+              ...component,
+              name: "LatestNews",
+              displayName: "Latest News",
+              baseComponent,
+            }
+          : component;
+      if (
+        !normalizedByBaseComponent.has(baseComponent) ||
+        !isLegacyLatestNews
+      ) {
+        normalizedByBaseComponent.set(baseComponent, normalizedComponent);
+      }
+    }
+    return NextResponse.json([...normalizedByBaseComponent.values()]);
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

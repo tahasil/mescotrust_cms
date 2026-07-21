@@ -218,6 +218,10 @@ export default function ComponentRenderer({
             block.componentId.baseComponent) ||
           "Paragraph";
         let allProps = block.props || {};
+        // Render blocks saved before LatestEvents1 was renamed to LatestNews.
+        if (baseComponent === "LatestEvents1") {
+          baseComponent = "LatestNews";
+        }
         if (baseComponent === "AwardsRecognition") {
           baseComponent = "OverviewOfOurWork";
           allProps = normalizePropsForOverviewOfOurWork(allProps);

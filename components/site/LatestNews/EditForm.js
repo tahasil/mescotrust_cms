@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "re
 import {
   Form,
   Input,
+  InputNumber,
   Button,
   Row,
   Col,
@@ -21,7 +22,8 @@ import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
-const API_PATH = "/api/theme/LatestEvents1";
+const API_PATH = "/api/theme/LatestNews";
+// Keep the persisted latestEvents1* namespace so existing CMS content remains editable.
 const previousSubTitleToken = ["Eye", "brow"].join("");
 const previousSubTitleField = (data, suffix = "") =>
   data?.[`latestEvents1${previousSubTitleToken}${suffix}`];
@@ -226,7 +228,7 @@ function getImageDimensions(imageUrl) {
   });
 }
 
-async function validateLatestEventsImageDimensions(_, value) {
+async function validateLatestNewsImageDimensions(_, value) {
   const imageUrl = String(value || "").trim();
   if (!imageUrl) return Promise.resolve();
 
@@ -250,10 +252,10 @@ async function validateLatestEventsImageDimensions(_, value) {
 }
 
 /**
- * Edit form for LatestEvents1 — same pattern as HomeHero/Subscribe.
- * Loads/saves via /api/theme/LatestEvents1. Section titles + list of news items + theme color keys.
+ * Edit form for Latest News — same pattern as HomeHero/Subscribe.
+ * Loads/saves via /api/theme/LatestNews. Section titles + list of news items + theme color keys.
  */
-function LatestEvents1EditForm(
+function LatestNewsEditForm(
   { source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [] },
   ref
 ) {
@@ -327,7 +329,7 @@ function LatestEvents1EditForm(
           ...getManageSectionInitialValues("latestEvents1", data),
         });
       })
-      .catch(() => message.error("Failed to load Latest Events"))
+      .catch(() => message.error("Failed to load Latest News"))
       .finally(() => setLoading(false));
   }, [form, isPageBlock, initialDataProp]);
 
@@ -362,10 +364,10 @@ function LatestEvents1EditForm(
           if (!res.ok) return res.json().then((d) => Promise.reject(d));
         })
         .then(() => {
-          message.success("Latest Events saved");
+          message.success("Latest News saved");
           onSuccess?.();
         })
-        .catch((err) => message.error(err?.error || "Failed to save Latest Events"))
+        .catch((err) => message.error(err?.error || "Failed to save Latest News"))
         .finally(() => setSaving(false));
     }).catch(() => {});
   };
@@ -393,7 +395,7 @@ function LatestEvents1EditForm(
           {
             key: "title",
             label: "Title & Colors",
-            children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("LatestEvents1")} />,
+            children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("LatestNews")} />,
           },
           {
             key: "items",
@@ -423,9 +425,9 @@ function LatestEvents1EditForm(
                             {...restField}
                             name={[name, "imageUrlDesktop"]}
                             label="Image"
-                            className="latest-events1-image-field"
+                            className="latest-news-image-field"
                             validateTrigger={["onChange", "onBlur"]}
-                            rules={[{ validator: validateLatestEventsImageDimensions }]}
+                            rules={[{ validator: validateLatestNewsImageDimensions }]}
                           >
                             <MediaPickerInput
                               placeholder="/images/news-1.png"
@@ -519,7 +521,7 @@ function LatestEvents1EditForm(
         ]}
       />
       <style jsx global>{`
-        .latest-events1-image-field .ant-form-item-explain-error {
+        .latest-news-image-field .ant-form-item-explain-error {
           font-size: 12px;
           line-height: 1.35;
         }
@@ -528,4 +530,4 @@ function LatestEvents1EditForm(
   );
 }
 
-export default forwardRef(LatestEvents1EditForm);
+export default forwardRef(LatestNewsEditForm);

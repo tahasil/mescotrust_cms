@@ -565,7 +565,7 @@ Managed from Page Builder drawer (same pattern as ContactUs):
 - **Layout:** Pages use a **flat** array of blocks; no nested layout tree. Section blocks can store a `props.layout` array for inner blocks; structure is defined in the Componentâ€™s schema and validated on save.
 - **componentId in layout:** Can be a MongoDB ObjectId (reference to `Component`) or a string site component ID (e.g. `"Header"`, `"HomeHero"`). Resolved at read time for `baseComponent` and props.
 - **Site components:** Implemented under `components/site/`; IDs in `lib/siteComponentRegistry.js` (`SITE_COMPONENT_IDS`). Metadata (global, order, position, enabled) in `SiteComponentMeta`. Creating/deleting via admin API also updates registry and component file.
-- **New site components:** Jab bhi naya site component add karein, **exact same pattern** follow karein jaise LatestEvents1 / HomeHero / Subscribe â€” 3-file folder, EditForm (load/save API), `EDITABLE_SITE_EDIT_FORMS` entry, aur admin edit page me snapshot + preview + refetch. Full checklist: [NEW_SITE_COMPONENT_CHECKLIST.md](./NEW_SITE_COMPONENT_CHECKLIST.md).
+- **New site components:** Jab bhi naya site component add karein, **exact same pattern** follow karein jaise LatestNews / HomeHero / Subscribe â€” 3-file folder, EditForm (load/save API), `EDITABLE_SITE_EDIT_FORMS` entry, aur admin edit page me snapshot + preview + refetch. Full checklist: [NEW_SITE_COMPONENT_CHECKLIST.md](./NEW_SITE_COMPONENT_CHECKLIST.md).
 - **Props schema:** Component and site-component edit forms use a shared schema format (see [API.md](./API.md) â€œComponent Props Schema Formatâ€). Site-specific drawer schemas (e.g. Header) live next to the component (e.g. `headerDrawerSchemas.js`).
 
 ---
@@ -592,7 +592,7 @@ After editing, bump the *Last updated* line at the end of the file.
 
 - [API.md](./API.md) â€” Path convention, auth, public vs admin, props schema format, layout contract, schema change handling, versioning.
 - [SITE_COMPONENTS_STORAGE.md](./SITE_COMPONENTS_STORAGE.md) â€” Site components storage and registry.
-- [NEW_SITE_COMPONENT_CHECKLIST.md](./NEW_SITE_COMPONENT_CHECKLIST.md) â€” **New site component create karte waqt follow karne wale steps** (LatestEvents1 jaisa structure + edit flow).
+- [NEW_SITE_COMPONENT_CHECKLIST.md](./NEW_SITE_COMPONENT_CHECKLIST.md) â€” **New site component create karte waqt follow karne wale steps** (LatestNews jaisa structure + edit flow).
 - [COMPONENT_PLATFORM.md](./COMPONENT_PLATFORM.md) â€” Page builder and component platform.
 - [PERMISSIONS.md](./PERMISSIONS.md) â€” Roles and permissions.
 

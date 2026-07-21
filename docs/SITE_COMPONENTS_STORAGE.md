@@ -4,7 +4,7 @@ All site component **content** is stored in the **components** collection (one d
 
 The public site shell is a separate concern: Admin → Appearance stores its Header and Footer records in the independent `appearance` collection. Those records do not read from or write to the legacy Header/Footer records in `components`. The legacy component routes and editors remain available for component/page-builder compatibility.
 
-**New component add karte waqt:** Naya site component hamesha **LatestEvents1 / HomeHero / Subscribe jaisa hi** banao — 3-file folder, EditForm, `EDITABLE_SITE_EDIT_FORMS`, aur admin edit page me Edit button + preview + refetch. Full checklist: [NEW_SITE_COMPONENT_CHECKLIST.md](./NEW_SITE_COMPONENT_CHECKLIST.md).
+**New component add karte waqt:** Naya site component hamesha **LatestNews / HomeHero / Subscribe jaisa hi** banao — 3-file folder, EditForm, `EDITABLE_SITE_EDIT_FORMS`, aur admin edit page me Edit button + preview + refetch. Full checklist: [NEW_SITE_COMPONENT_CHECKLIST.md](./NEW_SITE_COMPONENT_CHECKLIST.md).
 
 | Component   | Collection    | API (GET = public, PUT = admin)     |
 |------------|----------------|-------------------------------------|

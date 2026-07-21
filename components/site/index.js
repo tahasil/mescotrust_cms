@@ -47,7 +47,7 @@ export { default as HomeHero2, HomeHero2EditForm } from "./HomeHero2/index";
 export { default as OverviewOfOurWork, OverviewOfOurWorkEditForm } from "./OverviewOfOurWork/index";
 export { default as OurImpact, OurImpactEditForm } from "./OurImpact/index";
 export { default as Testimonials, TestimonialsEditForm } from "./Testimonials/index";
-export { default as LatestEvents1, LatestEvents1EditForm } from "./LatestEvents1/index";
+export { default as LatestNews, LatestNewsEditForm } from "./LatestNews/index";
 export { default as EventsSlider, EventsSliderEditForm } from "./EventsSlider/index";
 export { default as ImageSlider, ImageSliderEditForm } from "./ImageSlider/index";
 export { default as EventRegistrationForm, EventRegistrationFormEditForm } from "./EventRegistrationForm/index";
@@ -98,7 +98,7 @@ import HomeSliderEditForm from "./HomeSlider/EditForm";
 import OverviewOfOurWorkEditForm from "./OverviewOfOurWork/EditForm";
 import OurImpactEditForm from "./OurImpact/EditForm";
 import TestimonialsEditForm from "./Testimonials/EditForm";
-import LatestEvents1EditForm from "./LatestEvents1/EditForm";
+import LatestNewsEditForm from "./LatestNews/EditForm";
 import EventsSliderEditForm from "./EventsSlider/EditForm";
 import ImageSliderEditForm from "./ImageSlider/EditForm";
 import EventRegistrationFormEditForm from "./EventRegistrationForm/EditForm";
@@ -117,7 +117,9 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   SectionIntro: SectionIntroEditForm,
   Volunteer: VolunteerEditForm,
   Cards: CardsEditForm,
-  LatestEvents1: LatestEvents1EditForm,
+  LatestNews: LatestNewsEditForm,
+  // Compatibility for page blocks saved before the component rename.
+  LatestEvents1: LatestNewsEditForm,
   EventsSlider: EventsSliderEditForm,
   Testimonials: TestimonialsEditForm,
   OverviewOfOurWork: OverviewOfOurWorkEditForm,

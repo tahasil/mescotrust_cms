@@ -43,7 +43,7 @@ export { default as HomeHero2 } from "./HomeHero2/HomeHero2";
 export { default as OverviewOfOurWork } from "./OverviewOfOurWork/OverviewOfOurWork";
 export { default as OurImpact } from "./OurImpact/OurImpact";
 export { default as Testimonials } from "./Testimonials/Testimonials";
-export { default as LatestEvents1 } from "./LatestEvents1/LatestEvents1";
+export { default as LatestNews } from "./LatestNews/LatestNews";
 export { default as EventsSlider } from "./EventsSlider/EventsSlider";
 export { default as ImageSlider } from "./ImageSlider/ImageSlider";
 export { default as EventRegistrationForm } from "./EventRegistrationForm/EventRegistrationForm";

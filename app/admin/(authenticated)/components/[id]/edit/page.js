@@ -89,7 +89,7 @@ export default function AdminComponentEditPage() {
   const [themeHomeHeroSnapshot, setThemeHomeHeroSnapshot] = useState(null);
   const [themeMarqueeSnapshot, setThemeMarqueeSnapshot] = useState(null);
   const [themeSubscribeSnapshot, setThemeSubscribeSnapshot] = useState(null);
-  const [themeLatestEvents1Snapshot, setThemeLatestEvents1Snapshot] =
+  const [themeLatestNewsSnapshot, setThemeLatestNewsSnapshot] =
     useState(null);
   const [themeTestimonialsSnapshot, setThemeTestimonialsSnapshot] =
     useState(null);
@@ -107,7 +107,7 @@ export default function AdminComponentEditPage() {
   const isHomeHero = record?.componentId === "HomeHero";
   const isMarquee = record?.componentId === "Marquee";
   const isSubscribe = record?.componentId === "Subscribe";
-  const isLatestEvents1 = record?.componentId === "LatestEvents1";
+  const isLatestNews = record?.componentId === "LatestNews";
   const isTestimonials = record?.componentId === "Testimonials";
   const staticEditForm =
     record?.componentId && EDITABLE_SITE_EDIT_FORMS[record.componentId];
@@ -579,11 +579,11 @@ export default function AdminComponentEditPage() {
       .finally(() => setThemeLoading(false));
   }, [isMarquee, form]);
 
-  // LatestEvents1: fetch component data for preview
+  // Latest News: fetch component data for preview
   useEffect(() => {
-    if (!isLatestEvents1) return;
+    if (!isLatestNews) return;
     setThemeLoading(true);
-    fetch("/api/theme/LatestEvents1", { cache: "no-store" })
+    fetch("/api/theme/LatestNews", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : {}))
       .then((data) => {
         const items = Array.isArray(data?.latestEvents1Items)
@@ -609,7 +609,7 @@ export default function AdminComponentEditPage() {
                 it?.buttonLink != null ? String(it.buttonLink).trim() : "/",
             }))
           : [];
-        setThemeLatestEvents1Snapshot({
+        setThemeLatestNewsSnapshot({
           ...data,
           latestEvents1SubTitle:
             data?.latestEvents1SubTitle != null
@@ -633,14 +633,14 @@ export default function AdminComponentEditPage() {
               ? String(data.latestEvents1ButtonColorKey).trim()
               : "",
           ...getManageSectionSnapshot(
-            MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.LatestEvents1,
+            MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.LatestNews,
             data,
           ),
         });
       })
-      .catch(() => message.error("Failed to load Latest Events"))
+      .catch(() => message.error("Failed to load Latest News"))
       .finally(() => setThemeLoading(false));
-  }, [isLatestEvents1]);
+  }, [isLatestNews]);
 
   // Testimonials: fetch component data for preview
   useEffect(() => {
@@ -741,7 +741,7 @@ export default function AdminComponentEditPage() {
       "HomeHero",
       "Marquee",
       "Subscribe",
-      "LatestEvents1",
+      "LatestNews",
       "Testimonials",
     ].includes(record.componentId);
 
@@ -1038,7 +1038,7 @@ export default function AdminComponentEditPage() {
           </>
         )}
 
-        {isLatestEvents1 && (
+        {isLatestNews && (
           <>
             {themeLoading ? (
               <div style={{ padding: 48, textAlign: "center" }}>
@@ -1046,13 +1046,13 @@ export default function AdminComponentEditPage() {
               </div>
             ) : (
               <>
-                {SiteComponents.LatestEvents1 ? (
-                  <SiteComponents.LatestEvents1
-                    {...(themeLatestEvents1Snapshot || {})}
+                {SiteComponents.LatestNews ? (
+                  <SiteComponents.LatestNews
+                    {...(themeLatestNewsSnapshot || {})}
                   />
                 ) : (
                   <div style={{ color: "#999" }}>
-                    Latest Events component not found.
+                    Latest News component not found.
                   </div>
                 )}
               </>
@@ -1129,7 +1129,7 @@ export default function AdminComponentEditPage() {
                     "HomeHero",
                     "Marquee",
                     "Subscribe",
-                    "LatestEvents1",
+                    "LatestNews",
                     "Testimonials",
                   ].includes(cid);
                 if (isDynamicComp) {
@@ -1552,7 +1552,7 @@ export default function AdminComponentEditPage() {
                       theme,
                     ),
                   });
-                } else if (cid === "LatestEvents1") {
+                } else if (cid === "LatestNews") {
                   const items = Array.isArray(theme?.latestEvents1Items)
                     ? theme.latestEvents1Items.map((it) => ({
                         ...it,
@@ -1583,7 +1583,7 @@ export default function AdminComponentEditPage() {
                             : "/",
                       }))
                     : [];
-                  setThemeLatestEvents1Snapshot({
+                  setThemeLatestNewsSnapshot({
                     ...theme,
                     latestEvents1SubTitle:
                       theme?.latestEvents1SubTitle != null
@@ -1607,7 +1607,7 @@ export default function AdminComponentEditPage() {
                         ? String(theme.latestEvents1ButtonColorKey).trim()
                         : "",
                     ...getManageSectionSnapshot(
-                      MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.LatestEvents1,
+                      MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.LatestNews,
                       theme,
                     ),
                   });
@@ -1721,7 +1721,7 @@ export default function AdminComponentEditPage() {
           !isHomeHero &&
           !isMarquee &&
           !isSubscribe &&
-          !isLatestEvents1 &&
+          !isLatestNews &&
           !isTestimonials &&
           record?.componentId && (
             <>

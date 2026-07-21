@@ -9,6 +9,18 @@ import { SITE_COMPONENT_IDS } from "@/lib/siteComponentRegistry";
 
 const COMPONENT_ID_RE = /^[A-Za-z][A-Za-z0-9]*$/;
 const APPEARANCE_ONLY_IDS = new Set(["Header", "Footer"]);
+const LATEST_NEWS_ID = "LatestNews";
+const LEGACY_LATEST_NEWS_ID = "LatestEvents1";
+
+function canonicalComponentId(id) {
+  return id === LEGACY_LATEST_NEWS_ID ? LATEST_NEWS_ID : id;
+}
+
+function metadataQuery(id) {
+  return id === LATEST_NEWS_ID
+    ? { componentId: { $in: [LATEST_NEWS_ID, LEGACY_LATEST_NEWS_ID] } }
+    : { componentId: id };
+}
 
 function isValidComponentId(value) {
   return COMPONENT_ID_RE.test(String(value || ""));
@@ -50,7 +62,8 @@ export async function GET(req, { params }) {
   const session = await requireAuth(req);
   if (session instanceof NextResponse) return session;
 
-  const id = (params?.id || "").trim();
+  const requestedId = (params?.id || "").trim();
+  const id = canonicalComponentId(requestedId);
   if (!id || !isValidComponentId(id)) {
     return NextResponse.json({ error: "Invalid component id" }, { status: 400 });
   }
@@ -60,7 +73,9 @@ export async function GET(req, { params }) {
 
   try {
     await connectDB();
-    const doc = await SiteComponentMeta.findOne({ componentId: id }).lean();
+    const doc = await SiteComponentMeta.findOne(metadataQuery(id))
+      .sort({ componentId: -1 })
+      .lean();
     const isInRegistry = SITE_COMPONENT_IDS.includes(id);
     if (!doc && !isInRegistry) {
       return NextResponse.json({ error: "Component not found" }, { status: 404 });
@@ -68,10 +83,21 @@ export async function GET(req, { params }) {
 
     const defaultPosition = "after";
     const defaultOrder = Math.max(0, SITE_COMPONENT_IDS.indexOf(id));
-    const fallbackDisplayName = id === "OurImpact" ? "Our Impact" : id;
+    const fallbackDisplayName =
+      id === "OurImpact"
+        ? "Our Impact"
+        : id === LATEST_NEWS_ID
+          ? "Latest News"
+          : id;
     const payload = {
       componentId: id,
-      displayName: doc?.displayName || fallbackDisplayName,
+      displayName:
+        id === LATEST_NEWS_ID &&
+        (!doc?.displayName ||
+          doc.displayName === LEGACY_LATEST_NEWS_ID ||
+          doc.displayName === "Latest Events")
+          ? "Latest News"
+          : doc?.displayName || fallbackDisplayName,
       global: doc?.global ?? false,
       order: doc?.order ?? defaultOrder,
       position: doc?.position || defaultPosition,
@@ -88,7 +114,8 @@ export async function PUT(req, { params }) {
   const session = await requireAuth(req);
   if (session instanceof NextResponse) return session;
 
-  const id = (params?.id || "").trim();
+  const requestedId = (params?.id || "").trim();
+  const id = canonicalComponentId(requestedId);
   if (!id || !isValidComponentId(id)) {
     return NextResponse.json(
       { error: "Invalid component id" },
@@ -104,7 +131,9 @@ export async function PUT(req, { params }) {
     const { displayName, global, order, position, enabled } = body;
 
     await connectDB();
-    let doc = await SiteComponentMeta.findOne({ componentId: id });
+    let doc = await SiteComponentMeta.findOne(metadataQuery(id)).sort({
+      componentId: -1,
+    });
     const isInRegistry = SITE_COMPONENT_IDS.includes(id);
     if (!doc) {
       if (!isInRegistry) {
@@ -115,12 +144,24 @@ export async function PUT(req, { params }) {
       }
       doc = await SiteComponentMeta.create({
         componentId: id,
-        displayName: id === "OurImpact" ? "Our Impact" : id,
+        displayName:
+          id === "OurImpact"
+            ? "Our Impact"
+            : id === LATEST_NEWS_ID
+              ? "Latest News"
+              : id,
         global: false,
         order: SITE_COMPONENT_IDS.indexOf(id),
         position: "after",
         enabled: typeof enabled === "boolean" ? enabled : true,
       });
+    }
+
+    if (
+      id === LATEST_NEWS_ID &&
+      doc.componentId === LEGACY_LATEST_NEWS_ID
+    ) {
+      doc.componentId = LATEST_NEWS_ID;
     }
 
     if (typeof displayName === "string")

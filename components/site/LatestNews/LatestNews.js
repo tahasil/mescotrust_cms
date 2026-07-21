@@ -40,12 +40,13 @@ const NewsSection = styled.div`
 const text = (value) => value == null ? "" : String(value).trim();
 const number = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 const color = (value, fallback) => text(value) ? getColor(text(value)) : fallback;
+// Keep the persisted latestEvents1* namespace so existing CMS content remains valid.
 const previousSubTitleToken = ["Eye", "brow"].join("");
 const previousSubTitleField = (props, suffix = "") =>
   props?.[`latestEvents1${previousSubTitleToken}${suffix}`];
 const isExternalOrAsset = (href) => /^(https?:)?\/\//i.test(href) || href.startsWith("/media/") || href.startsWith("/uploads/") || /\.(pdf|jpe?g|png|svg|webp)(?:[?#].*)?$/i.test(href);
 
-export default function LatestEvents1(props) {
+export default function LatestNews(props) {
   const pathname = usePathname(); const rootRef = useRef(null); const isEditorPreview = pathname?.startsWith("/admin") === true;
   const items = Array.isArray(props?.latestEvents1Items) ? props.latestEvents1Items : [];
   useLayoutEffect(() => {

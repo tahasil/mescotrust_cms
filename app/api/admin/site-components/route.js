@@ -24,6 +24,8 @@ function sanitizeDisplayNameForTemplate(value) {
 }
 
 const APPEARANCE_ONLY_IDS = new Set(["Header", "Footer"]);
+const LATEST_NEWS_ID = "LatestNews";
+const LEGACY_LATEST_NEWS_ID = "LatestEvents1";
 
 /** GET: list all site components (registry + custom from DB) with metadata */
 export async function GET(req) {
@@ -38,11 +40,23 @@ export async function GET(req) {
     ).lean();
     const metaById = {};
     allMetas.forEach((m) => {
-      metaById[m.componentId] = m;
+      const canonicalId =
+        m.componentId === LEGACY_LATEST_NEWS_ID
+          ? LATEST_NEWS_ID
+          : m.componentId;
+      if (!metaById[canonicalId] || m.componentId === canonicalId) {
+        metaById[canonicalId] = m;
+      }
     });
 
     const idsFromRegistry = getRegistryIdsFromDisk();
-    const customIds = allMetas.map((m) => m.componentId).filter((id) => !idsFromRegistry.includes(id));
+    const customIds = allMetas
+      .map((m) =>
+        m.componentId === LEGACY_LATEST_NEWS_ID
+          ? LATEST_NEWS_ID
+          : m.componentId,
+      )
+      .filter((id) => !idsFromRegistry.includes(id));
     const allIds = [...new Set([...idsFromRegistry, ...customIds])];
 
     const list = allIds.map((id, index) => {
@@ -67,6 +81,14 @@ export async function GET(req) {
       if (id === "SocialWallFeed" && (!displayName || displayName === "SocialWallFeed")) {
         displayName = "Social Wall";
       }
+      if (
+        id === LATEST_NEWS_ID &&
+        (!displayName ||
+          displayName === LEGACY_LATEST_NEWS_ID ||
+          displayName === "Latest Events")
+      ) {
+        displayName = "Latest News";
+      }
       return {
         componentId: id,
         displayName,
@@ -88,7 +110,7 @@ export async function GET(req) {
 
 /**
  * POST: create new site component — creates 3-file folder, registry, index, Component doc.
- * New components must follow same pattern as LatestEvents1: add to EDITABLE_SITE_EDIT_FORMS
+ * New components must follow same pattern as Latest News: add to EDITABLE_SITE_EDIT_FORMS
  * and add edit-page snapshot/preview/refetch in components/[id]/edit/page.js.
  * See docs/NEW_SITE_COMPONENT_CHECKLIST.md.
  */

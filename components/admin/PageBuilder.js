@@ -86,6 +86,24 @@ const EDITABLE_SITE_COMPONENTS = SITE_COMPONENT_IDS.filter(
   (id) => id !== "Header" && id !== "Footer",
 );
 
+function normalizeLatestNewsBlock(block) {
+  if (!block || typeof block !== "object") return block;
+  const normalized =
+    block.baseComponent === "LatestEvents1"
+      ? { ...block, baseComponent: "LatestNews" }
+      : { ...block };
+  if (
+    normalized.baseComponent === "Section" &&
+    Array.isArray(normalized.props?.layout)
+  ) {
+    normalized.props = {
+      ...normalized.props,
+      layout: normalized.props.layout.map(normalizeLatestNewsBlock),
+    };
+  }
+  return normalized;
+}
+
 /** Default props for new Testimonials block; all settings/items stored in page (pages collection). */
 const TESTIMONIALS_DEFAULT_PROPS = {
   testimonialsTitle: "Testimonials",
@@ -207,7 +225,7 @@ function getDefaultPropsForNewSiteComponent(componentId) {
         marqueePartnersTitleColorKey: "",
         marqueeAwardsTitleColorKey: "",
       };
-    case "LatestEvents1":
+    case "LatestNews":
       return { ...base, latestEvents1Items: [] };
     case "EventsSlider":
       return {
@@ -2225,7 +2243,9 @@ export default function PageBuilder({
       .finally(() => setSiteComponentsLoading(false));
   }, [addDrawerOpen]);
 
-  const blocks = Array.isArray(layout) ? [...layout] : [];
+  const blocks = Array.isArray(layout)
+    ? layout.map(normalizeLatestNewsBlock)
+    : [];
   const sorted = blocks
     .map((b, i) => ({ ...b, _index: i }))
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));

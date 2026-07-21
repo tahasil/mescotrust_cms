@@ -57,12 +57,12 @@ Standard styling controls (background, padding, margins) like every other block.
 
 ## B. Wire your existing event blocks to the registration form
 
-The reusable **LatestEvents1** block on your home / events pages already has a `buttonLink` field on each event item. Point it at the registration page.
+The reusable **Latest News** block on your home / events pages already has a `buttonLink` field on each item. Point it at the registration page.
 
-For each event in your **LatestEvents1** block:
+For each item in your **Latest News** block:
 
 1. Open the page that has the event listing
-2. Click the **LatestEvents1** block
+2. Click the **Latest News** block
 3. Find the event item and edit its **buttonLink** field to:
 
 ```
@@ -164,5 +164,5 @@ The inbox doesn't distinguish between pages, but the **Submitted from page** fie
 - **Honour the inbox**: check it daily and update statuses promptly. Visitors expect a response.
 - **Spam protection**: the form has a built-in honeypot field (invisible to humans). Spam bots that fill it are silently rejected. There's also a per-IP rate limit of 5 submissions per minute.
 - **No file uploads**: visitors cannot attach documents (e.g. ID proof) yet. If you need that for student applications, ask your developer about the planned **Job Application** module which adds resume upload — the same pattern can be adapted.
-- **Renaming an event**: if you rename an event in the LatestEvents1 block after registrations have come in, the existing registrations still show the **old** event title (because we save a snapshot at submit time). The visitor's email also referenced the old title. This is intentional — the audit trail is not retroactively rewritten.
+- **Renaming an event**: if you rename an event in the Latest News block after registrations have come in, the existing registrations still show the **old** event title (because we save a snapshot at submit time). The visitor's email also referenced the old title. This is intentional — the audit trail is not retroactively rewritten.
 - **Stable event IDs (future)**: in a future release, each event item will get a stable unique ID so registrations link to a specific event even if it's renamed. For now, the linking is by title text only.

@@ -46,7 +46,7 @@ Section IDs may contain letters, numbers, hyphens, and underscores. Keep every S
 | Show "what we do" 4-card grid | **OverviewOfOurWork** |
 | Show a two-column "we help people" section | **Helpingpeople** |
 | Show a featured event with image + CTA | **HelpingEvents** |
-| Show a carousel of latest events / news | **LatestEvents1** |
+| Show the latest news list | **Latest News** |
 | Show "donate now" + "volunteer" call-to-action images | **ImpactShowcase** |
 | Show grid of trustees / committee / leadership | **CommitteeMembers** |
 | Show a single managing-committee description with image | **ManagingCommittee** |
@@ -166,7 +166,7 @@ For each component below: **what it shows**, **what items you can add to its lis
 **Section settings:** subTitle, mainTitle, eventTitle, eventDescription, eventImage, eventImageAlt, buttonText, buttonLink, colour keys.
 **Storage:** per-page or global
 
-#### LatestEvents1
+#### Latest News
 **Shows:** Carousel of news/event cards (image, date, title, description, read-more link), 3 cards visible per slide on desktop.
 **List items:** `imageUrl`, `date`, `title`, `description`, `buttonText`, `buttonLink`
 **Section settings:** subTitle, mainTitle, colour keys.
@@ -391,9 +391,9 @@ The website has many pages, and components can be added anywhere. Some common pl
 
 | Component | Typical page |
 |---|---|
-| HomeHero, OverviewOfOurWork, ImpactShowcase, Testimonials, LatestEvents1, Marquee | **Home** |
+| HomeHero, OverviewOfOurWork, ImpactShowcase, Testimonials, Latest News, Marquee | **Home** |
 | InnerPageHero, WelcometoMESCO, Mission, Vision, AimsObjectives, ManagingCommittee, CommitteeMembers, Registered | **About** sub-pages |
-| OverviewOfOurWork, HelpingEvents, LatestEvents1 | **Our Work** sub-pages |
+| OverviewOfOurWork, HelpingEvents, Latest News | **Our Work** sub-pages |
 | StoriesSlider, Testimonials, DonorTestimonials, OverviewOfOurWork (for Awards) | **Impact** sub-pages |
 | DonateNow, Careers, ImpactShowcase | **Get Involved** sub-pages |
 | InMedia, PhotoGallery, Videogallery, Newsletters, Reports, Notices | **Media** sub-pages |
