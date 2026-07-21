@@ -435,7 +435,7 @@ export default function RoutePopupHost() {
           </div>
         </div>
       </div>
-      <style jsx>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .route-popup-overlay {
           position: fixed;
           inset: 0;
@@ -647,7 +647,7 @@ export default function RoutePopupHost() {
             transition-duration: 1ms !important;
           }
         }
-      `}</style>
+      ` }} />
     </>
   );
 }

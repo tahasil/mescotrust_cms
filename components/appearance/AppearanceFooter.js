@@ -136,7 +136,7 @@ export default function AppearanceFooter({
           {footerRefundUrl ? <a href={footerRefundUrl} target={footerRefundTarget === "_blank" ? "_blank" : "_self"} rel={footerRefundTarget === "_blank" ? "noopener noreferrer" : undefined}>{footerRefundLabel}</a> : null}
         </div>
       </div>
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .appearance-footer, .appearance-footer * { box-sizing: border-box; }
         .appearance-footer { --appearance-font-body: "Instrument Sans", system-ui, sans-serif; width: 100%; color: rgba(250,246,239,.82); background: #211e30 center/cover no-repeat; font-family: var(--appearance-font-body); font-synthesis: none; -webkit-font-smoothing: antialiased; line-height: 1.6; }
         .appearance-footer *, .appearance-footer *::before, .appearance-footer *::after { font-family: var(--appearance-font-body); }
@@ -172,7 +172,7 @@ export default function AppearanceFooter({
           .appearance-footer .footer-bottom { flex-direction: column; padding-top: 22px; padding-bottom: 22px; }
           .appearance-footer .footer-legal { gap: 12px 20px; }
         }
-      `}</style>
+      ` }} />
     </footer>
   );
 }

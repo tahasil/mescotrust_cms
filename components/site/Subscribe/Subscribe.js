@@ -41,7 +41,7 @@ export default function Subscribe(props){
           {text(raw?.subscribeSecondaryButtonLabel)&&text(raw?.subscribeSecondaryButtonUrl)?<a className="fable-button subscribeCtaBand__secondary" href={text(raw.subscribeSecondaryButtonUrl)} target={sTarget} rel={sTarget==="_blank"?"noopener noreferrer":undefined}>{text(raw.subscribeSecondaryButtonLabel)}</a>:null}
         </div>
       </div>
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .subscribeCtaBand { padding: clamp(56px,7vw,100px) clamp(20px,4vw,48px); color: ${getColor("cream")}; background: ${getColor("dark")}; border-radius: clamp(24px,4vw,48px); text-align: center; }
         .subscribeCtaBand h2 { margin: 0 0 28px; color: ${getColor("cream")}; font-family: "Bricolage Grotesque",system-ui,sans-serif; font-size: clamp(34px,4.6vw,64px); font-weight: 620; letter-spacing: -.02em; }
         .subscribeCtaBand h2 em { color: ${getColor("primarySoft")}; font-style: normal; }
@@ -49,7 +49,7 @@ export default function Subscribe(props){
         .subscribeCtaBand__secondary { color: ${getColor("cream")}; background: transparent; border-color: color-mix(in srgb,${getColor("cream")} 32%,transparent); }
         .subscribeCtaBand__secondary:hover { color: ${getColor("cream")}; background: transparent; border-color: ${getColor("cream")}; }
         @media(max-width:767px){.subscribeCtaBand__actions .fable-button{width:100%}}
-      `}</style>
+      ` }} />
     </PageContainer>
   </FullWidthBackground>;
   return <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>

@@ -99,7 +99,7 @@ export default function CookieConsent() {
           </div>
         </div>
       </div>
-      <style jsx>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .mesco-cookie-banner {
           position: fixed;
           left: 16px;
@@ -188,7 +188,7 @@ export default function CookieConsent() {
             justify-content: flex-end;
           }
         }
-      `}</style>
+      ` }} />
     </>
   );
 }

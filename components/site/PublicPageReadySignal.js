@@ -58,6 +58,47 @@ function nextPaint() {
   });
 }
 
+function criticalLayoutStylesReady() {
+  const shell = document.querySelector(".public-site");
+  const header = document.querySelector(".appearance-header");
+  const desktopHeader = header?.querySelector(".appearance-desktop");
+  const mobileHeader = header?.querySelector(".current-mobile");
+  const footerGrid = document.querySelector(".appearance-footer .footer-grid");
+  if (!shell || !header || !desktopHeader || !mobileHeader || !footerGrid) {
+    return false;
+  }
+
+  const shellStyle = getComputedStyle(shell);
+  const desktopStyle = getComputedStyle(desktopHeader);
+  const mobileStyle = getComputedStyle(mobileHeader);
+  const footerStyle = getComputedStyle(footerGrid);
+  const expectsMobileHeader = window.matchMedia("(max-width: 991px)").matches;
+  const headerReady = expectsMobileHeader
+    ? mobileStyle.display !== "none" && desktopStyle.display === "none"
+    : mobileStyle.display === "none" && desktopStyle.display !== "none";
+
+  return (
+    shellStyle.display === "flex" &&
+    shellStyle.flexDirection === "column" &&
+    headerReady &&
+    footerStyle.display === "grid"
+  );
+}
+
+function waitForCriticalLayoutStyles() {
+  if (criticalLayoutStylesReady()) return Promise.resolve();
+  return new Promise((resolve) => {
+    const check = () => {
+      if (criticalLayoutStylesReady()) {
+        resolve();
+        return;
+      }
+      requestAnimationFrame(check);
+    };
+    requestAnimationFrame(check);
+  });
+}
+
 function waitForRegisteredTasks() {
   if (!window.__mescoPageReady || window.__mescoPageReady.pendingCount?.() === 0) {
     return Promise.resolve();
@@ -86,6 +127,9 @@ export default function PublicPageReadySignal() {
 
     async function signalReady() {
       await waitForRegisteredTasks();
+      if (cancelled) return;
+
+      await waitForCriticalLayoutStyles();
       if (cancelled) return;
 
       const fontsReady = document.fonts?.ready?.catch?.(() => {}) || Promise.resolve();

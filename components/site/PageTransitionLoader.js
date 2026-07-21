@@ -175,15 +175,6 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
       return originalReplaceState.apply(window.history, args);
     };
 
-    const onUnhandledRejection = () => {
-      hideNow();
-      clearTimers();
-    };
-    const onWindowError = () => {
-      hideNow();
-      clearTimers();
-    };
-
     const onPopState = () => startNavigationLoader();
     const onPageShow = () => tryHideLoader();
     const onVisibility = () => {
@@ -208,8 +199,6 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("site-route-loading", onRouteLoadingBoundary);
     window.addEventListener("site-page-readiness-change", onPageReadinessChange);
-    window.addEventListener("unhandledrejection", onUnhandledRejection);
-    window.addEventListener("error", onWindowError);
 
     return () => {
       document.removeEventListener("click", onClickCapture, true);
@@ -218,8 +207,6 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("site-route-loading", onRouteLoadingBoundary);
       window.removeEventListener("site-page-readiness-change", onPageReadinessChange);
-      window.removeEventListener("unhandledrejection", onUnhandledRejection);
-      window.removeEventListener("error", onWindowError);
       window.history.pushState = originalPushState;
       window.history.replaceState = originalReplaceState;
       clearTimers();

@@ -99,7 +99,7 @@ export default function CTABanner(props) {
             </div>
           </div>
         </div>
-        <style jsx global>{`
+        <style dangerouslySetInnerHTML={{ __html: `
           .ctaBanner {
             position: relative;
             overflow: hidden;
@@ -212,7 +212,7 @@ export default function CTABanner(props) {
               transition: none;
             }
           }
-        `}</style>
+        ` }} />
       </PageContainer>
     </FullWidthBackground>
   );

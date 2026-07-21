@@ -319,7 +319,7 @@ export default function AppearanceHeader(props) {
           </div>
         </div>
       </div>
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .appearance-header, .appearance-header * { box-sizing: border-box; }
         .appearance-header { --appearance-font-body: "Instrument Sans", system-ui, sans-serif; --appearance-font-display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif; position: relative; z-index: 100; font-family: var(--appearance-font-body); font-synthesis: none; -webkit-font-smoothing: antialiased; }
         .appearance-header *, .appearance-header *::before, .appearance-header *::after { font-family: var(--appearance-font-body); }
@@ -397,7 +397,7 @@ export default function AppearanceHeader(props) {
           .appearance-header .appearance-desktop { display: block; }
           .appearance-header .current-mobile { display: none; }
         }
-      `}</style>
+      ` }} />
     </div>
   );
 }

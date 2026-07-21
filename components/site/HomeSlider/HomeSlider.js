@@ -256,7 +256,7 @@ export default function HomeSlider(props) {
         ) : null}
       </div>
 
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .home-cinematic-slider, .home-cinematic-slider * { box-sizing: border-box; }
         .home-cinematic-slider { --home-slider-body: "Instrument Sans", system-ui, sans-serif; --home-slider-display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif; position: relative; width: 100%; overflow: hidden; color: #fbfaf7; background: var(--home-slider-background); font-family: var(--home-slider-body); font-synthesis: none; -webkit-font-smoothing: antialiased; touch-action: pan-y; }
         .home-cinematic-slider::before { content: ""; position: absolute; inset: 0; z-index: 1; background: radial-gradient(52% 60% at 82% 10%,rgba(224,60,51,.16),transparent 70%),radial-gradient(40% 50% at 8% 92%,rgba(224,60,51,.1),transparent 70%); pointer-events: none; }
@@ -328,7 +328,7 @@ export default function HomeSlider(props) {
           .home-slider-slide.is-active, .home-slider-slide.is-active .home-slider-media, .home-slider-slide.is-active .home-slider-caption p, .home-slider-slide.is-active .home-slider-caption a, .home-slider-intro, .home-slider-rail button.is-active::after, .home-slider-badge > svg:first-child { animation: none !important; transition: none !important; }
           .home-slider-rail button.is-active::after { height: 100%; }
         }
-      `}</style>
+      ` }} />
     </section>
   );
 }

@@ -309,7 +309,7 @@ export default async function RootLayout({ children }) {
         {loaderEnabled && (
           <style dangerouslySetInnerHTML={{ __html: `
 html.page-loading,body.page-loading{overflow:hidden;margin:0;padding:0}
-#page-loader{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:${loaderBg};transition:opacity .5s ease-out,visibility .5s ease-out}
+#page-loader{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:${loaderBg};transition:opacity .5s ease-out,visibility .5s ease-out;contain:strict}
 #page-loader.page-loader-hidden{opacity:0;visibility:hidden;pointer-events:none}
 .page-loader-bars{display:flex;align-items:center;justify-content:center;gap:6px;height:50px}
 .page-loader-bar{width:6px;height:50px;background:${loaderBar};border-radius:3px;animation:page-loader-bounce 1.2s ease-in-out infinite both}
@@ -341,21 +341,22 @@ html.page-loading,body.page-loading{overflow:hidden;margin:0;padding:0}
         )}
       </head>
       <body className={loaderEnabled ? "page-loading" : undefined}>
+        {loaderEnabled && (
+          <div id="page-loader" aria-hidden="false" aria-label="Loading">
+            <div className="page-loader-bars">
+              <span className="page-loader-bar" />
+              <span className="page-loader-bar" />
+              <span className="page-loader-bar" />
+              <span className="page-loader-bar" />
+              <span className="page-loader-bar" />
+            </div>
+          </div>
+        )}
         <StyledComponentsRegistry>
           <AntdRegistry>{children}</AntdRegistry>
         </StyledComponentsRegistry>
         {loaderEnabled && (
-          <>
-            <div id="page-loader" aria-hidden="false" aria-label="Loading">
-              <div className="page-loader-bars">
-                <span className="page-loader-bar" />
-                <span className="page-loader-bar" />
-                <span className="page-loader-bar" />
-                <span className="page-loader-bar" />
-                <span className="page-loader-bar" />
-              </div>
-            </div>
-            <script dangerouslySetInnerHTML={{ __html: `
+          <script dangerouslySetInnerHTML={{ __html: `
 (function(){
   var d=${loaderMinDuration};
   var started=Date.now();
@@ -445,7 +446,6 @@ html.page-loading,body.page-loading{overflow:hidden;margin:0;padding:0}
   armFailSafe();
 })();
 ` }} />
-          </>
         )}
       </body>
     </html>
