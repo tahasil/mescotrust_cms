@@ -58,7 +58,7 @@ const POPULAR_GOOGLE_FONTS = [
   "Fira Sans",
 ];
 
-/** Parse hex or rgb/rgba or first hex in gradient to a 6-char hex for the color picker */
+/** Parse hex, rgb/rgba, or the first supported gradient color for the picker. */
 function parseToHex(str) {
   if (!str || typeof str !== "string") return null;
   const raw = str.trim();
@@ -119,8 +119,13 @@ function ColorCodeInput({ value, onChange, placeholder }) {
     if (wasRgba) {
       onChange(hexToRgba(hex, alpha));
     } else if (wasGradient && raw) {
-      const firstHex = raw.match(/#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})\b/);
-      onChange(firstHex ? raw.replace(firstHex[0], hex) : hex);
+      const firstColor = raw.match(
+        /#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})\b|rgba?\([^)]*\)/i,
+      );
+      const replacement = firstColor?.[0]?.toLowerCase().startsWith("rgba(")
+        ? hexToRgba(hex, parseAlpha(firstColor[0]))
+        : hex;
+      onChange(firstColor ? raw.replace(firstColor[0], replacement) : raw);
     } else {
       onChange(hex);
     }
@@ -153,6 +158,17 @@ function ColorCodeInput({ value, onChange, placeholder }) {
       />
     </Space.Compact>
   );
+}
+
+function completeColorRows(rows, keyField) {
+  if (!Array.isArray(rows)) return [];
+  return rows
+    .map((row) => ({
+      ...row,
+      [keyField]: String(row?.[keyField] || "").trim(),
+      value: String(row?.value || "").trim(),
+    }))
+    .filter((row) => row[keyField] && row.value);
 }
 
 function FormColor({ name, label, placeholder }) {
@@ -377,13 +393,28 @@ export default function AdminThemePage() {
   const onFinish = async (values) => {
     setSaving(true);
     try {
+      // Collapse panels are lazy-mounted. Include values loaded into the form
+      // store even when their panel has not been opened in this session.
+      const allValues = { ...form.getFieldsValue(true), ...values };
       const payload = {
-        ...values,
+        ...allValues,
         googleFonts,
-        paletteColors: Array.isArray(values.paletteColors)
-          ? values.paletteColors
-          : [],
-        colors: Array.isArray(values.colors) ? values.colors : [],
+        pageLoaderBgColor:
+          allValues.pageLoaderBgColor == null
+            ? undefined
+            : String(allValues.pageLoaderBgColor).trim(),
+        pageLoaderBarColor:
+          allValues.pageLoaderBarColor == null
+            ? undefined
+            : String(allValues.pageLoaderBarColor).trim(),
+        paletteColors:
+          allValues.paletteColors === undefined
+            ? undefined
+            : completeColorRows(allValues.paletteColors, "key"),
+        colors:
+          allValues.colors === undefined
+            ? undefined
+            : completeColorRows(allValues.colors, "name"),
       };
       const res = await fetch("/api/theme", {
         method: "PUT",
@@ -611,7 +642,6 @@ export default function AdminThemePage() {
                       >
                         <Form.Item
                           name={[name, "name"]}
-                          rules={[{ required: true, message: "Name required" }]}
                           style={{ marginBottom: 0, flex: "1 1 100px", minWidth: 0 }}
                           label={null}
                         >
@@ -619,7 +649,6 @@ export default function AdminThemePage() {
                         </Form.Item>
                         <Form.Item
                           name={[name, "value"]}
-                          rules={[{ required: true, message: "Value required" }]}
                           style={{ marginBottom: 0, flex: "1 1 140px", minWidth: 0 }}
                           label={null}
                         >
@@ -666,7 +695,6 @@ export default function AdminThemePage() {
                       >
                         <Form.Item
                           name={[name, "key"]}
-                          rules={[{ required: true, message: "Name" }]}
                           style={{ marginBottom: 0, flex: "1 1 100px", minWidth: 0 }}
                           label={null}
                         >
@@ -674,7 +702,6 @@ export default function AdminThemePage() {
                         </Form.Item>
                         <Form.Item
                           name={[name, "value"]}
-                          rules={[{ required: true, message: "Value" }]}
                           style={{ marginBottom: 0, flex: "1 1 140px", minWidth: 0 }}
                           label={null}
                         >
@@ -715,12 +742,12 @@ export default function AdminThemePage() {
           <Row gutter={16}>
             <Col xs={24} sm={12}>
               <Form.Item name="pageLoaderBgColor" label="Background color">
-                <ColorCodeInput placeholder="#211E30 or rgba(33,30,48,0.8)" />
+                <ColorCodeInput placeholder="#hex, rgb(), rgba(), or linear-gradient()" />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12}>
               <Form.Item name="pageLoaderBarColor" label="Bar color">
-                <ColorCodeInput placeholder="#E03C33 or rgba(224,60,51,1)" />
+                <ColorCodeInput placeholder="#hex, rgb(), rgba(), or linear-gradient()" />
               </Form.Item>
             </Col>
           </Row>
