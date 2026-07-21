@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/db";
 import Media from "@/models/Media";
 import {
   ALLOWED_UPLOAD_MIME_TYPES,
+  DOCUMENT_UPLOAD_MIME_TYPES,
   UPLOAD_MIME_BY_EXT,
 } from "@/lib/media/constants";
 import { getMediaSettings } from "@/lib/media/settings";
@@ -61,7 +62,7 @@ export async function GET(req) {
     if (status) filter.status = status;
     if (type === "image") filter.mimeType = { $regex: "^image/" };
     if (type === "video") filter.mimeType = { $regex: "^video/" };
-    if (type === "document") filter.mimeType = "application/pdf";
+    if (type === "document") filter.mimeType = { $in: DOCUMENT_UPLOAD_MIME_TYPES };
     if (month) {
       const match = month.match(/^(\d{4})-(\d{2})$/);
       if (!match) {
@@ -153,13 +154,16 @@ export async function POST(req) {
 
     const rawMimeType = String(file.type || "").toLowerCase().trim();
     const ext = path.extname(String(file.name || "")).toLowerCase();
-    const mimeType = rawMimeType || UPLOAD_MIME_BY_EXT[ext] || "";
+    const inferredMimeType = UPLOAD_MIME_BY_EXT[ext] || "";
+    const mimeType = ALLOWED_UPLOAD_MIME_TYPES.includes(rawMimeType)
+      ? rawMimeType
+      : inferredMimeType;
     if (!ALLOWED_UPLOAD_MIME_TYPES.includes(mimeType)) {
       return NextResponse.json(
         {
           error: `Unsupported file type${
             mimeType ? `: ${mimeType}` : ""
-          }. Allowed: JPG, JPEG, PNG, WEBP, AVIF, GIF, SVG, PDF, MP4, WEBM.`,
+          }. Allowed: images, PDF, DOC/DOCX, XLS/XLSX, PPT/PPTX, CSV, TXT, RTF, OpenDocument, ZIP, MP4, WEBM.`,
         },
         { status: 400 },
       );

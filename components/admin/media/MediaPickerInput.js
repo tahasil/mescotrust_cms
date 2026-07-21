@@ -303,7 +303,7 @@ export default function MediaPickerInput({
     "Selected document";
   const uploadAccept =
     normalizedMediaType === "document"
-      ? ".pdf,application/pdf"
+      ? ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.rtf,.odt,.ods,.odp,.zip"
       : normalizedMediaType === "video"
         ? ".mp4,.webm,video/mp4,video/webm"
       : normalizedMediaType === "all"
@@ -375,7 +375,13 @@ export default function MediaPickerInput({
             ) : (
               <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description={isVideoMode ? "No video selected" : "No image selected"}
+                description={
+                  isDocumentMode
+                    ? "No document selected"
+                    : isVideoMode
+                      ? "No video selected"
+                      : "No image selected"
+                }
                 style={{ margin: 0 }}
               />
             )}
@@ -523,7 +529,13 @@ export default function MediaPickerInput({
                   type="secondary"
                   style={{ fontSize: 12, marginTop: 6, display: "block" }}
                 >
-                  {activeMedia.originalName || activeMedia.title || (isVideoMode ? "Selected video" : "Selected image")}
+                  {activeMedia.originalName ||
+                    activeMedia.title ||
+                    (isDocumentMode
+                      ? "Selected document"
+                      : isVideoMode
+                        ? "Selected video"
+                        : "Selected image")}
                 </Typography.Text>
               ) : null}
             </div>

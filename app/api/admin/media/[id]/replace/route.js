@@ -49,10 +49,13 @@ export async function POST(req, { params }) {
     }
     const rawMimeType = String(file.type || "").toLowerCase().trim();
     const ext = path.extname(String(file.name || "")).toLowerCase();
-    const mimeType = rawMimeType || UPLOAD_MIME_BY_EXT[ext] || "";
+    const inferredMimeType = UPLOAD_MIME_BY_EXT[ext] || "";
+    const mimeType = ALLOWED_UPLOAD_MIME_TYPES.includes(rawMimeType)
+      ? rawMimeType
+      : inferredMimeType;
     if (!ALLOWED_UPLOAD_MIME_TYPES.includes(mimeType)) {
       return NextResponse.json(
-        { error: "Unsupported file type. Allowed: JPG, JPEG, PNG, WEBP, AVIF, GIF, SVG, PDF, MP4, WEBM." },
+        { error: "Unsupported file type. Allowed: images, documents, ZIP, MP4, and WEBM." },
         { status: 400 },
       );
     }

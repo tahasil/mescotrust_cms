@@ -19,7 +19,6 @@ import {
   INNER_PAGE_HERO_REQUIRED_IMAGE_WIDTH,
   validateInnerPageHeroBackgroundImage,
 } from "@/lib/innerPageHeroImageValidation";
-import { validateLatestNewsImages } from "@/lib/latestNewsImageValidation";
 import { validateStoriesSliderImages } from "@/lib/storiesSliderImageValidation";
 import { validateImpactShowcaseImages } from "@/lib/impactShowcaseImageValidation";
 import { validateHelpingpeopleImage } from "@/lib/helpingpeopleImageValidation";
@@ -212,16 +211,6 @@ export async function PUT(req, { params }) {
     if (componentId === "InnerPageHero") {
       const validationErrors =
         await validateInnerPageHeroBackgroundImage(defaultProps);
-      if (validationErrors.length > 0) {
-        return NextResponse.json(
-          { error: validationErrors[0] },
-          { status: 400 },
-        );
-      }
-    }
-
-    if (componentId === "LatestNews") {
-      const validationErrors = await validateLatestNewsImages(defaultProps);
       if (validationErrors.length > 0) {
         return NextResponse.json(
           { error: validationErrors[0] },
