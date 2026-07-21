@@ -212,13 +212,7 @@ const themeConfigSchema = new mongoose.Schema(
     },
     marqueeItems: { type: [marqueeItemSchema], default: [] },
 
-    // ─── Subscribe (site component) ───────────────────────────────
-    subscribeSubtitle: { type: String, default: "" },
-    subscribeTitle: { type: String, default: "" },
-    subscribePlaceholder: { type: String, default: "" },
-    subscribeButtonText: { type: String, default: "" },
-    subscribeBgUrl: { type: String, default: "" },
-
+    // Subscribe settings live in the Component collection.
     // ─── 7. Button Style ──────────────────────────────────────
     buttonBackground: { type: String, default: "" },
     buttonTextColor: { type: String, default: "" },

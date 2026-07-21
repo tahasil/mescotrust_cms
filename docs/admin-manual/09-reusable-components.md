@@ -328,7 +328,7 @@ For each component below: **what it shows**, **what items you can add to its lis
 #### Subscribe
 **Shows:** Newsletter signup CTA with optional background image, email input, and subscribe button.
 **List items:** none — singleton
-**Section settings:** subscribeSubtitle, subscribeTitle, subscribePlaceholder, subscribeButtonText, subscribeBgUrl, colour keys.
+**Section settings:** finale heading/accent, two CTA links and targets, newsletter label, email placeholder, subscribe button text, and semantic colour keys. Background images and layout overrides are not configurable.
 **Storage:** per-page or global
 
 #### Notices

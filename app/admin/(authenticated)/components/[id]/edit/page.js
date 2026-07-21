@@ -1144,7 +1144,11 @@ export default function AdminComponentEditPage() {
                   return;
                 }
                 const res = await fetch(
-                  cid === "Marquee" ? "/api/theme/marquee" : "/api/theme",
+                  cid === "Marquee"
+                    ? "/api/theme/marquee"
+                    : cid === "Subscribe"
+                      ? "/api/theme/subscribe"
+                      : "/api/theme",
                   { cache: "no-store" },
                 );
                 if (!res.ok) return;
@@ -1534,24 +1538,7 @@ export default function AdminComponentEditPage() {
                     ),
                   });
                 } else if (cid === "Subscribe") {
-                  setThemeSubscribeSnapshot({
-                    subscribeSubtitle: theme.subscribeSubtitle ?? "",
-                    subscribeTitle: theme.subscribeTitle ?? "",
-                    subscribePlaceholder: theme.subscribePlaceholder ?? "",
-                    subscribeButtonText: theme.subscribeButtonText ?? "",
-                    subscribeBgUrl: theme.subscribeBgUrl ?? "",
-                    subscribeSubtitleColorKey:
-                      theme.subscribeSubtitleColorKey ?? "",
-                    subscribeTitleColorKey: theme.subscribeTitleColorKey ?? "",
-                    subscribeButtonBgColorKey:
-                      theme.subscribeButtonBgColorKey ?? "",
-                    subscribeButtonTextColorKey:
-                      theme.subscribeButtonTextColorKey ?? "",
-                    ...getManageSectionSnapshot(
-                      MANAGE_SECTION_PREFIX_BY_COMPONENT_ID.Subscribe,
-                      theme,
-                    ),
-                  });
+                  setThemeSubscribeSnapshot({ ...theme });
                 } else if (cid === "LatestNews") {
                   const items = Array.isArray(theme?.latestEvents1Items)
                     ? theme.latestEvents1Items.map((it) => ({

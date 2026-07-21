@@ -12,57 +12,110 @@ import { isAdmin } from "@/lib/permissions";
 export const dynamic = "force-dynamic";
 
 const SUBSCRIBE_DEFAULTS = {
-  subscribeSubtitle: "",
-  subscribeTitle: "",
-  subscribePlaceholder: "",
-  subscribeButtonText: "",
-  subscribeBgDesktop: "",
-  subscribeBgMobile: "",
-  subscribeBgUrl: "",
-  subscribeSubtitleColorKey: "",
-  subscribeTitleColorKey: "",
-  subscribeButtonBgColorKey: "",
-  subscribeButtonTextColorKey: "",
+  subscribeSubtitle: "Subscribe to our newsletter for weekly and monthly news",
+  subscribeTitle: "Be someone's",
+  subscribeHeadingAccent: "tomorrow.",
+  subscribePrimaryButtonLabel: "Donate Now",
+  subscribePrimaryButtonUrl: "/donate",
+  subscribePrimaryButtonTarget: "_self",
+  subscribeSecondaryButtonLabel: "Become a Volunteer",
+  subscribeSecondaryButtonUrl: "/volunteer",
+  subscribeSecondaryButtonTarget: "_self",
+  subscribePlaceholder: "you@example.com",
+  subscribeButtonText: "Subscribe",
+  subscribeSectionBgColorKey: "cream",
+  subscribeSubtitleColorKey: "blackLight",
+  subscribeTitleColorKey: "black",
+  subscribeButtonBgColorKey: "dark",
+  subscribeButtonTextColorKey: "warmWhite",
+  subscribeAccentColorKey: "primary",
+  subscribeOutlineColorKey: "blackLight",
+  subscribePrimaryButtonBgColorKey: "primary",
+  subscribePrimaryButtonTextColorKey: "white",
+  subscribeSecondaryButtonBgColorKey: "dark",
+  subscribeSecondaryButtonTextColorKey: "warmWhite",
+  subscribeInputBorderColorKey: "border",
+  subscribeInputBgColorKey: "white",
+  subscribeInputTextColorKey: "black",
+  subscribeFocusColorKey: "primary",
+  subscribeErrorColorKey: "primary",
+  subscribeSectionId: "",
+  subscribeSectionBgType: "default",
+  subscribeSectionBgImage: "",
+  subscribeSectionBgColorKey: "",
+  subscribeSectionPaddingTop: undefined,
+  subscribeSectionPaddingRight: undefined,
+  subscribeSectionPaddingBottom: undefined,
+  subscribeSectionPaddingLeft: undefined,
+  subscribeSectionMarginTop: undefined,
+  subscribeSectionMarginBottom: undefined,
+  subscribePageContainerBgType: "default",
+  subscribePageContainerBgImage: "",
+  subscribePageContainerBgColorKey: "",
+  subscribePageContainerPaddingTop: undefined,
+  subscribePageContainerPaddingRight: undefined,
+  subscribePageContainerPaddingBottom: undefined,
+  subscribePageContainerPaddingLeft: undefined,
+  subscribePageContainerMarginTop: undefined,
+  subscribePageContainerMarginBottom: undefined,
+  _disableFadeAnimation: false,
 };
+
+const LEGACY_SUBSCRIBE_TITLE =
+  "To get weekly & monthly news, Subscribe to our newsletter.";
 
 function normalizeSubscribeProps(input) {
   const payload = input && typeof input === "object" ? input : {};
-  const out = { ...SUBSCRIBE_DEFAULTS, ...payload };
-
-  const bgDesktop =
-    out.subscribeBgDesktop != null
-      ? String(out.subscribeBgDesktop).trim()
-      : out.subscribeBgUrl != null
-        ? String(out.subscribeBgUrl).trim()
-        : "";
-  out.subscribeBgDesktop = bgDesktop;
-  out.subscribeBgUrl = bgDesktop;
-  out.subscribeBgMobile =
-    out.subscribeBgMobile != null ? String(out.subscribeBgMobile).trim() : "";
-
-  for (const [key, value] of Object.entries(out)) {
-    if (
-      key === "subscribeBgDesktop" ||
-      key === "subscribeBgUrl" ||
-      key === "subscribeBgMobile"
-    ) {
-      continue;
+  const out = Object.fromEntries(
+    Object.entries(SUBSCRIBE_DEFAULTS).map(([key, fallback]) => {
+      const value = payload[key];
+      return [
+        key,
+        typeof value === "string"
+          ? value.trim()
+          : value != null
+            ? value
+            : fallback,
+      ];
+    }),
+  );
+  const isLegacySeed =
+    out.subscribeTitle === LEGACY_SUBSCRIBE_TITLE &&
+    !out.subscribeHeadingAccent;
+  if (isLegacySeed) {
+    out.subscribeTitle = SUBSCRIBE_DEFAULTS.subscribeTitle;
+    out.subscribeHeadingAccent = SUBSCRIBE_DEFAULTS.subscribeHeadingAccent;
+    out.subscribeSubtitle = SUBSCRIBE_DEFAULTS.subscribeSubtitle;
+    out.subscribePrimaryButtonLabel = SUBSCRIBE_DEFAULTS.subscribePrimaryButtonLabel;
+    out.subscribePrimaryButtonUrl = SUBSCRIBE_DEFAULTS.subscribePrimaryButtonUrl;
+    out.subscribeSecondaryButtonLabel = SUBSCRIBE_DEFAULTS.subscribeSecondaryButtonLabel;
+    out.subscribeSecondaryButtonUrl = SUBSCRIBE_DEFAULTS.subscribeSecondaryButtonUrl;
+    out.subscribePlaceholder = SUBSCRIBE_DEFAULTS.subscribePlaceholder;
+    for (const key of Object.keys(SUBSCRIBE_DEFAULTS)) {
+      if (key.endsWith("ColorKey")) {
+        out[key] = SUBSCRIBE_DEFAULTS[key];
+      }
     }
-    if (typeof value === "string") out[key] = value.trim();
   }
+  out.subscribePrimaryButtonTarget =
+    out.subscribePrimaryButtonTarget === "_blank" ? "_blank" : "_self";
+  out.subscribeSecondaryButtonTarget =
+    out.subscribeSecondaryButtonTarget === "_blank" ? "_blank" : "_self";
+  out.subscribeSectionBgType =
+    out.subscribeSectionBgType === "image" || out.subscribeSectionBgType === "color"
+      ? out.subscribeSectionBgType
+      : "default";
+  out.subscribePageContainerBgType =
+    out.subscribePageContainerBgType === "image" ||
+    out.subscribePageContainerBgType === "color"
+      ? out.subscribePageContainerBgType
+      : "default";
+  out._disableFadeAnimation = out._disableFadeAnimation === true;
   return out;
 }
 
 function toPayload(defaultProps) {
-  const out = normalizeSubscribeProps(defaultProps);
-  if (defaultProps && typeof defaultProps === "object") {
-    for (const key of Object.keys(defaultProps)) {
-      if (out[key] !== undefined) continue;
-      const value = defaultProps[key];
-      out[key] = typeof value === "string" ? value.trim() : value;
-    }
-  }
-  return out;
+  return normalizeSubscribeProps(defaultProps);
 }
 
 /** GET: return Subscribe props from components collection (public) */

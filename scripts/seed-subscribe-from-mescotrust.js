@@ -1,6 +1,6 @@
 /**
- * Seed Subscribe block values from D:\tahasil-projects\mescotrust\src\components\Subscribe
- * into the components collection (Component model, baseComponent: "Subscribe").
+ * Seed the current finale-style Subscribe block into the components collection
+ * (Component model, baseComponent: "Subscribe").
  * Run: npm run seed-subscribe
  */
 const path = require("path");
@@ -11,11 +11,33 @@ require("dotenv").config({ path: path.join(projectRoot, ".env"), override: true 
 const mongoose = require("mongoose");
 
 const SUBSCRIBE_VALUES_FROM_MESCOTRUST = {
-  subscribeSubtitle: "Latest News",
-  subscribeTitle: "To get weekly & monthly news, Subscribe to our newsletter.",
-  subscribePlaceholder: "Enter email address",
+  subscribeSubtitle: "Subscribe to our newsletter for weekly and monthly news",
+  subscribeTitle: "Be someone's",
+  subscribeHeadingAccent: "tomorrow.",
+  subscribePrimaryButtonLabel: "Donate Now",
+  subscribePrimaryButtonUrl: "/donate",
+  subscribePrimaryButtonTarget: "_self",
+  subscribeSecondaryButtonLabel: "Become a Volunteer",
+  subscribeSecondaryButtonUrl: "/volunteer",
+  subscribeSecondaryButtonTarget: "_self",
+  subscribePlaceholder: "you@example.com",
   subscribeButtonText: "Subscribe",
-  subscribeBgUrl: "/images/subscribe-bg.png",
+  subscribeSectionBgColorKey: "cream",
+  subscribeTitleColorKey: "black",
+  subscribeAccentColorKey: "primary",
+  subscribeOutlineColorKey: "blackLight",
+  subscribePrimaryButtonBgColorKey: "primary",
+  subscribePrimaryButtonTextColorKey: "white",
+  subscribeSecondaryButtonBgColorKey: "dark",
+  subscribeSecondaryButtonTextColorKey: "warmWhite",
+  subscribeSubtitleColorKey: "blackLight",
+  subscribeInputBgColorKey: "white",
+  subscribeInputBorderColorKey: "border",
+  subscribeInputTextColorKey: "black",
+  subscribeFocusColorKey: "primary",
+  subscribeButtonBgColorKey: "dark",
+  subscribeButtonTextColorKey: "warmWhite",
+  subscribeErrorColorKey: "primary",
 };
 
 async function seedSubscribe() {
@@ -42,13 +64,15 @@ async function seedSubscribe() {
     });
     console.log("Created Subscribe component in components collection.");
   } else {
-    doc.defaultProps = { ...(doc.defaultProps || {}), ...SUBSCRIBE_VALUES_FROM_MESCOTRUST };
+    // Replace the legacy shape so obsolete background/layout fields cannot
+    // survive a reseed and leak back into the component.
+    doc.defaultProps = { ...SUBSCRIBE_VALUES_FROM_MESCOTRUST };
     doc.markModified("defaultProps");
     await doc.save();
     console.log("Updated Subscribe component in components collection.");
   }
 
-  console.log("Subscribe values from mescotrust stored (components collection):");
+  console.log("Finale Subscribe values stored (components collection):");
   console.log(SUBSCRIBE_VALUES_FROM_MESCOTRUST);
 
   await mongoose.disconnect();

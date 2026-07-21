@@ -193,11 +193,6 @@ const DEFAULTS = {
   homeHeroContentContainer: "pageContainer",
   marqueeTitle: "Our CSR Partners | Awards & Recognition",
   marqueeItems: [],
-  subscribeSubtitle: "",
-  subscribeTitle: "",
-  subscribePlaceholder: "",
-  subscribeButtonText: "",
-  subscribeBgUrl: "",
   buttonBackground: "",
   buttonTextColor: "",
   buttonHoverBackground: "",
@@ -281,7 +276,6 @@ const THEME_FIELDS = [
   "homeHeroSliderTitleColorKey", "homeHeroSliderDescColorKey", "homeHeroSliderButtonBgColorKey", "homeHeroSliderButtonTextColorKey",
   "homeHeroBackgroundContainer", "homeHeroContentContainer",
   "marqueeTitle", "marqueeItems",
-  "subscribeSubtitle", "subscribeTitle", "subscribePlaceholder", "subscribeButtonText", "subscribeBgUrl",
   "buttonBackground", "buttonTextColor", "buttonHoverBackground", "buttonHoverTextColor", "buttonPadding",
   "cardStyle", "alertStyle", "badgeStyle", "tableStyle", "formStyle", "inputStyle",
   "mobileFontSize", "mobileSectionSpacing", "hideSectionOnMobile",
@@ -386,7 +380,9 @@ const HOME_HERO_KEYS = [
 ];
 
 const MARQUEE_KEYS = ["marqueeTitle", "marqueeItems"];
-const SUBSCRIBE_KEYS = ["subscribeSubtitle", "subscribeTitle", "subscribePlaceholder", "subscribeButtonText", "subscribeBgUrl"];
+// Subscribe is stored and updated only through the Component document and
+// /api/theme/subscribe. The global ThemeConfig no longer owns legacy fields.
+const SUBSCRIBE_KEYS = [];
 function normalizeMarqueeItem(item) {
   return {
     url: item?.url != null ? String(item.url).trim() : "",

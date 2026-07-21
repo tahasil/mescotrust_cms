@@ -85,18 +85,6 @@ function getShortcodeTextFromProps(props) {
   return buildShortcodeFromSelection("shortcode", selectedValue);
 }
 
-function getSubscribeBackgroundFromShortCodeProps(props) {
-  const sectionType = normalizeShortcodeText(props?.shortCodeSectionBgType).toLowerCase();
-  const sectionImage = normalizeShortcodeText(props?.shortCodeSectionBgImage);
-  if (sectionType === "image" && sectionImage) return sectionImage;
-
-  const containerType = normalizeShortcodeText(props?.shortCodePageContainerBgType).toLowerCase();
-  const containerImage = normalizeShortcodeText(props?.shortCodePageContainerBgImage);
-  if (containerType === "image" && containerImage) return containerImage;
-
-  return "";
-}
-
 /**
  * Site component: ShortCode (Short Code).
  * Supports a single shortcode format: [shortcode="Target"].
@@ -278,10 +266,6 @@ export default function ShortCode(props) {
   const isPassthroughShortcode = PASSTHROUGH_COMPONENT_SHORTCODES.has(
     resolvedComponentId,
   );
-  const shortcodeSubscribeBgImage = useMemo(
-    () => getSubscribeBackgroundFromShortCodeProps(props),
-    [props],
-  );
 
   const [moduleProps, setModuleProps] = useState({});
   const [moduleLoading, setModuleLoading] = useState(false);
@@ -367,17 +351,6 @@ export default function ShortCode(props) {
         );
       }
 
-      const renderedProps =
-        resolvedComponentId === "Subscribe"
-          ? {
-              ...moduleProps,
-              // Page-level ShortCode background should drive Subscribe wrapper background.
-              subscribeBgDesktop: shortcodeSubscribeBgImage,
-              subscribeBgMobile: shortcodeSubscribeBgImage,
-              subscribeBgUrl: shortcodeSubscribeBgImage,
-            }
-          : moduleProps;
-
       return (
         <>
           {moduleError ? (
@@ -385,7 +358,7 @@ export default function ShortCode(props) {
               {moduleError}
             </div>
           ) : null}
-          <ComponentToRender {...renderedProps} />
+          <ComponentToRender {...moduleProps} />
         </>
       );
     }
@@ -394,25 +367,7 @@ export default function ShortCode(props) {
   };
 
   if (isSubscribeShortcode) {
-    return (
-      <FullWidthBackground>
-        {(subTitleEnabled && subTitle) || (titleEnabled && mainTitle) ? (
-          <PageContainer>
-            <Row gutter={[16, 16]}>
-              <Col span={24} className="mb-4">
-                {subTitleEnabled && subTitle ? (
-                  <SubTitle color={subTitleColor}>{subTitle}</SubTitle>
-                ) : null}
-                {titleEnabled && mainTitle ? (
-                  <MainTitle color={mainTitleColor}>{mainTitle}</MainTitle>
-                ) : null}
-              </Col>
-            </Row>
-          </PageContainer>
-        ) : null}
-        {renderShortcodeContent()}
-      </FullWidthBackground>
-    );
+    return renderShortcodeContent();
   }
 
   if (isPassthroughShortcode) {

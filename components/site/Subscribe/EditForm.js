@@ -4,9 +4,47 @@ import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "re
 import { Form, Input, Row, Col, Collapse, Select, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
-import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
+
+const SUBSCRIBE_COLOR_FIELDS = [
+  "subscribeSectionBgColorKey",
+  "subscribeTitleColorKey",
+  "subscribeAccentColorKey",
+  "subscribeOutlineColorKey",
+  "subscribePrimaryButtonBgColorKey",
+  "subscribePrimaryButtonTextColorKey",
+  "subscribeSecondaryButtonBgColorKey",
+  "subscribeSecondaryButtonTextColorKey",
+  "subscribeSubtitleColorKey",
+  "subscribeInputBgColorKey",
+  "subscribeInputBorderColorKey",
+  "subscribeInputTextColorKey",
+  "subscribeFocusColorKey",
+  "subscribeButtonBgColorKey",
+  "subscribeButtonTextColorKey",
+  "subscribeErrorColorKey",
+];
+const SUBSCRIBE_DEFAULT_COLORS = {
+  subscribeSectionBgColorKey: "cream",
+  subscribeTitleColorKey: "black",
+  subscribeAccentColorKey: "primary",
+  subscribeOutlineColorKey: "blackLight",
+  subscribePrimaryButtonBgColorKey: "primary",
+  subscribePrimaryButtonTextColorKey: "white",
+  subscribeSecondaryButtonBgColorKey: "dark",
+  subscribeSecondaryButtonTextColorKey: "warmWhite",
+  subscribeSubtitleColorKey: "blackLight",
+  subscribeInputBgColorKey: "white",
+  subscribeInputBorderColorKey: "border",
+  subscribeInputTextColorKey: "black",
+  subscribeFocusColorKey: "primary",
+  subscribeButtonBgColorKey: "dark",
+  subscribeButtonTextColorKey: "warmWhite",
+  subscribeErrorColorKey: "primary",
+};
+const LEGACY_SUBSCRIBE_TITLE =
+  "To get weekly & monthly news, Subscribe to our newsletter.";
 
 /**
  * Edit form for Subscribe — used in component edit page or page builder drawer.
@@ -27,42 +65,26 @@ function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage,
 
   useEffect(() => {
     setLoading(true);
-    const normalize = (data) => ({
-      subscribeSubtitle: data?.subscribeSubtitle != null ? String(data.subscribeSubtitle).trim() : "",
-      subscribeTitle: data?.subscribeTitle != null ? String(data.subscribeTitle).trim() : "",
-      subscribeHeadingAccent: String(data?.subscribeHeadingAccent ?? "").trim(),
-      subscribePrimaryButtonLabel: String(data?.subscribePrimaryButtonLabel ?? "").trim(),
-      subscribePrimaryButtonUrl: String(data?.subscribePrimaryButtonUrl ?? "").trim(),
+    const normalize = (data) => {
+      const title = String(data?.subscribeTitle ?? "").trim();
+      const accent = String(data?.subscribeHeadingAccent ?? "").trim();
+      const isLegacySeed = title === LEGACY_SUBSCRIBE_TITLE && !accent;
+      return {
+      subscribeSubtitle: isLegacySeed ? "Subscribe to our newsletter for weekly and monthly news" : String(data?.subscribeSubtitle ?? "").trim(),
+      subscribeTitle: isLegacySeed ? "Be someone's" : title,
+      subscribeHeadingAccent: isLegacySeed ? "tomorrow." : accent,
+      subscribePrimaryButtonLabel: isLegacySeed ? "Donate Now" : String(data?.subscribePrimaryButtonLabel ?? "").trim(),
+      subscribePrimaryButtonUrl: isLegacySeed ? "/donate" : String(data?.subscribePrimaryButtonUrl ?? "").trim(),
       subscribePrimaryButtonTarget: data?.subscribePrimaryButtonTarget === "_blank" ? "_blank" : "_self",
-      subscribeSecondaryButtonLabel: String(data?.subscribeSecondaryButtonLabel ?? "").trim(),
-      subscribeSecondaryButtonUrl: String(data?.subscribeSecondaryButtonUrl ?? "").trim(),
+      subscribeSecondaryButtonLabel: isLegacySeed ? "Become a Volunteer" : String(data?.subscribeSecondaryButtonLabel ?? "").trim(),
+      subscribeSecondaryButtonUrl: isLegacySeed ? "/volunteer" : String(data?.subscribeSecondaryButtonUrl ?? "").trim(),
       subscribeSecondaryButtonTarget: data?.subscribeSecondaryButtonTarget === "_blank" ? "_blank" : "_self",
-      subscribeFillStart: String(data?.subscribeFillStart ?? "top 85%").trim(),
-      subscribeFillEnd: String(data?.subscribeFillEnd ?? "top 30%").trim(),
-      subscribeFillScrub: data?.subscribeFillScrub ?? 1,
-      ...Object.fromEntries(["subscribeAccentColorKey","subscribeOutlineColorKey","subscribePrimaryButtonBgColorKey","subscribePrimaryButtonTextColorKey","subscribeSecondaryButtonBgColorKey","subscribeSecondaryButtonTextColorKey","subscribeInputBorderColorKey","subscribeInputBgColorKey","subscribeInputTextColorKey","subscribeFocusColorKey","subscribeErrorColorKey"].map((key)=>[key,String(data?.[key]??"").trim()])),
-      subscribePlaceholder: data?.subscribePlaceholder != null ? String(data.subscribePlaceholder).trim() : "",
-      subscribeButtonText: data?.subscribeButtonText != null ? String(data.subscribeButtonText).trim() : "",
-      subscribeBgDesktop:
-        data?.subscribeBgDesktop != null
-          ? String(data.subscribeBgDesktop).trim()
-          : data?.subscribeBgUrl != null
-            ? String(data.subscribeBgUrl).trim()
-            : "",
-      subscribeBgMobile:
-        data?.subscribeBgMobile != null ? String(data.subscribeBgMobile).trim() : "",
-      subscribeBgUrl:
-        data?.subscribeBgDesktop != null
-          ? String(data.subscribeBgDesktop).trim()
-          : data?.subscribeBgUrl != null
-            ? String(data.subscribeBgUrl).trim()
-            : "",
-      subscribeSubtitleColorKey: data?.subscribeSubtitleColorKey != null ? String(data.subscribeSubtitleColorKey).trim() : "",
-      subscribeTitleColorKey: data?.subscribeTitleColorKey != null ? String(data.subscribeTitleColorKey).trim() : "",
-      subscribeButtonBgColorKey: data?.subscribeButtonBgColorKey != null ? String(data.subscribeButtonBgColorKey).trim() : "",
-      subscribeButtonTextColorKey: data?.subscribeButtonTextColorKey != null ? String(data.subscribeButtonTextColorKey).trim() : "",
+      ...Object.fromEntries(SUBSCRIBE_COLOR_FIELDS.map((key)=>[key,isLegacySeed?SUBSCRIBE_DEFAULT_COLORS[key]:String(data?.[key]??SUBSCRIBE_DEFAULT_COLORS[key]??"").trim()])),
+      subscribePlaceholder: isLegacySeed ? "you@example.com" : String(data?.subscribePlaceholder ?? "").trim(),
+      subscribeButtonText: String(data?.subscribeButtonText ?? "Subscribe").trim(),
       ...getManageSectionInitialValues("subscribe", data),
-    });
+      };
+    };
 
     if (isPageBlock) {
       const data = initialDataProp ?? {};
@@ -122,32 +144,9 @@ function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage,
         subscribeSecondaryButtonLabel: String(values.subscribeSecondaryButtonLabel ?? "").trim(),
         subscribeSecondaryButtonUrl: String(values.subscribeSecondaryButtonUrl ?? "").trim(),
         subscribeSecondaryButtonTarget: values.subscribeSecondaryButtonTarget === "_blank" ? "_blank" : "_self",
-        subscribeFillStart: String(values.subscribeFillStart ?? "").trim(),
-        subscribeFillEnd: String(values.subscribeFillEnd ?? "").trim(),
-        subscribeFillScrub: Number(values.subscribeFillScrub ?? 1),
-        ...Object.fromEntries(["subscribeAccentColorKey","subscribeOutlineColorKey","subscribePrimaryButtonBgColorKey","subscribePrimaryButtonTextColorKey","subscribeSecondaryButtonBgColorKey","subscribeSecondaryButtonTextColorKey","subscribeInputBorderColorKey","subscribeInputBgColorKey","subscribeInputTextColorKey","subscribeFocusColorKey","subscribeErrorColorKey"].map((key)=>[key,String(values?.[key]??"").trim()])),
+        ...Object.fromEntries(SUBSCRIBE_COLOR_FIELDS.map((key)=>[key,String(values?.[key]??"").trim()])),
         subscribePlaceholder: String(values.subscribePlaceholder ?? "").trim(),
         subscribeButtonText: String(values.subscribeButtonText ?? "").trim(),
-        subscribeBgDesktop:
-          values.subscribeBgDesktop != null
-            ? String(values.subscribeBgDesktop).trim()
-            : values.subscribeBgUrl != null
-              ? String(values.subscribeBgUrl).trim()
-              : "",
-        subscribeBgMobile:
-          values.subscribeBgMobile != null
-            ? String(values.subscribeBgMobile).trim()
-            : "",
-        subscribeBgUrl:
-          values.subscribeBgDesktop != null
-            ? String(values.subscribeBgDesktop).trim()
-            : values.subscribeBgUrl != null
-              ? String(values.subscribeBgUrl).trim()
-              : "",
-        subscribeSubtitleColorKey: String(values.subscribeSubtitleColorKey ?? "").trim(),
-        subscribeTitleColorKey: String(values.subscribeTitleColorKey ?? "").trim(),
-        subscribeButtonBgColorKey: String(values.subscribeButtonBgColorKey ?? "").trim(),
-        subscribeButtonTextColorKey: String(values.subscribeButtonTextColorKey ?? "").trim(),
         ...getManageSectionPayload("subscribe", values),
       };
       if (isPageBlock && onSaveToPage) {
@@ -213,10 +212,10 @@ function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage,
                   <Form.Item name="subscribePrimaryButtonLabel" label="Primary button label"><Input size="large" /></Form.Item>
                 </Col>
                 <Col span={16}><Form.Item name="subscribePrimaryButtonUrl" label="Primary button URL"><Input size="large" /></Form.Item></Col>
-                <Col span={8}><Form.Item name="subscribePrimaryButtonTarget" label="Target"><Select options={[{label:"_self",value:"_self"},{label:"_blank",value:"_blank"}]} /></Form.Item></Col>
+                <Col span={8}><Form.Item name="subscribePrimaryButtonTarget" label="Target"><Select options={[{label:"Same Window (_self)",value:"_self"},{label:"New Tab (_blank)",value:"_blank"}]} /></Form.Item></Col>
                 <Col span={24}><Form.Item name="subscribeSecondaryButtonLabel" label="Secondary button label"><Input size="large" /></Form.Item></Col>
                 <Col span={16}><Form.Item name="subscribeSecondaryButtonUrl" label="Secondary button URL"><Input size="large" /></Form.Item></Col>
-                <Col span={8}><Form.Item name="subscribeSecondaryButtonTarget" label="Target"><Select options={[{label:"_self",value:"_self"},{label:"_blank",value:"_blank"}]} /></Form.Item></Col>
+                <Col span={8}><Form.Item name="subscribeSecondaryButtonTarget" label="Target"><Select options={[{label:"Same Window (_self)",value:"_self"},{label:"New Tab (_blank)",value:"_blank"}]} /></Form.Item></Col>
                 <Col span={24}>
                   <Form.Item name="subscribePlaceholder" label="Email placeholder">
                     <Input placeholder="e.g. Enter email address" size="large" />
@@ -227,31 +226,8 @@ function SubscribeEditForm({ source, initialData: initialDataProp, onSaveToPage,
                     <Input placeholder="e.g. Subscribe" size="large" />
                   </Form.Item>
                 </Col>
-                <Col span={24}>
-                  <Form.Item name="subscribeBgDesktop" label="Desktop Background Image">
-                    <MediaPickerInput
-                      placeholder="/uploads/..."
-                      uiVariant="stacked"
-                      hintText="Recommended for desktop/tablet"
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={24}>
-                  <Form.Item name="subscribeBgMobile" label="Mobile Background Image">
-                    <MediaPickerInput
-                      placeholder="/uploads/..."
-                      uiVariant="stacked"
-                      hintText="Optional. Desktop image will be used if empty."
-                    />
-                  </Form.Item>
-                </Col>
               </Row>
             ),
-          },
-          {
-            key: "animation",
-            label: "Headline Animation",
-            children: <><Form.Item name="subscribeFillStart" label="Start trigger"><Input placeholder="top 85%" /></Form.Item><Form.Item name="subscribeFillEnd" label="End trigger"><Input placeholder="top 30%" /></Form.Item><Form.Item name="subscribeFillScrub" label="Scrub smoothing"><Input type="number" min="0" step="0.1" /></Form.Item></>,
           },
         ]}
       />

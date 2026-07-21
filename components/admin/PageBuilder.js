@@ -3155,7 +3155,13 @@ export default function PageBuilder({
                     );
                     triggerChange(newLayout);
                   } else {
-                    const newProps = { ...(block.props || {}), ...payload };
+                    // Subscribe's drawer owns the complete new-design shape.
+                    // Replacing its props removes legacy image/layout fields
+                    // instead of carrying them forward invisibly.
+                    const newProps =
+                      block.baseComponent === "Subscribe"
+                        ? payload
+                        : { ...(block.props || {}), ...payload };
                     const newLayout = blocks.map((b) =>
                       b.instanceId === block.instanceId
                         ? { ...b, props: newProps }
