@@ -15,7 +15,7 @@ const CardWrapper = styled.div`
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 24px;
+  border-radius: 20px;
   overflow: hidden;
   z-index: 0;
   &:hover {
@@ -30,26 +30,33 @@ const ReportCard = styled.div`
   width: 100%;
   height: 100%;
   border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 24px;
+  border-radius: 20px;
   overflow: hidden;
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   background: #fff;
-  padding: 24px;
+  padding: 0;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s, border-color 0.3s;
+  &:hover {
+    transform: translateY(-5px);
+    border-color: color-mix(in srgb, ${() => getColor("primary")} 40%, transparent);
+    box-shadow: 0 26px 54px color-mix(in srgb, ${() => getColor("dark")} 10%, transparent);
+  }
   .card-wrapper:hover & {
     border-color: rgba(0, 0, 0, 0.12);
   }
   .imageWrapper {
     width: 100%;
-    height: 200px;
+    height: auto;
+    aspect-ratio: 3 / 4;
     overflow: hidden;
-    border-radius: 24px;
+    border-radius: 0;
     object-fit: cover;
     background: rgba(0, 0, 0, 0.04);
   }
 `;
 
 const CardBody = styled.div`
-  padding-top: 16px;
+  padding: clamp(20px, 2.2vw, 30px);
   text-align: start;
   .name {
     font-size: 16px;
@@ -295,23 +302,24 @@ export default function Reports(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
+        <div className="fable-section">
         {(titleEnabled || subTitleEnabled) && (
           <Row gutter={[16, 16]}>
             <Col span={24} className="mb-4">
               {subTitleEnabled && subTitle && (
-                <SubTitle
+                <SubTitle className="fable-eyebrow"
                   style={subTitleColor ? { color: subTitleColor } : undefined}
                 >
                   {subTitle}
                 </SubTitle>
               )}
               {titleEnabled && (
-                <MainTitle color={titleColor}>{mainTitle}</MainTitle>
+                <MainTitle className="fable-heading" color={titleColor}>{mainTitle}</MainTitle>
               )}
             </Col>
           </Row>
         )}
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 24]}>
           {items.map((item, idx) => {
             const name = (item?.name ?? "").toString().trim();
             const tag = (item?.tag ?? "").toString().trim();
@@ -323,12 +331,13 @@ export default function Reports(props) {
             const imageMobile = (item?.imageMobile ?? "").toString().trim();
             const image = imageDesktop || imageMobile;
             const pdfUrl = (item?.pdfUrl ?? "").toString().trim();
+            const target = item?.target === "_self" ? "_self" : "_blank";
             return (
               <Col key={idx} xs={24} sm={12} md={12} lg={8}>
-                <CardWrapper className="card-wrapper">
-                  <ReportCard>
+                <CardWrapper className="card-wrapper fable-card">
+                  <ReportCard className="fable-card__inner">
                     {image ? (
-                      <div className="imageWrapper">
+                      <div className="imageWrapper fable-card__media is-document">
                         <picture>
                           {imageMobile ? (
                             <source media="(max-width: 767px)" srcSet={imageMobile} />
@@ -345,7 +354,7 @@ export default function Reports(props) {
                     ) : (
                       <div className="imageWrapper" />
                     )}
-                    <CardBody>
+                    <CardBody className="fable-card__body">
                       {name && (
                         <div
                           className="name"
@@ -361,8 +370,8 @@ export default function Reports(props) {
                     <ProfileOverlay>
                       <ViewBtn
                         href={pdfUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        target={target}
+                        rel={target === "_blank" ? "noopener noreferrer" : undefined}
                       >
                         View
                       </ViewBtn>
@@ -373,6 +382,7 @@ export default function Reports(props) {
             );
           })}
         </Row>
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

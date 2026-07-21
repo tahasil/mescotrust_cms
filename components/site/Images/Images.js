@@ -182,37 +182,38 @@ export default function Images(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
+        <div className="fable-section">
         {(titleEnabled || subTitleEnabled) && (
           <Row gutter={[16, 16]}>
             <Col span={24} className="mb-4">
               {subTitleEnabled && (
-                <SubTitle
+                <SubTitle className="fable-eyebrow"
                   style={subTitleColor ? { color: subTitleColor } : undefined}
                 >
                   {subTitle}
                 </SubTitle>
               )}
               {titleEnabled && (
-                <MainTitle color={titleColor}>{mainTitle}</MainTitle>
+                <MainTitle className="fable-heading" color={titleColor}>{mainTitle}</MainTitle>
               )}
             </Col>
           </Row>
         )}
         <Row gutter={[16, 16]}>
-          <Col span={24}>
+          <Col span={24} className="fable-media" style={{ aspectRatio: "16 / 9" }}>
             <picture>
               {imageUrlMobile ? (
                 <source media="(max-width: 767px)" srcSet={imageUrlMobile} />
               ) : null}
               <img
                 loading="lazy"
-                className="w-100"
                 src={imageUrlDesktop || imageUrlMobile}
                 alt={imageAlt}
               />
             </picture>
           </Col>
         </Row>
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

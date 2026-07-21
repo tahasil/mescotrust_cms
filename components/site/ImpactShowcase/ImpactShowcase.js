@@ -319,6 +319,7 @@ export default function ImpactShowcase(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
+        <div className="fable-section">
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={24} md={24} lg={14}>
             {leftImageDesktop || leftImageMobile ? (
@@ -456,6 +457,7 @@ export default function ImpactShowcase(props) {
             )}
           </Col>
         </Row>
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

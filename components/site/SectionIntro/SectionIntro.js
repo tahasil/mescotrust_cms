@@ -287,20 +287,21 @@ export default function SectionIntro(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
+        <div className="fable-section">
         <Row gutter={[16, 16]}>
           <Col span={24} className="mb-4">
             {subTitleEnabled && subTitle ? (
-              <SubTitle
+              <SubTitle className="fable-eyebrow"
                 style={subTitleColor ? { color: subTitleColor } : undefined}
               >
                 {subTitle}
               </SubTitle>
             ) : null}
             {titleEnabled && mainTitle ? (
-              <MainTitle color={titleColor}>{mainTitle}</MainTitle>
+              <MainTitle className="fable-heading" color={titleColor}>{mainTitle}</MainTitle>
             ) : null}
             {sectionIntroParagraph && (
-              <DescriptionWrapper
+              <DescriptionWrapper className="fable-lead"
                 $textColor={paragraphColor}
                 $fontSize={descriptionFontSize}
                 $fontWeight={descriptionFontWeight}
@@ -314,6 +315,7 @@ export default function SectionIntro(props) {
         <Row gutter={[16, 16]}>
           <Col span={24}>{/* Add your content here */}</Col>
         </Row>
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

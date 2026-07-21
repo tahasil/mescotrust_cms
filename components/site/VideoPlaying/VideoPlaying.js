@@ -222,7 +222,7 @@ export default function VideoPlaying(props) {
           </div>
           {quote ? <blockquote ref={quoteRef} className="chapterQuote"><p>{quoteWords.map((word, index) => <span className="chapterQuoteWord" key={`${word}-${index}`}>{index ? " " : ""}{word}</span>)}</p></blockquote> : null}
           {text(props?.videoPlayingAuthorName) || text(props?.videoPlayingAuthorRole) ? <figcaption className="chapterAttribution"><strong>{text(props?.videoPlayingAuthorName)}</strong><span>{text(props?.videoPlayingAuthorRole)}</span></figcaption> : null}
-          {link && text(props?.videoPlayingLinkText) ? <div className="chapterMore">{props?.videoPlayingLinkNewTab ? <a className="chapterLink" href={link} target="_blank" rel="noopener noreferrer">{linkContent}</a> : <Link className="chapterLink" href={link}>{linkContent}</Link>}</div> : null}
+          {link && text(props?.videoPlayingLinkText) ? <div className="chapterMore">{(props?.videoPlayingLinkTarget === "_blank" || props?.videoPlayingLinkNewTab === true) ? <a className="chapterLink" href={link} target="_blank" rel="noopener noreferrer">{linkContent}</a> : <Link className="chapterLink" href={link}>{linkContent}</Link>}</div> : null}
         </Chapter>
       </PageContainer>
     </FullWidthBackground>

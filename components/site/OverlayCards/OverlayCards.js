@@ -295,24 +295,25 @@ export default function OverlayCards(props) {
       style={{ ...sectionBgStyle, ...cssVars }}
     >
       <PageContainer style={pageContainerBgStyle}>
+        <div className="fable-section">
         {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) && (
           <Row gutter={[16, 16]}>
             <Col span={24} className="mb-4">
               {subTitleEnabled && subTitle && (
-                <SubTitle
+                <SubTitle className="fable-eyebrow"
                   style={subTitleColor ? { color: subTitleColor } : undefined}
                 >
                   {subTitle}
                 </SubTitle>
               )}
               {titleEnabled && mainTitle && (
-                <MainTitle color={titleColor}>{mainTitle}</MainTitle>
+                <MainTitle className="fable-heading" color={titleColor}>{mainTitle}</MainTitle>
               )}
             </Col>
           </Row>
         )}
-        <CardsWrapper>
-          <Row gutter={[16, 16]}>
+        <CardsWrapper className="fable-card-grid">
+          <Row gutter={[24, 24]}>
             {items.map((item, idx) => {
               const title = (item?.title ?? "").toString().trim();
               const description = (item?.description ?? "").toString().trim();
@@ -327,9 +328,9 @@ export default function OverlayCards(props) {
               const bgImage = bgImageDesktop || bgImageMobile;
               return (
                 <Col key={idx} xs={24} sm={12} md={12} lg={8}>
-                  <div className="innerCardBox text-center">
+                  <div className="innerCardBox fable-card">
                     {bgImage && (
-                      <div className="cardBackground">
+                      <div className="cardBackground fable-card__media">
                         <picture>
                           {bgImageMobile ? (
                             <source
@@ -341,16 +342,19 @@ export default function OverlayCards(props) {
                         </picture>
                       </div>
                     )}
-                    {title && <h3 className="my-4">{title}</h3>}
+                    <div className="fable-card__body">
+                    {title && <h3>{title}</h3>}
                     {description && (
                       <p className="card-description">{description}</p>
                     )}
+                    </div>
                   </div>
                 </Col>
               );
             })}
           </Row>
         </CardsWrapper>
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

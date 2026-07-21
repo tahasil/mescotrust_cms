@@ -56,7 +56,7 @@ const CardWrapper = styled.div`
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 24px;
+  border-radius: 20px;
   overflow: hidden;
   z-index: 0;
   &:hover {
@@ -71,25 +71,28 @@ const MediaCard = styled.div`
   width: 100%;
   height: 100%;
   border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 24px;
+  border-radius: 20px;
   overflow: hidden;
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   background: #fff;
-  padding: 24px;
+  padding: 0;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s, border-color 0.3s;
+  &:hover { transform: translateY(-5px); box-shadow: 0 26px 54px rgba(33, 30, 46, 0.1); }
   .card-wrapper:hover & {
     border-color: rgba(0, 0, 0, 0.12);
   }
   .imageWrapper {
     width: 100%;
-    height: 200px;
+    height: auto;
+    aspect-ratio: 16 / 10;
     overflow: hidden;
-    border-radius: 24px;
+    border-radius: 0;
     object-fit: cover;
   }
 `;
 
 const CardBody = styled.div`
-  padding-top: 24px;
+  padding: clamp(20px, 2.2vw, 30px);
   text-align: start;
   display: block;
   .name {
@@ -348,23 +351,24 @@ export default function InMedia(props) {
         style={sectionBgStyle}
       >
         <PageContainer style={pageContainerBgStyle}>
+          <div className="fable-section">
           {(titleEnabled || subTitleEnabled) && (
             <Row gutter={[16, 16]}>
               <Col span={24} className="mb-4">
                 {subTitleEnabled && subTitle && (
-                  <SubTitle
+                  <SubTitle className="fable-eyebrow"
                     style={subTitleColor ? { color: subTitleColor } : undefined}
                   >
                     {subTitle}
                   </SubTitle>
                 )}
                 {titleEnabled && (
-                  <MainTitle color={titleColor}>{mainTitle}</MainTitle>
+                  <MainTitle className="fable-heading" color={titleColor}>{mainTitle}</MainTitle>
                 )}
               </Col>
             </Row>
           )}
-          <Row gutter={[16, 16]}>
+          <Row gutter={[24, 24]}>
             {items.map((item, idx) => {
               const name = (item?.name ?? "").toString().trim();
               const date = (item?.date ?? "").toString().trim();
@@ -378,10 +382,10 @@ export default function InMedia(props) {
               const image = imageDesktop || imageMobile;
               return (
                 <Col key={idx} xs={24} sm={12} md={12} lg={8}>
-                  <CardWrapper className="card-wrapper">
-                    <MediaCard>
+                  <CardWrapper className="card-wrapper fable-card">
+                    <MediaCard className="fable-card__inner">
                       {image && (
-                        <div className="imageWrapper">
+                        <div className="imageWrapper fable-card__media">
                           <picture>
                             {imageMobile ? (
                               <source media="(max-width: 767px)" srcSet={imageMobile} />
@@ -396,7 +400,7 @@ export default function InMedia(props) {
                           </picture>
                         </div>
                       )}
-                      <CardBody>
+                      <CardBody className="fable-card__body">
                         {name && (
                           <div
                             className="name"
@@ -439,6 +443,7 @@ export default function InMedia(props) {
               );
             })}
           </Row>
+          </div>
         </PageContainer>
       </FullWidthBackground>
 

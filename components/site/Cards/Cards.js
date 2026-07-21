@@ -93,24 +93,25 @@ export default function Cards(props) {
   const mainTitleColor = mainTitleColorKey
     ? getColor(mainTitleColorKey)
     : getColor("primary");
-  const cardBgColor = cardBgColorKey ? getColor(cardBgColorKey) : "#fff";
+  const cardBgColor = cardBgColorKey ? getColor(cardBgColorKey) : getColor("white");
   const cardTitleColor = cardTitleColorKey
     ? getColor(cardTitleColorKey)
-    : "#262A2C";
+    : getColor("black");
   const cardBorderColor = cardBorderColorKey
     ? getColor(cardBorderColorKey)
-    : "rgba(0,0,0,0.08)";
+    : getColor("border");
 
-  const columnsDesktop = clamp(props?.cardsColumnsDesktop, 1, 6, 3);
-  const columnsTablet = clamp(props?.cardsColumnsTablet, 1, 4, 2);
-  const columnsMobile = clamp(props?.cardsColumnsMobile, 1, 2, 1);
+  // The reference layout has a fixed 3/2/1 rhythm. Keeping this consistent is
+  // important because saved legacy values can otherwise make the same card
+  // set render as four narrow columns on older pages.
+  const columnsDesktop = 3;
+  const columnsTablet = 2;
+  const columnsMobile = 1;
   const colGap = clamp(props?.cardsColumnGap, 0, 64, 16);
   const rowGap = clamp(props?.cardsRowGap, 0, 64, 16);
 
   const cardRadius = clamp(props?.cardsCardRadius, 0, 40, 14);
   const cardBorderWidth = clamp(props?.cardsCardBorderWidth, 0, 8, 1);
-  const imageAreaHeight = clamp(props?.cardsCardImageAreaHeight, 80, 320, 160);
-  const imageMaxHeight = clamp(props?.cardsCardImageMaxHeight, 40, 280, 110);
   const contentPaddingY = clamp(props?.cardsCardContentPaddingY, 0, 48, 14);
   const cardTextSize = clamp(props?.cardsCardTitleFontSize, 10, 32, 14);
   const cardTextLineHeight = clamp(
@@ -270,40 +271,38 @@ export default function Cards(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
-        {(subTitleEnabled && subTitle) || (titleEnabled && mainTitle) ? (
-          <div style={{ marginBottom: 24 }}>
+        <div className="fable-section">
+          {(subTitleEnabled && subTitle) || (titleEnabled && mainTitle) ? (
+          <header>
             {subTitleEnabled && subTitle ? (
-              <SubTitle color={subTitleColor}>{subTitle}</SubTitle>
+              <p className="fable-eyebrow" style={subTitleColor ? { color: subTitleColor } : undefined}>{subTitle}</p>
             ) : null}
             {titleEnabled && mainTitle ? (
-              <MainTitle color={mainTitleColor}>{mainTitle}</MainTitle>
+              <h2 className="fable-heading" style={mainTitleColor ? { color: mainTitleColor } : undefined}>{mainTitle}</h2>
             ) : null}
-          </div>
+          </header>
         ) : null}
 
         <div
-          className="cards-grid"
+          className="fable-card-grid"
           style={{
-            "--cards-cols-desktop": columnsDesktop,
-            "--cards-cols-tablet": columnsTablet,
-            "--cards-cols-mobile": columnsMobile,
-            "--cards-col-gap": `${colGap}px`,
-            "--cards-row-gap": `${rowGap}px`,
-            "--cards-card-radius": `${cardRadius}px`,
-            "--cards-card-border-width": `${cardBorderWidth}px`,
-            "--cards-card-bg": cardBgColor,
-            "--cards-card-border": cardBorderColor,
-            "--cards-card-title-color": cardTitleColor,
-            "--cards-image-area-height": `${imageAreaHeight}px`,
-            "--cards-image-max-height": `${imageMaxHeight}px`,
-            "--cards-content-padding-y": `${contentPaddingY}px`,
-            "--cards-card-title-size": `${cardTextSize}px`,
-            "--cards-card-title-line-height": cardTextLineHeight,
+            gridTemplateColumns: `repeat(${columnsDesktop}, minmax(0, 1fr))`,
+            columnGap: colGap,
+            rowGap,
           }}
         >
           {cards.map((card, idx) => (
-            <article className="cards-item" key={`${card.title}-${idx}`}>
-              <div className="cards-item-image-wrap">
+            <article
+              className="fable-card"
+              key={`${card.title}-${idx}`}
+              style={{
+                background: cardBgColor,
+                borderColor: cardBorderColor,
+                borderWidth: cardBorderWidth,
+                borderRadius: cardRadius,
+              }}
+            >
+              <div className="fable-card__media is-document">
                 {card.imageDesktop || card.imageMobile ? (
                   <picture>
                     {card.imageMobile ? (
@@ -316,103 +315,20 @@ export default function Cards(props) {
                     />
                   </picture>
                 ) : (
-                  <div className="cards-placeholder">No Image</div>
+                  <span aria-hidden="true" />
                 )}
               </div>
-              <div className="cards-item-content">
-                <p>{card.title}</p>
+              <div className="fable-card__body" style={{ paddingBlock: contentPaddingY }}>
+                <h3 style={{ color: cardTitleColor, fontSize: cardTextSize, lineHeight: cardTextLineHeight }}>{card.title}</h3>
               </div>
             </article>
           ))}
         </div>
-
         <style>{`
-          .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(var(--cards-cols-desktop, 3), minmax(0, 1fr));
-            column-gap: var(--cards-col-gap, 16px);
-            row-gap: var(--cards-row-gap, 16px);
-          }
-
-          .cards-item {
-            background: var(--cards-card-bg, #fff);
-            border: var(--cards-card-border-width, 1px) solid var(--cards-card-border, rgba(0,0,0,0.08));
-            border-radius: var(--cards-card-radius, 14px);
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-          }
-
-          .cards-item-image-wrap {
-            height: var(--cards-image-area-height, 160px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px;
-            background: #fff;
-          }
-
-          .cards-item-image-wrap img {
-            max-width: 100%;
-            max-height: var(--cards-image-max-height, 110px);
-            object-fit: contain;
-            display: block;
-          }
-
-          .cards-item-image-wrap picture {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-
-          .cards-item-content {
-            border-top: 1px solid rgba(0,0,0,0.06);
-            padding: var(--cards-content-padding-y, 16px) 16px;
-            background: #F3F3F3;
-            min-height: calc(
-              (var(--cards-card-title-size, 14px) * var(--cards-card-title-line-height, 1.35) * 2)
-              + (var(--cards-content-padding-y, 16px) * 2)
-            );
-            flex: 1;
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-          }
-
-          .cards-item-content p {
-            margin: 0;
-            text-align: center;
-            color: var(--cards-card-title-color, #262A2C);
-            font-weight: 500;
-            font-size: var(--cards-card-title-size, 14px);
-            line-height: var(--cards-card-title-line-height, 1.35);
-            white-space: normal;
-            overflow: visible;
-            word-break: break-word;
-          }
-
-          .cards-placeholder {
-            color: rgba(0,0,0,0.3);
-            font-size: 13px;
-            font-weight: 600;
-          }
-
-          @media (max-width: 992px) {
-            .cards-grid {
-              grid-template-columns: repeat(var(--cards-cols-tablet, 2), minmax(0, 1fr));
-            }
-          }
-
-          @media (max-width: 576px) {
-            .cards-grid {
-              grid-template-columns: repeat(var(--cards-cols-mobile, 1), minmax(0, 1fr));
-            }
-          }
+          @media (max-width: 992px) { .fable-card-grid { grid-template-columns: repeat(${columnsTablet}, minmax(0, 1fr)) !important; } }
+          @media (max-width: 576px) { .fable-card-grid { grid-template-columns: repeat(${columnsMobile}, minmax(0, 1fr)) !important; } }
         `}</style>
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

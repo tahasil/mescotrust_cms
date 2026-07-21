@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Row, Col, Card, Button, Modal } from "antd";
+import { Card, Button, Modal } from "antd";
 import styled from "styled-components";
 import {
   FullWidthBackground,
   getColor,
-  MainTitle,
   PageContainer,
 } from "@/styles/Theme";
 
@@ -463,21 +462,20 @@ export default function CommitteeMembers(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
-        <Row gutter={[16, 16]} align="middle">
-          <Col xs={24} className="text-center">
-            <MainTitle
-              fontSize={titleFontSize}
-              fontWeight={titleFontWeight}
-              style={titleColor ? { color: titleColor } : undefined}
+        <div className="fable-section">
+            <h2
+              className="fable-heading"
+              style={{
+                ...(titleColor ? { color: titleColor } : {}),
+                fontSize: titleFontSize,
+                fontWeight: titleFontWeight,
+              }}
             >
               {mainTitle}
-            </MainTitle>
-          </Col>
-        </Row>
-        <Row gutter={[16, 16]} className="mt-4">
+            </h2>
+        <div className="fable-people">
           {members.map((member, idx) => (
-            <Col key={idx} xs={12} sm={8} md={8} lg={6}>
-              <CardWrapper className="card-wrapper">
+              <CardWrapper className="card-wrapper fable-person" key={`${member.name}-${idx}`}>
                 <CommitteeCard
                   cover={
                     member.imageDesktop || member.imageMobile ? (
@@ -487,6 +485,7 @@ export default function CommitteeMembers(props) {
                         ) : null}
                         <img
                           loading="lazy"
+                          className="fable-person__photo"
                           src={member.imageDesktop || member.imageMobile}
                           alt={member.name}
                         />
@@ -495,7 +494,7 @@ export default function CommitteeMembers(props) {
                   }
                 >
                   <CardBodyWrapper>
-                    <div className="name">{member.name}</div>
+                    <h3 className="name">{member.name}</h3>
                     {member.qualification && (
                       <div className="qualification">
                         {member.qualification}
@@ -519,9 +518,10 @@ export default function CommitteeMembers(props) {
                   </ViewProfileBtn>
                 </ProfileOverlay>
               </CardWrapper>
-            </Col>
           ))}
-        </Row>
+        </div>
+        <style>{`.fable-person.card-wrapper { padding: 0; }`}</style>
+        </div>
       </PageContainer>
 
       <Modal

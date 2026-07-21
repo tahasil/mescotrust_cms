@@ -22,6 +22,7 @@ import {
   getManageSectionPayload,
 } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
+import { LINK_TARGET_OPTIONS, normalizeTarget } from "@/components/appearance/editorUtils";
 
 const API_PATH = "/api/theme/Cards1";
 const PREFIX = "cards1";
@@ -80,10 +81,12 @@ function normalizeItem(item, index) {
     description: cleanText(item?.description ?? item?.text),
     buttonText: cleanText(item?.buttonText ?? item?.linkText),
     buttonLink: cleanText(item?.buttonLink ?? item?.link ?? item?.url),
+    buttonTarget: normalizeTarget(item?.buttonTarget ?? item?.target ?? (/^https?:\/\//i.test(item?.buttonLink ?? item?.link ?? item?.url ?? "") ? "_blank" : "_self")),
     hoverTitle: cleanText(item?.hoverTitle),
     hoverDescription: cleanText(item?.hoverDescription),
     hoverButtonText: cleanText(item?.hoverButtonText),
     hoverButtonLink: cleanText(item?.hoverButtonLink),
+    hoverButtonTarget: normalizeTarget(item?.hoverButtonTarget ?? item?.buttonTarget ?? item?.target ?? (/^https?:\/\//i.test(item?.hoverButtonLink ?? "") ? "_blank" : "_self")),
     bgColorKey: cleanText(item?.bgColorKey ?? item?.cardBgColorKey),
     hoverBgColorKey: cleanText(item?.hoverBgColorKey ?? item?.cardHoverBgColorKey),
     visible: item?.visible !== false && item?.isVisible !== false,
@@ -508,10 +511,12 @@ function Cards1EditForm(
                         description: "",
                         buttonText: "",
                         buttonLink: "",
+                        buttonTarget: "_self",
                         hoverTitle: "",
                         hoverDescription: "",
                         hoverButtonText: "",
                         hoverButtonLink: "",
+                        hoverButtonTarget: "_self",
                         bgColorKey: "",
                         hoverBgColorKey: "",
                         visible: true,
@@ -605,6 +610,11 @@ function Cards1EditForm(
                               <Input placeholder="/page-or-url" />
                             </Form.Item>
                           </Col>
+                          <Col xs={24} sm={12}>
+                            <Form.Item {...restField} name={[name, "buttonTarget"]} label="Button target">
+                              <Select options={LINK_TARGET_OPTIONS} />
+                            </Form.Item>
+                          </Col>
 
                           <Col xs={24} sm={12}>
                             <Form.Item {...restField} name={[name, "bgColorKey"]} label="Card background color">
@@ -658,6 +668,11 @@ function Cards1EditForm(
                               label="Hover button link"
                             >
                               <Input placeholder="Optional hover button link" />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} sm={12}>
+                            <Form.Item {...restField} name={[name, "hoverButtonTarget"]} label="Hover button target">
+                              <Select options={LINK_TARGET_OPTIONS} />
                             </Form.Item>
                           </Col>
                         </Row>

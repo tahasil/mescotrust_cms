@@ -1,13 +1,9 @@
 "use client";
 
-import { Row, Col } from "antd";
 import {
   FullWidthBackground,
   getColor,
-  MainTitle,
   PageContainer,
-  SubTitle,
-  ThemeCard,
 } from "@/styles/Theme";
 
 /**
@@ -195,17 +191,8 @@ export default function Mission(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
-        <ThemeCard
-          radius={cardRadius}
-          padding={cardPadding}
-          style={{
-            borderRadius: cardRadius,
-            padding: cardPadding,
-            overflow: "hidden",
-          }}
-        >
-          <Row gutter={[16, 16]} align="middle">
-            <Col xs={24} sm={24} md={12} lg={12}>
+        <div className="fable-section fable-feature-grid">
+          <div className="fable-media">
               <picture>
                 {missionImageMobile ? (
                   <source
@@ -215,29 +202,27 @@ export default function Mission(props) {
                 ) : null}
                 <img
                   loading="lazy"
-                  className="img-fluid"
-                  style={{ display: "block", margin: "0 auto" }}
                   src={missionImageDesktop || missionImageMobile}
                   alt={missionSubTitle}
                 />
               </picture>
-            </Col>
-            <Col xs={24} sm={24} md={12} lg={12}>
-              <SubTitle
-                className="mb-2"
+          </div>
+          <article
+            className="fable-feature"
+            style={{ borderRadius: cardRadius, padding: cardPadding }}
+          >
+              <p className="fable-eyebrow"
                 style={subTitleColor ? { color: subTitleColor } : undefined}
               >
                 {missionSubTitle}
-              </SubTitle>
-              <MainTitle
-                opacity={1}
+              </p>
+              <h3
                 style={mainTitleColor ? { color: mainTitleColor } : undefined}
               >
                 {missionTitle}
-              </MainTitle>
-            </Col>
-          </Row>
-        </ThemeCard>
+              </h3>
+          </article>
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

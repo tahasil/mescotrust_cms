@@ -259,18 +259,19 @@ export default function Alerts(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
+        <div className="fable-section">
         {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) && (
           <Row gutter={[16, 16]}>
             <Col span={24} className="mb-4">
               {subTitleEnabled && subTitle && (
-                <SubTitle
+                <SubTitle className="fable-eyebrow"
                   style={subTitleColor ? { color: subTitleColor } : undefined}
                 >
                   {subTitle}
                 </SubTitle>
               )}
               {titleEnabled && mainTitle && (
-                <MainTitle color={titleColor}>{mainTitle}</MainTitle>
+                <MainTitle className="fable-heading" color={titleColor}>{mainTitle}</MainTitle>
               )}
             </Col>
           </Row>
@@ -280,8 +281,8 @@ export default function Alerts(props) {
           const text = (item?.text ?? "").toString().trim();
           const itemIconUrl = (item?.iconUrl ?? "").toString().trim();
           return (
-            <AlertCard key={idx}>
-              <IconWrap>
+            <AlertCard className="fable-note" key={idx}>
+              <IconWrap className="fable-note__icon">
                 {itemIconUrl ? (
                   <img loading="lazy" src={itemIconUrl} alt="" />
                 ) : (
@@ -356,6 +357,7 @@ export default function Alerts(props) {
             </AlertCard>
           );
         })}
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

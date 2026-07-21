@@ -112,14 +112,15 @@ export default function ContactUs(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
+        <div className="fable-section">
         {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) && (
           <Row gutter={[16, 16]}>
             <Col span={24} className="mb-4">
               {subTitleEnabled && subTitle && (
-                <SubTitle style={subTitleColor ? { color: subTitleColor } : undefined}>{subTitle}</SubTitle>
+                <SubTitle className="fable-eyebrow" style={subTitleColor ? { color: subTitleColor } : undefined}>{subTitle}</SubTitle>
               )}
               {titleEnabled && mainTitle && (
-                <MainTitle color={titleColor}>{mainTitle}</MainTitle>
+                <MainTitle className="fable-heading" color={titleColor}>{mainTitle}</MainTitle>
               )}
             </Col>
           </Row>
@@ -128,6 +129,7 @@ export default function ContactUs(props) {
           page="contact-us"
           source="page-builder"
           contactInfo={contactInfo}
+          infoTitle={(props?.contactUsInfoTitle ?? "Visit, call or write.").toString().trim()}
           subjectOptions={subjectOptions}
           btnBgColor={btnBgColor}
           btnTextColor={btnTextColor}
@@ -136,6 +138,7 @@ export default function ContactUs(props) {
           formDescColor={formDescColor}
           mapEmbedUrl={mapEmbedUrl}
         />
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

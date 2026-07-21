@@ -1,13 +1,9 @@
 "use client";
 
-import { Row, Col } from "antd";
 import {
   FullWidthBackground,
   getColor,
-  MainTitle,
   PageContainer,
-  SubTitle,
-  ThemeCard,
 } from "@/styles/Theme";
 
 /**
@@ -195,41 +191,26 @@ export default function Vision(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
-        <ThemeCard
-          radius={cardRadius}
-          padding={cardPadding}
+        <div className="fable-section fable-feature-grid">
+          <article
+          className="fable-feature is-tint"
           style={{
             borderRadius: cardRadius,
             padding: cardPadding,
-            overflow: "hidden",
           }}
-        >
-          <Row gutter={[16, 16]} align="middle">
-            <Col
-              xs={{ span: 24, order: 2 }}
-              sm={{ span: 24, order: 2 }}
-              md={{ span: 12, order: 1 }}
-              lg={{ span: 12, order: 1 }}
-            >
-              <SubTitle
-                className="mb-2"
+          >
+              <p className="fable-eyebrow"
                 style={subTitleColor ? { color: subTitleColor } : undefined}
               >
                 {visionSubTitle}
-              </SubTitle>
-              <MainTitle
-                opacity={1}
+              </p>
+              <h3
                 style={mainTitleColor ? { color: mainTitleColor } : undefined}
               >
                 {visionTitle}
-              </MainTitle>
-            </Col>
-            <Col
-              xs={{ span: 24, order: 1 }}
-              sm={{ span: 24, order: 1 }}
-              md={{ span: 12, order: 2 }}
-              lg={{ span: 12, order: 2 }}
-            >
+              </h3>
+          </article>
+          <div className="fable-media">
               <picture>
                 {visionImageMobile ? (
                   <source
@@ -239,15 +220,12 @@ export default function Vision(props) {
                 ) : null}
                 <img
                   loading="lazy"
-                  className="img-fluid"
-                  style={{ display: "block", margin: "0 auto" }}
                   src={visionImageDesktop || visionImageMobile}
                   alt={visionSubTitle}
                 />
               </picture>
-            </Col>
-          </Row>
-        </ThemeCard>
+          </div>
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

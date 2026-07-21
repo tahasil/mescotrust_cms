@@ -98,6 +98,38 @@ export default function StoriesSlider(props) {
   };
 
   const linkTarget = text(props?.storiesSliderViewAllTarget) || "_self";
+  const isInnerPageVariant =
+    props?.storiesSliderTitleEnabled === false &&
+    props?.storiesSliderSubTitleEnabled === false;
+
+  if (isInnerPageVariant) {
+    return (
+      <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
+        <PageContainer style={pageContainerBgStyle}>
+          <div className="fable-section fable-testimonials" ref={rootRef}>
+            {items.map((item, index) => (
+              <figure className="fable-testimonial storyReveal" key={`${text(item?.name)}-${index}`}>
+                {text(item?.image || item?.mobileImage) ? (
+                  <picture>
+                    {text(item?.mobileImage) ? <source media="(max-width: 767px)" srcSet={text(item.mobileImage)} /> : null}
+                    <img className="fable-person__photo" src={text(item?.image || item?.mobileImage)} alt={text(item?.imageAlt || item?.name)} loading="lazy" />
+                  </picture>
+                ) : (
+                  <span className="fable-testimonial__mark" aria-hidden="true">“</span>
+                )}
+                <blockquote><p>{text(item?.quote)}</p></blockquote>
+                <figcaption>
+                  <strong>{text(item?.name)}</strong>
+                  {text(item?.role) ? <span>{text(item.role)}</span> : null}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </PageContainer>
+      </FullWidthBackground>
+    );
+  }
+
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>

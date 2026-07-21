@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { normalizeTarget } from "@/components/appearance/editorUtils";
 import {
   FullWidthBackground,
   getColor,
@@ -60,10 +61,12 @@ function normalizeItem(item, index) {
     description: cleanText(item?.description ?? item?.text),
     buttonText: cleanText(item?.buttonText ?? item?.linkText),
     buttonLink: cleanText(item?.buttonLink ?? item?.link ?? item?.url),
+    buttonTarget: normalizeTarget(item?.buttonTarget ?? item?.target ?? (isExternalUrl(item?.buttonLink ?? item?.link ?? item?.url) ? "_blank" : "_self")),
     hoverTitle: cleanText(item?.hoverTitle),
     hoverDescription: cleanText(item?.hoverDescription),
     hoverButtonText: cleanText(item?.hoverButtonText),
     hoverButtonLink: cleanText(item?.hoverButtonLink),
+    hoverButtonTarget: normalizeTarget(item?.hoverButtonTarget ?? item?.buttonTarget ?? item?.target ?? (isExternalUrl(item?.hoverButtonLink) ? "_blank" : "_self")),
     bgColorKey: cleanText(item?.bgColorKey ?? item?.cardBgColorKey),
     hoverBgColorKey: cleanText(
       item?.hoverBgColorKey ?? item?.cardHoverBgColorKey,
@@ -77,11 +80,12 @@ function isExternalUrl(value) {
   return /^https?:\/\//i.test(value || "");
 }
 
-function ActionLink({ href, text, className }) {
+function ActionLink({ href, text, target, className }) {
   if (!href || !text) return null;
-  if (isExternalUrl(href)) {
+  const resolvedTarget = normalizeTarget(target);
+  if (isExternalUrl(href) || resolvedTarget === "_blank") {
     return (
-      <a href={href} className={className} target="_blank" rel="noreferrer">
+      <a href={href} className={className} target={resolvedTarget} rel={resolvedTarget === "_blank" ? "noopener noreferrer" : undefined}>
         {text}
       </a>
     );
@@ -131,12 +135,14 @@ function buildCardStates(card, hoverEnabled) {
       description: card.description,
       buttonText: card.buttonText,
       buttonLink: card.buttonLink,
+      buttonTarget: card.buttonTarget,
     },
     hoverState: {
       title: card.hoverTitle || card.title,
       description: card.hoverDescription || card.description,
       buttonText: card.hoverButtonText || card.buttonText,
       buttonLink: card.hoverButtonLink || card.buttonLink,
+      buttonTarget: card.hoverButtonLink ? card.hoverButtonTarget : card.buttonTarget,
     },
   };
 }
@@ -151,6 +157,7 @@ function CardStateContent({ state, buttonClassName }) {
       <ActionLink
         text={state.buttonText}
         href={state.buttonLink}
+        target={state.buttonTarget}
         className={buttonClassName}
       />
     </>
@@ -537,6 +544,7 @@ export default function Cards1(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
+        <div className="fable-section">
         {(subTitleEnabled && subTitle) || (titleEnabled && mainTitle) ? (
           <div style={{ marginBottom: 28 }}>
             {subTitleEnabled && subTitle ? (
@@ -609,7 +617,7 @@ export default function Cards1(props) {
           </div>
         ) : null}
 
-        <style>{`
+        <style dangerouslySetInnerHTML={{ __html: `
           .cards1-grid {
             display: grid;
             grid-template-columns: repeat(var(--cards1-cols-desktop, 5), minmax(0, 1fr));
@@ -1143,7 +1151,8 @@ export default function Cards1(props) {
               line-clamp: 2;
             }
           }
-        `}</style>
+        ` }} />
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

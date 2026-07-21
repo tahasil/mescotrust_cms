@@ -16,17 +16,17 @@ import {
 
 const FormWrapper = styled.div`
   .form-heading {
-    font-size: 24px;
-    font-weight: 700;
     margin-bottom: 8px;
-    @media (max-width: 768px) {
-      font-size: 20px;
-    }
+    color: var(--primary-color);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
   }
   .form-description {
     font-size: 14px;
     color: rgba(0, 0, 0, 0.55);
-    margin-bottom: 32px;
+    margin-bottom: 24px;
     line-height: 1.6;
   }
   .form-label {
@@ -37,17 +37,17 @@ const FormWrapper = styled.div`
     color: rgba(0, 0, 0, 0.85);
   }
   .form-label .required {
-    color: #E03C33;
+    color: var(--primary-color);
   }
   .form-field {
     width: 100%;
-    padding: 12px 16px;
+    padding: 14px 20px;
     border: 1px solid rgba(0, 0, 0, 0.12);
-    border-radius: 8px;
-    font-size: 14px;
+    border-radius: 16px;
+    font-size: 15.5px;
     line-height: 1.5;
     outline: none;
-    background: #fff;
+    background: var(--theme-white);
     transition: border-color 0.2s ease;
     &:focus {
       border-color: rgba(0, 0, 0, 0.3);
@@ -66,16 +66,21 @@ const FormWrapper = styled.div`
   }
   textarea.form-field {
     resize: vertical;
-    min-height: 120px;
+    min-height: 140px;
   }
-  .form-group {
-    margin-bottom: 20px;
-  }
+  .contact-message-form { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .contact-message-form .form-group { margin: 0; }
+  .contact-message-form .form-group:nth-of-type(5) { grid-column: 1 / -1; }
+  .contact-message-form > button { justify-self: start; }
   .error-text {
     margin-top: 6px;
     font-size: 12px;
     line-height: 1.4;
-    color: #E03C33;
+    color: var(--primary-color);
+  }
+  @media (max-width: 767px) {
+    .contact-message-form { grid-template-columns: 1fr; }
+    .contact-message-form .form-group:nth-of-type(5) { grid-column: auto; }
   }
 `;
 
@@ -97,24 +102,16 @@ const SubmitBtn = styled.button`
 `;
 
 const InfoCard = styled.div`
-  background: rgba(0, 0, 0, 0.02);
-  border-radius: 12px;
-  padding: 32px;
-  @media (max-width: 768px) {
-    padding: 24px;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 `;
 
 const InfoItem = styled.div`
-  padding: 20px 0;
-  border-bottom: 2px dashed rgba(0, 0, 0, 0.08);
-  &:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-  }
-  &:first-child {
-    padding-top: 0;
-  }
+  padding: 22px 26px;
+  background: var(--theme-white);
+  border: 1px solid var(--theme-border);
+  border-radius: 20px;
   .info-header {
     display: flex;
     align-items: flex-start;
@@ -128,12 +125,12 @@ const InfoItem = styled.div`
     margin-top: 2px;
   }
   .info-title {
-    font-size: 16px;
-    font-weight: 700;
+    font-size: 15px;
+    font-weight: 650;
   }
   .info-text {
     font-size: 14px;
-    color: rgba(0, 0, 0, 0.6);
+    color: var(--theme-black-light);
     line-height: 1.6;
     margin: 0;
     padding-left: 30px;
@@ -176,6 +173,7 @@ export default function ContactForm({
   source,
   subjectOptions,
   contactInfo,
+  infoTitle = "Visit, call or write.",
   btnBgColor,
   btnTextColor,
   iconColor,
@@ -186,9 +184,9 @@ export default function ContactForm({
   const [state, formAction] = useFormState(submitContact, null);
   const formRef = useRef(null);
   const [errors, setErrors] = useState({});
-  const resolvedBtnBg = btnBgColor || "var(--primary-color, #E03C33)";
-  const resolvedBtnText = btnTextColor || "#fff";
-  const resolvedIconColor = iconColor || "#E03C33";
+  const resolvedBtnBg = btnBgColor || getColor("primary");
+  const resolvedBtnText = btnTextColor || getColor("white");
+  const resolvedIconColor = iconColor || getColor("primary");
 
   const subjects =
     Array.isArray(subjectOptions) && subjectOptions.length > 0
@@ -255,13 +253,13 @@ export default function ContactForm({
   return (
     <FormWrapper>
       <Row gutter={[48, 32]}>
-        <Col xs={24} md={12}>
+        <Col xs={{ span: 24, order: 2 }} md={{ span: 12, order: 2 }}>
           <div className="form-heading" style={formHeadingColor ? { color: formHeadingColor } : undefined}>Send Us a Message</div>
           <p className="form-description" style={formDescColor ? { color: formDescColor } : undefined}>
             Have a question or want to get involved? Fill out the form and we'll
             get back to you shortly.
           </p>
-          <form ref={formRef} action={formAction} onSubmit={handleSubmit} noValidate>
+          <form className="contact-message-form" ref={formRef} action={formAction} onSubmit={handleSubmit} noValidate>
             <input type="hidden" name="page" value={page || ""} />
             <input type="hidden" name="source" value={source || ""} />
 
@@ -359,8 +357,9 @@ export default function ContactForm({
           </form>
         </Col>
 
-        <Col xs={24} md={12}>
+        <Col xs={{ span: 24, order: 1 }} md={{ span: 12, order: 1 }}>
           <div className="form-heading" style={formHeadingColor ? { color: formHeadingColor } : undefined}>Get in Touch</div>
+          {infoTitle ? <h2 className="fable-heading" style={{ marginBottom: 24 }}>{infoTitle}</h2> : null}
           <p className="form-description" style={formDescColor ? { color: formDescColor } : undefined}>
             Visit us or reach out through any of the channels below.
           </p>

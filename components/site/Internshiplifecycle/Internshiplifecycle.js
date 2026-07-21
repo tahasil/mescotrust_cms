@@ -435,6 +435,7 @@ export default function Internshiplifecycle(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
+        <div className="fable-section">
         <TimelineSection
           $titleColor={titleColor}
           $descriptionColor={descriptionColor}
@@ -511,6 +512,7 @@ export default function Internshiplifecycle(props) {
             </div>
           </div>
         </TimelineSection>
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

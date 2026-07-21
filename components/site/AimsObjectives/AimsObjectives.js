@@ -1,41 +1,10 @@
 "use client";
 
-import { Row, Col, Card } from "antd";
-import styled from "styled-components";
 import {
   FullWidthBackground,
   getColor,
-  MainTitle,
   PageContainer,
 } from "@/styles/Theme";
-
-const AimsCard = styled(Card)`
-  width: 100%;
-  height: 100%;
-  min-height: 88px;
-  position: relative;
-  background: #1c1d1d !important;
-  border: none !important;
-  border-left: 2px solid ${() => getColor("white")} !important;
-  border-radius: 20px;
-  color: ${(p) => p.$textColor || getColor("white")} !important;
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 24px;
-  opacity: 0.8;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  box-shadow: none !important;
-  .ant-card-body {
-    background: transparent;
-    border: none;
-  }
-  @media (max-width: 992px) {
-    font-size: 14px;
-    line-height: 24px;
-  }
-`;
 
 function normalizeItem(it) {
   return { text: it?.text != null ? String(it.text).trim() : "" };
@@ -124,31 +93,23 @@ export default function AimsObjectives(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
-        <Row gutter={[16, 16]} align="middle">
-          <Col xs={24} className="text-center">
-            <MainTitle
-              fontSize={36}
-              fontWeight={600}
-              lineHeight={40}
-              className="text-white mb-3"
-              {...(titleColor ? { color: titleColor } : {})}
-            >
+        <div className="fable-section">
+          {mainTitle ? (
+            <h2 className="fable-heading" style={titleColor ? { color: titleColor } : undefined}>
               {mainTitle}
-            </MainTitle>
-          </Col>
-          <Col
-            xs={{ span: 24, offset: 0 }}
-            sm={{ span: 24, offset: 0 }}
-            md={{ span: 20, offset: 2 }}
-            lg={{ span: 18, offset: 3 }}
-          >
+            </h2>
+          ) : null}
+          <div className="fable-aims">
             {items.map((item, index) => (
-              <AimsCard key={index} className={index > 0 ? "mt-4" : undefined} $textColor={textColor}>
-                {item.text}
-              </AimsCard>
+              <div className="fable-aim" key={`${item.text}-${index}`}>
+                <span className="fable-aim__number" aria-hidden="true">
+                  {`${index + 1}.`}
+                </span>
+                <p style={textColor ? { color: textColor } : undefined}>{item.text}</p>
+              </div>
             ))}
-          </Col>
-        </Row>
+          </div>
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

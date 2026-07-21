@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, Row, Col, Collapse, message, Spin } from "antd";
+import { Form, Input, Row, Col, Collapse, message, Spin, Select } from "antd";
+import { LINK_TARGET_OPTIONS, normalizeTarget } from "@/components/appearance/editorUtils";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
@@ -48,6 +49,7 @@ function normalizeItem(it) {
     imageMobile: mobileImage,
     image: desktopImage,
     pdfUrl: it?.pdfUrl != null ? String(it.pdfUrl).trim() : "",
+    target: normalizeTarget(it?.target),
   };
 }
 
@@ -287,8 +289,13 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "pdfUrl"]} label="PDF URL (opens in new tab)">
+                          <Form.Item {...restField} name={[name, "pdfUrl"]} label="Document URL">
                             <Input placeholder="/uploads/annual-report-2024.pdf" size="large" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "target"]} label="Target">
+                            <Select options={LINK_TARGET_OPTIONS} />
                           </Form.Item>
                         </Col>
                       </Row>

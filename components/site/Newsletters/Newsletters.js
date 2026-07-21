@@ -334,18 +334,19 @@ export default function Newsletters(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
+        <div className="fable-section">
         {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) && (
           <Row gutter={[16, 16]}>
             <Col span={24} className="mb-4">
               {subTitleEnabled && subTitle && (
-                <SubTitle
+                <SubTitle className="fable-eyebrow"
                   style={subTitleColor ? { color: subTitleColor } : undefined}
                 >
                   {subTitle}
                 </SubTitle>
               )}
               {titleEnabled && mainTitle && (
-                <MainTitle color={titleColor}>{mainTitle}</MainTitle>
+                <MainTitle className="fable-heading" color={titleColor}>{mainTitle}</MainTitle>
               )}
             </Col>
           </Row>
@@ -356,11 +357,11 @@ export default function Newsletters(props) {
           const tag = (item?.tag ?? "").toString().trim();
           const pdfUrl = (item?.pdfUrl ?? "").toString().trim();
           return (
-            <NewsletterRow
+            <NewsletterRow className="fable-row-link"
               key={idx}
               $rowBorderColor={rowBorderColor}
             >
-              <PdfIcon style={{ background: iconBgColor }}>
+              <PdfIcon className="fable-row-icon" style={{ background: iconBgColor }}>
                 <svg
                   width="36"
                   height="36"
@@ -374,7 +375,7 @@ export default function Newsletters(props) {
                   />
                 </svg>
               </PdfIcon>
-              <ContentArea>
+              <ContentArea className="fable-row-copy">
                 {title && (
                   <div
                     className="nl-title"
@@ -416,6 +417,7 @@ export default function Newsletters(props) {
             </NewsletterRow>
           );
         })}
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

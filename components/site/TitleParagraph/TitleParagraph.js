@@ -207,11 +207,12 @@ export default function TitleParagraph(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
+        <div className="fable-section">
         <Row justify="center">
           <Col xs={24}>
             {subTitleEnabled && subTitle && (
               <SubTitle
-                className="mb-2"
+                className="fable-eyebrow"
                 style={subTitleColor ? { color: subTitleColor } : undefined}
               >
                 {subTitle}
@@ -219,21 +220,20 @@ export default function TitleParagraph(props) {
             )}
             {titleEnabled && mainTitle && (
               <MainTitle
-                fontSize={36}
-                fontWeight={600}
-                className="mb-3"
+                className="fable-heading"
                 style={titleColor ? { color: titleColor } : undefined}
               >
                 {mainTitle}
               </MainTitle>
             )}
             {content && (
-              <ContentWrapper $textColor={textColor}>
+              <ContentWrapper className="fable-prose" $textColor={textColor}>
                 <SafeHtml html={content} />
               </ContentWrapper>
             )}
           </Col>
         </Row>
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

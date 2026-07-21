@@ -358,7 +358,12 @@ export default function ShortCode(props) {
               {moduleError}
             </div>
           ) : null}
-          <ComponentToRender {...moduleProps} />
+          <ComponentToRender
+            {...moduleProps}
+            {...(resolvedComponentId === "Subscribe" && props?.shortCodeSectionBgType === "image"
+              ? { subscribeRenderVariant: "cta-band" }
+              : {})}
+          />
         </>
       );
     }

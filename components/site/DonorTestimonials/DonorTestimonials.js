@@ -267,29 +267,31 @@ export default function DonorTestimonials(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
+        <div className="fable-section">
         {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) && (
           <Row gutter={[16, 16]}>
             <Col span={24} className="mb-4">
               {subTitleEnabled && subTitle && (
-                <SubTitle
+                <SubTitle className="fable-eyebrow"
                   style={subTitleColor ? { color: subTitleColor } : undefined}
                 >
                   {subTitle}
                 </SubTitle>
               )}
               {titleEnabled && mainTitle && (
-                <MainTitle color={titleColor}>{mainTitle}</MainTitle>
+                <MainTitle className="fable-heading" color={titleColor}>{mainTitle}</MainTitle>
               )}
             </Col>
           </Row>
         )}
+        <div className="fable-testimonials">
         {items.map((item, idx) => {
           const quote = (item?.quote ?? "").toString().trim();
           const name = (item?.name ?? "").toString().trim();
           const role = (item?.role ?? "").toString().trim();
           return (
-            <TestimonialCard key={idx}>
-              <QuoteIcon>
+            <TestimonialCard className="fable-testimonial" key={idx}>
+              <QuoteIcon className="fable-testimonial__mark">
                 <svg
                   viewBox="0 0 40 32"
                   fill="none"
@@ -325,6 +327,8 @@ export default function DonorTestimonials(props) {
             </TestimonialCard>
           );
         })}
+        </div>
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

@@ -39,6 +39,7 @@ function ContactUsEditForm({ source, initialData: initialDataProp, onSaveToPage,
         contactUsFormDescColorKey: data?.contactUsFormDescColorKey != null ? String(data.contactUsFormDescColorKey).trim() : "",
         contactUsIconColorKey: data?.contactUsIconColorKey != null ? String(data.contactUsIconColorKey).trim() : "",
         contactUsRegdOffice: data?.contactUsRegdOffice ?? "110, Natalwala Building, V. S. Road, Mahim(W), Mumbai - 400 016.",
+        contactUsInfoTitle: data?.contactUsInfoTitle ?? "Visit, call or write.",
         contactUsAdminOffice: data?.contactUsAdminOffice ?? "1 & 2, Plot No 423, Landmark Building, Next to Johnson & Johnson, Near Saraswati Mandir School, Senapati Bapat Marg, Mahim(W), Mumbai - 400016.",
         contactUsEmail: data?.contactUsEmail ?? "mescotrust@mescotrust.org",
         contactUsPhone: data?.contactUsPhone ?? "(+9122) 24441442, (+9122) 24448637",
@@ -94,6 +95,7 @@ function ContactUsEditForm({ source, initialData: initialDataProp, onSaveToPage,
         contactUsFormDescColorKey: values.contactUsFormDescColorKey != null ? String(values.contactUsFormDescColorKey).trim() : "",
         contactUsIconColorKey: values.contactUsIconColorKey != null ? String(values.contactUsIconColorKey).trim() : "",
         contactUsRegdOffice: values.contactUsRegdOffice != null ? String(values.contactUsRegdOffice).trim() : "",
+        contactUsInfoTitle: values.contactUsInfoTitle != null ? String(values.contactUsInfoTitle).trim() : "",
         contactUsAdminOffice: values.contactUsAdminOffice != null ? String(values.contactUsAdminOffice).trim() : "",
         contactUsEmail: values.contactUsEmail != null ? String(values.contactUsEmail).trim() : "",
         contactUsPhone: values.contactUsPhone != null ? String(values.contactUsPhone).trim() : "",
@@ -145,6 +147,9 @@ function ContactUsEditForm({ source, initialData: initialDataProp, onSaveToPage,
             label: "Contact Information",
             children: (
               <>
+                <Form.Item name="contactUsInfoTitle" label="Contact heading">
+                  <Input placeholder="e.g. Visit, call or write." />
+                </Form.Item>
                 <Form.Item name="contactUsRegdOffice" label="Regd. Office Address">
                   <Input.TextArea rows={2} placeholder="Registered office address" />
                 </Form.Item>

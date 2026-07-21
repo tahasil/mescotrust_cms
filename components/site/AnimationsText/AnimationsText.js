@@ -150,6 +150,7 @@ export default function AnimationsText(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
+        <div className="fable-section">
         <Row gutter={[16, 16]}>
           <Col
             xs={{ span: 24, offset: 0 }}
@@ -181,6 +182,7 @@ export default function AnimationsText(props) {
             </Wrapper>
           </Col>
         </Row>
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

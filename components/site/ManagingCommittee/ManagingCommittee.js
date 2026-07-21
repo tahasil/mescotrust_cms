@@ -1,10 +1,8 @@
 "use client";
 
-import { Row, Col } from "antd";
 import {
   FullWidthBackground,
   getColor,
-  MainTitle,
   PageContainer,
 } from "@/styles/Theme";
 import SafeHtml from "@/components/cms/SafeHtml";
@@ -89,8 +87,8 @@ export default function ManagingCommittee(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
-        <Row gutter={[32, 32]} align="middle">
-          <Col xs={24} sm={24} md={12} lg={10}>
+        <div className="fable-section fable-split">
+          <div className="fable-media">
             {imageDesktop || imageMobile ? (
               <picture>
                 {imageMobile ? (
@@ -98,42 +96,31 @@ export default function ManagingCommittee(props) {
                 ) : null}
                 <img
                   loading="lazy"
-                  className="img-fluid"
                   src={imageDesktop || imageMobile}
                   alt={imageAlt}
                 />
               </picture>
             ) : (
-              <div style={{ minHeight: 200, background: "rgba(255,255,255,0.1)", borderRadius: 8 }} />
+              <div aria-hidden="true" />
             )}
-          </Col>
-          <Col xs={24} sm={24} md={12} lg={14}>
-            <MainTitle
-              fontSize={36}
-              fontWeight={600}
-              className={titleColor ? "mb-3" : "text-white mb-3"}
+          </div>
+          <div>
+            <h2
+              className="fable-heading"
               style={titleColor ? { color: titleColor } : undefined}
             >
               {mainTitle}
-            </MainTitle>
+            </h2>
             {paragraph && (
               <div
-                className={textColor ? "" : "text-white"}
-                style={{
-                  opacity: 0.8,
-                  fontSize: 16,
-                  fontWeight: 400,
-                  lineHeight: 1.6,
-                  overflowWrap: "break-word",
-                  wordWrap: "break-word",
-                  ...(textColor ? { color: textColor } : {}),
-                }}
+                className="fable-prose"
+                style={textColor ? { color: textColor } : undefined}
               >
                 <SafeHtml html={paragraph} />
               </div>
             )}
-          </Col>
-        </Row>
+          </div>
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

@@ -55,18 +55,32 @@ const Wrapper = styled.div`
   --volunteer-side-item-size: 13px;
   --volunteer-label-size: 13px;
   --volunteer-input-size: 14px;
-  --volunteer-required-color: #E03C33;
-  --volunteer-error-color: #E03C33;
+  --volunteer-required-color: var(--primary-color);
+  --volunteer-error-color: var(--primary-color);
+
+  .volunteer-eligibility { max-width: 900px; margin-bottom: clamp(44px, 5vw, 72px); }
+  .volunteer-eligibility .fable-heading { margin-bottom: 16px; }
+  .volunteer-eligibility__description { max-width: 62ch; margin: 0 0 22px; color: var(--theme-black-light); font-size: 15.5px; }
+  .volunteer-eligibility__chips { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none; }
+  .volunteer-eligibility__chips li {
+    padding: 8px 16px;
+    color: var(--theme-black);
+    background: var(--theme-surface);
+    border: 1px solid var(--theme-border);
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 570;
+  }
+
+  .volunteer-form-heading { max-width: 900px; margin-bottom: clamp(28px, 3.6vw, 48px); }
 
   .volunteer-shell {
     align-items: stretch;
   }
 
   .volunteer-form-card {
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 14px;
-    padding: 24px;
-    height: 100%;
+    width: 100%;
+    max-width: 900px;
   }
 
   .volunteer-field {
@@ -96,12 +110,12 @@ const Wrapper = styled.div`
   .volunteer-input {
     width: 100%;
     border: 1px solid rgba(0, 0, 0, 0.12);
-    border-radius: 8px;
-    padding: 10px 12px;
-    min-height: var(--volunteer-input-min-height);
-    font-size: var(--volunteer-input-size);
+    border-radius: 16px;
+    padding: 14px 20px;
+    min-height: 52px;
+    font-size: 15.5px;
     line-height: 1.4;
-    background: #fff;
+    background: var(--theme-white);
     color: rgba(0, 0, 0, 0.88);
     outline: none;
     transition: border-color 0.2s ease;
@@ -117,7 +131,7 @@ const Wrapper = styled.div`
 
   .volunteer-textarea {
     resize: vertical;
-    min-height: var(--volunteer-textarea-min-height);
+    min-height: 140px;
   }
 
   .volunteer-areas {
@@ -143,9 +157,9 @@ const Wrapper = styled.div`
 
   .volunteer-submit {
     border: none;
-    border-radius: 10px;
-    min-height: 44px;
-    font-weight: 700;
+    border-radius: 999px;
+    min-height: 48px;
+    font-weight: 600;
     line-height: 1;
     cursor: pointer;
     transition: opacity 0.2s ease;
@@ -243,11 +257,6 @@ const Wrapper = styled.div`
   }
 
   @media (max-width: 767px) {
-    .volunteer-form-card,
-    .volunteer-side-card {
-      padding: 16px;
-      border-radius: 12px;
-    }
     .volunteer-side-title {
       font-size: calc(var(--volunteer-side-title-size) - 10px);
     }
@@ -823,12 +832,12 @@ export default function Volunteer(props = {}) {
     background: inputBgColor,
     borderColor: inputBorderColor,
     color: inputTextColor,
-    borderRadius: inputRadius,
   };
 
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
+        <div className="fable-section">
         <Wrapper
           style={{
             "--volunteer-placeholder-color": placeholderColor,
@@ -851,17 +860,27 @@ export default function Volunteer(props = {}) {
             "--volunteer-error-color": errorTextColor,
           }}
         >
+          <section className="volunteer-eligibility">
+            <p className="fable-eyebrow">Eligibility</p>
+            {sideTitle ? (
+              <h2 className="fable-heading">{sideTitle}</h2>
+            ) : null}
+            {sideDescription ? (
+              <p className="volunteer-eligibility__description">{sideDescription}</p>
+            ) : null}
+            {sideItems.length > 0 ? (
+              <ul className="volunteer-eligibility__chips">
+                {sideItems.map((item, idx) => <li key={`${item}-${idx}`}>{item}</li>)}
+              </ul>
+            ) : null}
+          </section>
+          <header className="volunteer-form-heading">
+            <p className="fable-eyebrow">Apply</p>
+            <h2 className="fable-heading">Volunteer application <em>form.</em></h2>
+          </header>
           <Row gutter={[gridColumnGap, gridRowGap]} className="volunteer-shell">
-            <Col xs={24} lg={formColumnSpanLg}>
-              <div
-                className="volunteer-form-card"
-                style={{
-                  background: formCardBackground,
-                  borderColor: formCardBorderColor,
-                  borderRadius: formCardRadius,
-                  padding: `${formCardPadding}px`,
-                }}
-              >
+            <Col span={24}>
+              <div className="volunteer-form-card">
                 <form
                   ref={formRef}
                   action={formAction}
@@ -1184,10 +1203,10 @@ export default function Volunteer(props = {}) {
                         iconAlt={submitIconAlt}
                         iconSize={submitIconSize}
                         iconGap={submitIconGap}
-                        radius={submitRadius}
-                        paddingY={submitPaddingY}
-                        paddingX={submitPaddingX}
-                        fontSize={submitFontSize}
+                        radius={999}
+                        paddingY={13}
+                        paddingX={26}
+                        fontSize={15}
                       />
                     </Col>
                   </Row>
@@ -1195,62 +1214,9 @@ export default function Volunteer(props = {}) {
               </div>
             </Col>
 
-            <Col xs={24} lg={sideColumnSpanLg}>
-              <div
-                className="volunteer-side-card"
-                style={{
-                  background: sideBgColor,
-                  borderColor: sideCardBorderColor,
-                  borderRadius: sideCardRadius,
-                  padding: `${sideCardPadding}px`,
-                }}
-              >
-                {sideTitle && (
-                  <h3
-                    className="volunteer-side-title"
-                    style={{ color: sideTitleColor }}
-                  >
-                    {sideTitle}
-                  </h3>
-                )}
-                {sideDescription && (
-                  <p
-                    className="volunteer-side-description"
-                    style={{ color: sideTextColor }}
-                  >
-                    {sideDescription}
-                  </p>
-                )}
-                {sideItems.length > 0 && (
-                  <ul
-                    className={`volunteer-side-list${
-                      sideBulletIconUrl ? " volunteer-side-list--icon" : ""
-                    }`}
-                  >
-                    {sideItems.map((item, idx) => (
-                      <li
-                        key={`${item}-${idx}`}
-                        style={{
-                          color: sideTextColor,
-                          "--volunteer-bullet-color": sideBulletColor,
-                        }}
-                      >
-                        {sideBulletIconUrl ? (
-                          <img
-                            src={sideBulletIconUrl}
-                            alt={sideBulletIconAlt}
-                            className="volunteer-side-bullet-icon"
-                          />
-                        ) : null}
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </Col>
           </Row>
         </Wrapper>
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

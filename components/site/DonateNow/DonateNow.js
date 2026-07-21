@@ -1253,6 +1253,7 @@ export default function DonateNow(props = {}) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
+        <div className="fable-section">
         {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) ? (
           <Row gutter={[16, 16]}>
             <Col span={24} className="mb-4">
@@ -1634,6 +1635,7 @@ export default function DonateNow(props = {}) {
             />
           </form>
         ) : null}
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

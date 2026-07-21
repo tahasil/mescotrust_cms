@@ -21,6 +21,7 @@ const GalleryTabs = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  justify-content: flex-start;
   gap: 12px;
   flex-wrap: wrap;
   margin-bottom: 46px;
@@ -61,8 +62,8 @@ const GalleryCard = styled.div`
   border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
-  aspect-ratio: 4 / 3;
-  filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+  aspect-ratio: 16 / 9.6;
+  background: ${() => getColor("dark")};
   img {
     width: 100%;
     height: 100%;
@@ -103,10 +104,12 @@ const GalleryCardTitle = styled.div`
 
 const GalleryCardArrow = styled.span`
   position: absolute;
-  bottom: 28px;
-  right: 16px;
-  width: 36px;
-  height: 36px;
+  top: 50%;
+  left: 50%;
+  bottom: auto;
+  right: auto;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   background: ${(p) => p.$color || getColor("primary")};
   display: flex;
@@ -115,13 +118,12 @@ const GalleryCardArrow = styled.span`
   z-index: 1;
   color: #fff;
   font-size: 16px;
-  opacity: 0;
-  transform: translateY(8px);
+  opacity: 1;
+  transform: translate(-50%, -50%);
   transition: all 0.3s ease;
 
   ${GalleryCard}:hover & {
-    opacity: 1;
-    transform: translateY(0);
+    transform: translate(-50%, -50%) scale(1.1);
   }
 `;
 
@@ -459,9 +461,11 @@ export default function Videogallery(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
-        <GalleryTabs>
+        <div className="fable-section">
+        <GalleryTabs className="fable-filters">
           {tabs.map((tab) => (
             <GalleryTab
+              className={`fable-filter${activeTab === tab ? " is-active" : ""}`}
               key={tab}
               $active={activeTab === tab}
               $tabBgColor={tabBgColor}
@@ -477,16 +481,16 @@ export default function Videogallery(props) {
           ))}
         </GalleryTabs>
 
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 24]}>
           {filteredItems.map((item, index) => (
             <Col key={index} xs={24} sm={12} md={12} lg={8}>
-              <GalleryCard onClick={() => openModal(index)}>
+              <GalleryCard className="fable-video" onClick={() => openModal(index)}>
                 <img loading="lazy"
                   src={`https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg`}
                   alt={item.title}
                 />
                 <GalleryCardTitle>{item.title}</GalleryCardTitle>
-                <GalleryCardArrow $color={accentColor}>
+                <GalleryCardArrow className="fable-video__play" $color={accentColor}>
                   <CaretRightOutlined />
                 </GalleryCardArrow>
               </GalleryCard>
@@ -503,6 +507,7 @@ export default function Videogallery(props) {
             </Link>
           </div>
         )}
+        </div>
       </PageContainer>
 
       <VideoLightbox

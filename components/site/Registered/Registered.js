@@ -1,55 +1,11 @@
 "use client";
 
-import { Row, Col, Card } from "antd";
-import styled from "styled-components";
 import { TrademarkCircleOutlined } from "@ant-design/icons";
 import {
   FullWidthBackground,
   getColor,
-  MainTitle,
   PageContainer,
 } from "@/styles/Theme";
-
-const RegisteredUnderCard = styled(Card)`
-  width: 100%;
-  height: 100%;
-  min-height: 88px;
-  border: 1px solid ${() => getColor("themeBorder") || "rgba(0,0,0,0.1)"};
-  border-radius: 20px;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.05);
-  .ant-card-body {
-    width: 100%;
-    height: 100%;
-    min-height: 88px;
-    display: flex;
-    align-items: center;
-    padding: 20px 24px;
-    gap: 12px;
-  }
-  .registered-icon {
-    flex-shrink: 0;
-    font-size: 26px;
-    color: ${() => getColor("black")};
-    display: flex;
-    align-items: center;
-  }
-  .registered-text {
-    margin: 0px;
-    font-size: 20px;
-    line-height: 28px;
-    font-weight: 700;
-    color: ${() => getColor("black")};
-    em {
-      color: ${() => getColor("primary")};
-      font-style: normal;
-    }
-    @media (max-width: 992px) {
-      font-size: 16px;
-      line-height: 24px;
-      font-weight: 500;
-    }
-  }
-`;
 
 function normalizeItem(it) {
   return {
@@ -151,27 +107,23 @@ export default function Registered(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
-        <Row gutter={[16, 16]} align="middle">
-          <Col xs={24}>
-            <MainTitle className="text-center mb-4" {...(titleColor ? { color: titleColor } : {})}>
-              {mainTitle}
-            </MainTitle>
-          </Col>
-        </Row>
-        <Row gutter={[16, 16]} align="stretch">
+        <div className="fable-section">
+          <h2 className="fable-heading" style={titleColor ? { color: titleColor } : undefined}>
+            {mainTitle}
+          </h2>
+          <div className="fable-badges">
           {items.map((item, index) => (
-            <Col key={index} xs={24} sm={24} md={12} lg={12}>
-              <RegisteredUnderCard>
-                <span className="registered-icon">
+            <div className="fable-badge" key={`${item.text}-${index}`}>
+                <span className="fable-badge__icon" aria-hidden="true">
                   <TrademarkCircleOutlined />
                 </span>
-                <h2 className="registered-text">
+                <p>
                   <RenderCardText text={item.text} />
-                </h2>
-              </RegisteredUnderCard>
-            </Col>
+                </p>
+            </div>
           ))}
-        </Row>
+          </div>
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

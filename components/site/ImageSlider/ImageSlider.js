@@ -61,6 +61,29 @@ export default function ImageSlider(props) {
         }
       : undefined;
 
+  const pageContainerBgType = String(props?.[PREFIX + "PageContainerBgType"] ?? "default");
+  const pageContainerBgImage = String(props?.[PREFIX + "PageContainerBgImage"] ?? "").trim();
+  const pageContainerBgColorKey = String(props?.[PREFIX + "PageContainerBgColorKey"] ?? "").trim();
+  const pageContainerBgStyle = {
+    ...(pageContainerBgType === "image" && pageContainerBgImage
+      ? { backgroundImage: `url(${pageContainerBgImage})`, backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" }
+      : pageContainerBgType === "color" && pageContainerBgColorKey
+        ? { backgroundColor: getColor(pageContainerBgColorKey), backgroundImage: "none" }
+        : {}),
+    ...Object.fromEntries(
+      [
+        ["paddingTop", props?.[PREFIX + "PageContainerPaddingTop"]],
+        ["paddingRight", props?.[PREFIX + "PageContainerPaddingRight"]],
+        ["paddingBottom", props?.[PREFIX + "PageContainerPaddingBottom"]],
+        ["paddingLeft", props?.[PREFIX + "PageContainerPaddingLeft"]],
+        ["marginTop", props?.[PREFIX + "PageContainerMarginTop"]],
+        ["marginBottom", props?.[PREFIX + "PageContainerMarginBottom"]],
+      ]
+        .filter(([, value]) => value != null && value !== "" && Number(value) >= 0)
+        .map(([key, value]) => [key, `${Number(value)}px`]),
+    ),
+  };
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     const mq = window.matchMedia("(max-width: 767px)");
@@ -80,6 +103,8 @@ export default function ImageSlider(props) {
 
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
+      <PageContainer style={pageContainerBgStyle}>
+      <div className="fable-section">
       <CircularSlider
         images={images.map((s) => ({
           src: isMobileView
@@ -95,6 +120,8 @@ export default function ImageSlider(props) {
         sizePreset="portrait350x450"
         imageFit="contain"
       />
+      </div>
+      </PageContainer>
     </FullWidthBackground>
   );
 }

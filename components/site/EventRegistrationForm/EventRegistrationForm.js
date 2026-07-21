@@ -302,16 +302,17 @@ export default function EventRegistrationForm(props = {}) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
+        <div className="fable-section">
         {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) && (
           <Row gutter={[16, 16]}>
             <Col span={24} className="text-center mb-4">
               {subTitleEnabled && subTitle && (
-                <SubTitle style={subTitleColor ? { color: subTitleColor } : undefined}>
+                <SubTitle className="fable-eyebrow" style={subTitleColor ? { color: subTitleColor } : undefined}>
                   {subTitle}
                 </SubTitle>
               )}
               {titleEnabled && mainTitle && (
-                <MainTitle color={titleColor}>{mainTitle}</MainTitle>
+                <MainTitle className="fable-heading" color={titleColor}>{mainTitle}</MainTitle>
               )}
             </Col>
           </Row>
@@ -487,6 +488,7 @@ export default function EventRegistrationForm(props = {}) {
             </FormCard>
           </Col>
         </Row>
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

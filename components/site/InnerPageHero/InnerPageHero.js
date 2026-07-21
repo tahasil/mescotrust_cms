@@ -1,142 +1,103 @@
 "use client";
 
 import Link from "next/link";
-import { Row, Col, Breadcrumb } from "antd";
-import { HomeOutlined } from "@ant-design/icons";
-import {
-  InnerBanner,
-  getColor,
-  MainTitle,
-  PageContainer,
-} from "@/styles/Theme";
+import { getColor, InnerBanner, PageContainer } from "@/styles/Theme";
 
-/**
- * Site component: InnerPageHero.
- * Inner page banner with breadcrumb, title, and description.
- * All elements are editable via EditForm.
- */
-export default function InnerPageHero(props) {
-  /* ── Content ── */
-  const title = (props?.title ?? "Page Title").toString().trim();
-  const description = (props?.description ?? "").toString().trim();
-  const titleColorKey = (props?.titleColorKey ?? "").toString().trim();
-  const titleColor = titleColorKey ? getColor(titleColorKey) : undefined;
-  const descriptionColorKey = (props?.innerPageHeroDescriptionColorKey ?? "")
-    .toString()
-    .trim();
-  const descriptionColor = descriptionColorKey
-    ? getColor(descriptionColorKey)
-    : undefined;
-  const breadcrumbLegacyColorKey = (
-    props?.innerPageHeroBreadcrumbColorKey ?? ""
-  )
-    .toString()
-    .trim();
-  const breadcrumbColor1Key = (
-    props?.innerPageHeroBreadcrumbColor1Key || breadcrumbLegacyColorKey
-  )
-    .toString()
-    .trim();
-  const breadcrumbColor2Key = (
-    props?.innerPageHeroBreadcrumbColor2Key || breadcrumbLegacyColorKey
-  )
-    .toString()
-    .trim();
-  const breadcrumbColor1 = breadcrumbColor1Key
-    ? getColor(breadcrumbColor1Key)
-    : undefined;
-  const breadcrumbColor2 = breadcrumbColor2Key
-    ? getColor(breadcrumbColor2Key)
-    : undefined;
-  const breadcrumbPrimaryStyle = breadcrumbColor1
-    ? { color: breadcrumbColor1 }
-    : undefined;
-  const breadcrumbCurrentStyle = breadcrumbColor2
-    ? { color: breadcrumbColor2 }
-    : undefined;
-  const breadcrumbSeparator = (
-    <span style={breadcrumbPrimaryStyle}>{"/"}</span>
+function renderTitle(value) {
+  const text = String(value || "");
+  if (!text.includes("*")) {
+    const parts = text.split(/\s+/).filter(Boolean);
+    const accent = parts.pop();
+    return <>{parts.length ? `${parts.join(" ")} ` : ""}<em>{accent}</em></>;
+  }
+  return text.split(/(\*[^*]+\*)/g).map((part, index) =>
+    part.startsWith("*") && part.endsWith("*") ? (
+      <em key={`${part}-${index}`}>{part.slice(1, -1)}</em>
+    ) : (
+      <span key={`${part}-${index}`}>{part}</span>
+    ),
   );
+}
 
-  /* ── Breadcrumb ── */
-  const rawBreadcrumb = props?.breadcrumbItems;
-  const baseBreadcrumbItems =
-    Array.isArray(rawBreadcrumb) && rawBreadcrumb.length > 0
-      ? rawBreadcrumb
-      : [{ label: "Home", href: "/" }, { label: title, href: "" }];
-  const lastIndex = Math.max(0, baseBreadcrumbItems.length - 1);
-  const breadcrumbItems = baseBreadcrumbItems.map((item, index) => {
-    const label = item?.label || (index === 0 ? "Home" : "");
-    const href = item?.href || "";
-    const isCurrent = index === lastIndex;
-    const textStyle = isCurrent ? breadcrumbCurrentStyle : breadcrumbPrimaryStyle;
-
-    if (index === 0) {
-      return {
-        title: href ? (
-          <Link href={href} style={textStyle}>
-            <HomeOutlined /> {label}
-          </Link>
-        ) : (
-          <span style={textStyle}>
-            <HomeOutlined /> {label}
-          </span>
-        ),
-      };
-    }
-
-    return {
-      title:
-        href && !isCurrent ? (
-          <Link href={href} style={textStyle}>
-            {label}
-          </Link>
-        ) : (
-          <span style={textStyle}>{label}</span>
-        ),
-    };
-  });
-
-  /* ── Background image ── */
-  const bgImageDesktop = (
-    props?.bgImageDesktop ?? props?.bgImage ?? ""
-  )
-    .toString()
-    .trim();
-  const bgImageMobile = (props?.bgImageMobile ?? "").toString().trim();
-  const bannerStyle = {
-    ...(bgImageDesktop ? { "--inner-banner-bg": `url(${bgImageDesktop})` } : {}),
-    ...(bgImageMobile
-      ? { "--inner-banner-bg-mobile": `url(${bgImageMobile})` }
-      : {}),
-  };
+/** Inner-page banner matching the current MESCO page-hero design. */
+export default function InnerPageHero(props) {
+  const title = String(props?.title ?? "Page Title").trim();
+  const description = String(props?.description ?? "").trim();
+  const titleColor = props?.titleColorKey ? getColor(props.titleColorKey) : undefined;
+  const descriptionColor = props?.innerPageHeroDescriptionColorKey
+    ? getColor(props.innerPageHeroDescriptionColorKey)
+    : undefined;
+  const breadcrumbColor = props?.innerPageHeroBreadcrumbColor1Key
+    ? getColor(props.innerPageHeroBreadcrumbColor1Key)
+    : undefined;
+  const currentColor = props?.innerPageHeroBreadcrumbColor2Key
+    ? getColor(props.innerPageHeroBreadcrumbColor2Key)
+    : undefined;
+  const rawItems = Array.isArray(props?.breadcrumbItems) ? props.breadcrumbItems : [];
+  const items = rawItems.length
+    ? rawItems
+    : [{ label: "Home", href: "/" }, { label: title, href: "" }];
 
   return (
-    <InnerBanner style={bannerStyle}>
+    <InnerBanner
+      className="fable-page-hero"
+      style={{ "--inner-banner-bg": "none", "--inner-banner-bg-mobile": "none" }}
+    >
       <PageContainer>
-        <Row gutter={[16, 16]} align="middle">
-          <Col xs={24} md={14} className="inner-banner-content">
-            <Breadcrumb
-              className="inner-banner-breadcrumb"
-              separator={breadcrumbSeparator}
-              items={breadcrumbItems}
-            />
-            <MainTitle className="mb-0" color={titleColor}>
-              {title}
-            </MainTitle>
-          </Col>
-          <Col xs={24} md={10}>
-            {description && (
-              <p
-                className="innerBannerDesc"
-                style={descriptionColor ? { color: descriptionColor } : undefined}
-              >
-                {description}
-              </p>
-            )}
-          </Col>
-        </Row>
+        <div className="fable-section fable-page-hero__content">
+          <nav className="fable-page-hero__crumb" aria-label="Breadcrumb">
+            {items.map((item, index) => {
+              const label = String(item?.label || "").trim();
+              const href = String(item?.href || "").trim();
+              const isCurrent = index === items.length - 1;
+              return (
+                <span key={`${label}-${index}`}>
+                  {index > 0 ? <span aria-hidden="true"> / </span> : null}
+                  {href && !isCurrent ? (
+                    <Link href={href} style={breadcrumbColor ? { color: breadcrumbColor } : undefined}>
+                      {label}
+                    </Link>
+                  ) : (
+                    <span style={isCurrent && currentColor ? { color: currentColor } : undefined}>
+                      {label}
+                    </span>
+                  )}
+                </span>
+              );
+            })}
+          </nav>
+          <h1 className="fable-page-hero__title" style={titleColor ? { color: titleColor } : undefined}>
+            {renderTitle(title)}
+          </h1>
+          {description ? (
+            <p className="fable-page-hero__description" style={descriptionColor ? { color: descriptionColor } : undefined}>
+              {description}
+            </p>
+          ) : null}
+        </div>
       </PageContainer>
+      <style jsx global>{`
+        .fable-page-hero {
+          min-height: 0;
+          margin-top: 0;
+          color: ${getColor("cream")};
+          background-color: ${getColor("dark")};
+          background-position: center;
+          background-size: cover;
+          border: 0;
+        }
+        .fable-page-hero::before {
+          background: linear-gradient(90deg, color-mix(in srgb, ${getColor("dark")} 92%, transparent), color-mix(in srgb, ${getColor("dark")} 68%, transparent));
+        }
+        .fable-page-hero > div { z-index: 1; }
+        .fable-page-hero .fable-page-hero__content { padding-block: clamp(30px, 4vw, 53px); }
+        .fable-page-hero__crumb { margin-bottom: 22px; color: color-mix(in srgb, ${getColor("cream")} 52%, transparent); font-size: 13.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+        .fable-page-hero__crumb a:hover { color: ${getColor("primarySoft")}; }
+        .fable-page-hero__title { max-width: 16ch; margin: 0 0 20px; color: ${getColor("cream")}; font-family: var(--fable-display); font-size: clamp(40px, 6.4vw, 92px); font-weight: 630; letter-spacing: -.02em; line-height: 1.05; }
+        .fable-page-hero__title em { color: ${getColor("primarySoft")}; font-style: normal; }
+        .fable-page-hero__description { max-width: 56ch; margin: 0; color: color-mix(in srgb, ${getColor("cream")} 76%, transparent); font-size: clamp(16px, 1.4vw, 19px); }
+        @media (max-width: 767px) { .fable-page-hero { padding-top: 72px; } }
+      `}</style>
     </InnerBanner>
   );
 }

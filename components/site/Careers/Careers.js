@@ -297,22 +297,24 @@ export default function Careers(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
+        <div className="fable-section">
         {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) && (
           <Row gutter={[16, 16]}>
             <Col span={24} className="mb-4">
               {subTitleEnabled && subTitle && (
-                <SubTitle
+                <SubTitle className="fable-eyebrow"
                   style={subTitleColor ? { color: subTitleColor } : undefined}
                 >
                   {subTitle}
                 </SubTitle>
               )}
               {titleEnabled && mainTitle && (
-                <MainTitle color={titleColor}>{mainTitle}</MainTitle>
+                <MainTitle className="fable-heading" color={titleColor}>{mainTitle}</MainTitle>
               )}
             </Col>
           </Row>
         )}
+        <div className="fable-row-list">
         {items.map((item, idx) => {
           const title = (item?.title ?? "").toString().trim();
           const department = (item?.department ?? "").toString().trim();
@@ -321,8 +323,9 @@ export default function Careers(props) {
           const applyUrl = (item?.applyUrl ?? "").toString().trim();
           const btnText = (item?.btnText ?? "Apply Now").toString().trim();
           return (
-            <JobCard key={idx}>
-              <JobInfo>
+            <JobCard className="fable-row-link" key={idx}>
+              <span className="fable-row-icon" aria-hidden="true">↗</span>
+              <JobInfo className="fable-row-copy">
                 {title && (
                   <div
                     className="job-title"
@@ -436,6 +439,8 @@ export default function Careers(props) {
             </JobCard>
           );
         })}
+        </div>
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

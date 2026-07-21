@@ -1,89 +1,7 @@
 "use client";
 
-import { Row, Col, Collapse } from "antd";
-import { DownOutlined } from "@ant-design/icons";
-import styled from "styled-components";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 import SafeHtml from "@/components/cms/SafeHtml";
-
-const StyledCollapse = styled(Collapse)`
-  && {
-    background: transparent;
-    border: none;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    .ant-collapse-item {
-      background: ${(p) => p.$panelBgColor || "#fff"};
-      border: 1px solid rgba(0, 0, 0, 0.1) !important;
-      border-radius: 16px !important;
-      overflow: hidden;
-      transition: all 0.3s ease;
-      &:hover {
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-      }
-      &:last-child {
-        border-radius: 16px !important;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
-      }
-    }
-    .ant-collapse-header {
-      padding: 20px 24px !important;
-      font-size: 20px;
-      font-weight: 600;
-      color: ${(p) => p.$headerColor || "#2A283E"} !important;
-      align-items: center !important;
-      @media (max-width: 768px) {
-        padding: 16px 20px !important;
-        font-size: 16px;
-      }
-      .ant-collapse-expand-icon {
-        order: 1;
-        margin-left: auto;
-        padding-inline-start: 16px !important;
-        svg {
-          font-size: 20px;
-          color: ${(p) => p.$headerColor || "#2A283E"};
-          transition: transform 0.3s ease;
-          @media (max-width: 768px) {
-            font-size: 16px;
-          }
-        }
-      }
-      .ant-collapse-header-text {
-        order: 0;
-        flex: 1;
-      }
-    }
-    .ant-collapse-content {
-      border-top: 1px solid rgba(0, 0, 0, 0.1);
-      .ant-collapse-content-box {
-        p {
-          position: relative;
-          width: 100% !important;
-          margin: 0px 0px 10px 0px;
-          font-weight: 400;
-          strong {
-            font-weight: 500;
-          }
-        }
-      }
-    }
-    .ant-collapse-body {
-      padding: 20px 24px !important;
-      font-size: 16px;
-      font-weight: 400;
-      line-height: 26px;
-      color: ${(p) => p.$contentColor || "#2A283E"};
-      opacity: 0.8;
-      @media (max-width: 768px) {
-        padding: 16px 20px !important;
-        font-size: 14px;
-        line-height: 22px;
-      }
-    }
-  }
-`;
 
 function normalizeItem(it, idx) {
   return {
@@ -136,11 +54,6 @@ export default function Accordion(props) {
   const borderColor = borderColorKey ? getColor(borderColorKey) : undefined;
   const panelBgColorKey = (props?.accordionBgColorKey ?? "").toString().trim();
   const panelBgColor = panelBgColorKey ? getColor(panelBgColorKey) : undefined;
-
-  const items = normalizedItems.map((it) => ({
-    ...it,
-    children: <SafeHtml html={it.children || ""} className="w-100" />,
-  }));
 
   const PREFIX = "accordion";
 
@@ -291,35 +204,30 @@ export default function Accordion(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
-        <Row gutter={[16, 16]}>
-          <Col xs={{ span: 24, offset: 0 }}>
-            <StyledCollapse
-              $headerColor={headerColor}
-              $contentColor={contentColor}
-              $borderColor={borderColor}
-              $panelBgColor={panelBgColor}
-              accordion
-              expandIcon={({ isActive }) =>
-                customIconUrl ? (
-                  <img loading="lazy"
-                    src={customIconUrl}
-                    alt=""
-                    style={{
-                      width: 20,
-                      height: 20,
-                      transition: "transform 0.3s ease",
-                      transform: isActive ? "rotate(180deg)" : "rotate(0deg)",
-                    }}
-                  />
+        <div className="fable-section fable-accordion">
+          {normalizedItems.map((item, index) => (
+            <details
+              key={item.key}
+              open={index === 0}
+              style={{
+                background: panelBgColor,
+                borderColor,
+              }}
+            >
+              <summary style={headerColor ? { color: headerColor } : undefined}>
+                <span>{item.label}</span>
+                {customIconUrl ? (
+                  <img src={customIconUrl} alt="" width="22" height="22" />
                 ) : (
-                  <DownOutlined rotate={isActive ? 180 : 0} />
-                )
-              }
-              expandIconPosition="end"
-              items={items}
-            />
-          </Col>
-        </Row>
+                  <span className="fable-accordion__plus" aria-hidden="true">+</span>
+                )}
+              </summary>
+              <div className="fable-accordion__body" style={contentColor ? { color: contentColor } : undefined}>
+                <SafeHtml html={item.children || ""} />
+              </div>
+            </details>
+          ))}
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );

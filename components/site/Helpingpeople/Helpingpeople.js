@@ -1,10 +1,8 @@
 "use client";
 
-import { Row, Col } from "antd";
 import {
   FullWidthBackground,
   getColor,
-  MainTitle,
   PageContainer,
 } from "@/styles/Theme";
 import SafeHtml from "@/components/cms/SafeHtml";
@@ -195,44 +193,24 @@ export default function Helpingpeople(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
-        <Row gutter={[16, 16]} align="middle">
-          <Col
-            xs={{ span: 24, order: 2 }}
-            sm={{ span: 24, order: 2 }}
-            md={{ span: 24, order: 2 }}
-            lg={{ span: 12, order: 1 }}
-          >
-            <MainTitle
-              fontSize={36}
-              fontWeight={600}
-              className={titleColor ? "mb-3" : "text-white mb-3"}
+        <div className="fable-section fable-split is-reversed">
+          <div>
+            <h2
+              className="fable-heading"
               style={titleColor ? { color: titleColor } : undefined}
             >
               {mainTitle}
-            </MainTitle>
+            </h2>
             {paragraph && (
               <div
-                className={textColor ? "" : "text-white"}
-                style={{
-                  fontSize: 16,
-                  fontWeight: 400,
-                  lineHeight: 1.6,
-                  overflowWrap: "break-word",
-                  wordWrap: "break-word",
-                  ...(textColor ? { color: textColor } : {}),
-                }}
+                className="fable-prose"
+                style={textColor ? { color: textColor } : undefined}
               >
                 <SafeHtml html={paragraph} />
               </div>
             )}
-          </Col>
-          <Col
-            xs={{ span: 24, order: 1 }}
-            sm={{ span: 24, order: 1 }}
-            md={{ span: 24, order: 1 }}
-            lg={{ span: 12, order: 2 }}
-            className="text-center"
-          >
+          </div>
+          <div className="fable-media">
             {imageDesktop || imageMobile ? (
               <picture>
                 {imageMobile ? (
@@ -240,22 +218,15 @@ export default function Helpingpeople(props) {
                 ) : null}
                 <img
                   loading="lazy"
-                  className="m-auto img-fluid"
                   src={imageDesktop || imageMobile}
                   alt={imageAlt}
                 />
               </picture>
             ) : (
-              <div
-                style={{
-                  minHeight: 200,
-                  background: "rgba(255,255,255,0.1)",
-                  borderRadius: 8,
-                }}
-              />
+              <div aria-hidden="true" />
             )}
-          </Col>
-        </Row>
+          </div>
+        </div>
       </PageContainer>
     </FullWidthBackground>
   );
