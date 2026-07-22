@@ -300,14 +300,6 @@ export default function CommitteeMembers(props) {
     .toString()
     .trim();
   const titleColor = titleColorKey ? getColor(titleColorKey) : undefined;
-  const titleFontSize =
-    props?.committeeMembersTitleFontSize != null
-      ? Number(props.committeeMembersTitleFontSize)
-      : 24;
-  const titleFontWeight =
-    props?.committeeMembersTitleFontWeight != null
-      ? Number(props.committeeMembersTitleFontWeight)
-      : 600;
 
   /* ── Members ── */
   const rawItems = Array.isArray(props?.committeeMembersItems)
@@ -471,8 +463,6 @@ export default function CommitteeMembers(props) {
               className="fable-heading"
               style={{
                 ...(titleColor ? { color: titleColor } : {}),
-                fontSize: titleFontSize,
-                fontWeight: titleFontWeight,
               }}
             >
               {String(mainTitle).split(/(\*[^*]+\*)/g).map((part, index) => part.startsWith("*") && part.endsWith("*") ? <em key={index}>{part.slice(1, -1)}</em> : <span key={index}>{part}</span>)}

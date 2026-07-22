@@ -81,8 +81,6 @@ function applyFormValues(form, data) {
     committeeMembersMainTitle: data?.committeeMembersMainTitle ?? "Committee Members",
     committeeMembersSubTitleColorKey: data?.committeeMembersSubTitleColorKey ?? "",
     committeeMembersTitleColorKey: data?.committeeMembersTitleColorKey ?? "",
-    committeeMembersTitleFontSize: data?.committeeMembersTitleFontSize ?? 24,
-    committeeMembersTitleFontWeight: data?.committeeMembersTitleFontWeight ?? 600,
     committeeMembersItems: items,
     ...getManageSectionInitialValues(PREFIX, data),
   });
@@ -146,8 +144,6 @@ function CommitteeMembersEditForm({ source, initialData: initialDataProp, onSave
         committeeMembersMainTitle: values.committeeMembersMainTitle ?? "",
         committeeMembersSubTitleColorKey: values.committeeMembersSubTitleColorKey ?? "",
         committeeMembersTitleColorKey: values.committeeMembersTitleColorKey ?? "",
-        committeeMembersTitleFontSize: values.committeeMembersTitleFontSize ?? 24,
-        committeeMembersTitleFontWeight: values.committeeMembersTitleFontWeight ?? 600,
         committeeMembersItems: (values.committeeMembersItems || []).map(normalizeItem),
         ...getManageSectionPayload(PREFIX, values),
       };

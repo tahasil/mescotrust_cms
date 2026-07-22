@@ -1213,7 +1213,7 @@ a {
 }
 
 .fable-page-hero .fable-page-hero__content {
-  padding-block: clamp(30px, 4vw, 53px);
+  padding: calc(88px + clamp(40px, 6vw, 80px)) 0 clamp(48px, 6vw, 88px);
 }
 
 .fable-page-hero .fable-page-hero__crumb {
@@ -1258,5 +1258,9 @@ a {
 @media (max-width: 767px) {
   .fable-page-hero.fable-page-hero {
     padding-top: 72px;
+  }
+
+  .fable-page-hero .fable-page-hero__content {
+    padding: clamp(36px, 9vw, 56px) 0 clamp(32px, 8vw, 48px);
   }
 }
