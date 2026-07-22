@@ -942,7 +942,7 @@ export default function EventsListing(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
-        <EventsListingRoot style={style} className="mt-5">
+        <EventsListingRoot style={style} className="my-5">
           {(showSearch || showFilters) && (
             <div className="events-listing-controls" aria-label="Event search and filters">
               {showSearch ? (

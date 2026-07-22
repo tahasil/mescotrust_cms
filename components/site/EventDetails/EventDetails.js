@@ -732,7 +732,7 @@ export default function EventDetails(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
-        <EventDetailsRoot style={style}>
+        <EventDetailsRoot style={style} className="my-5">
           {showBreadcrumb ? (
             <nav className="event-detail-breadcrumb" aria-label="Breadcrumb">
               <Link href="/">{labels.home}</Link><span>/</span>
