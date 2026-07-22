@@ -101,17 +101,24 @@ export default function Cards(props) {
     ? getColor(cardBorderColorKey)
     : getColor("border");
 
-  // The reference layout has a fixed 3/2/1 rhythm. Keeping this consistent is
-  // important because saved legacy values can otherwise make the same card
-  // set render as four narrow columns on older pages.
-  const columnsDesktop = 3;
-  const columnsTablet = 2;
-  const columnsMobile = 1;
+  const columnsDesktop = clamp(props?.cardsColumnsDesktop, 1, 6, 3);
+  const columnsTablet = clamp(props?.cardsColumnsTablet, 1, 4, 2);
+  const columnsMobile = clamp(props?.cardsColumnsMobile, 1, 2, 1);
   const colGap = clamp(props?.cardsColumnGap, 0, 64, 16);
   const rowGap = clamp(props?.cardsRowGap, 0, 64, 16);
 
   const cardRadius = clamp(props?.cardsCardRadius, 0, 40, 14);
   const cardBorderWidth = clamp(props?.cardsCardBorderWidth, 0, 8, 1);
+  const imageAreaHeight = clamp(
+    props?.cardsCardImageAreaHeight,
+    80,
+    320,
+    160,
+  );
+  const imageMaxHeight = Math.min(
+    imageAreaHeight,
+    clamp(props?.cardsCardImageMaxHeight, 40, 280, 110),
+  );
   const contentPaddingY = clamp(props?.cardsCardContentPaddingY, 0, 48, 14);
   const cardTextSize = clamp(props?.cardsCardTitleFontSize, 10, 32, 14);
   const cardTextLineHeight = clamp(
@@ -284,7 +291,7 @@ export default function Cards(props) {
         ) : null}
 
         <div
-          className="fable-card-grid"
+          className="fable-card-grid cards-component-grid"
           style={{
             gridTemplateColumns: `repeat(${columnsDesktop}, minmax(0, 1fr))`,
             columnGap: colGap,
@@ -293,7 +300,7 @@ export default function Cards(props) {
         >
           {cards.map((card, idx) => (
             <article
-              className="fable-card"
+              className="fable-card fable-card--contained-media"
               key={`${card.title}-${idx}`}
               style={{
                 background: cardBgColor,
@@ -302,7 +309,13 @@ export default function Cards(props) {
                 borderRadius: cardRadius,
               }}
             >
-              <div className="fable-card__media is-document">
+              <div
+                className="fable-card__media is-contained"
+                style={{
+                  "--cards-image-area-height": `${imageAreaHeight}px`,
+                  "--cards-image-max-height": `${imageMaxHeight}px`,
+                }}
+              >
                 {card.imageDesktop || card.imageMobile ? (
                   <picture>
                     {card.imageMobile ? (
@@ -325,8 +338,8 @@ export default function Cards(props) {
           ))}
         </div>
         <style>{`
-          @media (max-width: 992px) { .fable-card-grid { grid-template-columns: repeat(${columnsTablet}, minmax(0, 1fr)) !important; } }
-          @media (max-width: 576px) { .fable-card-grid { grid-template-columns: repeat(${columnsMobile}, minmax(0, 1fr)) !important; } }
+          @media (max-width: 1023px) { .cards-component-grid { grid-template-columns: repeat(${columnsTablet}, minmax(0, 1fr)) !important; } }
+          @media (max-width: 767px) { .cards-component-grid { grid-template-columns: repeat(${columnsMobile}, minmax(0, 1fr)) !important; } }
         `}</style>
         </div>
       </PageContainer>
