@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, InputNumber, Row, Col, Collapse, Switch, message, Spin, Card } from "antd";
+import { Form, Input, InputNumber, Row, Col, Collapse, message, Spin, Card } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import SortableFormList from "@/components/admin/SortableFormList";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
@@ -183,17 +184,11 @@ function ImageSliderEditForm({ source, initialData: initialDataProp, onSaveToPag
             label: "Slider Settings",
             children: (
               <>
+                <SwitchSettingsCard items={[
+                  { name: "imageSliderAutoplay", label: "Autoplay", tooltip: "Advance images automatically." },
+                  { name: "imageSliderDraggable", label: "Draggable", tooltip: "Allow pointer and touch dragging." },
+                ]} />
                 <Row gutter={[16, 16]}>
-                  <Col span={12}>
-                    <Form.Item name="imageSliderAutoplay" label="Autoplay" valuePropName="checked">
-                      <Switch />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item name="imageSliderDraggable" label="Draggable" valuePropName="checked">
-                      <Switch />
-                    </Form.Item>
-                  </Col>
                   <Col span={12}>
                     <Form.Item name="imageSliderSlideCount" label="Visible slides">
                       <InputNumber min={1} max={100} size="large" style={{ width: "100%" }} />

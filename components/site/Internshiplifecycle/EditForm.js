@@ -6,7 +6,6 @@ import {
   Input,
   InputNumber,
   Select,
-  Switch,
   Row,
   Col,
   message,
@@ -14,6 +13,7 @@ import {
   Collapse,
 } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
@@ -503,14 +503,7 @@ function InternshiplifecycleEditForm(
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item
-                            {...restField}
-                            name={[name, "highlighted"]}
-                            label="Use active/highlight state"
-                            valuePropName="checked"
-                          >
-                            <Switch />
-                          </Form.Item>
+                          <SwitchSettingsCard items={[{ name: [name, "highlighted"], label: "Use active/highlight state", tooltip: "Render this lifecycle item in its highlighted state." }]} />
                         </Col>
                       </Row>
                     )}

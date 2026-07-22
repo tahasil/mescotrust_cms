@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, InputNumber, Row, Col, Collapse, Select, Switch, message, Spin } from "antd";
+import { Form, Input, InputNumber, Row, Col, Collapse, Select, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import SortableFormList from "@/components/admin/SortableFormList";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
@@ -172,9 +173,7 @@ function VideogalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
             label: "View More Button",
             children: (
               <>
-                <Form.Item name="videogalleryLimitEnabled" label="Enable item limit" valuePropName="checked">
-                  <Switch />
-                </Form.Item>
+                <SwitchSettingsCard items={[{ name: "videogalleryLimitEnabled", label: "Enable item limit", tooltip: "Limit visible items and show the View More button." }]} />
                 <Form.Item noStyle dependencies={["videogalleryLimitEnabled"]}>
                   {() => form.getFieldValue("videogalleryLimitEnabled") && (
                     <>

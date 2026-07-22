@@ -1,7 +1,7 @@
 "use client";
 
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { Col, Collapse, Form, Input, InputNumber, Row, Select, Spin, Switch, message } from "antd";
+import { Col, Collapse, Form, Input, InputNumber, Row, Select, Spin, message } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";

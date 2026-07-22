@@ -10,10 +10,10 @@ import {
   message,
   Spin,
   Select,
-  Switch,
   InputNumber,
 } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
@@ -351,14 +351,7 @@ function SocialMediaWallEditForm(
             children: (
               <>
                 <div style={{ marginBottom: 16 }}>
-                  <Form.Item
-                    name="socialMediaWallEnabled"
-                    label="Enable component"
-                    valuePropName="checked"
-                    style={{ marginBottom: 0 }}
-                  >
-                    <Switch />
-                  </Form.Item>
+                  <SwitchSettingsCard items={[{ name: "socialMediaWallEnabled", label: "Enable component", tooltip: "Show or hide this component." }]} />
                 </div>
                 <ManageSectionFields
                   prefix={PREFIX}
@@ -394,14 +387,8 @@ function SocialMediaWallEditForm(
                     <Select options={LAYOUT_OPTIONS} size="large" />
                   </Form.Item>
                 </Col>
-                <Col xs={24} md={8}>
-                  <Form.Item
-                    name="socialMediaWallShowPlatformIcon"
-                    label="Show platform icon"
-                    valuePropName="checked"
-                  >
-                    <Switch />
-                  </Form.Item>
+                <Col span={24}>
+                  <SwitchSettingsCard items={[{ name: "socialMediaWallShowPlatformIcon", label: "Show platform icon", tooltip: "Display each post's source platform icon." }]} />
                 </Col>
               </Row>
             ),
@@ -441,31 +428,12 @@ function SocialMediaWallEditForm(
                         return (
                           <Row gutter={[0, 0]}>
                             <Col xs={24}>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "space-between",
-                                  marginBottom: 12,
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    fontSize: 14,
-                                    fontWeight: 500,
-                                    color: "rgba(0,0,0,0.88)",
-                                  }}
-                                >
-                                  Active Status
-                                </span>
-                                <Form.Item
-                                  {...restField}
-                                  name={[name, "active"]}
-                                  valuePropName="checked"
-                                  style={{ marginBottom: 0 }}
-                                >
-                                  <Switch />
-                                </Form.Item>
+                              <div style={{ marginBottom: 12 }}>
+                                <SwitchSettingsCard items={[{
+                                  name: [name, "active"],
+                                  label: "Active Status",
+                                  tooltip: "Enable this platform configuration.",
+                                }]} />
                               </div>
                             </Col>
 

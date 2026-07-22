@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, InputNumber, Row, Col, Collapse, Select, Switch, message, Spin } from "antd";
+import { Form, Input, InputNumber, Row, Col, Collapse, Select, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
@@ -167,9 +168,7 @@ function AnimationsTextEditForm({ source, initialData: initialDataProp, onSaveTo
             label: "Animation Settings",
             children: (
               <>
-                <Form.Item name="animationsTextEnabled" label="Enable scroll animation" valuePropName="checked">
-                  <Switch />
-                </Form.Item>
+                <SwitchSettingsCard items={[{ name: "animationsTextEnabled", label: "Enable scroll animation", tooltip: "Animate text based on scroll position." }]} />
                 <Form.Item noStyle dependencies={["animationsTextEnabled"]}>
                   {() => form.getFieldValue("animationsTextEnabled") !== false && (
                     <Row gutter={[16, 16]}>

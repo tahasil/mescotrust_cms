@@ -11,10 +11,10 @@ import {
   Select,
   Space,
   Spin,
-  Switch,
   message,
 } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
@@ -582,42 +582,13 @@ function DonateNowEditForm(
                           <Input placeholder="Optional default value" />
                         </Form.Item>
                       </Col>
-                      <Col xs={12} md={6}>
-                        <Form.Item
-                          name={["donateNowFieldConfig", field.key, "active"]}
-                          label="Visible"
-                          valuePropName="checked"
-                        >
-                          <Switch />
-                        </Form.Item>
-                      </Col>
-                      <Col xs={12} md={6}>
-                        <Form.Item
-                          name={["donateNowFieldConfig", field.key, "required"]}
-                          label="Required"
-                          valuePropName="checked"
-                        >
-                          <Switch />
-                        </Form.Item>
-                      </Col>
-                      <Col xs={12} md={6}>
-                        <Form.Item
-                          name={["donateNowFieldConfig", field.key, "disabled"]}
-                          label="Disabled"
-                          valuePropName="checked"
-                        >
-                          <Switch />
-                        </Form.Item>
-                      </Col>
-                      <Col xs={12} md={6}>
-                        <Form.Item
-                          name={["donateNowFieldConfig", field.key, "reusable"]}
-                          label="Reusable"
-                          valuePropName="checked"
-                          extra="Used for returning donor autofill"
-                        >
-                          <Switch />
-                        </Form.Item>
+                      <Col span={24}>
+                        <SwitchSettingsCard items={[
+                          { name: ["donateNowFieldConfig", field.key, "active"], label: "Visible", tooltip: "Show this donor field." },
+                          { name: ["donateNowFieldConfig", field.key, "required"], label: "Required", tooltip: "Require this donor field." },
+                          { name: ["donateNowFieldConfig", field.key, "disabled"], label: "Disabled", tooltip: "Display this field as disabled." },
+                          { name: ["donateNowFieldConfig", field.key, "reusable"], label: "Reusable", tooltip: "Use this field for returning donor autofill." },
+                        ]} />
                       </Col>
                     </Row>
                   </div>
@@ -629,52 +600,15 @@ function DonateNowEditForm(
             key: "lookup",
             label: "Returning Donor Lookup",
             children: (
-              <Row gutter={[16, 12]}>
-                <Col xs={24} md={8}>
-                  <Form.Item
-                    name={["donateNowLookupSettings", "enabled"]}
-                    label="Enable Lookup"
-                    valuePropName="checked"
-                  >
-                    <Switch />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8}>
-                  <Form.Item
-                    name={["donateNowLookupSettings", "lookupByEmail"]}
-                    label="Lookup by Email"
-                    valuePropName="checked"
-                  >
-                    <Switch />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8}>
-                  <Form.Item
-                    name={["donateNowLookupSettings", "lookupByMobile"]}
-                    label="Lookup by Mobile"
-                    valuePropName="checked"
-                  >
-                    <Switch />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8}>
-                  <Form.Item
-                    name={["donateNowLookupSettings", "autoFillEnabled"]}
-                    label="Enable Auto-fill"
-                    valuePropName="checked"
-                  >
-                    <Switch />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8}>
-                  <Form.Item
-                    name={["donateNowLookupSettings", "showMaskedPreview"]}
-                    label="Show Masked Preview"
-                    valuePropName="checked"
-                  >
-                    <Switch />
-                  </Form.Item>
-                </Col>
+              <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                <SwitchSettingsCard items={[
+                  { name: ["donateNowLookupSettings", "enabled"], label: "Enable Lookup", tooltip: "Enable returning donor lookup." },
+                  { name: ["donateNowLookupSettings", "lookupByEmail"], label: "Lookup by Email", tooltip: "Allow lookup using email." },
+                  { name: ["donateNowLookupSettings", "lookupByMobile"], label: "Lookup by Mobile", tooltip: "Allow lookup using mobile." },
+                  { name: ["donateNowLookupSettings", "autoFillEnabled"], label: "Enable Auto-fill", tooltip: "Fill reusable donor fields automatically." },
+                  { name: ["donateNowLookupSettings", "showMaskedPreview"], label: "Show Masked Preview", tooltip: "Show a masked donor match preview." },
+                ]} />
+                <Row gutter={[16, 12]}>
                 <Col xs={24} md={8}>
                   <Form.Item
                     name={["donateNowLookupSettings", "minimumCharacters"]}
@@ -695,38 +629,27 @@ function DonateNowEditForm(
                     />
                   </Form.Item>
                 </Col>
-              </Row>
+                </Row>
+              </div>
             ),
           },
           {
             key: "payment",
             label: "Payment Settings",
             children: (
-              <Row gutter={[16, 12]}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                <SwitchSettingsCard items={[
+                  { name: ["donateNowPaymentSettings", "enableQrButton"], label: "Enable QR Button", tooltip: "Display the QR payment action." },
+                  { name: ["donateNowPaymentSettings", "requirePaymentGateway"], label: "Require Gateway", tooltip: "Require payment gateway processing." },
+                ]} />
+                <Row gutter={[16, 12]}>
                 <Col xs={24} md={8}>
                   <Form.Item name={["donateNowPaymentSettings", "currency"]} label="Currency">
                     <Input placeholder="INR" />
                   </Form.Item>
                 </Col>
-                <Col xs={24} md={8}>
-                  <Form.Item
-                    name={["donateNowPaymentSettings", "enableQrButton"]}
-                    label="Enable QR Button"
-                    valuePropName="checked"
-                  >
-                    <Switch />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8}>
-                  <Form.Item
-                    name={["donateNowPaymentSettings", "requirePaymentGateway"]}
-                    label="Require Gateway"
-                    valuePropName="checked"
-                  >
-                    <Switch />
-                  </Form.Item>
-                </Col>
-              </Row>
+                </Row>
+              </div>
             ),
           },
           {
@@ -813,15 +736,11 @@ function DonateNowEditForm(
                               <Input.TextArea rows={2} placeholder="Sponsor description shown on card" />
                             </Form.Item>
                           </Col>
-                          <Col xs={12} md={8}>
-                            <Form.Item
-                              {...restField}
-                              name={[name, "showStudentsCount"]}
-                              label="Enable Select Student"
-                              valuePropName="checked"
-                            >
-                              <Switch />
-                            </Form.Item>
+                          <Col span={24}>
+                            <SwitchSettingsCard items={[
+                              { name: [name, "showStudentsCount"], label: "Enable Select Student", tooltip: "Allow a donor to select a student count." },
+                              { name: [name, "active"], label: "Active", tooltip: "Make this donation purpose available." },
+                            ]} />
                           </Col>
                           <Form.Item noStyle shouldUpdate>
                             {({ getFieldValue }) =>
@@ -841,11 +760,6 @@ function DonateNowEditForm(
                           <Col xs={24} md={8}>
                             <Form.Item {...restField} name={[name, "displayOrder"]} label="Display Order">
                               <InputNumber min={1} style={{ width: "100%" }} />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={12} md={8}>
-                            <Form.Item {...restField} name={[name, "active"]} label="Active" valuePropName="checked">
-                              <Switch />
                             </Form.Item>
                           </Col>
                         </Row>

@@ -11,7 +11,6 @@ import {
   InputNumber,
   List,
   Select,
-  Switch,
   Tooltip,
   message,
   Spin,
@@ -26,6 +25,7 @@ import {
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -328,67 +328,13 @@ function TestimonialsEditForm(
             label: "Slide Setting",
             children: (
               <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-                {/* Behaviour: List with header like Ant Design */}
-                <List
-                  header={<span style={{ fontSize: 13, fontWeight: 600, color: "rgba(0,0,0,0.65)" }}>Behaviour</span>}
-                  size="small"
-                  bordered
-                  split
-                  dataSource={[
-                      {
-                        key: "autoplay",
-                        name: "testimonialsAutoplay",
-                        label: "Autoplay",
-                        tooltip: "Scroll to next slide automatically",
-                      },
-                      {
-                        key: "arrows",
-                        name: "testimonialsShowArrows",
-                        label: "Show arrows",
-                        tooltip: "Show prev/next navigation arrows",
-                      },
-                      {
-                        key: "dots",
-                        name: "testimonialsShowDots",
-                        label: "Show dots",
-                        tooltip: "Show dot indicators for current slide",
-                      },
-                      {
-                        key: "draggable",
-                        name: "testimonialsDraggable",
-                        label: "Draggable",
-                        tooltip: "Enable scroll by dragging",
-                      },
-                      {
-                        key: "infinite",
-                        name: "testimonialsInfinite",
-                        label: "Infinite",
-                        tooltip: "Loop endlessly",
-                      },
-                    ]}
-                    renderItem={(item) => (
-                      <List.Item
-                        actions={[
-                          <Form.Item
-                            key="switch"
-                            name={item.name}
-                            valuePropName="checked"
-                            noStyle
-                            style={{ marginBottom: 0 }}
-                          >
-                            <Switch />
-                          </Form.Item>,
-                        ]}
-                      >
-                        <Tooltip title={item.tooltip}>
-                          <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4, color: "rgba(0,0,0,0.65)" }}>
-                            {item.label}{" "}
-                            <QuestionCircleOutlined style={{ fontSize: 12, color: "#999" }} />
-                          </span>
-                        </Tooltip>
-                      </List.Item>
-                    )}
-                />
+                <SwitchSettingsCard items={[
+                  { name: "testimonialsAutoplay", label: "Autoplay", tooltip: "Scroll to next slide automatically" },
+                  { name: "testimonialsShowArrows", label: "Show arrows", tooltip: "Show prev/next navigation arrows" },
+                  { name: "testimonialsShowDots", label: "Show dots", tooltip: "Show dot indicators for current slide" },
+                  { name: "testimonialsDraggable", label: "Draggable", tooltip: "Enable scroll by dragging" },
+                  { name: "testimonialsInfinite", label: "Infinite", tooltip: "Loop endlessly" },
+                ]} />
 
                 {/* Slides per view: List with header like Ant Design */}
                 <List
@@ -515,13 +461,7 @@ function TestimonialsEditForm(
                     ]}
                   />
                 </Form.Item>
-                <Form.Item
-                  name="testimonialsRevealEnabled"
-                  label="Reveal on scroll"
-                  valuePropName="checked"
-                >
-                  <Switch />
-                </Form.Item>
+                <SwitchSettingsCard items={[{ name: "testimonialsRevealEnabled", label: "Reveal on scroll", tooltip: "Animate testimonials into view while scrolling." }]} />
                 <Row gutter={16}>
                   <Col span={12}>
                     <Form.Item name="testimonialsRevealDuration" label="Duration s">

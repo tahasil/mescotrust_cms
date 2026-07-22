@@ -13,13 +13,13 @@ import {
   Form,
   InputNumber,
   Select,
-  Switch,
   message,
   Spin,
   Row,
   Col,
 } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
@@ -247,46 +247,14 @@ function SocialWallFeedEditForm(
             <Select options={SORT_ORDER_OPTIONS} />
           </Form.Item>
         </Col>
-        <Col xs={24} md={8}>
-          <Form.Item
-            name="socialWallFeedFiltersEnabled"
-            label="Enable filters"
-            valuePropName="checked"
-          >
-            <Switch />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={8}>
-          <Form.Item
-            name="socialWallFeedShowPlatformIcon"
-            label="Show platform icon"
-            valuePropName="checked"
-          >
-            <Switch />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={8}>
-          <Form.Item
-            name="socialWallFeedShowEngagement"
-            label="Show engagement"
-            valuePropName="checked"
-          >
-            <Switch />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={8}>
-          <Form.Item name="socialWallFeedShowDate" label="Show date" valuePropName="checked">
-            <Switch />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={8}>
-          <Form.Item
-            name="socialWallFeedInfiniteScroll"
-            label="Enable infinite scroll"
-            valuePropName="checked"
-          >
-            <Switch />
-          </Form.Item>
+        <Col span={24}>
+          <SwitchSettingsCard items={[
+            { name: "socialWallFeedFiltersEnabled", label: "Enable filters", tooltip: "Allow visitors to filter posts." },
+            { name: "socialWallFeedShowPlatformIcon", label: "Show platform icon", tooltip: "Display the source platform icon." },
+            { name: "socialWallFeedShowEngagement", label: "Show engagement", tooltip: "Display engagement information." },
+            { name: "socialWallFeedShowDate", label: "Show date", tooltip: "Display the post date." },
+            { name: "socialWallFeedInfiniteScroll", label: "Enable infinite scroll", tooltip: "Load more posts while scrolling." },
+          ]} />
         </Col>
       </Row>
     ),
@@ -311,13 +279,7 @@ function SocialWallFeedEditForm(
             label: "Manage Section",
             children: (
               <>
-                <Form.Item
-                  name="socialWallFeedEnabled"
-                  label="Enable component"
-                  valuePropName="checked"
-                >
-                  <Switch />
-                </Form.Item>
+                <SwitchSettingsCard items={[{ name: "socialWallFeedEnabled", label: "Enable component", tooltip: "Show or hide this component." }]} />
                 <ManageSectionFields
                   prefix={PREFIX}
                   form={form}

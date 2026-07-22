@@ -8,15 +8,12 @@ import {
   Form,
   Input,
   InputNumber,
-  List,
   Row,
   Select,
   Spin,
-  Switch,
-  Tooltip,
   message,
 } from "antd";
-import { QuestionCircleOutlined } from "@ant-design/icons";
+import { ColorSettingsCard, SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import SortableFormList from "@/components/admin/SortableFormList";
 import { HOME_SLIDER_DEFAULT_PROPS, HOME_SLIDER_DEFAULT_SLIDES } from "./defaults";
@@ -220,29 +217,21 @@ function HomeSliderEditForm(
             label: "Slider Settings",
             children: (
               <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-                <List
-                  header={<strong style={{ fontSize: 13 }}>Behaviour</strong>}
-                  size="small"
-                  bordered
-                  dataSource={[
-                    ["homeSliderAutoplay", "Autoplay", "Advance slides automatically"],
-                    ["homeSliderShowRail", "Progress rail", "Show the vertical slide progress controls"],
-                    ["homeSliderPauseOnHover", "Pause on hover", "Pause autoplay while the pointer is over the slider"],
-                    ["homeSliderSwipeEnabled", "Swipe navigation", "Allow horizontal pointer and touch swipes"],
-                  ]}
-                  renderItem={([name, label, help]) => (
-                    <List.Item actions={[<Form.Item key={name} name={name} valuePropName="checked" noStyle><Switch /></Form.Item>]}>
-                      <Tooltip title={help}><span>{label} <QuestionCircleOutlined style={{ color: "#999" }} /></span></Tooltip>
-                    </List.Item>
-                  )}
-                />
+                <SwitchSettingsCard items={[
+                  { name: "homeSliderAutoplay", label: "Autoplay", tooltip: "Advance slides automatically" },
+                  { name: "homeSliderShowRail", label: "Progress rail", tooltip: "Show the vertical slide progress controls" },
+                  { name: "homeSliderPauseOnHover", label: "Pause on hover", tooltip: "Pause autoplay while the pointer is over the slider" },
+                  { name: "homeSliderSwipeEnabled", label: "Swipe navigation", tooltip: "Allow horizontal pointer and touch swipes" },
+                ]} />
                 <Row gutter={16}>
                   <Col span={12}><Form.Item name="homeSliderAutoplaySpeed" label="Autoplay delay (ms)"><InputNumber min={1500} max={60000} step={500} style={{ width: "100%" }} /></Form.Item></Col>
                   <Col span={12}><Form.Item name="homeSliderTransitionSpeed" label="Transition (ms)"><InputNumber min={200} max={2500} step={100} style={{ width: "100%" }} /></Form.Item></Col>
                   <Col span={12}><Form.Item name="homeSliderMinHeight" label="Additional minimum height (px)" extra="0 keeps the exact viewport-height design"><InputNumber min={0} max={1400} step={20} style={{ width: "100%" }} /></Form.Item></Col>
-                  <Col span={12}><Form.Item name="homeSliderBackgroundColorKey" label="Background color"><Select showSearch options={colorOptions} optionFilterProp="label" /></Form.Item></Col>
-                  <Col span={12}><Form.Item name="homeSliderRailColorKey" label="Progress color"><Select showSearch options={colorOptions} optionFilterProp="label" /></Form.Item></Col>
                 </Row>
+                <ColorSettingsCard options={colorOptions} items={[
+                  { name: "homeSliderBackgroundColorKey", label: "Background", tooltip: "Slider background color." },
+                  { name: "homeSliderRailColorKey", label: "Progress", tooltip: "Progress rail color." },
+                ]} />
               </div>
             ),
           },
@@ -250,13 +239,15 @@ function HomeSliderEditForm(
             key: "badge",
             label: "Rotating Badge",
             children: (
-              <Row gutter={16}>
-                <Col span={24}><Form.Item name="homeSliderBadgeEnabled" label="Show badge" valuePropName="checked"><Switch /></Form.Item></Col>
+              <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                <SwitchSettingsCard items={[{ name: "homeSliderBadgeEnabled", label: "Show badge", tooltip: "Display the rotating badge." }]} />
+                <Row gutter={16}>
                 <Col span={24}><Form.Item name="homeSliderBadgeText" label="Circular text"><Input /></Form.Item></Col>
                 <Col span={24}><Form.Item name="homeSliderBadgeUrl" label="Link"><Input /></Form.Item></Col>
                 <Col span={12}><Form.Item name="homeSliderBadgeTarget" label="Target"><Select options={TARGET_OPTIONS} /></Form.Item></Col>
                 <Col span={12}><Form.Item name="homeSliderBadgeAriaLabel" label="Accessible label"><Input /></Form.Item></Col>
-              </Row>
+                </Row>
+              </div>
             ),
           },
           {
@@ -285,7 +276,7 @@ function HomeSliderEditForm(
                       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                         <Card size="small" title="Status & Background">
                           <Row gutter={16}>
-                            <Col span={12}><Form.Item {...restField} name={[name, "active"]} label="Active" valuePropName="checked"><Switch /></Form.Item></Col>
+                            <Col span={24}><SwitchSettingsCard items={[{ name: [name, "active"], label: "Active", tooltip: "Enable this slide." }]} /></Col>
                             <Col span={12}><Form.Item {...restField} name={[name, "mediaType"]} label="Media type"><Select options={[{ value: "image", label: "Image" }, { value: "video", label: "Video" }]} /></Form.Item></Col>
                             <Col span={24}><Form.Item {...restField} name={[name, "image"]} label="Desktop image" rules={[({ getFieldValue }) => ({ validator: (_, value) => { const type = getFieldValue(["homeSliderSlides", name, "mediaType"]); return type === "image" && !clean(value) ? Promise.reject(new Error("Desktop image is required for an image slide")) : Promise.resolve(); } })]}><MediaPickerInput uiVariant="stacked" hintText="Required size min: 1440X900" /></Form.Item></Col>
                             <Col span={24}><Form.Item {...restField} name={[name, "mobileImage"]} label="Mobile image"><MediaPickerInput uiVariant="stacked" hintText="Optional portrait crop for screens below 768px" /></Form.Item></Col>

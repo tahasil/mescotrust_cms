@@ -11,9 +11,9 @@ import {
   Row,
   Select,
   Spin,
-  Switch,
 } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
@@ -478,20 +478,14 @@ function Cards1EditForm(
                     const variantLabel =
                       CARD_VARIANT_OPTIONS.find((item) => item.value === variant)
                         ?.label || "Style";
-                    return (
-                      <Form.Item
-                        name="cards1EnableHoverEffect"
-                        label={`Enable Hover Effect (${variantLabel})`}
-                        valuePropName="checked"
-                        style={{ marginBottom: 14 }}
-                      >
-                        <Switch
-                          checkedChildren="On"
-                          unCheckedChildren="Off"
-                          onChange={handleHoverEffectToggle}
-                        />
-                      </Form.Item>
-                    );
+                    return <SwitchSettingsCard items={[{
+                      name: "cards1EnableHoverEffect",
+                      label: `Enable Hover Effect (${variantLabel})`,
+                      tooltip: "Enable the configured card hover design.",
+                      checkedChildren: "On",
+                      unCheckedChildren: "Off",
+                      onChange: handleHoverEffectToggle,
+                    }]} />;
                   }}
                 </Form.Item>
                 <Form.List name="cards1Items">
@@ -533,14 +527,13 @@ function Cards1EditForm(
                       renderItemContent={(name, restField) => (
                         <Row gutter={[16, 16]}>
                           <Col xs={24} sm={12}>
-                            <Form.Item
-                              {...restField}
-                              name={[name, "visible"]}
-                              label="Visible"
-                              valuePropName="checked"
-                            >
-                              <Switch checkedChildren="Show" unCheckedChildren="Hide" />
-                            </Form.Item>
+                            <SwitchSettingsCard items={[{
+                              name: [name, "visible"],
+                              label: "Visible",
+                              tooltip: "Show or hide this card.",
+                              checkedChildren: "Show",
+                              unCheckedChildren: "Hide",
+                            }]} />
                           </Col>
                           <Col xs={24} sm={12}>
                             <Form.Item

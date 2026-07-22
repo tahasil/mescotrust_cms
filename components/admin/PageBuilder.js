@@ -7,7 +7,6 @@ import {
   Form,
   Input,
   InputNumber,
-  Switch,
   Tooltip,
   Collapse,
   Empty,
@@ -70,6 +69,7 @@ import { Select } from "antd";
 
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
+import SettingsCardList, { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import * as SiteComponents from "@/components/site";
 import { EDITABLE_SITE_EDIT_FORMS } from "@/components/site";
@@ -773,20 +773,42 @@ function ArrayEditor({ field, themeColorOptions }) {
                         </Form.Item>
                       );
                     }
+                    if (subField.type === "boolean") {
+                      return (
+                        <SwitchSettingsCard
+                          key={subField.key}
+                          items={[{
+                            name: [name, subField.key],
+                            label: subField.label,
+                            tooltip: subField.tooltip || subField.help,
+                          }]}
+                        />
+                      );
+                    }
+                    if (subField.type === "color") {
+                      return (
+                        <SettingsCardList
+                          key={subField.key}
+                          title="Colors"
+                          items={[{ name: subField.key, label: subField.label }]}
+                          renderAction={() => (
+                            <Form.Item name={[name, subField.key]} noStyle>
+                              <ThemeColorInput themeColorOptions={themeColorOptions} />
+                            </Form.Item>
+                          )}
+                        />
+                      );
+                    }
                     return (
                       <Form.Item
                         key={subField.key}
                         name={[name, subField.key]}
                         label={subField.label}
                         style={{ marginBottom: 8 }}
-                        valuePropName={
-                          subField.type === "boolean" ? "checked" : undefined
-                        }
                       >
                         {subField.type === "number" ? (
                           <InputNumber style={{ width: "100%" }} />
                         ) : null}
-                        {subField.type === "boolean" ? <Switch /> : null}
                         {subField.type === "select" ? (
                           <Select
                             options={(subField.options || []).map((o) =>
@@ -796,11 +818,6 @@ function ArrayEditor({ field, themeColorOptions }) {
                             )}
                             allowClear
                             style={{ width: "100%" }}
-                          />
-                        ) : null}
-                        {subField.type === "color" ? (
-                          <ThemeColorInput
-                            themeColorOptions={themeColorOptions}
                           />
                         ) : null}
                         {(subField.type === "url" ||
@@ -857,9 +874,10 @@ function renderSchemaField(field, themeColorOptions) {
       );
     case "boolean":
       return (
-        <Form.Item key={key} name={key} label={label} valuePropName="checked">
-          <Switch />
-        </Form.Item>
+        <SwitchSettingsCard
+          key={key}
+          items={[{ name: key, label, tooltip: field.tooltip || field.help }]}
+        />
       );
     case "select":
       return (
@@ -876,9 +894,16 @@ function renderSchemaField(field, themeColorOptions) {
       );
     case "color":
       return (
-        <Form.Item key={key} name={key} label={label}>
-          <ThemeColorInput themeColorOptions={themeColorOptions} />
-        </Form.Item>
+        <SettingsCardList
+          key={key}
+          title="Colors"
+          items={[{ name: key, label }]}
+          renderAction={() => (
+            <Form.Item name={key} noStyle>
+              <ThemeColorInput themeColorOptions={themeColorOptions} />
+            </Form.Item>
+          )}
+        />
       );
     case "image":
       return (

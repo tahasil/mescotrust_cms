@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, Row, Col, Collapse, Switch, message, Spin } from "antd";
+import { Form, Input, Row, Col, Collapse, message, Spin } from "antd";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import { getColor } from "@/styles/Theme";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";

@@ -1,8 +1,8 @@
 "use client";
 
-import { Form, Input, Select, Switch, Collapse, Tooltip } from "antd";
-import { QuestionCircleOutlined } from "@ant-design/icons";
+import { Form, Input, Select, Collapse } from "antd";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
+import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import { normalizeSectionId } from "@/lib/manageSectionFields";
 
 const REQUIRED_SECTION_BG_WIDTH = 1440;
@@ -95,15 +95,12 @@ export default function ManageSectionFields({
       >
         <Input placeholder="e.g. our-works" size="large" allowClear />
       </Form.Item>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, padding: "8px 0" }}>
-        <Tooltip title="Turn off the fade-in scroll animation for this section">
-          <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4, color: "rgba(0,0,0,0.65)" }}>
-            Disable scroll animation <QuestionCircleOutlined style={{ fontSize: 12, color: "#999" }} />
-          </span>
-        </Tooltip>
-        <Form.Item name="_disableFadeAnimation" valuePropName="checked" noStyle style={{ marginBottom: 0 }}>
-          <Switch />
-        </Form.Item>
+      <div style={{ marginBottom: 16 }}>
+        <SwitchSettingsCard items={[{
+          name: "_disableFadeAnimation",
+          label: "Disable scroll animation",
+          tooltip: "Turn off the fade-in scroll animation for this section",
+        }]} />
       </div>
     <Collapse
       defaultActiveKey={[]}

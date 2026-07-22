@@ -3,6 +3,7 @@
 import { Form, Input, List, Select, Switch, Tooltip } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import { LIST_HEADER_STYLE } from "@/lib/titleAndColorsConfig";
+import { ColorSettingsCard } from "@/components/admin/SettingsCardList";
 
 /**
  * Shared "Title & Colors" UI: same structure for all site components.
@@ -74,33 +75,9 @@ export default function TitleAndColorsSection({
         />
       )}
       {colorListItems.length > 0 && (
-        <List
-          header={<span style={LIST_HEADER_STYLE}>Colors</span>}
-          size="small"
-          bordered
-          split
-          dataSource={colorListItems}
-          renderItem={(item) => (
-            <List.Item
-              actions={[
-                <Form.Item key="select" name={item.name} noStyle style={{ marginBottom: 0 }}>
-                  <Select
-                    size="small"
-                    options={themeColorOptions}
-                    placeholder="From theme (default)"
-                    style={{ width: 120 }}
-                    allowClear
-                  />
-                </Form.Item>,
-              ]}
-            >
-              <Tooltip title={item.tooltip}>
-                <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4, color: "rgba(0,0,0,0.65)" }}>
-                  {item.label} <QuestionCircleOutlined style={{ fontSize: 12, color: "#999" }} />
-                </span>
-              </Tooltip>
-            </List.Item>
-          )}
+        <ColorSettingsCard
+          items={colorListItems}
+          options={themeColorOptions}
         />
       )}
     </div>

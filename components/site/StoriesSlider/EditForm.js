@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, InputNumber, Row, Col, Collapse, List, Select, Switch, Tooltip, message, Spin, Card } from "antd";
+import { Form, Input, InputNumber, Row, Col, Collapse, List, Select, Tooltip, message, Spin, Card } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
@@ -210,33 +211,12 @@ function StoriesSliderEditForm({ source, initialData: initialDataProp, onSaveToP
             label: "Slider Settings",
             children: (
               <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-                <List
-                  header={<span style={{ fontSize: 13, fontWeight: 600, color: "rgba(0,0,0,0.65)" }}>Behaviour</span>}
-                  size="small"
-                  bordered
-                  split
-                  dataSource={[
-                    { key: "autoplay", name: "storiesSliderAutoplay", label: "Autoplay", tooltip: "Auto-advance to next slide" },
-                    { key: "arrows", name: "storiesSliderShowArrows", label: "Show arrows", tooltip: "Show prev/next navigation arrows" },
-                    { key: "dots", name: "storiesSliderShowDots", label: "Show dots", tooltip: "Show dot indicators below slider" },
-                    { key: "infinite", name: "storiesSliderInfinite", label: "Infinite", tooltip: "Loop slides endlessly" },
-                  ]}
-                  renderItem={(item) => (
-                    <List.Item
-                      actions={[
-                        <Form.Item key="switch" name={item.name} valuePropName="checked" noStyle>
-                          <Switch />
-                        </Form.Item>,
-                      ]}
-                    >
-                      <Tooltip title={item.tooltip}>
-                        <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4, color: "rgba(0,0,0,0.65)" }}>
-                          {item.label} <QuestionCircleOutlined style={{ fontSize: 12, color: "#999" }} />
-                        </span>
-                      </Tooltip>
-                    </List.Item>
-                  )}
-                />
+                <SwitchSettingsCard items={[
+                  { name: "storiesSliderAutoplay", label: "Autoplay", tooltip: "Auto-advance to next slide" },
+                  { name: "storiesSliderShowArrows", label: "Show arrows", tooltip: "Show prev/next navigation arrows" },
+                  { name: "storiesSliderShowDots", label: "Show dots", tooltip: "Show dot indicators below slider" },
+                  { name: "storiesSliderInfinite", label: "Infinite", tooltip: "Loop slides endlessly" },
+                ]} />
                 <List
                   header={<span style={{ fontSize: 13, fontWeight: 600, color: "rgba(0,0,0,0.65)" }}>Speed</span>}
                   size="small"
@@ -274,7 +254,7 @@ function StoriesSliderEditForm({ source, initialData: initialDataProp, onSaveToP
                 <Form.Item name="storiesSliderViewAllUrl" label="View all URL"><Input /></Form.Item>
                 <Form.Item name="storiesSliderViewAllTarget" label="View all target"><Select options={[{ label: "Same Tab (_self)", value: "_self" }, { label: "New Tab (_blank)", value: "_blank" }]} /></Form.Item>
                 <Row gutter={16}><Col span={12}><Form.Item name="storiesSliderPreviousLabel" label="Previous aria label"><Input /></Form.Item></Col><Col span={12}><Form.Item name="storiesSliderNextLabel" label="Next aria label"><Input /></Form.Item></Col></Row>
-                <Form.Item name="storiesSliderRevealEnabled" label="Reveal on scroll" valuePropName="checked"><Switch /></Form.Item>
+                <SwitchSettingsCard items={[{ name: "storiesSliderRevealEnabled", label: "Reveal on scroll", tooltip: "Animate the slider into view while scrolling." }]} />
                 <Form.Item name="storiesSliderRevealStart" label="Reveal trigger"><Input placeholder="top 86%" /></Form.Item>
                 <Row gutter={16}><Col span={8}><Form.Item name="storiesSliderRevealDuration" label="Duration s"><InputNumber min={0} step={0.05} style={{ width: "100%" }} /></Form.Item></Col><Col span={8}><Form.Item name="storiesSliderRevealStagger" label="Stagger s"><InputNumber min={0} step={0.01} style={{ width: "100%" }} /></Form.Item></Col><Col span={8}><Form.Item name="storiesSliderRevealDistance" label="Distance px"><InputNumber min={0} style={{ width: "100%" }} /></Form.Item></Col></Row>
               </>

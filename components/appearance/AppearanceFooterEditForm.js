@@ -17,6 +17,7 @@ import {
   message,
 } from "antd";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
+import { ColorSettingsCard } from "@/components/admin/SettingsCardList";
 import SortableFormList from "@/components/admin/SortableFormList";
 import {
   LINK_TARGET_OPTIONS,
@@ -275,10 +276,12 @@ function AppearanceFooterEditForm(
             label: "Background & Colors",
             children: (
               <>
-                <Form.Item name="footerBgColorKey" label="Footer background"><Select showSearch allowClear options={colorOptions} optionFilterProp="label" /></Form.Item>
+                <ColorSettingsCard options={colorOptions} items={[
+                  { name: "footerBgColorKey", label: "Footer background", tooltip: "Footer background color." },
+                  { name: "footerTextColorKey", label: "Text color", tooltip: "Footer content text color." },
+                  { name: "footerCopyrightBarColorKey", label: "Bottom bar background", tooltip: "Copyright bar background color." },
+                ]} />
                 <Form.Item name="footerBackgroundImageUrl" label="Optional background image"><MediaPickerInput /></Form.Item>
-                <Form.Item name="footerTextColorKey" label="Text color"><Select showSearch allowClear options={colorOptions} optionFilterProp="label" /></Form.Item>
-                <Form.Item name="footerCopyrightBarColorKey" label="Bottom bar background"><Select showSearch allowClear options={colorOptions} optionFilterProp="label" /></Form.Item>
               </>
             ),
           },

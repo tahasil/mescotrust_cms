@@ -8,11 +8,11 @@ import {
   Col,
   Collapse,
   Select,
-  Switch,
   message,
   Spin,
 } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
@@ -211,7 +211,7 @@ function NoticesEditForm(
           {
             key: "more-link",
             label: "All Notices Link",
-            children: <><Form.Item name="noticesMoreLabel" label="Label"><Input /></Form.Item><Form.Item name="noticesMoreUrl" label="URL"><Input /></Form.Item><Form.Item name="noticesMoreTarget" label="Target"><Select options={[{label:"Same Tab (_self)",value:"_self"},{label:"New Tab (_blank)",value:"_blank"}]} /></Form.Item><Form.Item name="noticesRevealEnabled" label="Reveal on scroll" valuePropName="checked"><Switch /></Form.Item><Form.Item name="noticesRevealStart" label="Reveal trigger"><Input /></Form.Item><Row gutter={16}><Col span={8}><Form.Item name="noticesRevealDuration" label="Duration s"><Input type="number" /></Form.Item></Col><Col span={8}><Form.Item name="noticesRevealStagger" label="Stagger s"><Input type="number" /></Form.Item></Col><Col span={8}><Form.Item name="noticesRevealDistance" label="Distance px"><Input type="number" /></Form.Item></Col></Row></>,
+            children: <><Form.Item name="noticesMoreLabel" label="Label"><Input /></Form.Item><Form.Item name="noticesMoreUrl" label="URL"><Input /></Form.Item><Form.Item name="noticesMoreTarget" label="Target"><Select options={[{label:"Same Tab (_self)",value:"_self"},{label:"New Tab (_blank)",value:"_blank"}]} /></Form.Item><SwitchSettingsCard items={[{ name: "noticesRevealEnabled", label: "Reveal on scroll", tooltip: "Animate notices into view while scrolling." }]} /><Form.Item name="noticesRevealStart" label="Reveal trigger"><Input /></Form.Item><Row gutter={16}><Col span={8}><Form.Item name="noticesRevealDuration" label="Duration s"><Input type="number" /></Form.Item></Col><Col span={8}><Form.Item name="noticesRevealStagger" label="Stagger s"><Input type="number" /></Form.Item></Col><Col span={8}><Form.Item name="noticesRevealDistance" label="Distance px"><Input type="number" /></Form.Item></Col></Row></>,
           },
           {
             key: "items",

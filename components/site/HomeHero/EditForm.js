@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, Select, Switch, Button, Row, Col, Collapse, List, InputNumber, Tooltip, message, Spin, Card } from "antd";
+import { Form, Input, Select, Button, Row, Col, Collapse, List, InputNumber, Tooltip, message, Spin, Card } from "antd";
 import { DeleteOutlined, PlusOutlined, ArrowUpOutlined, ArrowDownOutlined, QuestionCircleOutlined } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
@@ -280,32 +281,11 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
               children: (
                 <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
                   {/* Behaviour: List with header like Ant Design - same format as Testimonials */}
-                  <List
-                    header={<span style={{ fontSize: 13, fontWeight: 600, color: "rgba(0,0,0,0.65)" }}>Behaviour</span>}
-                    size="small"
-                    bordered
-                    split
-                    dataSource={[
-                      { key: "autoplay", name: "homeHeroAutoplay", label: "Autoplay", tooltip: "Scroll to next slide automatically" },
-                      { key: "arrows", name: "homeHeroShowArrows", label: "Show arrows", tooltip: "Show prev/next navigation arrows" },
-                      { key: "dots", name: "homeHeroShowDots", label: "Show dots", tooltip: "Show dot indicators for current slide" },
-                    ]}
-                    renderItem={(item) => (
-                      <List.Item
-                        actions={[
-                          <Form.Item key="switch" name={item.name} valuePropName="checked" noStyle style={{ marginBottom: 0 }}>
-                            <Switch />
-                          </Form.Item>,
-                        ]}
-                      >
-                        <Tooltip title={item.tooltip}>
-                          <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4, color: "rgba(0,0,0,0.65)" }}>
-                            {item.label} <QuestionCircleOutlined style={{ fontSize: 12, color: "#999" }} />
-                          </span>
-                        </Tooltip>
-                      </List.Item>
-                    )}
-                  />
+                  <SwitchSettingsCard items={[
+                    { name: "homeHeroAutoplay", label: "Autoplay", tooltip: "Scroll to next slide automatically" },
+                    { name: "homeHeroShowArrows", label: "Show arrows", tooltip: "Show prev/next navigation arrows" },
+                    { name: "homeHeroShowDots", label: "Show dots", tooltip: "Show dot indicators for current slide" },
+                  ]} />
                   {/* Speed: List with header like Ant Design - same format as Testimonials */}
                   <List
                     header={<span style={{ fontSize: 13, fontWeight: 600, color: "rgba(0,0,0,0.65)" }}>Speed</span>}
@@ -465,9 +445,7 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
                             </Form.Item>
                           </Col>
                           <Col span={24}>
-                            <Form.Item {...restField} name={[name, "showButton"]} label="Show button" valuePropName="checked">
-                              <Switch />
-                            </Form.Item>
+                            <SwitchSettingsCard items={[{ name: [name, "showButton"], label: "Show button", tooltip: "Display this slide's action button." }]} />
                           </Col>
                         </Row>
                       )}

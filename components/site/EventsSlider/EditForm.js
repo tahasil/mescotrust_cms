@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, InputNumber, Select, message, Spin, Collapse, List, Switch, Tooltip } from "antd";
+import { Form, InputNumber, Select, message, Spin, Collapse, List, Tooltip } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -185,33 +186,12 @@ function EventsSliderEditForm(
                     ]}
                   />
                 </Form.Item>
-                <List
-                  header={<span style={{ fontSize: 13, fontWeight: 600, color: "rgba(0,0,0,0.65)" }}>Behaviour</span>}
-                  size="small"
-                  bordered
-                  split
-                  dataSource={[
-                    { key: "autoplay", name: "eventsSliderAutoplay", label: "Autoplay", tooltip: "Auto-advance to next slide" },
-                    { key: "arrows", name: "eventsSliderShowArrows", label: "Show arrows", tooltip: "Show prev/next navigation arrows" },
-                    { key: "dots", name: "eventsSliderShowDots", label: "Show dots", tooltip: "Show dot indicators below slider" },
-                    { key: "infinite", name: "eventsSliderInfinite", label: "Infinite", tooltip: "Loop slides endlessly" },
-                  ]}
-                  renderItem={(item) => (
-                    <List.Item
-                      actions={[
-                        <Form.Item key="switch" name={item.name} valuePropName="checked" noStyle>
-                          <Switch />
-                        </Form.Item>,
-                      ]}
-                    >
-                      <Tooltip title={item.tooltip}>
-                        <span style={{ fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4, color: "rgba(0,0,0,0.65)" }}>
-                          {item.label} <QuestionCircleOutlined style={{ fontSize: 12, color: "#999" }} />
-                        </span>
-                      </Tooltip>
-                    </List.Item>
-                  )}
-                />
+                <SwitchSettingsCard items={[
+                  { name: "eventsSliderAutoplay", label: "Autoplay", tooltip: "Auto-advance to next slide" },
+                  { name: "eventsSliderShowArrows", label: "Show arrows", tooltip: "Show prev/next navigation arrows" },
+                  { name: "eventsSliderShowDots", label: "Show dots", tooltip: "Show dot indicators below slider" },
+                  { name: "eventsSliderInfinite", label: "Infinite", tooltip: "Loop slides endlessly" },
+                ]} />
                 <List
                   header={<span style={{ fontSize: 13, fontWeight: 600, color: "rgba(0,0,0,0.65)" }}>Speed</span>}
                   size="small"

@@ -12,9 +12,9 @@ import {
   Input,
   Select,
   Spin,
-  Switch,
   message,
 } from "antd";
+import { ColorSettingsCard, SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import {
   LINK_TARGET_OPTIONS,
@@ -269,9 +269,7 @@ function AppearanceHeaderEditForm(
             label: "Search",
             children: (
               <>
-                <Form.Item name="headerSearchEnabled" label="Show Search button" valuePropName="checked">
-                  <Switch />
-                </Form.Item>
+                <SwitchSettingsCard items={[{ name: "headerSearchEnabled", label: "Show Search button", tooltip: "Display the search control in the Header." }]} />
                 <Form.Item name="headerSearchLabel" label="Button label"><Input /></Form.Item>
                 <Form.Item name="headerSearchPlaceholder" label="Input placeholder"><Input /></Form.Item>
                 <Collapse
@@ -339,11 +337,10 @@ function AppearanceHeaderEditForm(
             key: "colors",
             label: "Colors",
             children: (
-              <>
-                <Form.Item name="headerBgColorKey" label="Navigation background">
-                  <Select showSearch allowClear options={colorOptions} optionFilterProp="label" />
-                </Form.Item>
-              </>
+              <ColorSettingsCard
+                options={colorOptions}
+                items={[{ name: "headerBgColorKey", label: "Navigation background", tooltip: "Header navigation background color." }]}
+              />
             ),
           },
         ]}

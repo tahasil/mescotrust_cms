@@ -1,8 +1,10 @@
 "use client";
 
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
-import { Collapse, Col, Form, Input, InputNumber, message, Row, Select, Spin, Switch } from "antd";
+import { Collapse, Col, Form, Input, InputNumber, message, Row, Select, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { LINK_TARGET_OPTIONS, normalizeTarget } from "@/components/appearance/editorUtils";
@@ -15,6 +17,14 @@ const text = (value) => (value == null ? "" : String(value).trim());
 const previousSubTitleToken = ["Eye", "brow"].join("");
 const previousSubTitleField = (data, suffix = "") =>
   data?.[`videoPlaying${previousSubTitleToken}${suffix}`];
+const COLOR_ITEMS = [
+  ["videoPlayingChapterBgColorKey", "Chapter background"], ["videoPlayingTextColorKey", "Base text"],
+  ["videoPlayingSubTitleColorKey", "Sub Title"], ["videoPlayingTitleColorKey", "Heading"],
+  ["videoPlayingTitleAccentColorKey", "Heading accent"], ["videoPlayingPlayBgColorKey", "Play button"],
+  ["videoPlayingPlayIconColorKey", "Play icon"], ["videoPlayingQuoteColorKey", "Quote"],
+  ["videoPlayingAuthorColorKey", "Author"], ["videoPlayingRoleColorKey", "Author role"],
+  ["videoPlayingLinkColorKey", "Story link"],
+].map(([name, label]) => ({ name, label, tooltip: `${label} color.` }));
 
 function getImageDimensions(url) {
   return new Promise((resolve, reject) => {
@@ -81,7 +91,6 @@ function VideoPlayingEditForm({ source, initialData: initialDataProp, onSaveToPa
   };
   useImperativeHandle(ref, () => ({ update }), [form, isPageBlock, onSaveToPage, onSuccess]);
   if (loading || saving) return <div style={{ padding: 48, textAlign: "center" }}><Spin /></div>;
-  const colorField = (name, label) => <Form.Item name={name} label={label}><Select allowClear options={colors} placeholder="From theme" /></Form.Item>;
   const num = (name, label, options = {}) => <Col span={12}><Form.Item name={name} label={label}><InputNumber style={{ width: "100%" }} {...options} /></Form.Item></Col>;
   return <Form form={form} layout="vertical"><Collapse defaultActiveKey={["content"]} items={[
     { key: "section", label: "Manage Section", children: <ManageSectionFields prefix={PREFIX} form={form} themeColorOptions={colors} /> },
@@ -89,9 +98,9 @@ function VideoPlayingEditForm({ source, initialData: initialDataProp, onSaveToPa
       <Form.Item name="videoPlayingSubTitle" label="Sub Title"><Input /></Form.Item><Form.Item name="videoPlayingTitle" label="Heading"><Input /></Form.Item><Form.Item name="videoPlayingTitleAccent" label="Heading accent"><Input /></Form.Item><Form.Item name="videoPlayingQuote" label="Story quote"><Input.TextArea rows={4} /></Form.Item><Form.Item name="videoPlayingAuthorName" label="Author name"><Input /></Form.Item><Form.Item name="videoPlayingAuthorRole" label="Author role"><Input /></Form.Item><Form.Item name="videoPlayingLinkText" label="Link label"><Input /></Form.Item><Form.Item name="videoPlayingLinkUrl" label="Link URL"><Input /></Form.Item><Form.Item name="videoPlayingLinkTarget" label="Target"><Select options={LINK_TARGET_OPTIONS} /></Form.Item>
     </> },
     { key: "video", label: "Video Settings", children: <><Form.Item name="youtubeVideoId" label="YouTube Video ID" rules={[{ required: true, message: "YouTube Video ID is required" }]}><Input /></Form.Item><Form.Item name="coverImageDesktop" label="Cover Image" rules={[{ validator: validateCover }]}><MediaPickerInput mediaType="image" uiVariant="stacked" hintText={`Required size: ${REQUIRED_COVER_IMAGE_WIDTH} × ${REQUIRED_COVER_IMAGE_HEIGHT}`} /></Form.Item><Form.Item name="coverAlt" label="Cover alt text"><Input /></Form.Item><Form.Item name="videoPlayingVideoTitle" label="Embedded video title"><Input /></Form.Item><Form.Item name="videoPlayingPlayAriaLabel" label="Play button accessible label"><Input /></Form.Item></> },
-    { key: "colors", label: "Colors", children: <>{colorField("videoPlayingChapterBgColorKey", "Chapter background")}{colorField("videoPlayingTextColorKey", "Base text")}{colorField("videoPlayingSubTitleColorKey", "Sub Title")}{colorField("videoPlayingTitleColorKey", "Heading")}{colorField("videoPlayingTitleAccentColorKey", "Heading accent")}{colorField("videoPlayingPlayBgColorKey", "Play button")}{colorField("videoPlayingPlayIconColorKey", "Play icon")}{colorField("videoPlayingQuoteColorKey", "Quote")}{colorField("videoPlayingAuthorColorKey", "Author")}{colorField("videoPlayingRoleColorKey", "Author role")}{colorField("videoPlayingLinkColorKey", "Story link")}</> },
+    { key: "colors", label: "Colors", children: <TitleAndColorsSection form={form} themeColorOptions={colors} colorListItems={COLOR_ITEMS} /> },
     { key: "layout", label: "Typography & Layout", children: <><Form.Item name="videoPlayingDisplayFontFamily" label="Display font family"><Input /></Form.Item><Form.Item name="videoPlayingBodyFontFamily" label="Body font family"><Input /></Form.Item><Row gutter={16}>{num("videoPlayingChapterRadius", "Chapter radius px", { min: 0 })}{num("videoPlayingChapterPaddingTop", "Top padding px", { min: 0 })}{num("videoPlayingChapterPaddingBottom", "Bottom padding px", { min: 0 })}{num("videoPlayingChapterPaddingX", "Horizontal padding px", { min: 0 })}{num("videoPlayingHeadGap", "Heading gap px", { min: 0 })}{num("videoPlayingVideoRadius", "Video radius px", { min: 0 })}{num("videoPlayingPlayButtonSize", "Play button px", { min: 32 })}{num("videoPlayingQuoteMarginTop", "Quote top px", { min: 0 })}{num("videoPlayingQuoteMaxWidth", "Quote width ch", { min: 10 })}{num("videoPlayingTitleMaxWidth", "Title width ch", { min: 8 })}{num("videoPlayingTitleMinSize", "Title min px", { min: 12 })}{num("videoPlayingTitleFluidSize", "Title fluid vw", { min: 1, step: 0.1 })}{num("videoPlayingTitleMaxSize", "Title max px", { min: 12 })}{num("videoPlayingTitleFontWeight", "Title weight", { min: 100, max: 900 })}{num("videoPlayingTitleLetterSpacing", "Title spacing em", { step: 0.01 })}{num("videoPlayingTitleLineHeight", "Title line height", { min: 0.7, step: 0.01 })}{num("videoPlayingQuoteMinSize", "Quote min px", { min: 12 })}{num("videoPlayingQuoteFluidSize", "Quote fluid vw", { min: 1, step: 0.1 })}{num("videoPlayingQuoteMaxSize", "Quote max px", { min: 12 })}{num("videoPlayingQuoteFontWeight", "Quote weight", { min: 100, max: 900 })}{num("videoPlayingQuoteLineHeight", "Quote line height", { min: 0.7, step: 0.01 })}{num("videoPlayingSubTitleFontSize", "Sub Title px", { min: 8 })}{num("videoPlayingSubTitleFontWeight", "Sub Title weight", { min: 100, max: 900 })}{num("videoPlayingSubTitleLetterSpacing", "Sub Title spacing em", { step: 0.01 })}{num("videoPlayingAuthorFontSize", "Author px", { min: 8 })}{num("videoPlayingRoleFontSize", "Role px", { min: 8 })}{num("videoPlayingLinkFontSize", "Link px", { min: 8 })}</Row></> },
-    { key: "animation", label: "Animations", children: <><Form.Item name="videoPlayingScaleAnimationEnabled" label="Video scale scrub" valuePropName="checked"><Switch /></Form.Item><Form.Item name="videoPlayingQuoteAnimationEnabled" label="Quote word scrub" valuePropName="checked"><Switch /></Form.Item><Row gutter={16}>{num("videoPlayingScaleFrom", "Initial scale", { min: 0.1, max: 1, step: 0.01 })}{num("videoPlayingQuoteStagger", "Word stagger", { min: 0, step: 0.01 })}</Row><Form.Item name="videoPlayingScaleStart" label="Scale trigger start"><Input /></Form.Item><Form.Item name="videoPlayingScaleEnd" label="Scale trigger end"><Input /></Form.Item><Form.Item name="videoPlayingQuoteStart" label="Quote trigger start"><Input /></Form.Item><Form.Item name="videoPlayingQuoteEnd" label="Quote trigger end"><Input /></Form.Item></> },
+    { key: "animation", label: "Animations", children: <><SwitchSettingsCard items={[{ name: "videoPlayingScaleAnimationEnabled", label: "Video scale scrub", tooltip: "Animate video scale during scroll." }, { name: "videoPlayingQuoteAnimationEnabled", label: "Quote word scrub", tooltip: "Animate quote words during scroll." }]} /><Row gutter={16}>{num("videoPlayingScaleFrom", "Initial scale", { min: 0.1, max: 1, step: 0.01 })}{num("videoPlayingQuoteStagger", "Word stagger", { min: 0, step: 0.01 })}</Row><Form.Item name="videoPlayingScaleStart" label="Scale trigger start"><Input /></Form.Item><Form.Item name="videoPlayingScaleEnd" label="Scale trigger end"><Input /></Form.Item><Form.Item name="videoPlayingQuoteStart" label="Quote trigger start"><Input /></Form.Item><Form.Item name="videoPlayingQuoteEnd" label="Quote trigger end"><Input /></Form.Item></> },
   ]} /></Form>;
 }
 

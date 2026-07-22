@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, Row, Col, Collapse, Switch, message, Spin } from "antd";
+import { Form, Input, Row, Col, Collapse, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 
@@ -386,13 +387,7 @@ function EventRegistrationFormEditForm(
                   </Form.Item>
                 </Col>
                 <Col span={24}>
-                  <Form.Item
-                    name="studentFieldsEnabled"
-                    label="Show optional student fields (school + class/year)"
-                    valuePropName="checked"
-                  >
-                    <Switch />
-                  </Form.Item>
+                  <SwitchSettingsCard items={[{ name: "studentFieldsEnabled", label: "Show optional student fields", tooltip: "Show school and class/year fields." }]} />
                 </Col>
               </Row>
             ),

@@ -11,7 +11,6 @@ import {
   Form,
   Input,
   InputNumber,
-  Switch,
   Row,
   Col,
   Card,
@@ -28,6 +27,7 @@ import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import {
   getManageSectionInitialValues,
   getManageSectionPayload,
@@ -507,68 +507,10 @@ function HomeHero2EditForm(
               <div
                 style={{ display: "flex", flexDirection: "column", gap: 24 }}
               >
-                <List
-                  header={
-                    <span
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: "rgba(0,0,0,0.65)",
-                      }}
-                    >
-                      Behaviour
-                    </span>
-                  }
-                  size="small"
-                  bordered
-                  split
-                  dataSource={[
-                    {
-                      key: "autoplay",
-                      name: "homeHero2Autoplay",
-                      label: "Autoplay",
-                      tooltip: "Rotate slider automatically",
-                    },
-                    {
-                      key: "draggable",
-                      name: "homeHero2Draggable",
-                      label: "Draggable",
-                      tooltip: "Allow drag to rotate",
-                    },
-                  ]}
-                  renderItem={(item) => (
-                    <List.Item
-                      actions={[
-                        <Form.Item
-                          key="switch"
-                          name={item.name}
-                          valuePropName="checked"
-                          noStyle
-                          style={{ marginBottom: 0 }}
-                        >
-                          <Switch />
-                        </Form.Item>,
-                      ]}
-                    >
-                      <Tooltip title={item.tooltip}>
-                        <span
-                          style={{
-                            fontSize: 14,
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 4,
-                            color: "rgba(0,0,0,0.65)",
-                          }}
-                        >
-                          {item.label}{" "}
-                          <QuestionCircleOutlined
-                            style={{ fontSize: 12, color: "#999" }}
-                          />
-                        </span>
-                      </Tooltip>
-                    </List.Item>
-                  )}
-                />
+                <SwitchSettingsCard items={[
+                  { name: "homeHero2Autoplay", label: "Autoplay", tooltip: "Rotate slider automatically" },
+                  { name: "homeHero2Draggable", label: "Draggable", tooltip: "Allow drag to rotate" },
+                ]} />
 
                 <List
                   header={

@@ -8,6 +8,7 @@ import {
 } from "react";
 import { Collapse, Col, Form, Input, InputNumber, message, Row, Select, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import SortableFormList from "@/components/admin/SortableFormList";
 import {
@@ -21,6 +22,21 @@ import {
 
 const API_PATH = "/api/theme/WelcometoMESCO";
 const PREFIX = "welcometoMESCO";
+
+const COLOR_ITEMS = [
+  ["welcometoMESCOSubTitleColorKey", "Sub Title"],
+  ["welcometoMESCOStatementColorKey", "Statement words"],
+  ["welcometoMESCOPrimaryButtonBgColorKey", "Mesco at a Glance background"],
+  ["welcometoMESCOPrimaryButtonTextColorKey", "Mesco at a Glance text"],
+  ["welcometoMESCOPrimaryButtonBorderColorKey", "Mesco at a Glance border"],
+  ["welcometoMESCOPrimaryButtonHoverBgColorKey", "Mesco at a Glance hover background"],
+  ["welcometoMESCOPrimaryButtonHoverTextColorKey", "Mesco at a Glance hover text"],
+  ["welcometoMESCOPrimaryButtonHoverBorderColorKey", "Mesco at a Glance hover border"],
+  ["welcometoMESCOSecondaryLinkColorKey", "Zakat Appeal"],
+  ["welcometoMESCOSecondaryLinkHoverColorKey", "Zakat Appeal hover"],
+  ["welcometoMESCOEstablishmentLabelColorKey", "Establishment label"],
+  ["welcometoMESCOEstablishmentTextColorKey", "Establishment description"],
+].map(([name, label]) => ({ name, label, tooltip: `${label} color.` }));
 
 const INITIAL_CONTENT = {
   welcometoMESCOSubTitle: "Welcome to MESCO",
@@ -295,12 +311,6 @@ function WelcometoMESCOEditForm(
     );
   }
 
-  const colorField = (name, label) => (
-    <Form.Item name={name} label={label}>
-      <Select allowClear options={colors} placeholder="From theme" />
-    </Form.Item>
-  );
-
   return (
     <Form form={form} layout="vertical">
       <Collapse
@@ -450,47 +460,11 @@ function WelcometoMESCOEditForm(
             key: "colors",
             label: "Colors",
             children: (
-              <>
-                {colorField("welcometoMESCOSubTitleColorKey", "Sub Title")}
-                {colorField("welcometoMESCOStatementColorKey", "Statement words")}
-                {colorField(
-                  "welcometoMESCOPrimaryButtonBgColorKey",
-                  "Mesco at a Glance background",
-                )}
-                {colorField(
-                  "welcometoMESCOPrimaryButtonTextColorKey",
-                  "Mesco at a Glance text",
-                )}
-                {colorField(
-                  "welcometoMESCOPrimaryButtonBorderColorKey",
-                  "Mesco at a Glance border",
-                )}
-                {colorField(
-                  "welcometoMESCOPrimaryButtonHoverBgColorKey",
-                  "Mesco at a Glance hover background",
-                )}
-                {colorField(
-                  "welcometoMESCOPrimaryButtonHoverTextColorKey",
-                  "Mesco at a Glance hover text",
-                )}
-                {colorField(
-                  "welcometoMESCOPrimaryButtonHoverBorderColorKey",
-                  "Mesco at a Glance hover border",
-                )}
-                {colorField("welcometoMESCOSecondaryLinkColorKey", "Zakat Appeal")}
-                {colorField(
-                  "welcometoMESCOSecondaryLinkHoverColorKey",
-                  "Zakat Appeal hover",
-                )}
-                {colorField(
-                  "welcometoMESCOEstablishmentLabelColorKey",
-                  "Establishment label",
-                )}
-                {colorField(
-                  "welcometoMESCOEstablishmentTextColorKey",
-                  "Establishment description",
-                )}
-              </>
+              <TitleAndColorsSection
+                form={form}
+                themeColorOptions={colors}
+                colorListItems={COLOR_ITEMS}
+              />
             ),
           },
         ]}

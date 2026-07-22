@@ -16,9 +16,10 @@ import {
   Row,
   Select,
   Spin,
-  Switch,
 } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import SortableFormList from "@/components/admin/SortableFormList";
 import {
   LINK_TARGET_OPTIONS,
@@ -31,6 +32,22 @@ import {
 
 const API_PATH = "/api/theme/OurImpact";
 const PREFIX = "ourImpact";
+
+const COLOR_ITEMS = [
+  ["ourImpactBandBgColorKey", "Band background"],
+  ["ourImpactGlowColorKey", "Background glow"],
+  ["ourImpactBaseTextColorKey", "Base text"],
+  ["ourImpactHeadingColorKey", "Heading"],
+  ["ourImpactHeadingAccentColorKey", "Heading accent"],
+  ["ourImpactNoteColorKey", "Audit note"],
+  ["ourImpactIndexColorKey", "Item indexes"],
+  ["ourImpactNumberColorKey", "Numbers"],
+  ["ourImpactLabelColorKey", "Item labels"],
+  ["ourImpactLineColorKey", "Divider lines"],
+  ["ourImpactFooterTextColorKey", "Footer statement"],
+  ["ourImpactLinkColorKey", "Report link"],
+  ["ourImpactLinkHoverColorKey", "Report link hover"],
+].map(([name, label]) => ({ name, label, tooltip: `${label} color.` }));
 
 const INITIAL_CONTENT = {
   ourImpactHeading: "Numbers that",
@@ -314,11 +331,6 @@ function OurImpactEditForm(
     );
   }
 
-  const colorField = (name, label) => (
-    <Form.Item name={name} label={label}>
-      <Select allowClear options={colors} placeholder="From theme" />
-    </Form.Item>
-  );
   const numberField = (name, label, options = {}) => (
     <Col span={12}>
       <Form.Item name={name} label={label}>
@@ -438,21 +450,11 @@ function OurImpactEditForm(
             key: "colors",
             label: "Colors",
             children: (
-              <>
-                {colorField("ourImpactBandBgColorKey", "Band background")}
-                {colorField("ourImpactGlowColorKey", "Background glow")}
-                {colorField("ourImpactBaseTextColorKey", "Base text")}
-                {colorField("ourImpactHeadingColorKey", "Heading")}
-                {colorField("ourImpactHeadingAccentColorKey", "Heading accent")}
-                {colorField("ourImpactNoteColorKey", "Audit note")}
-                {colorField("ourImpactIndexColorKey", "Item indexes")}
-                {colorField("ourImpactNumberColorKey", "Numbers")}
-                {colorField("ourImpactLabelColorKey", "Item labels")}
-                {colorField("ourImpactLineColorKey", "Divider lines")}
-                {colorField("ourImpactFooterTextColorKey", "Footer statement")}
-                {colorField("ourImpactLinkColorKey", "Report link")}
-                {colorField("ourImpactLinkHoverColorKey", "Report link hover")}
-              </>
+              <TitleAndColorsSection
+                form={form}
+                themeColorOptions={colors}
+                colorListItems={COLOR_ITEMS}
+              />
             ),
           },
           {
@@ -460,13 +462,10 @@ function OurImpactEditForm(
             label: "Animations",
             children: (
               <>
-                <Form.Item
-                  name="ourImpactRevealEnabled"
-                  label="Reveal content"
-                  valuePropName="checked"
-                >
-                  <Switch />
-                </Form.Item>
+                <SwitchSettingsCard items={[
+                  { name: "ourImpactRevealEnabled", label: "Reveal content", tooltip: "Animate content into view." },
+                  { name: "ourImpactCountEnabled", label: "Count-up numbers", tooltip: "Animate impact values from zero." },
+                ]} />
                 <Form.Item name="ourImpactRevealStart" label="Reveal trigger">
                   <Input placeholder="top 86%" />
                 </Form.Item>
@@ -483,13 +482,6 @@ function OurImpactEditForm(
                     min: 0,
                   })}
                 </Row>
-                <Form.Item
-                  name="ourImpactCountEnabled"
-                  label="Count-up numbers"
-                  valuePropName="checked"
-                >
-                  <Switch />
-                </Form.Item>
                 <Form.Item name="ourImpactCountStart" label="Counter trigger">
                   <Input placeholder="top 85%" />
                 </Form.Item>

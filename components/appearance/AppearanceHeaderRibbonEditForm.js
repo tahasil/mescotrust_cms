@@ -5,16 +5,12 @@ import {
   Collapse,
   Form,
   Input,
-  List,
   Select,
   Spin,
-  Switch,
-  Tooltip,
   message,
 } from "antd";
-import { QuestionCircleOutlined } from "@ant-design/icons";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
-import { LIST_HEADER_STYLE } from "@/lib/titleAndColorsConfig";
+import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import { LINK_TARGET_OPTIONS, normalizeTarget } from "./editorUtils";
 
 function text(value) {
@@ -65,24 +61,6 @@ const COLOR_ITEMS = [
   { name: "ribbonLinkBorderColorKey", label: "Link underline", tooltip: "View Notice underline color." },
   { name: "ribbonFocusColorKey", label: "Focus outline", tooltip: "Keyboard focus outline color." },
 ];
-
-function FieldLabel({ label, tooltip }) {
-  return (
-    <Tooltip title={tooltip}>
-      <span
-        style={{
-          color: "rgba(0,0,0,0.65)",
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 4,
-          fontSize: 14,
-        }}
-      >
-        {label} <QuestionCircleOutlined style={{ color: "#999", fontSize: 12 }} />
-      </span>
-    </Tooltip>
-  );
-}
 
 export default forwardRef(function AppearanceHeaderRibbonEditForm(
   { dataEndpoint, themeColorOptions = [], onSuccess },
@@ -207,29 +185,7 @@ export default forwardRef(function AppearanceHeaderRibbonEditForm(
             label: "Ribbon Settings",
             children: (
               <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-                <List
-                  header={<span style={LIST_HEADER_STYLE}>Behaviour</span>}
-                  size="small"
-                  bordered
-                  split
-                  dataSource={SWITCH_ITEMS}
-                  renderItem={(item) => (
-                    <List.Item
-                      actions={[
-                        <Form.Item
-                          key="switch"
-                          name={item.name}
-                          valuePropName="checked"
-                          noStyle
-                        >
-                          <Switch />
-                        </Form.Item>,
-                      ]}
-                    >
-                      <FieldLabel label={item.label} tooltip={item.tooltip} />
-                    </List.Item>
-                  )}
-                />
+                <SwitchSettingsCard items={SWITCH_ITEMS} />
                 <Form.Item name="ribbonAriaLabel" label="Accessible label">
                   <Input placeholder="Important notice" />
                 </Form.Item>
