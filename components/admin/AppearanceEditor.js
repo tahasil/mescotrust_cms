@@ -12,8 +12,10 @@ import {
 import { ThemeAdminCard } from "@/styles/Theme";
 import AppearanceHeader from "@/components/appearance/AppearanceHeader";
 import AppearanceFooter from "@/components/appearance/AppearanceFooter";
+import AppearanceHeaderRibbon from "@/components/appearance/AppearanceHeaderRibbon";
 import AppearanceHeaderEditForm from "@/components/appearance/AppearanceHeaderEditForm";
 import AppearanceFooterEditForm from "@/components/appearance/AppearanceFooterEditForm";
+import AppearanceHeaderRibbonEditForm from "@/components/appearance/AppearanceHeaderRibbonEditForm";
 
 function resolveThemeColor(theme, key) {
   const value = String(key || "").trim();
@@ -94,7 +96,12 @@ function footerPreviewProps(props, theme) {
 }
 
 export default function AppearanceEditor({ moduleKey }) {
-  const normalizedModule = moduleKey === "footer" ? "footer" : "header";
+  const normalizedModule =
+    moduleKey === "footer"
+      ? "footer"
+      : moduleKey === "header-ribbon"
+        ? "header-ribbon"
+        : "header";
   const endpoint = `/api/admin/appearance/${normalizedModule}`;
   const editFormRef = useRef(null);
   const [record, setRecord] = useState(null);
@@ -138,7 +145,13 @@ export default function AppearanceEditor({ moduleKey }) {
   }, [theme]);
 
   const props = record?.defaultProps || {};
-  const title = record?.displayName || (normalizedModule === "header" ? "Header" : "Footer");
+  const title =
+    record?.displayName ||
+    (normalizedModule === "header"
+      ? "Header"
+      : normalizedModule === "header-ribbon"
+        ? "Header Ribbon"
+        : "Footer");
 
   const saveMetadata = async () => {
     setSaving(true);
@@ -183,6 +196,8 @@ export default function AppearanceEditor({ moduleKey }) {
       <div style={{ border: "1px solid #e8e8e8", borderRadius: 8, overflow: "hidden", background: "#fafafa" }}>
         {normalizedModule === "header" ? (
           <AppearanceHeader {...headerPreviewProps(props, theme)} />
+        ) : normalizedModule === "header-ribbon" ? (
+          <AppearanceHeaderRibbon {...props} preview />
         ) : (
           <AppearanceFooter {...footerPreviewProps(props, theme)} />
         )}
@@ -214,6 +229,17 @@ export default function AppearanceEditor({ moduleKey }) {
       >
         {normalizedModule === "header" ? (
           <AppearanceHeaderEditForm
+            ref={editFormRef}
+            dataEndpoint={endpoint}
+            themeColorOptions={themeColorOptions}
+            onSuccess={async () => {
+              await loadData();
+              setDrawerOpen(false);
+            }}
+            onCancel={() => setDrawerOpen(false)}
+          />
+        ) : normalizedModule === "header-ribbon" ? (
+          <AppearanceHeaderRibbonEditForm
             ref={editFormRef}
             dataEndpoint={endpoint}
             themeColorOptions={themeColorOptions}

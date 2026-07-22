@@ -98,6 +98,14 @@ const baseMenuItems = [
         ),
       },
       {
+        key: "/admin/appearance/header-ribbon",
+        label: (
+          <Link href="/admin/appearance/header-ribbon" style={linkStyle}>
+            Header Ribbon
+          </Link>
+        ),
+      },
+      {
         key: "/admin/appearance/footer",
         label: (
           <Link href="/admin/appearance/footer" style={linkStyle}>

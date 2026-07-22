@@ -6,6 +6,7 @@ import RoutePopupHost from "@/components/layout/RoutePopupHost";
 import ChatbotWidget from "@/components/site/ChatbotWidget";
 import AppearanceHeader from "@/components/appearance/AppearanceHeader";
 import AppearanceFooter from "@/components/appearance/AppearanceFooter";
+import AppearanceHeaderRibbon from "@/components/appearance/AppearanceHeaderRibbon";
 import PublicPageReadySignal from "@/components/site/PublicPageReadySignal";
 
 const headerThemeProps = (props) => ({
@@ -124,6 +125,7 @@ const footerThemeProps = (props) => ({
 export default function PublicShell({
   globalTheme = {},
   appearanceHeader = null,
+  appearanceHeaderRibbon = null,
   appearanceFooter = null,
   headerItems,
   footerItems,
@@ -232,6 +234,13 @@ export default function PublicShell({
 }) {
   const hasAppearanceHeader =
     appearanceHeader && appearanceHeader.active !== false;
+  const hasAppearanceHeaderRibbon =
+    appearanceHeaderRibbon &&
+    appearanceHeaderRibbon.active !== false &&
+    Array.isArray(appearanceHeaderRibbon.ribbonItems) &&
+    appearanceHeaderRibbon.ribbonItems.some(
+      (item) => item?.enabled !== false && String(item?.text || item?.label || "").trim(),
+    );
   const hasAppearanceFooter =
     appearanceFooter && appearanceFooter.active !== false;
 
@@ -386,8 +395,19 @@ export default function PublicShell({
     : [...afterGlobalIds, "__fallback_footer__"];
 
   return (
-    <div className="public-site" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <div
+      className="public-site"
+      data-has-header-ribbon={hasAppearanceHeaderRibbon ? "true" : undefined}
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <RoutePopupHost />
+      {hasAppearanceHeaderRibbon ? (
+        <AppearanceHeaderRibbon {...appearanceHeaderRibbon} />
+      ) : null}
       {beforeRenderOrder.map((id, index) =>
         id === "__fallback_header__"
           ? <Fragment key={`fallback-header-${index}`}>{fallbackHeader}</Fragment>

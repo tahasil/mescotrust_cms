@@ -76,8 +76,11 @@ export default async function SiteLayout({ children }) {
   const theme = data?.theme || {};
   const logoUrl = theme.logoLightUrl || theme.logoImageUrl || "";
   const appearanceHeaderRecord = data?.appearance?.header || null;
+  const appearanceHeaderRibbonRecord = data?.appearance?.headerRibbon || null;
   const appearanceFooterRecord = data?.appearance?.footer || null;
   const appearanceHeaderProps = appearanceHeaderRecord?.defaultProps || {};
+  const appearanceHeaderRibbonProps =
+    appearanceHeaderRibbonRecord?.defaultProps || {};
   const appearanceFooterProps = appearanceFooterRecord?.defaultProps || {};
   const appearanceHeader = appearanceHeaderRecord
     ? {
@@ -156,6 +159,12 @@ export default async function SiteLayout({ children }) {
         ),
       }
     : null;
+  const appearanceHeaderRibbon = appearanceHeaderRibbonRecord
+    ? {
+        ...appearanceHeaderRibbonProps,
+        active: appearanceHeaderRibbonRecord.active !== false,
+      }
+    : null;
 
   const headerBgKey = theme.headerBgColorKey ?? "";
   const headerCtaBgKey = theme.headerCtaBgColorKey ?? "";
@@ -189,6 +198,7 @@ export default async function SiteLayout({ children }) {
       <PublicShell
         globalTheme={theme}
         appearanceHeader={appearanceHeader}
+        appearanceHeaderRibbon={appearanceHeaderRibbon}
         appearanceFooter={appearanceFooter}
         headerItems={data?.headerItems || []}
         footerItems={data?.footerItems || []}
