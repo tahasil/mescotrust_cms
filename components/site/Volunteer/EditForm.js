@@ -10,6 +10,13 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/Volunteer";
 const PREFIX = "volunteer";
+const HIDDEN_DRAWER_SECTION_KEYS = new Set([
+  "icons",
+  "layout",
+  "style",
+  "typography",
+  "style-typography",
+]);
 
 const DEFAULTS = {
   volunteerPageValue: "volunteer",
@@ -629,7 +636,6 @@ function VolunteerEditForm(
           "content",
           "labels",
           "right-card",
-          "layout",
         ]}
         items={[
           {
@@ -1059,7 +1065,7 @@ function VolunteerEditForm(
               </Row>
             ),
           },
-        ]}
+        ].filter(({ key }) => !HIDDEN_DRAWER_SECTION_KEYS.has(key))}
       />
     </Form>
   );
