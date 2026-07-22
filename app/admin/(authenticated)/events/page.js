@@ -83,6 +83,16 @@ export default function AdminEventsPage() {
       ),
     },
     {
+      title: "Featured",
+      dataIndex: "featured",
+      key: "featured",
+      render: (featured) => (
+        <Tag color={featured === true ? "gold" : "default"}>
+          {featured === true ? "Featured" : "No"}
+        </Tag>
+      ),
+    },
+    {
       title: "Actions",
       key: "actions",
       render: (_, record) => (

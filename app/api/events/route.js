@@ -5,7 +5,10 @@ import Event from "@/models/Event";
 function withCache(body, maxAge = 60) {
   return NextResponse.json(body, {
     headers: {
-      "Cache-Control": `public, max-age=${maxAge}, stale-while-revalidate=${maxAge}`,
+      "Cache-Control":
+        maxAge > 0
+          ? `public, max-age=${maxAge}, stale-while-revalidate=${maxAge}`
+          : "no-store",
     },
   });
 }
@@ -68,7 +71,7 @@ function buildLiveDateCondition(todayStart) {
  * GET /api/events — paginated list (published + active by default)
  * GET /api/events?slug=my-event — single published event
  *
- * Query: page, limit, search, sort=upcoming|recent, locale,
+ * Query: page, limit, search, sort=upcoming|recent, locale, featured=true|false,
  * visibility=active|live|past|all
  */
 export async function GET(req) {
@@ -89,12 +92,22 @@ export async function GET(req) {
     const search = searchParams.get("search")?.trim() || null;
     const sortMode = (searchParams.get("sort") || "upcoming").toLowerCase();
     const locale = searchParams.get("locale") || null;
+    // Featured feeds are kept dynamic so admin changes appear on the next fetch.
+    const featuredParam = (searchParams.get("featured") || "").toLowerCase();
+    const featured =
+      featuredParam === "true" || featuredParam === "1"
+        ? true
+        : featuredParam === "false" || featuredParam === "0"
+          ? false
+          : null;
     const visibility = (searchParams.get("visibility") || "active").toLowerCase();
     const fieldsMode = (searchParams.get("fields") || "").toLowerCase();
     const todayStart = getStartOfTodayUtc();
 
     const andConditions = [{ status: "published" }];
     if (locale) andConditions.push({ locale });
+    if (featured === true) andConditions.push({ featured: true });
+    if (featured === false) andConditions.push({ featured: { $ne: true } });
     if (search) {
       const query = escapeRegex(search);
       andConditions.push({
@@ -138,13 +151,16 @@ export async function GET(req) {
     const totalPromise = includeTotal ? Event.countDocuments(filter) : Promise.resolve(null);
     const [items, total] = await Promise.all([itemsPromise, totalPromise]);
 
-    return withCache({
-      items,
-      total: total ?? items.length,
-      page,
-      limit,
-      totalPages: includeTotal ? Math.ceil(total / limit) : 1,
-    });
+    return withCache(
+      {
+        items,
+        total: total ?? items.length,
+        page,
+        limit,
+        totalPages: includeTotal ? Math.ceil(total / limit) : 1,
+      },
+      featured !== null ? 0 : 60,
+    );
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

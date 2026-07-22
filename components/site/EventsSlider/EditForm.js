@@ -31,8 +31,8 @@ function EventsSliderEditForm(
 
   const applyValues = (data) => {
     form.setFieldsValue({
-      eventsSliderSubTitle: data?.eventsSliderSubTitle != null ? String(data.eventsSliderSubTitle).trim() : "Upcoming",
-      eventsSliderMainTitle: data?.eventsSliderMainTitle != null ? String(data.eventsSliderMainTitle).trim() : "Events",
+      eventsSliderSubTitle: data?.eventsSliderSubTitle != null ? String(data.eventsSliderSubTitle).trim() : "Events",
+      eventsSliderMainTitle: data?.eventsSliderMainTitle != null ? String(data.eventsSliderMainTitle).trim() : "Save the date.",
       eventsSliderTitleEnabled: data?.eventsSliderTitleEnabled !== false,
       eventsSliderSubTitleEnabled: data?.eventsSliderSubTitleEnabled !== false,
       eventsSliderLimit: data?.eventsSliderLimit != null ? Number(data.eventsSliderLimit) : 8,
@@ -48,12 +48,12 @@ function EventsSliderEditForm(
       eventsSliderButtonTextColorKey: data?.eventsSliderButtonTextColorKey != null ? String(data.eventsSliderButtonTextColorKey).trim() : "",
       eventsSliderButtonRadius: data?.eventsSliderButtonRadius != null ? Number(data.eventsSliderButtonRadius) : 999,
       eventsSliderButtonSize: data?.eventsSliderButtonSize != null ? String(data.eventsSliderButtonSize).trim() : "md",
-      eventsSliderAutoplay: data?.eventsSliderAutoplay ?? false,
+      eventsSliderAutoplay: data?.eventsSliderAutoplay ?? true,
       eventsSliderShowArrows: data?.eventsSliderShowArrows ?? true,
       eventsSliderShowDots: data?.eventsSliderShowDots ?? true,
       eventsSliderInfinite: data?.eventsSliderInfinite ?? true,
-      eventsSliderAutoplaySpeed: data?.eventsSliderAutoplaySpeed ?? 5000,
-      eventsSliderSpeed: data?.eventsSliderSpeed ?? 450,
+      eventsSliderAutoplaySpeed: data?.eventsSliderAutoplaySpeed ?? 6000,
+      eventsSliderSpeed: data?.eventsSliderSpeed ?? 750,
       ...getManageSectionInitialValues(PREFIX, data),
     });
   };
@@ -119,8 +119,8 @@ function EventsSliderEditForm(
         eventsSliderShowArrows: values.eventsSliderShowArrows !== false,
         eventsSliderShowDots: values.eventsSliderShowDots !== false,
         eventsSliderInfinite: values.eventsSliderInfinite !== false,
-        eventsSliderAutoplaySpeed: values.eventsSliderAutoplaySpeed != null ? Math.max(1000, Number(values.eventsSliderAutoplaySpeed)) : 5000,
-        eventsSliderSpeed: values.eventsSliderSpeed != null ? Math.max(200, Number(values.eventsSliderSpeed)) : 450,
+        eventsSliderAutoplaySpeed: values.eventsSliderAutoplaySpeed != null ? Math.max(1000, Number(values.eventsSliderAutoplaySpeed)) : 6000,
+        eventsSliderSpeed: values.eventsSliderSpeed != null ? Math.max(200, Number(values.eventsSliderSpeed)) : 750,
         ...getManageSectionPayload(PREFIX, values),
       };
       if (isPageBlock && onSaveToPage) {
@@ -189,7 +189,7 @@ function EventsSliderEditForm(
                 <SwitchSettingsCard items={[
                   { name: "eventsSliderAutoplay", label: "Autoplay", tooltip: "Auto-advance to next slide" },
                   { name: "eventsSliderShowArrows", label: "Show arrows", tooltip: "Show prev/next navigation arrows" },
-                  { name: "eventsSliderShowDots", label: "Show dots", tooltip: "Show dot indicators below slider" },
+                  { name: "eventsSliderShowDots", label: "Show slide count", tooltip: "Show the current and total slide numbers" },
                   { name: "eventsSliderInfinite", label: "Infinite", tooltip: "Loop slides endlessly" },
                 ]} />
                 <List

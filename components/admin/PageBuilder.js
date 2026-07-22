@@ -230,18 +230,18 @@ function getDefaultPropsForNewSiteComponent(componentId) {
     case "EventsSlider":
       return {
         ...base,
-        eventsSliderSubTitle: "Upcoming",
-        eventsSliderMainTitle: "Events",
+        eventsSliderSubTitle: "Events",
+        eventsSliderMainTitle: "Save the date.",
         eventsSliderTitleEnabled: true,
         eventsSliderSubTitleEnabled: true,
         eventsSliderLimit: 8,
         eventsSliderSort: "upcoming",
-        eventsSliderAutoplay: false,
+        eventsSliderAutoplay: true,
         eventsSliderShowArrows: true,
         eventsSliderShowDots: true,
         eventsSliderInfinite: true,
-        eventsSliderAutoplaySpeed: 5000,
-        eventsSliderSpeed: 450,
+        eventsSliderAutoplaySpeed: 6000,
+        eventsSliderSpeed: 750,
         eventsSliderButtonRadius: 999,
         eventsSliderButtonSize: "md",
       };

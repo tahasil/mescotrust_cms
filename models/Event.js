@@ -13,6 +13,7 @@ const eventSchema = new mongoose.Schema(
     time: { type: String, default: "" },
     location: { type: String, default: "" },
     isOnline: { type: Boolean, default: false },
+    featured: { type: Boolean, default: false },
     eventLink: { type: String, default: "" },
     tags: [{ type: String, trim: true }],
     status: { type: String, enum: ["draft", "published"], default: "draft" },
@@ -29,6 +30,7 @@ const eventSchema = new mongoose.Schema(
 );
 
 eventSchema.index({ status: 1 });
+eventSchema.index({ status: 1, featured: 1, startDate: 1 });
 eventSchema.index({ startDate: 1 });
 eventSchema.index({ updatedAt: -1 });
 

@@ -19,7 +19,6 @@ import MediaImage from "@/components/shared/MediaImage";
 import {
   formatEventDateRange,
   formatLocationLine,
-  getEventDateStatus,
   getEventImageSources,
 } from "@/components/events/eventDisplay";
 
@@ -460,13 +459,6 @@ function initialQuery() {
   };
 }
 
-function statusLabel(status) {
-  if (status === "live") return "Live";
-  if (status === "past") return "Past Event";
-  if (status === "upcoming") return "Upcoming";
-  return "Event";
-}
-
 function EventCard({ event, buttonLabel, showDescription }) {
   const href = event?.slug ? `/events/${event.slug}` : "/events";
   const { desktop, mobile } = getEventImageSources(event);
@@ -474,7 +466,6 @@ function EventCard({ event, buttonLabel, showDescription }) {
   const time = safeText(event?.time);
   const location = formatLocationLine(event);
   const description = stripMarkup(event?.description || event?.content);
-  const status = getEventDateStatus(event);
 
   return (
     <article className="event-card">
@@ -494,7 +485,6 @@ function EventCard({ event, buttonLabel, showDescription }) {
         </div>
       </Link>
       <div className="event-card__body">
-        <p className={`event-card__status event-card__status--${status}`}>{statusLabel(status)}</p>
         <h3 className="event-card__title"><Link href={href}>{event?.title}</Link></h3>
         <div className="event-card__meta">
           {date ? <span><CalendarOutlined />{date}</span> : null}

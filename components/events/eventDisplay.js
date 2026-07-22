@@ -13,6 +13,21 @@
   "Dec",
 ];
 
+const MONTHS_LONG = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
 export function getEventImageSources(event) {
   const desktop = (event?.featuredImageDesktop || "").trim();
   const mobile = (event?.featuredImageMobile || "").trim() || desktop;
@@ -27,11 +42,38 @@ export function formatEventDayDate(dateVal) {
 }
 
 export function formatEventDateRange(startDate, endDate) {
-  const a = formatEventDayDate(startDate);
-  const b = formatEventDayDate(endDate);
-  if (!a && !b) return "";
-  if (a && b && a !== b) return `${a} - ${b}`;
-  return a || b;
+  const toParts = (value) => {
+    if (!value) return null;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    return {
+      day: date.getUTCDate(),
+      month: date.getUTCMonth(),
+      year: date.getUTCFullYear(),
+    };
+  };
+  const start = toParts(startDate);
+  const end = toParts(endDate);
+
+  if (!start && !end) return "";
+  if (!start || !end) {
+    const date = start || end;
+    return `${date.day} ${MONTHS_LONG[date.month]} ${date.year}`;
+  }
+  if (
+    start.day === end.day &&
+    start.month === end.month &&
+    start.year === end.year
+  ) {
+    return `${start.day} ${MONTHS_LONG[start.month]} ${start.year}`;
+  }
+  if (start.month === end.month && start.year === end.year) {
+    return `${start.day}\u2013${end.day} ${MONTHS_LONG[start.month]} ${start.year}`;
+  }
+  if (start.year === end.year) {
+    return `${start.day} ${MONTHS_LONG[start.month]}\u2013${end.day} ${MONTHS_LONG[end.month]} ${start.year}`;
+  }
+  return `${start.day} ${MONTHS_LONG[start.month]} ${start.year}\u2013${end.day} ${MONTHS_LONG[end.month]} ${end.year}`;
 }
 
 export function formatEventDateTimeLine(event) {

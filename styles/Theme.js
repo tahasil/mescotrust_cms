@@ -141,6 +141,42 @@ export const PageContainer = styled.div`
     width: 100%;
     padding: 40px 20px;
   }
+  ${(props) =>
+    props.$managedBackgroundImage
+      ? `
+          background-image: url(${JSON.stringify(props.$managedBackgroundImage)});
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+        `
+      : props.$managedBackgroundColor
+        ? `
+            background-color: ${props.$managedBackgroundColor};
+            background-image: none;
+          `
+        : ""}
+  padding-top: ${(props) =>
+    props.$managedPaddingTop != null
+      ? `${props.$managedPaddingTop}px`
+      : undefined};
+  padding-right: ${(props) =>
+    props.$managedPaddingRight != null
+      ? `${props.$managedPaddingRight}px`
+      : undefined};
+  padding-bottom: ${(props) =>
+    props.$managedPaddingBottom != null
+      ? `${props.$managedPaddingBottom}px`
+      : undefined};
+  padding-left: ${(props) =>
+    props.$managedPaddingLeft != null
+      ? `${props.$managedPaddingLeft}px`
+      : undefined};
+  margin-top: ${(props) =>
+    props.$managedMarginTop != null ? `${props.$managedMarginTop}px` : undefined};
+  margin-bottom: ${(props) =>
+    props.$managedMarginBottom != null
+      ? `${props.$managedMarginBottom}px`
+      : undefined};
 `;
 export const ThemeButton = styled(ButtonWrapper)`
   background: ${getColor("gradient")};
@@ -292,6 +328,34 @@ export const FullWidthBackground = styled.div`
       }
     }
   }
+  ${(props) =>
+    props.$managedBackgroundImage
+      ? `
+          background-image: url(${JSON.stringify(props.$managedBackgroundImage)});
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+        `
+      : props.$managedBackgroundColor
+        ? `
+            background-color: ${props.$managedBackgroundColor};
+            background-image: none;
+          `
+        : ""}
+  padding-top: ${(props) =>
+    props.$managedPaddingTop != null
+      ? `${props.$managedPaddingTop}px`
+      : undefined};
+  padding-bottom: ${(props) =>
+    props.$managedPaddingBottom != null
+      ? `${props.$managedPaddingBottom}px`
+      : undefined};
+  margin-top: ${(props) =>
+    props.$managedMarginTop != null ? `${props.$managedMarginTop}px` : undefined};
+  margin-bottom: ${(props) =>
+    props.$managedMarginBottom != null
+      ? `${props.$managedMarginBottom}px`
+      : undefined};
 `;
 export const ThemeCard = styled(CardWrapper)`
   width: 100%;

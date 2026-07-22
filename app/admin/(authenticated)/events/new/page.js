@@ -20,6 +20,7 @@ import Link from "next/link";
 import dayjs from "dayjs";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
+import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import { ThemeAdminCard } from "@/styles/Theme";
 
 const { RangePicker } = DatePicker;
@@ -93,7 +94,7 @@ export default function AdminEventNewPage() {
   const status = Form.useWatch("status", form);
 
   useEffect(() => {
-    form.setFieldsValue({ status: "draft", isOnline: false });
+    form.setFieldsValue({ status: "draft", isOnline: false, featured: false });
     setLoading(false);
   }, [form]);
 
@@ -121,6 +122,7 @@ export default function AdminEventNewPage() {
           time: timeStr,
           location: values.isOnline ? "" : values.location || "",
           isOnline: !!values.isOnline,
+          featured: values.featured === true,
           eventLink: values.eventLink || "",
           meta: {
             metaTitle: values.metaTitle,
@@ -226,6 +228,20 @@ export default function AdminEventNewPage() {
             <Form.Item name="isOnline" label="Online event" valuePropName="checked">
               <Switch />
             </Form.Item>
+          </Col>
+          <Col xs={24} sm={12} xl={6}>
+            <SwitchSettingsCard
+              title="Event Options"
+              items={[
+                {
+                  name: "featured",
+                  label: "Featured Event",
+                  tooltip: "Show this event in the Events Slider when it is published.",
+                  checkedChildren: "On",
+                  unCheckedChildren: "Off",
+                },
+              ]}
+            />
           </Col>
 
           <Col xs={24} sm={12} xl={12}>

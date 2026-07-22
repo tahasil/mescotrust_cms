@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import styled from "styled-components";
 import MediaImage from "@/components/shared/MediaImage";
+import { formatEventDateRange } from "./eventDisplay";
 
 const cardStyle = {
   border: "1px solid rgba(0,0,0,0.08)",
@@ -80,28 +81,6 @@ const Item = styled.div`
     letter-spacing: 0.3px;
   }
 `;
-
-const MONTHS = [
-  "JANUARY",
-  "FEBRUARY",
-  "MARCH",
-  "APRIL",
-  "MAY",
-  "JUNE",
-  "JULY",
-  "AUGUST",
-  "SEPTEMBER",
-  "OCTOBER",
-  "NOVEMBER",
-  "DECEMBER",
-];
-
-function formatDate(dateStr) {
-  if (!dateStr) return "";
-  const d = new Date(dateStr);
-  if (Number.isNaN(d.getTime())) return "";
-  return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
-}
 
 function normalizeEvent(ev) {
   return {
@@ -245,7 +224,7 @@ export default function EventsSidebarFull({ searchQuery, currentSlug }) {
                     <Link href={`/events/${ev.slug}`}>{ev.title}</Link>
                   </div>
                   <div className="meta">
-                    {ev.startDate ? formatDate(ev.startDate) : ""}
+                    {formatEventDateRange(ev.startDate, ev.endDate)}
                   </div>
                 </div>
               </Item>
@@ -283,7 +262,7 @@ export default function EventsSidebarFull({ searchQuery, currentSlug }) {
                     <Link href={`/events/${ev.slug}`}>{ev.title}</Link>
                   </div>
                   <div className="meta">
-                    {ev.updatedAt ? `UPDATED ${formatDate(ev.updatedAt)}` : ""}
+                    {formatEventDateRange(ev.startDate, ev.endDate)}
                   </div>
                 </div>
               </Item>

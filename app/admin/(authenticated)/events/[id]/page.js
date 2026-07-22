@@ -20,6 +20,7 @@ import Link from "next/link";
 import dayjs from "dayjs";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
+import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import { ThemeAdminCard } from "@/styles/Theme";
 
 const { RangePicker } = DatePicker;
@@ -146,6 +147,7 @@ export default function AdminEventEditPage() {
               : undefined,
           location: data.location,
           isOnline: !!data.isOnline,
+          featured: data.featured === true,
           eventLink: data.eventLink,
           status: data.status,
           metaTitle: data.meta?.metaTitle,
@@ -183,6 +185,7 @@ export default function AdminEventEditPage() {
           time: timeStr,
           location: values.isOnline ? "" : values.location || "",
           isOnline: !!values.isOnline,
+          featured: values.featured === true,
           eventLink: values.eventLink || "",
           meta: {
             metaTitle: values.metaTitle,
@@ -282,6 +285,20 @@ export default function AdminEventEditPage() {
             >
               <Switch />
             </Form.Item>
+          </Col>
+          <Col xs={24} sm={12} xl={6}>
+            <SwitchSettingsCard
+              title="Event Options"
+              items={[
+                {
+                  name: "featured",
+                  label: "Featured Event",
+                  tooltip: "Show this event in the Events Slider when it is published.",
+                  checkedChildren: "On",
+                  unCheckedChildren: "Off",
+                },
+              ]}
+            />
           </Col>
 
           <Col xs={24} sm={12} xl={6}>

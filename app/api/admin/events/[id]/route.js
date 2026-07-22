@@ -53,6 +53,7 @@ export async function PUT(req, { params }) {
       time,
       location,
       isOnline,
+      featured,
       eventLink,
       tags,
       status,
@@ -95,6 +96,7 @@ export async function PUT(req, { params }) {
     if (endDate !== undefined) doc.endDate = parseOptionalDate(endDate);
     if (time !== undefined) doc.time = time;
     if (isOnline !== undefined) doc.isOnline = Boolean(isOnline);
+    if (featured !== undefined) doc.featured = featured === true;
     if (location !== undefined && !doc.isOnline) doc.location = location;
     if (doc.isOnline) doc.location = "";
     if (eventLink !== undefined) doc.eventLink = eventLink;

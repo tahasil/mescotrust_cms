@@ -2,61 +2,122 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Carousel, Col, Row } from "antd";
-import { LeftOutlined, RightOutlined } from "@ant-design/icons";
+import { Carousel } from "antd";
+import {
+  EnvironmentOutlined,
+  LeftOutlined,
+  RightOutlined,
+} from "@ant-design/icons";
 import styled from "styled-components";
 import {
   FullWidthBackground,
   PageContainer,
-  MainTitle,
-  SubTitle,
   getColor,
 } from "@/styles/Theme";
 import {
+  formatEventDateRange,
   getEventImageSources,
-  formatEventDayDate,
+  formatLocationLine,
 } from "@/components/events/eventDisplay";
-import { parseMarginTopBottomString } from "@/lib/manageSectionFields";
 import MediaImage from "@/components/shared/MediaImage";
 import { usePageReadyTask } from "@/lib/pageReadiness";
 
 const SliderWrapper = styled.div`
-  .carousel-shell {
-    position: relative;
-    padding: 0 72px;
-    @media (max-width: 1199px) {
-      padding: 0 58px;
-    }
-    @media (max-width: 767px) {
-      padding: 0;
+  --events-ink: #2a283e;
+  --events-ink-soft: rgba(42, 40, 62, 0.76);
+  --events-ink-muted: rgba(42, 40, 62, 0.52);
+  --events-border: rgba(42, 40, 62, 0.14);
+  --events-primary: #e03c33;
+  --events-surface: #fff;
+  color: var(--events-ink);
+  font-family: "Instrument Sans", system-ui, sans-serif;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+
+  .events-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: clamp(36px, 4vw, 56px);
+  }
+
+  .events-eyebrow {
+    margin: 0 0 18px;
+    color: var(--events-eyebrow, var(--events-primary));
+    font-size: 13px;
+    font-weight: 650;
+    letter-spacing: 0.16em;
+    line-height: 1.35;
+    text-transform: uppercase;
+  }
+
+  .events-title {
+    max-width: 16ch;
+    margin: 0;
+    color: var(--events-heading, var(--events-ink));
+    font-family: "Bricolage Grotesque", "Instrument Sans", system-ui,
+      sans-serif;
+    font-size: clamp(36px, 4.6vw, 64px);
+    font-weight: 620;
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+  }
+
+  .events-all-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 3px;
+    border-bottom: 1.5px solid currentColor;
+    color: var(--events-ink);
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s ease, gap 0.25s ease;
+    &:hover {
+      gap: 13px;
+      color: var(--events-primary);
     }
   }
 
-  .slide-card {
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 20px;
+  .carousel-shell {
+    position: relative;
     overflow: hidden;
-    background: #1c1d1d;
-    padding: 40px;
-    @media (max-width: 991px) {
-      padding: 32px;
-      border-radius: 20px;
-    }
-    @media (max-width: 576px) {
-      padding: 20px;
-      border-radius: 16px;
-    }
+    border: 1px solid var(--events-border);
+    border-radius: 20px;
+    background: var(--events-surface);
+  }
+
+  .slick-track {
+    transition-timing-function: cubic-bezier(0.77, 0, 0.18, 1) !important;
+  }
+
+  .slick-slide > div,
+  .slide-frame {
+    height: 100%;
+  }
+
+  .slide-frame {
+    min-width: 0;
+  }
+
+  .event-slide {
+    display: grid;
+    grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr);
+    min-height: clamp(340px, 32vw, 440px);
+    height: 100%;
   }
 
   .slide-image {
-    width: 100%;
-    height: 380px;
-    background: rgba(0, 0, 0, 0.04);
-    border-radius: 16px;
+    min-width: 0;
+    min-height: 0;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: rgba(42, 40, 62, 0.05);
     picture {
       width: 100%;
       height: 100%;
@@ -67,234 +128,330 @@ const SliderWrapper = styled.div`
       height: 100%;
       object-fit: cover;
       display: block;
+      transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    @media (max-width: 991px) {
-      height: 300px;
-      border-radius: 12px;
-    }
-    @media (max-width: 576px) {
-      height: 220px;
-    }
+  }
+
+  .event-slide:hover .slide-image img {
+    transform: scale(1.025);
+  }
+
+  .image-placeholder {
+    padding: 32px;
+    color: var(--events-ink-muted);
+    font-size: 14px;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-align: center;
   }
 
   .slide-content {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    height: 100%;
-    @media (max-width: 991px) {
-      margin-top: 16px;
-    }
+    gap: 14px;
+    min-width: 0;
+    padding: clamp(26px, 3.2vw, 56px);
   }
 
   .slide-date {
-    font-size: 14px;
-    font-weight: 500;
+    margin: 0;
+    color: var(--events-date, var(--events-primary));
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    line-height: 1.45;
     text-transform: uppercase;
-    letter-spacing: 0.6px;
-    color: rgba(0, 0, 0, 0.45);
-    margin-bottom: 10px;
   }
 
   .slide-title {
-    font-size: 24px;
+    margin: 0;
+    color: var(--events-ink);
+    font-family: "Bricolage Grotesque", "Instrument Sans", system-ui,
+      sans-serif;
+    font-size: clamp(23px, 2.3vw, 34px);
     font-weight: 600;
-    line-height: 1.25;
-    margin: 0 0 14px 0;
-    color: #fff;
-    @media (max-width: 576px) {
-      font-size: 18px;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+  }
+
+  .slide-location {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0;
+    color: var(--events-ink-muted);
+    font-size: 14.5px;
+    font-weight: 600;
+    .anticon {
+      flex: 0 0 auto;
+      color: var(--events-primary);
+      font-size: 16px;
     }
   }
 
   .slide-desc {
-    font-size: 15px;
-    line-height: 1.7;
-    color: rgba(0, 0, 0, 0.75);
-    margin: 0 0 22px 0;
-    overflow: hidden;
     display: -webkit-box;
-    -webkit-line-clamp: 6;
+    overflow: hidden;
     -webkit-box-orient: vertical;
-    @media (max-width: 991px) {
-      font-size: 14px;
-      margin-bottom: 16px;
-      -webkit-line-clamp: 5;
-    }
+    -webkit-line-clamp: 4;
+    max-width: 44ch;
+    margin: 0;
+    color: var(--events-description, var(--events-ink-soft));
+    font-size: 15.5px;
+    line-height: 1.6;
   }
 
   .slide-cta {
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 16px;
+    align-self: flex-start;
+    margin-top: 8px;
+    padding: 13px 26px;
     border-radius: var(--events-cta-radius, 999px);
-    background: var(--events-cta-bg, var(--primary-color, #8b1a1a));
-    color: var(--events-cta-text, #fff);
-    font-weight: 700;
+    background: var(--events-cta-bg, var(--events-ink));
+    color: var(--events-cta-text, #fbfaf7);
+    font-size: 15px;
+    font-weight: 600;
     text-decoration: none;
     width: fit-content;
+    transition:
+      transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+      background 0.25s ease,
+      box-shadow 0.25s ease;
+    &:hover {
+      color: var(--events-cta-text, #fbfaf7);
+      background: var(--events-cta-bg-hover, #000);
+      box-shadow: 0 12px 24px rgba(42, 40, 62, 0.16);
+      transform: translateY(-2px);
+    }
+    &:active {
+      transform: scale(0.97);
+    }
   }
 
   .slider-nav {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    pointer-events: none;
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 3;
-    @media (max-width: 767px) {
-      display: none;
-    }
+    gap: 16px;
   }
 
   .nav-btn {
-    width: 40px;
-    height: 40px;
-    border: 0;
-    border-radius: 50%;
-    background: var(--events-arrow-bg, var(--primary-color, #d0322f));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition:
-      transform 0.2s ease,
-      opacity 0.2s ease;
-    pointer-events: auto;
-    color: var(--events-arrow-color, #fff);
-    font-size: 14px;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
     padding: 0;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
-    flex-shrink: 0;
+    border: 1px solid var(--events-border);
+    border-radius: 50%;
+    background: var(--events-arrow-bg, var(--events-surface));
+    color: var(--events-arrow-color, var(--events-ink));
+    cursor: pointer;
+    font-size: 18px;
+    transition:
+      background 0.2s ease,
+      color 0.2s ease,
+      border-color 0.2s ease,
+      transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     &:hover {
-      transform: scale(1.04);
-      opacity: 0.92;
+      border-color: var(--events-ink);
+      background: var(--events-ink);
+      color: #fbfaf7;
+      transform: translateY(-2px);
     }
     &:active {
       transform: scale(0.98);
     }
   }
 
-  .dots-wrap {
+  .slider-foot {
+    position: absolute;
+    right: clamp(20px, 2.6vw, 44px);
+    bottom: clamp(20px, 2.4vw, 36px);
     display: flex;
     align-items: center;
-    justify-content: center;
-    margin-top: 20px;
+    gap: 16px;
+    z-index: 3;
   }
 
-  .slider-dots {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      border: 0;
-      background: rgba(0, 0, 0, 0.12);
-      cursor: pointer;
-      padding: 0;
+  .slider-count {
+    min-width: 58px;
+    color: var(--events-count, var(--events-ink-muted));
+    font-family: "Bricolage Grotesque", "Instrument Sans", system-ui,
+      sans-serif;
+    font-size: 14px;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-align: right;
+  }
+
+  @media (max-width: 1023px) {
+    .event-slide {
+      grid-template-columns: 1fr;
     }
-    .dot.active {
-      background: var(--events-dot-active, var(--primary-color, #8b1a1a));
+    .slide-image {
+      aspect-ratio: 16 / 9;
+    }
+    .slider-foot {
+      position: static;
+      justify-content: flex-end;
+      padding: 0 26px 26px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .events-head {
+      align-items: flex-start;
+      margin-bottom: 30px;
+    }
+    .events-eyebrow {
+      margin-bottom: 12px;
+    }
+    .events-title {
+      font-size: clamp(34px, 11vw, 48px);
+    }
+    .carousel-shell {
+      border-radius: 16px;
+    }
+    .slide-content {
+      gap: 12px;
+      padding: 24px 20px;
+    }
+    .slide-desc {
+      -webkit-line-clamp: 5;
+      font-size: 14.5px;
+    }
+    .slide-cta {
+      margin-top: 4px;
+    }
+    .slider-foot {
+      padding: 0 20px 20px;
+    }
+    .nav-btn {
+      width: 40px;
+      height: 40px;
+      font-size: 16px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .slide-image img,
+    .events-all-link,
+    .slide-cta,
+    .nav-btn {
+      transition-duration: 0.01ms !important;
     }
   }
 `;
 
-function buildBgStyles(props, prefix) {
-  const sectionBgType = (props?.[`${prefix}SectionBgType`] ?? "default")
-    .toString()
-    .trim();
-  const sectionBgImage = (props?.[`${prefix}SectionBgImage`] ?? "")
-    .toString()
-    .trim();
-  const sectionBgColorKey = (props?.[`${prefix}SectionBgColorKey`] ?? "")
-    .toString()
-    .trim();
-  const sectionPadding = (props?.[`${prefix}SectionPadding`] ?? "")
-    .toString()
-    .trim();
-  const sectionMargin = (props?.[`${prefix}SectionMargin`] ?? "")
-    .toString()
-    .trim();
+function padSlideNumber(value) {
+  return String(value).padStart(2, "0");
+}
 
-  const containerBgType = (props?.[`${prefix}PageContainerBgType`] ?? "default")
-    .toString()
-    .trim();
-  const containerBgImage = (props?.[`${prefix}PageContainerBgImage`] ?? "")
-    .toString()
-    .trim();
-  const containerBgColorKey = (
-    props?.[`${prefix}PageContainerBgColorKey`] ?? ""
-  )
-    .toString()
-    .trim();
-  const containerPadding = (props?.[`${prefix}PageContainerPadding`] ?? "")
-    .toString()
-    .trim();
-  const containerMargin = (props?.[`${prefix}PageContainerMargin`] ?? "")
-    .toString()
-    .trim();
+function getManagedNumber(value) {
+  if (value === null || value === undefined || value === "") return undefined;
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : undefined;
+}
 
-  const [sPT, sPB] = parseMarginTopBottomString(sectionPadding);
-  const [sMT, sMB] = parseMarginTopBottomString(sectionMargin);
-  const [cMT, cMB] = parseMarginTopBottomString(containerMargin);
+function getManagedWrapperProps(props) {
+  const prefix = "eventsSlider";
+  const sectionBgType = String(
+    props?.[`${prefix}SectionBgType`] || "default",
+  );
+  const containerBgType = String(
+    props?.[`${prefix}PageContainerBgType`] || "default",
+  );
+  const sectionBgImage = String(
+    props?.[`${prefix}SectionBgImage`] || "",
+  ).trim();
+  const containerBgImage = String(
+    props?.[`${prefix}PageContainerBgImage`] || "",
+  ).trim();
+  const sectionColorKey = String(
+    props?.[`${prefix}SectionBgColorKey`] || "",
+  ).trim();
+  const containerColorKey = String(
+    props?.[`${prefix}PageContainerBgColorKey`] || "",
+  ).trim();
 
-  const sectionBgStyle =
-    sectionBgType === "image" && sectionBgImage
-      ? {
-          backgroundImage: `url(${sectionBgImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }
-      : sectionBgType === "color" && sectionBgColorKey
-        ? { background: getColor(sectionBgColorKey) }
-        : undefined;
-
-  const sectionStyle = {
-    ...(sectionBgStyle || {}),
-    ...(sPT != null ? { paddingTop: `${sPT}px` } : {}),
-    ...(sPB != null ? { paddingBottom: `${sPB}px` } : {}),
-    ...(sMT != null ? { marginTop: `${sMT}px` } : {}),
-    ...(sMB != null ? { marginBottom: `${sMB}px` } : {}),
+  return {
+    sectionClassName:
+      sectionBgType === "default"
+        ? "defaultBackground events-slider-background"
+        : "events-slider-background",
+    sectionProps: {
+      $managedBackgroundImage:
+        sectionBgType === "image" ? sectionBgImage || undefined : undefined,
+      $managedBackgroundColor:
+        sectionBgType === "color" && sectionColorKey
+          ? getColor(sectionColorKey)
+          : undefined,
+      $managedPaddingTop: getManagedNumber(
+        props?.[`${prefix}SectionPaddingTop`],
+      ),
+      $managedPaddingBottom: getManagedNumber(
+        props?.[`${prefix}SectionPaddingBottom`],
+      ),
+      $managedMarginTop: getManagedNumber(
+        props?.[`${prefix}SectionMarginTop`],
+      ),
+      $managedMarginBottom: getManagedNumber(
+        props?.[`${prefix}SectionMarginBottom`],
+      ),
+    },
+    containerProps: {
+      $managedBackgroundImage:
+        containerBgType === "image"
+          ? containerBgImage || undefined
+          : undefined,
+      $managedBackgroundColor:
+        containerBgType === "color" && containerColorKey
+          ? getColor(containerColorKey)
+          : undefined,
+      $managedPaddingTop: getManagedNumber(
+        props?.[`${prefix}PageContainerPaddingTop`],
+      ),
+      $managedPaddingRight: getManagedNumber(
+        props?.[`${prefix}PageContainerPaddingRight`],
+      ),
+      $managedPaddingBottom: getManagedNumber(
+        props?.[`${prefix}PageContainerPaddingBottom`],
+      ),
+      $managedPaddingLeft: getManagedNumber(
+        props?.[`${prefix}PageContainerPaddingLeft`],
+      ),
+      $managedMarginTop: getManagedNumber(
+        props?.[`${prefix}PageContainerMarginTop`],
+      ),
+      $managedMarginBottom: getManagedNumber(
+        props?.[`${prefix}PageContainerMarginBottom`],
+      ),
+    },
   };
-
-  const pageContainerBgStyle =
-    containerBgType === "image" && containerBgImage
-      ? {
-          backgroundImage: `url(${containerBgImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }
-      : containerBgType === "color" && containerBgColorKey
-        ? { background: getColor(containerBgColorKey) }
-        : undefined;
-
-  const pageContainerStyle = {
-    ...(pageContainerBgStyle || {}),
-    ...(cMT != null ? { marginTop: `${cMT}px` } : {}),
-    ...(cMB != null ? { marginBottom: `${cMB}px` } : {}),
-  };
-
-  return { sectionStyle, pageContainerStyle };
 }
 
 export default function EventsSlider(props) {
-  const prefix = "eventsSlider";
   const carouselRef = useRef(null);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [reduceMotion, setReduceMotion] = useState(false);
 
-  const subTitle = (props?.eventsSliderSubTitle ?? "Upcoming")
+  const subTitle = (props?.eventsSliderSubTitle ?? "Events")
     .toString()
     .trim();
-  const mainTitle = (props?.eventsSliderMainTitle ?? "Events")
+  const mainTitle = (props?.eventsSliderMainTitle ?? "Save the date.")
     .toString()
     .trim();
+  const usesLegacyDefaultTitles =
+    subTitle.toLowerCase() === "upcoming" &&
+    mainTitle.toLowerCase() === "events";
+  const displaySubTitle = usesLegacyDefaultTitles ? "Events" : subTitle;
+  const displayMainTitle = usesLegacyDefaultTitles ? "Save the date." : mainTitle;
   const titleEnabled = props?.eventsSliderTitleEnabled !== false;
   const subTitleEnabled = props?.eventsSliderSubTitleEnabled !== false;
   const limit = Math.min(
@@ -310,7 +467,7 @@ export default function EventsSlider(props) {
     .trim();
   const subTitleColor = subTitleColorKey
     ? getColor(subTitleColorKey)
-    : getColor("black");
+    : getColor("primary");
   const mainTitleColor = mainTitleColorKey
     ? getColor(mainTitleColorKey)
     : getColor("black");
@@ -341,18 +498,18 @@ export default function EventsSlider(props) {
       : 999;
   const buttonSize = (props?.eventsSliderButtonSize ?? "md").toString().trim();
 
-  const autoplay = props?.eventsSliderAutoplay === true;
+  const autoplay = props?.eventsSliderAutoplay !== false;
   const showArrows = props?.eventsSliderShowArrows !== false;
   const showDots = props?.eventsSliderShowDots !== false;
   const infinite = props?.eventsSliderInfinite !== false;
   const autoplaySpeed =
     props?.eventsSliderAutoplaySpeed != null
       ? Math.max(1000, Number(props.eventsSliderAutoplaySpeed))
-      : 5000;
+      : 6000;
   const speed =
     props?.eventsSliderSpeed != null
       ? Math.max(200, Number(props.eventsSliderSpeed))
-      : 450;
+      : 750;
 
   const dateColor = dateColorKey ? getColor(dateColorKey) : null;
   const descColor = descColorKey ? getColor(descColorKey) : null;
@@ -361,32 +518,66 @@ export default function EventsSlider(props) {
   const dotActiveColor = dotActiveColorKey ? getColor(dotActiveColorKey) : null;
   const buttonBg = buttonBgColorKey ? getColor(buttonBgColorKey) : null;
   const buttonText = buttonTextColorKey ? getColor(buttonTextColorKey) : null;
-
-  const { sectionStyle, pageContainerStyle } = buildBgStyles(props, prefix);
+  const { sectionClassName, sectionProps, containerProps } =
+    getManagedWrapperProps(props);
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   usePageReadyTask(loading, "events-slider");
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const syncMotionPreference = () => setReduceMotion(mediaQuery.matches);
+    syncMotionPreference();
+    mediaQuery.addEventListener?.("change", syncMotionPreference);
+    return () =>
+      mediaQuery.removeEventListener?.("change", syncMotionPreference);
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
-    (async () => {
+    let initialRequest = true;
+
+    const loadFeaturedEvents = async () => {
       try {
-        const res = await fetch(`/api/events?limit=${limit}&sort=${sort}`, {
+        const params = new URLSearchParams({
+          limit: String(limit),
+          sort,
+          featured: "true",
+        });
+        const res = await fetch(`/api/events?${params.toString()}`, {
           cache: "no-store",
         });
-        const data = res.ok ? await res.json() : {};
+        if (!res.ok) throw new Error("Featured events could not be loaded.");
+        const data = await res.json();
         if (!cancelled) {
-          setItems(Array.isArray(data.items) ? data.items : []);
+          const nextItems = Array.isArray(data.items) ? data.items : [];
+          setItems(nextItems);
+          setCurrentSlide((current) =>
+            current < nextItems.length ? current : 0,
+          );
         }
       } catch {
-        if (!cancelled) setItems([]);
+        if (!cancelled && initialRequest) setItems([]);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled && initialRequest) {
+          initialRequest = false;
+          setLoading(false);
+        }
       }
-    })();
+    };
+
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") loadFeaturedEvents();
+    };
+
+    loadFeaturedEvents();
+    window.addEventListener("focus", loadFeaturedEvents);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
     return () => {
       cancelled = true;
+      window.removeEventListener("focus", loadFeaturedEvents);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
     };
   }, [limit, sort]);
 
@@ -398,46 +589,25 @@ export default function EventsSlider(props) {
 
   const btnPadding =
     buttonSize === "sm"
-      ? "8px 12px"
+      ? "10px 20px"
       : buttonSize === "lg"
-        ? "12px 18px"
-        : "10px 16px";
-  const btnFontSize = buttonSize === "sm" ? 13 : buttonSize === "lg" ? 15 : 14;
+        ? "16px 32px"
+        : "13px 26px";
+  const btnFontSize = buttonSize === "sm" ? 14 : buttonSize === "lg" ? 16 : 15;
 
   return (
-    <FullWidthBackground
-      style={Object.keys(sectionStyle).length ? sectionStyle : undefined}
-    >
-      <PageContainer
-        style={
-          Object.keys(pageContainerStyle).length
-            ? pageContainerStyle
-            : undefined
-        }
-      >
-        <Row gutter={[16, 16]}>
-          <Col
-            span={{ span: 24, offset: 0 }}
-            sm={{ span: 24, offset: 0 }}
-            md={{ span: 10, offset: 7 }}
-            lg={{ span: 10, offset: 7 }}
-            className="mb-4 text-center"
-          >
-            {subTitleEnabled && subTitle ? (
-              <SubTitle color={subTitleColor}>{subTitle}</SubTitle>
-            ) : null}
-            {titleEnabled && mainTitle ? (
-              <MainTitle color={mainTitleColor}>{mainTitle}</MainTitle>
-            ) : null}
-          </Col>
-        </Row>
-
+    <FullWidthBackground className={sectionClassName} {...sectionProps}>
+      <PageContainer className="events-slider-container" {...containerProps}>
         <SliderWrapper
           style={{
+            ...(subTitleColor ? { "--events-eyebrow": subTitleColor } : {}),
+            ...(mainTitleColor ? { "--events-heading": mainTitleColor } : {}),
+            ...(dateColor ? { "--events-date": dateColor } : {}),
+            ...(descColor ? { "--events-description": descColor } : {}),
             ...(arrowColor ? { "--events-arrow-color": arrowColor } : {}),
             ...(arrowBgColor ? { "--events-arrow-bg": arrowBgColor } : {}),
             ...(dotActiveColor
-              ? { "--events-dot-active": dotActiveColor }
+              ? { "--events-count": dotActiveColor }
               : {}),
             ...(buttonBg ? { "--events-cta-bg": buttonBg } : {}),
             ...(buttonText ? { "--events-cta-text": buttonText } : {}),
@@ -446,149 +616,137 @@ export default function EventsSlider(props) {
               : {}),
           }}
         >
-          <div className="px-1">
-            <div className="carousel-shell">
-              <Carousel
-                ref={carouselRef}
-                dots={false}
-                infinite={infinite && items.length > 1}
-                autoplay={autoplay}
-                autoplaySpeed={autoplaySpeed}
-                speed={speed}
-                afterChange={(idx) => setCurrentSlide(idx)}
-              >
-                {items.map((ev) => {
-                  const { desktop, mobile } = getEventImageSources(ev);
-                  const href = `/events/${ev.slug}`;
-                  const dateLabel = formatEventDayDate(
-                    ev.startDate || ev.endDate,
-                  );
-                  const desc = (ev?.description ?? "").toString().trim();
-                  return (
-                    <div key={ev._id || ev.slug}>
-                      <div className="slide-card">
-                        <Row gutter={[32, 24]} align="stretch">
-                          <Col xs={24} md={24} lg={10}>
-                            <div className="slide-image">
-                              {desktop || mobile ? (
-                                <MediaImage
-                                  src={desktop || mobile}
-                                  mobileSrc={mobile || ""}
-                                  alt={ev.title || "Event"}
-                                  width={1280}
-                                  height={720}
-                                  sizes="(max-width: 992px) 100vw, 45vw"
-                                  imgStyle={{
-                                    width: "100%",
-                                    height: "100%",
-                                    objectFit: "cover",
-                                    display: "block",
-                                  }}
-                                />
-                              ) : (
-                                <span
-                                  style={{
-                                    color: "rgba(0,0,0,0.25)",
-                                    fontSize: 16,
-                                    fontWeight: 600,
-                                  }}
-                                >
-                                  IMAGE PLACEHOLDER
-                                </span>
-                              )}
-                            </div>
-                          </Col>
-                          <Col xs={24} md={24} lg={14}>
-                            <div className="slide-content">
-                              {dateLabel ? (
-                                <div
-                                  className="slide-date"
-                                  style={
-                                    dateColor ? { color: dateColor } : undefined
-                                  }
-                                >
-                                  {dateLabel}
-                                </div>
-                              ) : null}
-                              <h2 className="slide-title">
-                                <Link
-                                  href={href}
-                                  style={{
-                                    color: "inherit",
-                                    textDecoration: "none",
-                                  }}
-                                >
-                                  {ev.title}
-                                </Link>
-                              </h2>
-                              {desc ? (
-                                <p
-                                  className="slide-desc"
-                                  style={
-                                    descColor ? { color: descColor } : undefined
-                                  }
-                                >
-                                  {desc}
-                                </p>
-                              ) : null}
-                              <Link
-                                href={href}
-                                className="slide-cta"
-                                style={{
-                                  borderRadius: Number.isFinite(buttonRadius)
-                                    ? buttonRadius
-                                    : 999,
-                                  padding: btnPadding,
-                                  fontSize: btnFontSize,
-                                }}
-                              >
-                                View Details
-                              </Link>
-                            </div>
-                          </Col>
-                        </Row>
+          <div className="events-head">
+            <div>
+              {subTitleEnabled && displaySubTitle ? (
+                <p className="events-eyebrow">{displaySubTitle}</p>
+              ) : null}
+              {titleEnabled && displayMainTitle ? (
+                <h2 className="events-title">{displayMainTitle}</h2>
+              ) : null}
+            </div>
+            <Link href="/events" className="events-all-link">
+              All events <RightOutlined aria-hidden="true" />
+            </Link>
+          </div>
+
+          <div
+            className="carousel-shell"
+            role="region"
+            aria-roledescription="carousel"
+            aria-label="Featured events"
+          >
+            <Carousel
+              ref={carouselRef}
+              dots={false}
+              infinite={infinite && items.length > 1}
+              autoplay={autoplay && !reduceMotion && items.length > 1}
+              autoplaySpeed={autoplaySpeed}
+              speed={reduceMotion ? 0 : speed}
+              draggable={items.length > 1}
+              pauseOnHover
+              afterChange={(idx) => setCurrentSlide(idx)}
+            >
+              {items.map((ev) => {
+                const { desktop, mobile } = getEventImageSources(ev);
+                const href = `/events/${ev.slug}`;
+                const dateLabel = formatEventDateRange(
+                  ev?.startDate,
+                  ev?.endDate,
+                );
+                const location = formatLocationLine(ev);
+                const desc = (ev?.description ?? "").toString().trim();
+                return (
+                  <div className="slide-frame" key={ev._id || ev.slug}>
+                    <article className="event-slide">
+                      <div className="slide-image">
+                        {desktop || mobile ? (
+                          <MediaImage
+                            src={desktop || mobile}
+                            mobileSrc={mobile || ""}
+                            alt={ev.title || "Event"}
+                            width={1280}
+                            height={720}
+                            sizes="(max-width: 1023px) 90vw, 54vw"
+                            imgStyle={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                              display: "block",
+                            }}
+                          />
+                        ) : (
+                          <span className="image-placeholder">
+                            Image unavailable
+                          </span>
+                        )}
                       </div>
-                    </div>
-                  );
-                })}
-              </Carousel>
-              {items.length > 1 && showArrows && (
-                <div className="slider-nav">
+                      <div className="slide-content">
+                        {dateLabel ? (
+                          <p className="slide-date">{dateLabel}</p>
+                        ) : null}
+                        <h3 className="slide-title">
+                          <Link href={href}>{ev.title}</Link>
+                        </h3>
+                        {location ? (
+                          <p className="slide-location">
+                            <EnvironmentOutlined aria-hidden="true" />
+                            <span>{location}</span>
+                          </p>
+                        ) : null}
+                        {desc ? <p className="slide-desc">{desc}</p> : null}
+                        <Link
+                          href={href}
+                          className="slide-cta"
+                          style={{
+                            borderRadius: Number.isFinite(buttonRadius)
+                              ? buttonRadius
+                              : 999,
+                            padding: btnPadding,
+                            fontSize: btnFontSize,
+                          }}
+                        >
+                          View Details
+                        </Link>
+                      </div>
+                    </article>
+                  </div>
+                );
+              })}
+            </Carousel>
+
+            {(showDots || (items.length > 1 && showArrows)) && (
+              <div className="slider-foot">
+                {showDots ? (
+                  <span className="slider-count" aria-live="polite">
+                    {padSlideNumber(currentSlide + 1)} / {padSlideNumber(items.length)}
+                  </span>
+                ) : null}
+                {items.length > 1 && showArrows ? (
+                  <div className="slider-nav">
                   <button
+                    type="button"
                     className="nav-btn"
                     onClick={() => carouselRef.current?.prev()}
-                    aria-label="Previous"
+                    aria-label="Previous event"
                   >
                     <LeftOutlined />
                   </button>
                   <button
+                    type="button"
                     className="nav-btn"
                     onClick={() => carouselRef.current?.next()}
-                    aria-label="Next"
+                    aria-label="Next event"
                   >
                     <RightOutlined />
                   </button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {items.length > 1 && showDots && (
-            <div className="dots-wrap">
-              <div className="slider-dots" aria-label="Slides">
-                {items.map((_, idx) => (
-                  <button
-                    key={idx}
-                    className={`dot${idx === currentSlide ? " active" : ""}`}
-                    onClick={() => carouselRef.current?.goTo(idx)}
-                    aria-label={`Go to slide ${idx + 1}`}
-                  />
-                ))}
+                  </div>
+                ) : null}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </SliderWrapper>
-      </PageContainer>
+        </PageContainer>
     </FullWidthBackground>
   );
 }
