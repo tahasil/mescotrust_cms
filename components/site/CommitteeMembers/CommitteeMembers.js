@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card, Button, Modal } from "antd";
+import { Button, Modal } from "antd";
 import styled from "styled-components";
 import {
   FullWidthBackground,
@@ -10,133 +10,74 @@ import {
 } from "@/styles/Theme";
 
 /* ── Styled Components ── */
-const CardWrapper = styled.div`
+const CardWrapper = styled.article`
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 24px;
-  overflow: hidden;
-  z-index: 0;
-  &:hover {
-    z-index: 2;
-    box-shadow:
-      0 4px 10px rgba(0, 0, 0, 0.12),
-      0 4px 8px rgba(0, 0, 0, 0.08);
-  }
-`;
+  cursor: ${(props) => (props.$interactive ? "pointer" : "default")};
+  background: ${() => getColor("surface")};
 
-const CommitteeCard = styled(Card)`
-  width: 100%;
-  height: 100%;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 24px !important;
-  overflow: hidden;
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  background: ${() => getColor("white")};
-  .ant-card-cover {
-    border-radius: 24px 24px 0 0;
+  picture {
+    display: block;
+    width: 100%;
     overflow: hidden;
-    position: relative;
-    > * {
-      width: 100%;
-      display: block;
-    }
-    img {
-      width: 100%;
-      height: auto;
-      object-fit: cover;
-      transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
+    border-radius: 14px;
   }
-  .card-wrapper:hover & .ant-card-cover img {
+
+  .fable-person__photo {
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  &:hover {
+    z-index: 1;
+  }
+
+  &:hover .fable-person__photo {
     transform: scale(1.1);
   }
-  .ant-card-body {
-    padding: 0;
-    border-radius: 0 0 24px 24px;
-    overflow: hidden;
-  }
-  .card-wrapper:hover & {
-    border-color: rgba(0, 0, 0, 0.12);
-  }
-`;
 
-const CardBodyWrapper = styled.div`
-  position: relative;
-  padding: 24px 20px;
-  text-align: center;
-  min-height: 120px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  .name {
-    font-size: 16px;
-    font-weight: 700;
-    line-height: 1.4;
-    color: ${() => getColor("black")};
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    margin-bottom: 6px;
-    @media (max-width: 768px) {
-      font-size: 14px;
-    }
-  }
-  .qualification {
-    font-size: 13px;
-    font-weight: 400;
-    line-height: 1.4;
-    color: ${() => getColor("black")};
-    opacity: 0.6;
-    margin-bottom: 4px;
-    @media (max-width: 768px) {
-      font-size: 12px;
-    }
-  }
-  .title {
-    font-size: 13px;
-    font-weight: 400;
-    line-height: 1.4;
-    color: ${() => getColor("black")};
-    opacity: 0.6;
-    @media (max-width: 768px) {
-      font-size: 12px;
-    }
+  &:focus-visible {
+    outline: 3px solid ${() => getColor("primary")};
+    outline-offset: 3px;
   }
 `;
 
 const ProfileOverlay = styled.div`
   position: absolute;
   inset: 0;
-  border-radius: 24px;
-  background: rgba(0, 0, 0, 0.1);
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
-  transform: scale(0);
+  overflow: hidden;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.1);
   opacity: 0;
   pointer-events: none;
-  transform-origin: center center;
+  transform: scale(0);
+  transform-origin: center;
   transition:
     transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
     opacity 0.25s ease;
-  z-index: 2;
-  .card-wrapper:hover & {
-    transform: scale(1);
+
+  .fable-person:hover &,
+  .fable-person:focus-within & {
     opacity: 1;
     pointer-events: auto;
+    transform: scale(1);
   }
 `;
 
 const ViewProfileBtn = styled(Button)`
   && {
+    height: 44px;
     padding: 0 24px;
-    font-size: 14px;
-    font-weight: 500;
+    color: var(--committee-button-text);
+    background: var(--committee-button-bg);
+    border-color: var(--committee-button-border);
     border-radius: 30px;
-    background: ${() => getColor("primary")};
-    border-color: ${() => getColor("primary")};
-    color: ${() => getColor("white")};
+    font-size: 14px;
+    font-weight: 600;
     opacity: 0;
     transform: scale(0.9);
     transition:
@@ -145,15 +86,36 @@ const ViewProfileBtn = styled(Button)`
       background 0.25s ease,
       border-color 0.25s ease,
       color 0.25s ease;
-    .card-wrapper:hover & {
+
+    .fable-person:hover &,
+    .fable-person:focus-within & {
       opacity: 1;
       transform: scale(1);
     }
-    &:hover {
-      background: ${() => getColor("white")} !important;
-      border-color: ${() => getColor("primary")} !important;
-      color: ${() => getColor("primary")} !important;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--committee-button-hover-text) !important;
+      background: var(--committee-button-hover-bg) !important;
+      border-color: var(--committee-button-hover-border) !important;
     }
+  }
+`;
+
+const CardBodyWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+
+  .name {
+    margin: 0;
+    color: var(--committee-card-title);
+  }
+
+  .meta {
+    margin: 0;
+    color: var(--committee-card-description);
   }
 `;
 
@@ -170,8 +132,7 @@ const ProfileDetailUI = styled.div`
     width: 160px;
     border-radius: 12px;
     overflow: hidden;
-    border: 1px solid
-      ${(props) => getColor("themeBorder") || "rgba(0, 0, 0, 0.14)"};
+    border: 1px solid var(--committee-modal-image-border);
     background: #fff;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04);
     img {
@@ -191,7 +152,7 @@ const ProfileDetailUI = styled.div`
   .profile-detail-name {
     font-size: 20px;
     font-weight: 600;
-    color: ${() => getColor("black")};
+    color: var(--committee-modal-name);
     text-transform: uppercase;
     letter-spacing: 0.02em;
     @media (max-width: 768px) {
@@ -200,20 +161,19 @@ const ProfileDetailUI = styled.div`
   }
   .profile-detail-qualification {
     font-size: 14px;
-    color: ${() => getColor("black")};
-    opacity: 0.6;
+    color: var(--committee-modal-qualification);
     margin-bottom: 4px;
   }
   .profile-detail-title {
     font-size: 14px;
     font-weight: 600;
-    color: ${() => getColor("primary")};
+    color: var(--committee-modal-role);
   }
   .profile-detail-bio {
     position: relative;
     font-size: 14px;
     line-height: 1.6;
-    color: ${() => getColor("black")};
+    color: var(--committee-modal-bio);
     margin-top: 18px;
     padding-top: 18px;
   }
@@ -224,7 +184,7 @@ const ProfileDetailUI = styled.div`
     left: 0;
     right: 0;
     height: 1px;
-    background: rgba(0, 0, 0, 0.14);
+    background: var(--committee-modal-divider);
   }
 `;
 
@@ -300,6 +260,27 @@ export default function CommitteeMembers(props) {
     .toString()
     .trim();
   const titleColor = titleColorKey ? getColor(titleColorKey) : undefined;
+  const componentColor = (key, fallback) => {
+    const value = String(props?.[key] ?? "").trim();
+    return value ? getColor(value) : getColor(fallback);
+  };
+  const componentColorVars = {
+    "--committee-card-title": componentColor("committeeMembersCardTitleColorKey", "black"),
+    "--committee-card-description": componentColor("committeeMembersCardDescriptionColorKey", "blackMuted"),
+    "--committee-button-bg": componentColor("committeeMembersButtonBgColorKey", "primary"),
+    "--committee-button-text": componentColor("committeeMembersButtonTextColorKey", "white"),
+    "--committee-button-border": componentColor("committeeMembersButtonBorderColorKey", "primary"),
+    "--committee-button-hover-bg": componentColor("committeeMembersButtonHoverBgColorKey", "white"),
+    "--committee-button-hover-text": componentColor("committeeMembersButtonHoverTextColorKey", "primary"),
+    "--committee-button-hover-border": componentColor("committeeMembersButtonHoverBorderColorKey", "primary"),
+    "--committee-modal-bg": componentColor("committeeMembersModalBgColorKey", "white"),
+    "--committee-modal-name": componentColor("committeeMembersModalNameColorKey", "black"),
+    "--committee-modal-qualification": componentColor("committeeMembersModalQualificationColorKey", "blackMuted"),
+    "--committee-modal-role": componentColor("committeeMembersModalRoleColorKey", "primary"),
+    "--committee-modal-bio": componentColor("committeeMembersModalBioColorKey", "black"),
+    "--committee-modal-divider": componentColor("committeeMembersModalDividerColorKey", "border"),
+    "--committee-modal-image-border": componentColor("committeeMembersModalImageBorderColorKey", "border"),
+  };
 
   /* ── Members ── */
   const rawItems = Array.isArray(props?.committeeMembersItems)
@@ -457,7 +438,7 @@ export default function CommitteeMembers(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
-        <div className="fable-section">
+        <div className="fable-section" style={componentColorVars}>
             {subTitle ? <p className="fable-eyebrow" style={{ color: subTitleColor }}>{subTitle}</p> : null}
             <h2
               className="fable-heading"
@@ -468,57 +449,52 @@ export default function CommitteeMembers(props) {
               {String(mainTitle).split(/(\*[^*]+\*)/g).map((part, index) => part.startsWith("*") && part.endsWith("*") ? <em key={index}>{part.slice(1, -1)}</em> : <span key={index}>{part}</span>)}
             </h2>
         <div className="fable-people">
-          {members.map((member, idx) => (
-              <CardWrapper className="card-wrapper fable-person" key={`${member.name}-${idx}`}>
-                <CommitteeCard
-                  cover={
-                    member.imageDesktop || member.imageMobile ? (
-                      <picture>
-                        {member.imageMobile ? (
-                          <source media="(max-width: 767px)" srcSet={member.imageMobile} />
-                        ) : null}
-                        <img
-                          loading="lazy"
-                          className="fable-person__photo"
-                          src={member.imageDesktop || member.imageMobile}
-                          alt={member.name}
-                        />
-                      </picture>
-                    ) : undefined
-                  }
-                >
-                  <CardBodyWrapper>
-                    <h3 className="name">{member.name}</h3>
-                    {member.qualification && (
-                      <div className="qualification">
-                        {member.qualification}
-                      </div>
-                    )}
-                    {member.title && (
-                      <div className="title">{member.title}</div>
-                    )}
-                  </CardBodyWrapper>
-                </CommitteeCard>
+          {members.map((member, idx) => {
+            const meta = [member.title, member.qualification]
+              .filter(Boolean)
+              .join(" · ");
+            const openProfile = () => {
+              setSelectedMember(member);
+              setProfileModalOpen(true);
+            };
+
+            return (
+              <CardWrapper
+                className="fable-person"
+                key={`${member.name}-${idx}`}
+                $interactive
+              >
+                {member.imageDesktop || member.imageMobile ? (
+                  <picture>
+                    {member.imageMobile ? (
+                      <source media="(max-width: 767px)" srcSet={member.imageMobile} />
+                    ) : null}
+                    <img
+                      loading="lazy"
+                      className="fable-person__photo"
+                      src={member.imageDesktop || member.imageMobile}
+                      alt={member.name}
+                    />
+                  </picture>
+                ) : null}
+                <CardBodyWrapper>
+                  <h3 className="name">{member.name}</h3>
+                  {meta ? <p className="meta">{meta}</p> : null}
+                </CardBodyWrapper>
                 <ProfileOverlay>
-                  <ViewProfileBtn
-                    type="primary"
-                    size="large"
-                    onClick={() => {
-                      setSelectedMember(member);
-                      setProfileModalOpen(true);
-                    }}
-                  >
+                  <ViewProfileBtn type="primary" onClick={openProfile}>
                     View Profile
                   </ViewProfileBtn>
                 </ProfileOverlay>
               </CardWrapper>
-          ))}
+            );
+          })}
         </div>
-        <style>{`.fable-person.card-wrapper { padding: 0; }`}</style>
         </div>
       </PageContainer>
 
       <Modal
+        className="committee-members-modal"
         open={profileModalOpen}
         onCancel={() => {
           setProfileModalOpen(false);
@@ -528,6 +504,12 @@ export default function CommitteeMembers(props) {
         width={640}
         centered
         destroyOnClose
+        styles={{
+          content: {
+            background: componentColorVars["--committee-modal-bg"],
+            ...componentColorVars,
+          },
+        }}
       >
         {selectedMember && (
           <ProfileDetailUI>

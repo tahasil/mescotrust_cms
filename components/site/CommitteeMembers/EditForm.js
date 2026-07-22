@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, InputNumber, Row, Col, Collapse, message, Spin } from "antd";
+import { Form, Input, Row, Col, Collapse, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
@@ -81,6 +81,21 @@ function applyFormValues(form, data) {
     committeeMembersMainTitle: data?.committeeMembersMainTitle ?? "Committee Members",
     committeeMembersSubTitleColorKey: data?.committeeMembersSubTitleColorKey ?? "",
     committeeMembersTitleColorKey: data?.committeeMembersTitleColorKey ?? "",
+    committeeMembersCardTitleColorKey: data?.committeeMembersCardTitleColorKey ?? "",
+    committeeMembersCardDescriptionColorKey: data?.committeeMembersCardDescriptionColorKey ?? "",
+    committeeMembersButtonBgColorKey: data?.committeeMembersButtonBgColorKey ?? "",
+    committeeMembersButtonTextColorKey: data?.committeeMembersButtonTextColorKey ?? "",
+    committeeMembersButtonBorderColorKey: data?.committeeMembersButtonBorderColorKey ?? "",
+    committeeMembersButtonHoverBgColorKey: data?.committeeMembersButtonHoverBgColorKey ?? "",
+    committeeMembersButtonHoverTextColorKey: data?.committeeMembersButtonHoverTextColorKey ?? "",
+    committeeMembersButtonHoverBorderColorKey: data?.committeeMembersButtonHoverBorderColorKey ?? "",
+    committeeMembersModalBgColorKey: data?.committeeMembersModalBgColorKey ?? "",
+    committeeMembersModalNameColorKey: data?.committeeMembersModalNameColorKey ?? "",
+    committeeMembersModalQualificationColorKey: data?.committeeMembersModalQualificationColorKey ?? "",
+    committeeMembersModalRoleColorKey: data?.committeeMembersModalRoleColorKey ?? "",
+    committeeMembersModalBioColorKey: data?.committeeMembersModalBioColorKey ?? "",
+    committeeMembersModalDividerColorKey: data?.committeeMembersModalDividerColorKey ?? "",
+    committeeMembersModalImageBorderColorKey: data?.committeeMembersModalImageBorderColorKey ?? "",
     committeeMembersItems: items,
     ...getManageSectionInitialValues(PREFIX, data),
   });
@@ -144,6 +159,21 @@ function CommitteeMembersEditForm({ source, initialData: initialDataProp, onSave
         committeeMembersMainTitle: values.committeeMembersMainTitle ?? "",
         committeeMembersSubTitleColorKey: values.committeeMembersSubTitleColorKey ?? "",
         committeeMembersTitleColorKey: values.committeeMembersTitleColorKey ?? "",
+        committeeMembersCardTitleColorKey: values.committeeMembersCardTitleColorKey ?? "",
+        committeeMembersCardDescriptionColorKey: values.committeeMembersCardDescriptionColorKey ?? "",
+        committeeMembersButtonBgColorKey: values.committeeMembersButtonBgColorKey ?? "",
+        committeeMembersButtonTextColorKey: values.committeeMembersButtonTextColorKey ?? "",
+        committeeMembersButtonBorderColorKey: values.committeeMembersButtonBorderColorKey ?? "",
+        committeeMembersButtonHoverBgColorKey: values.committeeMembersButtonHoverBgColorKey ?? "",
+        committeeMembersButtonHoverTextColorKey: values.committeeMembersButtonHoverTextColorKey ?? "",
+        committeeMembersButtonHoverBorderColorKey: values.committeeMembersButtonHoverBorderColorKey ?? "",
+        committeeMembersModalBgColorKey: values.committeeMembersModalBgColorKey ?? "",
+        committeeMembersModalNameColorKey: values.committeeMembersModalNameColorKey ?? "",
+        committeeMembersModalQualificationColorKey: values.committeeMembersModalQualificationColorKey ?? "",
+        committeeMembersModalRoleColorKey: values.committeeMembersModalRoleColorKey ?? "",
+        committeeMembersModalBioColorKey: values.committeeMembersModalBioColorKey ?? "",
+        committeeMembersModalDividerColorKey: values.committeeMembersModalDividerColorKey ?? "",
+        committeeMembersModalImageBorderColorKey: values.committeeMembersModalImageBorderColorKey ?? "",
         committeeMembersItems: (values.committeeMembersItems || []).map(normalizeItem),
         ...getManageSectionPayload(PREFIX, values),
       };

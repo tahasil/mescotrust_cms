@@ -70,6 +70,7 @@ async function main() {
           $unset: {
             "layout.$[committee].props.committeeMembersTitleFontSize": "",
             "layout.$[committee].props.committeeMembersTitleFontWeight": "",
+            "layout.$[committee].props.committeeMembersLeadCount": "",
           },
         },
         {
