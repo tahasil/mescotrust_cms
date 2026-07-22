@@ -1209,6 +1209,7 @@ a {
 }
 
 .fable-page-hero.fable-page-hero > div {
+  padding-block: 0;
   z-index: 1;
 }
 
@@ -1231,7 +1232,7 @@ a {
 }
 
 .fable-page-hero .fable-page-hero__title {
-  max-width: 16ch;
+  max-width: 15ch;
   margin: 0 0 20px;
   color: var(--theme-cream, #fbfaf7);
   font-family: var(--fable-display);
@@ -1256,8 +1257,8 @@ a {
 }
 
 @media (max-width: 767px) {
-  .fable-page-hero.fable-page-hero {
-    padding-top: 72px;
+  .fable-page-hero.fable-page-hero > div {
+    padding-inline: 20px;
   }
 
   .fable-page-hero .fable-page-hero__content {
