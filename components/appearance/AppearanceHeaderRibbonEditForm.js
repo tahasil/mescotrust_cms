@@ -1,22 +1,87 @@
 "use client";
 
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
-import { Col, Collapse, Form, Input, InputNumber, Row, Select, Spin, Switch, message } from "antd";
-import SortableFormList from "@/components/admin/SortableFormList";
+import {
+  Collapse,
+  Form,
+  Input,
+  List,
+  Select,
+  Spin,
+  Switch,
+  Tooltip,
+  message,
+} from "antd";
+import { QuestionCircleOutlined } from "@ant-design/icons";
+import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import { LIST_HEADER_STYLE } from "@/lib/titleAndColorsConfig";
 import { LINK_TARGET_OPTIONS, normalizeTarget } from "./editorUtils";
 
-function normalizeItems(items) {
-  return (Array.isArray(items) ? items : []).map((item) => ({
-    text: String(item?.text ?? item?.label ?? "").trim(),
-    url: String(item?.url ?? item?.href ?? "").trim(),
-    target: normalizeTarget(item?.target),
-    enabled: item?.enabled !== false,
-  }));
+function text(value) {
+  return value == null ? "" : String(value).trim();
 }
 
-function clamp(value, min, max, fallback) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? Math.max(min, Math.min(max, parsed)) : fallback;
+function legacyValues(items) {
+  const list = Array.isArray(items) ? items : [];
+  return {
+    noticeText: text(list[0]?.text ?? list[0]?.label),
+    actionText: text(list[1]?.text ?? list[1]?.label),
+    actionUrl: text(list[1]?.url ?? list[1]?.href),
+    actionTarget: normalizeTarget(list[1]?.target),
+    actionEnabled: list[1]?.enabled !== false,
+  };
+}
+
+const SWITCH_ITEMS = [
+  {
+    name: "active",
+    label: "Display Header Ribbon",
+    tooltip: "Show or hide the complete ribbon on the public website.",
+  },
+  {
+    name: "ribbonActionEnabled",
+    label: "Display View Notice link",
+    tooltip: "Show or hide the linked action beside the notice text.",
+  },
+  {
+    name: "ribbonShowNoticeIcon",
+    label: "Show notice icon",
+    tooltip: "Show the notice icon on desktop and tablet.",
+  },
+  {
+    name: "ribbonShowLinkArrow",
+    label: "Show link arrow",
+    tooltip: "Show the arrow after the View Notice link.",
+  },
+];
+
+const COLOR_ITEMS = [
+  { name: "ribbonBackgroundColorKey", label: "Background", tooltip: "Ribbon background color." },
+  { name: "ribbonTextColorKey", label: "Notice text", tooltip: "Normal notice text color." },
+  { name: "ribbonLinkColorKey", label: "Link text", tooltip: "View Notice link color." },
+  { name: "ribbonHoverColorKey", label: "Link hover", tooltip: "View Notice hover color." },
+  { name: "ribbonIconColorKey", label: "Icons", tooltip: "Notice and arrow icon color." },
+  { name: "ribbonBorderColorKey", label: "Bottom border", tooltip: "Subtle border below the ribbon." },
+  { name: "ribbonLinkBorderColorKey", label: "Link underline", tooltip: "View Notice underline color." },
+  { name: "ribbonFocusColorKey", label: "Focus outline", tooltip: "Keyboard focus outline color." },
+];
+
+function FieldLabel({ label, tooltip }) {
+  return (
+    <Tooltip title={tooltip}>
+      <span
+        style={{
+          color: "rgba(0,0,0,0.65)",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 4,
+          fontSize: 14,
+        }}
+      >
+        {label} <QuestionCircleOutlined style={{ color: "#999", fontSize: 12 }} />
+      </span>
+    </Tooltip>
+  );
 }
 
 export default forwardRef(function AppearanceHeaderRibbonEditForm(
@@ -29,12 +94,26 @@ export default forwardRef(function AppearanceHeaderRibbonEditForm(
 
   useEffect(() => {
     fetch(dataEndpoint, { cache: "no-store" })
-      .then((response) => response.ok ? response.json() : Promise.reject(new Error("Failed to load Header Ribbon")))
+      .then((response) =>
+        response.ok
+          ? response.json()
+          : Promise.reject(new Error("Failed to load Header Ribbon")),
+      )
       .then((record) => {
+        const legacy = legacyValues(record?.ribbonItems);
         form.setFieldsValue({
           active: record?.active !== false,
           ribbonAriaLabel: record?.ribbonAriaLabel || "",
-          ribbonItems: normalizeItems(record?.ribbonItems),
+          ribbonNoticeText: record?.ribbonNoticeText || legacy.noticeText,
+          ribbonActionText: record?.ribbonActionText || legacy.actionText,
+          ribbonActionUrl: record?.ribbonActionUrl || legacy.actionUrl,
+          ribbonActionTarget: normalizeTarget(
+            record?.ribbonActionTarget || legacy.actionTarget,
+          ),
+          ribbonActionEnabled:
+            record?.ribbonActionEnabled == null
+              ? legacy.actionEnabled
+              : record.ribbonActionEnabled !== false,
           ribbonShowNoticeIcon: record?.ribbonShowNoticeIcon !== false,
           ribbonShowLinkArrow: record?.ribbonShowLinkArrow !== false,
           ribbonBackgroundColorKey: record?.ribbonBackgroundColorKey || "Black",
@@ -42,29 +121,16 @@ export default forwardRef(function AppearanceHeaderRibbonEditForm(
           ribbonLinkColorKey: record?.ribbonLinkColorKey || "White",
           ribbonHoverColorKey: record?.ribbonHoverColorKey || "Primary Soft",
           ribbonIconColorKey: record?.ribbonIconColorKey || "Primary Soft",
-          ribbonBorderColorKey: record?.ribbonBorderColorKey || "rgba(250, 246, 239, 0.1)",
-          ribbonLinkBorderColorKey: record?.ribbonLinkBorderColorKey || "rgba(250, 246, 239, 0.5)",
+          ribbonBorderColorKey:
+            record?.ribbonBorderColorKey || "rgba(250, 246, 239, 0.1)",
+          ribbonLinkBorderColorKey:
+            record?.ribbonLinkBorderColorKey || "rgba(250, 246, 239, 0.5)",
           ribbonFocusColorKey: record?.ribbonFocusColorKey || "Primary Soft",
-          ribbonFontSize: record?.ribbonFontSize ?? 13.5,
-          ribbonFontWeight: record?.ribbonFontWeight ?? 550,
-          ribbonLineHeight: record?.ribbonLineHeight ?? 1.6,
-          ribbonLinkFontWeight: record?.ribbonLinkFontWeight ?? 700,
-          ribbonIconSize: record?.ribbonIconSize ?? 16,
-          ribbonPaddingY: record?.ribbonPaddingY ?? 9,
-          ribbonPaddingX: record?.ribbonPaddingX ?? 24,
-          ribbonItemGap: record?.ribbonItemGap ?? 18,
-          ribbonNoticeGap: record?.ribbonNoticeGap ?? record?.ribbonInnerGap ?? 8,
-          ribbonActionGap: record?.ribbonActionGap ?? record?.ribbonInnerGap ?? 6,
-          ribbonHeaderGapDesktop: record?.ribbonHeaderGapDesktop ?? 11.4,
-          ribbonHeaderGapMobile: record?.ribbonHeaderGapMobile ?? 9,
-          ribbonMobileFontSize: record?.ribbonMobileFontSize ?? 12.5,
-          ribbonMobilePaddingY: record?.ribbonMobilePaddingY ?? 8,
-          ribbonMobilePaddingX: record?.ribbonMobilePaddingX ?? 16,
-          ribbonMobileItemGap: record?.ribbonMobileItemGap ?? 12,
-          ribbonHideNoticeIconMobile: record?.ribbonHideNoticeIconMobile !== false,
         });
       })
-      .catch((error) => message.error(error?.message || "Failed to load Header Ribbon"))
+      .catch((error) =>
+        message.error(error?.message || "Failed to load Header Ribbon"),
+      )
       .finally(() => setLoading(false));
   }, [dataEndpoint, form]);
 
@@ -72,36 +138,24 @@ export default forwardRef(function AppearanceHeaderRibbonEditForm(
     await form.validateFields();
     const values = form.getFieldsValue(true);
     const payload = {
-      ribbonAriaLabel: String(values.ribbonAriaLabel || "").trim(),
-      ribbonItems: normalizeItems(values.ribbonItems),
+      ribbonAriaLabel: text(values.ribbonAriaLabel),
+      ribbonNoticeText: text(values.ribbonNoticeText),
+      ribbonActionText: text(values.ribbonActionText),
+      ribbonActionUrl: text(values.ribbonActionUrl),
+      ribbonActionTarget: normalizeTarget(values.ribbonActionTarget),
+      ribbonActionEnabled: values.ribbonActionEnabled !== false,
       ribbonShowNoticeIcon: values.ribbonShowNoticeIcon !== false,
       ribbonShowLinkArrow: values.ribbonShowLinkArrow !== false,
-      ribbonBackgroundColorKey: String(values.ribbonBackgroundColorKey || "").trim(),
-      ribbonTextColorKey: String(values.ribbonTextColorKey || "").trim(),
-      ribbonLinkColorKey: String(values.ribbonLinkColorKey || "").trim(),
-      ribbonHoverColorKey: String(values.ribbonHoverColorKey || "").trim(),
-      ribbonIconColorKey: String(values.ribbonIconColorKey || "").trim(),
-      ribbonBorderColorKey: String(values.ribbonBorderColorKey || "").trim(),
-      ribbonLinkBorderColorKey: String(values.ribbonLinkBorderColorKey || "").trim(),
-      ribbonFocusColorKey: String(values.ribbonFocusColorKey || "").trim(),
-      ribbonFontSize: clamp(values.ribbonFontSize, 10, 24, 13.5),
-      ribbonFontWeight: clamp(values.ribbonFontWeight, 300, 900, 550),
-      ribbonLineHeight: clamp(values.ribbonLineHeight, 1, 2.4, 1.6),
-      ribbonLinkFontWeight: clamp(values.ribbonLinkFontWeight, 300, 900, 700),
-      ribbonIconSize: clamp(values.ribbonIconSize, 10, 32, 16),
-      ribbonPaddingY: clamp(values.ribbonPaddingY, 0, 30, 9),
-      ribbonPaddingX: clamp(values.ribbonPaddingX, 0, 80, 24),
-      ribbonItemGap: clamp(values.ribbonItemGap, 0, 60, 18),
-      ribbonNoticeGap: clamp(values.ribbonNoticeGap, 0, 30, 8),
-      ribbonActionGap: clamp(values.ribbonActionGap, 0, 30, 6),
-      ribbonHeaderGapDesktop: clamp(values.ribbonHeaderGapDesktop, 0, 40, 11.4),
-      ribbonHeaderGapMobile: clamp(values.ribbonHeaderGapMobile, 0, 40, 9),
-      ribbonMobileFontSize: clamp(values.ribbonMobileFontSize, 10, 20, 12.5),
-      ribbonMobilePaddingY: clamp(values.ribbonMobilePaddingY, 0, 30, 8),
-      ribbonMobilePaddingX: clamp(values.ribbonMobilePaddingX, 0, 60, 16),
-      ribbonMobileItemGap: clamp(values.ribbonMobileItemGap, 0, 40, 12),
-      ribbonHideNoticeIconMobile: values.ribbonHideNoticeIconMobile !== false,
+      ribbonBackgroundColorKey: text(values.ribbonBackgroundColorKey),
+      ribbonTextColorKey: text(values.ribbonTextColorKey),
+      ribbonLinkColorKey: text(values.ribbonLinkColorKey),
+      ribbonHoverColorKey: text(values.ribbonHoverColorKey),
+      ribbonIconColorKey: text(values.ribbonIconColorKey),
+      ribbonBorderColorKey: text(values.ribbonBorderColorKey),
+      ribbonLinkBorderColorKey: text(values.ribbonLinkBorderColorKey),
+      ribbonFocusColorKey: text(values.ribbonFocusColorKey),
     };
+
     setSaving(true);
     try {
       const response = await fetch(dataEndpoint, {
@@ -130,112 +184,100 @@ export default forwardRef(function AppearanceHeaderRibbonEditForm(
 
   useImperativeHandle(ref, () => ({ update: save }));
 
-  if (loading) return <div style={{ padding: 48, textAlign: "center" }}><Spin /></div>;
+  if (loading) {
+    return <div style={{ padding: 48, textAlign: "center" }}><Spin /></div>;
+  }
 
   const colorOptions = [
     { label: "Reference border (10% cream)", value: "rgba(250, 246, 239, 0.1)" },
     { label: "Reference underline (50% cream)", value: "rgba(250, 246, 239, 0.5)" },
     ...themeColorOptions,
-  ];
-  const colorField = (name, label) => (
-    <Form.Item name={name} label={label}>
-      <Select showSearch allowClear options={colorOptions} optionFilterProp="label" />
-    </Form.Item>
+  ].filter(
+    (option, index, options) =>
+      options.findIndex((candidate) => candidate.value === option.value) === index,
   );
 
   return (
     <Form form={form} layout="vertical" disabled={saving}>
       <Collapse
-        defaultActiveKey={["settings", "items"]}
+        defaultActiveKey={["settings", "content", "colors"]}
         items={[
           {
             key: "settings",
             label: "Ribbon Settings",
             children: (
-              <>
-                <Form.Item name="active" label="Display Header Ribbon" valuePropName="checked"><Switch /></Form.Item>
-                <Form.Item name="ribbonAriaLabel" label="Accessible label"><Input placeholder="Important notice" /></Form.Item>
-                <Row gutter={16}>
-                  <Col span={12}><Form.Item name="ribbonShowNoticeIcon" label="Show notice icon" valuePropName="checked"><Switch /></Form.Item></Col>
-                  <Col span={12}><Form.Item name="ribbonShowLinkArrow" label="Show link arrows" valuePropName="checked"><Switch /></Form.Item></Col>
-                </Row>
-              </>
+              <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                <List
+                  header={<span style={LIST_HEADER_STYLE}>Behaviour</span>}
+                  size="small"
+                  bordered
+                  split
+                  dataSource={SWITCH_ITEMS}
+                  renderItem={(item) => (
+                    <List.Item
+                      actions={[
+                        <Form.Item
+                          key="switch"
+                          name={item.name}
+                          valuePropName="checked"
+                          noStyle
+                        >
+                          <Switch />
+                        </Form.Item>,
+                      ]}
+                    >
+                      <FieldLabel label={item.label} tooltip={item.tooltip} />
+                    </List.Item>
+                  )}
+                />
+                <Form.Item name="ribbonAriaLabel" label="Accessible label">
+                  <Input placeholder="Important notice" />
+                </Form.Item>
+              </div>
             ),
           },
           {
-            key: "items",
-            label: "Link Text Items",
+            key: "content",
+            label: "Content",
             children: (
-              <Form.List name="ribbonItems">
-                {(fields, { add, remove, move }) => (
-                  <SortableFormList
-                    fields={fields}
-                    add={add}
-                    remove={remove}
-                    move={move}
-                    itemLabel="Link item"
-                    addButtonText="Add link item"
-                    defaultAddPayload={{ text: "", url: "", target: "_self", enabled: true }}
-                    renderItemContent={(fieldName, rest) => (
-                      <>
-                        <Form.Item {...rest} name={[fieldName, "text"]} label="Link Text" rules={[{ required: true, message: "Link Text is required" }]}><Input /></Form.Item>
-                        <Form.Item {...rest} name={[fieldName, "url"]} label="URL" rules={[{ required: true, message: "URL is required" }]}><Input /></Form.Item>
-                        <Form.Item {...rest} name={[fieldName, "target"]} label="Target"><Select options={LINK_TARGET_OPTIONS} /></Form.Item>
-                        <Form.Item {...rest} name={[fieldName, "enabled"]} label="Enabled" valuePropName="checked"><Switch /></Form.Item>
-                      </>
-                    )}
-                  />
-                )}
-              </Form.List>
+              <>
+                <Form.Item
+                  name="ribbonNoticeText"
+                  label="Notice Text"
+                  rules={[{ required: true, message: "Notice Text is required" }]}
+                  tooltip="Normal text only; this notice is not a hyperlink."
+                >
+                  <Input />
+                </Form.Item>
+                <Form.Item
+                  name="ribbonActionText"
+                  label="Link Text"
+                  rules={[{ required: true, message: "Link Text is required" }]}
+                >
+                  <Input placeholder="View Notice" />
+                </Form.Item>
+                <Form.Item
+                  name="ribbonActionUrl"
+                  label="URL"
+                  rules={[{ required: true, message: "URL is required" }]}
+                >
+                  <Input />
+                </Form.Item>
+                <Form.Item name="ribbonActionTarget" label="Target">
+                  <Select options={LINK_TARGET_OPTIONS} />
+                </Form.Item>
+              </>
             ),
           },
           {
             key: "colors",
             label: "Colors",
             children: (
-              <>
-                {colorField("ribbonBackgroundColorKey", "Background")}
-                {colorField("ribbonTextColorKey", "Primary item text")}
-                {colorField("ribbonLinkColorKey", "Action link text")}
-                {colorField("ribbonHoverColorKey", "Link hover")}
-                {colorField("ribbonIconColorKey", "Icons")}
-                {colorField("ribbonBorderColorKey", "Bottom border")}
-                {colorField("ribbonLinkBorderColorKey", "Link underline")}
-                {colorField("ribbonFocusColorKey", "Keyboard focus outline")}
-              </>
-            ),
-          },
-          {
-            key: "typography-spacing",
-            label: "Typography & Spacing",
-            children: (
-              <Row gutter={16}>
-                <Col span={12}><Form.Item name="ribbonFontSize" label="Font size (px)"><InputNumber min={10} max={24} step={0.5} style={{ width: "100%" }} /></Form.Item></Col>
-                <Col span={12}><Form.Item name="ribbonFontWeight" label="Text weight"><InputNumber min={300} max={900} step={50} style={{ width: "100%" }} /></Form.Item></Col>
-                <Col span={12}><Form.Item name="ribbonLineHeight" label="Line height"><InputNumber min={1} max={2.4} step={0.05} style={{ width: "100%" }} /></Form.Item></Col>
-                <Col span={12}><Form.Item name="ribbonLinkFontWeight" label="Link weight"><InputNumber min={300} max={900} step={50} style={{ width: "100%" }} /></Form.Item></Col>
-                <Col span={12}><Form.Item name="ribbonIconSize" label="Icon size (px)"><InputNumber min={10} max={32} style={{ width: "100%" }} /></Form.Item></Col>
-                <Col span={12}><Form.Item name="ribbonPaddingY" label="Vertical padding (px)"><InputNumber min={0} max={30} style={{ width: "100%" }} /></Form.Item></Col>
-                <Col span={12}><Form.Item name="ribbonPaddingX" label="Horizontal padding (px)"><InputNumber min={0} max={80} style={{ width: "100%" }} /></Form.Item></Col>
-                <Col span={12}><Form.Item name="ribbonItemGap" label="Item gap (px)"><InputNumber min={0} max={60} style={{ width: "100%" }} /></Form.Item></Col>
-                <Col span={12}><Form.Item name="ribbonNoticeGap" label="Notice icon gap (px)"><InputNumber min={0} max={30} style={{ width: "100%" }} /></Form.Item></Col>
-                <Col span={12}><Form.Item name="ribbonActionGap" label="Action icon gap (px)"><InputNumber min={0} max={30} style={{ width: "100%" }} /></Form.Item></Col>
-                <Col span={12}><Form.Item name="ribbonHeaderGapDesktop" label="Header gap desktop (px)"><InputNumber min={0} max={40} step={0.5} style={{ width: "100%" }} /></Form.Item></Col>
-                <Col span={12}><Form.Item name="ribbonHeaderGapMobile" label="Header gap mobile (px)"><InputNumber min={0} max={40} step={0.5} style={{ width: "100%" }} /></Form.Item></Col>
-              </Row>
-            ),
-          },
-          {
-            key: "mobile",
-            label: "Mobile Layout",
-            children: (
-              <Row gutter={16}>
-                <Col span={12}><Form.Item name="ribbonMobileFontSize" label="Font size (px)"><InputNumber min={10} max={20} step={0.5} style={{ width: "100%" }} /></Form.Item></Col>
-                <Col span={12}><Form.Item name="ribbonMobileItemGap" label="Item gap (px)"><InputNumber min={0} max={40} style={{ width: "100%" }} /></Form.Item></Col>
-                <Col span={12}><Form.Item name="ribbonMobilePaddingY" label="Vertical padding (px)"><InputNumber min={0} max={30} style={{ width: "100%" }} /></Form.Item></Col>
-                <Col span={12}><Form.Item name="ribbonMobilePaddingX" label="Horizontal padding (px)"><InputNumber min={0} max={60} style={{ width: "100%" }} /></Form.Item></Col>
-                <Col span={24}><Form.Item name="ribbonHideNoticeIconMobile" label="Hide notice icon on mobile" valuePropName="checked"><Switch /></Form.Item></Col>
-              </Row>
+              <TitleAndColorsSection
+                form={form}
+                themeColorOptions={colorOptions}
+                colorListItems={COLOR_ITEMS}
+              />
             ),
           },
         ]}

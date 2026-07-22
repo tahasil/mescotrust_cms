@@ -237,9 +237,14 @@ export default function PublicShell({
   const hasAppearanceHeaderRibbon =
     appearanceHeaderRibbon &&
     appearanceHeaderRibbon.active !== false &&
-    Array.isArray(appearanceHeaderRibbon.ribbonItems) &&
-    appearanceHeaderRibbon.ribbonItems.some(
-      (item) => item?.enabled !== false && String(item?.text || item?.label || "").trim(),
+    (
+      String(appearanceHeaderRibbon.ribbonNoticeText || "").trim() ||
+      (appearanceHeaderRibbon.ribbonActionEnabled !== false &&
+        String(appearanceHeaderRibbon.ribbonActionText || "").trim()) ||
+      (Array.isArray(appearanceHeaderRibbon.ribbonItems) &&
+        appearanceHeaderRibbon.ribbonItems.some((item) =>
+          String(item?.text || item?.label || "").trim(),
+        ))
     );
   const hasAppearanceFooter =
     appearanceFooter && appearanceFooter.active !== false;
