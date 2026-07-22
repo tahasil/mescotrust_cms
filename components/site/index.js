@@ -51,6 +51,8 @@ export { default as OurImpact, OurImpactEditForm } from "./OurImpact/index";
 export { default as Testimonials, TestimonialsEditForm } from "./Testimonials/index";
 export { default as LatestNews, LatestNewsEditForm } from "./LatestNews/index";
 export { default as EventsSlider, EventsSliderEditForm } from "./EventsSlider/index";
+export { default as EventsListing, EventsListingEditForm } from "./EventsListing/index";
+export { default as EventDetails, EventDetailsEditForm } from "./EventDetails/index";
 export { default as ImageSlider, ImageSliderEditForm } from "./ImageSlider/index";
 export { default as EventRegistrationForm, EventRegistrationFormEditForm } from "./EventRegistrationForm/index";
 export { default as SocialMediaWall, SocialMediaWallEditForm } from "./SocialMediaWall/index";
@@ -104,6 +106,8 @@ import OurImpactEditForm from "./OurImpact/EditForm";
 import TestimonialsEditForm from "./Testimonials/EditForm";
 import LatestNewsEditForm from "./LatestNews/EditForm";
 import EventsSliderEditForm from "./EventsSlider/EditForm";
+import EventsListingEditForm from "./EventsListing/EditForm";
+import EventDetailsEditForm from "./EventDetails/EditForm";
 import ImageSliderEditForm from "./ImageSlider/EditForm";
 import EventRegistrationFormEditForm from "./EventRegistrationForm/EditForm";
 import SocialMediaWallEditForm from "./SocialMediaWall/EditForm";
@@ -126,6 +130,8 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   // Compatibility for page blocks saved before the component rename.
   LatestEvents1: LatestNewsEditForm,
   EventsSlider: EventsSliderEditForm,
+  EventsListing: EventsListingEditForm,
+  EventDetails: EventDetailsEditForm,
   Testimonials: TestimonialsEditForm,
   OverviewOfOurWork: OverviewOfOurWorkEditForm,
   OurImpact: OurImpactEditForm,
