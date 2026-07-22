@@ -1135,15 +1135,30 @@ a {
 .fable-note { display: flex; gap: 14px; align-items: center; padding: 20px 26px; background: var(--fable-surface); border: 1px solid var(--fable-border); border-radius: 20px; }
 .fable-note__icon { flex: 0 0 auto; color: var(--fable-primary); font-size: 26px; }
 .fable-note p { margin: 0; font-size: 15.5px; font-weight: 550; }
+.fable-accordion-section .fable-eyebrow { color: var(--accordion-subtitle); }
+.fable-accordion-section .fable-heading { max-width: 16ch; color: var(--accordion-title); }
+.fable-accordion-section .fable-heading em { color: var(--accordion-title-accent); }
 .fable-accordion { display: flex; flex-direction: column; }
-.fable-accordion details { border-bottom: 1px solid var(--fable-border); }
-.fable-accordion details:first-child { border-top: 1px solid var(--fable-border); }
-.fable-accordion summary { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding-block: clamp(20px,2.4vw,30px); cursor: pointer; list-style: none; font-family: var(--fable-display); font-size: clamp(19px,2vw,28px); font-weight: 600; }
+.fable-accordion details { background: var(--accordion-panel-bg); border-bottom: 1px solid var(--accordion-border); }
+.fable-accordion details:first-child { border-top: 1px solid var(--accordion-border); }
+.fable-accordion summary { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding-block: clamp(20px,2.4vw,30px); color: var(--accordion-header); cursor: pointer; list-style: none; font-family: var(--fable-display); font-size: clamp(19px,2vw,28px); font-weight: 600; letter-spacing: -.01em; }
 .fable-accordion summary::-webkit-details-marker { display: none; }
-.fable-accordion__plus { flex: 0 0 auto; color: var(--fable-primary); font-size: 26px; transition: transform .3s; }
-.fable-accordion details[open] .fable-accordion__plus { transform: rotate(45deg); }
-.fable-accordion__body { padding: 0 0 clamp(22px,2.6vw,34px); color: var(--fable-ink-soft); font-size: 16px; }
-.fable-accordion__body > :last-child { margin-bottom: 0; }
+.fable-accordion summary:focus-visible { outline: 2px solid var(--accordion-focus); outline-offset: 5px; }
+.fable-accordion__plus, .fable-accordion__custom-icon { flex: 0 0 auto; color: var(--accordion-icon); transition: color .3s, transform .3s; }
+.fable-accordion__plus { font-size: 20px; line-height: 1; }
+.fable-accordion__custom-icon { width: 22px; height: 22px; background: currentColor; -webkit-mask-position: center; mask-position: center; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-size: contain; mask-size: contain; }
+.fable-accordion details[open] .fable-accordion__plus, .fable-accordion details[open] .fable-accordion__custom-icon { color: var(--accordion-open-icon); transform: rotate(45deg); }
+.fable-accordion__body { display: grid; grid-template-columns: minmax(0,1.5fr) minmax(0,1fr); gap: clamp(20px,3vw,44px); align-items: start; padding: 0 0 clamp(22px,2.6vw,34px); color: var(--accordion-content); font-size: 16px; }
+.fable-accordion__body--no-image { grid-template-columns: minmax(0,1fr); }
+.fable-accordion__content { max-width: 70ch; }
+.fable-accordion__content > :first-child { margin-top: 0; }
+.fable-accordion__content > :last-child { margin-bottom: 0; }
+.fable-accordion__content strong, .fable-accordion__content b { color: var(--accordion-content-strong); }
+.fable-accordion__content a { color: var(--accordion-link); text-decoration: underline; text-underline-offset: 3px; }
+.fable-accordion__content a:hover { color: var(--accordion-link-hover); }
+.fable-accordion__media { overflow: hidden; background: var(--accordion-image-bg); border: 1px solid var(--accordion-image-border); border-radius: 20px; }
+.fable-accordion__media picture { display: block; }
+.fable-accordion__media img { width: 100%; aspect-ratio: 16/10; object-fit: cover; }
 .fable-testimonials { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: clamp(18px,2vw,30px); align-items: start; }
 .fable-testimonial { display: flex; flex-direction: column; gap: 18px; padding: clamp(26px,2.6vw,38px); background: var(--fable-white); border: 1px solid var(--fable-border); border-radius: 20px; }
 .fable-testimonial:nth-child(even) { background: var(--fable-surface); }
@@ -1187,6 +1202,7 @@ a {
   .fable-card-grid, .fable-testimonials, .fable-video-grid, .fable-people, .fable-badges { grid-template-columns: 1fr; }
   .fable-aim { grid-template-columns: 56px minmax(0,1fr); }
   .fable-heading { font-size: clamp(32px,10vw,48px); }
+  .fable-accordion__body { grid-template-columns: minmax(0,1fr); }
   .fable-masonry { columns: 1; }
 }
 /* Inner page hero: reference Fable18 geometry with drawer-controlled colors. */

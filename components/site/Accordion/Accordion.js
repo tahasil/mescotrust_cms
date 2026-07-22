@@ -1,13 +1,25 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { PlusOutlined } from "@ant-design/icons";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 import SafeHtml from "@/components/cms/SafeHtml";
 
-function normalizeItem(it, idx) {
+function clean(value) {
+  return value == null ? "" : String(value).trim();
+}
+
+function normalizeItem(item, index) {
+  const imageDesktop = clean(
+    item?.imageDesktop ?? item?.image ?? item?.imageUrl,
+  );
   return {
-    key: String(idx + 1),
-    label: it?.label != null ? String(it.label).trim() : "",
-    children: it?.content != null ? String(it.content).trim() : "",
+    key: clean(item?.key) || String(index + 1),
+    label: clean(item?.label),
+    content: clean(item?.content ?? item?.children),
+    imageDesktop,
+    imageMobile: clean(item?.imageMobile),
+    imageAlt: clean(item?.imageAlt) || clean(item?.label),
   };
 }
 
@@ -15,57 +27,148 @@ const DEFAULT_ITEMS = [
   {
     label: "Board of Trustees",
     content:
-      "The Board of Trustees set the vision and broad guidelines for the organization and ensure good governance in liaison with the Advisory Board and various Committees.",
+      "The Board of Trustees set the vision and broad guidelines for the organisation and ensure good governance in liaison with the Advisory Board and various committees.",
   },
   {
     label: "Managing Committee",
     content:
-      "Members of Managing Committee are dedicated professionals and individuals from diverse backgrounds and experts in social engineering.",
+      "Members of the Managing Committee are dedicated professionals from diverse backgrounds who develop and review policies and schemes.",
   },
   {
     label: "Sub-Committee",
     content:
-      "Members of the sub-committee are present in the monthly meetings and express their point of views and share their experiences regarding matters which are being discussed.",
+      "Sub-committee members work alongside the Managing Committee on specific schemes and programmes.",
   },
 ];
 
+function renderTitle(value) {
+  return clean(value)
+    .split(/(\*[^*]+\*)/g)
+    .filter(Boolean)
+    .map((part, index) =>
+      part.startsWith("*") && part.endsWith("*") ? (
+        <em key={`${part}-${index}`}>{part.slice(1, -1)}</em>
+      ) : (
+        <span key={`${part}-${index}`}>{part}</span>
+      ),
+    );
+}
+
+function resolveColor(props, key, fallback) {
+  const colorKey = clean(props?.[key]);
+  return getColor(colorKey || fallback);
+}
+
 /**
  * Site component: Accordion.
- * Styled collapsible panels with repeater items.
+ * Reference-style native details/summary panels with optional responsive images.
  */
 export default function Accordion(props) {
   const rawItems = Array.isArray(props?.accordionItems)
     ? props.accordionItems
     : DEFAULT_ITEMS;
-  const normalizedItems = rawItems.map(normalizeItem).filter((it) => it.label);
-  const customIconUrl = (props?.accordionExpandIconUrl ?? "").toString().trim();
+  const items = rawItems.map(normalizeItem).filter((item) => item.label);
+  const subTitle = clean(props?.accordionSubTitle);
+  const mainTitle = clean(props?.accordionMainTitle);
+  const customIconUrl = clean(props?.accordionExpandIconUrl);
+  const defaultOpenIndex = Math.max(
+    -1,
+    Math.min(
+      items.length - 1,
+      Number.isFinite(Number(props?.accordionDefaultOpenIndex))
+        ? Math.floor(Number(props.accordionDefaultOpenIndex))
+        : 0,
+    ),
+  );
+  const [openIndexes, setOpenIndexes] = useState(
+    () => new Set(defaultOpenIndex >= 0 ? [defaultOpenIndex] : []),
+  );
 
-  const headerColorKey = (props?.accordionHeaderColorKey ?? "")
-    .toString()
-    .trim();
-  const headerColor = headerColorKey ? getColor(headerColorKey) : undefined;
-  const contentColorKey = (props?.accordionContentColorKey ?? "")
-    .toString()
-    .trim();
-  const contentColor = contentColorKey ? getColor(contentColorKey) : undefined;
-  const borderColorKey = (props?.accordionBorderColorKey ?? "")
-    .toString()
-    .trim();
-  const borderColor = borderColorKey ? getColor(borderColorKey) : undefined;
-  const panelBgColorKey = (props?.accordionBgColorKey ?? "").toString().trim();
-  const panelBgColor = panelBgColorKey ? getColor(panelBgColorKey) : undefined;
+  useEffect(() => {
+    setOpenIndexes(new Set(defaultOpenIndex >= 0 ? [defaultOpenIndex] : []));
+  }, [defaultOpenIndex]);
 
-  const PREFIX = "accordion";
+  const colorVars = {
+    "--accordion-subtitle": resolveColor(
+      props,
+      "accordionSubTitleColorKey",
+      "primary",
+    ),
+    "--accordion-title": resolveColor(
+      props,
+      "accordionTitleColorKey",
+      "black",
+    ),
+    "--accordion-title-accent": resolveColor(
+      props,
+      "accordionTitleAccentColorKey",
+      "black",
+    ),
+    "--accordion-header": resolveColor(
+      props,
+      "accordionHeaderColorKey",
+      "black",
+    ),
+    "--accordion-content": resolveColor(
+      props,
+      "accordionContentColorKey",
+      "blackLight",
+    ),
+    "--accordion-content-strong": resolveColor(
+      props,
+      "accordionContentStrongColorKey",
+      "black",
+    ),
+    "--accordion-link": resolveColor(
+      props,
+      "accordionLinkColorKey",
+      "primary",
+    ),
+    "--accordion-link-hover": resolveColor(
+      props,
+      "accordionLinkHoverColorKey",
+      "primaryDark",
+    ),
+    "--accordion-panel-bg": resolveColor(
+      props,
+      "accordionBgColorKey",
+      "transparent",
+    ),
+    "--accordion-border": resolveColor(
+      props,
+      "accordionBorderColorKey",
+      "border",
+    ),
+    "--accordion-icon": resolveColor(
+      props,
+      "accordionIconColorKey",
+      "primary",
+    ),
+    "--accordion-open-icon": resolveColor(
+      props,
+      "accordionOpenIconColorKey",
+      "primary",
+    ),
+    "--accordion-focus": resolveColor(
+      props,
+      "accordionFocusColorKey",
+      "primary",
+    ),
+    "--accordion-image-bg": resolveColor(
+      props,
+      "accordionImageBgColorKey",
+      "surface",
+    ),
+    "--accordion-image-border": resolveColor(
+      props,
+      "accordionImageBorderColorKey",
+      "border",
+    ),
+  };
 
-  const sectionBgType = (
-    props?.[PREFIX + "SectionBgType"] ?? "default"
-  ).toString();
-  const sectionBgImage = (props?.[PREFIX + "SectionBgImage"] ?? "")
-    .toString()
-    .trim();
-  const sectionBgColorKey = (props?.[PREFIX + "SectionBgColorKey"] ?? "")
-    .toString()
-    .trim();
+  const sectionBgType = clean(props?.accordionSectionBgType) || "default";
+  const sectionBgImage = clean(props?.accordionSectionBgImage);
+  const sectionBgColorKey = clean(props?.accordionSectionBgColorKey);
   const sectionBgClassName =
     sectionBgType === "default" ? "defaultBackground" : undefined;
   const sectionBgStyleBase =
@@ -83,150 +186,115 @@ export default function Accordion(props) {
           }
         : undefined;
   const sectionPaddingTop =
-    props?.[PREFIX + "SectionPaddingTop"] != null
-      ? Number(props[PREFIX + "SectionPaddingTop"])
+    props?.accordionSectionPaddingTop != null
+      ? Number(props.accordionSectionPaddingTop)
       : null;
   const sectionPaddingBottom =
-    props?.[PREFIX + "SectionPaddingBottom"] != null
-      ? Number(props[PREFIX + "SectionPaddingBottom"])
+    props?.accordionSectionPaddingBottom != null
+      ? Number(props.accordionSectionPaddingBottom)
       : null;
   const sectionMarginTop =
-    props?.[PREFIX + "SectionMarginTop"] != null
-      ? Number(props[PREFIX + "SectionMarginTop"])
+    props?.accordionSectionMarginTop != null
+      ? Number(props.accordionSectionMarginTop)
       : null;
   const sectionMarginBottom =
-    props?.[PREFIX + "SectionMarginBottom"] != null
-      ? Number(props[PREFIX + "SectionMarginBottom"])
+    props?.accordionSectionMarginBottom != null
+      ? Number(props.accordionSectionMarginBottom)
       : null;
-  const sectionBgStyle =
-    sectionBgStyleBase ||
-    sectionPaddingTop != null ||
-    sectionPaddingBottom != null ||
-    sectionMarginTop != null ||
-    sectionMarginBottom != null
-      ? {
-          ...(sectionBgStyleBase || {}),
-          ...(sectionPaddingTop != null && sectionPaddingTop >= 0
-            ? { paddingTop: `${sectionPaddingTop}px` }
-            : {}),
-          ...(sectionPaddingBottom != null && sectionPaddingBottom >= 0
-            ? { paddingBottom: `${sectionPaddingBottom}px` }
-            : {}),
-          ...(sectionMarginTop != null && sectionMarginTop >= 0
-            ? { marginTop: `${sectionMarginTop}px` }
-            : {}),
-          ...(sectionMarginBottom != null && sectionMarginBottom >= 0
-            ? { marginBottom: `${sectionMarginBottom}px` }
-            : {}),
-        }
-      : undefined;
-
-  const pageContainerBgType = (
-    props?.[PREFIX + "PageContainerBgType"] ?? "default"
-  ).toString();
-  const pageContainerBgImage = (props?.[PREFIX + "PageContainerBgImage"] ?? "")
-    .toString()
-    .trim();
-  const pageContainerBgColorKey = (
-    props?.[PREFIX + "PageContainerBgColorKey"] ?? ""
-  )
-    .toString()
-    .trim();
-  const pageContainerBgStyleBase =
-    pageContainerBgType === "image" && pageContainerBgImage
-      ? {
-          backgroundImage: `url(${pageContainerBgImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }
-      : pageContainerBgType === "color" && pageContainerBgColorKey
-        ? {
-            backgroundColor: getColor(pageContainerBgColorKey),
-            backgroundImage: "none",
-          }
-        : undefined;
-  const containerPaddingTop =
-    props?.[PREFIX + "PageContainerPaddingTop"] != null
-      ? Number(props[PREFIX + "PageContainerPaddingTop"])
-      : null;
-  const containerPaddingRight =
-    props?.[PREFIX + "PageContainerPaddingRight"] != null
-      ? Number(props[PREFIX + "PageContainerPaddingRight"])
-      : null;
-  const containerPaddingBottom =
-    props?.[PREFIX + "PageContainerPaddingBottom"] != null
-      ? Number(props[PREFIX + "PageContainerPaddingBottom"])
-      : null;
-  const containerPaddingLeft =
-    props?.[PREFIX + "PageContainerPaddingLeft"] != null
-      ? Number(props[PREFIX + "PageContainerPaddingLeft"])
-      : null;
-  const containerMarginTop =
-    props?.[PREFIX + "PageContainerMarginTop"] != null
-      ? Number(props[PREFIX + "PageContainerMarginTop"])
-      : null;
-  const containerMarginBottom =
-    props?.[PREFIX + "PageContainerMarginBottom"] != null
-      ? Number(props[PREFIX + "PageContainerMarginBottom"])
-      : null;
-  const pageContainerBgStyle =
-    pageContainerBgStyleBase ||
-    containerPaddingTop != null ||
-    containerPaddingRight != null ||
-    containerPaddingBottom != null ||
-    containerPaddingLeft != null ||
-    containerMarginTop != null ||
-    containerMarginBottom != null
-      ? {
-          ...(pageContainerBgStyleBase || {}),
-          ...(containerPaddingTop != null && containerPaddingTop >= 0
-            ? { paddingTop: `${containerPaddingTop}px` }
-            : {}),
-          ...(containerPaddingRight != null && containerPaddingRight >= 0
-            ? { paddingRight: `${containerPaddingRight}px` }
-            : {}),
-          ...(containerPaddingBottom != null && containerPaddingBottom >= 0
-            ? { paddingBottom: `${containerPaddingBottom}px` }
-            : {}),
-          ...(containerPaddingLeft != null && containerPaddingLeft >= 0
-            ? { paddingLeft: `${containerPaddingLeft}px` }
-            : {}),
-          ...(containerMarginTop != null && containerMarginTop >= 0
-            ? { marginTop: `${containerMarginTop}px` }
-            : {}),
-          ...(containerMarginBottom != null && containerMarginBottom >= 0
-            ? { marginBottom: `${containerMarginBottom}px` }
-            : {}),
-        }
-      : undefined;
+  const sectionBgStyle = {
+    ...(sectionBgStyleBase || {}),
+    ...(sectionPaddingTop != null && sectionPaddingTop >= 0
+      ? { paddingTop: `${sectionPaddingTop}px` }
+      : {}),
+    ...(sectionPaddingBottom != null && sectionPaddingBottom >= 0
+      ? { paddingBottom: `${sectionPaddingBottom}px` }
+      : {}),
+    ...(sectionMarginTop != null && sectionMarginTop >= 0
+      ? { marginTop: `${sectionMarginTop}px` }
+      : {}),
+    ...(sectionMarginBottom != null && sectionMarginBottom >= 0
+      ? { marginBottom: `${sectionMarginBottom}px` }
+      : {}),
+  };
 
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-      <PageContainer style={pageContainerBgStyle}>
-        <div className="fable-section fable-accordion">
-          {normalizedItems.map((item, index) => (
-            <details
-              key={item.key}
-              open={index === 0}
-              style={{
-                background: panelBgColor,
-                borderColor,
-              }}
-            >
-              <summary style={headerColor ? { color: headerColor } : undefined}>
-                <span>{item.label}</span>
-                {customIconUrl ? (
-                  <img src={customIconUrl} alt="" width="22" height="22" />
-                ) : (
-                  <span className="fable-accordion__plus" aria-hidden="true">+</span>
-                )}
-              </summary>
-              <div className="fable-accordion__body" style={contentColor ? { color: contentColor } : undefined}>
-                <SafeHtml html={item.children || ""} />
-              </div>
-            </details>
-          ))}
+      <PageContainer>
+        <div className="fable-section fable-accordion-section" style={colorVars}>
+          {subTitle || mainTitle ? (
+            <header className="fable-section-heading">
+              {subTitle ? <p className="fable-eyebrow">{subTitle}</p> : null}
+              {mainTitle ? (
+                <h2 className="fable-heading">{renderTitle(mainTitle)}</h2>
+              ) : null}
+            </header>
+          ) : null}
+
+          <div className="fable-accordion">
+            {items.map((item, index) => {
+              const hasImage = Boolean(item.imageDesktop || item.imageMobile);
+              return (
+                <details
+                  key={item.key}
+                  open={openIndexes.has(index)}
+                  onToggle={(event) => {
+                    const shouldOpen = event.currentTarget.open;
+                    setOpenIndexes((current) => {
+                      const next = new Set(current);
+                      if (shouldOpen) next.add(index);
+                      else next.delete(index);
+                      return next;
+                    });
+                  }}
+                >
+                  <summary>
+                    <span>{item.label}</span>
+                    {customIconUrl ? (
+                      <span
+                        className="fable-accordion__custom-icon"
+                        style={{
+                          WebkitMaskImage: `url(${customIconUrl})`,
+                          maskImage: `url(${customIconUrl})`,
+                        }}
+                        aria-hidden="true"
+                      />
+                    ) : (
+                      <PlusOutlined
+                        className="fable-accordion__plus"
+                        aria-hidden="true"
+                      />
+                    )}
+                  </summary>
+                  <div
+                    className={`fable-accordion__body${
+                      hasImage ? "" : " fable-accordion__body--no-image"
+                    }`}
+                  >
+                    <div className="fable-accordion__content">
+                      <SafeHtml html={item.content} />
+                    </div>
+                    {hasImage ? (
+                      <div className="fable-accordion__media">
+                        <picture>
+                          {item.imageMobile ? (
+                            <source
+                              media="(max-width: 767px)"
+                              srcSet={item.imageMobile}
+                            />
+                          ) : null}
+                          <img
+                            src={item.imageDesktop || item.imageMobile}
+                            alt={item.imageAlt}
+                            loading="lazy"
+                          />
+                        </picture>
+                      </div>
+                    ) : null}
+                  </div>
+                </details>
+              );
+            })}
+          </div>
         </div>
       </PageContainer>
     </FullWidthBackground>

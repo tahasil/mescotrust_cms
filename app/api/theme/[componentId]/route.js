@@ -34,6 +34,7 @@ import { validateImageSliderImages } from "@/lib/imageSliderImageValidation";
 import { validateImagesImage } from "@/lib/imagesImageValidation";
 import { validateOverlayCardsImages } from "@/lib/overlayCardsImageValidation";
 import { validateReportsImages } from "@/lib/reportsImageValidation";
+import { validateAccordionImages } from "@/lib/accordionImageValidation";
 import {
   stripPhotoGalleryMobileCoverImages,
   validatePhotoGalleryCoverImages,
@@ -72,6 +73,13 @@ function sanitizeComponentDefaultProps(componentId, props) {
   }
   if (componentId === "PhotoGallery") {
     return stripPhotoGalleryMobileCoverImages(props);
+  }
+  if (componentId === "Accordion") {
+    const next = { ...(props || {}) };
+    Object.keys(next).forEach((key) => {
+      if (key.startsWith("accordionPageContainer")) delete next[key];
+    });
+    return next;
   }
   return props;
 }
@@ -211,6 +219,16 @@ export async function PUT(req, { params }) {
     if (componentId === "InnerPageHero") {
       const validationErrors =
         await validateInnerPageHeroBackgroundImage(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (componentId === "Accordion") {
+      const validationErrors = await validateAccordionImages(defaultProps);
       if (validationErrors.length > 0) {
         return NextResponse.json(
           { error: validationErrors[0] },

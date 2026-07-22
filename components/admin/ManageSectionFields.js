@@ -58,6 +58,8 @@ export default function ManageSectionFields({
   sectionBgImageHintText = `Required size: ${REQUIRED_SECTION_BG_TEXT}`,
   sectionBgImageRules,
   sectionBgImageValidateTrigger,
+  showPageContainerSpacing = true,
+  showPageContainer = true,
 }) {
   const sectionBgType = (Form.useWatch(prefix + "SectionBgType", form) || "default");
   const pageContainerBgType = (Form.useWatch(prefix + "PageContainerBgType", form) || "default");
@@ -192,7 +194,7 @@ export default function ManageSectionFields({
             </div>
           ),
         },
-        {
+        ...(showPageContainer ? [{
           key: "pageContainer",
           label: "Box Container",
           children: (
@@ -239,27 +241,29 @@ export default function ManageSectionFields({
                   />
                 </Form.Item>
               )}
-              <div style={{ paddingTop: 12, borderTop: "1px solid #f0f0f0", marginTop: 4 }}>
-                <Form.Item
-                  name={prefix + "PageContainerPadding"}
-                  label="Padding (Top, Right, Bottom, Left)"
-                  tooltip="Comma-separated values in px, e.g. 40, 24, 60, 24"
-                  style={{ marginBottom: 12 }}
-                >
-                  <Input placeholder="e.g. 40, 24, 60, 24" size="large" allowClear />
-                </Form.Item>
-                <Form.Item
-                  name={prefix + "PageContainerMargin"}
-                  label="Margin (Top, Bottom)"
-                  tooltip="Comma-separated values in px, e.g. 20, 40"
-                  style={{ marginBottom: 0 }}
-                >
-                  <Input placeholder="e.g. 20, 40" size="large" allowClear />
-                </Form.Item>
-              </div>
+              {showPageContainerSpacing ? (
+                <div style={{ paddingTop: 12, borderTop: "1px solid #f0f0f0", marginTop: 4 }}>
+                  <Form.Item
+                    name={prefix + "PageContainerPadding"}
+                    label="Padding (Top, Right, Bottom, Left)"
+                    tooltip="Comma-separated values in px, e.g. 40, 24, 60, 24"
+                    style={{ marginBottom: 12 }}
+                  >
+                    <Input placeholder="e.g. 40, 24, 60, 24" size="large" allowClear />
+                  </Form.Item>
+                  <Form.Item
+                    name={prefix + "PageContainerMargin"}
+                    label="Margin (Top, Bottom)"
+                    tooltip="Comma-separated values in px, e.g. 20, 40"
+                    style={{ marginBottom: 0 }}
+                  >
+                    <Input placeholder="e.g. 20, 40" size="large" allowClear />
+                  </Form.Item>
+                </div>
+              ) : null}
             </div>
           ),
-        },
+        }] : []),
       ]}
     />
     </>

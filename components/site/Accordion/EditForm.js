@@ -1,55 +1,186 @@
 "use client";
 
-import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, Row, Col, Collapse, message, Spin } from "antd";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
+import {
+  Col,
+  Collapse,
+  Form,
+  Input,
+  InputNumber,
+  Row,
+  Spin,
+  message,
+} from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
-import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
-import SortableFormList from "@/components/admin/SortableFormList";
-import RichTextEditor from "@/components/admin/RichTextEditor";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
-import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
+import RichTextEditor from "@/components/admin/RichTextEditor";
+import SortableFormList from "@/components/admin/SortableFormList";
+import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import {
+  getManageSectionInitialValues,
+  getManageSectionPayload,
+} from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/Accordion";
 const PREFIX = "accordion";
+const PANEL_IMAGE_WIDTH = 600;
+const PANEL_IMAGE_HEIGHT = 400;
+const PANEL_IMAGE_SIZE = `${PANEL_IMAGE_WIDTH} \u00D7 ${PANEL_IMAGE_HEIGHT} px`;
+const IMAGE_HINT = `Required dimensions: ${PANEL_IMAGE_SIZE}. Allowed: JPG, PNG, WebP, AVIF, GIF and SVG. Maximum size follows Media Settings (20 MB by default). Raster uploads use crop confirmation and optimized media variants.`;
+const COLOR_FIELDS = [
+  "accordionSubTitleColorKey",
+  "accordionTitleColorKey",
+  "accordionTitleAccentColorKey",
+  "accordionHeaderColorKey",
+  "accordionContentColorKey",
+  "accordionContentStrongColorKey",
+  "accordionLinkColorKey",
+  "accordionLinkHoverColorKey",
+  "accordionBgColorKey",
+  "accordionBorderColorKey",
+  "accordionIconColorKey",
+  "accordionOpenIconColorKey",
+  "accordionFocusColorKey",
+  "accordionImageBgColorKey",
+  "accordionImageBorderColorKey",
+];
+const PAGE_CONTAINER_FIELDS = [
+  "accordionPageContainerBgType",
+  "accordionPageContainerBgImage",
+  "accordionPageContainerBgColorKey",
+  "accordionPageContainerPaddingTop",
+  "accordionPageContainerPaddingRight",
+  "accordionPageContainerPaddingBottom",
+  "accordionPageContainerPaddingLeft",
+  "accordionPageContainerMarginTop",
+  "accordionPageContainerMarginBottom",
+];
 
-function normalizeItem(it) {
+function text(value) {
+  return value == null ? "" : String(value).trim();
+}
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+async function validatePanelImageDimensions(_, value) {
+  const imageUrl = text(value);
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (width === PANEL_IMAGE_WIDTH && height === PANEL_IMAGE_HEIGHT) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(
+        `Panel image must be exactly ${PANEL_IMAGE_SIZE}. Selected image is ${width} \u00D7 ${height} px.`,
+      ),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(
+        `Unable to validate panel image size. Please select a ${PANEL_IMAGE_SIZE} image.`,
+      ),
+    );
+  }
+}
+
+function normalizeItem(item) {
+  const imageDesktop = text(
+    item?.imageDesktop ?? item?.image ?? item?.imageUrl,
+  );
   return {
-    label: it?.label != null ? String(it.label).trim() : "",
-    content: it?.content != null ? String(it.content).trim() : "",
+    label: text(item?.label),
+    content: text(item?.content ?? item?.children),
+    imageDesktop,
+    imageMobile: text(item?.imageMobile),
+    imageAlt: text(item?.imageAlt),
   };
 }
 
 function applyFormValues(form, data) {
-  const items = Array.isArray(data?.accordionItems) && data.accordionItems.length > 0
-    ? data.accordionItems.map(normalizeItem)
-    : [normalizeItem({})];
-  form.setFieldsValue({
+  const items =
+    Array.isArray(data?.accordionItems) && data.accordionItems.length > 0
+      ? data.accordionItems.map(normalizeItem)
+      : [normalizeItem({})];
+  const values = {
+    accordionSubTitle: data?.accordionSubTitle ?? "",
+    accordionMainTitle: data?.accordionMainTitle ?? "",
+    accordionDefaultOpenIndex: Number.isFinite(
+      Number(data?.accordionDefaultOpenIndex),
+    )
+      ? Number(data.accordionDefaultOpenIndex)
+      : 0,
     accordionExpandIconUrl: data?.accordionExpandIconUrl ?? "",
-    accordionHeaderColorKey: data?.accordionHeaderColorKey ?? "",
-    accordionContentColorKey: data?.accordionContentColorKey ?? "",
-    accordionBorderColorKey: data?.accordionBorderColorKey ?? "",
-    accordionBgColorKey: data?.accordionBgColorKey ?? "",
     accordionItems: items,
     ...getManageSectionInitialValues(PREFIX, data),
+  };
+  COLOR_FIELDS.forEach((field) => {
+    values[field] = data?.[field] ?? "";
   });
+  form.setFieldsValue(values);
 }
 
-function AccordionEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [] }, ref) {
+function AccordionEditForm(
+  {
+    source,
+    initialData: initialDataProp,
+    onSaveToPage,
+    onSuccess,
+    themeColorOptions: themeColorOptionsProp = [],
+  },
+  ref,
+) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [themeColorOptions, setThemeColorOptions] = useState(themeColorOptionsProp);
+  const [themeColorOptions, setThemeColorOptions] = useState(
+    themeColorOptionsProp,
+  );
   const themeFetchedForColorsRef = useRef(false);
   const isPageBlock = source === "page";
   const [reorderMovedIndex, setReorderMovedIndex] = useState(-1);
   const [reorderDirection, setReorderDirection] = useState(null);
 
   useEffect(() => {
-    if (themeColorOptionsProp?.length > 0) setThemeColorOptions(themeColorOptionsProp);
+    if (themeColorOptionsProp?.length > 0) {
+      setThemeColorOptions(themeColorOptionsProp);
+    }
   }, [themeColorOptionsProp]);
 
   useEffect(() => {
+    function applyThemeColors(theme) {
+      const palette = theme?.themePalette || {};
+      const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
+      const names = [
+        ...new Set([
+          ...Object.keys(palette),
+          ...customColors.map((color) => color?.name).filter(Boolean),
+        ]),
+      ].sort();
+      setThemeColorOptions(
+        names.map((name) => ({ label: name, value: name })),
+      );
+    }
+
     setLoading(true);
     if (isPageBlock) {
       applyFormValues(form, initialDataProp ?? {});
@@ -57,12 +188,7 @@ function AccordionEditForm({ source, initialData: initialDataProp, onSaveToPage,
         themeFetchedForColorsRef.current = true;
         fetch("/api/theme", { cache: "no-store" })
           .then((res) => (res.ok ? res.json() : {}))
-          .then((theme) => {
-            const palette = theme?.themePalette || {};
-            const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
-            const names = [...new Set([...Object.keys(palette), ...customColors.map((c) => c?.name).filter(Boolean)])].sort();
-            setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
-          })
+          .then(applyThemeColors)
           .catch(() => {})
           .finally(() => setLoading(false));
       } else {
@@ -70,15 +196,17 @@ function AccordionEditForm({ source, initialData: initialDataProp, onSaveToPage,
       }
       return;
     }
+
     Promise.all([
-      fetch(API_PATH, { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
-      fetch("/api/theme", { cache: "no-store" }).then((res) => (res.ok ? res.json() : {})),
+      fetch(API_PATH, { cache: "no-store" }).then((res) =>
+        res.ok ? res.json() : {},
+      ),
+      fetch("/api/theme", { cache: "no-store" }).then((res) =>
+        res.ok ? res.json() : {},
+      ),
     ])
       .then(([data, theme]) => {
-        const palette = theme?.themePalette || {};
-        const customColors = Array.isArray(theme?.colors) ? theme.colors : [];
-        const names = [...new Set([...Object.keys(palette), ...customColors.map((c) => c?.name).filter(Boolean)])].sort();
-        setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
+        applyThemeColors(theme);
         applyFormValues(form, data);
       })
       .catch(() => message.error("Failed to load Accordion"))
@@ -86,64 +214,124 @@ function AccordionEditForm({ source, initialData: initialDataProp, onSaveToPage,
   }, [form, isPageBlock, initialDataProp]);
 
   const handleUpdate = () => {
-    form.validateFields().then(() => {
-      const values = form.getFieldsValue(true);
-      const payload = {
-        accordionExpandIconUrl: values.accordionExpandIconUrl ?? "",
-        accordionHeaderColorKey: values.accordionHeaderColorKey ?? "",
-        accordionContentColorKey: values.accordionContentColorKey ?? "",
-        accordionBorderColorKey: values.accordionBorderColorKey ?? "",
-        accordionBgColorKey: values.accordionBgColorKey ?? "",
-        accordionItems: (values.accordionItems || []).map(normalizeItem),
-        ...getManageSectionPayload(PREFIX, values),
-      };
-      if (isPageBlock && onSaveToPage) {
-        onSaveToPage(payload);
-        message.success("Changes will be saved with the page");
-        onSuccess?.();
-        return;
-      }
-      setSaving(true);
-      fetch(API_PATH, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+    form
+      .validateFields()
+      .then(() => {
+        const values = form.getFieldsValue(true);
+        const payload = {
+          accordionSubTitle: text(values.accordionSubTitle),
+          accordionMainTitle: text(values.accordionMainTitle),
+          accordionDefaultOpenIndex: Number.isFinite(
+            Number(values.accordionDefaultOpenIndex),
+          )
+            ? Math.floor(Number(values.accordionDefaultOpenIndex))
+            : 0,
+          accordionExpandIconUrl: text(values.accordionExpandIconUrl),
+          accordionItems: (values.accordionItems || []).map(normalizeItem),
+          ...getManageSectionPayload(PREFIX, values),
+        };
+        COLOR_FIELDS.forEach((field) => {
+          payload[field] = values[field] ?? "";
+        });
+        PAGE_CONTAINER_FIELDS.forEach((field) => {
+          delete payload[field];
+        });
+
+        if (isPageBlock && onSaveToPage) {
+          onSaveToPage(payload);
+          message.success("Changes will be saved with the page");
+          onSuccess?.();
+          return;
+        }
+
+        setSaving(true);
+        fetch(API_PATH, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        })
+          .then((res) => {
+            if (!res.ok) {
+              return res.json().then((data) => Promise.reject(data));
+            }
+            return null;
+          })
+          .then(() => {
+            message.success("Accordion saved");
+            onSuccess?.();
+          })
+          .catch((error) =>
+            message.error(error?.error || "Failed to save"),
+          )
+          .finally(() => setSaving(false));
       })
-        .then((res) => { if (!res.ok) return res.json().then((d) => Promise.reject(d)); })
-        .then(() => { message.success("Accordion saved"); onSuccess?.(); })
-        .catch((err) => message.error(err?.error || "Failed to save"))
-        .finally(() => setSaving(false));
-    }).catch(() => {});
+      .catch(() => {});
   };
 
-  useImperativeHandle(ref, () => ({ update: handleUpdate }), []);
+  useImperativeHandle(ref, () => ({ update: handleUpdate }));
 
   if (loading) {
-    return <div style={{ padding: 48, textAlign: "center" }}><Spin /></div>;
+    return (
+      <div style={{ padding: 48, textAlign: "center" }}>
+        <Spin />
+      </div>
+    );
   }
 
   return (
-    <Form form={form} layout="vertical">
+    <Form form={form} layout="vertical" disabled={saving}>
       <Collapse
         defaultActiveKey={["manage-section", "title-colors", "items"]}
         items={[
           {
             key: "manage-section",
             label: "Manage Section",
-            children: <ManageSectionFields prefix={PREFIX} form={form} themeColorOptions={themeColorOptions} />,
+            children: (
+              <ManageSectionFields
+                prefix={PREFIX}
+                form={form}
+                themeColorOptions={themeColorOptions}
+                showPageContainerSpacing={false}
+                showPageContainer={false}
+              />
+            ),
           },
           {
             key: "title-colors",
             label: "Title & Colors",
-            children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("Accordion")} />,
+            children: (
+              <TitleAndColorsSection
+                form={form}
+                themeColorOptions={themeColorOptions}
+                {...getTitleAndColorsConfig("Accordion")}
+              />
+            ),
           },
           {
             key: "settings",
             label: "Settings",
             children: (
-              <Form.Item name="accordionExpandIconUrl" label="Custom expand icon URL">
-                <MediaPickerInput placeholder="/images/arrow-icon.svg" />
-              </Form.Item>
+              <>
+                <Form.Item
+                  name="accordionDefaultOpenIndex"
+                  label="Initially open panel index"
+                  tooltip="Zero opens the first panel. Use -1 when every panel should initially be closed."
+                >
+                  <InputNumber min={-1} precision={0} style={{ width: "100%" }} />
+                </Form.Item>
+                <Form.Item
+                  name="accordionExpandIconUrl"
+                  label="Custom expand icon (optional)"
+                  tooltip="Leave empty to use the plus icon from the reference design."
+                >
+                  <MediaPickerInput
+                    mediaType="image"
+                    uiVariant="stacked"
+                    placeholder="Select an optional SVG or image icon"
+                    hintText="Uses the standard media library rules and optimization flow. Leave empty for the default plus icon."
+                  />
+                </Form.Item>
+              </>
             ),
           },
           {
@@ -170,13 +358,73 @@ function AccordionEditForm({ source, initialData: initialDataProp, onSaveToPage,
                     renderItemContent={(name, restField) => (
                       <Row gutter={[16, 16]}>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "label"]} label="Title" rules={[{ required: true, message: "Title is required" }]}>
-                            <Input placeholder="e.g. Board of Trustees" size="large" />
+                          <Form.Item
+                            {...restField}
+                            name={[name, "label"]}
+                            label="Title"
+                            rules={[
+                              { required: true, message: "Title is required" },
+                            ]}
+                          >
+                            <Input
+                              placeholder="e.g. Board of Trustees"
+                              size="large"
+                            />
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "content"]} label="Content">
+                          <Form.Item
+                            {...restField}
+                            name={[name, "content"]}
+                            label="Content"
+                          >
                             <RichTextEditor placeholder="Panel content..." />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} md={12}>
+                          <Form.Item
+                            {...restField}
+                            name={[name, "imageDesktop"]}
+                            label="Desktop / tablet image"
+                            rules={[
+                              { validator: validatePanelImageDimensions },
+                            ]}
+                            validateTrigger={["onChange", "onBlur"]}
+                          >
+                            <MediaPickerInput
+                              mediaType="image"
+                              uiVariant="stacked"
+                              placeholder="Optional panel image"
+                              hintText={IMAGE_HINT}
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} md={12}>
+                          <Form.Item
+                            {...restField}
+                            name={[name, "imageMobile"]}
+                            label="Mobile image (optional)"
+                            rules={[
+                              { validator: validatePanelImageDimensions },
+                            ]}
+                            validateTrigger={["onChange", "onBlur"]}
+                          >
+                            <MediaPickerInput
+                              mediaType="image"
+                              uiVariant="stacked"
+                              placeholder="Uses desktop image when empty"
+                              hintText={IMAGE_HINT}
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item
+                            {...restField}
+                            name={[name, "imageAlt"]}
+                            label="Image alternative text"
+                            tooltip="The panel title is used as fallback when this field is empty."
+                          >
+                            <Input placeholder="Describe the image" size="large" />
                           </Form.Item>
                         </Col>
                       </Row>
