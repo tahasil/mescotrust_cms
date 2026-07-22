@@ -21,6 +21,10 @@ function getStartOfTodayUtc() {
   );
 }
 
+function getEndOfTodayUtc(todayStart) {
+  return new Date(todayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
+}
+
 function buildActiveDateCondition(todayStart) {
   return {
     $or: [
@@ -40,12 +44,32 @@ function buildPastDateCondition(todayStart) {
   };
 }
 
+/** Start and end dates are inclusive for the whole current UTC day. */
+function buildLiveDateCondition(todayStart) {
+  const todayEnd = getEndOfTodayUtc(todayStart);
+  return {
+    $and: [
+      { startDate: { $ne: null, $lte: todayEnd } },
+      {
+        $or: [
+          { endDate: { $gte: todayStart } },
+          {
+            endDate: null,
+            startDate: { $gte: todayStart, $lte: todayEnd },
+          },
+        ],
+      },
+    ],
+  };
+}
+
 /**
  * Public events API.
  * GET /api/events — paginated list (published + active by default)
  * GET /api/events?slug=my-event — single published event
  *
- * Query: page, limit, search, sort=upcoming|recent, locale, visibility=active|past|all
+ * Query: page, limit, search, sort=upcoming|recent, locale,
+ * visibility=active|live|past|all
  */
 export async function GET(req) {
   try {
@@ -84,6 +108,8 @@ export async function GET(req) {
     }
     if (visibility === "past") {
       andConditions.push(buildPastDateCondition(todayStart));
+    } else if (visibility === "live") {
+      andConditions.push(buildLiveDateCondition(todayStart));
     } else if (visibility !== "all") {
       andConditions.push(buildActiveDateCondition(todayStart));
     }

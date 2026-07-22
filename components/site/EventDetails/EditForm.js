@@ -22,14 +22,12 @@ const API_PATH = "/api/theme/EventDetails";
 const PREFIX = "eventDetails";
 
 const DEFAULT_VALUES = {
-  eventDetailsHomeLabel: "Home",
-  eventDetailsEventsLabel: "Events",
   eventDetailsInformationTitle: "Event Information",
   eventDetailsDateLabel: "Date",
   eventDetailsTimeLabel: "Time",
   eventDetailsModeLabel: "Mode",
   eventDetailsVenueLabel: "Venue",
-  eventDetailsDescriptionTitle: "About this event",
+  eventDetailsDescriptionTitle: "Description",
   eventDetailsGalleryTitle: "Event Gallery",
   eventDetailsDownloadsTitle: "Downloads",
   eventDetailsRegistrationButtonLabel: "Register for this event",
@@ -38,7 +36,6 @@ const DEFAULT_VALUES = {
   eventDetailsAllEventsLabel: "All events",
   eventDetailsUnavailableLabel: "To be announced",
   eventDetailsNoDescriptionLabel: "Description will be updated soon.",
-  eventDetailsShowBreadcrumb: true,
   eventDetailsShowImage: true,
   eventDetailsShowInformation: true,
   eventDetailsShowDescription: true,
@@ -113,7 +110,6 @@ function EventDetailsEditForm(
       ...data,
       ...Object.fromEntries(
         [
-          "Breadcrumb",
           "Image",
           "Information",
           "Description",
@@ -233,8 +229,6 @@ function EventDetailsEditForm(
             children: (
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 <Card size="small" title="Navigation & sections">
-                  {input("eventDetailsHomeLabel", "Home breadcrumb")}
-                  {input("eventDetailsEventsLabel", "Events breadcrumb")}
                   {input("eventDetailsInformationTitle", "Information title")}
                   {input("eventDetailsDescriptionTitle", "Description title")}
                   {input("eventDetailsGalleryTitle", "Gallery title")}
@@ -262,7 +256,6 @@ function EventDetailsEditForm(
             label: "Visibility",
             children: (
               <SwitchSettingsCard items={[
-                { name: "eventDetailsShowBreadcrumb", label: "Show breadcrumb", tooltip: "Display the dynamic event breadcrumb" },
                 { name: "eventDetailsShowImage", label: "Show featured image", tooltip: "Display the event image" },
                 { name: "eventDetailsShowInformation", label: "Show information card", tooltip: "Display date, time, mode and venue" },
                 { name: "eventDetailsShowDescription", label: "Show description", tooltip: "Display event content from the Events module" },

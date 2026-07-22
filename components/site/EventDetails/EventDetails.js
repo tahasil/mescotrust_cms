@@ -5,11 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
   ArrowLeftOutlined,
-  CalendarOutlined,
-  ClockCircleOutlined,
   DownloadOutlined,
-  EnvironmentOutlined,
-  GlobalOutlined,
 } from "@ant-design/icons";
 import styled from "styled-components";
 import {
@@ -51,28 +47,6 @@ const EventDetailsRoot = styled.div`
     box-sizing: border-box;
   }
 
-  .event-detail-breadcrumb {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 24px;
-    color: var(--event-detail-muted);
-    font-size: 13px;
-    font-weight: 650;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  .event-detail-breadcrumb a {
-    color: inherit;
-    text-decoration: none;
-  }
-
-  .event-detail-breadcrumb a:hover {
-    color: var(--event-detail-accent);
-  }
-
   .event-detail-layout {
     display: grid;
     grid-template-columns: minmax(0, 1.72fr) minmax(290px, 0.72fr);
@@ -97,26 +71,6 @@ const EventDetailsRoot = styled.div`
     color: var(--event-detail-muted);
     font-size: clamp(16px, 1.5vw, 19px);
     line-height: 1.65;
-  }
-
-  .event-detail-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 28px;
-  }
-
-  .event-detail-meta span {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 9px 13px;
-    border: 1px solid var(--event-detail-border);
-    border-radius: 999px;
-    color: var(--event-detail-muted);
-    background: var(--event-detail-card);
-    font-size: 13px;
-    line-height: 1.2;
   }
 
   .event-detail-media {
@@ -588,7 +542,6 @@ export default function EventDetails(props) {
   const [canonicalUrl, setCanonicalUrl] = useState("");
 
   const relatedLimit = clamp(props?.eventDetailsRelatedLimit, 1, 8, 4);
-  const showBreadcrumb = props?.eventDetailsShowBreadcrumb !== false;
   const showImage = props?.eventDetailsShowImage !== false;
   const showInformation = props?.eventDetailsShowInformation !== false;
   const showDescription = props?.eventDetailsShowDescription !== false;
@@ -600,14 +553,12 @@ export default function EventDetails(props) {
   const showRelated = props?.eventDetailsShowRelated !== false;
 
   const labels = useMemo(() => ({
-    home: text(props?.eventDetailsHomeLabel, "Home"),
-    events: text(props?.eventDetailsEventsLabel, "Events"),
     information: text(props?.eventDetailsInformationTitle, "Event Information"),
     date: text(props?.eventDetailsDateLabel, "Date"),
     time: text(props?.eventDetailsTimeLabel, "Time"),
     mode: text(props?.eventDetailsModeLabel, "Mode"),
     venue: text(props?.eventDetailsVenueLabel, "Venue"),
-    description: text(props?.eventDetailsDescriptionTitle, "About this event"),
+    description: text(props?.eventDetailsDescriptionTitle, "Description"),
     gallery: text(props?.eventDetailsGalleryTitle, "Event Gallery"),
     downloads: text(props?.eventDetailsDownloadsTitle, "Downloads"),
     registration: text(props?.eventDetailsRegistrationButtonLabel, "Register for this event"),
@@ -733,23 +684,9 @@ export default function EventDetails(props) {
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
         <EventDetailsRoot style={style} className="my-5">
-          {showBreadcrumb ? (
-            <nav className="event-detail-breadcrumb" aria-label="Breadcrumb">
-              <Link href="/">{labels.home}</Link><span>/</span>
-              <Link href="/events">{labels.events}</Link><span>/</span>
-              <span aria-current="page">{event.title}</span>
-            </nav>
-          ) : null}
-
           <div className="event-detail-layout">
             <article>
               <h1 className="event-detail-title">{event.title}</h1>
-              {event.description ? <p className="event-detail-lead">{event.description}</p> : null}
-              <div className="event-detail-meta">
-                {dateRange ? <span><CalendarOutlined />{dateRange}</span> : null}
-                {eventTime ? <span><ClockCircleOutlined />{eventTime}</span> : null}
-                <span>{event.isOnline ? <GlobalOutlined /> : <EnvironmentOutlined />}{location}</span>
-              </div>
 
               {showImage && (desktop || mobile) ? (
                 <figure className="event-detail-media">
@@ -765,6 +702,8 @@ export default function EventDetails(props) {
                   />
                 </figure>
               ) : null}
+
+              {event.description ? <p className="event-detail-lead">{event.description}</p> : null}
 
               {showDescription ? (
                 <section className="event-detail-section">

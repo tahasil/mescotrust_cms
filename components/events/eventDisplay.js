@@ -182,6 +182,30 @@ export function isEventPast(event, baseDate = new Date()) {
   return false;
 }
 
+function atUtcDayStart(value) {
+  const date = toValidDate(value);
+  if (!date) return null;
+  return new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+  );
+}
+
+/**
+ * Date-only listing status. Start and end dates are inclusive, so an event
+ * running 1–31 July remains live for the complete day on 31 July.
+ */
+export function getEventDateStatus(event, baseDate = new Date()) {
+  const today = atUtcDayStart(baseDate) || atUtcDayStart(new Date());
+  const start = atUtcDayStart(event?.startDate);
+  const end = atUtcDayStart(event?.endDate) || start;
+
+  if (!start && !end) return "undated";
+  if (end && end < today) return "past";
+  if (start && start > today) return "upcoming";
+  if (start && end && start <= today && end >= today) return "live";
+  return "undated";
+}
+
 /**
  * Registration should open only on/after the configured event start date-time.
  * If no startDate is configured, do not block registration by schedule.

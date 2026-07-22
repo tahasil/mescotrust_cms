@@ -13,7 +13,6 @@ import {
   Form,
   Input,
   InputNumber,
-  Select,
   Spin,
   message,
 } from "antd";
@@ -37,8 +36,8 @@ const COLOR_FIELDS = [
   { name: "eventsListingCardBgColorKey", label: "Card background", tooltip: "Event card and search panel background" },
   { name: "eventsListingSurfaceColorKey", label: "Secondary surface", tooltip: "Empty states, filters and image placeholders" },
   { name: "eventsListingBorderColorKey", label: "Borders", tooltip: "Cards, controls and dividers" },
-  { name: "eventsListingControlBgColorKey", label: "Control background", tooltip: "Search input and sort background" },
-  { name: "eventsListingControlTextColorKey", label: "Control text", tooltip: "Search and sort text" },
+  { name: "eventsListingControlBgColorKey", label: "Control background", tooltip: "Search input background" },
+  { name: "eventsListingControlTextColorKey", label: "Control text", tooltip: "Search input text" },
   { name: "eventsListingButtonBgColorKey", label: "Button background", tooltip: "Buttons and active filter background" },
   { name: "eventsListingButtonTextColorKey", label: "Button text", tooltip: "Default button text" },
   { name: "eventsListingButtonHoverBgColorKey", label: "Button hover background", tooltip: "Button hover background" },
@@ -48,32 +47,24 @@ const COLOR_FIELDS = [
 const DEFAULT_VALUES = {
   eventsListingSearchLabel: "Search events",
   eventsListingSearchPlaceholder: "Search by title or keyword...",
-  eventsListingSortLabel: "Sort events",
   eventsListingAllLabel: "All",
-  eventsListingUpcomingFilterLabel: "Upcoming",
+  eventsListingUpcomingFilterLabel: "Live",
   eventsListingPastFilterLabel: "Past",
-  eventsListingUpcomingEyebrow: "Upcoming Events",
-  eventsListingUpcomingTitle: "Coming up next.",
-  eventsListingRecentTitle: "Recently Updated",
+  eventsListingUpcomingEyebrow: "Events",
+  eventsListingUpcomingTitle: "Explore our *events.*",
   eventsListingPastEyebrow: "Past Events",
   eventsListingPastTitle: "Recently *celebrated.*",
   eventsListingButtonLabel: "View Details",
   eventsListingEmptyLabel: "No events found.",
   eventsListingPreviousLabel: "Previous",
   eventsListingNextLabel: "Next",
-  eventsListingUpdatedLabel: "Updated",
   eventsListingShowSearch: true,
   eventsListingShowFilters: true,
-  eventsListingShowRecentlyUpdated: true,
-  eventsListingShowPast: true,
   eventsListingShowDescriptions: true,
-  eventsListingDefaultSort: "upcoming",
-  eventsListingActivePageSize: 7,
-  eventsListingPastPageSize: 6,
-  eventsListingActiveColumns: 2,
-  eventsListingPastColumns: 3,
+  eventsListingActivePageSize: 9,
+  eventsListingActiveColumns: 4,
   eventsListingCardGap: 22,
-  eventsListingCardRadius: 18,
+  eventsListingCardRadius: 14,
   eventsListingTextColorKey: "Black",
   eventsListingMutedTextColorKey: "Black Light",
   eventsListingAccentColorKey: "Primary",
@@ -82,9 +73,9 @@ const DEFAULT_VALUES = {
   eventsListingBorderColorKey: "Border",
   eventsListingControlBgColorKey: "White",
   eventsListingControlTextColorKey: "Black",
-  eventsListingButtonBgColorKey: "Black",
+  eventsListingButtonBgColorKey: "Primary",
   eventsListingButtonTextColorKey: "White",
-  eventsListingButtonHoverBgColorKey: "Primary",
+  eventsListingButtonHoverBgColorKey: "Primary Dark",
   eventsListingButtonHoverTextColorKey: "White",
 };
 
@@ -127,10 +118,7 @@ function EventsListingEditForm(
       ...data,
       eventsListingShowSearch: data.eventsListingShowSearch !== false,
       eventsListingShowFilters: data.eventsListingShowFilters !== false,
-      eventsListingShowRecentlyUpdated: data.eventsListingShowRecentlyUpdated !== false,
-      eventsListingShowPast: data.eventsListingShowPast !== false,
       eventsListingShowDescriptions: data.eventsListingShowDescriptions !== false,
-      eventsListingDefaultSort: data.eventsListingDefaultSort === "recent" ? "recent" : "upcoming",
       ...getManageSectionInitialValues(PREFIX, data),
     });
   };
@@ -174,10 +162,8 @@ function EventsListingEditForm(
       const payload = {
         ...DEFAULT_VALUES,
         ...values,
-        eventsListingActivePageSize: Math.max(1, Number(values.eventsListingActivePageSize) || 7),
-        eventsListingPastPageSize: Math.max(1, Number(values.eventsListingPastPageSize) || 6),
-        eventsListingActiveColumns: Math.max(1, Number(values.eventsListingActiveColumns) || 2),
-        eventsListingPastColumns: Math.max(1, Number(values.eventsListingPastColumns) || 3),
+        eventsListingActivePageSize: Math.max(1, Number(values.eventsListingActivePageSize) || 9),
+        eventsListingActiveColumns: Math.max(1, Number(values.eventsListingActiveColumns) || 4),
         eventsListingCardGap: Math.max(8, Number(values.eventsListingCardGap) || 22),
         eventsListingCardRadius: Math.max(0, Number(values.eventsListingCardRadius) || 0),
         ...getManageSectionPayload(PREFIX, values),
@@ -246,17 +232,15 @@ function EventsListingEditForm(
                 <Card size="small" title="Search & filters">
                   {textField("eventsListingSearchLabel", "Search label")}
                   {textField("eventsListingSearchPlaceholder", "Search placeholder")}
-                  {textField("eventsListingSortLabel", "Sort label")}
                   {textField("eventsListingAllLabel", "All filter label")}
-                  {textField("eventsListingUpcomingFilterLabel", "Upcoming filter label")}
+                  {textField("eventsListingUpcomingFilterLabel", "Live filter label")}
                   {textField("eventsListingPastFilterLabel", "Past filter label")}
                 </Card>
                 <Card size="small" title="Section titles">
-                  {textField("eventsListingUpcomingEyebrow", "Upcoming eyebrow")}
-                  {textField("eventsListingUpcomingTitle", "Upcoming title")}
-                  {textField("eventsListingRecentTitle", "Recently updated title")}
-                  {textField("eventsListingPastEyebrow", "Past eyebrow")}
-                  {textField("eventsListingPastTitle", "Past title")}
+                  {textField("eventsListingUpcomingEyebrow", "Sub Title")}
+                  {textField("eventsListingUpcomingTitle", "Title")}
+                  {textField("eventsListingPastEyebrow", "Past Sub Title")}
+                  {textField("eventsListingPastTitle", "Past Title")}
                   <div style={{ marginTop: -12, marginBottom: 16, color: "rgba(0,0,0,0.45)", fontSize: 12 }}>
                     Wrap one title segment in *asterisks* to use the accent color.
                   </div>
@@ -266,7 +250,6 @@ function EventsListingEditForm(
                   {textField("eventsListingEmptyLabel", "Empty state")}
                   {textField("eventsListingPreviousLabel", "Previous button")}
                   {textField("eventsListingNextLabel", "Next button")}
-                  {textField("eventsListingUpdatedLabel", "Updated prefix")}
                 </Card>
               </div>
             ),
@@ -278,9 +261,7 @@ function EventsListingEditForm(
               <SwitchSettingsCard
                 items={[
                   { name: "eventsListingShowSearch", label: "Show search", tooltip: "Display the event search field" },
-                  { name: "eventsListingShowFilters", label: "Show filters", tooltip: "Display All, Upcoming and Past filters" },
-                  { name: "eventsListingShowRecentlyUpdated", label: "Show event highlights", tooltip: "Display Upcoming and Recently Updated side lists" },
-                  { name: "eventsListingShowPast", label: "Show past events", tooltip: "Display the Past Events section" },
+                  { name: "eventsListingShowFilters", label: "Show filters", tooltip: "Display All, Live and Past filters" },
                   { name: "eventsListingShowDescriptions", label: "Show descriptions", tooltip: "Display event excerpts on cards" },
                 ]}
               />
@@ -298,22 +279,10 @@ function EventsListingEditForm(
             label: "Layout",
             children: (
               <Card size="small" title="Cards & pagination">
-                <Form.Item name="eventsListingDefaultSort" label="Default order">
-                  <Select options={[
-                    { value: "upcoming", label: "Soonest first" },
-                    { value: "recent", label: "Recently updated" },
-                  ]} />
+                <Form.Item name="eventsListingActivePageSize" label="Events per page">
+                  <InputNumber min={1} max={24} style={{ width: "100%" }} />
                 </Form.Item>
-                <Form.Item name="eventsListingActivePageSize" label="Upcoming events per page">
-                  <InputNumber min={1} max={18} style={{ width: "100%" }} />
-                </Form.Item>
-                <Form.Item name="eventsListingPastPageSize" label="Past events per page">
-                  <InputNumber min={1} max={18} style={{ width: "100%" }} />
-                </Form.Item>
-                <Form.Item name="eventsListingActiveColumns" label="Upcoming columns (desktop)">
-                  <InputNumber min={1} max={3} style={{ width: "100%" }} />
-                </Form.Item>
-                <Form.Item name="eventsListingPastColumns" label="Past columns (desktop)">
+                <Form.Item name="eventsListingActiveColumns" label="Columns (desktop)">
                   <InputNumber min={1} max={4} style={{ width: "100%" }} />
                 </Form.Item>
                 <Form.Item name="eventsListingCardGap" label="Card gap (px)">
