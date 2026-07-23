@@ -27,6 +27,8 @@ import {
 import { buildEventRegistrationHref } from "@/components/events/eventRegistration";
 
 const EventDetailsRoot = styled.div`
+  --event-detail-display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --event-detail-body: "Instrument Sans", system-ui, sans-serif;
   --event-detail-ink: #2a283e;
   --event-detail-muted: rgba(42, 40, 62, 0.66);
   --event-detail-accent: #e03c33;
@@ -40,6 +42,9 @@ const EventDetailsRoot = styled.div`
   --event-detail-radius: 18px;
   color: var(--event-detail-ink);
   padding: 0;
+  font-family: var(--event-detail-body);
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
 
   *,
   *::before,
@@ -55,14 +60,16 @@ const EventDetailsRoot = styled.div`
   }
 
   .event-detail-title {
-    max-width: 980px;
+    max-width: 18ch;
     margin: 0 0 20px;
     color: var(--event-detail-ink);
-    font-family: var(--font-display, inherit);
-    font-size: clamp(36px, 5vw, 68px);
-    font-weight: 500;
-    letter-spacing: -0.045em;
-    line-height: 0.98;
+    font-family: var(--event-detail-display);
+    font-size: clamp(38px, 5vw, 68px);
+    font-weight: 650;
+    letter-spacing: -0.028em;
+    line-height: 1.03;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
   }
 
   .event-detail-lead {
@@ -101,7 +108,7 @@ const EventDetailsRoot = styled.div`
   .event-detail-section-title {
     margin: 0 0 18px;
     color: var(--event-detail-ink);
-    font-family: var(--font-display, inherit);
+    font-family: var(--event-detail-display);
     font-size: clamp(25px, 3vw, 36px);
     font-weight: 520;
     letter-spacing: -0.025em;
@@ -116,7 +123,7 @@ const EventDetailsRoot = styled.div`
 
   .event-detail-content :is(h1, h2, h3, h4, h5, h6) {
     color: var(--event-detail-ink);
-    font-family: var(--font-display, inherit);
+    font-family: var(--event-detail-display);
   }
 
   .event-detail-content a {
@@ -383,6 +390,11 @@ const EventDetailsRoot = styled.div`
     .event-detail-card + .event-detail-card {
       margin-top: 0;
     }
+    .event-detail-title {
+      max-width: 20ch;
+      font-size: clamp(36px, 6.4vw, 54px);
+      line-height: 1.04;
+    }
   }
 
   @media (max-width: 680px) {
@@ -391,7 +403,12 @@ const EventDetailsRoot = styled.div`
       grid-template-columns: 1fr;
     }
     .event-detail-title {
-      font-size: clamp(34px, 11vw, 48px);
+      max-width: 100%;
+      margin-bottom: 16px;
+      font-size: clamp(30px, 8.6vw, 38px);
+      font-weight: 640;
+      letter-spacing: -0.024em;
+      line-height: 1.08;
     }
     .event-detail-media {
       aspect-ratio: 4 / 3;
@@ -683,7 +700,7 @@ export default function EventDetails(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
       <PageContainer $managedStyle={pageContainerBgStyle}>
-        <EventDetailsRoot style={style} className="my-5">
+        <EventDetailsRoot style={style} className="my-md-5">
           <div className="event-detail-layout">
             <article>
               <h1 className="event-detail-title">{event.title}</h1>

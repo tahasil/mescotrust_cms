@@ -1314,4 +1314,15 @@ div:has(> .fable-section.fable-scheme) {
   .fable-page-hero .fable-page-hero__content {
     padding: clamp(36px, 9vw, 56px) 0 clamp(32px, 8vw, 48px);
   }
+
+  /* Keep the breadcrumb below the fixed mobile header on public pages. */
+  .public-site .fable-page-hero .fable-page-hero__content {
+    padding-top: 94px;
+  }
+
+  .public-site[data-has-header-ribbon="true"]
+    .fable-page-hero
+    .fable-page-hero__content {
+    padding-top: 86px;
+  }
 }
