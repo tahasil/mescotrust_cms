@@ -90,8 +90,8 @@ export default function ManagingCommittee(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
       <PageContainer style={pageContainerBgStyle}>
-        <div className="fable-section fable-split">
-          <div className="fable-media">
+        <div className="fable-section fable-scheme fable-split">
+          <div className="fable-media fable-media--intrinsic">
             {imageDesktop || imageMobile ? (
               <picture>
                 {imageMobile ? (

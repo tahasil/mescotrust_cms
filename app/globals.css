@@ -1060,6 +1060,39 @@ a {
 .fable-media { overflow: hidden; border-radius: 20px; aspect-ratio: 4 / 3; background: var(--fable-surface); }
 .fable-media img { width: 100%; height: 100%; object-fit: cover; transition: transform .7s cubic-bezier(.16,1,.3,1); }
 .fable-media:hover img { transform: scale(1.04); }
+.fable-media--intrinsic { aspect-ratio: auto; }
+.fable-media--intrinsic picture { display: block; width: 100%; }
+.fable-media--intrinsic img { display: block; width: 100%; height: auto; object-fit: contain; }
+/* Educational-support split sections: Fable18 scheme typography and rhythm. */
+div:has(> .fable-section.fable-scheme) {
+  /* width: 100%;
+  max-width: 1400px;
+  padding: clamp(56px, 6.5vw, 100px) clamp(20px, 4vw, 48px); */
+}
+.fable-scheme .fable-eyebrow {
+  display: inline-block;
+  margin: 0 0 18px;
+  padding: 6px 14px;
+  border: 1px solid color-mix(in srgb, var(--fable-primary) 35%, transparent);
+  border-radius: 999px;
+  font-family: var(--fable-body);
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.6;
+  letter-spacing: .12em;
+  text-align: left;
+}
+.fable-scheme .fable-heading {
+  max-width: 18ch;
+  margin: 0 0 16px;
+  padding: 0;
+  font-family: var(--fable-display);
+  font-size: clamp(26px, 2.8vw, 42px);
+  font-weight: 620;
+  line-height: 1.12;
+  letter-spacing: -.015em;
+  text-align: left;
+}
 .fable-card-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: clamp(18px,2vw,30px); }
 .fable-card {
   min-width: 0;
@@ -1203,6 +1236,9 @@ a {
   .fable-card-grid, .fable-testimonials, .fable-video-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .fable-people, .fable-badges { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .fable-masonry { columns: 2; }
+}
+@media (max-width: 768px) {
+  .defaultBackground:has(> div > .fable-section.fable-scheme) { padding-inline: 0; }
 }
 @media (max-width: 767px) {
   .fable-card-grid, .fable-testimonials, .fable-video-grid, .fable-people, .fable-badges { grid-template-columns: 1fr; }
