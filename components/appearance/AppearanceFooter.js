@@ -12,6 +12,7 @@ import {
   XOutlined,
 } from "@ant-design/icons";
 import { resolveYearPlaceholder } from "@/lib/yearPlaceholder";
+import { PageContainer } from "@/styles/Theme";
 
 const SOCIAL_ICONS = {
   facebook: FacebookFilled,
@@ -87,7 +88,7 @@ export default function AppearanceFooter({
         color: footerTextValue || undefined,
       }}
     >
-      <div className="footer-grid">
+      <PageContainer className="footer-grid page-container-footer">
         <div className="footer-brand">
           {footerLogoUrl ? (
             <a
@@ -128,19 +129,19 @@ export default function AppearanceFooter({
           {footerEmail ? <p><MailOutlined className="contact-icon" aria-hidden="true" /><a href={`mailto:${footerEmail}`} target={footerEmailTarget === "_blank" ? "_blank" : "_self"} rel={footerEmailTarget === "_blank" ? "noopener noreferrer" : undefined}>{footerEmail}</a></p> : null}
           {footerPhone ? <p><PhoneOutlined className="contact-icon" aria-hidden="true" /><a href={`tel:${footerPhone.replace(/[^+\d]/g, "")}`} target={footerPhoneTarget === "_blank" ? "_blank" : "_self"} rel={footerPhoneTarget === "_blank" ? "noopener noreferrer" : undefined}>{footerPhone}</a></p> : null}
         </div>
-      </div>
-      <div className="footer-bottom" style={{ background: footerCopyrightBarValue || undefined }}>
+      </PageContainer>
+      <PageContainer className="footer-bottom page-container-footer" $managedStyle={{ background: footerCopyrightBarValue || undefined }}>
         <p>{copyright}</p>
         <div className="footer-legal">
           {footerPrivacyUrl ? <a href={footerPrivacyUrl} target={footerPrivacyTarget === "_blank" ? "_blank" : "_self"} rel={footerPrivacyTarget === "_blank" ? "noopener noreferrer" : undefined}>{footerPrivacyLabel}</a> : null}
           {footerRefundUrl ? <a href={footerRefundUrl} target={footerRefundTarget === "_blank" ? "_blank" : "_self"} rel={footerRefundTarget === "_blank" ? "noopener noreferrer" : undefined}>{footerRefundLabel}</a> : null}
         </div>
-      </div>
+      </PageContainer>
       <style dangerouslySetInnerHTML={{ __html: `
         .appearance-footer, .appearance-footer * { box-sizing: border-box; }
         .appearance-footer { --appearance-font-body: "Instrument Sans", system-ui, sans-serif; width: 100%; color: rgba(250,246,239,.82); background: #211e30 center/cover no-repeat; font-family: var(--appearance-font-body); font-synthesis: none; -webkit-font-smoothing: antialiased; line-height: 1.6; }
         .appearance-footer *, .appearance-footer *::before, .appearance-footer *::after { font-family: var(--appearance-font-body); }
-        .appearance-footer .footer-grid { width: 100%; max-width: 1400px; margin: 0 auto; padding: clamp(64px,7vw,96px) clamp(20px,4vw,48px); display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.4fr; gap: clamp(32px,3.6vw,64px); }
+        .appearance-footer .footer-grid { padding-top: clamp(64px,7vw,96px); padding-bottom: clamp(64px,7vw,96px); display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.4fr; gap: clamp(32px,3.6vw,64px); }
         .appearance-footer .footer-brand { display: flex; flex-direction: column; gap: 20px; align-items: flex-start; }
         .appearance-footer .footer-logo-link { display: inline-flex; text-decoration: none !important; }
         .appearance-footer .footer-brand img { display: block; width: 150px; height: auto; max-height: 72px; object-fit: contain; background: #faf6ef; border-radius: 12px; padding: 10px 14px; }
@@ -159,7 +160,7 @@ export default function AppearanceFooter({
         .appearance-footer .footer-socials a.footer-social-link:hover { color: #000 !important; -webkit-text-fill-color: #000 !important; opacity: 1; transform: translateY(-1px); }
         .appearance-footer .footer-socials a.footer-social-link .anticon { display: inline-flex; color: #000 !important; font-size: 16px; line-height: 1; }
         .appearance-footer .footer-socials a.footer-social-link svg { display: block; width: 1em; height: 1em; color: #000 !important; fill: currentColor; }
-        .appearance-footer .footer-bottom { width: 100%; max-width: 1400px; margin: 0 auto; padding: 26px clamp(20px,4vw,48px); border-top: 1px solid rgba(250,246,239,.14); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 14px; }
+        .appearance-footer .footer-bottom { padding-top: 26px; padding-bottom: 26px; border-top: 1px solid rgba(250,246,239,.14); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 14px; }
         .appearance-footer .footer-bottom p { margin: 0; color: inherit; opacity: .72; }
         .appearance-footer .footer-legal { display: flex; flex-wrap: wrap; gap: 24px; opacity: .72; }
         .appearance-footer .footer-legal a { color: ${footerTextValue || "rgba(250,246,239,.82)"} !important; -webkit-text-fill-color: ${footerTextValue || "rgba(250,246,239,.82)"} !important; text-decoration: none !important; }

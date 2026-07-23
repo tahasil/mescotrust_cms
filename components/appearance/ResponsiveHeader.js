@@ -256,6 +256,7 @@ export default function Header({
   sectionBorderColor = "",
   sectionShadow = "",
   appearanceResponsive = false,
+  onResponsiveLayerChange,
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openAccordion, setOpenAccordion] = useState(null);
@@ -468,6 +469,15 @@ export default function Header({
   }, [mobileOpen]);
 
   useEffect(() => {
+    onResponsiveLayerChange?.(mobileOpen || searchOpen);
+  }, [mobileOpen, onResponsiveLayerChange, searchOpen]);
+
+  useEffect(
+    () => () => onResponsiveLayerChange?.(false),
+    [onResponsiveLayerChange],
+  );
+
+  useEffect(() => {
     if (!searchOpen) return;
     const focusTimer = window.setTimeout(() => {
       searchInputRef.current?.focus();
@@ -602,7 +612,7 @@ export default function Header({
             </AnnouncementTrack>
           </AnnouncementBar>
         )}
-        <HeaderContent className="site-header-content" $sectionPadding={sectionPadding}>
+        <HeaderContent className="site-header-content page-container-header" $sectionPadding={sectionPadding}>
           <HeaderMainWrapper className="site-header-main">
             <Logo
               className="site-header-logo"
@@ -772,10 +782,11 @@ export default function Header({
         aria-hidden="true"
       />
       <MobileMenu
-        className="site-mobile-menu"
+        className={`site-mobile-menu${mobileOpen ? " is-open" : ""}`}
         $open={mobileOpen}
         $preview={preview}
         $headerBgValue={headerBgValue}
+        aria-hidden={!mobileOpen}
       >
         <MobileMenuHeader>
           <MobileMenuLogo

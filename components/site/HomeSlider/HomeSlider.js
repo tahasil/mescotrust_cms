@@ -27,9 +27,7 @@ function getManagedWrapperProps(settings) {
   const sectionColorKey = String(settings?.[`${prefix}SectionBgColorKey`] || "").trim();
   const containerColorKey = String(settings?.[`${prefix}PageContainerBgColorKey`] || "").trim();
   const containerPaddingTop = managedNumber(settings?.[`${prefix}PageContainerPaddingTop`]);
-  const containerPaddingRight = managedNumber(settings?.[`${prefix}PageContainerPaddingRight`]);
   const containerPaddingBottom = managedNumber(settings?.[`${prefix}PageContainerPaddingBottom`]);
-  const containerPaddingLeft = managedNumber(settings?.[`${prefix}PageContainerPaddingLeft`]);
 
   return {
     sectionClassName: sectionBgType === "default" ? "defaultBackground" : undefined,
@@ -47,10 +45,8 @@ function getManagedWrapperProps(settings) {
       marginBottom: managedNumber(settings?.[`${prefix}SectionMarginBottom`]),
     },
     containerStyle: {
-      "--home-slider-container-padding-top": `${containerPaddingTop ?? 0}px`,
-      "--home-slider-container-padding-right": `${containerPaddingRight ?? 0}px`,
-      "--home-slider-container-padding-bottom": `${containerPaddingBottom ?? 0}px`,
-      "--home-slider-container-padding-left": `${containerPaddingLeft ?? 0}px`,
+      ...(containerPaddingTop != null ? { "--home-slider-container-padding-top": `${containerPaddingTop}px` } : {}),
+      ...(containerPaddingBottom != null ? { "--home-slider-container-padding-bottom": `${containerPaddingBottom}px` } : {}),
       ...(containerBgType === "image" && containerBgImage
         ? { backgroundImage: `url(${containerBgImage})`, backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" }
         : containerBgType === "color" && containerColorKey
@@ -169,7 +165,7 @@ export default function HomeSlider(props) {
 
   return (
     <FullWidthBackground className={`${sectionClassName || ""} home-slider-full-width`.trim()} $managedStyle={sectionStyle}>
-      <PageContainer className="home-slider-page-container" $managedStyle={containerStyle}>
+      <PageContainer className="home-slider-structure-container" $managedStyle={containerStyle}>
       <section
       ref={rootRef}
       className="home-cinematic-slider"
@@ -247,19 +243,19 @@ export default function HomeSlider(props) {
                 </picture>
               )}
               <div className="home-slider-scrim" style={{ opacity: overlayOpacity }} />
-              <div className={`home-slider-caption align-${slide.textAlignment || "left"}`}>
+              <PageContainer className={`home-slider-caption align-${slide.textAlignment || "left"}`}>
                 {slide.captionTitle ? <p>{slide.captionTitle}</p> : null}
                 {slide.captionButtonLabel && slide.captionButtonUrl ? (
                   <a href={slide.captionButtonUrl} target={targetOf(slide.captionButtonTarget)} rel={linkRel(targetOf(slide.captionButtonTarget))}>
                     {slide.captionButtonLabel}<ArrowIcon />
                   </a>
                 ) : null}
-              </div>
+              </PageContainer>
             </article>
           );
         })}
 
-        <div key={current} className={`home-slider-content align-${align}`}>
+        <PageContainer key={current} className={`home-slider-content home-slider-page-container align-${align}`} $managedStyle={containerStyle}>
           {activeSlide.smallTitle ? (
             activeSlide.smallTitleUrl ? (
               <a className="home-slider-pill home-slider-intro" href={activeSlide.smallTitleUrl} target={targetOf(activeSlide.smallTitleTarget)} rel={linkRel(targetOf(activeSlide.smallTitleTarget))}>
@@ -286,7 +282,7 @@ export default function HomeSlider(props) {
               <a className="home-slider-button secondary" href={activeSlide.secondaryButtonUrl} target={targetOf(activeSlide.secondaryButtonTarget)} rel={linkRel(targetOf(activeSlide.secondaryButtonTarget))}>{activeSlide.secondaryButtonLabel}</a>
             ) : null}
           </div>
-        </div>
+        </PageContainer>
 
         {settings.homeSliderShowRail !== false && slides.length > 1 ? (
           <div className="home-slider-rail" role="tablist" aria-label="Choose slide">
@@ -317,6 +313,7 @@ export default function HomeSlider(props) {
 
       <style dangerouslySetInnerHTML={{ __html: `
         .home-cinematic-slider, .home-cinematic-slider * { box-sizing: border-box; }
+        .home-slider-structure-container { display: contents; }
         .home-cinematic-slider { --home-slider-body: "Instrument Sans", system-ui, sans-serif; --home-slider-display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif; position: relative; width: 100%; overflow: hidden; color: #fbfaf7; background: var(--home-slider-background); font-family: var(--home-slider-body); font-synthesis: none; -webkit-font-smoothing: antialiased; touch-action: pan-y; }
         .home-cinematic-slider::before { content: ""; position: absolute; inset: 0; z-index: 1; background: radial-gradient(52% 60% at 82% 10%,rgba(224,60,51,.16),transparent 70%),radial-gradient(40% 50% at 8% 92%,rgba(224,60,51,.1),transparent 70%); pointer-events: none; }
         .home-slider-stage { position: relative; min-height: max(100svh,var(--home-slider-min-height)); }
@@ -327,14 +324,14 @@ export default function HomeSlider(props) {
         .home-slider-media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: saturate(.82); }
         .home-slider-slide.is-active .home-slider-media { animation: homeSliderSettle 8s ease-out forwards; }
         .home-slider-scrim { position: absolute; inset: 0; background: linear-gradient(100deg,rgba(23,20,34,.94) 8%,rgba(23,20,34,.62) 48%,rgba(23,20,34,.28) 100%),linear-gradient(0deg,rgba(23,20,34,.85) 0%,transparent 36%),radial-gradient(46% 60% at 88% 8%,rgba(224,60,51,.22),transparent 70%); }
-        .home-slider-caption { position: absolute; left: 0; right: 0; bottom: clamp(22px,4vh,44px); z-index: 2; width: 100%; max-width: 1400px; margin: 0 auto; padding: 0 clamp(20px,4vw,48px); display: flex; align-items: baseline; gap: 20px; flex-wrap: wrap; }
+        .home-slider-caption { position: absolute; left: 0; right: 0; bottom: clamp(22px,4vh,44px); z-index: 2; padding-top: 0; padding-bottom: 0; display: flex; align-items: baseline; gap: 20px; flex-wrap: wrap; }
         .home-slider-caption.align-center { justify-content: center; text-align: center; }
         .home-slider-caption.align-right { justify-content: flex-end; text-align: right; }
         .home-slider-caption p { margin: 0; color: #fff; font-family: var(--home-slider-display); font-size: clamp(17px,1.7vw,24px); font-weight: 620; }
         .home-slider-caption a { display: inline-flex; align-items: center; gap: 8px; padding-bottom: 3px; color: rgba(250,246,239,.92) !important; -webkit-text-fill-color: rgba(250,246,239,.92) !important; border-bottom: 1.5px solid currentColor; font-size: 14px; font-weight: 600; text-decoration: none !important; }
         .home-slider-slide.is-active .home-slider-caption p, .home-slider-slide.is-active .home-slider-caption a { animation: homeSliderCaptionUp .8s cubic-bezier(.16,1,.3,1) .45s backwards; }
         .home-slider-slide.is-active .home-slider-caption a { animation-delay: .6s; }
-        .home-slider-content { position: relative; z-index: 3; width: 100%; max-width: 1400px; min-height: max(100svh,var(--home-slider-min-height)); margin: 0 auto; padding: 112px clamp(20px,4vw,48px) 120px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; pointer-events: none; }
+        .home-slider-content { position: relative; z-index: 3; min-height: max(100svh,var(--home-slider-min-height)); padding-top: var(--home-slider-container-padding-top,112px); padding-bottom: var(--home-slider-container-padding-bottom,120px); display: flex; flex-direction: column; justify-content: center; align-items: flex-start; pointer-events: none; }
         .home-slider-content > * { pointer-events: auto; }
         .home-slider-content.align-center { align-items: center; text-align: center; }
         .home-slider-content.align-right { align-items: flex-end; text-align: right; }
@@ -372,12 +369,12 @@ export default function HomeSlider(props) {
         @keyframes homeSliderRailFill { from { height: 0; } to { height: 100%; } }
         @keyframes homeSliderSpin { to { transform: rotate(360deg); } }
         @media (max-width: 1023px) {
-          .home-slider-content { padding-inline: clamp(24px,6vw,48px); }
           .home-slider-title { max-width: 16ch; font-size: clamp(38px,7vw,68px) !important; }
         }
         @media (max-width: 767px) {
           .home-slider-stage, .home-slider-content { min-height: max(540px,calc(100svh - 96px)); min-height: max(540px,calc(100dvh - 96px)); }
-          .home-slider-content { padding: 56px 20px 48px; }
+          .home-slider-content { --home-slider-mobile-content-top: 94px; justify-content: flex-start; padding-top: var(--home-slider-container-padding-top,var(--home-slider-mobile-content-top)); padding-bottom: var(--home-slider-container-padding-bottom,48px); }
+          .public-site[data-has-header-ribbon="true"] .home-slider-content { --home-slider-mobile-content-top: 86px; }
           .home-slider-title { max-width: 12ch; margin-bottom: 14px; font-size: clamp(32px,9.6vw,44px) !important; line-height: 1.02 !important; }
           .home-slider-pill { max-width: 100%; margin-bottom: 16px; padding: 8px 14px; font-size: 12px; }
           .home-slider-description { margin-bottom: 18px; font-size: 14px; line-height: 1.5; }
@@ -388,7 +385,7 @@ export default function HomeSlider(props) {
           .home-slider-badge { display: none; }
         }
         @media (max-width: 380px), (max-width: 767px) and (max-height: 620px) {
-          .home-slider-content { padding-top: 38px; padding-bottom: 34px; }
+          .home-slider-content { padding-bottom: var(--home-slider-container-padding-bottom,34px); }
           .home-slider-title { font-size: clamp(30px,9vw,38px) !important; }
           .home-slider-actions { gap: 10px; }
           .home-slider-button { padding-block: 10px; }

@@ -1,5 +1,7 @@
 import styled, { keyframes } from "styled-components";
-import Theme, { BREAKPOINT, getColor } from "@/styles/Theme";
+import Theme, { getColor, PageContainer } from "@/styles/Theme";
+
+const HEADER_BREAKPOINT = "1199px";
 
 const dropdownFadeIn = keyframes`
   from {
@@ -25,26 +27,26 @@ const announcementTicker = keyframes`
   }
 `;
 
+const blockPadding = (value, edge, fallback) => {
+  const tokens = String(value || "").trim().split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) return fallback;
+  if (edge === "bottom" && tokens.length >= 3) return tokens[2];
+  return tokens[0];
+};
+
 export const HeaderMainWrapper = styled.div`
-  width: 90%;
-  max-width: 1400px;
-  margin: 0 auto;
+  padding: 0 10px 0 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 `;
 
-export const HeaderContent = styled.div`
-  width: 100%;
-  padding: ${(props) =>
-    props.$sectionPadding && String(props.$sectionPadding).trim()
-      ? props.$sectionPadding
-      : "16px 0"};
-  @media (max-width: ${BREAKPOINT}) {
-    padding: ${(props) =>
-      props.$sectionPadding && String(props.$sectionPadding).trim()
-        ? props.$sectionPadding
-        : "12px 0"};
+export const HeaderContent = styled(PageContainer)`
+  padding-top: ${(props) => blockPadding(props.$sectionPadding, "top", "16px")};
+  padding-bottom: ${(props) => blockPadding(props.$sectionPadding, "bottom", "16px")};
+  @media (max-width: ${HEADER_BREAKPOINT}) {
+    padding-top: ${(props) => blockPadding(props.$sectionPadding, "top", "12px")};
+    padding-bottom: ${(props) => blockPadding(props.$sectionPadding, "bottom", "12px")};
   }
 `;
 
@@ -178,7 +180,7 @@ export const Nav = styled.nav`
   flex: 1;
   max-width: 100%;
   margin: 0 auto;
-  @media (max-width: ${BREAKPOINT}) {
+  @media (max-width: ${HEADER_BREAKPOINT}) {
     display: none;
   }
 `;
@@ -333,7 +335,7 @@ export const Actions = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
-  @media (max-width: ${BREAKPOINT}) {
+  @media (max-width: ${HEADER_BREAKPOINT}) {
     display: none;
   }
 `;
@@ -493,7 +495,7 @@ export const HamburgerBtn = styled.button`
   &:hover {
     background: rgba(0, 0, 0, 0.06);
   }
-  @media (max-width: ${BREAKPOINT}) {
+  @media (max-width: ${HEADER_BREAKPOINT}) {
     display: flex;
   }
 `;
@@ -509,7 +511,7 @@ export const MobileOverlay = styled.div`
   transition:
     opacity 0.2s,
     visibility 0.2s;
-  @media (max-width: ${BREAKPOINT}) {
+  @media (max-width: ${HEADER_BREAKPOINT}) {
     display: block;
   }
 `;
@@ -529,7 +531,7 @@ export const MobileMenu = styled.div`
   overflow-x: hidden;
   transform: translateX(${(props) => (props.$open ? "0" : "100%")});
   transition: transform 0.25s ease;
-  @media (max-width: ${BREAKPOINT}) {
+  @media (max-width: ${HEADER_BREAKPOINT}) {
     display: block;
     padding: 20px;
     background: #fff;
@@ -735,7 +737,7 @@ export const SearchOverlay = styled.div`
   transition:
     opacity 0.25s ease,
     visibility 0.25s ease;
-  @media (max-width: ${BREAKPOINT}) {
+  @media (max-width: ${HEADER_BREAKPOINT}) {
     padding-top: 72px;
   }
 `;
@@ -756,7 +758,7 @@ export const SearchPanel = styled.div`
   transition:
     transform 0.28s cubic-bezier(0.2, 0.85, 0.32, 1),
     opacity 0.2s ease;
-  @media (max-width: ${BREAKPOINT}) {
+  @media (max-width: ${HEADER_BREAKPOINT}) {
     max-height: calc(100vh - 96px);
     border-radius: 14px;
   }

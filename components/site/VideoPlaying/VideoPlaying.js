@@ -80,7 +80,13 @@ const Chapter = styled.div`
   .chapterLink { display: inline-flex; align-items: center; gap: 8px; color: var(--chapter-link); font-size: ${(p) => p.$linkSize}px; font-weight: 650; text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--chapter-link) 55%, transparent); padding-bottom: 3px; transition: gap 0.25s ease; }
   .chapterLink:hover { gap: 13px; }
 
+  @media (max-width: 1023px) {
+    padding-top: clamp(28px, 5vw, 44px);
+    padding-bottom: clamp(28px, 5vw, 44px);
+  }
   @media (max-width: 767px) {
+    padding-top: 24px;
+    padding-bottom: 24px;
     padding-inline: ${(p) => Math.min(p.$paddingX, 20)}px;
     .chapterPlay { width: min(${(p) => p.$playSize}px, 72px); height: min(${(p) => p.$playSize}px, 72px); }
   }
@@ -88,6 +94,13 @@ const Chapter = styled.div`
     .chapterVideo { transform: none !important; }
     .chapterQuoteWord { opacity: 1 !important; }
     .chapterCover img, .chapterPlay { transition: none; }
+  }
+`;
+
+const VideoPageContainer = styled(PageContainer)`
+  @media (min-width: 1024px) {
+    padding-top: var(--video-playing-container-padding-top, 48px);
+    padding-bottom: var(--video-playing-container-padding-bottom, 48px);
   }
 `;
 
@@ -162,17 +175,23 @@ export default function VideoPlaying(props) {
     ...(pageContainerBgType === "image" && pageContainerBgImage ? { backgroundImage: `url(${pageContainerBgImage})`, backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" } : pageContainerBgType === "color" && pageContainerBgColorKey ? { backgroundColor: getColor(pageContainerBgColorKey), backgroundImage: "none" } : {}),
     ...Object.fromEntries([["paddingTop", props?.videoPlayingPageContainerPaddingTop], ["paddingRight", props?.videoPlayingPageContainerPaddingRight], ["paddingBottom", props?.videoPlayingPageContainerPaddingBottom], ["paddingLeft", props?.videoPlayingPageContainerPaddingLeft], ["marginTop", props?.videoPlayingPageContainerMarginTop], ["marginBottom", props?.videoPlayingPageContainerMarginBottom]].filter(([, value]) => value != null && value !== "" && number(value, -1) >= 0).map(([key, value]) => [key, `${number(value, 0)}px`])),
   };
+  if (props?.videoPlayingPageContainerPaddingTop != null && props.videoPlayingPageContainerPaddingTop !== "") {
+    pageContainerBgStyle["--video-playing-container-padding-top"] = `${number(props.videoPlayingPageContainerPaddingTop, 48)}px`;
+  }
+  if (props?.videoPlayingPageContainerPaddingBottom != null && props.videoPlayingPageContainerPaddingBottom !== "") {
+    pageContainerBgStyle["--video-playing-container-padding-bottom"] = `${number(props.videoPlayingPageContainerPaddingBottom, 48)}px`;
+  }
   const link = text(props?.videoPlayingLinkUrl);
   const linkContent = <><span>{text(props?.videoPlayingLinkText)}</span><ArrowRightOutlined aria-hidden="true" /></>;
 
   return (
     <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
-      <PageContainer $managedStyle={pageContainerBgStyle}>
+      <VideoPageContainer $managedStyle={pageContainerBgStyle}>
         <Chapter
           ref={rootRef}
           $radius={number(props?.videoPlayingChapterRadius, 56)}
-          $paddingTop={number(props?.videoPlayingChapterPaddingTop, 96)}
-          $paddingBottom={number(props?.videoPlayingChapterPaddingBottom, 110)}
+          $paddingTop={number(props?.videoPlayingChapterPaddingTop, 64)}
+          $paddingBottom={number(props?.videoPlayingChapterPaddingBottom, 72)}
           $paddingX={number(props?.videoPlayingChapterPaddingX, 48)}
           $headGap={number(props?.videoPlayingHeadGap, 56)}
           $videoRadius={number(props?.videoPlayingVideoRadius, 20)}
@@ -213,10 +232,10 @@ export default function VideoPlaying(props) {
             "--chapter-link": color(props?.videoPlayingLinkColorKey, getColor("cream")),
           }}
         >
-          <div className="chapterHead">
+          {text(props?.videoPlayingSubTitle ?? previousSubTitleField(props)) || text(props?.videoPlayingTitle) || text(props?.videoPlayingTitleAccent) ? <div className="chapterHead">
             {text(props?.videoPlayingSubTitle ?? previousSubTitleField(props)) ? <p className="chapterSubTitle">{text(props?.videoPlayingSubTitle ?? previousSubTitleField(props))}</p> : null}
             {text(props?.videoPlayingTitle) || text(props?.videoPlayingTitleAccent) ? <h2 className="chapterTitle">{text(props?.videoPlayingTitle)}{text(props?.videoPlayingTitle) && text(props?.videoPlayingTitleAccent) ? " " : null}<em>{text(props?.videoPlayingTitleAccent)}</em></h2> : null}
-          </div>
+          </div> : null}
           <div ref={videoRef} className="chapterVideo">
             {videoPlaying && youtubeVideoId ? <iframe src={`https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&rel=0`} title={text(props?.videoPlayingVideoTitle) || coverAlt} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen /> : <div className="chapterCover" role="button" tabIndex={0} aria-label={text(props?.videoPlayingPlayAriaLabel) || coverAlt} onClick={() => setVideoPlaying(true)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setVideoPlaying(true); } }}><img src={coverImageDesktop} alt={coverAlt} /><button type="button" className="chapterPlay" tabIndex={-1} aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7L8 5z" /></svg></button></div>}
           </div>
@@ -224,7 +243,7 @@ export default function VideoPlaying(props) {
           {text(props?.videoPlayingAuthorName) || text(props?.videoPlayingAuthorRole) ? <figcaption className="chapterAttribution"><strong>{text(props?.videoPlayingAuthorName)}</strong><span>{text(props?.videoPlayingAuthorRole)}</span></figcaption> : null}
           {link && text(props?.videoPlayingLinkText) ? <div className="chapterMore">{(props?.videoPlayingLinkTarget === "_blank" || props?.videoPlayingLinkNewTab === true) ? <a className="chapterLink" href={link} target="_blank" rel="noopener noreferrer">{linkContent}</a> : <Link className="chapterLink" href={link}>{linkContent}</Link>}</div> : null}
         </Chapter>
-      </PageContainer>
+      </VideoPageContainer>
     </FullWidthBackground>
   );
 }

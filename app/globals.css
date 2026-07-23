@@ -172,32 +172,10 @@ a {
   width: 100%;
 }
 
-/* HomeSlider remains full-bleed while its Manage Section box spacing stays configurable. */
+/* HomeSlider background remains full-bleed; its PageContainer is used by content only. */
 .home-slider-full-width {
   padding-left: 0 !important;
   padding-right: 0 !important;
-}
-.home-slider-page-container {
-  width: 100% !important;
-  max-width: none !important;
-  padding: var(--home-slider-container-padding-top, 0)
-    var(--home-slider-container-padding-right, 0)
-    var(--home-slider-container-padding-bottom, 0)
-    var(--home-slider-container-padding-left, 0) !important;
-}
-
-/* PageContainer overrides when used in header/footer (inline padding overrides default; restore horizontal on mobile) */
-.page-container-header {
-  @media (max-width: 768px) {
-    padding-left: 20px;
-    padding-right: 20px;
-  }
-}
-.page-container-footer {
-  @media (max-width: 768px) {
-    padding-left: 20px;
-    padding-right: 20px;
-  }
 }
 
 /* CMS Header: hide offcanvas header (logo + close) on desktop so only main logo shows; show on responsive when drawer is open */
