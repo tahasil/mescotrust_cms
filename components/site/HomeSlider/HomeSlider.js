@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { getColor } from "@/styles/Theme";
+import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 import { HOME_SLIDER_DEFAULT_PROPS, HOME_SLIDER_DEFAULT_SLIDES } from "./defaults";
 
 const clamp = (value, min, max, fallback) => {
@@ -11,6 +11,56 @@ const clamp = (value, min, max, fallback) => {
 
 const targetOf = (value) => (value === "_blank" ? "_blank" : "_self");
 const linkRel = (target) => (target === "_blank" ? "noopener noreferrer" : undefined);
+
+const managedNumber = (value) => {
+  if (value == null || value === "") return undefined;
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : undefined;
+};
+
+function getManagedWrapperProps(settings) {
+  const prefix = "homeSlider";
+  const sectionBgType = String(settings?.[`${prefix}SectionBgType`] || "default");
+  const containerBgType = String(settings?.[`${prefix}PageContainerBgType`] || "default");
+  const sectionBgImage = String(settings?.[`${prefix}SectionBgImage`] || "").trim();
+  const containerBgImage = String(settings?.[`${prefix}PageContainerBgImage`] || "").trim();
+  const sectionColorKey = String(settings?.[`${prefix}SectionBgColorKey`] || "").trim();
+  const containerColorKey = String(settings?.[`${prefix}PageContainerBgColorKey`] || "").trim();
+  const containerPaddingTop = managedNumber(settings?.[`${prefix}PageContainerPaddingTop`]);
+  const containerPaddingRight = managedNumber(settings?.[`${prefix}PageContainerPaddingRight`]);
+  const containerPaddingBottom = managedNumber(settings?.[`${prefix}PageContainerPaddingBottom`]);
+  const containerPaddingLeft = managedNumber(settings?.[`${prefix}PageContainerPaddingLeft`]);
+
+  return {
+    sectionClassName: sectionBgType === "default" ? "defaultBackground" : undefined,
+    sectionStyle: {
+      paddingLeft: 0,
+      paddingRight: 0,
+      ...(sectionBgType === "image" && sectionBgImage
+        ? { backgroundImage: `url(${sectionBgImage})`, backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" }
+        : sectionBgType === "color" && sectionColorKey
+          ? { backgroundColor: getColor(sectionColorKey), backgroundImage: "none" }
+          : {}),
+      paddingTop: managedNumber(settings?.[`${prefix}SectionPaddingTop`]),
+      paddingBottom: managedNumber(settings?.[`${prefix}SectionPaddingBottom`]),
+      marginTop: managedNumber(settings?.[`${prefix}SectionMarginTop`]),
+      marginBottom: managedNumber(settings?.[`${prefix}SectionMarginBottom`]),
+    },
+    containerStyle: {
+      "--home-slider-container-padding-top": `${containerPaddingTop ?? 0}px`,
+      "--home-slider-container-padding-right": `${containerPaddingRight ?? 0}px`,
+      "--home-slider-container-padding-bottom": `${containerPaddingBottom ?? 0}px`,
+      "--home-slider-container-padding-left": `${containerPaddingLeft ?? 0}px`,
+      ...(containerBgType === "image" && containerBgImage
+        ? { backgroundImage: `url(${containerBgImage})`, backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" }
+        : containerBgType === "color" && containerColorKey
+          ? { backgroundColor: getColor(containerColorKey), backgroundImage: "none" }
+          : {}),
+      marginTop: managedNumber(settings?.[`${prefix}PageContainerMarginTop`]),
+      marginBottom: managedNumber(settings?.[`${prefix}PageContainerMarginBottom`]),
+    },
+  };
+}
 
 const ArrowIcon = () => (
   <svg viewBox="0 0 18 18" width="16" height="16" aria-hidden="true">
@@ -52,6 +102,7 @@ export default function HomeSlider(props) {
   const transitionSpeed = clamp(settings.homeSliderTransitionSpeed, 200, 2500, 1100);
   const autoplaySpeed = clamp(settings.homeSliderAutoplaySpeed, 1500, 60000, 6000);
   const minHeight = clamp(settings.homeSliderMinHeight, 0, 1400, 0);
+  const { sectionClassName, sectionStyle, containerStyle } = getManagedWrapperProps(settings);
 
   useEffect(() => {
     if (current < slides.length) return;
@@ -95,7 +146,13 @@ export default function HomeSlider(props) {
   }, [current, slides]);
 
   if (slides.length === 0) {
-    return <div style={{ minHeight: 240, display: "grid", placeItems: "center", color: "rgba(255,255,255,.72)", background: "#211e30" }}>No active slides.</div>;
+    return (
+      <FullWidthBackground className={`${sectionClassName || ""} home-slider-full-width`.trim()} $managedStyle={sectionStyle}>
+        <PageContainer className="home-slider-page-container" $managedStyle={containerStyle}>
+          <div style={{ minHeight: 240, display: "grid", placeItems: "center", color: "rgba(255,255,255,.72)", background: "#211e30" }}>No active slides.</div>
+        </PageContainer>
+      </FullWidthBackground>
+    );
   }
 
   const activeSlide = slides[current] || slides[0];
@@ -111,7 +168,9 @@ export default function HomeSlider(props) {
   const badgeTarget = targetOf(settings.homeSliderBadgeTarget);
 
   return (
-    <section
+    <FullWidthBackground className={`${sectionClassName || ""} home-slider-full-width`.trim()} $managedStyle={sectionStyle}>
+      <PageContainer className="home-slider-page-container" $managedStyle={containerStyle}>
+      <section
       ref={rootRef}
       className="home-cinematic-slider"
       aria-roledescription="carousel"
@@ -312,23 +371,35 @@ export default function HomeSlider(props) {
         @keyframes homeSliderIntro { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes homeSliderRailFill { from { height: 0; } to { height: 100%; } }
         @keyframes homeSliderSpin { to { transform: rotate(360deg); } }
+        @media (max-width: 1023px) {
+          .home-slider-content { padding-inline: clamp(24px,6vw,48px); }
+          .home-slider-title { max-width: 16ch; font-size: clamp(38px,7vw,68px) !important; }
+        }
         @media (max-width: 767px) {
-          .home-slider-stage, .home-slider-content { min-height: 100svh; }
-          .home-slider-content { padding-top: 98px; padding-bottom: 150px; }
-          .home-slider-title { max-width: 11ch; font-size: clamp(34px,9.6vw,44px) !important; }
-          .home-slider-pill { max-width: calc(100vw - 64px); padding: 8px 14px; font-size: 12px; }
+          .home-slider-stage, .home-slider-content { min-height: max(540px,calc(100svh - 96px)); min-height: max(540px,calc(100dvh - 96px)); }
+          .home-slider-content { padding: 56px 20px 48px; }
+          .home-slider-title { max-width: 12ch; margin-bottom: 14px; font-size: clamp(32px,9.6vw,44px) !important; line-height: 1.02 !important; }
+          .home-slider-pill { max-width: 100%; margin-bottom: 16px; padding: 8px 14px; font-size: 12px; }
+          .home-slider-description { margin-bottom: 18px; font-size: 14px; line-height: 1.5; }
           .home-slider-actions { width: 100%; }
-          .home-slider-button { width: 100%; padding: 14px 24px; font-size: 15px; }
+          .home-slider-button { width: 100%; padding: 12px 22px; font-size: 14px; }
           .home-slider-rail { right: 12px; }
-          .home-slider-caption { bottom: 18px; padding-right: 40px; }
-          .home-slider-caption p { font-size: 15px; }
+          .home-slider-caption { display: none; }
           .home-slider-badge { display: none; }
+        }
+        @media (max-width: 380px), (max-width: 767px) and (max-height: 620px) {
+          .home-slider-content { padding-top: 38px; padding-bottom: 34px; }
+          .home-slider-title { font-size: clamp(30px,9vw,38px) !important; }
+          .home-slider-actions { gap: 10px; }
+          .home-slider-button { padding-block: 10px; }
         }
         @media (prefers-reduced-motion: reduce) {
           .home-slider-slide.is-active, .home-slider-slide.is-active .home-slider-media, .home-slider-slide.is-active .home-slider-caption p, .home-slider-slide.is-active .home-slider-caption a, .home-slider-intro, .home-slider-rail button.is-active::after, .home-slider-badge > svg:first-child { animation: none !important; transition: none !important; }
           .home-slider-rail button.is-active::after { height: 100%; }
         }
       ` }} />
-    </section>
+      </section>
+      </PageContainer>
+    </FullWidthBackground>
   );
 }

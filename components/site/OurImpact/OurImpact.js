@@ -196,6 +196,12 @@ const Ledger = styled.div`
     color: var(--impact-link-hover);
   }
 
+  &.isEditorPreview .impactReveal {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+  }
+
   @media (max-width: 1023px) {
     .impactGrid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -267,9 +273,10 @@ export default function OurImpact(props) {
   const pathname = usePathname();
   const rootRef = useRef(null);
   const isEditorPreview = pathname?.startsWith("/admin") === true;
-  const items = Array.isArray(props?.ourImpactItems)
-    ? props.ourImpactItems
-    : DEFAULT_CONTENT.items;
+  const items =
+    Array.isArray(props?.ourImpactItems) && props.ourImpactItems.length > 0
+      ? props.ourImpactItems
+      : DEFAULT_CONTENT.items;
   const locale = text(props?.ourImpactNumberLocale) || "en-IN";
 
   useLayoutEffect(() => {
@@ -279,10 +286,14 @@ export default function OurImpact(props) {
     const counters = root.querySelectorAll(".impactNumber");
     const format = (value) => Math.round(value).toLocaleString(locale);
 
-    if (
-      isEditorPreview ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
+    if (isEditorPreview) {
+      counters.forEach((element) => {
+        element.textContent = format(number(element.dataset.count, 0));
+      });
+      return;
+    }
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       gsap.set(revealElements, { autoAlpha: 1, y: 0 });
       counters.forEach((element) => {
         element.textContent = format(number(element.dataset.count, 0));
@@ -433,6 +444,7 @@ export default function OurImpact(props) {
       <PageContainer $managedStyle={pageContainerBgStyle}>
         <Ledger
           ref={rootRef}
+          className={isEditorPreview ? "isEditorPreview" : undefined}
           $headGap={number(props?.ourImpactHeadGap, 28)}
           $headBottomMin={number(
             props?.ourImpactHeadMarginBottomMin,
@@ -555,7 +567,7 @@ export default function OurImpact(props) {
           </div>
           <div className="impactGrid">
             {items.map((item, index) => (
-              <div className="impactCell impactReveal" key={`${text(item?.index)}-${index}`}>
+              <div className="impactCell" key={`${text(item?.index)}-${index}`}>
                 <span className="impactIndex">
                   {text(item?.index) || String(index + 1).padStart(2, "0")}
                 </span>

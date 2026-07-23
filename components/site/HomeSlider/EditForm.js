@@ -14,11 +14,17 @@ import {
   message,
 } from "antd";
 import { ColorSettingsCard, SwitchSettingsCard } from "@/components/admin/SettingsCardList";
+import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import SortableFormList from "@/components/admin/SortableFormList";
+import {
+  getManageSectionInitialValues,
+  getManageSectionPayload,
+} from "@/lib/manageSectionFields";
 import { HOME_SLIDER_DEFAULT_PROPS, HOME_SLIDER_DEFAULT_SLIDES } from "./defaults";
 
 const API_PATH = "/api/theme/HomeSlider";
+const PREFIX = "homeSlider";
 
 const TARGET_OPTIONS = [
   { value: "_self", label: "Same Tab (_self)" },
@@ -135,7 +141,10 @@ function HomeSliderEditForm(
     setLoading(true);
     const apply = (data, theme) => {
       if (cancelled) return;
-      form.setFieldsValue(normalizeSettings(data));
+      form.setFieldsValue({
+        ...normalizeSettings(data),
+        ...getManageSectionInitialValues(PREFIX, data),
+      });
       if (theme) {
         const palette = theme?.themePalette || {};
         const custom = Array.isArray(theme?.colors) ? theme.colors : [];
@@ -174,7 +183,10 @@ function HomeSliderEditForm(
     try {
       await form.validateFields();
       const values = form.getFieldsValue(true);
-      const payload = normalizeSettings(values);
+      const payload = {
+        ...normalizeSettings(values),
+        ...getManageSectionPayload(PREFIX, values),
+      };
       if (isPageBlock && onSaveToPage) {
         onSaveToPage(payload);
         message.success("Changes will be saved with the page");
@@ -212,6 +224,17 @@ function HomeSliderEditForm(
       <Collapse
         defaultActiveKey={["slides"]}
         items={[
+          {
+            key: "section",
+            label: "Manage Section",
+            children: (
+              <ManageSectionFields
+                prefix={PREFIX}
+                form={form}
+                themeColorOptions={themeColorOptions}
+              />
+            ),
+          },
           {
             key: "settings",
             label: "Slider Settings",
