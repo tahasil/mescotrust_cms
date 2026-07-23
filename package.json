@@ -20,6 +20,7 @@
     "test:social-wall-contracts": "node --test scripts/test-social-wall-module-contracts.js scripts/test-social-wall-pagebuilder-contracts.js",
     "test:social-wall-smoke": "node --test scripts/test-social-wall-public-api-smoke.js",
     "test:social-wall": "npm run test:social-wall-contracts && npm run test:social-wall-smoke",
+    "test:photo-gallery": "node --test scripts/test-photo-gallery-contracts.js",
     "test:media-phase8": "npm run test:media-delivery && npm run test:media-crop-contract && npm run test:media-ui-contracts",
     "qa:media-phase8": "node scripts/media-phase8-qa.js"
   },

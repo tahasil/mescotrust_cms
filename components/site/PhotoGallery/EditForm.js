@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef, forwardRef, useImperativeHandle, useMemo } from "react";
-import { Form, Input, InputNumber, Row, Col, Collapse, Select, Button, message, Spin } from "antd";
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle, useMemo, useCallback } from "react";
+import { Form, Input, InputNumber, Row, Col, Collapse, Select, Button, Card, message, Spin } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import SortableFormList from "@/components/admin/SortableFormList";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
@@ -79,6 +80,11 @@ function applyFormValues(form, data) {
     photoGallerySubTitle: String(data?.photoGallerySubTitle ?? "").trim(),
     photoGalleryTitle: String(data?.photoGalleryTitle ?? "").trim(),
     photoGalleryHeadingAccent: String(data?.photoGalleryHeadingAccent ?? "").trim(),
+    photoGalleryTitleVisible: data?.photoGalleryTitleVisible !== false,
+    photoGallerySubTitleVisible: data?.photoGallerySubTitleVisible !== false,
+    photoGalleryFiltersVisible: data?.photoGalleryFiltersVisible !== false,
+    photoGalleryPhotoCountVisible: data?.photoGalleryPhotoCountVisible !== false,
+    photoGalleryHoverArrowVisible: data?.photoGalleryHoverArrowVisible !== false,
     photoGalleryViewAllText: String(data?.photoGalleryViewAllText ?? data?.photoGalleryViewMoreText ?? "").trim(),
     photoGalleryViewAllLink: String(data?.photoGalleryViewAllLink ?? data?.photoGalleryViewMoreLink ?? "").trim(),
     photoGalleryViewAllTarget: data?.photoGalleryViewAllTarget === "_blank" ? "_blank" : "_self",
@@ -87,9 +93,25 @@ function applyFormValues(form, data) {
     photoGallerySecondDirection: data?.photoGallerySecondDirection ?? -1,
     photoGalleryVelocityBoost: data?.photoGalleryVelocityBoost ?? 0.8,
     photoGalleryImageRadius: data?.photoGalleryImageRadius ?? 18,
+    photoGalleryColumns: data?.photoGalleryColumns ?? 3,
+    photoGalleryGridGap: data?.photoGalleryGridGap ?? 30,
+    photoGalleryAspectRatio: data?.photoGalleryAspectRatio ?? "16 / 9.6",
+    photoGalleryCardShadow: data?.photoGalleryCardShadow ?? "soft",
+    photoGalleryCardBorderWidth: data?.photoGalleryCardBorderWidth ?? 0,
+    photoGalleryOverlayOpacity: data?.photoGalleryOverlayOpacity ?? 0.92,
+    photoGalleryHeadingSpacing: data?.photoGalleryHeadingSpacing ?? 40,
+    photoGalleryFilterSpacing: data?.photoGalleryFilterSpacing ?? 46,
     photoGalleryRevealDuration: data?.photoGalleryRevealDuration ?? 0.9,
     photoGalleryRevealDistance: data?.photoGalleryRevealDistance ?? 30,
-    ...Object.fromEntries(["photoGallerySubTitleColorKey","photoGalleryTitleColorKey","photoGalleryAccentTextColorKey","photoGalleryLinkColorKey","photoGalleryTextColorKey"].map((key)=>[key,String(data?.[key]??"").trim()])),
+    photoGalleryTitleFontSize: data?.photoGalleryTitleFontSize ?? 56,
+    photoGalleryTitleFontWeight: data?.photoGalleryTitleFontWeight ?? 620,
+    photoGalleryTitleLineHeight: data?.photoGalleryTitleLineHeight ?? 1.08,
+    photoGallerySubTitleFontSize: data?.photoGallerySubTitleFontSize ?? 13,
+    photoGallerySubTitleFontWeight: data?.photoGallerySubTitleFontWeight ?? 650,
+    photoGalleryCardTitleFontSize: data?.photoGalleryCardTitleFontSize ?? 16,
+    photoGalleryCardTitleFontWeight: data?.photoGalleryCardTitleFontWeight ?? 600,
+    photoGalleryCardTitleLineHeight: data?.photoGalleryCardTitleLineHeight ?? 1.3,
+    ...Object.fromEntries(["photoGallerySubTitleColorKey","photoGalleryTitleColorKey","photoGalleryAccentTextColorKey","photoGalleryLinkColorKey","photoGalleryTextColorKey","photoGalleryCardTitleColorKey","photoGalleryCardBorderColorKey","photoGalleryCountBgColorKey","photoGalleryCountTextColorKey"].map((key)=>[key,String(data?.[key]??"").trim()])),
     photoGalleryAccentColorKey: data?.photoGalleryAccentColorKey ?? "",
     photoGalleryNavButtonBgColorKey: data?.photoGalleryNavButtonBgColorKey ?? "",
     photoGalleryNavArrowColorKey: data?.photoGalleryNavArrowColorKey ?? "",
@@ -166,13 +188,18 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
       .finally(() => setLoading(false));
   }, [form, isPageBlock, initialDataProp]);
 
-  const handleUpdate = () => {
+  const handleUpdate = useCallback(() => {
     form.validateFields().then(() => {
       const values = form.getFieldsValue(true);
       const payload = {
         photoGallerySubTitle: String(values.photoGallerySubTitle ?? "").trim(),
         photoGalleryTitle: String(values.photoGalleryTitle ?? "").trim(),
         photoGalleryHeadingAccent: String(values.photoGalleryHeadingAccent ?? "").trim(),
+        photoGalleryTitleVisible: values.photoGalleryTitleVisible !== false,
+        photoGallerySubTitleVisible: values.photoGallerySubTitleVisible !== false,
+        photoGalleryFiltersVisible: values.photoGalleryFiltersVisible !== false,
+        photoGalleryPhotoCountVisible: values.photoGalleryPhotoCountVisible !== false,
+        photoGalleryHoverArrowVisible: values.photoGalleryHoverArrowVisible !== false,
         photoGalleryViewAllText: String(values.photoGalleryViewAllText ?? "").trim(),
         photoGalleryViewAllLink: String(values.photoGalleryViewAllLink ?? "").trim(),
         photoGalleryViewAllTarget: values.photoGalleryViewAllTarget === "_blank" ? "_blank" : "_self",
@@ -181,9 +208,25 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
         photoGallerySecondDirection: Number(values.photoGallerySecondDirection ?? -1),
         photoGalleryVelocityBoost: Number(values.photoGalleryVelocityBoost ?? 0.8),
         photoGalleryImageRadius: Number(values.photoGalleryImageRadius ?? 18),
+        photoGalleryColumns: Number(values.photoGalleryColumns ?? 3),
+        photoGalleryGridGap: Number(values.photoGalleryGridGap ?? 30),
+        photoGalleryAspectRatio: values.photoGalleryAspectRatio ?? "16 / 9.6",
+        photoGalleryCardShadow: values.photoGalleryCardShadow ?? "soft",
+        photoGalleryCardBorderWidth: Number(values.photoGalleryCardBorderWidth ?? 0),
+        photoGalleryOverlayOpacity: Number(values.photoGalleryOverlayOpacity ?? 0.92),
+        photoGalleryHeadingSpacing: Number(values.photoGalleryHeadingSpacing ?? 40),
+        photoGalleryFilterSpacing: Number(values.photoGalleryFilterSpacing ?? 46),
         photoGalleryRevealDuration: Number(values.photoGalleryRevealDuration ?? 0.9),
         photoGalleryRevealDistance: Number(values.photoGalleryRevealDistance ?? 30),
-        ...Object.fromEntries(["photoGallerySubTitleColorKey","photoGalleryTitleColorKey","photoGalleryAccentTextColorKey","photoGalleryLinkColorKey","photoGalleryTextColorKey"].map((key)=>[key,String(values?.[key]??"").trim()])),
+        photoGalleryTitleFontSize: Number(values.photoGalleryTitleFontSize ?? 56),
+        photoGalleryTitleFontWeight: Number(values.photoGalleryTitleFontWeight ?? 620),
+        photoGalleryTitleLineHeight: Number(values.photoGalleryTitleLineHeight ?? 1.08),
+        photoGallerySubTitleFontSize: Number(values.photoGallerySubTitleFontSize ?? 13),
+        photoGallerySubTitleFontWeight: Number(values.photoGallerySubTitleFontWeight ?? 650),
+        photoGalleryCardTitleFontSize: Number(values.photoGalleryCardTitleFontSize ?? 16),
+        photoGalleryCardTitleFontWeight: Number(values.photoGalleryCardTitleFontWeight ?? 600),
+        photoGalleryCardTitleLineHeight: Number(values.photoGalleryCardTitleLineHeight ?? 1.3),
+        ...Object.fromEntries(["photoGallerySubTitleColorKey","photoGalleryTitleColorKey","photoGalleryAccentTextColorKey","photoGalleryLinkColorKey","photoGalleryTextColorKey","photoGalleryCardTitleColorKey","photoGalleryCardBorderColorKey","photoGalleryCountBgColorKey","photoGalleryCountTextColorKey"].map((key)=>[key,String(values?.[key]??"").trim()])),
         photoGalleryAccentColorKey: values.photoGalleryAccentColorKey ?? "",
         photoGalleryNavButtonBgColorKey: values.photoGalleryNavButtonBgColorKey ?? "",
         photoGalleryNavArrowColorKey: values.photoGalleryNavArrowColorKey ?? "",
@@ -220,9 +263,9 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
         .catch((err) => message.error(err?.error || "Failed to save"))
         .finally(() => setSaving(false));
     }).catch(() => {});
-  };
+  }, [form, isPageBlock, onSaveToPage, onSuccess]);
 
-  useImperativeHandle(ref, () => ({ update: handleUpdate }), []);
+  useImperativeHandle(ref, () => ({ update: handleUpdate }), [handleUpdate]);
 
   if (loading) {
     return <div style={{ padding: 48, textAlign: "center" }}><Spin /></div>;
@@ -231,7 +274,7 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
   return (
     <Form form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={["items"]}
+        defaultActiveKey={["manage-section", "title-colors", "display", "items"]}
         items={[
           {
             key: "manage-section",
@@ -244,18 +287,98 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
             children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("PhotoGallery")} />,
           },
           {
-            key: "marquee",
-            label: "Marquee Settings",
+            key: "display",
+            label: "Gallery Display & Cards",
             children: (
-              <>
-                <Form.Item name="photoGalleryViewAllText" label="View gallery label"><Input /></Form.Item>
-                <Form.Item name="photoGalleryViewAllLink" label="View gallery URL"><Input /></Form.Item>
-                <Form.Item name="photoGalleryViewAllTarget" label="Target"><Select options={[{label:"Same Tab (_self)",value:"_self"},{label:"New Tab (_blank)",value:"_blank"}]} /></Form.Item>
-                <Row gutter={16}><Col span={12}><Form.Item name="photoGallerySpeed" label="Base speed (px/sec)"><InputNumber min={0} max={300} style={{width:"100%"}} /></Form.Item></Col><Col span={12}><Form.Item name="photoGalleryVelocityBoost" label="Scroll velocity boost"><InputNumber min={0} max={5} step={0.1} style={{width:"100%"}} /></Form.Item></Col></Row>
-                <Row gutter={16}><Col span={12}><Form.Item name="photoGalleryFirstDirection" label="First row direction"><Select options={[{label:"Left",value:1},{label:"Right",value:-1}]} /></Form.Item></Col><Col span={12}><Form.Item name="photoGallerySecondDirection" label="Second row direction"><Select options={[{label:"Left",value:1},{label:"Right",value:-1}]} /></Form.Item></Col></Row>
-                <Form.Item name="photoGalleryImageRadius" label="Image corner radius px"><InputNumber min={0} max={100} style={{width:"100%"}} /></Form.Item>
-                <Row gutter={16}><Col span={12}><Form.Item name="photoGalleryRevealDuration" label="Reveal duration s"><InputNumber min={0} step={0.05} style={{width:"100%"}} /></Form.Item></Col><Col span={12}><Form.Item name="photoGalleryRevealDistance" label="Reveal distance px"><InputNumber min={0} style={{width:"100%"}} /></Form.Item></Col></Row>
-              </>
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <SwitchSettingsCard
+                  items={[
+                    { name: "photoGalleryFiltersVisible", label: "Show filters", tooltip: "Show category filter pills above the gallery." },
+                    { name: "photoGalleryPhotoCountVisible", label: "Show photo count", tooltip: "Show the number of images in each album." },
+                    { name: "photoGalleryHoverArrowVisible", label: "Show card arrow", tooltip: "Show the circular card action indicator." },
+                  ]}
+                />
+                <Card size="small" title="Card layout">
+                  <Row gutter={[16, 0]}>
+                    <Col xs={24} md={12}><Form.Item name="photoGalleryColumns" label="Desktop columns"><InputNumber min={2} max={4} style={{width:"100%"}} /></Form.Item></Col>
+                    <Col xs={24} md={12}><Form.Item name="photoGalleryGridGap" label="Card spacing"><InputNumber min={0} max={64} addonAfter="px" style={{width:"100%"}} /></Form.Item></Col>
+                    <Col xs={24} md={12}><Form.Item name="photoGalleryAspectRatio" label="Image aspect ratio"><Select options={[{label:"Reference wide (16:9.6)",value:"16 / 9.6"},{label:"Landscape (4:3)",value:"4 / 3"},{label:"Video (16:9)",value:"16 / 9"},{label:"Square (1:1)",value:"1 / 1"}]} /></Form.Item></Col>
+                    <Col xs={24} md={12}><Form.Item name="photoGalleryImageRadius" label="Corner radius"><InputNumber min={0} max={80} addonAfter="px" style={{width:"100%"}} /></Form.Item></Col>
+                    <Col xs={24} md={12}><Form.Item name="photoGalleryCardShadow" label="Card shadow"><Select options={[{label:"None",value:"none"},{label:"Soft",value:"soft"},{label:"Elevated",value:"elevated"}]} /></Form.Item></Col>
+                    <Col xs={24} md={12}><Form.Item name="photoGalleryCardBorderWidth" label="Border width"><InputNumber min={0} max={8} addonAfter="px" style={{width:"100%"}} /></Form.Item></Col>
+                    <Col xs={24} md={12}><Form.Item name="photoGalleryOverlayOpacity" label="Overlay opacity"><InputNumber min={0} max={1} step={0.05} style={{width:"100%"}} /></Form.Item></Col>
+                    <Col xs={24} md={12}><Form.Item name="photoGalleryFilterSpacing" label="Space below filters"><InputNumber min={0} max={120} addonAfter="px" style={{width:"100%"}} /></Form.Item></Col>
+                    <Col xs={24} md={12}><Form.Item name="photoGalleryHeadingSpacing" label="Space below heading"><InputNumber min={0} max={120} addonAfter="px" style={{width:"100%"}} /></Form.Item></Col>
+                  </Row>
+                </Card>
+                <Card size="small" title="Links and animation">
+                  <Form.Item name="photoGalleryViewAllText" label="View gallery label"><Input /></Form.Item>
+                  <Form.Item name="photoGalleryViewAllLink" label="View gallery URL"><Input /></Form.Item>
+                  <Form.Item name="photoGalleryViewAllTarget" label="Target"><Select options={[{label:"Same Tab (_self)",value:"_self"},{label:"New Tab (_blank)",value:"_blank"}]} /></Form.Item>
+                  <Row gutter={16}>
+                    <Col xs={24} md={12}><Form.Item name="photoGalleryRevealDuration" label="Reveal duration"><InputNumber min={0} max={3} step={0.05} addonAfter="s" style={{width:"100%"}} /></Form.Item></Col>
+                    <Col xs={24} md={12}><Form.Item name="photoGalleryRevealDistance" label="Reveal distance"><InputNumber min={0} max={100} addonAfter="px" style={{width:"100%"}} /></Form.Item></Col>
+                  </Row>
+                </Card>
+              </div>
+            ),
+          },
+          {
+            key: "typography",
+            label: "Typography",
+            children: (
+              <Card size="small" title="Typography">
+                <Row gutter={[16, 0]}>
+                  <Col xs={24} md={12}><Form.Item name="photoGalleryTitleFontSize" label="Title size"><InputNumber min={24} max={96} addonAfter="px" style={{width:"100%"}} /></Form.Item></Col>
+                  <Col xs={24} md={12}><Form.Item name="photoGalleryTitleFontWeight" label="Title weight"><InputNumber min={100} max={900} step={50} style={{width:"100%"}} /></Form.Item></Col>
+                  <Col xs={24} md={12}><Form.Item name="photoGalleryTitleLineHeight" label="Title line height"><InputNumber min={0.8} max={2} step={0.05} style={{width:"100%"}} /></Form.Item></Col>
+                  <Col xs={24} md={12}><Form.Item name="photoGallerySubTitleFontSize" label="Sub title size"><InputNumber min={10} max={32} addonAfter="px" style={{width:"100%"}} /></Form.Item></Col>
+                  <Col xs={24} md={12}><Form.Item name="photoGallerySubTitleFontWeight" label="Sub title weight"><InputNumber min={100} max={900} step={50} style={{width:"100%"}} /></Form.Item></Col>
+                  <Col xs={24} md={12}><Form.Item name="photoGalleryCardTitleFontSize" label="Card title size"><InputNumber min={11} max={32} addonAfter="px" style={{width:"100%"}} /></Form.Item></Col>
+                  <Col xs={24} md={12}><Form.Item name="photoGalleryCardTitleFontWeight" label="Card title weight"><InputNumber min={100} max={900} step={50} style={{width:"100%"}} /></Form.Item></Col>
+                  <Col xs={24} md={12}><Form.Item name="photoGalleryCardTitleLineHeight" label="Card title line height"><InputNumber min={1} max={2} step={0.05} style={{width:"100%"}} /></Form.Item></Col>
+                </Row>
+              </Card>
+            ),
+          },
+          {
+            key: "filters-limit",
+            label: "Filters & Item Limit",
+            children: (
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <Card size="small" title="Filter categories">
+                  <Form.List name="photoGalleryTabs">
+                    {(tabFields, { add: addTab, remove: removeTab }) => (
+                      <>
+                        {tabFields.map(({ key, name, ...restField }) => (
+                          <div key={key} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                            <Form.Item
+                              {...restField}
+                              name={name}
+                              rules={[{ required: true, message: "Category name is required" }]}
+                              style={{ flex: 1 }}
+                            >
+                              <Input disabled={name === 0} placeholder="Category name" />
+                            </Form.Item>
+                            {name !== 0 ? (
+                              <Button danger type="text" icon={<DeleteOutlined />} onClick={() => removeTab(name)} />
+                            ) : null}
+                          </div>
+                        ))}
+                        <Button type="dashed" block icon={<PlusOutlined />} onClick={() => addTab("")}>
+                          Add category
+                        </Button>
+                      </>
+                    )}
+                  </Form.List>
+                </Card>
+                <Card size="small" title="Item limit">
+                  <SwitchSettingsCard items={[{ name: "photoGalleryLimitEnabled", label: "Limit visible albums", tooltip: "Show only the configured number of albums before the View More link." }]} />
+                  <Form.Item name="photoGalleryLimitCount" label="Visible album count"><InputNumber min={1} max={60} style={{width:"100%"}} /></Form.Item>
+                  <Form.Item name="photoGalleryViewMoreText" label="View More text"><Input /></Form.Item>
+                  <Form.Item name="photoGalleryViewMoreLink" label="View More URL"><Input /></Form.Item>
+                </Card>
+              </div>
             ),
           },
           {
@@ -295,6 +418,11 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                         <Col span={24}>
                           <Form.Item {...restField} name={[name, "title"]} label="Item Title">
                             <Input placeholder="e.g. Annual Function 2024" size="large" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "categories"]} label="Categories">
+                            <Select mode="multiple" options={categoryOptions} placeholder="Select filter categories" />
                           </Form.Item>
                         </Col>
                         <Col span={24}>
