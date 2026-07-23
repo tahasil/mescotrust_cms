@@ -43,6 +43,29 @@ function fmtDate(value) {
   return date.toLocaleString("en-IN");
 }
 
+function SocialPostThumbnail({ row }) {
+  const [failed, setFailed] = useState(false);
+  const hasMedia = Boolean(row?.thumbnailUrl || row?.mediaUrl);
+  if (!hasMedia || failed) {
+    return <span style={{ color: "#8c8c8c", fontSize: 12 }}>{safeString(row?.platform || "Media")}</span>;
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={`/api/public/social-wall/media/${encodeURIComponent(row?.id || "")}?source=media&index=0`}
+      alt={safeString(row?.caption || row?.platform || "Post")}
+      onError={() => setFailed(true)}
+      style={{
+        width: 72,
+        height: 52,
+        objectFit: "cover",
+        borderRadius: 6,
+        border: "1px solid rgba(15,23,42,0.12)",
+      }}
+    />
+  );
+}
+
 function boolFromAny(value, fallback = false) {
   if (value === true || value === false) return value;
   const raw = safeString(value).toLowerCase();
@@ -475,23 +498,7 @@ export default function SocialWallAdminPage() {
       dataIndex: "thumbnailUrl",
       key: "thumbnailUrl",
       width: 110,
-      render: (_, row) =>
-        row?.thumbnailUrl || row?.mediaUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={row.thumbnailUrl || row.mediaUrl}
-            alt={safeString(row?.caption || row?.platform || "Post")}
-            style={{
-              width: 72,
-              height: 52,
-              objectFit: "cover",
-              borderRadius: 6,
-              border: "1px solid rgba(15,23,42,0.12)",
-            }}
-          />
-        ) : (
-          "-"
-        ),
+      render: (_, row) => <SocialPostThumbnail row={row} />,
     },
     {
       title: "Caption",
@@ -937,6 +944,15 @@ export default function SocialWallAdminPage() {
                         type="warning"
                         showIcon
                         message="Facebook requires PAGE_ID and PAGE_ACCESS_TOKEN. App ID/App Secret will not fetch posts."
+                      />
+                    </Col>
+                  ) : null}
+                  {row.accessTokenUnreadable || row.accountIdUnreadable || row.apiKeyUnreadable ? (
+                    <Col xs={24}>
+                      <Alert
+                        type="warning"
+                        showIcon
+                        message="Saved credentials cannot be decrypted with the current configuration secret. Re-enter the token and account ID, then save. Existing encrypted values will not be deleted until replacements are provided."
                       />
                     </Col>
                   ) : null}

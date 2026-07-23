@@ -17,12 +17,11 @@ import {
 } from "@ant-design/icons";
 import {
   FullWidthBackground,
-  MainTitle,
   PageContainer,
-  SubTitle,
   getColor,
 } from "@/styles/Theme";
 import { usePageReadyTask } from "@/lib/pageReadiness";
+import { SOCIAL_WALL_FEED_DEFAULTS as DEFAULTS } from "./constants";
 
 function toSafeString(value) {
   return value == null ? "" : String(value).trim();
@@ -33,6 +32,38 @@ function toPositiveInt(value, fallback) {
   if (!Number.isFinite(num)) return fallback;
   const rounded = Math.floor(num);
   return rounded > 0 ? rounded : fallback;
+}
+
+function toNumber(value, fallback, min, max) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.min(max, Math.max(min, number));
+}
+
+function getProxiedMediaUrl(item, source = "media", index = 0) {
+  const id = toSafeString(item?.id);
+  if (!id) return "";
+  return `/api/public/social-wall/media/${encodeURIComponent(id)}?source=${source}&index=${index}`;
+}
+
+function requiresMediaProxy(item) {
+  // Instagram CDN URLs are signed and commonly reject browser hotlink requests.
+  // Other supported platforms can use their cacheable CDN URLs directly and
+  // only fall back to our proxy if the browser reports an error.
+  return toSafeString(item?.platform).toLowerCase() === "instagram";
+}
+
+function getMediaRenderUrl(item, directUrl, source = "media", index = 0, useProxy = false) {
+  const proxyUrl = getProxiedMediaUrl(item, source, index);
+  if (proxyUrl && (useProxy || requiresMediaProxy(item))) return proxyUrl;
+  return toSafeString(directUrl) || proxyUrl;
+}
+
+function getInstagramEmbedUrl(item) {
+  if (toSafeString(item?.platform).toLowerCase() !== "instagram") return "";
+  const postUrl = toSafeString(item?.postUrl).replace(/[?#].*$/, "").replace(/\/$/, "");
+  if (!/^https:\/\/(www\.)?instagram\.com\/(p|reel|tv)\//i.test(postUrl)) return "";
+  return `${postUrl}/embed/captioned/`;
 }
 
 function fmtDate(value) {
@@ -227,18 +258,39 @@ const FilterRow = styled.div`
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 24px;
+  margin-bottom: clamp(20px, 2.2vw, 32px);
 `;
 
 const WallBody = styled.div`
   width: 100%;
-  max-width: 1720px;
-  margin: 0 auto;
+  .social-wall-heading {
+    margin-bottom: clamp(28px, 4vw, 56px);
+  }
 
-  padding: 0 10px;
+  .social-wall-title {
+    margin: 0;
+    max-width: 15ch;
+    color: var(--social-title);
+    font-family: var(--fable-display, "Bricolage Grotesque", sans-serif);
+    font-size: clamp(34px, calc(var(--social-title-size) * 1px), 72px);
+    font-weight: var(--social-title-weight);
+    line-height: var(--social-title-line-height);
+    letter-spacing: -0.04em;
+  }
 
-  @media (max-width: 768px) {
-    padding: 0 6px;
+  .social-wall-subtitle {
+    margin: 0 0 14px;
+    color: var(--social-subtitle);
+    font-family: var(--fable-body, "Inter", sans-serif);
+    font-size: calc(var(--social-subtitle-size) * 1px);
+    font-weight: var(--social-subtitle-weight);
+    line-height: 1.4;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 767px) {
+    .social-wall-title { font-size: clamp(32px, 10vw, 48px); }
   }
 `;
 
@@ -267,65 +319,61 @@ const FilterChip = styled.button`
 const CardsContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 20px;
+  gap: calc(var(--social-card-gap) * 1px);
+  align-items: stretch;
 
-  @media (max-width: 1280px) {
+  @media (max-width: 1100px) {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  @media (max-width: 1140px) {
+  @media (max-width: 860px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  @media (max-width: 960px) {
+  @media (max-width: 680px) {
     grid-template-columns: repeat(1, minmax(0, 1fr));
-  }
-
-  @media (max-width: 700px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-  }
-
-  @media (max-width: 560px) {
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-    gap: 14px;
+    gap: min(calc(var(--social-card-gap) * 1px), 18px);
   }
 `;
 
 const Card = styled.article`
-  --radius: 18px;
-  --border: rgba(15, 23, 42, 0.1);
-
+  min-width: 0;
+  height: 100%;
   break-inside: avoid;
   margin-bottom: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: 1px solid var(--social-card-border);
+  border-radius: calc(var(--social-card-radius) * 1px);
   overflow: hidden;
-  background: #fff;
+  background: var(--social-card-bg);
   box-shadow: ${(props) =>
-    props.$cardStyle === "elevated"
+    props.$shadow === "elevated"
       ? "0 20px 36px rgba(15,23,42,0.14)"
-      : props.$cardStyle === "outlined"
-        ? "0 1px 0 rgba(15,23,42,0.04)"
-        : "0 10px 24px rgba(15,23,42,0.08)"};
+      : props.$shadow === "none"
+        ? "none"
+        : "0 10px 28px rgba(42,40,62,0.09)"};
   display: flex;
   flex-direction: column;
-  min-height: 360px;
   animation: ${revealIn} 460ms ease both;
   animation-delay: var(--delay, 0ms);
   transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
 
   &:hover {
     transform: translateY(-5px);
-    border-color: rgba(143, 29, 33, 0.38);
+    border-color: var(--social-platform-icon);
     box-shadow: 0 24px 44px rgba(15, 23, 42, 0.16);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    transition: none;
+    &:hover { transform: none; }
   }
 `;
 
 const MediaShell = styled.div`
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 4 / 3;
   overflow: hidden;
   background: linear-gradient(135deg, #e2e8f0 0%, #f8fafc 60%, #eef2ff 100%);
   display: flex;
@@ -336,7 +384,7 @@ const MediaShell = styled.div`
   video {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
     display: block;
     background: #fff;
     transition: transform 280ms ease;
@@ -397,9 +445,16 @@ const CarouselGrid = styled.div`
   img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
     background: #fff;
   }
+`;
+
+const EmbedFrame = styled.iframe`
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #fff;
 `;
 
 const TextMedia = styled.div`
@@ -434,11 +489,11 @@ const TextMediaSnippet = styled.p`
 `;
 
 const CardBody = styled.div`
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 14px 14px 15px;
-  height: 100%;
+  padding: clamp(18px, 2vw, 26px);
 `;
 
 const TopRow = styled.div`
@@ -455,9 +510,9 @@ const AuthorWrap = styled.div`
 `;
 
 const Avatar = styled.div`
-  width: 38px;
-  height: 38px;
-  border-radius: 999px;
+  width: calc(var(--social-avatar-size) * 1px);
+  height: calc(var(--social-avatar-size) * 1px);
+  border-radius: calc(var(--social-avatar-radius) * 1px);
   overflow: hidden;
   flex-shrink: 0;
   background: #e2e8f0;
@@ -481,9 +536,9 @@ const AuthorMeta = styled.div`
   min-width: 0;
 
   .name {
-    font-size: 14px;
+    font-size: calc(var(--social-user-size) * 1px);
     font-weight: 700;
-    color: #0f172a;
+    color: var(--social-user-name);
     line-height: 1.3;
     white-space: nowrap;
     overflow: hidden;
@@ -493,7 +548,7 @@ const AuthorMeta = styled.div`
   .handle {
     margin-top: 1px;
     font-size: 12px;
-    color: #64748b;
+    color: var(--social-handle);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -502,7 +557,7 @@ const AuthorMeta = styled.div`
 
 const DateMeta = styled.div`
   flex-shrink: 0;
-  color: #64748b;
+  color: var(--social-date);
   font-size: 12px;
   display: inline-flex;
   align-items: center;
@@ -519,15 +574,15 @@ const PlatformPill = styled.span`
   line-height: 1;
   border-radius: 999px;
   padding: 7px 10px;
-  color: ${(props) => props.$color || "#334155"};
+  color: var(--social-platform-icon);
   background: ${(props) => props.$soft || "rgba(51,65,85,0.12)"};
 `;
 
 const Caption = styled.p`
   margin: 0;
-  color: #1e293b;
-  font-size: 14px;
-  line-height: 1.6;
+  color: var(--social-post-text);
+  font-size: calc(var(--social-post-size) * 1px);
+  line-height: var(--social-post-line-height);
   white-space: pre-wrap;
   word-break: break-word;
 
@@ -579,19 +634,25 @@ const ViewButton = styled.a`
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  border-radius: 10px;
-  padding: 8px 12px;
+  border-radius: calc(var(--social-button-radius) * 1px);
+  padding: 11px 17px;
   font-size: 13px;
   font-weight: 700;
   line-height: 1;
   text-decoration: none;
-  color: #fff;
-  background: linear-gradient(90deg, #8f1d21 0%, #b4232a 100%);
+  background: var(--social-button-bg);
   box-shadow: 0 8px 18px rgba(143, 29, 33, 0.34);
   transition: transform 180ms ease, box-shadow 180ms ease;
 
-  &:hover {
-    color: #fff;
+  && {
+    color: var(--social-button-text);
+    -webkit-text-fill-color: var(--social-button-text);
+  }
+
+  &&:hover {
+    color: var(--social-button-hover-text);
+    -webkit-text-fill-color: var(--social-button-hover-text);
+    background: var(--social-button-hover-bg);
     transform: translateY(-1px);
     box-shadow: 0 12px 22px rgba(143, 29, 33, 0.38);
   }
@@ -624,6 +685,18 @@ export default function SocialWallFeed(props) {
   const showEngagement = props?.socialWallFeedShowEngagement !== false;
   const showDate = props?.socialWallFeedShowDate !== false;
   const infiniteScroll = props?.socialWallFeedInfiniteScroll === true;
+  const titleEnabled = props?.socialWallFeedTitleEnabled !== false;
+  const subTitleEnabled = props?.socialWallFeedSubTitleEnabled !== false;
+  const avatarVisible = props?.socialWallFeedAvatarVisible !== false;
+  const cardShadow = ["none", "soft", "elevated"].includes(props?.socialWallFeedCardShadow)
+    ? props.socialWallFeedCardShadow
+    : cardStylePreset === "elevated"
+      ? "elevated"
+      : cardStylePreset === "outlined"
+        ? "none"
+        : DEFAULTS.cardShadow;
+  const buttonText = toSafeString(props?.socialWallFeedButtonText || DEFAULTS.buttonText);
+  const buttonTarget = props?.socialWallFeedButtonTarget === "_self" ? "_self" : "_blank";
 
   const [loading, setLoading] = useState(enabled);
   const [initialLoading, setInitialLoading] = useState(enabled);
@@ -635,6 +708,8 @@ export default function SocialWallFeed(props) {
   const [availablePlatforms, setAvailablePlatforms] = useState([]);
   const [expandedCaptionMap, setExpandedCaptionMap] = useState({});
   const [mediaLoadedMap, setMediaLoadedMap] = useState({});
+  const [mediaFailedMap, setMediaFailedMap] = useState({});
+  const [mediaProxyFallbackMap, setMediaProxyFallbackMap] = useState({});
   const loadMoreSentinelRef = useRef(null);
   const showFilterTabs = filtersEnabled && availablePlatforms.length > 1;
 
@@ -643,9 +718,35 @@ export default function SocialWallFeed(props) {
     [props],
   );
 
-  const titleColor = toSafeString(props?.titleColorKey)
-    ? getColor(props.titleColorKey)
-    : getColor("primary");
+  const color = (field, fallback) => getColor(toSafeString(props?.[field] || fallback));
+  const designStyle = {
+    "--social-title": color("titleColorKey", "Black"),
+    "--social-subtitle": color("socialWallFeedSubTitleColorKey", "Primary"),
+    "--social-card-bg": color("socialWallFeedCardBgColorKey", DEFAULTS.cardBackground),
+    "--social-card-border": color("socialWallFeedCardBorderColorKey", DEFAULTS.cardBorder),
+    "--social-user-name": color("socialWallFeedUserNameColorKey", DEFAULTS.userNameColor),
+    "--social-handle": color("socialWallFeedHandleColorKey", DEFAULTS.handleColor),
+    "--social-post-text": color("socialWallFeedPostTextColorKey", DEFAULTS.postTextColor),
+    "--social-date": color("socialWallFeedDateColorKey", DEFAULTS.dateColor),
+    "--social-platform-icon": color("socialWallFeedPlatformIconColorKey", DEFAULTS.platformIconColor),
+    "--social-button-bg": color("socialWallFeedButtonBgColorKey", DEFAULTS.buttonBackground),
+    "--social-button-text": color("socialWallFeedButtonTextColorKey", DEFAULTS.buttonTextColor),
+    "--social-button-hover-bg": color("socialWallFeedButtonHoverBgColorKey", DEFAULTS.buttonHoverBackground),
+    "--social-button-hover-text": color("socialWallFeedButtonHoverTextColorKey", DEFAULTS.buttonHoverTextColor),
+    "--social-card-radius": toNumber(props?.socialWallFeedCardRadius, DEFAULTS.cardRadius, 0, 60),
+    "--social-card-gap": toNumber(props?.socialWallFeedCardSpacing, DEFAULTS.cardSpacing, 0, 64),
+    "--social-avatar-size": toNumber(props?.socialWallFeedAvatarSize, DEFAULTS.avatarSize, 24, 96),
+    "--social-avatar-radius": toNumber(props?.socialWallFeedAvatarRadius, DEFAULTS.avatarRadius, 0, 999),
+    "--social-button-radius": toNumber(props?.socialWallFeedButtonRadius, DEFAULTS.buttonRadius, 0, 999),
+    "--social-title-size": toNumber(props?.socialWallFeedTitleFontSize, DEFAULTS.titleFontSize, 24, 96),
+    "--social-title-weight": toNumber(props?.socialWallFeedTitleFontWeight, DEFAULTS.titleFontWeight, 300, 900),
+    "--social-title-line-height": toNumber(props?.socialWallFeedTitleLineHeight, DEFAULTS.titleLineHeight, 0.8, 2),
+    "--social-subtitle-size": toNumber(props?.socialWallFeedSubTitleFontSize, DEFAULTS.subTitleFontSize, 10, 32),
+    "--social-subtitle-weight": toNumber(props?.socialWallFeedSubTitleFontWeight, DEFAULTS.subTitleFontWeight, 300, 900),
+    "--social-user-size": DEFAULTS.userNameFontSize,
+    "--social-post-size": toNumber(props?.socialWallFeedPostFontSize, DEFAULTS.postFontSize, 11, 24),
+    "--social-post-line-height": toNumber(props?.socialWallFeedPostLineHeight, DEFAULTS.postLineHeight, 1, 2.4),
+  };
 
   const blockConfig = useMemo(
     () => ({
@@ -689,11 +790,13 @@ export default function SocialWallFeed(props) {
       if (append) setLoadingMore(true);
       else setLoading(true);
       try {
-        const res = await fetch("/api/public/social-wall/feed", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestPayload),
+        const searchParams = new URLSearchParams({
+          limit: String(requestPayload.limit),
+          cursor: requestPayload.cursor,
+          platform: requestPayload.platform,
+          blockConfig: JSON.stringify(requestPayload.blockConfig),
         });
+        const res = await fetch(`/api/public/social-wall/feed?${searchParams.toString()}`);
         const data = await res.json().catch(() => ({}));
         const nextItems = Array.isArray(data?.items) ? data.items : [];
         setItems((prev) => (append ? [...prev, ...nextItems] : nextItems));
@@ -701,6 +804,8 @@ export default function SocialWallFeed(props) {
         if (!append) {
           setExpandedCaptionMap({});
           setMediaLoadedMap({});
+          setMediaFailedMap({});
+          setMediaProxyFallbackMap({});
         }
 
         const platformRows = Array.isArray(data?.platformConfigs)
@@ -780,6 +885,24 @@ export default function SocialWallFeed(props) {
     });
   }, []);
 
+  const markMediaFailed = useCallback((key) => {
+    const safe = toSafeString(key);
+    if (!safe) return;
+    setMediaFailedMap((prev) => (prev[safe] ? prev : { ...prev, [safe]: true }));
+    markMediaLoaded(safe);
+  }, [markMediaLoaded]);
+
+  const handleMediaError = useCallback((key, item, source = "media", index = 0) => {
+    const safe = toSafeString(key);
+    const proxyUrl = getProxiedMediaUrl(item, source, index);
+    if (!safe) return;
+    if (proxyUrl && !requiresMediaProxy(item) && mediaProxyFallbackMap[safe] !== true) {
+      setMediaProxyFallbackMap((prev) => (prev[safe] ? prev : { ...prev, [safe]: true }));
+      return;
+    }
+    markMediaFailed(safe);
+  }, [markMediaFailed, mediaProxyFallbackMap]);
+
   const toggleCaption = useCallback((itemKey) => {
     const safe = toSafeString(itemKey);
     if (!safe) return;
@@ -801,6 +924,7 @@ export default function SocialWallFeed(props) {
       const postKind = normalizePostKind(item);
       const mediaUrls = getItemMediaUrls(item);
       const primaryMedia = mediaUrls[0] || "";
+      const embedUrl = getInstagramEmbedUrl(item);
       const showVideo = postKind === "video" && toSafeString(item?.videoUrl);
       const showCarousel = postKind === "carousel" && mediaUrls.length > 1;
       const platformMeta = getPlatformMeta(item?.platform, item?.platform);
@@ -821,7 +945,7 @@ export default function SocialWallFeed(props) {
       return (
         <Card
           key={itemKey}
-          $cardStyle={cardStylePreset}
+          $shadow={cardShadow}
           style={{ "--delay": `${Math.min(index, 8) * 45}ms` }}
         >
           {showCarousel ? (
@@ -832,14 +956,26 @@ export default function SocialWallFeed(props) {
                   return (
                     <div key={mediaKey} style={{ position: "relative" }}>
                       {!mediaLoadedMap[mediaKey] ? <MediaSkeleton /> : null}
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={url}
-                        alt={caption || platformMeta.label}
-                        loading="lazy"
-                        onLoad={() => markMediaLoaded(mediaKey)}
-                        onError={() => markMediaLoaded(mediaKey)}
-                      />
+                      {mediaFailedMap[mediaKey] ? (
+                        <TextMedia><PlatformIcon style={{ fontSize: 28 }} /><TextMediaTitle>{platformMeta.label}</TextMediaTitle></TextMedia>
+                      ) : (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={getMediaRenderUrl(
+                            item,
+                            url,
+                            "media",
+                            imageIndex,
+                            mediaProxyFallbackMap[mediaKey] === true,
+                          )}
+                          alt={caption || platformMeta.label}
+                          loading={index < 4 ? "eager" : "lazy"}
+                          fetchPriority={index < 4 ? "high" : "auto"}
+                          decoding="async"
+                          onLoad={() => markMediaLoaded(mediaKey)}
+                          onError={() => handleMediaError(mediaKey, item, "media", imageIndex)}
+                        />
+                      )}
                     </div>
                   );
                 })}
@@ -855,9 +991,15 @@ export default function SocialWallFeed(props) {
               <video
                 controls
                 preload="metadata"
-                poster={toSafeString(item?.thumbnailUrl || item?.mediaUrl)}
+                poster={getMediaRenderUrl(
+                  item,
+                  item?.thumbnailUrl || item?.mediaUrl,
+                  "media",
+                  0,
+                  mediaProxyFallbackMap[`${itemKey}-video`] === true,
+                )}
                 onLoadedData={() => markMediaLoaded(`${itemKey}-video`)}
-                onError={() => markMediaLoaded(`${itemKey}-video`)}
+                onError={() => markMediaFailed(`${itemKey}-video`)}
               >
                 <source src={item.videoUrl} />
               </video>
@@ -866,17 +1008,37 @@ export default function SocialWallFeed(props) {
                 Video
               </OverlayBadge>
             </MediaShell>
-          ) : primaryMedia ? (
+          ) : primaryMedia || embedUrl ? (
             <MediaShell>
               {!mediaLoadedMap[`${itemKey}-image`] ? <MediaSkeleton /> : null}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={primaryMedia}
-                alt={caption || platformMeta.label}
-                loading="lazy"
-                onLoad={() => markMediaLoaded(`${itemKey}-image`)}
-                onError={() => markMediaLoaded(`${itemKey}-image`)}
-              />
+              {mediaFailedMap[`${itemKey}-image`] && embedUrl ? (
+                <EmbedFrame
+                  src={embedUrl}
+                  title={`${platformMeta.label} post`}
+                  loading="lazy"
+                  allowTransparency="true"
+                  onLoad={() => markMediaLoaded(`${itemKey}-image`)}
+                />
+              ) : mediaFailedMap[`${itemKey}-image`] ? (
+                <TextMedia><PlatformIcon style={{ fontSize: 34 }} /><TextMediaTitle>{platformMeta.label}</TextMediaTitle><TextMediaSnippet>Media unavailable</TextMediaSnippet></TextMedia>
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={getMediaRenderUrl(
+                    item,
+                    primaryMedia,
+                    "media",
+                    0,
+                    mediaProxyFallbackMap[`${itemKey}-image`] === true,
+                  )}
+                  alt={caption || platformMeta.label}
+                  loading={index < 4 ? "eager" : "lazy"}
+                  fetchPriority={index < 4 ? "high" : "auto"}
+                  decoding="async"
+                  onLoad={() => markMediaLoaded(`${itemKey}-image`)}
+                  onError={() => handleMediaError(`${itemKey}-image`, item)}
+                />
+              )}
               {postKind === "video" ? (
                 <OverlayBadge>
                   <PlayCircleFilled />
@@ -896,14 +1058,26 @@ export default function SocialWallFeed(props) {
           <CardBody>
             <TopRow>
               <AuthorWrap>
-                <Avatar>
-                  {toSafeString(item?.authorImage) ? (
+                {avatarVisible ? <Avatar>
+                  {toSafeString(item?.authorImage) && !mediaFailedMap[`${itemKey}-avatar`] ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={item.authorImage} alt={authorName} loading="lazy" />
+                    <img
+                      src={getMediaRenderUrl(
+                        item,
+                        item.authorImage,
+                        "author",
+                        0,
+                        mediaProxyFallbackMap[`${itemKey}-avatar`] === true,
+                      )}
+                      alt={authorName}
+                      loading="lazy"
+                      decoding="async"
+                      onError={() => handleMediaError(`${itemKey}-avatar`, item, "author")}
+                    />
                   ) : (
                     getInitials(authorName)
                   )}
-                </Avatar>
+                </Avatar> : null}
                 <AuthorMeta>
                   <div className="name">{authorName}</div>
                   {authorHandle ? <div className="handle">{authorHandle}</div> : null}
@@ -918,7 +1092,7 @@ export default function SocialWallFeed(props) {
             </TopRow>
 
             {showPlatformIcon ? (
-              <PlatformPill $color={platformMeta.color} $soft={platformMeta.soft}>
+              <PlatformPill $soft={platformMeta.soft}>
                 <PlatformIcon />
                 {platformMeta.label}
               </PlatformPill>
@@ -949,9 +1123,13 @@ export default function SocialWallFeed(props) {
 
             <CtaRow>
               {toSafeString(item?.postUrl) ? (
-                <ViewButton href={item.postUrl} target="_blank" rel="noreferrer">
+                <ViewButton
+                  href={item.postUrl}
+                  target={buttonTarget}
+                  rel={buttonTarget === "_blank" ? "noreferrer" : undefined}
+                >
                   <GlobalOutlined />
-                  View Original Post
+                  {buttonText}
                 </ViewButton>
               ) : (
                 <MissingLink>Original post link not available</MissingLink>
@@ -962,11 +1140,18 @@ export default function SocialWallFeed(props) {
       );
     },
     [
-      cardStylePreset,
+      avatarVisible,
+      buttonTarget,
+      buttonText,
+      cardShadow,
       expandedCaptionMap,
       getItemKey,
+      handleMediaError,
       markMediaLoaded,
+      markMediaFailed,
+      mediaFailedMap,
       mediaLoadedMap,
+      mediaProxyFallbackMap,
       showDate,
       showEngagement,
       showPlatformIcon,
@@ -983,12 +1168,12 @@ export default function SocialWallFeed(props) {
   return (
     <FullWidthBackground className={sectionClassName} $managedStyle={sectionStyle}>
       <PageContainer $managedStyle={pageStyle}>
-        <WallBody>
-          {subtitle ? <SubTitle>{subtitle}</SubTitle> : null}
-          {title ? (
-            <MainTitle className="mb-4" color={titleColor}>
-              {title}
-            </MainTitle>
+        <WallBody className="fable-section" style={designStyle}>
+          {(subTitleEnabled && subtitle) || (titleEnabled && title) ? (
+            <header className="social-wall-heading">
+              {subTitleEnabled && subtitle ? <p className="social-wall-subtitle">{subtitle}</p> : null}
+              {titleEnabled && title ? <h2 className="social-wall-title">{title}</h2> : null}
+            </header>
           ) : null}
 
           {showFilterTabs ? (

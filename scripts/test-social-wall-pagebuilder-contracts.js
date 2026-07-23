@@ -40,7 +40,10 @@ test("new SocialWallFeed component pulls module feed and supports filters + load
   assert.match(feedComponent, /showFilterTabs/);
   assert.match(feedComponent, /Load More/);
   assert.match(feedComponent, /layoutMode:\s*"grid"/);
-  assert.match(feedComponent, /grid-template-columns:\s*repeat\(\d+,\s*minmax\(0,\s*1fr\)\)/);
+  assert.match(feedComponent, /grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/);
+  assert.match(feedComponent, /--social-button-text/);
+  assert.match(feedComponent, /getMediaRenderUrl/);
+  assert.match(feedComponent, /decoding="async"/);
 });
 
 test("SocialWallFeed edit form exposes page-builder configurable options", () => {

@@ -73,9 +73,9 @@ test("posts service implements keyset cursor and admin date range filters", () =
   assert.match(source, /listSocialWallPublicAvailablePlatforms/);
 });
 
-test("public service resolves frontend platforms dynamically from active connected platforms with approved posts", () => {
+test("public service resolves frontend platforms dynamically from active platforms with approved posts", () => {
   const source = readFile("lib/socialWallModule/publicService.js");
-  assert.match(source, /isPlatformConnectedForPublicFeed/);
+  assert.match(source, /isPlatformEnabledForPublicFeed/);
   assert.match(source, /listSocialWallPublicAvailablePlatforms/);
   assert.match(source, /resolvedPlatformRows/);
   assert.match(source, /platformConfigs:\s*resolvedPlatformRows\.map/);

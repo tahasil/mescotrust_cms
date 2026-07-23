@@ -10,7 +10,9 @@ import {
 } from "react";
 import {
   Collapse,
+  Card,
   Form,
+  Input,
   InputNumber,
   Select,
   message,
@@ -23,6 +25,11 @@ import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
+import {
+  SOCIAL_WALL_FEED_DEFAULTS as DEFAULTS,
+  SOCIAL_WALL_SHADOW_OPTIONS,
+  SOCIAL_WALL_TARGET_OPTIONS,
+} from "./constants";
 
 const API_PATH = "/api/theme/SocialWallFeed";
 const PREFIX = "socialWallFeed";
@@ -54,6 +61,12 @@ function toPositiveInt(value, fallback) {
   if (!Number.isFinite(num)) return fallback;
   const rounded = Math.floor(num);
   return rounded > 0 ? rounded : fallback;
+}
+
+function toNumber(value, fallback, min, max) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.min(max, Math.max(min, number));
 }
 
 function normalizeLayout(value) {
@@ -91,6 +104,20 @@ function toFormValues(data = {}) {
     mainTitle: toSafeString(data?.mainTitle || "Social Wall"),
     subTitle: toSafeString(data?.subTitle),
     titleColorKey: toSafeString(data?.titleColorKey),
+    socialWallFeedTitleEnabled: data?.socialWallFeedTitleEnabled !== false,
+    socialWallFeedSubTitleEnabled: data?.socialWallFeedSubTitleEnabled !== false,
+    socialWallFeedSubTitleColorKey: toSafeString(data?.socialWallFeedSubTitleColorKey || "Primary"),
+    socialWallFeedCardBgColorKey: toSafeString(data?.socialWallFeedCardBgColorKey || DEFAULTS.cardBackground),
+    socialWallFeedCardBorderColorKey: toSafeString(data?.socialWallFeedCardBorderColorKey || DEFAULTS.cardBorder),
+    socialWallFeedUserNameColorKey: toSafeString(data?.socialWallFeedUserNameColorKey || DEFAULTS.userNameColor),
+    socialWallFeedHandleColorKey: toSafeString(data?.socialWallFeedHandleColorKey || DEFAULTS.handleColor),
+    socialWallFeedPostTextColorKey: toSafeString(data?.socialWallFeedPostTextColorKey || DEFAULTS.postTextColor),
+    socialWallFeedDateColorKey: toSafeString(data?.socialWallFeedDateColorKey || DEFAULTS.dateColor),
+    socialWallFeedPlatformIconColorKey: toSafeString(data?.socialWallFeedPlatformIconColorKey || DEFAULTS.platformIconColor),
+    socialWallFeedButtonBgColorKey: toSafeString(data?.socialWallFeedButtonBgColorKey || DEFAULTS.buttonBackground),
+    socialWallFeedButtonTextColorKey: toSafeString(data?.socialWallFeedButtonTextColorKey || DEFAULTS.buttonTextColor),
+    socialWallFeedButtonHoverBgColorKey: toSafeString(data?.socialWallFeedButtonHoverBgColorKey || DEFAULTS.buttonHoverBackground),
+    socialWallFeedButtonHoverTextColorKey: toSafeString(data?.socialWallFeedButtonHoverTextColorKey || DEFAULTS.buttonHoverTextColor),
     socialWallFeedEnabled: data?.socialWallFeedEnabled !== false,
     socialWallFeedPlatforms: normalizePlatforms(data?.socialWallFeedPlatforms),
     socialWallFeedLayoutMode: normalizeLayout(data?.socialWallFeedLayoutMode),
@@ -103,6 +130,22 @@ function toFormValues(data = {}) {
     socialWallFeedShowEngagement: data?.socialWallFeedShowEngagement !== false,
     socialWallFeedShowDate: data?.socialWallFeedShowDate !== false,
     socialWallFeedInfiniteScroll: data?.socialWallFeedInfiniteScroll === true,
+    socialWallFeedAvatarVisible: data?.socialWallFeedAvatarVisible !== false,
+    socialWallFeedCardRadius: toNumber(data?.socialWallFeedCardRadius, DEFAULTS.cardRadius, 0, 60),
+    socialWallFeedCardShadow: toSafeString(data?.socialWallFeedCardShadow || DEFAULTS.cardShadow),
+    socialWallFeedCardSpacing: toNumber(data?.socialWallFeedCardSpacing, DEFAULTS.cardSpacing, 0, 64),
+    socialWallFeedAvatarSize: toNumber(data?.socialWallFeedAvatarSize, DEFAULTS.avatarSize, 24, 96),
+    socialWallFeedAvatarRadius: toNumber(data?.socialWallFeedAvatarRadius, DEFAULTS.avatarRadius, 0, 999),
+    socialWallFeedButtonText: toSafeString(data?.socialWallFeedButtonText || DEFAULTS.buttonText),
+    socialWallFeedButtonRadius: toNumber(data?.socialWallFeedButtonRadius, DEFAULTS.buttonRadius, 0, 999),
+    socialWallFeedButtonTarget: data?.socialWallFeedButtonTarget === "_self" ? "_self" : "_blank",
+    socialWallFeedTitleFontSize: toNumber(data?.socialWallFeedTitleFontSize, DEFAULTS.titleFontSize, 24, 96),
+    socialWallFeedTitleFontWeight: toNumber(data?.socialWallFeedTitleFontWeight, DEFAULTS.titleFontWeight, 300, 900),
+    socialWallFeedTitleLineHeight: toNumber(data?.socialWallFeedTitleLineHeight, DEFAULTS.titleLineHeight, 0.8, 2),
+    socialWallFeedSubTitleFontSize: toNumber(data?.socialWallFeedSubTitleFontSize, DEFAULTS.subTitleFontSize, 10, 32),
+    socialWallFeedSubTitleFontWeight: toNumber(data?.socialWallFeedSubTitleFontWeight, DEFAULTS.subTitleFontWeight, 300, 900),
+    socialWallFeedPostFontSize: toNumber(data?.socialWallFeedPostFontSize, DEFAULTS.postFontSize, 11, 24),
+    socialWallFeedPostLineHeight: toNumber(data?.socialWallFeedPostLineHeight, DEFAULTS.postLineHeight, 1, 2.4),
   };
 }
 
@@ -112,6 +155,20 @@ function toPayload(values = {}) {
     mainTitle: toSafeString(values?.mainTitle || "Social Wall"),
     subTitle: toSafeString(values?.subTitle),
     titleColorKey: toSafeString(values?.titleColorKey),
+    socialWallFeedTitleEnabled: values?.socialWallFeedTitleEnabled !== false,
+    socialWallFeedSubTitleEnabled: values?.socialWallFeedSubTitleEnabled !== false,
+    socialWallFeedSubTitleColorKey: toSafeString(values?.socialWallFeedSubTitleColorKey),
+    socialWallFeedCardBgColorKey: toSafeString(values?.socialWallFeedCardBgColorKey),
+    socialWallFeedCardBorderColorKey: toSafeString(values?.socialWallFeedCardBorderColorKey),
+    socialWallFeedUserNameColorKey: toSafeString(values?.socialWallFeedUserNameColorKey),
+    socialWallFeedHandleColorKey: toSafeString(values?.socialWallFeedHandleColorKey),
+    socialWallFeedPostTextColorKey: toSafeString(values?.socialWallFeedPostTextColorKey),
+    socialWallFeedDateColorKey: toSafeString(values?.socialWallFeedDateColorKey),
+    socialWallFeedPlatformIconColorKey: toSafeString(values?.socialWallFeedPlatformIconColorKey),
+    socialWallFeedButtonBgColorKey: toSafeString(values?.socialWallFeedButtonBgColorKey),
+    socialWallFeedButtonTextColorKey: toSafeString(values?.socialWallFeedButtonTextColorKey),
+    socialWallFeedButtonHoverBgColorKey: toSafeString(values?.socialWallFeedButtonHoverBgColorKey),
+    socialWallFeedButtonHoverTextColorKey: toSafeString(values?.socialWallFeedButtonHoverTextColorKey),
     socialWallFeedEnabled: values?.socialWallFeedEnabled !== false,
     socialWallFeedPlatforms: normalizePlatforms(values?.socialWallFeedPlatforms),
     socialWallFeedLayoutMode: normalizeLayout(values?.socialWallFeedLayoutMode),
@@ -124,6 +181,22 @@ function toPayload(values = {}) {
     socialWallFeedShowEngagement: values?.socialWallFeedShowEngagement !== false,
     socialWallFeedShowDate: values?.socialWallFeedShowDate !== false,
     socialWallFeedInfiniteScroll: values?.socialWallFeedInfiniteScroll === true,
+    socialWallFeedAvatarVisible: values?.socialWallFeedAvatarVisible !== false,
+    socialWallFeedCardRadius: toNumber(values?.socialWallFeedCardRadius, DEFAULTS.cardRadius, 0, 60),
+    socialWallFeedCardShadow: toSafeString(values?.socialWallFeedCardShadow || DEFAULTS.cardShadow),
+    socialWallFeedCardSpacing: toNumber(values?.socialWallFeedCardSpacing, DEFAULTS.cardSpacing, 0, 64),
+    socialWallFeedAvatarSize: toNumber(values?.socialWallFeedAvatarSize, DEFAULTS.avatarSize, 24, 96),
+    socialWallFeedAvatarRadius: toNumber(values?.socialWallFeedAvatarRadius, DEFAULTS.avatarRadius, 0, 999),
+    socialWallFeedButtonText: toSafeString(values?.socialWallFeedButtonText || DEFAULTS.buttonText),
+    socialWallFeedButtonRadius: toNumber(values?.socialWallFeedButtonRadius, DEFAULTS.buttonRadius, 0, 999),
+    socialWallFeedButtonTarget: values?.socialWallFeedButtonTarget === "_self" ? "_self" : "_blank",
+    socialWallFeedTitleFontSize: toNumber(values?.socialWallFeedTitleFontSize, DEFAULTS.titleFontSize, 24, 96),
+    socialWallFeedTitleFontWeight: toNumber(values?.socialWallFeedTitleFontWeight, DEFAULTS.titleFontWeight, 300, 900),
+    socialWallFeedTitleLineHeight: toNumber(values?.socialWallFeedTitleLineHeight, DEFAULTS.titleLineHeight, 0.8, 2),
+    socialWallFeedSubTitleFontSize: toNumber(values?.socialWallFeedSubTitleFontSize, DEFAULTS.subTitleFontSize, 10, 32),
+    socialWallFeedSubTitleFontWeight: toNumber(values?.socialWallFeedSubTitleFontWeight, DEFAULTS.subTitleFontWeight, 300, 900),
+    socialWallFeedPostFontSize: toNumber(values?.socialWallFeedPostFontSize, DEFAULTS.postFontSize, 11, 24),
+    socialWallFeedPostLineHeight: toNumber(values?.socialWallFeedPostLineHeight, DEFAULTS.postLineHeight, 1, 2.4),
   };
 }
 
@@ -253,12 +326,48 @@ function SocialWallFeedEditForm(
             { name: "socialWallFeedShowPlatformIcon", label: "Show platform icon", tooltip: "Display the source platform icon." },
             { name: "socialWallFeedShowEngagement", label: "Show engagement", tooltip: "Display engagement information." },
             { name: "socialWallFeedShowDate", label: "Show date", tooltip: "Display the post date." },
+            { name: "socialWallFeedAvatarVisible", label: "Show avatar", tooltip: "Display the author avatar." },
             { name: "socialWallFeedInfiniteScroll", label: "Enable infinite scroll", tooltip: "Load more posts while scrolling." },
           ]} />
         </Col>
       </Row>
     ),
     [],
+  );
+
+  const designOptions = (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <Card size="small" title="Card layout">
+        <Row gutter={[16, 0]}>
+          <Col xs={24} md={12}><Form.Item name="socialWallFeedCardRadius" label="Border radius"><InputNumber min={0} max={60} addonAfter="px" style={{ width: "100%" }} /></Form.Item></Col>
+          <Col xs={24} md={12}><Form.Item name="socialWallFeedCardShadow" label="Card shadow"><Select options={SOCIAL_WALL_SHADOW_OPTIONS} /></Form.Item></Col>
+          <Col xs={24} md={12}><Form.Item name="socialWallFeedCardSpacing" label="Card spacing"><InputNumber min={0} max={64} addonAfter="px" style={{ width: "100%" }} /></Form.Item></Col>
+          <Col xs={24} md={12}><Form.Item name="socialWallFeedAvatarSize" label="Avatar size"><InputNumber min={24} max={96} addonAfter="px" style={{ width: "100%" }} /></Form.Item></Col>
+          <Col xs={24} md={12}><Form.Item name="socialWallFeedAvatarRadius" label="Avatar border radius"><InputNumber min={0} max={999} addonAfter="px" style={{ width: "100%" }} /></Form.Item></Col>
+        </Row>
+      </Card>
+      <Card size="small" title="Button">
+        <Row gutter={[16, 0]}>
+          <Col span={24}><Form.Item name="socialWallFeedButtonText" label="Button text"><Input placeholder="View Original Post" /></Form.Item></Col>
+          <Col xs={24} md={12}><Form.Item name="socialWallFeedButtonRadius" label="Border radius"><InputNumber min={0} max={999} addonAfter="px" style={{ width: "100%" }} /></Form.Item></Col>
+          <Col xs={24} md={12}><Form.Item name="socialWallFeedButtonTarget" label="Button target"><Select options={SOCIAL_WALL_TARGET_OPTIONS} /></Form.Item></Col>
+        </Row>
+      </Card>
+    </div>
+  );
+
+  const typographyOptions = (
+    <Card size="small" title="Typography">
+      <Row gutter={[16, 0]}>
+        <Col xs={24} md={12}><Form.Item name="socialWallFeedTitleFontSize" label="Title size"><InputNumber min={24} max={96} addonAfter="px" style={{ width: "100%" }} /></Form.Item></Col>
+        <Col xs={24} md={12}><Form.Item name="socialWallFeedTitleFontWeight" label="Title weight"><InputNumber min={300} max={900} step={50} style={{ width: "100%" }} /></Form.Item></Col>
+        <Col xs={24} md={12}><Form.Item name="socialWallFeedTitleLineHeight" label="Title line height"><InputNumber min={0.8} max={2} step={0.05} style={{ width: "100%" }} /></Form.Item></Col>
+        <Col xs={24} md={12}><Form.Item name="socialWallFeedSubTitleFontSize" label="Sub title size"><InputNumber min={10} max={32} addonAfter="px" style={{ width: "100%" }} /></Form.Item></Col>
+        <Col xs={24} md={12}><Form.Item name="socialWallFeedSubTitleFontWeight" label="Sub title weight"><InputNumber min={300} max={900} step={50} style={{ width: "100%" }} /></Form.Item></Col>
+        <Col xs={24} md={12}><Form.Item name="socialWallFeedPostFontSize" label="Post text size"><InputNumber min={11} max={24} addonAfter="px" style={{ width: "100%" }} /></Form.Item></Col>
+        <Col xs={24} md={12}><Form.Item name="socialWallFeedPostLineHeight" label="Post line height"><InputNumber min={1} max={2.4} step={0.05} style={{ width: "100%" }} /></Form.Item></Col>
+      </Row>
+    </Card>
   );
 
   if (loading) {
@@ -312,6 +421,16 @@ function SocialWallFeedEditForm(
             key: "display-config",
             label: "Display Settings",
             children: blockDisplayOptions,
+          },
+          {
+            key: "card-design",
+            label: "Card & Button Design",
+            children: designOptions,
+          },
+          {
+            key: "typography",
+            label: "Typography",
+            children: typographyOptions,
           },
         ]}
       />

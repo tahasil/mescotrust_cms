@@ -81,6 +81,18 @@ async function fetchJson(url, timeoutMs = 120000) {
   }
 }
 
+async function fetchMedia(url, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    const body = await response.arrayBuffer();
+    return { status: response.status, headers: response.headers, byteLength: body.byteLength };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 test("public social wall APIs return healthy JSON contracts", async () => {
   const child =
     process.platform === "win32"
@@ -109,6 +121,19 @@ test("public social wall APIs return healthy JSON contracts", async () => {
     assert.ok(feed.body && typeof feed.body === "object");
     assert.ok(Array.isArray(feed.body.items));
     assert.ok(Object.prototype.hasOwnProperty.call(feed.body, "nextCursor"));
+
+    const mediaItem = feed.body.items.find(
+      (item) => item?.id && (item?.thumbnailUrl || item?.mediaUrl),
+    );
+    if (mediaItem) {
+      const media = await fetchMedia(
+        `${BASE_URL}/api/public/social-wall/media/${encodeURIComponent(mediaItem.id)}?source=media&index=0`,
+      );
+      assert.equal(media.status, 200);
+      assert.match(media.headers.get("content-type") || "", /^image\//);
+      assert.match(media.headers.get("cache-control") || "", /max-age=86400/);
+      assert.ok(media.byteLength > 0);
+    }
 
     const moduleFeed = await fetchJson(`${BASE_URL}/api/public/social-wall?view=module&limit=3`);
     assert.equal(moduleFeed.status, 200);
