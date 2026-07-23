@@ -1225,6 +1225,7 @@ div:has(> .fable-section.fable-scheme) {
 @media (max-width: 1023px) {
   .fable-split, .fable-feature-grid, .fable-about-intro, .fable-about-people { grid-template-columns: 1fr; }
   .fable-split.is-reversed .fable-media { order: 0; }
+  .fable-helping-people > .fable-media { order: -1; }
   .fable-card-grid, .fable-testimonials, .fable-video-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .fable-people, .fable-badges { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .fable-masonry { columns: 2; }

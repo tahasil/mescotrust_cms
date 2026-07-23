@@ -196,7 +196,7 @@ export default function Helpingpeople(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
       <PageContainer $managedStyle={pageContainerBgStyle}>
-        <div className="fable-section fable-scheme fable-about-people">
+        <div className="fable-section fable-scheme fable-about-people fable-helping-people">
           <div>
             {subTitle ? <p className="fable-eyebrow" style={{ color: subTitleColor }}>{subTitle}</p> : null}
             <h2
