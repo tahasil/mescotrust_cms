@@ -1,20 +1,70 @@
 "use client";
 
-import { CompassOutlined, EyeOutlined } from "@ant-design/icons";
+import {
+  AimOutlined,
+  BookOutlined,
+  BulbOutlined,
+  CompassOutlined,
+  EyeOutlined,
+  GlobalOutlined,
+  HeartOutlined,
+  MedicineBoxOutlined,
+  SafetyCertificateOutlined,
+  TeamOutlined,
+} from "@ant-design/icons";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
+import { CharitablePhysiotherapyIcon, MedicalAidDispensaryIcon } from "./icons";
 
 const clean = (value, fallback = "") => value == null ? fallback : String(value).trim();
 
+function renderTitle(value) {
+  return String(value || "").split(/(\*[^*]+\*)/g).map((part, index) =>
+    part.startsWith("*") && part.endsWith("*")
+      ? <em key={`${part}-${index}`}>{part.slice(1, -1)}</em>
+      : <span key={`${part}-${index}`}>{part}</span>,
+  );
+}
+
+const ICONS = {
+  "medical-aid-dispensary": MedicalAidDispensaryIcon,
+  "charitable-physiotherapy": CharitablePhysiotherapyIcon,
+  eye: EyeOutlined,
+  compass: CompassOutlined,
+  aim: AimOutlined,
+  heart: HeartOutlined,
+  bulb: BulbOutlined,
+  team: TeamOutlined,
+  book: BookOutlined,
+  medicine: MedicineBoxOutlined,
+  safety: SafetyCertificateOutlined,
+  global: GlobalOutlined,
+};
+
+const getIcon = (value, fallback) => ICONS[clean(value)] || fallback;
+
 export default function MissionVision(props) {
   const prefix = "missionVision";
+  const mainTitle = clean(props.mainTitle);
+  const subTitle = clean(props.subTitle);
+  const titleEnabled = props.missionVisionTitleEnabled !== false;
+  const subTitleEnabled = props.missionVisionSubTitleEnabled !== false;
   const visionTitle = clean(props.missionVisionVisionTitle, "Vision");
   const visionDescription = clean(props.missionVisionVisionDescription, "To help the underprivileged and marginalised live a better tomorrow through various interventions.");
+  const VisionIcon = getIcon(props.missionVisionVisionIcon, EyeOutlined);
   const missionTitle = clean(props.missionVisionMissionTitle, "Mission");
   const missionDescription = clean(props.missionVisionMissionDescription, "Strive to improve the quality of life of the financially disadvantaged by promoting meaningful education and health.");
+  const MissionIcon = getIcon(props.missionVisionMissionIcon, CompassOutlined);
   const color = (field, fallback) => clean(props[field]) ? getColor(props[field]) : fallback;
+  const subTitleColor = color("missionVisionSubTitleColorKey", getColor("primary"));
+  const mainTitleColor = color("missionVisionMainTitleColorKey", getColor("black"));
   const cardBg = color("missionVisionCardBgColorKey", getColor("surface"));
+  const cardHoverBg = color("missionVisionCardHoverBgColorKey", cardBg);
   const cardBorder = color("missionVisionCardBorderColorKey", getColor("border"));
+  const cardHoverBorder = color("missionVisionCardHoverBorderColorKey", getColor("primary"));
   const iconColor = color("missionVisionIconColorKey", getColor("primary"));
+  const iconBg = color("missionVisionIconBgColorKey", "transparent");
+  const iconHoverColor = color("missionVisionIconHoverColorKey", iconColor);
+  const iconHoverBg = color("missionVisionIconHoverBgColorKey", iconBg);
   const titleColor = color("missionVisionTitleColorKey", getColor("black"));
   const textColor = color("missionVisionTextColorKey", getColor("blackLight"));
 
@@ -51,21 +101,47 @@ export default function MissionVision(props) {
     ...(props[`${prefix}PageContainerMarginBottom`] != null ? { marginBottom: `${Number(props[`${prefix}PageContainerMarginBottom`])}px` } : {}),
   };
   const cards = [
-    { title: visionTitle, description: visionDescription, Icon: EyeOutlined },
-    { title: missionTitle, description: missionDescription, Icon: CompassOutlined },
+    { title: visionTitle, description: visionDescription, Icon: VisionIcon },
+    { title: missionTitle, description: missionDescription, Icon: MissionIcon },
   ];
+  const colorVars = {
+    "--mission-vision-card-bg": cardBg,
+    "--mission-vision-card-hover-bg": cardHoverBg,
+    "--mission-vision-card-border": cardBorder,
+    "--mission-vision-card-hover-border": cardHoverBorder,
+    "--mission-vision-icon": iconColor,
+    "--mission-vision-icon-bg": iconBg,
+    "--mission-vision-icon-hover": iconHoverColor,
+    "--mission-vision-icon-hover-bg": iconHoverBg,
+    "--mission-vision-card-title": titleColor,
+    "--mission-vision-description": textColor,
+  };
 
   return (
     <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
       <PageContainer $managedStyle={pageContainerBgStyle}>
-        <div className="fable-section fable-feature-grid fable-mission-vision">
-          {cards.map(({ title, description, Icon }, index) => (
-            <article className="fable-feature is-tint" style={{ background: cardBg, borderColor: cardBorder }} key={`${title}-${index}`}>
-              <Icon className="fable-mission-vision__icon" style={{ color: iconColor }} aria-hidden="true" />
-              <h3 style={{ color: titleColor }}>{title}</h3>
-              <p style={{ color: textColor }}>{description}</p>
-            </article>
-          ))}
+        <div className="fable-section fable-mission-vision" style={colorVars}>
+          {(subTitleEnabled && subTitle) || (titleEnabled && mainTitle) ? (
+            <header className="fable-section-heading">
+              {subTitleEnabled && subTitle ? (
+                <p className="fable-eyebrow" style={{ color: subTitleColor }}>{subTitle}</p>
+              ) : null}
+              {titleEnabled && mainTitle ? (
+                <h2 className="fable-heading" style={{ color: mainTitleColor }}>{renderTitle(mainTitle)}</h2>
+              ) : null}
+            </header>
+          ) : null}
+          <div className="fable-feature-grid">
+            {cards.map(({ title, description, Icon }, index) => (
+              <article className="fable-feature is-tint" key={`${title}-${index}`}>
+                <span className="fable-mission-vision__icon" aria-hidden="true">
+                  <Icon />
+                </span>
+                <h3>{title}</h3>
+                <p>{description}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </PageContainer>
     </FullWidthBackground>
