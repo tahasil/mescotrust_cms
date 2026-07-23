@@ -11,7 +11,7 @@ export default function DonationSuccessClient() {
   const orderId = searchParams.get("order") || "";
 
   return (
-    <PageContainer style={{ paddingTop: 60, paddingBottom: 60 }}>
+    <PageContainer $managedStyle={{ paddingTop: 60, paddingBottom: 60 }}>
       <Row justify="center">
         <Col xs={24} md={16} lg={12}>
           <Result

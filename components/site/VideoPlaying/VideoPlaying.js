@@ -166,8 +166,8 @@ export default function VideoPlaying(props) {
   const linkContent = <><span>{text(props?.videoPlayingLinkText)}</span><ArrowRightOutlined aria-hidden="true" /></>;
 
   return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-      <PageContainer style={pageContainerBgStyle}>
+    <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
+      <PageContainer $managedStyle={pageContainerBgStyle}>
         <Chapter
           ref={rootRef}
           $radius={number(props?.videoPlayingChapterRadius, 56)}

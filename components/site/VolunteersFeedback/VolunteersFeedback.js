@@ -691,7 +691,7 @@ export default function VolunteersFeedback(props = {}) {
   };
 
   return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
+    <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
       <VolunteersFeedbackRoot style={sectionStyleVars}>
         <HeroBanner $bgDesktop={heroBgDesktop} $bgMobile={heroBgMobile} />
 

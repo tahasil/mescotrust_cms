@@ -67,8 +67,8 @@ export default function CTABanner(props) {
   };
 
   return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-      <PageContainer style={pageContainerBgStyle}>
+    <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
+      <PageContainer $managedStyle={pageContainerBgStyle}>
         <div
           className="ctaBanner"
           style={{

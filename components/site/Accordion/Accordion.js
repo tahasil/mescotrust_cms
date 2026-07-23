@@ -218,7 +218,7 @@ export default function Accordion(props) {
   };
 
   return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
+    <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
       <PageContainer>
         <div className="fable-section fable-accordion-section" style={colorVars}>
           {subTitle || mainTitle ? (

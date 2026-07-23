@@ -205,8 +205,8 @@ export default function TitleParagraph(props) {
       : undefined;
 
   return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-      <PageContainer style={pageContainerBgStyle}>
+    <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
+      <PageContainer $managedStyle={pageContainerBgStyle}>
         <div className="fable-section">
         <Row justify="center">
           <Col xs={24}>

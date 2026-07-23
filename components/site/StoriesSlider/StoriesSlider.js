@@ -104,8 +104,8 @@ export default function StoriesSlider(props) {
 
   if (isInnerPageVariant) {
     return (
-      <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-        <PageContainer style={pageContainerBgStyle}>
+      <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
+        <PageContainer $managedStyle={pageContainerBgStyle}>
           <div className="fable-section fable-testimonials" ref={rootRef}>
             {items.map((item, index) => (
               <figure className="fable-testimonial storyReveal" key={`${text(item?.name)}-${index}`}>
@@ -131,8 +131,8 @@ export default function StoriesSlider(props) {
   }
 
   return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-      <PageContainer style={pageContainerBgStyle}>
+    <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
+      <PageContainer $managedStyle={pageContainerBgStyle}>
         <Board ref={rootRef} style={{
           "--story-ink": color(props?.storiesSliderTextColorKey, "#2A283E"),
           "--story-subtitle": color(props?.storiesSliderSubTitleColorKey, "#E03C33"),

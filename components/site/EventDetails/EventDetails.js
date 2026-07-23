@@ -646,8 +646,8 @@ export default function EventDetails(props) {
 
   if (loading || error || !event) {
     return (
-      <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-        <PageContainer style={pageContainerBgStyle}>
+      <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
+        <PageContainer $managedStyle={pageContainerBgStyle}>
           <EventDetailsRoot style={style}>
             <div className={`event-detail-state${error ? " event-detail-state--error" : ""}`}>
               {error || "Loading event details..."}
@@ -681,8 +681,8 @@ export default function EventDetails(props) {
   const shareImage = desktop || mobile;
 
   return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-      <PageContainer style={pageContainerBgStyle}>
+    <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
+      <PageContainer $managedStyle={pageContainerBgStyle}>
         <EventDetailsRoot style={style} className="my-5">
           <div className="event-detail-layout">
             <article>

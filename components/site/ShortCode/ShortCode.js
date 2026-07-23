@@ -384,8 +384,8 @@ export default function ShortCode(props) {
   }
 
   return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-      <PageContainer style={pageContainerBgStyle}>
+    <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
+      <PageContainer $managedStyle={pageContainerBgStyle}>
         {(subTitleEnabled && subTitle) || (titleEnabled && mainTitle) ? (
           <Row gutter={[16, 16]}>
             <Col span={24} className="mb-4">

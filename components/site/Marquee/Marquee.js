@@ -300,8 +300,8 @@ export default function Marquee(props) {
   };
 
   return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-      <PageContainer style={pageContainerBgStyle}>
+    <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
+      <PageContainer $managedStyle={pageContainerBgStyle}>
         <PartnersSection
           className="site-component-marquee"
           data-component="Marquee"

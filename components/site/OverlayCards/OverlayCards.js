@@ -290,11 +290,11 @@ export default function OverlayCards(props) {
     : {};
 
   return (
-    <FullWidthBackground
-      className={sectionBgClassName}
-      style={{ ...sectionBgStyle, ...cssVars }}
-    >
-      <PageContainer style={pageContainerBgStyle}>
+      <FullWidthBackground
+        className={sectionBgClassName}
+        $managedStyle={{ ...sectionBgStyle, ...cssVars }}
+      >
+      <PageContainer $managedStyle={pageContainerBgStyle}>
         <div className="fable-section">
         {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) && (
           <Row gutter={[16, 16]}>

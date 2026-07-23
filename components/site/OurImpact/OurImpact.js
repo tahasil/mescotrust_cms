@@ -429,8 +429,8 @@ export default function OurImpact(props) {
   const linkTarget = normalizeTarget(props?.ourImpactLinkTarget);
 
   return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-      <PageContainer style={pageContainerBgStyle}>
+    <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
+      <PageContainer $managedStyle={pageContainerBgStyle}>
         <Ledger
           ref={rootRef}
           $headGap={number(props?.ourImpactHeadGap, 28)}

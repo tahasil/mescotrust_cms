@@ -148,8 +148,8 @@ export default function AnimationsText(props) {
       : undefined;
 
   return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-      <PageContainer style={pageContainerBgStyle}>
+    <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
+      <PageContainer $managedStyle={pageContainerBgStyle}>
         <div className="fable-section">
         <Row gutter={[16, 16]}>
           <Col

@@ -646,8 +646,8 @@ export default function EventsListing(props) {
   const isPast = query.view === "past";
 
   return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-      <PageContainer style={pageContainerBgStyle}>
+    <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
+      <PageContainer $managedStyle={pageContainerBgStyle}>
         <ListingRoot style={style} className="my-5">
           {(showSearch || showFilters) ? (
             <div className="events-controls" aria-label="Event search and filters">

@@ -542,8 +542,8 @@ export default function Cards1(props) {
   const renderVariantCard = VARIANT_RENDERERS[cards1Variant] || VARIANT_RENDERERS.style1;
 
   return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-      <PageContainer style={pageContainerBgStyle}>
+    <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
+      <PageContainer $managedStyle={pageContainerBgStyle}>
         <div className="fable-section">
         {(subTitleEnabled && subTitle) || (titleEnabled && mainTitle) ? (
           <div style={{ marginBottom: 28 }}>

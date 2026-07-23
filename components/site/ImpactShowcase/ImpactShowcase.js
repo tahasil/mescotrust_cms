@@ -93,8 +93,8 @@ export default function ImpactShowcase(props) {
   };
 
   return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-      <PageContainer style={pageContainerBgStyle}>
+    <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
+      <PageContainer $managedStyle={pageContainerBgStyle}>
         <div className="fable-section fable-about-intro">
           <div className="fable-about-intro__media">
             <div className="fable-about-intro__arch">

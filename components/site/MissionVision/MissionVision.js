@@ -56,8 +56,8 @@ export default function MissionVision(props) {
   ];
 
   return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-      <PageContainer style={pageContainerBgStyle}>
+    <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
+      <PageContainer $managedStyle={pageContainerBgStyle}>
         <div className="fable-section fable-feature-grid fable-mission-vision">
           {cards.map(({ title, description, Icon }, index) => (
             <article className="fable-feature is-tint" style={{ background: cardBg, borderColor: cardBorder }} key={`${title}-${index}`}>

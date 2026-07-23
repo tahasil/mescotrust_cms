@@ -20,7 +20,7 @@ export default function DonationFailedClient() {
     : "Something went wrong with your payment. Please try again.";
 
   return (
-    <PageContainer style={{ paddingTop: 60, paddingBottom: 60 }}>
+    <PageContainer $managedStyle={{ paddingTop: 60, paddingBottom: 60 }}>
       <Row justify="center">
         <Col xs={24} md={16} lg={12}>
           <Result

@@ -177,6 +177,7 @@ export const PageContainer = styled.div`
     props.$managedMarginBottom != null
       ? `${props.$managedMarginBottom}px`
       : undefined};
+  ${(props) => props.$managedStyle || {}}
 `;
 export const ThemeButton = styled(ButtonWrapper)`
   background: ${getColor("gradient")};
@@ -356,6 +357,7 @@ export const FullWidthBackground = styled.div`
     props.$managedMarginBottom != null
       ? `${props.$managedMarginBottom}px`
       : undefined};
+  ${(props) => props.$managedStyle || {}}
 `;
 export const ThemeCard = styled(CardWrapper)`
   width: 100%;

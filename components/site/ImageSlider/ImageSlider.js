@@ -102,8 +102,8 @@ export default function ImageSlider(props) {
   }
 
   return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-      <PageContainer style={pageContainerBgStyle}>
+    <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
+      <PageContainer $managedStyle={pageContainerBgStyle}>
       <div className="fable-section">
       <CircularSlider
         images={images.map((s) => ({

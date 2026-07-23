@@ -101,8 +101,8 @@ export default function HelpingEvents(props) {
   if (buttonTextColorKey) buttonStyle.color = getColor(buttonTextColorKey);
 
   return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-      <PageContainer style={pageContainerBgStyle}>
+    <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
+      <PageContainer $managedStyle={pageContainerBgStyle}>
         <Row gutter={[16, 16]}>
           <Col
             span={{ span: 24, offset: 0 }}

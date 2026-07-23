@@ -981,8 +981,8 @@ export default function SocialWallFeed(props) {
   const subtitle = toSafeString(props?.subTitle || "");
 
   return (
-    <FullWidthBackground className={sectionClassName} style={sectionStyle}>
-      <PageContainer style={pageStyle}>
+    <FullWidthBackground className={sectionClassName} $managedStyle={sectionStyle}>
+      <PageContainer $managedStyle={pageStyle}>
         <WallBody>
           {subtitle ? <SubTitle>{subtitle}</SubTitle> : null}
           {title ? (

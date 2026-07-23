@@ -465,8 +465,8 @@ export default function Videogallery(props) {
       : undefined;
 
   return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-      <PageContainer style={pageContainerBgStyle}>
+    <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
+      <PageContainer $managedStyle={pageContainerBgStyle}>
         <div className="fable-section">
         {(subTitle || mainTitle) ? (
           <header className="fable-section-heading">

@@ -348,9 +348,9 @@ export default function InMedia(props) {
     <>
       <FullWidthBackground
         className={sectionBgClassName}
-        style={sectionBgStyle}
+        $managedStyle={sectionBgStyle}
       >
-        <PageContainer style={pageContainerBgStyle}>
+        <PageContainer $managedStyle={pageContainerBgStyle}>
           <div className="fable-section">
           {(titleEnabled || subTitleEnabled) && (
             <Row gutter={[16, 16]}>

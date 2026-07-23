@@ -558,8 +558,8 @@ export default function OverviewOfOurWork(props) {
     titleLetterSpacingValue === 0 &&
     titleLineHeightValue === 1.2;
   return (
-    <FullWidthBackground ref={pinRef} className={sectionBgClassName} style={sectionBgStyle}>
-      <PageContainer style={pageContainerBgStyle}>
+    <FullWidthBackground ref={pinRef} className={sectionBgClassName} $managedStyle={sectionBgStyle}>
+      <PageContainer $managedStyle={pageContainerBgStyle}>
         <WorksSection>
           <WorksWrapper
             ref={wrapperRef}

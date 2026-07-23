@@ -1306,8 +1306,8 @@ export default function SocialMediaWall(props) {
 
   return (
     <>
-      <FullWidthBackground className={sectionClassNameFinal} style={sectionBgStyleFinal}>
-        <PageContainer style={pageContainerBgStyle}>
+      <FullWidthBackground className={sectionClassNameFinal} $managedStyle={sectionBgStyleFinal}>
+        <PageContainer $managedStyle={pageContainerBgStyle}>
           {(titleEnabled || subTitleEnabled) && (
             <Row gutter={[16, 16]}>
               <Col span={24} className="mb-4">

@@ -433,8 +433,8 @@ export default function Internshiplifecycle(props) {
   const { pageContainerBgStyle } = getContainerStyles(props);
 
   return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-      <PageContainer style={pageContainerBgStyle}>
+    <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
+      <PageContainer $managedStyle={pageContainerBgStyle}>
         <div className="fable-section">
         <TimelineSection
           $titleColor={titleColor}

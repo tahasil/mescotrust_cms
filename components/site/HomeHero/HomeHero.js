@@ -92,7 +92,7 @@ const HomeFluidContainer = styled.div`
 
 const ContentWrapper = ({ usePageContainer, children, style }) =>
   usePageContainer ? (
-    <PageContainer style={style}>{children}</PageContainer>
+    <PageContainer $managedStyle={style}>{children}</PageContainer>
   ) : (
     <div style={{ position: "relative", zIndex: 1, padding: "0 5%", ...style }}>
       {children}

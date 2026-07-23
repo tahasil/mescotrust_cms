@@ -251,8 +251,8 @@ export default function ${componentId}(props) {
       : undefined;
 
   return (
-    <FullWidthBackground className={sectionBgClassName} style={sectionBgStyle}>
-      <PageContainer style={pageContainerBgStyle}>
+    <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
+      <PageContainer $managedStyle={pageContainerBgStyle}>
         <Row gutter={[16, 16]}>
           <Col span={24} className="mb-4">
             <SubTitle>{subTitle}</SubTitle>
