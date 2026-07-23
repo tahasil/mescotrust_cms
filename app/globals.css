@@ -1245,6 +1245,7 @@ div:has(> .fable-section.fable-scheme) {
 .fable-button:hover { color: var(--fable-white); background: var(--fable-primary-dark); transform: translateY(-2px); }
 @media (max-width: 1023px) {
   .fable-split, .fable-feature-grid, .fable-about-intro, .fable-about-people { grid-template-columns: 1fr; }
+  .fable-mission-vision .fable-feature-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .fable-split.is-reversed .fable-media { order: 0; }
   .fable-helping-people > .fable-media { order: -1; }
   .fable-card-grid, .fable-testimonials, .fable-video-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
@@ -1256,6 +1257,7 @@ div:has(> .fable-section.fable-scheme) {
 }
 @media (max-width: 767px) {
   .fable-card-grid, .fable-testimonials, .fable-video-grid, .fable-people, .fable-badges { grid-template-columns: 1fr; }
+  .fable-mission-vision .fable-feature-grid { grid-template-columns: minmax(0,1fr); }
   .fable-aim { grid-template-columns: 56px minmax(0,1fr); }
   .fable-heading { font-size: clamp(32px,10vw,48px); }
   .fable-accordion__body { grid-template-columns: minmax(0,1fr); }

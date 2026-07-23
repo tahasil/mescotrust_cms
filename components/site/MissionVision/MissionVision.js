@@ -13,7 +13,14 @@ import {
   TeamOutlined,
 } from "@ant-design/icons";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
-import { CharitablePhysiotherapyIcon, MedicalAidDispensaryIcon } from "./icons";
+import {
+  CelebrationsMilestonesIcon,
+  CharitablePhysiotherapyIcon,
+  GuidanceMotivationIcon,
+  MedicalAidDispensaryIcon,
+  SaturdayActivitiesIcon,
+  SportsFacilitiesIcon,
+} from "./icons";
 
 const clean = (value, fallback = "") => value == null ? fallback : String(value).trim();
 
@@ -26,6 +33,10 @@ function renderTitle(value) {
 }
 
 const ICONS = {
+  "celebrations-milestones": CelebrationsMilestonesIcon,
+  "guidance-motivation": GuidanceMotivationIcon,
+  "sports-facilities": SportsFacilitiesIcon,
+  "saturday-activities": SaturdayActivitiesIcon,
   "medical-aid-dispensary": MedicalAidDispensaryIcon,
   "charitable-physiotherapy": CharitablePhysiotherapyIcon,
   eye: EyeOutlined,
@@ -42,6 +53,15 @@ const ICONS = {
 
 const getIcon = (value, fallback) => ICONS[clean(value)] || fallback;
 
+function normalizeCard(item, index) {
+  const fallbackIcons = [EyeOutlined, CompassOutlined];
+  return {
+    title: clean(item?.title),
+    description: clean(item?.description),
+    Icon: getIcon(item?.icon, fallbackIcons[index] || AimOutlined),
+  };
+}
+
 export default function MissionVision(props) {
   const prefix = "missionVision";
   const mainTitle = clean(props.mainTitle);
@@ -50,10 +70,8 @@ export default function MissionVision(props) {
   const subTitleEnabled = props.missionVisionSubTitleEnabled !== false;
   const visionTitle = clean(props.missionVisionVisionTitle, "Vision");
   const visionDescription = clean(props.missionVisionVisionDescription, "To help the underprivileged and marginalised live a better tomorrow through various interventions.");
-  const VisionIcon = getIcon(props.missionVisionVisionIcon, EyeOutlined);
   const missionTitle = clean(props.missionVisionMissionTitle, "Mission");
   const missionDescription = clean(props.missionVisionMissionDescription, "Strive to improve the quality of life of the financially disadvantaged by promoting meaningful education and health.");
-  const MissionIcon = getIcon(props.missionVisionMissionIcon, CompassOutlined);
   const color = (field, fallback) => clean(props[field]) ? getColor(props[field]) : fallback;
   const subTitleColor = color("missionVisionSubTitleColorKey", getColor("primary"));
   const mainTitleColor = color("missionVisionMainTitleColorKey", getColor("black"));
@@ -100,10 +118,12 @@ export default function MissionVision(props) {
     ...(props[`${prefix}PageContainerMarginTop`] != null ? { marginTop: `${Number(props[`${prefix}PageContainerMarginTop`])}px` } : {}),
     ...(props[`${prefix}PageContainerMarginBottom`] != null ? { marginBottom: `${Number(props[`${prefix}PageContainerMarginBottom`])}px` } : {}),
   };
-  const cards = [
-    { title: visionTitle, description: visionDescription, Icon: VisionIcon },
-    { title: missionTitle, description: missionDescription, Icon: MissionIcon },
-  ];
+  const cards = Array.isArray(props.missionVisionItems)
+    ? props.missionVisionItems.map(normalizeCard)
+    : [
+        normalizeCard({ title: visionTitle, description: visionDescription, icon: props.missionVisionVisionIcon }, 0),
+        normalizeCard({ title: missionTitle, description: missionDescription, icon: props.missionVisionMissionIcon }, 1),
+      ];
   const colorVars = {
     "--mission-vision-card-bg": cardBg,
     "--mission-vision-card-hover-bg": cardHoverBg,
