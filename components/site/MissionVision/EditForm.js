@@ -24,13 +24,19 @@ import {
   CharitablePhysiotherapyIcon,
   GuidanceMotivationIcon,
   MedicalAidDispensaryIcon,
+  MumbaiCityUnitIcon,
+  MumbaiSuburbanUnitIcon,
   SaturdayActivitiesIcon,
   SportsFacilitiesIcon,
+  ThaneUnitIcon,
 } from "./icons";
 
 const API_PATH = "/api/theme/MissionVision";
 const PREFIX = "missionVision";
 const ICON_OPTIONS = [
+  ["mumbai-city-unit", "Mumbai City Unit", MumbaiCityUnitIcon],
+  ["mumbai-suburban-unit", "Mumbai Suburban Unit", MumbaiSuburbanUnitIcon],
+  ["thane-unit", "Thane Unit", ThaneUnitIcon],
   ["celebrations-milestones", "Celebrations & Milestones", CelebrationsMilestonesIcon],
   ["guidance-motivation", "Guidance & Motivation", GuidanceMotivationIcon],
   ["sports-facilities", "Sports Facilities", SportsFacilitiesIcon],
@@ -54,6 +60,10 @@ const ICON_OPTIONS = [
 const ICON_VALUES = new Set(ICON_OPTIONS.map((item) => item.value));
 const normalizeIcon = (value, fallback) => ICON_VALUES.has(clean(value)) ? clean(value) : fallback;
 const DEFAULTS = { mainTitle: "", subTitle: "" };
+const CARDS_PER_ROW_OPTIONS = [1, 2, 3, 4].map((value) => ({
+  value,
+  label: `${value} ${value === 1 ? "Card" : "Cards"}`,
+}));
 const DEFAULT_CARDS = [
   {
     title: "Vision",
@@ -80,6 +90,7 @@ const COLOR_FIELDS = [
   "missionVisionIconHoverBgColorKey",
   "missionVisionTitleColorKey",
   "missionVisionTextColorKey",
+  "missionVisionMobileColorKey",
 ];
 const clean = (value) => value == null ? "" : String(value).trim();
 
@@ -89,6 +100,7 @@ function normalizeCard(item, index = 0) {
     title: clean(item?.title) || fallback.title,
     description: clean(item?.description) || fallback.description,
     icon: normalizeIcon(item?.icon, fallback.icon),
+    mobileNumber: clean(item?.mobileNumber),
   };
 }
 
@@ -123,6 +135,7 @@ function MissionVisionEditForm({ source, initialData: initialDataProp, onSaveToP
     ...DEFAULTS,
     ...Object.fromEntries(Object.keys(DEFAULTS).map((field) => [field, data[field] != null ? clean(data[field]) : DEFAULTS[field]])),
     missionVisionItems: resolveCards(data),
+    missionVisionCardsPerRow: Math.max(1, Math.min(4, Number(data.missionVisionCardsPerRow) || 2)),
     ...Object.fromEntries(BOOLEAN_FIELDS.map((field) => [field, data[field] !== false])),
     ...Object.fromEntries(COLOR_FIELDS.map((field) => [field, clean(data[field])])),
     ...getManageSectionInitialValues(PREFIX, data),
@@ -160,6 +173,7 @@ function MissionVisionEditForm({ source, initialData: initialDataProp, onSaveToP
       ...Object.fromEntries([...Object.keys(DEFAULTS), ...COLOR_FIELDS].map((field) => [field, clean(values[field])])),
       ...Object.fromEntries(BOOLEAN_FIELDS.map((field) => [field, values[field] !== false])),
       missionVisionItems: cards,
+      missionVisionCardsPerRow: Math.max(1, Math.min(4, Number(values.missionVisionCardsPerRow) || 2)),
       // Keep legacy fields synchronized for existing integrations and saved defaults.
       missionVisionVisionTitle: cards[0]?.title || "",
       missionVisionVisionDescription: cards[0]?.description || "",
@@ -187,6 +201,14 @@ function MissionVisionEditForm({ source, initialData: initialDataProp, onSaveToP
       <Collapse defaultActiveKey={["content"]} items={[
         { key: "section", label: "Manage Section", children: <ManageSectionFields prefix={PREFIX} form={form} themeColorOptions={themeColorOptions} /> },
         { key: "content", label: "Content", children: (
+          <>
+          <Form.Item
+            name="missionVisionCardsPerRow"
+            label="Cards Per Row"
+            tooltip="Number of cards displayed in each desktop row. Tablet and mobile adjust automatically."
+          >
+            <Select options={CARDS_PER_ROW_OPTIONS} />
+          </Form.Item>
           <Form.List name="missionVisionItems">
             {(fields, { add, remove, move }) => (
               <SortableFormList
@@ -196,7 +218,7 @@ function MissionVisionEditForm({ source, initialData: initialDataProp, onSaveToP
                 move={move}
                 itemLabel="Card"
                 addButtonText="Add card"
-                defaultAddPayload={{ title: "New card", description: "", icon: "aim" }}
+                defaultAddPayload={{ title: "New card", description: "", icon: "aim", mobileNumber: "" }}
                 reorderMovedIndex={reorderMovedIndex}
                 reorderDirection={reorderDirection}
                 resolveItemTitle={(index) => form.getFieldValue(["missionVisionItems", index, "title"]) || `Card ${index + 1}`}
@@ -226,11 +248,19 @@ function MissionVisionEditForm({ source, initialData: initialDataProp, onSaveToP
                     <Form.Item {...restField} name={[name, "icon"]} label="Card icon">
                       <Select options={ICON_OPTIONS} placeholder="Select card icon" />
                     </Form.Item>
+                    <Form.Item
+                      {...restField}
+                      name={[name, "mobileNumber"]}
+                      label="Mobile Number (optional)"
+                    >
+                      <Input type="tel" placeholder="e.g. +91 99699 37812" />
+                    </Form.Item>
                   </>
                 )}
               />
             )}
           </Form.List>
+          </>
         ) },
         { key: "title-colors", label: "Title & Colors", children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("MissionVision")} /> },
       ]} />

@@ -1152,6 +1152,9 @@ div:has(> .fable-section.fable-scheme) {
 .fable-mission-vision .fable-feature:hover { transform: translateY(-4px); background: var(--mission-vision-card-hover-bg); border-color: var(--mission-vision-card-hover-border); box-shadow: 0 22px 44px color-mix(in srgb,var(--fable-dark) 8%,transparent); }
 .fable-mission-vision .fable-feature h3 { color: var(--mission-vision-card-title); }
 .fable-mission-vision .fable-feature p { color: var(--mission-vision-description); }
+.fable-mission-vision .fable-feature-grid { grid-template-columns: repeat(var(--mission-vision-columns,2),minmax(0,1fr)); }
+.fable-mission-vision a.fable-mission-vision__mobile { display: inline-flex; width: fit-content; margin-top: 3px; color: var(--mission-vision-mobile); -webkit-text-fill-color: var(--mission-vision-mobile); font-size: 16px; font-weight: 650; line-height: 1.5; }
+.fable-mission-vision a.fable-mission-vision__mobile:hover { color: var(--mission-vision-mobile); -webkit-text-fill-color: var(--mission-vision-mobile); text-decoration: underline; text-underline-offset: 3px; }
 .fable-mission-vision__icon {
   display: grid;
   place-items: center;
@@ -1245,7 +1248,7 @@ div:has(> .fable-section.fable-scheme) {
 .fable-button:hover { color: var(--fable-white); background: var(--fable-primary-dark); transform: translateY(-2px); }
 @media (max-width: 1023px) {
   .fable-split, .fable-feature-grid, .fable-about-intro, .fable-about-people { grid-template-columns: 1fr; }
-  .fable-mission-vision .fable-feature-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .fable-mission-vision .fable-feature-grid { grid-template-columns: repeat(var(--mission-vision-tablet-columns,2),minmax(0,1fr)); }
   .fable-split.is-reversed .fable-media { order: 0; }
   .fable-helping-people > .fable-media { order: -1; }
   .fable-card-grid, .fable-testimonials, .fable-video-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }

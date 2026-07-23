@@ -18,8 +18,11 @@ import {
   CharitablePhysiotherapyIcon,
   GuidanceMotivationIcon,
   MedicalAidDispensaryIcon,
+  MumbaiCityUnitIcon,
+  MumbaiSuburbanUnitIcon,
   SaturdayActivitiesIcon,
   SportsFacilitiesIcon,
+  ThaneUnitIcon,
 } from "./icons";
 
 const clean = (value, fallback = "") => value == null ? fallback : String(value).trim();
@@ -33,6 +36,9 @@ function renderTitle(value) {
 }
 
 const ICONS = {
+  "mumbai-city-unit": MumbaiCityUnitIcon,
+  "mumbai-suburban-unit": MumbaiSuburbanUnitIcon,
+  "thane-unit": ThaneUnitIcon,
   "celebrations-milestones": CelebrationsMilestonesIcon,
   "guidance-motivation": GuidanceMotivationIcon,
   "sports-facilities": SportsFacilitiesIcon,
@@ -58,6 +64,7 @@ function normalizeCard(item, index) {
   return {
     title: clean(item?.title),
     description: clean(item?.description),
+    mobileNumber: clean(item?.mobileNumber),
     Icon: getIcon(item?.icon, fallbackIcons[index] || AimOutlined),
   };
 }
@@ -85,6 +92,8 @@ export default function MissionVision(props) {
   const iconHoverBg = color("missionVisionIconHoverBgColorKey", iconBg);
   const titleColor = color("missionVisionTitleColorKey", getColor("black"));
   const textColor = color("missionVisionTextColorKey", getColor("blackLight"));
+  const mobileColor = color("missionVisionMobileColorKey", getColor("primary"));
+  const cardsPerRow = Math.max(1, Math.min(4, Number(props.missionVisionCardsPerRow) || 2));
 
   const sectionBgType = clean(props[`${prefix}SectionBgType`], "default");
   const sectionBgImage = clean(props[`${prefix}SectionBgImage`]);
@@ -135,6 +144,9 @@ export default function MissionVision(props) {
     "--mission-vision-icon-hover-bg": iconHoverBg,
     "--mission-vision-card-title": titleColor,
     "--mission-vision-description": textColor,
+    "--mission-vision-mobile": mobileColor,
+    "--mission-vision-columns": cardsPerRow,
+    "--mission-vision-tablet-columns": Math.min(cardsPerRow, 2),
   };
 
   return (
@@ -152,13 +164,18 @@ export default function MissionVision(props) {
             </header>
           ) : null}
           <div className="fable-feature-grid">
-            {cards.map(({ title, description, Icon }, index) => (
+            {cards.map(({ title, description, mobileNumber, Icon }, index) => (
               <article className="fable-feature is-tint" key={`${title}-${index}`}>
                 <span className="fable-mission-vision__icon" aria-hidden="true">
                   <Icon />
                 </span>
                 <h3>{title}</h3>
                 <p>{description}</p>
+                {mobileNumber ? (
+                  <a className="fable-mission-vision__mobile" href={`tel:${mobileNumber.replace(/[^+\d]/g, "")}`}>
+                    {mobileNumber}
+                  </a>
+                ) : null}
               </article>
             ))}
           </div>
