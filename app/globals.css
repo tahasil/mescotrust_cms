@@ -1177,8 +1177,9 @@ div:has(> .fable-section.fable-scheme) {
 .fable-accordion summary:focus-visible { outline: 2px solid var(--accordion-focus); outline-offset: 5px; }
 .fable-accordion__plus, .fable-accordion__custom-icon { flex: 0 0 auto; color: var(--accordion-icon); transition: color .3s, transform .3s; }
 .fable-accordion__plus { font-size: 20px; line-height: 1; }
-.fable-accordion__custom-icon { width: 22px; height: 22px; background: currentColor; -webkit-mask-position: center; mask-position: center; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-size: contain; mask-size: contain; }
-.fable-accordion details[open] .fable-accordion__plus, .fable-accordion details[open] .fable-accordion__custom-icon { color: var(--accordion-open-icon); transform: rotate(45deg); }
+.fable-accordion__custom-icon { width: 22px; height: 22px; background-color: transparent; background-position: center; background-repeat: no-repeat; background-size: contain; }
+.fable-accordion details[open] .fable-accordion__plus { color: var(--accordion-open-icon); transform: rotate(45deg); }
+.fable-accordion details[open] .fable-accordion__custom-icon { transform: rotate(180deg); }
 .fable-accordion__body { display: grid; grid-template-columns: minmax(0,1.5fr) minmax(0,1fr); gap: clamp(20px,3vw,44px); align-items: start; padding: 0 0 clamp(22px,2.6vw,34px); color: var(--accordion-content); font-size: 16px; }
 .fable-accordion__body--no-image { grid-template-columns: minmax(0,1fr); }
 .fable-accordion__content { max-width: 70ch; }

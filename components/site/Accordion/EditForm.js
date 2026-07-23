@@ -33,7 +33,7 @@ const PREFIX = "accordion";
 const PANEL_IMAGE_WIDTH = 600;
 const PANEL_IMAGE_HEIGHT = 400;
 const PANEL_IMAGE_SIZE = `${PANEL_IMAGE_WIDTH} \u00D7 ${PANEL_IMAGE_HEIGHT} px`;
-const IMAGE_HINT = `Required dimensions: ${PANEL_IMAGE_SIZE}. Allowed: JPG, PNG, WebP, AVIF, GIF and SVG. Maximum size follows Media Settings (20 MB by default). Raster uploads use crop confirmation and optimized media variants.`;
+const IMAGE_HINT = `Required dimensions: ${PANEL_IMAGE_SIZE}.`;
 const COLOR_FIELDS = [
   "accordionSubTitleColorKey",
   "accordionTitleColorKey",

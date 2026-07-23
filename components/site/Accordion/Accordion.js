@@ -253,8 +253,7 @@ export default function Accordion(props) {
                       <span
                         className="fable-accordion__custom-icon"
                         style={{
-                          WebkitMaskImage: `url(${customIconUrl})`,
-                          maskImage: `url(${customIconUrl})`,
+                          backgroundImage: `url(${JSON.stringify(customIconUrl)})`,
                         }}
                         aria-hidden="true"
                       />
