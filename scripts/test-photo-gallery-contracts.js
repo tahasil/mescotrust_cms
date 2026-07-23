@@ -48,6 +48,7 @@ test("PhotoGallery drawer persists reusable display and typography settings", ()
     "photoGalleryOverlayOpacity",
     "photoGalleryTitleFontSize",
     "photoGalleryCardTitleFontSize",
+    "photoGalleryModalTitleColorKey",
     "photoGalleryTabs",
     "photoGalleryItems",
   ].forEach((field) => assert.match(source, new RegExp(field)));

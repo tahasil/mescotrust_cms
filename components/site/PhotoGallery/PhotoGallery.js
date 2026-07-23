@@ -314,6 +314,9 @@ const ViewMoreLink = styled.a`
 const LightboxTheme = createGlobalStyle`
   .lg-backdrop { background: rgba(10, 9, 15, 0.94); }
   .lg-outer .lg-thumb-outer { background: rgba(10, 9, 15, 0.9); }
+  .lg-outer .lg-sub-html h4 {
+    color: ${(props) => props.$titleColor};
+  }
   .lg-outer .lg-prev,
   .lg-outer .lg-next {
     color: ${(props) => props.$arrowColor};
@@ -539,6 +542,7 @@ export default function PhotoGallery(props) {
     getColor("primary"),
   );
   const navArrow = color(props?.photoGalleryNavArrowColorKey, "#fff");
+  const modalTitleColor = color(props?.photoGalleryModalTitleColorKey, "#fff");
   const designStyle = {
     "--gallery-text": color(props?.photoGalleryTextColorKey, getColor("blackLight")),
     "--gallery-subtitle": color(props?.photoGallerySubTitleColorKey, getColor("primary")),
@@ -589,7 +593,11 @@ export default function PhotoGallery(props) {
     <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
       <PageContainer $managedStyle={pageContainerBgStyle}>
         <GalleryRoot className="fable-section" style={designStyle}>
-          <LightboxTheme $buttonColor={navBg} $arrowColor={navArrow} />
+          <LightboxTheme
+            $buttonColor={navBg}
+            $arrowColor={navArrow}
+            $titleColor={modalTitleColor}
+          />
           {showHeading ? (
             <header className="gallery-heading">
               <div>
