@@ -14,44 +14,52 @@ import {
 const CardWrapper = styled.div`
   position: relative;
   width: 100%;
-  height: 100%;
+  height: auto;
   border-radius: 20px;
   overflow: hidden;
   z-index: 0;
   &:hover {
     z-index: 2;
-    box-shadow:
-      0 4px 10px rgba(0, 0, 0, 0.12),
-      0 4px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 12px 30px color-mix(in srgb, var(--reports-card-shadow) 18%, transparent);
   }
 `;
 
 const ReportCard = styled.div`
   width: 100%;
-  height: 100%;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  height: auto;
+  border: 1px solid var(--reports-card-border);
   border-radius: 20px;
   overflow: hidden;
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  background: #fff;
+  background: var(--reports-card-bg);
   padding: 0;
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s, border-color 0.3s;
   &:hover {
     transform: translateY(-5px);
-    border-color: color-mix(in srgb, ${() => getColor("primary")} 40%, transparent);
-    box-shadow: 0 26px 54px color-mix(in srgb, ${() => getColor("dark")} 10%, transparent);
+    border-color: var(--reports-card-border);
+    box-shadow: 0 26px 54px color-mix(in srgb, var(--reports-card-shadow) 18%, transparent);
   }
   .card-wrapper:hover & {
-    border-color: rgba(0, 0, 0, 0.12);
+    border-color: var(--reports-card-border);
   }
   .imageWrapper {
     width: 100%;
     height: auto;
-    aspect-ratio: 3 / 4;
+    aspect-ratio: auto;
     overflow: hidden;
     border-radius: 0;
-    object-fit: cover;
-    background: rgba(0, 0, 0, 0.04);
+    background: var(--reports-card-bg);
+
+    picture,
+    img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    img {
+      max-width: 100%;
+    }
   }
 `;
 
@@ -59,6 +67,7 @@ const CardBody = styled.div`
   padding: clamp(20px, 2.2vw, 30px);
   text-align: start;
   .name {
+    color: var(--reports-title);
     font-size: 16px;
     font-weight: 700;
     line-height: 1.4;
@@ -66,6 +75,12 @@ const CardBody = styled.div`
     @media (max-width: 768px) {
       font-size: 14px;
     }
+  }
+  .description {
+    margin: 0 0 8px;
+    color: var(--reports-description);
+    font-size: 14px;
+    line-height: 1.55;
   }
   .tag {
     display: inline-block;
@@ -75,7 +90,7 @@ const CardBody = styled.div`
     font-size: 12px;
     font-weight: 400;
     line-height: 1.4;
-    color: rgba(0, 0, 0, 0.65);
+    color: var(--reports-date);
   }
 `;
 
@@ -83,7 +98,7 @@ const ProfileOverlay = styled.div`
   position: absolute;
   inset: 0;
   border-radius: 24px;
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--reports-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -108,9 +123,9 @@ const ViewBtn = styled.a`
   font-size: 14px;
   font-weight: 500;
   border-radius: 30px;
-  border: 2px solid var(--primary-color, #1677ff);
-  background: var(--primary-color, #1677ff);
-  color: #fff;
+  border: 2px solid var(--reports-button-border);
+  background: var(--reports-button-bg);
+  color: var(--reports-button-text);
   cursor: pointer;
   text-decoration: none;
   opacity: 0;
@@ -126,10 +141,16 @@ const ViewBtn = styled.a`
     transform: scale(1);
   }
   &:hover {
-    background: #fff;
-    color: var(--primary-color, #1677ff);
+    border-color: var(--reports-button-hover-border);
+    background: var(--reports-button-hover-bg);
+    color: var(--reports-button-hover-text);
   }
 `;
+
+function color(value, fallback) {
+  const key = value == null ? "" : String(value).trim();
+  return key ? getColor(key) : fallback;
+}
 
 /**
  * Site component: Reports.
@@ -146,19 +167,29 @@ export default function Reports(props) {
   const titleColor = titleColorKey
     ? getColor(titleColorKey)
     : getColor("primary");
-  const subTitleColorKey = (props?.reportsSubTitleColorKey ?? "")
-    .toString()
-    .trim();
-  const subTitleColor = subTitleColorKey
-    ? getColor(subTitleColorKey)
-    : undefined;
+  const subTitleColor = color(props?.reportsSubTitleColorKey, undefined);
 
   /* ── Items ── */
   const items = Array.isArray(props?.reportsItems) ? props.reportsItems : [];
 
   /* ── Colors ── */
-  const nameColorKey = (props?.reportsNameColorKey ?? "").toString().trim();
-  const nameColor = nameColorKey ? getColor(nameColorKey) : undefined;
+  const overlayText = color(props?.reportsOverlayTextColorKey, "#fff");
+  const designStyle = {
+    "--reports-card-bg": color(props?.reportsCardBgColorKey, "#fff"),
+    "--reports-card-border": color(props?.reportsCardBorderColorKey, "rgba(0,0,0,0.1)"),
+    "--reports-card-shadow": color(props?.reportsCardShadowColorKey, getColor("dark")),
+    "--reports-title": color(props?.reportsNameColorKey, getColor("black")),
+    "--reports-description": color(props?.reportsDescriptionColorKey, getColor("blackLight")),
+    "--reports-date": color(props?.reportsDateColorKey, "rgba(0,0,0,0.65)"),
+    "--reports-overlay": color(props?.reportsOverlayColorKey, "rgba(0,0,0,0.1)"),
+    "--reports-overlay-text": overlayText,
+    "--reports-button-bg": color(props?.reportsButtonBgColorKey, getColor("primary")),
+    "--reports-button-text": color(props?.reportsButtonTextColorKey, overlayText),
+    "--reports-button-border": color(props?.reportsButtonBorderColorKey, getColor("primary")),
+    "--reports-button-hover-bg": color(props?.reportsButtonHoverBgColorKey, "#fff"),
+    "--reports-button-hover-text": color(props?.reportsButtonHoverTextColorKey, getColor("primary")),
+    "--reports-button-hover-border": color(props?.reportsButtonHoverBorderColorKey, getColor("primary")),
+  };
 
   /* ── Section bg ── */
   const sectionBgType = (props?.reportsSectionBgType ?? "default").toString();
@@ -167,7 +198,7 @@ export default function Reports(props) {
     .toString()
     .trim();
   const sectionBgClassName =
-    sectionBgType === "default" ? "defaultBackground" : undefined;
+    sectionBgType === "default" && !sectionBgColorKey ? "defaultBackground" : undefined;
   const sectionBgStyleBase =
     sectionBgType === "image" && sectionBgImage
       ? {
@@ -176,7 +207,7 @@ export default function Reports(props) {
           backgroundPosition: "center center",
           backgroundRepeat: "no-repeat",
         }
-      : sectionBgType === "color" && sectionBgColorKey
+      : sectionBgColorKey
         ? {
             backgroundColor: getColor(sectionBgColorKey),
             backgroundImage: "none",
@@ -302,7 +333,7 @@ export default function Reports(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
       <PageContainer $managedStyle={pageContainerBgStyle}>
-        <div className="fable-section">
+        <div className="fable-section" style={designStyle}>
         {(titleEnabled || subTitleEnabled) && (
           <Row gutter={[16, 16]}>
             <Col span={24} className="mb-4">
@@ -323,6 +354,7 @@ export default function Reports(props) {
           {items.map((item, idx) => {
             const name = (item?.name ?? "").toString().trim();
             const tag = (item?.tag ?? "").toString().trim();
+            const description = (item?.description ?? "").toString().trim();
             const imageDesktop = (
               item?.imageDesktop ?? item?.image ?? ""
             )
@@ -337,7 +369,7 @@ export default function Reports(props) {
                 <CardWrapper className="card-wrapper fable-card">
                   <ReportCard className="fable-card__inner">
                     {image ? (
-                      <div className="imageWrapper fable-card__media is-document">
+                      <div className="imageWrapper">
                         <picture>
                           {imageMobile ? (
                             <source media="(max-width: 767px)" srcSet={imageMobile} />
@@ -355,14 +387,8 @@ export default function Reports(props) {
                       <div className="imageWrapper" />
                     )}
                     <CardBody className="fable-card__body">
-                      {name && (
-                        <div
-                          className="name"
-                          style={nameColor ? { color: nameColor } : undefined}
-                        >
-                          {name}
-                        </div>
-                      )}
+                      {name && <div className="name">{name}</div>}
+                      {description ? <p className="description">{description}</p> : null}
                       {tag && <span className="tag">{tag}</span>}
                     </CardBody>
                   </ReportCard>

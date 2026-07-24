@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle, useCallback } from "react";
 import { Form, Input, Row, Col, Collapse, message, Spin, Select } from "antd";
 import { LINK_TARGET_OPTIONS, normalizeTarget } from "@/components/appearance/editorUtils";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
@@ -17,6 +17,24 @@ import {
 
 const API_PATH = "/api/theme/Reports";
 const PREFIX = "reports";
+const REPORTS_COLOR_FIELDS = [
+  "titleColorKey",
+  "reportsSubTitleColorKey",
+  "reportsCardBgColorKey",
+  "reportsCardBorderColorKey",
+  "reportsCardShadowColorKey",
+  "reportsNameColorKey",
+  "reportsDescriptionColorKey",
+  "reportsDateColorKey",
+  "reportsButtonBgColorKey",
+  "reportsButtonTextColorKey",
+  "reportsButtonBorderColorKey",
+  "reportsButtonHoverBgColorKey",
+  "reportsButtonHoverTextColorKey",
+  "reportsButtonHoverBorderColorKey",
+  "reportsOverlayColorKey",
+  "reportsOverlayTextColorKey",
+];
 
 const DEFAULT_ITEMS = [
   {
@@ -45,6 +63,7 @@ function normalizeItem(it) {
   return {
     name: it?.name != null ? String(it.name).trim() : "",
     tag: it?.tag != null ? String(it.tag).trim() : "",
+    description: it?.description != null ? String(it.description).trim() : "",
     imageDesktop: desktopImage,
     imageMobile: mobileImage,
     image: desktopImage,
@@ -124,11 +143,11 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
         ...getManageSectionInitialValues(PREFIX, data),
         mainTitle: data?.mainTitle != null ? String(data.mainTitle).trim() : "Reports",
         subTitle: data?.subTitle != null ? String(data.subTitle).trim() : "",
-        titleColorKey: data?.titleColorKey != null ? String(data.titleColorKey).trim() : "",
         reportsTitleEnabled: data?.reportsTitleEnabled !== false,
         reportsSubTitleEnabled: data?.reportsSubTitleEnabled !== false,
-        reportsSubTitleColorKey: data?.reportsSubTitleColorKey != null ? String(data.reportsSubTitleColorKey).trim() : "",
-        reportsNameColorKey: data?.reportsNameColorKey != null ? String(data.reportsNameColorKey).trim() : "",
+        ...Object.fromEntries(
+          REPORTS_COLOR_FIELDS.map((key) => [key, String(data?.[key] ?? "").trim()]),
+        ),
         reportsItems: items.length > 0 ? items : DEFAULT_ITEMS.map(normalizeItem),
       });
       if (theme) {
@@ -163,7 +182,7 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
       .finally(() => setLoading(false));
   }, [form, isPageBlock, initialDataProp]);
 
-  const handleUpdate = () => {
+  const handleUpdate = useCallback(() => {
     form.validateFields().then(() => {
       const values = form.getFieldsValue(true);
       const rawItems = values.reportsItems ?? [];
@@ -172,11 +191,11 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
         ...getManageSectionPayload(PREFIX, values),
         mainTitle: values.mainTitle != null ? String(values.mainTitle).trim() : "Reports",
         subTitle: values.subTitle != null ? String(values.subTitle).trim() : "",
-        titleColorKey: values.titleColorKey != null ? String(values.titleColorKey).trim() : "",
         reportsTitleEnabled: values.reportsTitleEnabled !== false,
         reportsSubTitleEnabled: values.reportsSubTitleEnabled !== false,
-        reportsSubTitleColorKey: values.reportsSubTitleColorKey != null ? String(values.reportsSubTitleColorKey).trim() : "",
-        reportsNameColorKey: values.reportsNameColorKey != null ? String(values.reportsNameColorKey).trim() : "",
+        ...Object.fromEntries(
+          REPORTS_COLOR_FIELDS.map((key) => [key, String(values?.[key] ?? "").trim()]),
+        ),
         reportsItems: items,
       };
       if (isPageBlock && onSaveToPage) {
@@ -196,9 +215,9 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
         .catch((err) => message.error(err?.error || "Failed to save"))
         .finally(() => setSaving(false));
     }).catch(() => {});
-  };
+  }, [form, isPageBlock, onSaveToPage, onSuccess]);
 
-  useImperativeHandle(ref, () => ({ update: handleUpdate }), []);
+  useImperativeHandle(ref, () => ({ update: handleUpdate }), [handleUpdate]);
 
   if (loading) {
     return <div style={{ padding: 48, textAlign: "center" }}><Spin /></div>;
@@ -207,7 +226,7 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
   return (
     <Form form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={["items"]}
+        defaultActiveKey={["title-colors", "items"]}
         items={[
           {
             key: "manage-section",
@@ -235,6 +254,7 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                     defaultAddPayload={{
                       name: "",
                       tag: "",
+                      description: "",
                       imageDesktop: "",
                       imageMobile: "",
                       image: "",
@@ -260,8 +280,13 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "tag"]} label="Tag">
-                            <Input placeholder="e.g. Annual Report" size="large" />
+                          <Form.Item {...restField} name={[name, "description"]} label="Description">
+                            <Input.TextArea placeholder="Optional report or album description" rows={3} />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "tag"]} label="Date">
+                            <Input placeholder="e.g. January 2026" size="large" />
                           </Form.Item>
                         </Col>
                         <Col span={24}>

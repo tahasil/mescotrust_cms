@@ -13,6 +13,32 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/PhotoGallery";
 const PREFIX = "photoGallery";
+const PHOTO_GALLERY_COLOR_FIELDS = [
+  "photoGallerySubTitleColorKey",
+  "photoGalleryTitleColorKey",
+  "photoGalleryAccentTextColorKey",
+  "photoGalleryLinkColorKey",
+  "photoGalleryTextColorKey",
+  "photoGalleryCardBgColorKey",
+  "photoGalleryCardBorderColorKey",
+  "photoGalleryCardShadowColorKey",
+  "photoGalleryCardTitleColorKey",
+  "photoGalleryCardDescriptionColorKey",
+  "photoGalleryDateColorKey",
+  "photoGalleryButtonBgColorKey",
+  "photoGalleryButtonTextColorKey",
+  "photoGalleryButtonBorderColorKey",
+  "photoGalleryButtonHoverBgColorKey",
+  "photoGalleryButtonHoverTextColorKey",
+  "photoGalleryButtonHoverBorderColorKey",
+  "photoGalleryOverlayColorKey",
+  "photoGalleryOverlayTextColorKey",
+  "photoGallerySectionBgColorKey",
+  "photoGalleryModalTitleColorKey",
+  "photoGalleryCountBgColorKey",
+  "photoGalleryCountTextColorKey",
+];
+
 function normalizeGalleryImage(img) {
   if (typeof img === "string") {
     const desktop = img.trim();
@@ -59,6 +85,8 @@ function normalizeItem(it) {
   const linkUrl = it?.linkUrl != null ? String(it.linkUrl).trim() : "";
   return {
     title: it?.title != null ? String(it.title).trim() : "",
+    description: it?.description != null ? String(it.description).trim() : "",
+    date: it?.date != null ? String(it.date).trim() : "",
     imageDesktop: coverDesktop,
     image: coverDesktop,
     images: images,
@@ -111,7 +139,7 @@ function applyFormValues(form, data) {
     photoGalleryCardTitleFontSize: data?.photoGalleryCardTitleFontSize ?? 16,
     photoGalleryCardTitleFontWeight: data?.photoGalleryCardTitleFontWeight ?? 600,
     photoGalleryCardTitleLineHeight: data?.photoGalleryCardTitleLineHeight ?? 1.3,
-    ...Object.fromEntries(["photoGallerySubTitleColorKey","photoGalleryTitleColorKey","photoGalleryAccentTextColorKey","photoGalleryLinkColorKey","photoGalleryTextColorKey","photoGalleryCardTitleColorKey","photoGalleryModalTitleColorKey","photoGalleryCardBorderColorKey","photoGalleryCountBgColorKey","photoGalleryCountTextColorKey"].map((key)=>[key,String(data?.[key]??"").trim()])),
+    ...Object.fromEntries(PHOTO_GALLERY_COLOR_FIELDS.map((key) => [key, String(data?.[key] ?? "").trim()])),
     photoGalleryAccentColorKey: data?.photoGalleryAccentColorKey ?? "",
     photoGalleryNavButtonBgColorKey: data?.photoGalleryNavButtonBgColorKey ?? "",
     photoGalleryNavArrowColorKey: data?.photoGalleryNavArrowColorKey ?? "",
@@ -226,7 +254,7 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
         photoGalleryCardTitleFontSize: Number(values.photoGalleryCardTitleFontSize ?? 16),
         photoGalleryCardTitleFontWeight: Number(values.photoGalleryCardTitleFontWeight ?? 600),
         photoGalleryCardTitleLineHeight: Number(values.photoGalleryCardTitleLineHeight ?? 1.3),
-        ...Object.fromEntries(["photoGallerySubTitleColorKey","photoGalleryTitleColorKey","photoGalleryAccentTextColorKey","photoGalleryLinkColorKey","photoGalleryTextColorKey","photoGalleryCardTitleColorKey","photoGalleryModalTitleColorKey","photoGalleryCardBorderColorKey","photoGalleryCountBgColorKey","photoGalleryCountTextColorKey"].map((key)=>[key,String(values?.[key]??"").trim()])),
+        ...Object.fromEntries(PHOTO_GALLERY_COLOR_FIELDS.map((key) => [key, String(values?.[key] ?? "").trim()])),
         photoGalleryAccentColorKey: values.photoGalleryAccentColorKey ?? "",
         photoGalleryNavButtonBgColorKey: values.photoGalleryNavButtonBgColorKey ?? "",
         photoGalleryNavArrowColorKey: values.photoGalleryNavArrowColorKey ?? "",
@@ -418,6 +446,16 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                         <Col span={24}>
                           <Form.Item {...restField} name={[name, "title"]} label="Item Title">
                             <Input placeholder="e.g. Annual Function 2024" size="large" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "description"]} label="Description">
+                            <Input.TextArea placeholder="Optional album description" rows={3} />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "date"]} label="Date">
+                            <Input placeholder="e.g. January 2026" size="large" />
                           </Form.Item>
                         </Col>
                         <Col span={24}>

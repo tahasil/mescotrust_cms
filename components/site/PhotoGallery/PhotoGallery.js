@@ -169,7 +169,7 @@ const GalleryCard = styled.button`
   overflow: hidden;
   border: var(--gallery-card-border-width) solid var(--gallery-card-border);
   border-radius: calc(var(--gallery-card-radius) * 1px);
-  background: #e8e6df;
+  background: var(--gallery-card-bg);
   box-shadow: var(--gallery-card-shadow);
   color: var(--gallery-card-title);
   text-align: left;
@@ -184,8 +184,9 @@ const GalleryCard = styled.button`
     width: 100%;
     height: 100%;
     display: block;
-    object-fit: cover;
-    transition: transform 480ms cubic-bezier(0.16, 1, 0.3, 1), filter 300ms ease;
+    object-fit: contain;
+    object-position: center;
+    transition: filter 300ms ease;
   }
 
   &::after {
@@ -196,25 +197,24 @@ const GalleryCard = styled.button`
     pointer-events: none;
     background: linear-gradient(
       180deg,
-      rgba(5, 5, 5, 0) 34%,
-      rgba(5, 5, 5, calc(var(--gallery-overlay-opacity) * 0.38)) 66%,
-      rgba(5, 5, 5, var(--gallery-overlay-opacity)) 100%
+      transparent 34%,
+      color-mix(in srgb, var(--gallery-overlay) 38%, transparent) 66%,
+      var(--gallery-overlay) 100%
     );
+    opacity: var(--gallery-overlay-opacity);
   }
 
-  &:hover img { transform: scale(1.05); }
   &:focus-visible { outline: 3px solid var(--gallery-accent); outline-offset: 3px; }
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
     img { transition: none; }
-    &:hover img { transform: none; }
   }
 `;
 
 const CardTitle = styled.span`
   position: absolute;
-  right: 60px;
+  right: 158px;
   bottom: 20px;
   left: 0;
   z-index: 2;
@@ -225,8 +225,24 @@ const CardTitle = styled.span`
   line-height: var(--gallery-card-title-line-height);
   text-wrap: balance;
 
+  .gallery-card-title { display: block; color: var(--gallery-card-title); }
+  .gallery-card-description {
+    display: block;
+    margin-top: 5px;
+    color: var(--gallery-card-description);
+    font-size: 0.82em;
+    font-weight: 400;
+  }
+  .gallery-card-date {
+    display: block;
+    margin-top: 5px;
+    color: var(--gallery-date);
+    font-size: 0.76em;
+    font-weight: 500;
+  }
+
   @media (max-width: 767px) {
-    right: 54px;
+    right: 138px;
     bottom: 14px;
     padding: 12px 16px;
   }
@@ -252,17 +268,29 @@ const HoverArrow = styled.span`
   right: 16px;
   bottom: 24px;
   z-index: 2;
-  width: 38px;
+  min-width: 38px;
   height: 38px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  color: var(--gallery-arrow);
-  background: var(--gallery-nav-bg);
-  font-size: 16px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid var(--gallery-button-border);
+  border-radius: 999px;
+  color: var(--gallery-button-text);
+  background: var(--gallery-button-bg);
+  font-size: 13px;
+  font-weight: 650;
   opacity: 0;
   transform: translateY(8px);
-  transition: opacity 260ms ease, transform 260ms ease, background 260ms ease;
+  transition: opacity 260ms ease, transform 260ms ease, background 260ms ease,
+    color 260ms ease, border-color 260ms ease;
+
+  &:hover {
+    color: var(--gallery-button-hover-text);
+    background: var(--gallery-button-hover-bg);
+    border-color: var(--gallery-button-hover-border);
+  }
 
   ${GalleryCard}:hover &, ${GalleryCard}:focus-visible & {
     opacity: 1;
@@ -359,6 +387,8 @@ function normalizeItem(item) {
     : [];
   return {
     title: text(item?.title),
+    description: text(item?.description),
+    date: text(item?.date),
     type: item?.type === "link" ? "link" : "album",
     linkType: item?.linkType === "external" ? "external" : "internal",
     linkUrl: text(item?.linkUrl),
@@ -383,7 +413,7 @@ function getBackgroundStyles(props) {
   const prefix = "photoGallery";
   const sectionType = text(props?.[`${prefix}SectionBgType`] || "default");
   const sectionImage = text(props?.[`${prefix}SectionBgImage`]);
-  const sectionColor = text(props?.[`${prefix}SectionBgColorKey`]);
+  const sectionColor = text(props?.photoGallerySectionBgColorKey);
   const sectionStyle = {
     ...(sectionType === "image" && sectionImage
       ? {
@@ -392,7 +422,7 @@ function getBackgroundStyles(props) {
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
         }
-      : sectionType === "color" && sectionColor
+      : sectionColor
         ? { backgroundColor: getColor(sectionColor), backgroundImage: "none" }
         : {}),
   };
@@ -429,7 +459,7 @@ function getBackgroundStyles(props) {
     },
   );
   return {
-    sectionBgClassName: sectionType === "default" ? "defaultBackground" : undefined,
+    sectionBgClassName: sectionType === "default" && !sectionColor ? "defaultBackground" : undefined,
     sectionBgStyle: sectionStyle,
     pageContainerBgStyle: pageStyle,
   };
@@ -437,8 +467,10 @@ function getBackgroundStyles(props) {
 
 function getCardShadow(value) {
   if (value === "none") return "none";
-  if (value === "elevated") return "0 16px 34px rgba(42, 40, 62, 0.2)";
-  return "0 4px 12px rgba(42, 40, 62, 0.16)";
+  if (value === "elevated") {
+    return "0 16px 34px color-mix(in srgb, var(--gallery-card-shadow-color) 20%, transparent)";
+  }
+  return "0 4px 12px color-mix(in srgb, var(--gallery-card-shadow-color) 16%, transparent)";
 }
 
 export default function PhotoGallery(props) {
@@ -543,6 +575,15 @@ export default function PhotoGallery(props) {
   );
   const navArrow = color(props?.photoGalleryNavArrowColorKey, "#fff");
   const modalTitleColor = color(props?.photoGalleryModalTitleColorKey, "#fff");
+  const overlayText = color(props?.photoGalleryOverlayTextColorKey, "#fff");
+  const buttonBg = color(
+    props?.photoGalleryButtonBgColorKey || props?.photoGalleryNavButtonBgColorKey,
+    navBg,
+  );
+  const buttonText = color(
+    props?.photoGalleryButtonTextColorKey || props?.photoGalleryNavArrowColorKey,
+    overlayText,
+  );
   const designStyle = {
     "--gallery-text": color(props?.photoGalleryTextColorKey, getColor("blackLight")),
     "--gallery-subtitle": color(props?.photoGallerySubTitleColorKey, getColor("primary")),
@@ -562,10 +603,22 @@ export default function PhotoGallery(props) {
     "--gallery-tab-text": color(props?.photoGalleryTabInactiveTextColorKey, getColor("black")),
     "--gallery-tab-hover-border": color(props?.photoGalleryTabHoverBorderColorKey, getColor("primary")),
     "--gallery-tab-hover-text": color(props?.photoGalleryTabHoverTextColorKey, getColor("primary")),
-    "--gallery-card-title": color(props?.photoGalleryCardTitleColorKey, "#fff"),
+    "--gallery-card-bg": color(props?.photoGalleryCardBgColorKey, "#e8e6df"),
+    "--gallery-card-title": color(props?.photoGalleryCardTitleColorKey, overlayText),
+    "--gallery-card-description": color(props?.photoGalleryCardDescriptionColorKey, overlayText),
+    "--gallery-date": color(props?.photoGalleryDateColorKey, overlayText),
     "--gallery-card-border": color(props?.photoGalleryCardBorderColorKey, "transparent"),
+    "--gallery-card-shadow-color": color(props?.photoGalleryCardShadowColorKey, getColor("black")),
+    "--gallery-overlay": color(props?.photoGalleryOverlayColorKey, "#050505"),
+    "--gallery-overlay-text": overlayText,
+    "--gallery-button-bg": buttonBg,
+    "--gallery-button-text": buttonText,
+    "--gallery-button-border": color(props?.photoGalleryButtonBorderColorKey, buttonBg),
+    "--gallery-button-hover-bg": color(props?.photoGalleryButtonHoverBgColorKey, buttonText),
+    "--gallery-button-hover-text": color(props?.photoGalleryButtonHoverTextColorKey, buttonBg),
+    "--gallery-button-hover-border": color(props?.photoGalleryButtonHoverBorderColorKey, buttonBg),
     "--gallery-count-bg": color(props?.photoGalleryCountBgColorKey, "rgba(0,0,0,0.62)"),
-    "--gallery-count-text": color(props?.photoGalleryCountTextColorKey, "#fff"),
+    "--gallery-count-text": color(props?.photoGalleryCountTextColorKey, overlayText),
     "--gallery-view-more-bg": color(props?.photoGalleryViewMoreButtonBgColorKey, getColor("primary")),
     "--gallery-view-more-text": color(props?.photoGalleryViewMoreButtonTextColorKey, "#fff"),
     "--gallery-columns": Math.floor(numberInRange(props?.photoGalleryColumns, 3, 2, 4)),
@@ -657,12 +710,21 @@ export default function PhotoGallery(props) {
                     fetchPriority="auto"
                     decoding="async"
                   />
-                  <CardTitle>{item.title}</CardTitle>
+                  <CardTitle>
+                    <span className="gallery-card-title">{item.title}</span>
+                    {item.description ? (
+                      <span className="gallery-card-description">{item.description}</span>
+                    ) : null}
+                    {item.date ? <span className="gallery-card-date">{item.date}</span> : null}
+                  </CardTitle>
                   {showPhotoCount && item.type === "album" ? (
                     <PhotoCount>{item.images.length} {item.images.length === 1 ? "photo" : "photos"}</PhotoCount>
                   ) : null}
                   {showHoverArrow ? (
-                    <HoverArrow aria-hidden="true"><ArrowRightOutlined /></HoverArrow>
+                    <HoverArrow aria-hidden="true">
+                      <span>{item.type === "album" ? "View Album" : "View"}</span>
+                      <ArrowRightOutlined />
+                    </HoverArrow>
                   ) : null}
                 </GalleryCard>
               ))}

@@ -17,6 +17,10 @@ test("PhotoGallery preserves managed wrappers and responsive grid design", () =>
   assert.match(source, /@media \(max-width: 991px\)/);
   assert.match(source, /@media \(max-width: 620px\)/);
   assert.match(source, /16 \/ 9\.6/);
+  assert.match(source, /object-fit:\s*contain/);
+  assert.match(source, /object-position:\s*center/);
+  assert.doesNotMatch(source, /object-fit:\s*cover/);
+  assert.doesNotMatch(source, /&:hover img\s*\{[^}]*scale\(/);
 });
 
 test("PhotoGallery defers cards and opens the selected album with one dynamic lightbox", () => {
@@ -52,4 +56,38 @@ test("PhotoGallery drawer persists reusable display and typography settings", ()
     "photoGalleryTabs",
     "photoGalleryItems",
   ].forEach((field) => assert.match(source, new RegExp(field)));
+});
+
+test("PhotoGallery exposes and applies the complete card color set", () => {
+  const config = readFile("lib/titleAndColorsConfig.js");
+  const editForm = readFile("components/site/PhotoGallery/EditForm.js");
+  const renderer = readFile("components/site/PhotoGallery/PhotoGallery.js");
+  const fields = [
+    "photoGalleryCardBgColorKey",
+    "photoGalleryCardBorderColorKey",
+    "photoGalleryCardShadowColorKey",
+    "photoGalleryCardTitleColorKey",
+    "photoGalleryCardDescriptionColorKey",
+    "photoGalleryDateColorKey",
+    "photoGalleryButtonBgColorKey",
+    "photoGalleryButtonTextColorKey",
+    "photoGalleryButtonBorderColorKey",
+    "photoGalleryButtonHoverBgColorKey",
+    "photoGalleryButtonHoverTextColorKey",
+    "photoGalleryButtonHoverBorderColorKey",
+    "photoGalleryOverlayColorKey",
+    "photoGalleryOverlayTextColorKey",
+    "photoGallerySectionBgColorKey",
+    "photoGalleryTitleColorKey",
+    "photoGallerySubTitleColorKey",
+  ];
+
+  fields.forEach((field) => {
+    assert.match(config, new RegExp(field));
+    assert.match(editForm, new RegExp(field));
+    assert.match(renderer, new RegExp(field));
+  });
+  assert.match(renderer, /--gallery-button-hover-bg/);
+  assert.match(renderer, /--gallery-overlay/);
+  assert.match(renderer, /--gallery-card-shadow-color/);
 });
