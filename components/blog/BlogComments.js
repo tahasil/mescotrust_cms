@@ -127,8 +127,8 @@ const SubmitBtn = styled.button`
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  background: var(--primary-color, #8b1a1a);
-  color: #fff;
+  background: var(--blog-post-button-bg, var(--primary-color, #8b1a1a));
+  color: var(--blog-post-button-text, #fff);
   transition: opacity 0.2s;
   &:hover {
     opacity: 0.85;

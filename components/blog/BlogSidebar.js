@@ -62,7 +62,7 @@ const RecentPostItem = styled.div`
     -webkit-box-orient: vertical;
     overflow: hidden;
     a {
-      color: inherit;
+      color: var(--blog-sidebar-link, inherit);
       text-decoration: none;
       &:hover {
         color: var(--primary-color, #8b1a1a);

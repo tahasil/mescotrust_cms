@@ -29,6 +29,10 @@ export const BLOG_DETAILS_DEFAULTS = {
   blogDetailsMutedColorKey: "",
   blogDetailsMetaColorKey: "",
   blogDetailsAccentColorKey: "",
+  blogDetailsSearchButtonColorKey: "",
+  blogDetailsSidebarLinkColorKey: "",
+  blogDetailsPostButtonBgColorKey: "",
+  blogDetailsPostButtonTextColorKey: "",
   blogDetailsSurfaceColorKey: "",
   blogDetailsBorderColorKey: "",
 };
@@ -39,7 +43,11 @@ const COLORS = [
   { name: "blogDetailsContentColorKey", label: "Blog content", tooltip: "Article body color" },
   { name: "blogDetailsMutedColorKey", label: "Excerpt & tags", tooltip: "Supporting text color" },
   { name: "blogDetailsMetaColorKey", label: "Date & author", tooltip: "Metadata text color" },
-  { name: "blogDetailsAccentColorKey", label: "Accent", tooltip: "Category, links and share hover color" },
+  { name: "blogDetailsAccentColorKey", label: "Accent", tooltip: "Category, tags and share hover color" },
+  { name: "blogDetailsSearchButtonColorKey", label: "Search button", tooltip: "Sidebar search button background" },
+  { name: "blogDetailsSidebarLinkColorKey", label: "Sidebar links", tooltip: "Categories, recent posts, comments and clear-search links" },
+  { name: "blogDetailsPostButtonBgColorKey", label: "Post button background", tooltip: "Post Comment button background" },
+  { name: "blogDetailsPostButtonTextColorKey", label: "Post button text", tooltip: "Post Comment button text" },
   { name: "blogDetailsSurfaceColorKey", label: "Tag background", tooltip: "Tag surface color" },
   { name: "blogDetailsBorderColorKey", label: "Borders", tooltip: "Dividers and borders" },
 ];

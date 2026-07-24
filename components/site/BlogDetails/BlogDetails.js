@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import SafeHtml from "@/components/cms/SafeHtml";
 import { FullWidthBackground, getColor, MainTitle, PageContainer } from "@/styles/Theme";
 import BlogSidebarFull from "@/components/blog/BlogSidebarFull";
@@ -21,13 +21,43 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December",
 ];
 
+const revealBlogDetail = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+`;
+
+const revealBlogDetailSidebar = keyframes`
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+`;
+
+const revealBlogBanner = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(.975);
+  }
+`;
+
 const DetailRoot = styled.div`
   color: var(--blog-detail-text);
 
   .blog-detail-layout { display: flex; gap: var(--blog-detail-gap); }
-  .blog-detail-article { flex: 1; min-width: 0; }
-  .blog-detail-sidebar { width: 320px; flex-shrink: 0; }
-  .blog-detail-state { padding: 60px 0; color: var(--blog-detail-muted); text-align: center; }
+  .blog-detail-article {
+    flex: 1; min-width: 0;
+    animation: ${revealBlogDetail} 620ms cubic-bezier(.22, 1, .36, 1) backwards;
+  }
+  .blog-detail-sidebar {
+    width: 320px; flex-shrink: 0;
+    animation: ${revealBlogDetailSidebar} 620ms 140ms cubic-bezier(.22, 1, .36, 1) backwards;
+  }
+  .blog-detail-state {
+    padding: 60px 0; color: var(--blog-detail-muted); text-align: center;
+    animation: ${revealBlogDetail} 420ms ease-out backwards;
+  }
   .blog-detail-state--error { color: var(--blog-detail-accent); }
   .blog-detail-category {
     margin-bottom: 8px; color: var(--blog-detail-accent); font-size: 13px;
@@ -39,7 +69,10 @@ const DetailRoot = styled.div`
     gap: 16px; margin-bottom: 24px; flex-wrap: wrap;
   }
   .blog-detail-meta { display: flex; align-items: center; gap: 16px; color: var(--blog-detail-meta); font-size: 14px; flex-wrap: wrap; }
-  .blog-detail-banner { margin: 0 0 28px; border-radius: var(--blog-detail-radius); overflow: hidden; max-height: 400px; }
+  .blog-detail-banner {
+    margin: 0 0 28px; border-radius: var(--blog-detail-radius); overflow: hidden; max-height: 400px;
+    animation: ${revealBlogBanner} 700ms 120ms cubic-bezier(.22, 1, .36, 1) backwards;
+  }
   .blog-detail-banner img {
     width: auto; max-width: 100%; height: auto; max-height: 400px;
     object-fit: contain; object-position: left top; display: block; margin: 0;
@@ -59,7 +92,9 @@ const DetailRoot = styled.div`
   .blog-detail-tag {
     padding: 4px 14px; border-radius: 20px; background: var(--blog-detail-surface);
     color: var(--blog-detail-muted); font-size: 13px;
+    transition: transform 180ms ease, color 180ms ease, background-color 180ms ease;
   }
+  .blog-detail-tag:hover { transform: translateY(-2px); color: var(--blog-detail-accent); }
 
   @media (max-width: 1200px) { .blog-detail-layout { gap: 28px; } }
   @media (max-width: 992px) {
@@ -79,6 +114,14 @@ const DetailRoot = styled.div`
   @media (max-width: 480px) {
     .blog-detail-title { font-size: 20px !important; }
     .blog-detail-article { font-size: 15px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .blog-detail-article,
+    .blog-detail-sidebar,
+    .blog-detail-state,
+    .blog-detail-banner { animation: none; }
+    .blog-detail-tag { transition: none; }
+    .blog-detail-tag:hover { transform: none; }
   }
 `;
 
@@ -174,6 +217,10 @@ export default function BlogDetails(props) {
     "--blog-detail-muted": color(props?.blogDetailsMutedColorKey, "rgba(0,0,0,0.6)"),
     "--blog-detail-meta": color(props?.blogDetailsMetaColorKey, "rgba(0,0,0,0.45)"),
     "--blog-detail-accent": color(props?.blogDetailsAccentColorKey, "var(--primary-color, #8b1a1a)"),
+    "--blog-sidebar-search-button": color(props?.blogDetailsSearchButtonColorKey, "var(--blog-detail-accent)"),
+    "--blog-sidebar-link": color(props?.blogDetailsSidebarLinkColorKey, "var(--blog-detail-text)"),
+    "--blog-post-button-bg": color(props?.blogDetailsPostButtonBgColorKey, "var(--blog-detail-accent)"),
+    "--blog-post-button-text": color(props?.blogDetailsPostButtonTextColorKey, "#fff"),
     "--blog-detail-surface": color(props?.blogDetailsSurfaceColorKey, "rgba(0,0,0,0.04)"),
     "--blog-detail-border": color(props?.blogDetailsBorderColorKey, "rgba(0,0,0,0.06)"),
     "--blog-detail-radius": `${clamp(props?.blogDetailsImageRadius, 0, 40, 12)}px`,

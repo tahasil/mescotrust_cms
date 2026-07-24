@@ -108,7 +108,7 @@ export default function BlogSidebarFull({
               padding: "9px 18px",
               border: "none",
               borderRadius: 6,
-              background: "var(--primary-color, #8b1a1a)",
+              background: "var(--blog-sidebar-search-button, var(--primary-color, #8b1a1a))",
               color: "#fff",
               fontSize: 13,
               fontWeight: 600,
@@ -123,7 +123,7 @@ export default function BlogSidebarFull({
             href="/blog"
             style={{
               fontSize: 12,
-              color: "rgba(0,0,0,0.4)",
+              color: "var(--blog-sidebar-link, rgba(0,0,0,0.65))",
               marginTop: 8,
               display: "inline-block",
             }}
@@ -150,9 +150,7 @@ export default function BlogSidebarFull({
                 href="/blog"
                 style={{
                   fontSize: 14,
-                  color: !categorySlug
-                    ? "var(--primary-color, #8b1a1a)"
-                    : "rgba(0,0,0,0.65)",
+                  color: "var(--blog-sidebar-link, rgba(0,0,0,0.65))",
                   textDecoration: "none",
                   fontWeight: !categorySlug ? 600 : 400,
                   display: "flex",
@@ -167,7 +165,7 @@ export default function BlogSidebarFull({
                     borderRadius: "50%",
                     background: !categorySlug
                       ? "var(--primary-color, #8b1a1a)"
-                      : "rgba(0,0,0,0.2)",
+                      : "color-mix(in srgb, var(--blog-sidebar-link, #000) 30%, transparent)",
                     flexShrink: 0,
                   }}
                 />
@@ -180,10 +178,7 @@ export default function BlogSidebarFull({
                   href={`/blog?category=${cat.slug}`}
                   style={{
                     fontSize: 14,
-                    color:
-                      categorySlug === cat.slug
-                        ? "var(--primary-color, #8b1a1a)"
-                        : "rgba(0,0,0,0.65)",
+                    color: "var(--blog-sidebar-link, rgba(0,0,0,0.65))",
                     textDecoration: "none",
                     fontWeight: categorySlug === cat.slug ? 600 : 400,
                     display: "flex",
@@ -199,7 +194,7 @@ export default function BlogSidebarFull({
                       background:
                         categorySlug === cat.slug
                           ? "var(--primary-color, #8b1a1a)"
-                          : "rgba(0,0,0,0.2)",
+                          : "color-mix(in srgb, var(--blog-sidebar-link, #000) 30%, transparent)",
                       flexShrink: 0,
                     }}
                   />
