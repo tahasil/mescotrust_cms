@@ -53,6 +53,8 @@ export { default as LatestNews, LatestNewsEditForm } from "./LatestNews/index";
 export { default as EventsSlider, EventsSliderEditForm } from "./EventsSlider/index";
 export { default as EventsListing, EventsListingEditForm } from "./EventsListing/index";
 export { default as EventDetails, EventDetailsEditForm } from "./EventDetails/index";
+export { default as BlogListing, BlogListingEditForm } from "./BlogListing/index";
+export { default as BlogDetails, BlogDetailsEditForm } from "./BlogDetails/index";
 export { default as ImageSlider, ImageSliderEditForm } from "./ImageSlider/index";
 export { default as EventRegistrationForm, EventRegistrationFormEditForm } from "./EventRegistrationForm/index";
 export { default as SocialMediaWall, SocialMediaWallEditForm } from "./SocialMediaWall/index";
@@ -108,6 +110,8 @@ import LatestNewsEditForm from "./LatestNews/EditForm";
 import EventsSliderEditForm from "./EventsSlider/EditForm";
 import EventsListingEditForm from "./EventsListing/EditForm";
 import EventDetailsEditForm from "./EventDetails/EditForm";
+import BlogListingEditForm from "./BlogListing/EditForm";
+import BlogDetailsEditForm from "./BlogDetails/EditForm";
 import ImageSliderEditForm from "./ImageSlider/EditForm";
 import EventRegistrationFormEditForm from "./EventRegistrationForm/EditForm";
 import SocialMediaWallEditForm from "./SocialMediaWall/EditForm";
@@ -132,6 +136,8 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   EventsSlider: EventsSliderEditForm,
   EventsListing: EventsListingEditForm,
   EventDetails: EventDetailsEditForm,
+  BlogListing: BlogListingEditForm,
+  BlogDetails: BlogDetailsEditForm,
   Testimonials: TestimonialsEditForm,
   OverviewOfOurWork: OverviewOfOurWorkEditForm,
   OurImpact: OurImpactEditForm,

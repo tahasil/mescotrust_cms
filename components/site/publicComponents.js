@@ -49,6 +49,8 @@ export { default as LatestNews } from "./LatestNews/LatestNews";
 export { default as EventsSlider } from "./EventsSlider/EventsSlider";
 export { default as EventsListing } from "./EventsListing/EventsListing";
 export { default as EventDetails } from "./EventDetails/EventDetails";
+export { default as BlogListing } from "./BlogListing/BlogListing";
+export { default as BlogDetails } from "./BlogDetails/BlogDetails";
 export { default as ImageSlider } from "./ImageSlider/ImageSlider";
 export { default as EventRegistrationForm } from "./EventRegistrationForm/EventRegistrationForm";
 export { default as SocialMediaWall } from "./SocialMediaWall/SocialMediaWall";

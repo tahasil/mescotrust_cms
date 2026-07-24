@@ -291,7 +291,6 @@ export const FullWidthBackground = styled.div`
   background: transparent no-repeat top center;
   background-size: cover;
   &.customInnerHero {
-    margin-top: 82px;
     padding-top: 40px;
     border-top: 1px solid #dbdbdb;
   }

@@ -51,7 +51,10 @@ export default function BlogSidebarFull({
 
   // If categories not passed (detail page), fetch them
   useEffect(() => {
-    if (Array.isArray(categoriesProp) && categoriesProp.length > 0) return;
+    if (Array.isArray(categoriesProp) && categoriesProp.length > 0) {
+      setCategories(categoriesProp);
+      return;
+    }
     fetch("/api/public/blog-categories")
       .then((r) => (r.ok ? r.json() : []))
       .then((data) => setCategories(Array.isArray(data) ? data : []))
