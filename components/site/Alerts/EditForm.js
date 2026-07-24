@@ -5,7 +5,6 @@ import { Form, Input, Row, Col, Collapse, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
-import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -13,13 +12,14 @@ const API_PATH = "/api/theme/Alerts";
 const PREFIX = "alerts";
 
 const DEFAULT_ITEMS = [
-  { heading: "", text: 'MESCO received "Certificate of Merit" by the Jury of The World CSR Day on 18th February 2016.' },
-  { heading: "", text: 'MESCO has been recently awarded by the Guide Star India with the "Guide Star Gold Transparency Award".' },
-  { heading: "Achievements", text: "Uniqueness of MESCO lies in its sustainability, scalability, accountability, transparency, credibility and effective leadership" },
+  { year: "2016", heading: "Certificate of Merit — The World CSR Day", text: "Awarded by the Jury of The World CSR Day on 18th February 2016." },
+  { year: "2015", heading: "BSE Sammaan Empanelment", text: "Empanelled on the BSE SAMMAAN Project in collaboration with the Confederation of Indian Industry (CII), the Bombay Stock Exchange (BSE) and The Indian Institute of Corporate Affairs (IICA), launched by the Hon'ble President of India on 29th April 2015." },
+  { year: "", heading: "Guide Star Gold Transparency Award", text: "Awarded by GuideStar India for exemplary transparency in reporting and governance." },
 ];
 
 function normalizeItem(it) {
   return {
+    year: it?.year != null ? String(it.year).trim() : "",
     heading: it?.heading != null ? String(it.heading).trim() : "",
     text: it?.text != null ? String(it.text).trim() : "",
     iconUrl: it?.iconUrl != null ? String(it.iconUrl).trim() : "",
@@ -151,7 +151,7 @@ function AlertsEditForm({ source, initialData: initialDataProp, onSaveToPage, on
           },
           {
             key: "items",
-            label: "Manage Alerts",
+            label: "Manage Recognition",
             children: (
               <Form.List name="alertsItems">
                 {(fields, { add, remove, move }) => (
@@ -160,9 +160,9 @@ function AlertsEditForm({ source, initialData: initialDataProp, onSaveToPage, on
                     add={add}
                     remove={remove}
                     move={move}
-                    itemLabel="Alert"
-                    addButtonText="Add alert"
-                    defaultAddPayload={{ heading: "", text: "", iconUrl: "" }}
+                    itemLabel="Recognition"
+                    addButtonText="Add recognition"
+                    defaultAddPayload={{ year: "", heading: "", text: "", iconUrl: "" }}
                     reorderMovedIndex={reorderMovedIndex}
                     reorderDirection={reorderDirection}
                     onMoveWithTransition={(from, to) => {
@@ -173,8 +173,8 @@ function AlertsEditForm({ source, initialData: initialDataProp, onSaveToPage, on
                     renderItemContent={(name, restField) => (
                       <Row gutter={[16, 16]}>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "iconUrl"]} label="Icon URL (optional)">
-                            <MediaPickerInput placeholder="/uploads/icon.webp" />
+                          <Form.Item {...restField} name={[name, "year"]} label="Year (optional)">
+                            <Input placeholder="e.g. 2016" size="large" />
                           </Form.Item>
                         </Col>
                         <Col span={24}>

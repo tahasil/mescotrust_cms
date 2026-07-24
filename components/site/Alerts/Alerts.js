@@ -1,84 +1,81 @@
 "use client";
 
-import { Row, Col } from "antd";
 import styled from "styled-components";
 import {
   FullWidthBackground,
   getColor,
-  MainTitle,
   PageContainer,
-  SubTitle,
 } from "@/styles/Theme";
 
 /* ── Styled Components ── */
-const AlertCard = styled.div`
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 24px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.05);
-  border-radius: 12px;
-  background: #fff;
-  margin-bottom: 12px;
-  &:last-child {
-    margin-bottom: 0;
+const Recognition = styled.div`
+  .recognition-heading {
+    max-width: 16ch;
+    margin: 0 0 clamp(32px, 4vw, 56px);
+    font-family: var(--fable-display);
+    font-size: clamp(36px, 4.6vw, 64px);
+    font-weight: 620;
+    line-height: 1.08;
+    letter-spacing: -.02em;
   }
-  @media (max-width: 576px) {
-    padding: 16px;
-    gap: 12px;
+  .recognition-award {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: clamp(20px, 3vw, 48px);
+    align-items: start;
+    padding-block: clamp(24px, 2.8vw, 38px);
+    border-bottom: 1px solid var(--fable-border);
+    transition: padding-left .3s cubic-bezier(.16, 1, .3, 1);
   }
-`;
-
-const IconWrap = styled.div`
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  margin-right: 10px;
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    display: block;
-  }
-  @media (max-width: 576px) {
-    width: 32px;
-    height: 32px;
-  }
-`;
-
-const AlertContent = styled.div`
-  flex: 1;
-  min-width: 0;
-  .alert-heading {
-    font-size: 18px;
-    font-weight: 600;
+  .recognition-award:first-of-type { border-top: 1px solid var(--fable-border); }
+  .recognition-award:hover { padding-left: 10px; }
+  .recognition-year {
+    min-height: 1em;
+    color: var(--recognition-accent, var(--fable-primary));
+    font-family: var(--fable-display);
+    font-size: clamp(22px, 2.4vw, 34px);
+    font-weight: 650;
     line-height: 1.2;
-    margin-bottom: 4px;
-    text-transform: capitalize !important;
-    @media (max-width: 576px) {
-      font-size: 14px;
-    }
   }
-  .alert-text {
-    font-size: 16px;
-    line-height: 1.4;
-    color: rgba(0, 0, 0, 0.7);
+  .recognition-title {
+    margin: 0 0 6px;
+    font-family: var(--fable-display);
+    font-size: clamp(19px, 1.9vw, 26px);
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -.01em;
+  }
+  .recognition-text {
+    max-width: 62ch;
     margin: 0;
-    font-weight: 400;
-    @media (max-width: 576px) {
-      font-size: 12px;
-    }
+    color: var(--fable-ink-soft);
+    font-size: 15.5px;
+    line-height: 1.5;
+  }
+  @media (max-width: 576px) {
+    .recognition-heading { font-size: clamp(32px, 10vw, 48px); }
+    .recognition-award { grid-template-columns: 72px minmax(0, 1fr); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .recognition-award { transition: none; }
+    .recognition-award:hover { padding-left: 0; }
   }
 `;
+
+function legacyAwardMeta(item) {
+  const text = (item?.text ?? "").toString().trim();
+  let year = (item?.year ?? "").toString().trim();
+  let heading = (item?.heading ?? "").toString().trim();
+  if (!year && /18th February 2016|Certificate of Merit/i.test(text)) year = "2016";
+  if (!year && /BSE SAMMAAN|29th April 2015/i.test(text)) year = "2015";
+  if (!heading && /Certificate of Merit/i.test(text)) heading = "Certificate of Merit — The World CSR Day";
+  if (!heading && /BSE SAMMAAN/i.test(text)) heading = "BSE Sammaan Empanelment";
+  if (!heading && /Guide Star|GuideStar/i.test(text)) heading = "Guide Star Gold Transparency Award";
+  return { year, heading, text };
+}
 
 /**
- * Site component: Alerts.
- * Vertical list of alert cards with icon, optional heading, and description text.
+ * Site component: Alerts, presented as the CSR recognition timeline.
  */
 export default function Alerts(props) {
   /* ── Title fields ── */
@@ -89,7 +86,7 @@ export default function Alerts(props) {
   const titleColorKey = (props?.titleColorKey ?? "").toString().trim();
   const titleColor = titleColorKey
     ? getColor(titleColorKey)
-    : getColor("primary");
+    : getColor("black");
   const subTitleColorKey = (props?.alertsSubTitleColorKey ?? "")
     .toString()
     .trim();
@@ -256,108 +253,48 @@ export default function Alerts(props) {
         }
       : undefined;
 
+  const recognitionItems = items
+    .map((item, originalIndex) => ({ ...legacyAwardMeta(item), originalIndex }))
+    .sort((a, b) => {
+      const aYear = Number.parseInt(a.year, 10) || 0;
+      const bYear = Number.parseInt(b.year, 10) || 0;
+      return bYear - aYear || a.originalIndex - b.originalIndex;
+    });
+
   return (
     <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
       <PageContainer $managedStyle={pageContainerBgStyle}>
-        <div className="fable-section">
-        {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) && (
-          <Row gutter={[16, 16]}>
-            <Col span={24} className="mb-4">
-              {subTitleEnabled && subTitle && (
-                <SubTitle className="fable-eyebrow"
-                  style={subTitleColor ? { color: subTitleColor } : undefined}
-                >
-                  {subTitle}
-                </SubTitle>
-              )}
-              {titleEnabled && mainTitle && (
-                <MainTitle className="fable-heading" color={titleColor}>{mainTitle}</MainTitle>
-              )}
-            </Col>
-          </Row>
-        )}
-        {items.map((item, idx) => {
-          const heading = (item?.heading ?? "").toString().trim();
-          const text = (item?.text ?? "").toString().trim();
-          const itemIconUrl = (item?.iconUrl ?? "").toString().trim();
-          return (
-            <AlertCard className="fable-note" key={idx}>
-              <IconWrap className="fable-note__icon">
-                {itemIconUrl ? (
-                  <img loading="lazy" src={itemIconUrl} alt="" />
-                ) : (
-                  <svg
-                    width="32"
-                    height="32"
-                    viewBox="0 0 32 32"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <circle
-                      cx="16"
-                      cy="13"
-                      r="5"
-                      stroke={iconColor}
-                      strokeWidth="2"
-                      fill="none"
-                    />
-                    <path
-                      d="M16 8V6"
-                      stroke={iconColor}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M11.5 18L10 22H22L20.5 18"
-                      stroke={iconColor}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M13 22V24"
-                      stroke={iconColor}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M19 22V24"
-                      stroke={iconColor}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M16 22V26"
-                      stroke={iconColor}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                    <circle cx="16" cy="13" r="2" fill={iconColor} />
-                  </svg>
-                )}
-              </IconWrap>
-              <AlertContent>
-                {heading && (
-                  <div
-                    className="alert-heading"
-                    style={headingColor ? { color: headingColor } : undefined}
-                  >
-                    {heading}
-                  </div>
-                )}
-                {text && (
-                  <p
-                    className="alert-text"
-                    style={textColor ? { color: textColor } : undefined}
-                  >
-                    {text}
-                  </p>
-                )}
-              </AlertContent>
-            </AlertCard>
-          );
-        })}
-        </div>
+        <Recognition className="fable-section" style={{ "--recognition-accent": iconColor }}>
+          {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) ? (
+            <header>
+              {subTitleEnabled && subTitle ? (
+                <p className="fable-eyebrow" style={subTitleColor ? { color: subTitleColor } : undefined}>{subTitle}</p>
+              ) : null}
+              {titleEnabled && mainTitle ? (
+                <h2 className="recognition-heading" style={{ color: titleColor }}>{mainTitle}</h2>
+              ) : null}
+            </header>
+          ) : null}
+          {recognitionItems.map(({ year, heading, text, originalIndex }) => {
+            return (
+              <div className="recognition-award" key={originalIndex}>
+                <span className="recognition-year">{year || "\u00a0"}</span>
+                <div>
+                  {heading ? (
+                    <h3 className="recognition-title" style={headingColor ? { color: headingColor } : undefined}>
+                      {heading}
+                    </h3>
+                  ) : null}
+                  {text ? (
+                    <p className="recognition-text" style={textColor ? { color: textColor } : undefined}>
+                      {text}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            );
+          })}
+        </Recognition>
       </PageContainer>
     </FullWidthBackground>
   );

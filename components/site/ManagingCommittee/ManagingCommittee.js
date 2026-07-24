@@ -6,6 +6,27 @@ import {
   PageContainer,
 } from "@/styles/Theme";
 import SafeHtml from "@/components/cms/SafeHtml";
+import styled from "styled-components";
+
+const CsrScheme = styled.div`
+  .fable-eyebrow {
+    margin-bottom: 18px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+  }
+  .fable-heading {
+    max-width: 16ch;
+    margin-bottom: 20px;
+    font-size: clamp(36px, 4.6vw, 64px);
+    line-height: 1.08;
+    letter-spacing: -.02em;
+  }
+  .fable-prose { max-width: 50ch; }
+  @media (max-width: 767px) {
+    .fable-heading { font-size: clamp(32px, 10vw, 48px); }
+  }
+`;
 
 /**
  * Site component: ManagingCommittee.
@@ -90,23 +111,7 @@ export default function ManagingCommittee(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
       <PageContainer $managedStyle={pageContainerBgStyle}>
-        <div className="fable-section fable-scheme fable-split">
-          <div className="fable-media fable-media--intrinsic">
-            {imageDesktop || imageMobile ? (
-              <picture>
-                {imageMobile ? (
-                  <source media="(max-width: 767px)" srcSet={imageMobile} />
-                ) : null}
-                <img
-                  loading="lazy"
-                  src={imageDesktop || imageMobile}
-                  alt={imageAlt}
-                />
-              </picture>
-            ) : (
-              <div aria-hidden="true" />
-            )}
-          </div>
+        <CsrScheme className="fable-section fable-split">
           <div>
             {subTitle ? <p className="fable-eyebrow" style={{ color: subTitleColor }}>{subTitle}</p> : null}
             <h2
@@ -124,7 +129,23 @@ export default function ManagingCommittee(props) {
               </div>
             )}
           </div>
-        </div>
+          <div className="fable-media fable-media--intrinsic">
+            {imageDesktop || imageMobile ? (
+              <picture>
+                {imageMobile ? (
+                  <source media="(max-width: 767px)" srcSet={imageMobile} />
+                ) : null}
+                <img
+                  loading="lazy"
+                  src={imageDesktop || imageMobile}
+                  alt={imageAlt}
+                />
+              </picture>
+            ) : (
+              <div aria-hidden="true" />
+            )}
+          </div>
+        </CsrScheme>
       </PageContainer>
     </FullWidthBackground>
   );
