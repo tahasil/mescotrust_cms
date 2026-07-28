@@ -12,6 +12,7 @@ import {
   Spin,
 } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
@@ -20,6 +21,21 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/Notices";
 const PREFIX = "notices";
+const COLOR_FIELDS = [
+  "noticesSubTitleColorKey",
+  "noticesHeadingColorKey",
+  "noticesAccentColorKey",
+  "noticesDescriptionColorKey",
+  "noticesBorderColorKey",
+  "noticesIndexColorKey",
+  "noticesMetaColorKey",
+  "noticesItemTitleColorKey",
+  "noticesArrowColorKey",
+  "noticesArrowHoverColorKey",
+  "noticesRowHoverColorKey",
+  "noticesLinkColorKey",
+  "noticesLinkHoverColorKey",
+];
 
 const FALLBACK_THEME_COLOR_KEYS = [
   "primary",
@@ -41,6 +57,7 @@ function normalizeItem(it) {
     subLabel: it?.subLabel != null ? String(it.subLabel).trim() : "",
     link: it?.link != null ? String(it.link).trim() : "",
     target: it?.target === "_blank" ? "_blank" : "_self",
+    ariaLabel: it?.ariaLabel != null ? String(it.ariaLabel).trim() : "",
   };
 }
 
@@ -90,7 +107,8 @@ function NoticesEditForm(
         noticesRevealDuration: data?.noticesRevealDuration ?? 0.9,
         noticesRevealStagger: data?.noticesRevealStagger ?? 0.08,
         noticesRevealDistance: data?.noticesRevealDistance ?? 30,
-        ...Object.fromEntries(["noticesSubTitleColorKey","noticesHeadingColorKey","noticesAccentColorKey","noticesDescriptionColorKey","noticesBorderColorKey","noticesMetaColorKey","noticesItemTitleColorKey","noticesArrowColorKey","noticesArrowHoverColorKey","noticesLinkColorKey"].map((key)=>[key,String(data?.[key]??"").trim()])),
+        noticesRevealEase: String(data?.noticesRevealEase ?? "power3.out").trim(),
+        ...Object.fromEntries(COLOR_FIELDS.map((key) => [key, String(data?.[key] ?? "").trim()])),
         noticesItems:
           items.length > 0 ? items : [normalizeItem({}), normalizeItem({}), normalizeItem({})],
       });
@@ -156,7 +174,8 @@ function NoticesEditForm(
         noticesRevealDuration: Number(values.noticesRevealDuration ?? 0.9),
         noticesRevealStagger: Number(values.noticesRevealStagger ?? 0.08),
         noticesRevealDistance: Number(values.noticesRevealDistance ?? 30),
-        ...Object.fromEntries(["noticesSubTitleColorKey","noticesHeadingColorKey","noticesAccentColorKey","noticesDescriptionColorKey","noticesBorderColorKey","noticesMetaColorKey","noticesItemTitleColorKey","noticesArrowColorKey","noticesArrowHoverColorKey","noticesLinkColorKey"].map((key)=>[key,String(values?.[key]??"").trim()])),
+        noticesRevealEase: String(values.noticesRevealEase ?? "power3.out").trim(),
+        ...Object.fromEntries(COLOR_FIELDS.map((key) => [key, String(values?.[key] ?? "").trim()])),
         noticesItems: items,
       };
       if (isPageBlock && onSaveToPage) {
@@ -183,7 +202,7 @@ function NoticesEditForm(
     }).catch(() => {});
   };
 
-  useImperativeHandle(ref, () => ({ update: handleUpdate }), []);
+  useImperativeHandle(ref, () => ({ update: handleUpdate }));
 
   if (loading) {
     return (
@@ -211,7 +230,12 @@ function NoticesEditForm(
           {
             key: "more-link",
             label: "All Notices Link",
-            children: <><Form.Item name="noticesMoreLabel" label="Label"><Input /></Form.Item><Form.Item name="noticesMoreUrl" label="URL"><Input /></Form.Item><Form.Item name="noticesMoreTarget" label="Target"><Select options={[{label:"Same Tab (_self)",value:"_self"},{label:"New Tab (_blank)",value:"_blank"}]} /></Form.Item><SwitchSettingsCard items={[{ name: "noticesRevealEnabled", label: "Reveal on scroll", tooltip: "Animate notices into view while scrolling." }]} /><Form.Item name="noticesRevealStart" label="Reveal trigger"><Input /></Form.Item><Row gutter={16}><Col span={8}><Form.Item name="noticesRevealDuration" label="Duration s"><Input type="number" /></Form.Item></Col><Col span={8}><Form.Item name="noticesRevealStagger" label="Stagger s"><Input type="number" /></Form.Item></Col><Col span={8}><Form.Item name="noticesRevealDistance" label="Distance px"><Input type="number" /></Form.Item></Col></Row></>,
+            children: <><Form.Item name="noticesMoreLabel" label="Label"><Input placeholder="e.g. All notices" /></Form.Item><Form.Item name="noticesMoreUrl" label="URL"><Input placeholder="/get-involved/notices" /></Form.Item><Form.Item name="noticesMoreTarget" label="Target"><Select options={[{label:"Same Tab (_self)",value:"_self"},{label:"New Tab (_blank)",value:"_blank"}]} /></Form.Item></>,
+          },
+          {
+            key: "animation",
+            label: "Animation",
+            children: <><SwitchSettingsCard items={[{ name: "noticesRevealEnabled", label: "Reveal on scroll", tooltip: "Animate the heading and notice rows into view while scrolling." }]} /><Form.Item name="noticesRevealStart" label="Reveal trigger"><Input placeholder="top 86%" /></Form.Item><Form.Item name="noticesRevealEase" label="Easing"><Select options={[{label:"Power 3 Out",value:"power3.out"},{label:"Power 2 Out",value:"power2.out"},{label:"Sine Out",value:"sine.out"},{label:"None",value:"none"}]} /></Form.Item><Row gutter={16}><Col span={8}><Form.Item name="noticesRevealDuration" label="Duration s"><Input type="number" min={0} step={0.1} /></Form.Item></Col><Col span={8}><Form.Item name="noticesRevealStagger" label="Stagger s"><Input type="number" min={0} step={0.01} /></Form.Item></Col><Col span={8}><Form.Item name="noticesRevealDistance" label="Distance px"><Input type="number" min={0} step={1} /></Form.Item></Col></Row></>,
           },
           {
             key: "items",
@@ -232,6 +256,7 @@ function NoticesEditForm(
                       subLabel: "",
                       link: "",
                       target: "_self",
+                      ariaLabel: "",
                     }}
                     reorderMovedIndex={reorderMovedIndex}
                     reorderDirection={reorderDirection}
@@ -259,11 +284,18 @@ function NoticesEditForm(
                           <Form.Item
                             {...restField}
                             name={[name, "link"]}
-                            label="PDF Path"
+                            label="Link / Document"
+                            extra="Enter a page URL or select/upload a document from Media."
                           >
-                            <Input placeholder="e.g. /documents/form5a.pdf" size="large" />
+                            <MediaPickerInput
+                              mediaType="document"
+                              showVariants={false}
+                              uiVariant="stacked"
+                              placeholder="/get-involved/notices or /media/..."
+                            />
                           </Form.Item>
                         </Col>
+                        <Col span={24}><Form.Item {...restField} name={[name, "ariaLabel"]} label="Accessible link label" extra="Optional. Useful when the visible title does not fully describe the link action."><Input placeholder="e.g. Download Form 5A PF" /></Form.Item></Col>
                       </Row>
                     )}
                   />

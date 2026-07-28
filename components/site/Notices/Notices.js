@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useMemo, useRef } from "react";
 import { ArrowRightOutlined, ArrowUpOutlined } from "@ant-design/icons";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -10,27 +10,456 @@ import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const NoticeBoard=styled.div`
-  width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:clamp(40px,5vw,90px);align-items:start;color:var(--notice-ink);font-family:"Instrument Sans",system-ui,sans-serif;
-  .noticeSubTitle{margin:0 0 18px;color:var(--notice-subtitle);font-size:13px;font-weight:650;letter-spacing:.16em;line-height:1.4;text-transform:uppercase}
-  .noticeHeading{margin:0 0 12px;color:var(--notice-heading);font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:clamp(36px,4.6vw,64px);font-weight:620;line-height:1.08;letter-spacing:-.02em}
-  .noticeHeading em{color:var(--notice-accent);font-style:normal}.noticeIntro{max-width:42ch;margin:0;color:var(--notice-copy);font-size:16px;line-height:1.7}
-  .ledger{display:flex;flex-direction:column}.ledgerRow{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:clamp(14px,1.6vw,24px);padding-block:clamp(20px,2.2vw,28px);border-bottom:1px solid var(--notice-border);color:inherit;text-decoration:none;transition:padding-left .3s cubic-bezier(.16,1,.3,1)}
-  .ledgerRow:first-child{border-top:1px solid var(--notice-border)}.ledgerRow:hover{padding-left:10px}.ledgerNo{color:var(--notice-muted);font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:650;font-size:15px}
-  .ledgerRow h3{margin:0;color:var(--notice-title);font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:560;font-size:clamp(16.5px,1.5vw,20px);line-height:1.3}.ledgerSub{margin:3px 0 0;color:var(--notice-muted);font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
-  .ledgerArrow{color:var(--notice-arrow);font-size:20px;transition:color .2s,transform .3s}.ledgerRow:hover .ledgerArrow{color:var(--notice-arrow-hover);transform:translate(3px,-3px)}
-  .ledgerMore{display:inline-flex;align-items:center;align-self:flex-start;gap:9px;margin-top:24px;padding-bottom:5px;border-bottom:1px solid currentColor;color:var(--notice-link);font-size:14px;font-weight:650;text-decoration:none}.ledgerMore svg{transition:transform .3s cubic-bezier(.16,1,.3,1)}.ledgerMore:hover svg{transform:translateX(4px)}
-  @media(max-width:1023px){grid-template-columns:1fr}@media(max-width:600px){.ledgerRow{grid-template-columns:34px minmax(0,1fr) auto}}
+const NoticeBoard = styled.div`
+  width: 100%;
+  color: var(--notice-ink);
+  font-family: "Instrument Sans", system-ui, sans-serif;
+
+  .noticeHeader {
+    max-width: min(100%, 760px);
+    margin-bottom: clamp(32px, 4vw, 56px);
+  }
+
+  .noticeSubTitle {
+    margin: 0 0 18px;
+    color: var(--notice-subtitle);
+    font-size: 13px;
+    font-weight: 650;
+    letter-spacing: 0.16em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  .noticeHeading {
+    max-width: 16ch;
+    margin: 0;
+    color: var(--notice-heading);
+    font-family: "Bricolage Grotesque", system-ui, sans-serif;
+    font-size: clamp(36px, 4.6vw, 64px);
+    font-weight: 620;
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+  }
+
+  .noticeHeading em {
+    color: var(--notice-accent);
+    font-style: normal;
+  }
+
+  .noticeIntro {
+    max-width: 58ch;
+    margin: 18px 0 0;
+    color: var(--notice-copy);
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  .noticeList {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .noticeRow {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: clamp(16px, 2vw, 28px);
+    width: 100%;
+    min-width: 0;
+    padding: clamp(18px, 2vw, 26px) 0;
+    border: 0;
+    border-bottom: 1px solid var(--notice-border);
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    text-decoration: none;
+    transition:
+      padding-left 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+      background-color 0.25s ease;
+  }
+
+  .noticeRow:first-child {
+    border-top: 1px solid var(--notice-border);
+  }
+
+  .noticeRow[href] {
+    cursor: pointer;
+  }
+
+  .noticeRow[href]:hover,
+  .noticeRow[href]:focus-visible {
+    padding-left: 12px;
+    background: var(--notice-row-hover);
+  }
+
+  .noticeRow:focus-visible {
+    outline: 2px solid var(--notice-arrow-hover);
+    outline-offset: 4px;
+  }
+
+  .noticeIndex {
+    color: var(--notice-index);
+    font-family: "Bricolage Grotesque", system-ui, sans-serif;
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 650;
+    line-height: 1;
+  }
+
+  .noticeBody {
+    min-width: 0;
+  }
+
+  .noticeTitle {
+    margin: 0;
+    color: var(--notice-title);
+    font-family: "Bricolage Grotesque", system-ui, sans-serif;
+    font-size: clamp(17px, 1.7vw, 22px);
+    font-weight: 560;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+
+  .noticeMeta {
+    margin: 3px 0 0;
+    color: var(--notice-meta);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .noticeArrow {
+    color: var(--notice-arrow);
+    font-size: 22px;
+    transition: color 0.2s ease, transform 0.3s ease;
+  }
+
+  .noticeRow[href]:hover .noticeArrow,
+  .noticeRow[href]:focus-visible .noticeArrow {
+    color: var(--notice-arrow-hover);
+    transform: translate(3px, -3px);
+  }
+
+  .noticeMore {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 28px;
+    padding-bottom: 3px;
+    border-bottom: 1.5px solid currentColor;
+    color: var(--notice-link);
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s ease, gap 0.25s ease;
+  }
+
+  .noticeMore:hover,
+  .noticeMore:focus-visible {
+    gap: 13px;
+    color: var(--notice-link-hover);
+  }
+
+  .noticeMore:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 5px;
+  }
+
+  @media (max-width: 767px) {
+    .noticeHeader {
+      margin-bottom: 30px;
+    }
+
+    .noticeIntro {
+      margin-top: 14px;
+      font-size: 15px;
+    }
+
+    .noticeRow {
+      grid-template-columns: 38px minmax(0, 1fr) auto;
+      gap: 12px;
+      padding-block: 18px;
+    }
+
+    .noticeRow[href]:hover,
+    .noticeRow[href]:focus-visible {
+      padding-left: 6px;
+    }
+
+    .noticeIndex {
+      font-size: 13px;
+    }
+
+    .noticeTitle {
+      font-size: 17px;
+    }
+
+    .noticeMeta {
+      font-size: 13px;
+    }
+
+    .noticeArrow {
+      font-size: 19px;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .noticeRow {
+      grid-template-columns: 30px minmax(0, 1fr) auto;
+      gap: 9px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .noticeReveal,
+    .noticeRow,
+    .noticeArrow,
+    .noticeMore {
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
+    }
+  }
 `;
-const text=(v)=>v==null?"":String(v).trim();const num=(v,f)=>Number.isFinite(Number(v))?Number(v):f;const color=(v,f)=>text(v)?getColor(text(v)):f;
-const managedNumber=(value)=>value!==""&&value!=null&&num(value,-1)>=0?num(value,0):undefined;
-function backgrounds(props){const type=text(props?.noticesSectionBgType||"default"),image=text(props?.noticesSectionBgImage),key=text(props?.noticesSectionBgColorKey);const ct=text(props?.noticesPageContainerBgType||"default"),ci=text(props?.noticesPageContainerBgImage),ck=text(props?.noticesPageContainerBgColorKey);return{sectionBgClassName:type==="default"?"defaultBackground":undefined,sectionProps:{$managedBackgroundImage:type==="image"?image||undefined:undefined,$managedBackgroundColor:type==="color"&&key?getColor(key):undefined,$managedPaddingTop:managedNumber(props?.noticesSectionPaddingTop),$managedPaddingBottom:managedNumber(props?.noticesSectionPaddingBottom),$managedMarginTop:managedNumber(props?.noticesSectionMarginTop),$managedMarginBottom:managedNumber(props?.noticesSectionMarginBottom)},containerProps:{$managedBackgroundImage:ct==="image"?ci||undefined:undefined,$managedBackgroundColor:ct==="color"&&ck?getColor(ck):undefined,$managedPaddingTop:managedNumber(props?.noticesPageContainerPaddingTop),$managedPaddingRight:managedNumber(props?.noticesPageContainerPaddingRight),$managedPaddingBottom:managedNumber(props?.noticesPageContainerPaddingBottom),$managedPaddingLeft:managedNumber(props?.noticesPageContainerPaddingLeft),$managedMarginTop:managedNumber(props?.noticesPageContainerMarginTop),$managedMarginBottom:managedNumber(props?.noticesPageContainerMarginBottom)}};}
-export default function Notices(props){const rootRef=useRef(null);const pathname=usePathname();const isEditor=pathname?.startsWith("/admin")===true;const items=Array.isArray(props?.noticesItems)?props.noticesItems:[];const {sectionBgClassName,sectionProps,containerProps}=backgrounds(props);const moreTarget=text(props?.noticesMoreTarget)||"_self";const compact=props?.noticesTitleEnabled===false;useLayoutEffect(()=>{if(isEditor||!rootRef.current||props?.noticesRevealEnabled===false||window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;const targets=rootRef.current.querySelectorAll(".noticeReveal");const context=gsap.context(()=>ScrollTrigger.batch(targets,{start:text(props?.noticesRevealStart)||"top 86%",once:true,onEnter:(els)=>gsap.fromTo(els,{autoAlpha:0,y:num(props?.noticesRevealDistance,30)},{autoAlpha:1,y:0,duration:num(props?.noticesRevealDuration,.9),stagger:num(props?.noticesRevealStagger,.08),ease:"power3.out",overwrite:true})}),rootRef);return()=>context.revert();},[isEditor,items,props]);
-return <FullWidthBackground className={sectionBgClassName} {...sectionProps}>
-  <PageContainer {...containerProps}>
-    {compact?<div className="fable-section fable-row-list" ref={rootRef}>{items.map((item,index)=>{const target=text(item?.target)||"_self";return <a className="fable-row-link noticeReveal" href={text(item?.link)||"#"} target={target} rel={target==="_blank"?"noopener noreferrer":undefined} key={`${text(item?.label)}-${index}`}><span className="fable-row-icon" aria-hidden="true">{String(index+1).padStart(2,"0")}</span><div className="fable-row-copy"><h3>{text(item?.label)}</h3>{text(item?.subLabel)?<p>{text(item.subLabel)}</p>:null}</div><ArrowUpOutlined className="fable-row-arrow" rotate={45} aria-hidden="true" /></a>})}</div>:<NoticeBoard ref={rootRef} style={{"--notice-ink":color(props?.noticesTextColorKey,getColor("black")),"--notice-subtitle":color(props?.noticesSubTitleColorKey||props?.titleColorKey,getColor("primary")),"--notice-heading":color(props?.noticesHeadingColorKey,getColor("black")),"--notice-accent":color(props?.noticesAccentColorKey,getColor("black")),"--notice-copy":color(props?.noticesDescriptionColorKey,getColor("blackLight")),"--notice-border":color(props?.noticesBorderColorKey,getColor("border")),"--notice-muted":color(props?.noticesMetaColorKey,getColor("blackMuted")),"--notice-title":color(props?.noticesItemTitleColorKey,getColor("black")),"--notice-arrow":color(props?.noticesArrowColorKey,getColor("blackMuted")),"--notice-arrow-hover":color(props?.noticesArrowHoverColorKey,getColor("primary")),"--notice-link":color(props?.noticesLinkColorKey,getColor("black"))}}>
-      <div className="noticeReveal"><p className="noticeSubTitle">{text(props?.noticesSubTitle||props?.mainTitle)}</p>{text(props?.noticesHeading)||text(props?.noticesHeadingAccent)?<h2 className="noticeHeading">{text(props?.noticesHeading)}{text(props?.noticesHeading)&&text(props?.noticesHeadingAccent)?" ":null}<em>{text(props?.noticesHeadingAccent)}</em></h2>:null}{text(props?.noticesDescription)?<p className="noticeIntro">{text(props.noticesDescription)}</p>:null}</div>
-      <div className="ledger">{items.map((item,index)=>{const target=text(item?.target)||"_self";return <a className="ledgerRow noticeReveal" href={text(item?.link)||"#"} target={target} rel={target==="_blank"?"noopener noreferrer":undefined} key={`${text(item?.label)}-${index}`}><span className="ledgerNo">{text(item?.indexLabel)||String(index+1).padStart(2,"0")}</span><div><h3>{text(item?.label)}</h3>{text(item?.subLabel)?<p className="ledgerSub">{text(item.subLabel)}</p>:null}</div><ArrowUpOutlined className="ledgerArrow" rotate={45} aria-hidden="true" /></a>})}{text(props?.noticesMoreLabel)&&text(props?.noticesMoreUrl)?<a className="ledgerMore noticeReveal" href={text(props.noticesMoreUrl)} target={moreTarget} rel={moreTarget==="_blank"?"noopener noreferrer":undefined}>{text(props.noticesMoreLabel)} <ArrowRightOutlined /></a>:null}</div>
-    </NoticeBoard>}
-  </PageContainer>
-</FullWidthBackground>;}
+
+const text = (value) => (value == null ? "" : String(value).trim());
+const number = (value, fallback) =>
+  Number.isFinite(Number(value)) ? Number(value) : fallback;
+const color = (value, fallback) =>
+  text(value) ? getColor(text(value)) : fallback;
+const managedNumber = (value) =>
+  value !== "" && value != null && number(value, -1) >= 0
+    ? number(value, 0)
+    : undefined;
+
+function backgrounds(props) {
+  const type = text(props?.noticesSectionBgType || "default");
+  const image = text(props?.noticesSectionBgImage);
+  const key = text(props?.noticesSectionBgColorKey);
+  const containerType = text(props?.noticesPageContainerBgType || "default");
+  const containerImage = text(props?.noticesPageContainerBgImage);
+  const containerKey = text(props?.noticesPageContainerBgColorKey);
+
+  return {
+    sectionBgClassName: type === "default" ? "defaultBackground" : undefined,
+    sectionProps: {
+      $managedBackgroundImage: type === "image" ? image || undefined : undefined,
+      $managedBackgroundColor:
+        type === "color" && key ? getColor(key) : undefined,
+      $managedPaddingTop: managedNumber(props?.noticesSectionPaddingTop),
+      $managedPaddingBottom: managedNumber(props?.noticesSectionPaddingBottom),
+      $managedMarginTop: managedNumber(props?.noticesSectionMarginTop),
+      $managedMarginBottom: managedNumber(props?.noticesSectionMarginBottom),
+    },
+    containerProps: {
+      $managedBackgroundImage:
+        containerType === "image" ? containerImage || undefined : undefined,
+      $managedBackgroundColor:
+        containerType === "color" && containerKey
+          ? getColor(containerKey)
+          : undefined,
+      $managedPaddingTop: managedNumber(props?.noticesPageContainerPaddingTop),
+      $managedPaddingRight: managedNumber(props?.noticesPageContainerPaddingRight),
+      $managedPaddingBottom: managedNumber(props?.noticesPageContainerPaddingBottom),
+      $managedPaddingLeft: managedNumber(props?.noticesPageContainerPaddingLeft),
+      $managedMarginTop: managedNumber(props?.noticesPageContainerMarginTop),
+      $managedMarginBottom: managedNumber(props?.noticesPageContainerMarginBottom),
+    },
+  };
+}
+
+function NoticeRow({ item, index }) {
+  const href = text(item?.link);
+  const target = item?.target === "_blank" ? "_blank" : "_self";
+  const indexLabel = text(item?.indexLabel) || String(index + 1).padStart(2, "0");
+  const content = (
+    <>
+      <span className="noticeIndex" aria-hidden="true">
+        {indexLabel}
+      </span>
+      <div className="noticeBody">
+        <h3 className="noticeTitle">{text(item?.label)}</h3>
+        {text(item?.subLabel) ? (
+          <p className="noticeMeta">{text(item.subLabel)}</p>
+        ) : null}
+      </div>
+      {href ? (
+        <ArrowUpOutlined
+          className="noticeArrow"
+          rotate={45}
+          aria-hidden="true"
+        />
+      ) : null}
+    </>
+  );
+
+  if (!href) {
+    return <div className="noticeRow noticeReveal">{content}</div>;
+  }
+
+  return (
+    <a
+      className="noticeRow noticeReveal"
+      href={href}
+      target={target}
+      rel={target === "_blank" ? "noopener noreferrer" : undefined}
+      aria-label={text(item?.ariaLabel) || undefined}
+    >
+      {content}
+    </a>
+  );
+}
+
+export default function Notices(props) {
+  const rootRef = useRef(null);
+  const pathname = usePathname();
+  const isEditor = pathname?.startsWith("/admin") === true;
+  const items = useMemo(
+    () => (Array.isArray(props?.noticesItems) ? props.noticesItems : []),
+    [props?.noticesItems],
+  );
+  const { sectionBgClassName, sectionProps, containerProps } = backgrounds(props);
+  const moreTarget = props?.noticesMoreTarget === "_blank" ? "_blank" : "_self";
+  const showHeader = props?.noticesTitleEnabled !== false;
+
+  useLayoutEffect(() => {
+    if (
+      isEditor ||
+      !rootRef.current ||
+      props?.noticesRevealEnabled === false ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+
+    const targets = rootRef.current.querySelectorAll(".noticeReveal");
+    const context = gsap.context(() => {
+      ScrollTrigger.batch(targets, {
+        start: text(props?.noticesRevealStart) || "top 86%",
+        once: true,
+        onEnter: (elements) =>
+          gsap.fromTo(
+            elements,
+            { autoAlpha: 0, y: number(props?.noticesRevealDistance, 30) },
+            {
+              autoAlpha: 1,
+              y: 0,
+              duration: number(props?.noticesRevealDuration, 0.9),
+              stagger: number(props?.noticesRevealStagger, 0.08),
+              ease: text(props?.noticesRevealEase) || "power3.out",
+              overwrite: true,
+            },
+          ),
+      });
+    }, rootRef);
+
+    return () => context.revert();
+  }, [isEditor, items, props]);
+
+  return <FullWidthBackground className={sectionBgClassName} {...sectionProps}>
+    <PageContainer {...containerProps}>
+      <NoticeBoard
+        ref={rootRef}
+        style={{
+          "--notice-ink": color(props?.noticesTextColorKey, getColor("black")),
+          "--notice-subtitle": color(
+            props?.noticesSubTitleColorKey || props?.titleColorKey,
+            getColor("primary"),
+          ),
+          "--notice-heading": color(
+            props?.noticesHeadingColorKey,
+            getColor("black"),
+          ),
+          "--notice-accent": color(
+            props?.noticesAccentColorKey,
+            getColor("black"),
+          ),
+          "--notice-copy": color(
+            props?.noticesDescriptionColorKey,
+            getColor("blackLight"),
+          ),
+          "--notice-border": color(
+            props?.noticesBorderColorKey,
+            getColor("border"),
+          ),
+          "--notice-index": color(
+            props?.noticesIndexColorKey || props?.noticesMetaColorKey,
+            getColor("blackMuted"),
+          ),
+          "--notice-meta": color(
+            props?.noticesMetaColorKey,
+            getColor("blackMuted"),
+          ),
+          "--notice-title": color(
+            props?.noticesItemTitleColorKey,
+            getColor("black"),
+          ),
+          "--notice-arrow": color(
+            props?.noticesArrowColorKey,
+            getColor("blackMuted"),
+          ),
+          "--notice-arrow-hover": color(
+            props?.noticesArrowHoverColorKey,
+            getColor("primary"),
+          ),
+          "--notice-row-hover": color(
+            props?.noticesRowHoverColorKey,
+            "transparent",
+          ),
+          "--notice-link": color(
+            props?.noticesLinkColorKey,
+            getColor("black"),
+          ),
+          "--notice-link-hover": color(
+            props?.noticesLinkHoverColorKey || props?.noticesArrowHoverColorKey,
+            getColor("primary"),
+          ),
+        }}
+      >
+        {showHeader ? (
+          <header className="noticeHeader noticeReveal">
+            {text(props?.noticesSubTitle || props?.mainTitle) ? (
+              <p className="noticeSubTitle">
+                {text(props?.noticesSubTitle || props?.mainTitle)}
+              </p>
+            ) : null}
+            {text(props?.noticesHeading) || text(props?.noticesHeadingAccent) ? (
+              <h2 className="noticeHeading">
+                {text(props?.noticesHeading)}
+                {text(props?.noticesHeading) && text(props?.noticesHeadingAccent)
+                  ? " "
+                  : null}
+                <em>{text(props?.noticesHeadingAccent)}</em>
+              </h2>
+            ) : null}
+            {text(props?.noticesDescription) ? (
+              <p className="noticeIntro">{text(props.noticesDescription)}</p>
+            ) : null}
+          </header>
+        ) : null}
+
+        <div className="noticeList">
+          {items.map((item, index) => (
+            <NoticeRow
+              item={item}
+              index={index}
+              key={`${text(item?.indexLabel)}-${text(item?.label)}-${index}`}
+            />
+          ))}
+        </div>
+
+        {text(props?.noticesMoreLabel) && text(props?.noticesMoreUrl) ? (
+          <a
+            className="noticeMore noticeReveal"
+            href={text(props.noticesMoreUrl)}
+            target={moreTarget}
+            rel={moreTarget === "_blank" ? "noopener noreferrer" : undefined}
+          >
+            {text(props.noticesMoreLabel)}
+            <ArrowRightOutlined aria-hidden="true" />
+          </a>
+        ) : null}
+      </NoticeBoard>
+    </PageContainer>
+  </FullWidthBackground>;
+}
