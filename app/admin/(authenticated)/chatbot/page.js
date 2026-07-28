@@ -34,6 +34,7 @@ import { ThemeColorInput } from "@/components/admin/schemaFormUtils";
 import { ThemeAdminCard } from "@/styles/Theme";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
+import { isAdmin as hasAdminRole } from "@/lib/rbac/clientPermissions";
 import { LIST_HEADER_STYLE } from "@/lib/titleAndColorsConfig";
 
 function reorderArray(list, fromIndex, toIndex) {
@@ -228,8 +229,7 @@ export default function AdminChatbotPage() {
     try {
       const res = await fetch("/api/auth/session");
       const data = await res.json().catch(() => ({}));
-      const role = String(data?.user?.role || "");
-      setIsAdminRole(role === "Admin");
+      setIsAdminRole(hasAdminRole(data?.user));
     } catch {
       setIsAdminRole(false);
     }
