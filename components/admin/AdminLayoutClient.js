@@ -53,6 +53,7 @@ const ADMIN_ROUTE_LOADER_MAX_MS = 3500;
 const ADMIN_NOTIFICATION_POLL_MS = 15000;
 const ADMIN_FETCH_CACHE_TTL_MS = 12000;
 const ADMIN_FETCH_CACHE_MAX_ENTRIES = 120;
+const COMPONENTS_ADMIN_ROUTE = "/admin/components";
 
 const linkStyle = { textDecoration: "none" };
 
@@ -76,10 +77,10 @@ const baseMenuItems = [
     ),
   },
   {
-    key: "/admin/components",
+    key: COMPONENTS_ADMIN_ROUTE,
     icon: <AppstoreOutlined />,
     label: (
-      <Link href="/admin/components" style={linkStyle}>
+      <Link href={COMPONENTS_ADMIN_ROUTE} style={linkStyle}>
         Components
       </Link>
     ),

@@ -6,6 +6,9 @@ import { hasAnyPermissionKey, hasPermissionKey } from "@/lib/rbac/permissionUtil
 
 const adminPathPrefix = "/admin";
 const loginPath = "/admin/login";
+const LEGACY_ADMIN_ROUTE_REDIRECTS = new Map([
+  ["/admin/components/theme-components", "/admin/components"],
+]);
 const CSRF_ORIGIN_EXEMPT_PATHS = new Set([
   "/api/payment/callback",
 ]);
@@ -124,6 +127,14 @@ function roleUpdatedLoginUrl(req, reason = "role-updated") {
 
 export async function middleware(req) {
   const { pathname } = req.nextUrl;
+
+  const canonicalAdminPath = LEGACY_ADMIN_ROUTE_REDIRECTS.get(pathname);
+  if (canonicalAdminPath) {
+    const url = req.nextUrl.clone();
+    url.pathname = canonicalAdminPath;
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
 
   // Resolve frontend CMS pages under /media/* (e.g. /media/in-media)
   // while preserving /media/<ObjectId> for media-file delivery.
