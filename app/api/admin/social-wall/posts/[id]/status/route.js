@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireEditorOrAdminSession } from "@/lib/socialWallModule/apiGuards";
+import { requireSocialWallPermission } from "@/lib/socialWallModule/apiGuards";
 import { updateSocialWallPostStatus } from "@/lib/socialWallModule/postsService";
 import { invalidatePublicSocialWallFeedCache } from "@/lib/socialWallModule/publicService";
 import { toSafeString } from "@/lib/socialWallModule/utils";
@@ -7,7 +7,7 @@ import { toSafeString } from "@/lib/socialWallModule/utils";
 export const dynamic = "force-dynamic";
 
 export async function PATCH(req, { params }) {
-  const { error, session } = await requireEditorOrAdminSession(req);
+  const { error, session } = await requireSocialWallPermission(req, "social_wall.edit");
   if (error) return error;
 
   try {

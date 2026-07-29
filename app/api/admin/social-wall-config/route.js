@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/apiAuth";
-import { isAdmin } from "@/lib/permissions";
+import { requirePermission } from "@/lib/apiAuth";
 import {
   getAdminSocialWallConfigPayload,
   saveSocialWallPlatformRows,
@@ -9,18 +8,9 @@ import { invalidatePublicSocialWallFeedCache } from "@/lib/socialWallModule/publ
 
 export const dynamic = "force-dynamic";
 
-function guardAdmin(session) {
-  if (!isAdmin(session)) {
-    return NextResponse.json({ error: "Forbidden: Admin only" }, { status: 403 });
-  }
-  return null;
-}
-
 export async function GET(req) {
-  const session = await requireAuth(req);
+  const session = await requirePermission(req, "social_wall.settings_access");
   if (session instanceof NextResponse) return session;
-  const forbidden = guardAdmin(session);
-  if (forbidden) return forbidden;
 
   try {
     const payload = await getAdminSocialWallConfigPayload();
@@ -33,10 +23,8 @@ export async function GET(req) {
 }
 
 export async function PUT(req) {
-  const session = await requireAuth(req);
+  const session = await requirePermission(req, "social_wall.settings_access");
   if (session instanceof NextResponse) return session;
-  const forbidden = guardAdmin(session);
-  if (forbidden) return forbidden;
 
   try {
     const body = await req.json();

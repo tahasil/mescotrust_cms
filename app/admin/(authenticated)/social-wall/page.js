@@ -31,6 +31,7 @@ import {
   SyncOutlined,
 } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
+import { useAdminPermission } from "@/components/admin/AdminAuthContext";
 
 function safeString(value) {
   return value == null ? "" : String(value).trim();
@@ -103,6 +104,10 @@ const CARD_STYLE_OPTIONS = [
 ];
 
 export default function SocialWallAdminPage() {
+  const canEdit = useAdminPermission("social_wall.edit");
+  const canDelete = useAdminPermission("social_wall.delete");
+  const canManage = useAdminPermission("social_wall.manage");
+  const canAccessSettings = useAdminPermission("social_wall.settings_access");
   const [settingsForm] = Form.useForm();
   const [settingsLoading, setSettingsLoading] = useState(true);
   const [settingsSaving, setSettingsSaving] = useState(false);
@@ -271,13 +276,27 @@ export default function SocialWallAdminPage() {
   }, [logsData.limit, logsKind]);
 
   useEffect(() => {
-    loadSettings();
-    loadPlatforms();
+    if (canAccessSettings) {
+      loadSettings();
+      loadPlatforms();
+    } else {
+      setSettingsLoading(false);
+      setPlatformsLoading(false);
+    }
     loadDashboard();
     loadPosts(1, 20);
     loadModeration(1, 20);
     loadLogs(1, 20, logsKind);
-  }, [loadDashboard, loadLogs, loadModeration, loadPlatforms, loadPosts, loadSettings, logsKind]);
+  }, [
+    canAccessSettings,
+    loadDashboard,
+    loadLogs,
+    loadModeration,
+    loadPlatforms,
+    loadPosts,
+    loadSettings,
+    logsKind,
+  ]);
 
   const platformOptions = useMemo(
     () =>
@@ -376,7 +395,9 @@ export default function SocialWallAdminPage() {
       } else {
         message.success("Sync completed");
       }
-      await Promise.all([loadDashboard(), loadPosts(), loadModeration(), loadLogs(), loadPlatforms()]);
+      const refreshTasks = [loadDashboard(), loadPosts(), loadModeration(), loadLogs()];
+      if (canAccessSettings) refreshTasks.push(loadPlatforms());
+      await Promise.all(refreshTasks);
     } catch (err) {
       message.error(err?.message || "Sync failed");
     } finally {
@@ -446,7 +467,9 @@ export default function SocialWallAdminPage() {
       if (!res.ok) throw new Error(data?.error || "Token refresh failed");
       setSyncResult(data || null);
       message.success("Token refresh job completed");
-      await Promise.all([loadPlatforms(), loadDashboard(), loadLogs(1, logsData.limit, logsKind)]);
+      const refreshTasks = [loadDashboard(), loadLogs(1, logsData.limit, logsKind)];
+      if (canAccessSettings) refreshTasks.push(loadPlatforms());
+      await Promise.all(refreshTasks);
     } catch (err) {
       message.error(err?.message || "Token refresh failed");
     } finally {
@@ -528,17 +551,23 @@ export default function SocialWallAdminPage() {
       key: "featured",
       width: 100,
       render: (_, record) => (
-        <Switch
-          checked={record?.featured === true}
-          onChange={(checked) => patchFeature(record.id, checked)}
-        />
+        canEdit ? (
+          <Switch
+            checked={record?.featured === true}
+            onChange={(checked) => patchFeature(record.id, checked)}
+          />
+        ) : (
+          <Tag color={record?.featured === true ? "blue" : "default"}>
+            {record?.featured === true ? "Yes" : "No"}
+          </Tag>
+        )
       ),
     },
     {
       title: "Actions",
       key: "actions",
       width: 220,
-      render: (_, record) => (
+      render: (_, record) => canEdit ? (
         <Space size={6}>
           <Button size="small" onClick={() => patchStatus(record.id, "approved")}>
             Approve
@@ -547,7 +576,7 @@ export default function SocialWallAdminPage() {
             Reject
           </Button>
         </Space>
-      ),
+      ) : "-",
     },
   ];
 
@@ -577,7 +606,7 @@ export default function SocialWallAdminPage() {
       title: "Actions",
       key: "actions",
       width: 160,
-      render: (_, record) => (
+      render: (_, record) => canEdit ? (
         <Space>
           <Button
             type="primary"
@@ -596,7 +625,7 @@ export default function SocialWallAdminPage() {
             Reject
           </Button>
         </Space>
-      ),
+      ) : "-",
     },
   ];
 
@@ -681,14 +710,16 @@ export default function SocialWallAdminPage() {
           <Col xs={24} md={8}>
             <Card loading={dashboardLoading} title="Actions">
               <Space direction="vertical" style={{ width: "100%" }}>
-                <Button
-                  type="primary"
-                  icon={<SyncOutlined />}
-                  loading={syncBusy}
-                  onClick={() => runSync("manual")}
-                >
-                  Run Manual Sync
-                </Button>
+                {canManage ? (
+                  <Button
+                    type="primary"
+                    icon={<SyncOutlined />}
+                    loading={syncBusy}
+                    onClick={() => runSync("manual")}
+                  >
+                    Run Manual Sync
+                  </Button>
+                ) : null}
                 <Button icon={<ReloadOutlined />} onClick={loadDashboard}>
                   Refresh Dashboard
                 </Button>
@@ -717,7 +748,7 @@ export default function SocialWallAdminPage() {
         </Row>
       ),
     },
-    {
+    canAccessSettings ? {
       key: "settings",
       label: "Settings",
       children: (
@@ -786,8 +817,8 @@ export default function SocialWallAdminPage() {
           </Form>
         </ThemeAdminCard>
       ),
-    },
-    {
+    } : null,
+    canAccessSettings ? {
       key: "platforms",
       label: "Platforms",
       children: (
@@ -967,8 +998,8 @@ export default function SocialWallAdminPage() {
           </Space>
         </ThemeAdminCard>
       ),
-    },
-    {
+    } : null,
+    canManage ? {
       key: "sync",
       label: "Sync",
       children: (
@@ -1001,9 +1032,11 @@ export default function SocialWallAdminPage() {
               <Button icon={<SyncOutlined />} loading={syncBusy} onClick={runTokenRefresh}>
                 Refresh Tokens
               </Button>
-              <Button icon={<ReloadOutlined />} loading={syncBusy} onClick={runLogCleanup}>
-                Cleanup Old Logs
-              </Button>
+              {canDelete ? (
+                <Button icon={<ReloadOutlined />} loading={syncBusy} onClick={runLogCleanup}>
+                  Cleanup Old Logs
+                </Button>
+              ) : null}
             </Space>
             {syncResult ? (
               <Alert
@@ -1024,7 +1057,7 @@ export default function SocialWallAdminPage() {
           </Space>
         </ThemeAdminCard>
       ),
-    },
+    } : null,
     {
       key: "posts",
       label: "Posts",
@@ -1161,22 +1194,24 @@ export default function SocialWallAdminPage() {
           title="Synchronization Logs"
           extra={
             <Space>
-              <Popconfirm
-                title={
-                  logsKind === "config"
-                    ? "Clear all config audit logs?"
-                    : "Clear all sync logs?"
-                }
-                description="This action cannot be undone."
-                okText="Clear"
-                cancelText="Cancel"
-                okButtonProps={{ danger: true, loading: clearLogsBusy }}
-                onConfirm={runClearLogs}
-              >
-                <Button danger icon={<DeleteOutlined />} loading={clearLogsBusy}>
-                  Clear Logs
-                </Button>
-              </Popconfirm>
+              {canDelete ? (
+                <Popconfirm
+                  title={
+                    logsKind === "config"
+                      ? "Clear all config audit logs?"
+                      : "Clear all sync logs?"
+                  }
+                  description="This action cannot be undone."
+                  okText="Clear"
+                  cancelText="Cancel"
+                  okButtonProps={{ danger: true, loading: clearLogsBusy }}
+                  onConfirm={runClearLogs}
+                >
+                  <Button danger icon={<DeleteOutlined />} loading={clearLogsBusy}>
+                    Clear Logs
+                  </Button>
+                </Popconfirm>
+              ) : null}
               <Button icon={<ReloadOutlined />} onClick={() => loadLogs(logsData.page, logsData.limit, logsKind)}>
                 Refresh
               </Button>
@@ -1214,7 +1249,7 @@ export default function SocialWallAdminPage() {
         </ThemeAdminCard>
       ),
     },
-  ];
+  ].filter(Boolean);
 
   return <Tabs defaultActiveKey="dashboard" items={tabs} />;
 }

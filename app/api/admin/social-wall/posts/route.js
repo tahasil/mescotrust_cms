@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { requireEditorOrAdminSession } from "@/lib/socialWallModule/apiGuards";
+import { requireSocialWallPermission } from "@/lib/socialWallModule/apiGuards";
 import { listSocialWallPostsForAdmin } from "@/lib/socialWallModule/postsService";
 import { toPositiveInt, toSafeString } from "@/lib/socialWallModule/utils";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req) {
-  const { error } = await requireEditorOrAdminSession(req);
+  const { error } = await requireSocialWallPermission(req, "social_wall.view");
   if (error) return error;
 
   try {

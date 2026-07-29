@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAdminSession } from "@/lib/socialWallModule/apiGuards";
+import { requireSocialWallPermission } from "@/lib/socialWallModule/apiGuards";
 import {
   getSocialWallPlatformConfigs,
   upsertSocialWallPlatformConfigs,
@@ -10,7 +10,7 @@ import { invalidatePublicSocialWallFeedCache } from "@/lib/socialWallModule/publ
 export const dynamic = "force-dynamic";
 
 export async function GET(req) {
-  const { error } = await requireAdminSession(req);
+  const { error } = await requireSocialWallPermission(req, "social_wall.settings_access");
   if (error) return error;
 
   try {
@@ -33,7 +33,7 @@ export async function GET(req) {
 }
 
 export async function PUT(req) {
-  const { error, session } = await requireAdminSession(req);
+  const { error, session } = await requireSocialWallPermission(req, "social_wall.settings_access");
   if (error) return error;
 
   try {

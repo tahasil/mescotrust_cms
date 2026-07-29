@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAdminSession } from "@/lib/socialWallModule/apiGuards";
+import { requireSocialWallPermission } from "@/lib/socialWallModule/apiGuards";
 import {
   clearSocialWallLogs,
   cleanupSocialWallLogs,
@@ -12,13 +12,15 @@ import { toPositiveInt, toSafeString } from "@/lib/socialWallModule/utils";
 export const dynamic = "force-dynamic";
 
 export async function POST(req) {
-  const { error, session } = await requireAdminSession(req);
+  const body = await req.json().catch(() => ({}));
+  const action = toSafeString(body?.action).toLowerCase();
+  const requiredPermission = ["cleanup-logs", "clear-logs"].includes(action)
+    ? "social_wall.delete"
+    : "social_wall.manage";
+  const { error, session } = await requireSocialWallPermission(req, requiredPermission);
   if (error) return error;
 
   try {
-    const body = await req.json().catch(() => ({}));
-    const action = toSafeString(body?.action).toLowerCase();
-
     if (action === "cleanup-logs") {
       const result = await cleanupSocialWallLogs({
         olderThanDays: toPositiveInt(body?.olderThanDays, 45),
