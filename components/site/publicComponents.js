@@ -25,6 +25,7 @@ export { default as Images } from "./Images/Images";
 export { default as TitleParagraph } from "./TitleParagraph/TitleParagraph";
 export { default as Videogallery } from "./Videogallery/Videogallery";
 export { default as PhotoGallery } from "./PhotoGallery/PhotoGallery";
+export { default as LatestImageGallery } from "./LatestImageGallery/LatestImageGallery";
 export { default as Accordion } from "./Accordion/Accordion";
 export { default as ManagingCommittee } from "./ManagingCommittee/ManagingCommittee";
 export { default as CommitteeMembers } from "./CommitteeMembers/CommitteeMembers";

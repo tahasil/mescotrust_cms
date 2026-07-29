@@ -29,6 +29,7 @@ export { default as Images, ImagesEditForm } from "./Images/index";
 export { default as TitleParagraph, TitleParagraphEditForm } from "./TitleParagraph/index";
 export { default as Videogallery, VideogalleryEditForm } from "./Videogallery/index";
 export { default as PhotoGallery, PhotoGalleryEditForm } from "./PhotoGallery/index";
+export { default as LatestImageGallery, LatestImageGalleryEditForm } from "./LatestImageGallery/index";
 export { default as Accordion, AccordionEditForm } from "./Accordion/index";
 export { default as ManagingCommittee, ManagingCommitteeEditForm } from "./ManagingCommittee/index";
 export { default as CommitteeMembers, CommitteeMembersEditForm } from "./CommitteeMembers/index";
@@ -85,6 +86,7 @@ import ImagesEditForm from "./Images/EditForm";
 import TitleParagraphEditForm from "./TitleParagraph/EditForm";
 import VideogalleryEditForm from "./Videogallery/EditForm";
 import PhotoGalleryEditForm from "./PhotoGallery/EditForm";
+import LatestImageGalleryEditForm from "./LatestImageGallery/EditForm";
 import AccordionEditForm from "./Accordion/EditForm";
 import ManagingCommitteeEditForm from "./ManagingCommittee/EditForm";
 import CommitteeMembersEditForm from "./CommitteeMembers/EditForm";
@@ -159,6 +161,7 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   ManagingCommittee: ManagingCommitteeEditForm,
   Accordion: AccordionEditForm,
   PhotoGallery: PhotoGalleryEditForm,
+  LatestImageGallery: LatestImageGalleryEditForm,
   Videogallery: VideogalleryEditForm,
   ImageSlider: ImageSliderEditForm,
   TitleParagraph: TitleParagraphEditForm,

@@ -2,6 +2,29 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Component from "@/models/Component";
+import { LATEST_IMAGE_GALLERY_DEFAULT_PROPS } from "@/components/site/LatestImageGallery/defaults";
+
+const LATEST_IMAGE_GALLERY_ID = "LatestImageGallery";
+
+async function ensureLatestImageGalleryComponent() {
+  await Component.findOneAndUpdate(
+    { baseComponent: LATEST_IMAGE_GALLERY_ID },
+    {
+      $setOnInsert: {
+        name: LATEST_IMAGE_GALLERY_ID,
+        displayName: "Latest Image Gallery",
+        type: "custom",
+        category: "media",
+        baseComponent: LATEST_IMAGE_GALLERY_ID,
+        propsSchema: [],
+        defaultProps: LATEST_IMAGE_GALLERY_DEFAULT_PROPS,
+        layout: [],
+        active: true,
+      },
+    },
+    { upsert: true },
+  );
+}
 
 export async function GET(req) {
   const session = await requireAuth(req);
@@ -9,6 +32,7 @@ export async function GET(req) {
 
   try {
     await connectDB();
+    await ensureLatestImageGalleryComponent();
     const components = await Component.find({
       baseComponent: { $nin: ["Header", "Footer"] },
     })

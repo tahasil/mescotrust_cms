@@ -82,6 +82,12 @@ export async function GET(req) {
         displayName = "Social Wall";
       }
       if (
+        id === "LatestImageGallery" &&
+        (!displayName || displayName === "LatestImageGallery")
+      ) {
+        displayName = "Latest Image Gallery";
+      }
+      if (
         id === LATEST_NEWS_ID &&
         (!displayName ||
           displayName === LEGACY_LATEST_NEWS_ID ||
