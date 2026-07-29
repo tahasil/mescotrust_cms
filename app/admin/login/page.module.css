@@ -1,0 +1,368 @@
+.page {
+  --login-text: #282a3e;
+  --login-border: rgba(42, 40, 62, 0.14);
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  padding: clamp(14px, 3vw, 42px);
+  color: var(--login-text);
+  font-family: var(--font-family, "Instrument Sans", system-ui, sans-serif);
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  background:
+    radial-gradient(circle at 8% 12%, rgba(205, 225, 255, 0.9), transparent 30%),
+    radial-gradient(circle at 92% 88%, rgba(255, 222, 225, 0.68), transparent 29%),
+    #f4f6fb;
+}
+
+.loginShell {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(300px, 0.92fr) minmax(390px, 1.08fr);
+  width: min(1140px, 100%);
+  height: min(700px, 100%);
+  min-height: 0;
+  overflow: visible;
+  border: 1px solid rgba(167, 196, 232, 0.72);
+  border-radius: clamp(22px, 2.5vw, 34px);
+  background: #fff;
+  box-shadow: 0 22px 70px rgba(41, 52, 88, 0.13);
+}
+
+.visualPanel {
+  position: relative;
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  margin: 14px 0 14px 14px;
+  border-radius: clamp(18px, 2vw, 27px);
+  background-color: #dcecf8;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.visualPanel::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(27, 43, 72, 0.03), rgba(21, 42, 66, 0.18)),
+    linear-gradient(90deg, transparent 58%, rgba(255, 255, 255, 0.08));
+}
+
+.formPanel {
+  position: relative;
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  margin: 14px;
+  padding: clamp(80px, 8vw, 112px) clamp(30px, 5vw, 76px) clamp(30px, 5vw, 76px);
+  overflow: hidden;
+  border: 1px solid rgba(42, 40, 62, 0.08);
+  border-radius: clamp(18px, 2vw, 27px);
+  background: #fff;
+}
+
+.decorativeRings {
+  position: absolute;
+  z-index: 0;
+  top: calc(100% + 10px);
+  right: 0;
+  width: clamp(84px, 10vw, 132px);
+  height: clamp(58px, 7vw, 92px);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.decorativeRings span {
+  position: absolute;
+  top: 0;
+  right: 0;
+  border: 1px solid color-mix(in srgb, var(--login-text) 14%, transparent);
+  border-radius: 50%;
+  transform: translate(50%, -50%);
+}
+
+.decorativeRings span:nth-child(1) {
+  width: 54px;
+  height: 54px;
+}
+
+.decorativeRings span:nth-child(2) {
+  width: 86px;
+  height: 86px;
+}
+
+.decorativeRings span:nth-child(3) {
+  width: 118px;
+  height: 118px;
+}
+
+.decorativeRings span:nth-child(4) {
+  width: 150px;
+  height: 150px;
+}
+
+.formWrap {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 430px);
+}
+
+.logoArea {
+  position: absolute;
+  z-index: 2;
+  top: clamp(24px, 3.2vw, 42px);
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(128px, 14vw, 180px);
+  height: clamp(62px, 7vw, 82px);
+  transform: translateX(-50%);
+}
+
+.logo {
+  width: 100%;
+  height: 100%;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.headingBlock {
+  margin-bottom: clamp(24px, 3.5vh, 34px);
+  text-align: center;
+}
+
+.headingBlock p {
+  margin: 0;
+  color: color-mix(in srgb, var(--login-text) 68%, transparent);
+  font-size: clamp(14px, 1.3vw, 16px);
+  line-height: 1.55;
+}
+
+.alert {
+  margin-bottom: 18px;
+}
+
+.form :global(.ant-form-item) {
+  margin-bottom: 20px;
+}
+
+.form :global(.ant-form-item-label) {
+  padding-bottom: 7px;
+}
+
+.form :global(.ant-form-item-label > label) {
+  height: auto;
+  color: var(--login-text);
+  font-family: var(--font-family, "Instrument Sans", system-ui, sans-serif);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.form :global(.ant-input-affix-wrapper) {
+  min-height: 52px;
+  padding: 10px 14px;
+  border-color: var(--login-border);
+  border-radius: 11px;
+  box-shadow: none;
+}
+
+.form :global(.ant-input-affix-wrapper:hover),
+.form :global(.ant-input-affix-wrapper-focused) {
+  border-color: color-mix(in srgb, var(--login-text) 48%, transparent);
+}
+
+.form :global(.ant-input-affix-wrapper-focused) {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--login-text) 9%, transparent);
+}
+
+.form :global(.ant-input-prefix) {
+  margin-inline-end: 10px;
+  color: color-mix(in srgb, var(--login-text) 52%, transparent);
+}
+
+.form :global(.ant-input),
+.form :global(.ant-input-password-icon) {
+  color: var(--login-text);
+  font-family: var(--font-family, "Instrument Sans", system-ui, sans-serif);
+  font-size: 15px;
+}
+
+.form :global(.ant-input::placeholder) {
+  color: color-mix(in srgb, var(--login-text) 38%, transparent);
+}
+
+.submitItem {
+  margin-top: 8px;
+  margin-bottom: 0 !important;
+}
+
+.form :global(.ant-btn-primary) {
+  min-height: 52px;
+  border-color: var(--login-button);
+  border-radius: 11px;
+  color: var(--login-button-text);
+  background: var(--login-button);
+  font-family: var(--font-family, "Instrument Sans", system-ui, sans-serif);
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--login-button) 22%, transparent);
+}
+
+.form :global(.ant-btn-primary:hover),
+.form :global(.ant-btn-primary:focus) {
+  border-color: var(--login-button-hover) !important;
+  color: var(--login-button-hover-text) !important;
+  background: var(--login-button-hover) !important;
+}
+
+@media (max-width: 900px) {
+  .page {
+    padding: clamp(12px, 2.5vw, 24px);
+  }
+
+  .loginShell {
+    grid-template-columns: minmax(250px, 0.82fr) minmax(360px, 1.18fr);
+    height: min(680px, 100%);
+  }
+
+  .formPanel {
+    padding: clamp(80px, 10vw, 100px) clamp(28px, 5vw, 48px) clamp(28px, 5vw, 48px);
+  }
+}
+
+@media (max-width: 700px) {
+  .loginShell {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 34%) minmax(0, 66%);
+    width: min(560px, 100%);
+    height: min(760px, 100%);
+  }
+
+  .visualPanel {
+    grid-column: 1;
+    grid-row: 1;
+    margin: 10px 10px 0;
+    background-position: center 34%;
+  }
+
+  .formPanel {
+    grid-column: 1;
+    grid-row: 2;
+    margin: 8px 10px 10px;
+    padding: 72px clamp(22px, 5vw, 38px) clamp(22px, 5vw, 38px);
+  }
+
+  .logoArea {
+    top: 14px;
+    left: 50%;
+    width: 124px;
+    height: 54px;
+  }
+
+  .headingBlock {
+    margin-bottom: 20px;
+  }
+
+  .headingBlock p {
+    margin-top: 7px;
+  }
+
+  .form :global(.ant-form-item) {
+    margin-bottom: 15px;
+  }
+
+  .form :global(.ant-input-affix-wrapper) {
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 480px), (max-height: 610px) {
+  .page {
+    padding: 10px;
+  }
+
+  .loginShell {
+    display: block;
+    height: auto;
+    max-height: 100%;
+    border-radius: 22px;
+  }
+
+  .visualPanel {
+    display: none;
+  }
+
+  .formPanel {
+    height: 100%;
+    margin: 8px;
+    padding: 88px clamp(20px, 7vw, 34px) clamp(24px, 8vw, 40px);
+  }
+
+  .logoArea {
+    top: 18px;
+    left: 50%;
+    width: 132px;
+    height: 58px;
+  }
+
+  .headingBlock {
+    margin-bottom: 24px;
+  }
+}
+
+@media (max-height: 470px) and (orientation: landscape) {
+  .formPanel {
+    padding-top: 58px;
+    padding-bottom: 16px;
+  }
+
+  .logoArea {
+    top: 8px;
+    left: 50%;
+    width: 96px;
+    height: 42px;
+  }
+
+  .headingBlock {
+    margin-bottom: 12px;
+  }
+
+  .form :global(.ant-form-item) {
+    margin-bottom: 10px;
+  }
+
+  .form :global(.ant-input-affix-wrapper) {
+    min-height: 42px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page *,
+  .page *::before,
+  .page *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
