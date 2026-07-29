@@ -71,7 +71,6 @@ function ReferenceStatCard({
     <article className={`${styles.metricCard} ${toneClass}`}>
       <header className={styles.metricHeader}>
         <p className={styles.metricLabel}>{label}</p>
-        <span className={styles.metricPeriod}>/ Total</span>
       </header>
       <div className={styles.metricContent}>
         <div className={styles.metricNumbers}>
