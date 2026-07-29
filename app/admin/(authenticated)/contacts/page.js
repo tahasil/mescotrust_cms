@@ -36,12 +36,24 @@ export default function AdminContactsPage() {
   };
 
   const handleDelete = (id) => {
-    if (!confirm("Delete this submission?")) return;
-    fetch(`/api/admin/contacts/${id}`, { method: "DELETE" }).then((res) => {
-      if (res.ok) {
+    Modal.confirm({
+      title: "Delete this submission?",
+      content: "Are you sure you want to remove this submission?",
+      okText: "Delete",
+      okType: "danger",
+      cancelText: "Cancel",
+      onOk: async () => {
+        const res = await fetch(`/api/admin/contacts/${id}`, {
+          method: "DELETE",
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          message.error(data.error || "Delete failed");
+          throw new Error(data.error || "Delete failed");
+        }
         message.success("Deleted");
         fetchList();
-      } else message.error("Delete failed");
+      },
     });
   };
 
