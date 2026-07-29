@@ -255,29 +255,42 @@
 .kpiGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 14px;
 }
 
 .metricCard {
+  --metric-accent: #6657e8;
   position: relative;
   overflow: hidden;
-  border-radius: 18px;
-  min-height: 174px;
-  padding: 20px 20px 18px;
+  border-radius: 14px;
+  min-height: 146px;
+  padding: 18px 19px 17px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
+  gap: 22px;
   background: #ffffff;
   color: var(--dashboard-text-main);
-  border: 1px solid
-    color-mix(in srgb, var(--dashboard-brand-primary) 14%, #e8f0f9);
-  box-shadow: none;
+  border: 1px solid color-mix(in srgb, var(--admin-border-color, #dfe4ec) 72%, #edf0f5);
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.02),
+    0 7px 18px rgba(16, 24, 40, 0.035);
   transition:
     transform 160ms ease,
     box-shadow 160ms ease,
     border-color 160ms ease;
   animation: none;
+}
+
+.metricCard::after {
+  content: "";
+  position: absolute;
+  width: 84px;
+  height: 84px;
+  right: -34px;
+  bottom: -48px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--metric-accent) 7%, transparent);
+  pointer-events: none;
 }
 
 .kpiGrid .metricCard:nth-child(2) {
@@ -292,116 +305,138 @@
   animation-delay: 150ms;
 }
 
-.metricLabel,
-.metricValue,
-.metricHint,
-.metricMeter,
-.metricBars {
+.metricHeader,
+.metricContent {
   position: relative;
   z-index: 1;
 }
 
-.metricIcon {
-  width: 44px;
-  height: 44px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  background: color-mix(in srgb, var(--dashboard-brand-primary) 12%, #eff6ff);
-  color: color-mix(
-    in srgb,
-    var(--dashboard-brand-primary-dark) 90%,
-    var(--dashboard-brand-primary)
-  );
+.metricHeader {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  gap: 5px;
 }
 
 .metricLabel {
   margin: 0;
-  max-width: 16ch;
-  font-size: 15px;
-  line-height: 1.34;
-  letter-spacing: 0.01em;
-  font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: clamp(0.875rem, 0.25vw + 0.8rem, 1rem);
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+  font-weight: 650;
+}
+
+.metricPeriod {
+  flex-shrink: 0;
+  color: color-mix(in srgb, var(--dashboard-text-muted) 55%, #a8afbb);
+  font-size: clamp(0.75rem, 0.15vw + 0.7rem, 0.875rem);
+  font-weight: 450;
+}
+
+.metricContent {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(82px, 7vw, 104px);
+  gap: 12px;
+  align-items: end;
+}
+
+.metricNumbers {
+  min-width: 0;
 }
 
 .metricValue {
-  margin: auto 0 0;
-  font-size: clamp(1.75rem, 2.2vw, 2.25rem);
-  line-height: 1;
-  letter-spacing: -0.02em;
+  margin: 0;
+  font-size: clamp(2rem, 1.25vw + 1.55rem, 2.55rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
   color: var(--dashboard-text-main);
-  font-weight: 500;
+  font-weight: 650;
 }
 
 .metricHint {
-  margin: 7px 0 0;
-  font-size: 11px;
-  line-height: 1.35;
-  letter-spacing: 0.01em;
-  color: var(--dashboard-text-muted);
-  font-weight: 500;
+  margin: 10px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: clamp(0.75rem, 0.12vw + 0.71rem, 0.875rem);
+  line-height: 1.3;
+  color: color-mix(in srgb, var(--dashboard-text-muted) 72%, #89909d);
+  font-weight: 550;
+}
+
+.metricHintMarker {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+  border: 1.5px solid var(--metric-accent);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--metric-accent) 12%, #ffffff);
+}
+
+.metricSparkline {
+  width: 100%;
+  height: 48px;
+  overflow: visible;
+  color: var(--metric-accent);
+}
+
+.metricSparklineGuide {
+  fill: none;
+  stroke: color-mix(in srgb, var(--metric-accent) 12%, #e9edf3);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+
+.metricSparklineLine {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.metricSparklineDot {
+  fill: #ffffff;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  vector-effect: non-scaling-stroke;
 }
 
 .metricTonePrimary {
-  background: #ffffff;
-  color: var(--dashboard-text-main);
-}
-
-.metricTonePrimary .metricIcon {
-  background: color-mix(in srgb, #835dff 16%, #f3efff);
-  color: #6b46f2;
+  --metric-accent: #635bff;
 }
 
 .metricToneDark {
-  background: #ffffff;
-  color: var(--dashboard-text-main);
-}
-
-.metricToneDark .metricIcon {
-  background: color-mix(in srgb, #4f9cff 17%, #eef6ff);
-  color: #297eea;
+  --metric-accent: #397de8;
 }
 
 .metricToneSecondary {
-  background: #ffffff;
-  color: var(--dashboard-text-main);
-}
-
-.metricToneSecondary .metricIcon {
-  background: color-mix(in srgb, #56bbff 18%, #edf7ff);
-  color: #2c8ae0;
+  --metric-accent: #23a9d9;
 }
 
 .metricToneOcean {
-  background: #ffffff;
-  color: var(--dashboard-text-main);
-}
-
-.metricToneOcean .metricIcon {
-  background: color-mix(in srgb, #4ee28a 17%, #ecfff4);
-  color: #24b568;
+  --metric-accent: #2ebd78;
 }
 
 .metricToneNight {
-  background: #ffffff;
-  color: var(--dashboard-text-main);
-}
-
-.metricToneNight .metricIcon {
-  background: color-mix(in srgb, #ffbf60 18%, #fff8eb);
-  color: #e9982c;
+  --metric-accent: #e7aa18;
 }
 
 .metricToneLight {
-  color: var(--dashboard-text-main);
-  background: #ffffff;
+  --metric-accent: #ed715d;
 }
 
-.metricToneLight .metricIcon {
-  background: color-mix(in srgb, #ff956d 18%, #fff2ed);
-  color: #e96e44;
+.metricToneRegistration {
+  --metric-accent: #965adf;
 }
 
 .glassCard {
@@ -673,12 +708,8 @@
 @media (hover: hover) {
   .metricCard:hover {
     transform: translateY(-2px);
-    border-color: color-mix(
-      in srgb,
-      var(--dashboard-brand-primary) 24%,
-      #dce8f4
-    );
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+    border-color: color-mix(in srgb, var(--metric-accent) 24%, #dfe4ec);
+    box-shadow: 0 10px 24px rgba(16, 24, 40, 0.075);
   }
 
   .glassCard:hover {
@@ -695,13 +726,13 @@
   }
 }
 
-@media (max-width: 1320px) {
+@media (max-width: 1180px) {
   .heroInsights {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .kpiGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -740,13 +771,13 @@
   }
 
   .metricCard {
-    border-radius: 12px;
-    min-height: 104px;
-    padding: 12px;
+    min-height: 138px;
+    padding: 16px;
+    gap: 18px;
   }
 
   .metricValue {
-    font-size: clamp(1.7rem, 8vw, 2.4rem);
+    font-size: clamp(1.9rem, 6vw, 2.3rem);
   }
 
   .updateRow {
@@ -786,9 +817,21 @@
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 600px) {
   .kpiGrid {
     grid-template-columns: 1fr;
+  }
+
+  .metricCard {
+    min-height: 136px;
+  }
+
+  .metricContent {
+    grid-template-columns: minmax(0, 1fr) minmax(96px, 34vw);
+  }
+
+  .metricLabel {
+    white-space: normal;
   }
 
   .syncBadge {

@@ -7,7 +7,7 @@ export async function GET(req) {
   if (session instanceof NextResponse) return session;
 
   try {
-    const data = await getDashboardData(session?.role || "");
+    const data = await getDashboardData();
     return NextResponse.json({ data }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
