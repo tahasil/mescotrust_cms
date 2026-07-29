@@ -59,11 +59,11 @@ export default function CTABanner(props) {
   const sectionBgClassName = undefined;
   const sectionBgStyle = undefined;
   const pageContainerBgStyle = {
-    width: "100%",
-    paddingTop: 0,
-    paddingRight: 0,
-    paddingBottom: 0,
-    paddingLeft: 0,
+    // width: "100%",
+    // paddingTop: 0,
+    // paddingRight: 0,
+    // paddingBottom: 0,
+    // paddingLeft: 0,
   };
 
   return (
