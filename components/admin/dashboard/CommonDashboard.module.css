@@ -22,16 +22,8 @@
     var(--dashboard-brand-primary) 18%,
     rgba(255, 255, 255, 0.64)
   );
-  --dashboard-text-main: color-mix(
-    in srgb,
-    var(--dashboard-brand-primary-dark) 84%,
-    #1b2f49
-  );
-  --dashboard-text-muted: color-mix(
-    in srgb,
-    var(--dashboard-brand-primary-dark) 46%,
-    #7a899d
-  );
+  --dashboard-text-main: var(--admin-text-color, #333333);
+  --dashboard-text-muted: var(--admin-text-color, #333333);
   --dashboard-unified-card-bg:
     radial-gradient(
       140% 140% at 100% 0%,
@@ -339,7 +331,7 @@
   font-size: clamp(1.75rem, 2.2vw, 2.25rem);
   line-height: 1;
   letter-spacing: -0.02em;
-  color: color-mix(in srgb, var(--dashboard-brand-primary-dark) 78%, #32267f);
+  color: var(--dashboard-text-main);
   font-weight: 500;
 }
 
