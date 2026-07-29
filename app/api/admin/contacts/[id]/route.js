@@ -15,7 +15,11 @@ export async function PATCH(req, { params }) {
     }
     const body = await req.json();
     await connectDB();
-    const doc = await ContactSubmission.findByIdAndUpdate(id, { isRead: body.isRead === true }, { new: true });
+    const doc = await ContactSubmission.findOneAndUpdate(
+      { _id: id, isDeleted: { $ne: true } },
+      { isRead: body.isRead === true },
+      { new: true },
+    );
     if (!doc) return NextResponse.json({ error: "Not found" }, { status: 404 });
     return NextResponse.json(doc);
   } catch (err) {
@@ -33,9 +37,31 @@ export async function DELETE(req, { params }) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
     await connectDB();
-    const doc = await ContactSubmission.findByIdAndDelete(id);
-    if (!doc) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    return NextResponse.json({ deleted: true });
+    const softDelete = new URL(req.url).searchParams.get("soft") === "true";
+    let deleted = false;
+    if (softDelete) {
+      const result = await ContactSubmission.collection.updateOne(
+        {
+          _id: new mongoose.Types.ObjectId(id),
+          isDeleted: { $ne: true },
+        },
+        {
+          $set: {
+            isDeleted: true,
+            deletedAt: new Date(),
+            deletedBy: session.email || session.id || "",
+          },
+        },
+      );
+      deleted = result.matchedCount > 0;
+    } else {
+      const doc = await ContactSubmission.findByIdAndDelete(id);
+      deleted = Boolean(doc);
+    }
+    if (!deleted) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    return NextResponse.json({ deleted: true, softDeleted: softDelete });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

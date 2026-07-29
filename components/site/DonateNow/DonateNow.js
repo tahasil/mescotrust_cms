@@ -1763,12 +1763,12 @@ const FieldLabel = styled.label`
   }
 `;
 
-const FIELD_CONTROL_HEIGHT = "40px";
-const FIELD_CONTROL_INNER_HEIGHT = "44px";
+const FIELD_CONTROL_HEIGHT = "44px";
 
 const FieldInput = styled.input`
   width: 100%;
   height: ${FIELD_CONTROL_HEIGHT};
+  min-height: ${FIELD_CONTROL_HEIGHT};
   border-radius: 10px;
   border: 1px solid rgba(42, 40, 62, 0.1);
   padding: 0 13px;
@@ -1814,7 +1814,13 @@ const AddressTextArea = styled(FieldTextArea)`
 
 const FieldSelect = styled(Select)`
   width: 100%;
-  .ant-select-single .ant-select-selector {
+  height: ${FIELD_CONTROL_HEIGHT};
+
+  &.ant-select-single {
+    height: ${FIELD_CONTROL_HEIGHT};
+  }
+
+  &.ant-select-single .ant-select-selector {
     height: ${FIELD_CONTROL_HEIGHT} !important;
     min-height: ${FIELD_CONTROL_HEIGHT} !important;
     border-radius: 10px !important;
@@ -1826,37 +1832,60 @@ const FieldSelect = styled(Select)`
     padding-right: 36px !important;
     font-size: 14px !important;
   }
-  .ant-select-single .ant-select-selector .ant-select-selection-item,
-  .ant-select-single .ant-select-selector .ant-select-selection-placeholder,
-  .ant-select-single .ant-select-selector .ant-select-selection-search {
+  &.ant-select-single .ant-select-selector .ant-select-selection-item,
+  &.ant-select-single .ant-select-selector .ant-select-selection-placeholder {
     display: flex;
     align-items: center;
-    height: ${FIELD_CONTROL_INNER_HEIGHT} !important;
-    line-height: normal !important;
+    height: 100% !important;
+    line-height: 1.4 !important;
     font-size: 14px !important;
   }
-  .ant-select-single:not(.ant-select-customize-input)
+
+  &.ant-select-single .ant-select-selection-search {
+    display: flex;
+    align-items: center;
+    inset-block: 0 !important;
+  }
+
+  &.ant-select-single:not(.ant-select-customize-input)
     .ant-select-selector
     .ant-select-selection-search-input {
-    height: ${FIELD_CONTROL_INNER_HEIGHT} !important;
-    line-height: ${FIELD_CONTROL_INNER_HEIGHT} !important;
+    height: 100% !important;
+    line-height: 1.4 !important;
     font-size: 14px !important;
   }
+
   .ant-select-arrow {
-    height: 100%;
-    top: 0;
-    inset-inline-end: 12px;
-    transform: none;
+    width: 18px;
+    height: 18px;
+    top: 50% !important;
+    inset-inline-end: 11px !important;
+    margin-top: 0 !important;
+    transform: translateY(-50%);
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     line-height: 1;
     pointer-events: none;
   }
-  .ant-select-arrow .anticon {
+
+  .ant-select-arrow .anticon,
+  .ant-select-arrow svg {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     line-height: 1;
   }
+
+  .ant-select-clear {
+    top: 50% !important;
+    margin-top: 0 !important;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   &.ant-select-focused .ant-select-selector,
   &.ant-select-open .ant-select-selector {
     border-color: ${getColor("primary")} !important;

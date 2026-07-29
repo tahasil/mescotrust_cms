@@ -13,7 +13,9 @@ export default function AdminVolunteerFormPage() {
 
   const fetchList = () => {
     setLoading(true);
-    fetch("/api/admin/contacts?submissionType=volunteer")
+    fetch(`/api/admin/contacts?submissionType=volunteer&_ts=${Date.now()}`, {
+      cache: "no-store",
+    })
       .then((res) => (res.ok ? res.json() : { items: [] }))
       .then((data) => setList(Array.isArray(data) ? data : data.items || []))
       .catch(() => message.error("Failed to load"))
@@ -36,12 +38,25 @@ export default function AdminVolunteerFormPage() {
   };
 
   const handleDelete = (id) => {
-    if (!confirm("Delete this submission?")) return;
-    fetch(`/api/admin/contacts/${id}`, { method: "DELETE" }).then((res) => {
-      if (res.ok) {
-        message.success("Deleted");
-        fetchList();
-      } else message.error("Delete failed");
+    Modal.confirm({
+      title: "Delete this volunteer submission?",
+      content: "Are you sure you want to remove this submission?",
+      okText: "Delete",
+      okType: "danger",
+      cancelText: "Cancel",
+      onOk: async () => {
+        const res = await fetch(`/api/admin/contacts/${id}?soft=true`, {
+          method: "DELETE",
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          message.error(data.error || "Delete failed");
+          throw new Error(data.error || "Delete failed");
+        }
+        setList((current) => current.filter((item) => item._id !== id));
+        setViewItem((current) => (current?._id === id ? null : current));
+        message.success("Volunteer submission deleted");
+      },
     });
   };
 

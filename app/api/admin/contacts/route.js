@@ -21,12 +21,13 @@ export async function GET(req) {
         { "payload.subject": volunteerRegex },
       ],
     };
-    const query =
+    const typeQuery =
       submissionType === "volunteer"
         ? volunteerFilter
         : submissionType === "contact"
           ? { $nor: volunteerFilter.$or }
           : {};
+    const query = { ...typeQuery, isDeleted: { $ne: true } };
 
     await connectDB();
     const [items, total] = await Promise.all([
