@@ -54,6 +54,7 @@ const ADMIN_NOTIFICATION_POLL_MS = 15000;
 const ADMIN_FETCH_CACHE_TTL_MS = 12000;
 const ADMIN_FETCH_CACHE_MAX_ENTRIES = 120;
 const COMPONENTS_ADMIN_ROUTE = "/admin/components";
+const ADMIN_NOTIFICATIONS_CLEARED_AT_PREFIX = "mesco-admin-notifications-cleared-at";
 
 const linkStyle = { textDecoration: "none" };
 
@@ -410,6 +411,9 @@ export default function AdminLayoutClient({ children, userName, userRole, userRo
   const prevCountRef = useRef(0);
   const adminFetchCacheRef = useRef(new Map());
   const adminFetchInFlightRef = useRef(new Map());
+  const notificationClearStorageKey = `${ADMIN_NOTIFICATIONS_CLEARED_AT_PREFIX}:${encodeURIComponent(
+    String(userName || normalizedRoleKey || "admin").trim().toLowerCase(),
+  )}`;
   const applyAdminTheme = useCallback((data) => {
     const next = { ...DEFAULT_ADMIN_THEME };
     if (data && typeof data === "object") {
@@ -814,7 +818,16 @@ export default function AdminLayoutClient({ children, userName, userRole, userRo
           });
         });
         notifs.sort((a, b) => new Date(b.time) - new Date(a.time));
-        const sliced = notifs.slice(0, 10);
+        let clearedAt = 0;
+        try {
+          const storedValue = Number(
+            window.localStorage.getItem(notificationClearStorageKey),
+          );
+          clearedAt = Number.isFinite(storedValue) ? storedValue : 0;
+        } catch {}
+        const sliced = notifs
+          .filter((item) => new Date(item.time).getTime() > clearedAt)
+          .slice(0, 10);
         if (
           sliced.length > prevCountRef.current &&
           prevCountRef.current !== 0
@@ -826,7 +839,20 @@ export default function AdminLayoutClient({ children, userName, userRole, userRo
         setNotifications(sliced);
       })
       .catch(() => {});
-  }, [normalizedRoleKey]);
+  }, [normalizedRoleKey, notificationClearStorageKey]);
+
+  const handleClearNotifications = useCallback(() => {
+    try {
+      window.localStorage.setItem(
+        notificationClearStorageKey,
+        String(Date.now()),
+      );
+    } catch {}
+    prevCountRef.current = 0;
+    setBellShake(false);
+    setNotifications([]);
+    setNotifOpen(false);
+  }, [notificationClearStorageKey]);
 
   useEffect(() => {
     fetchNotifications();
@@ -869,10 +895,7 @@ export default function AdminLayoutClient({ children, userName, userRole, userRo
           {notifications.length} New Notifications
         </Typography.Text>
         <Typography.Link
-          onClick={() => {
-            setNotifications([]);
-            setNotifOpen(false);
-          }}
+          onClick={handleClearNotifications}
           style={{ fontSize: 13 }}
         >
           Clear all
