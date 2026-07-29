@@ -37,6 +37,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useAdminPermission } from "@/components/admin/AdminAuthContext";
 import { ThemeAdminCard } from "@/styles/Theme";
 
 function generateId() {
@@ -290,6 +291,7 @@ function SortableMenuItem({
 }
 
 export default function AdminMenusPage() {
+  const canDeleteMenu = useAdminPermission("menus.delete");
   const [menus, setMenus] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingName, setEditingName] = useState(null);
@@ -753,15 +755,17 @@ export default function AdminMenusPage() {
                 >
                   Copy
                 </Button>
-                <Button
-                  type="link"
-                  size="small"
-                  danger
-                  icon={<DeleteOutlined />}
-                  onClick={() => handleDeleteConfirm(record)}
-                >
-                  Delete
-                </Button>
+                {canDeleteMenu ? (
+                  <Button
+                    type="link"
+                    size="small"
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => handleDeleteConfirm(record)}
+                  >
+                    Delete
+                  </Button>
+                ) : null}
               </Space>
             ),
           },
