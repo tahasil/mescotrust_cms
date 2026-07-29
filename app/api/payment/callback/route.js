@@ -12,7 +12,7 @@ export async function POST(req) {
   try {
     const workingKey = process.env.CCAVENUE_WORKING_KEY;
     if (!workingKey) {
-      return redirectTo("/donation/failed?reason=config");
+      return redirectTo("/?donation=failed&reason=config");
     }
 
     // CCAvenue sends form-urlencoded data
@@ -20,7 +20,7 @@ export async function POST(req) {
     const encResp = formData.get("encResp");
 
     if (!encResp) {
-      return redirectTo("/donation/failed?reason=no-response");
+      return redirectTo("/?donation=failed&reason=no-response");
     }
 
     // Decrypt the response
@@ -78,22 +78,22 @@ export async function POST(req) {
       }
     }
 
-    // Redirect user to success or failed page
+    // Return to the homepage because dedicated donation result pages are not used.
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
     if (status === "success") {
       return Response.redirect(
-        `${siteUrl}/donation/success?order=${orderId}`,
+        `${siteUrl}/?donation=success&order=${encodeURIComponent(orderId)}`,
         303
       );
     } else {
       return Response.redirect(
-        `${siteUrl}/donation/failed?order=${orderId}&status=${status}`,
+        `${siteUrl}/?donation=failed&order=${encodeURIComponent(orderId)}&status=${encodeURIComponent(status)}`,
         303
       );
     }
   } catch (err) {
     console.error("Payment callback error:", err);
-    return redirectTo("/donation/failed?reason=error");
+    return redirectTo("/?donation=failed&reason=error");
   }
 }
 

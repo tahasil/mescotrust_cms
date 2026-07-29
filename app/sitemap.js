@@ -19,7 +19,6 @@ export default async function sitemap() {
     entries.push({ url: baseUrl, lastModified: new Date(), changeFrequency: "daily", priority: 1 });
     entries.push({ url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 });
     entries.push({ url: `${baseUrl}/events`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 });
-    entries.push({ url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 });
 
     for (const p of pages) {
       if (p.slug && p.slug !== "home") {
