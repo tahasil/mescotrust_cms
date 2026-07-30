@@ -10,6 +10,7 @@ import {
   PageContainer,
   SubTitle,
 } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 import {
   isValidEmail,
   isValidName,
@@ -1265,7 +1266,7 @@ export default function DonateNow(props = {}) {
                 </SubTitle>
               ) : null}
               {titleEnabled && mainTitle ? (
-                <MainTitle color={titleColor}>{mainTitle}</MainTitle>
+                <MainTitle color={titleColor}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
               ) : null}
             </Col>
           </Row>

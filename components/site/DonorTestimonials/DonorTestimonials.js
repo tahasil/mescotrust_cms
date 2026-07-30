@@ -9,6 +9,7 @@ import {
   PageContainer,
   SubTitle,
 } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 /* ── Styled Components ── */
 const TestimonialCard = styled.div`
@@ -279,7 +280,7 @@ export default function DonorTestimonials(props) {
                 </SubTitle>
               )}
               {titleEnabled && mainTitle && (
-                <MainTitle className="fable-heading" color={titleColor}>{mainTitle}</MainTitle>
+                <MainTitle className="fable-heading" color={titleColor}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
               )}
             </Col>
           </Row>

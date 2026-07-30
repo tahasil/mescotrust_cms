@@ -7,6 +7,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { usePathname } from "next/navigation";
 import styled from "styled-components";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -158,7 +159,7 @@ export default function StoriesSlider(props) {
           <div className="storyHead storyReveal">
             <div>
               {props?.storiesSliderSubTitleEnabled !== false && text(props?.subTitle) ? <p className="storySubTitle">{text(props.subTitle)}</p> : null}
-              {props?.storiesSliderTitleEnabled !== false && (text(props?.mainTitle) || text(props?.storiesSliderHeadingAccent)) ? <h2 className="storyHeading">{text(props?.mainTitle)}{text(props?.mainTitle) && text(props?.storiesSliderHeadingAccent) ? " " : null}<em>{text(props?.storiesSliderHeadingAccent)}</em></h2> : null}
+              {props?.storiesSliderTitleEnabled !== false && (text(props?.mainTitle) || text(props?.storiesSliderHeadingAccent)) ? <h2 className="storyHeading">{renderHighlightedTitle(text(props?.storiesSliderHeadingAccent) ? `${text(props?.mainTitle)}${text(props?.mainTitle) ? " " : ""}*${text(props?.storiesSliderHeadingAccent)}*` : text(props?.mainTitle), props, { legacyColorKey: props?.storiesSliderHeadingAccentColorKey })}</h2> : null}
             </div>
             <div className="storyNav">
               {text(props?.storiesSliderViewAllLabel) && text(props?.storiesSliderViewAllUrl) ? <a className="storyLink" href={text(props.storiesSliderViewAllUrl)} target={linkTarget} rel={linkTarget === "_blank" ? "noopener noreferrer" : undefined}>{text(props.storiesSliderViewAllLabel)} <ArrowRightOutlined aria-hidden="true" /></a> : null}

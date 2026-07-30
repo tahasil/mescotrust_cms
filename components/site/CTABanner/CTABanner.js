@@ -1,22 +1,10 @@
 "use client";
 
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 const text = (value, fallback = "") =>
   value == null ? fallback : String(value).trim();
-
-function renderTitle(value) {
-  return text(value)
-    .split(/(\*[^*]+\*)/g)
-    .filter(Boolean)
-    .map((part, index) =>
-      part.startsWith("*") && part.endsWith("*") ? (
-        <em key={`${part}-${index}`}>{part.slice(1, -1)}</em>
-      ) : (
-        part
-      ),
-    );
-}
 
 function isDownloadable(value) {
   const href = text(value).split(/[?#]/)[0].toLowerCase();
@@ -76,11 +64,13 @@ export default function CTABanner(props) {
             "--cta-banner-cream": getColor("cream"),
             "--cta-banner-accent": getColor("primary"),
             "--cta-banner-accent-hover": getColor("primaryDark"),
-            "--cta-banner-accent-soft": getColor("primarySoft"),
+            "--cta-banner-accent-soft": props?.titleHighlightColorKey
+              ? getColor(props.titleHighlightColorKey)
+              : getColor("primarySoft"),
           }}
         >
           <div className="ctaBanner__inner">
-            <h2 aria-label={title.replaceAll("*", "")}>{renderTitle(title)}</h2>
+            <h2 aria-label={title.replaceAll("*", "")}>{renderHighlightedTitle(title, props, { fallbackColorKey: "primarySoft" })}</h2>
             <div className="ctaBanner__actions">
               <CtaButton
                 className="ctaBanner__button ctaBanner__button--primary"

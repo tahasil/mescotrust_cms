@@ -2,7 +2,7 @@
 
 import { Form, Input, List, Select, Switch, Tooltip } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
-import { LIST_HEADER_STYLE } from "@/lib/titleAndColorsConfig";
+import { LIST_HEADER_STYLE, normalizeTitleHighlightColorItems } from "@/lib/titleAndColorsConfig";
 import { ColorSettingsCard } from "@/components/admin/SettingsCardList";
 
 /**
@@ -16,7 +16,12 @@ export default function TitleAndColorsSection({
   titleListHeader = "Main Title",
   titleListItems = [],
   colorListItems = [],
+  supportsTitleHighlight = true,
 }) {
+  const normalizedColorListItems = supportsTitleHighlight
+    ? normalizeTitleHighlightColorItems(colorListItems)
+    : colorListItems;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       {titleListItems.length > 0 && (
@@ -74,9 +79,9 @@ export default function TitleAndColorsSection({
           )}
         />
       )}
-      {colorListItems.length > 0 && (
+      {normalizedColorListItems.length > 0 && (
         <ColorSettingsCard
-          items={colorListItems}
+          items={normalizedColorListItems}
           options={themeColorOptions}
         />
       )}

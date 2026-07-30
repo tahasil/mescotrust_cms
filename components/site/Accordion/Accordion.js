@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { PlusOutlined } from "@ant-design/icons";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 import SafeHtml from "@/components/cms/SafeHtml";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 function clean(value) {
   return value == null ? "" : String(value).trim();
@@ -40,19 +41,6 @@ const DEFAULT_ITEMS = [
       "Sub-committee members work alongside the Managing Committee on specific schemes and programmes.",
   },
 ];
-
-function renderTitle(value) {
-  return clean(value)
-    .split(/(\*[^*]+\*)/g)
-    .filter(Boolean)
-    .map((part, index) =>
-      part.startsWith("*") && part.endsWith("*") ? (
-        <em key={`${part}-${index}`}>{part.slice(1, -1)}</em>
-      ) : (
-        <span key={`${part}-${index}`}>{part}</span>
-      ),
-    );
-}
 
 function resolveColor(props, key, fallback) {
   const colorKey = clean(props?.[key]);
@@ -225,7 +213,7 @@ export default function Accordion(props) {
             <header className="fable-section-heading">
               {subTitle ? <p className="fable-eyebrow">{subTitle}</p> : null}
               {mainTitle ? (
-                <h2 className="fable-heading">{renderTitle(mainTitle)}</h2>
+                <h2 className="fable-heading">{renderHighlightedTitle(mainTitle, props, { legacyColorKey: props?.accordionTitleAccentColorKey })}</h2>
               ) : null}
             </header>
           ) : null}

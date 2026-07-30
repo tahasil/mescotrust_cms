@@ -5,6 +5,7 @@ import {
   getColor,
   PageContainer,
 } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 /**
  * Site component: Vision.
@@ -207,7 +208,7 @@ export default function Vision(props) {
               <h3
                 style={mainTitleColor ? { color: mainTitleColor } : undefined}
               >
-                {visionTitle}
+                {renderHighlightedTitle(visionTitle, props)}
               </h3>
           </article>
           <div className="fable-media">

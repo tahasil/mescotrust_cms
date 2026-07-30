@@ -20,6 +20,7 @@ import {
   formatLocationLine,
 } from "@/components/events/eventDisplay";
 import MediaImage from "@/components/shared/MediaImage";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 import { usePageReadyTask } from "@/lib/pageReadiness";
 
 const SliderWrapper = styled.div`
@@ -622,7 +623,7 @@ export default function EventsSlider(props) {
                 <p className="events-eyebrow">{displaySubTitle}</p>
               ) : null}
               {titleEnabled && displayMainTitle ? (
-                <h2 className="events-title">{displayMainTitle}</h2>
+                <h2 className="events-title">{renderHighlightedTitle(displayMainTitle, props)}</h2>
               ) : null}
             </div>
             <Link href="/events" className="events-all-link">

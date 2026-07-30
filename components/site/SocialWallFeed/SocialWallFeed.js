@@ -21,6 +21,7 @@ import {
   getColor,
 } from "@/styles/Theme";
 import { usePageReadyTask } from "@/lib/pageReadiness";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 import { SOCIAL_WALL_FEED_DEFAULTS as DEFAULTS } from "./constants";
 
 function toSafeString(value) {
@@ -1172,7 +1173,7 @@ export default function SocialWallFeed(props) {
           {(subTitleEnabled && subtitle) || (titleEnabled && title) ? (
             <header className="social-wall-heading">
               {subTitleEnabled && subtitle ? <p className="social-wall-subtitle">{subtitle}</p> : null}
-              {titleEnabled && title ? <h2 className="social-wall-title">{title}</h2> : null}
+              {titleEnabled && title ? <h2 className="social-wall-title">{renderHighlightedTitle(title, props)}</h2> : null}
             </header>
           ) : null}
 

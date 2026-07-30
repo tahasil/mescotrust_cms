@@ -8,6 +8,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styled from "styled-components";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -56,7 +57,7 @@ export default function LatestNews(props) {
       <PageContainer $managedStyle={pageContainerBgStyle}>
         <NewsSection ref={rootRef} style={{ "--news-sub-title": color(props?.latestEvents1SubTitleColorKey, getColor("primary")), "--news-heading": color(props?.latestEvents1MainTitleColorKey, getColor("black")), "--news-border": color(props?.latestEvents1BorderColorKey, getColor("border")), "--news-tag": color(props?.latestEvents1TagColorKey, getColor("primary")), "--news-tag-border": color(props?.latestEvents1TagBorderColorKey, "rgba(224,60,51,.35)"), "--news-title": color(props?.latestEvents1ItemTitleColorKey, getColor("black")), "--news-arrow": color(props?.latestEvents1ArrowColorKey, getColor("blackMuted")), "--news-arrow-hover": color(props?.latestEvents1ArrowHoverColorKey, getColor("primary")) }}>
           <div className="newsGrid">
-            <div className="newsIntro"><p className="newsSubTitle">{text(props?.latestEvents1SubTitle)}</p><h2 className="newsHeading">{text(props?.latestEvents1MainTitle)}</h2></div>
+            <div className="newsIntro"><p className="newsSubTitle">{text(props?.latestEvents1SubTitle)}</p><h2 className="newsHeading">{renderHighlightedTitle(text(props?.latestEvents1MainTitle), props)}</h2></div>
             <div className="newsList">{items.map((item, index) => { const href = text(item?.buttonLink); const target = text(item?.target || item?.buttonTarget) === "_blank" || item?.buttonOpenInNewTab ? "_blank" : "_self"; const key = `${text(item?.title)}-${index}`; const content = <><span className="newsTag">{text(item?.date)}</span><span className="newsBody"><h3 className="newsTitle">{text(item?.title)}</h3></span><span className="newsAction"><ArrowUpOutlined rotate={45} aria-hidden="true" /></span></>;
               if (!href) return <div className="newsRow" key={key}>{content}</div>;
               return isExternalOrAsset(href) || target === "_blank" ? <a className="newsRow" href={href} target={target} rel={target === "_blank" ? "noopener noreferrer" : undefined} download={target === "_self" && isLocalDownload(href) ? true : undefined} key={key}>{content}</a> : <Link className="newsRow" href={href} key={key}>{content}</Link>; })}</div>

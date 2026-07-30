@@ -9,6 +9,7 @@ import "lightgallery/css/lg-thumbnail.css";
 import "lightgallery/css/lg-zoom.css";
 import "lightgallery/css/lg-fullscreen.css";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 const DEFAULT_TABS = ["All", "Education", "Medical", "Events", "Community"];
 let lightGalleryModulesPromise;
@@ -657,9 +658,13 @@ export default function PhotoGallery(props) {
                 {subtitleVisible && subtitle ? <p className="gallery-subtitle">{subtitle}</p> : null}
                 {titleVisible && (title || accentTitle) ? (
                   <h2 className="gallery-title">
-                    {title}
-                    {title && accentTitle ? " " : null}
-                    {accentTitle ? <em>{accentTitle}</em> : null}
+                    {renderHighlightedTitle(
+                      accentTitle
+                        ? `${title}${title ? " " : ""}*${accentTitle}*`
+                        : title,
+                      props,
+                      { legacyColorKey: props?.photoGalleryAccentTextColorKey },
+                    )}
                   </h2>
                 ) : null}
               </div>

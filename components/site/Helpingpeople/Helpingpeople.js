@@ -6,6 +6,7 @@ import {
   PageContainer,
 } from "@/styles/Theme";
 import SafeHtml from "@/components/cms/SafeHtml";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 /**
  * Site component: Helpingpeople (Helping People).
@@ -203,7 +204,7 @@ export default function Helpingpeople(props) {
               className="fable-heading"
               style={titleColor ? { color: titleColor } : undefined}
             >
-              {String(mainTitle).split(/(\*[^*]+\*)/g).map((part, index) => part.startsWith("*") && part.endsWith("*") ? <em key={index}>{part.slice(1, -1)}</em> : <span key={index}>{part}</span>)}
+              {renderHighlightedTitle(mainTitle, props)}
             </h2>
             {paragraph && (
               <div

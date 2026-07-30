@@ -2,19 +2,10 @@
 
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 import SafeHtml from "@/components/cms/SafeHtml";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 function text(value, fallback = "") {
   return value == null ? fallback : String(value).trim();
-}
-
-function highlightedTitle(value) {
-  return text(value).split(/(\*[^*]+\*)/g).map((part, index) =>
-    part.startsWith("*") && part.endsWith("*") ? (
-      <em key={`${part}-${index}`}>{part.slice(1, -1)}</em>
-    ) : (
-      <span key={`${part}-${index}`}>{part}</span>
-    ),
-  );
 }
 
 export default function ImpactShowcase(props) {
@@ -112,7 +103,7 @@ export default function ImpactShowcase(props) {
           </div>
           <div className="fable-about-intro__copy">
             {subTitle ? <p className="fable-eyebrow" style={{ color: subtitleColor }}>{subTitle}</p> : null}
-            {mainTitle ? <h2 className="fable-heading" style={{ color: titleColor }}>{highlightedTitle(mainTitle)}</h2> : null}
+            {mainTitle ? <h2 className="fable-heading" style={{ color: titleColor }}>{renderHighlightedTitle(mainTitle, props)}</h2> : null}
             {body1 ? <div className="fable-prose" style={{ color: bodyColor }}><SafeHtml html={body1} /></div> : null}
             {body2 ? <div className="fable-prose" style={{ color: bodyColor }}><SafeHtml html={body2} /></div> : null}
           </div>

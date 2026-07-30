@@ -13,6 +13,7 @@ import {
   getColor,
   PageContainer,
 } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -558,9 +559,13 @@ export default function OurImpact(props) {
           <div className="impactHead">
             {heading || headingAccent ? (
               <h2 className="impactHeading impactReveal">
-                {heading}
-                {heading && headingAccent ? " " : null}
-                {headingAccent ? <em>{headingAccent}</em> : null}
+                {renderHighlightedTitle(
+                  headingAccent
+                    ? `${heading}${heading ? " " : ""}*${headingAccent}*`
+                    : heading,
+                  props,
+                  { legacyColorKey: props?.ourImpactHeadingAccentColorKey },
+                )}
               </h2>
             ) : null}
             {note ? <p className="impactNote impactReveal">{note}</p> : null}

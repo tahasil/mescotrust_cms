@@ -12,6 +12,7 @@ import {
   getColor,
   PageContainer,
 } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -624,9 +625,12 @@ export default function OverviewOfOurWork(props) {
                   {subTitle ? <p className="worksSubTitle">{subTitle}</p> : null}
                   {heading || headingAccent ? (
                     <h2 className="worksHeading">
-                      {heading}
-                      {heading && headingAccent ? " " : null}
-                      {headingAccent ? <em>{headingAccent}</em> : null}
+                      {renderHighlightedTitle(
+                        headingAccent
+                          ? `${heading}${heading ? " " : ""}*${headingAccent}*`
+                          : heading,
+                        props,
+                      )}
                     </h2>
                   ) : null}
                 </div>

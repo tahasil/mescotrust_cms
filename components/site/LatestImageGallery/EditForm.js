@@ -280,7 +280,7 @@ function LatestImageGalleryEditForm(
                 items={[
                   { name: "latestImageGallerySubTitleColorKey", label: "Subtitle" },
                   { name: "latestImageGalleryTitleColorKey", label: "Title" },
-                  { name: "latestImageGalleryAccentColorKey", label: "Title accent" },
+                  { name: "latestImageGalleryAccentColorKey", label: "Highlighted/Accent Text" },
                   { name: "latestImageGalleryLinkColorKey", label: "Gallery link" },
                 ]}
               />

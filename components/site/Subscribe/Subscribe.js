@@ -22,7 +22,7 @@ const Finale=styled.div`
   @media(prefers-reduced-motion:reduce){.finaleFill{clip-path:inset(0 0 0 0)!important}}
 `;
 const text=(v)=>v==null?"":String(v).trim();const num=(v,f)=>Number.isFinite(Number(v))?Number(v):f;const color=(v,f)=>text(v)?getColor(text(v)):f;
-function splitAccent(title,accent){const clean=text(title),mark=text(accent);return <>{clean}{clean&&mark?" ":null}{mark?<em>{mark}</em>:null}</>;}
+function splitAccent(title,accent){const combined=`${text(title)}${text(title)&&text(accent)?" ":""}${text(accent)?`*${text(accent)}*`:""}`;if(!combined.includes("*")){const parts=combined.split(/\s+/).filter(Boolean);const highlighted=parts.pop();return <>{parts.length?`${parts.join(" ")} `:""}{highlighted?<em>{highlighted}</em>:null}</>;}return combined.split(/(\*[^*]+\*)/g).map((part,index)=>part.startsWith("*")&&part.endsWith("*")?<em key={`${part}-${index}`}>{part.slice(1,-1)}</em>:<span key={`${part}-${index}`}>{part}</span>);}
 export default function Subscribe(props){
   const[email,setEmail]=useState("");const[emailError,setEmailError]=useState("");const[submitting,setSubmitting]=useState(false);const[theme,setTheme]=useState(null);const rootRef=useRef(null);const pathname=usePathname();const isEditor=pathname?.startsWith("/admin")===true;
   useEffect(()=>{const has=props&&(props.subscribeTitle!==undefined||props.subscribeSubtitle!==undefined);if(has)return;fetch("/api/theme/subscribe",{cache:"no-store"}).then((res)=>res.ok?res.json():null).then(setTheme).catch(()=>setTheme(null));},[props?.subscribeTitle,props?.subscribeSubtitle]);
@@ -44,7 +44,7 @@ export default function Subscribe(props){
       <style dangerouslySetInnerHTML={{ __html: `
         .subscribeCtaBand { padding: clamp(56px,7vw,100px) clamp(20px,4vw,48px); color: ${getColor("cream")}; background: ${getColor("dark")}; border-radius: clamp(24px,4vw,48px); text-align: center; }
         .subscribeCtaBand h2 { margin: 0 0 28px; color: ${getColor("cream")}; font-family: "Bricolage Grotesque",system-ui,sans-serif; font-size: clamp(34px,4.6vw,64px); font-weight: 620; letter-spacing: -.02em; }
-        .subscribeCtaBand h2 em { color: ${getColor("primarySoft")}; font-style: normal; }
+        .subscribeCtaBand h2 em { color: ${color(raw?.titleHighlightColorKey||raw?.subscribeAccentColorKey,getColor("primarySoft"))}; font-style: normal; }
         .subscribeCtaBand__actions { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
         .subscribeCtaBand__secondary { color: ${getColor("cream")}; background: transparent; border-color: color-mix(in srgb,${getColor("cream")} 32%,transparent); }
         .subscribeCtaBand__secondary:hover { color: ${getColor("cream")}; background: transparent; border-color: ${getColor("cream")}; }

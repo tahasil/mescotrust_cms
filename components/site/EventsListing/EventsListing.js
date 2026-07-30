@@ -16,6 +16,7 @@ import {
   getColor,
 } from "@/styles/Theme";
 import MediaImage from "@/components/shared/MediaImage";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 import {
   formatEventDateRange,
   formatLocationLine,
@@ -440,14 +441,6 @@ function themeColor(key, fallback) {
   return getColor(safeText(key) || fallback);
 }
 
-function accentTitle(value) {
-  return safeText(value).split(/(\*[^*]+\*)/g).filter(Boolean).map((part, index) =>
-    part.startsWith("*") && part.endsWith("*")
-      ? <em key={`${part}-${index}`}>{part.slice(1, -1)}</em>
-      : <span key={`${part}-${index}`}>{part}</span>,
-  );
-}
-
 function initialQuery() {
   if (typeof window === "undefined") return { q: "", page: 1, view: "live" };
   const params = new URLSearchParams(window.location.search);
@@ -676,7 +669,7 @@ export default function EventsListing(props) {
           <div className="events-heading-row">
             <div>
               <p className="events-subtitle">{isPast ? labels.pastSubtitle : labels.subtitle}</p>
-              <h2 className="events-title">{accentTitle(isPast ? labels.pastTitle : labels.title)}</h2>
+              <h2 className="events-title">{renderHighlightedTitle(isPast ? labels.pastTitle : labels.title, props, { legacyColorKey: props?.eventsListingAccentColorKey })}</h2>
             </div>
             {!loading ? <span className="events-count">{data.total} events</span> : null}
           </div>

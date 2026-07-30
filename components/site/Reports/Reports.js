@@ -9,6 +9,7 @@ import {
   PageContainer,
   SubTitle,
 } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 /* ── Styled Components (same hover effect as InMedia) ── */
 const CardWrapper = styled.div`
@@ -345,7 +346,7 @@ export default function Reports(props) {
                 </SubTitle>
               )}
               {titleEnabled && (
-                <MainTitle className="fable-heading" color={titleColor}>{mainTitle}</MainTitle>
+                <MainTitle className="fable-heading" color={titleColor}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
               )}
             </Col>
           </Row>

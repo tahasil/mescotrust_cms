@@ -7,6 +7,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { usePathname } from "next/navigation";
 import styled from "styled-components";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -425,11 +426,13 @@ export default function Notices(props) {
             ) : null}
             {text(props?.noticesHeading) || text(props?.noticesHeadingAccent) ? (
               <h2 className="noticeHeading">
-                {text(props?.noticesHeading)}
-                {text(props?.noticesHeading) && text(props?.noticesHeadingAccent)
-                  ? " "
-                  : null}
-                <em>{text(props?.noticesHeadingAccent)}</em>
+                {renderHighlightedTitle(
+                  text(props?.noticesHeadingAccent)
+                    ? `${text(props?.noticesHeading)}${text(props?.noticesHeading) ? " " : ""}*${text(props?.noticesHeadingAccent)}*`
+                    : text(props?.noticesHeading),
+                  props,
+                  { legacyColorKey: props?.noticesAccentColorKey },
+                )}
               </h2>
             ) : null}
             {text(props?.noticesDescription) ? (

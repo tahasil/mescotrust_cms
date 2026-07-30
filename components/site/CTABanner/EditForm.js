@@ -8,6 +8,7 @@ import {
 } from "react";
 import { Collapse, Form, Input, Select, Space, Spin, message } from "antd";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
+import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 
 const API_PATH = "/api/theme/CTABanner";
 const TARGET_OPTIONS = [
@@ -22,6 +23,7 @@ const DEFAULTS = {
   ctaBannerVolunteerText: "Become a Volunteer",
   ctaBannerVolunteerLink: "/about-us/volunteer",
   ctaBannerVolunteerTarget: "_self",
+  titleHighlightColorKey: "primarySoft",
 };
 const FIELDS = Object.keys(DEFAULTS);
 const clean = (value, fallback = "") =>
@@ -89,9 +91,20 @@ function CTABannerEditForm(
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [pages, setPages] = useState([]);
+  const [themeColorOptions, setThemeColorOptions] = useState([]);
   const isPageBlock = source === "page";
 
   useEffect(() => {
+    fetch("/api/theme", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : {}))
+      .then((theme) => {
+        const palette = theme?.themePalette || {};
+        const custom = Array.isArray(theme?.colors) ? theme.colors : [];
+        const names = [...new Set([...Object.keys(palette), ...custom.map((item) => item?.name).filter(Boolean)])].sort();
+        setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
+      })
+      .catch(() => setThemeColorOptions([]));
+
     fetch("/api/admin/pages?limit=200&fields=title,slug,status&includeTotal=0", {
       cache: "no-store",
     })
@@ -181,6 +194,23 @@ function CTABannerEditForm(
               >
                 <Input />
               </Form.Item>
+            ),
+          },
+          {
+            key: "colors",
+            label: "Colors",
+            children: (
+              <TitleAndColorsSection
+                form={form}
+                themeColorOptions={themeColorOptions}
+                colorListItems={[
+                  {
+                    name: "titleHighlightColorKey",
+                    label: "Highlighted/Accent Text",
+                    tooltip: "Theme color for highlighted CTA title text",
+                  },
+                ]}
+              />
             ),
           },
           {

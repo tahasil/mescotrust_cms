@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 import { HOME_SLIDER_DEFAULT_PROPS, HOME_SLIDER_DEFAULT_SLIDES } from "./defaults";
 
 const clamp = (value, min, max, fallback) => {
@@ -267,9 +268,9 @@ export default function HomeSlider(props) {
           ) : null}
           {(activeSlide.headingLine1 || activeSlide.headingLine2 || activeSlide.headingHighlight) ? (
             <h1 className="home-slider-title home-slider-intro">
-              {activeSlide.headingLine1 ? <span>{activeSlide.headingLine1}</span> : null}
+              {activeSlide.headingLine1 ? <span>{activeSlide.headingLine2 || activeSlide.headingHighlight ? activeSlide.headingLine1 : renderHighlightedTitle(activeSlide.headingLine1, { titleHighlightColorKey: activeSlide.highlightColorKey })}</span> : null}
               {(activeSlide.headingLine2 || activeSlide.headingHighlight) ? (
-                <span>{activeSlide.headingLine2}{activeSlide.headingLine2 && activeSlide.headingHighlight ? " " : ""}<em>{activeSlide.headingHighlight}</em></span>
+                <span>{renderHighlightedTitle(activeSlide.headingHighlight ? `${activeSlide.headingLine2}${activeSlide.headingLine2 ? " " : ""}*${activeSlide.headingHighlight}*` : activeSlide.headingLine2, { titleHighlightColorKey: activeSlide.highlightColorKey })}</span>
               ) : null}
             </h1>
           ) : null}

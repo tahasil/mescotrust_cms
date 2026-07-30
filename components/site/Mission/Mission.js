@@ -5,6 +5,7 @@ import {
   getColor,
   PageContainer,
 } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 /**
  * Site component: Mission.
@@ -219,7 +220,7 @@ export default function Mission(props) {
               <h3
                 style={mainTitleColor ? { color: mainTitleColor } : undefined}
               >
-                {missionTitle}
+                {renderHighlightedTitle(missionTitle, props)}
               </h3>
           </article>
         </div>

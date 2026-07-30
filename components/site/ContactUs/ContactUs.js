@@ -9,6 +9,7 @@ import {
   SubTitle,
 } from "@/styles/Theme";
 import ContactForm from "@/components/forms/ContactForm";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 /**
  * Site component: ContactUs.
@@ -120,7 +121,7 @@ export default function ContactUs(props) {
                 <SubTitle className="fable-eyebrow" style={subTitleColor ? { color: subTitleColor } : undefined}>{subTitle}</SubTitle>
               )}
               {titleEnabled && mainTitle && (
-                <MainTitle className="fable-heading" color={titleColor}>{mainTitle}</MainTitle>
+                <MainTitle className="fable-heading" color={titleColor}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
               )}
             </Col>
           </Row>

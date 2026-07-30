@@ -3,6 +3,7 @@
 import styled from "styled-components";
 import { FullWidthBackground, PageContainer, getColor } from "@/styles/Theme";
 import { getInternshipLifecycleDefaults } from "./constants";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 const TimelineSection = styled.div`
   width: 100%;
@@ -454,7 +455,7 @@ export default function Internshiplifecycle(props) {
           $iconSize={data.internshiplifecycleIconSize}
           $stepGap={data.internshiplifecycleStepGap}
         >
-          <h2 className="internshipLifecycleTitle">{data.mainTitle}</h2>
+          <h2 className="internshipLifecycleTitle">{renderHighlightedTitle(data.mainTitle, props)}</h2>
 
           <div className="internshipLifecycleTrack">
             <div

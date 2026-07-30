@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ArrowRightOutlined } from "@ant-design/icons";
 import styled, { keyframes } from "styled-components";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 import { LATEST_IMAGE_GALLERY_DEFAULT_PROPS } from "./defaults";
 
 const moveRightToLeft = keyframes`
@@ -355,7 +356,11 @@ export default function LatestImageGallery(inputProps) {
                 ) : null}
                 {props.latestImageGalleryTitleVisible !== false && (title || accent) ? (
                   <h2 className="latest-gallery__title">
-                    {title}{title && accent ? " " : ""}{accent ? <em>{accent}</em> : null}
+                    {renderHighlightedTitle(
+                      accent ? `${title}${title ? " " : ""}*${accent}*` : title,
+                      props,
+                      { legacyColorKey: props?.latestImageGalleryAccentColorKey },
+                    )}
                   </h2>
                 ) : null}
               </div>

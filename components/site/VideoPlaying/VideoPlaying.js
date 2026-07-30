@@ -8,6 +8,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styled from "styled-components";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -234,7 +235,7 @@ export default function VideoPlaying(props) {
         >
           {text(props?.videoPlayingSubTitle ?? previousSubTitleField(props)) || text(props?.videoPlayingTitle) || text(props?.videoPlayingTitleAccent) ? <div className="chapterHead">
             {text(props?.videoPlayingSubTitle ?? previousSubTitleField(props)) ? <p className="chapterSubTitle">{text(props?.videoPlayingSubTitle ?? previousSubTitleField(props))}</p> : null}
-            {text(props?.videoPlayingTitle) || text(props?.videoPlayingTitleAccent) ? <h2 className="chapterTitle">{text(props?.videoPlayingTitle)}{text(props?.videoPlayingTitle) && text(props?.videoPlayingTitleAccent) ? " " : null}<em>{text(props?.videoPlayingTitleAccent)}</em></h2> : null}
+            {text(props?.videoPlayingTitle) || text(props?.videoPlayingTitleAccent) ? <h2 className="chapterTitle">{renderHighlightedTitle(text(props?.videoPlayingTitleAccent) ? `${text(props?.videoPlayingTitle)}${text(props?.videoPlayingTitle) ? " " : ""}*${text(props?.videoPlayingTitleAccent)}*` : text(props?.videoPlayingTitle), props, { legacyColorKey: props?.videoPlayingTitleAccentColorKey })}</h2> : null}
           </div> : null}
           <div ref={videoRef} className="chapterVideo">
             {videoPlaying && youtubeVideoId ? <iframe src={`https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&rel=0`} title={text(props?.videoPlayingVideoTitle) || coverAlt} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen /> : <div className="chapterCover" role="button" tabIndex={0} aria-label={text(props?.videoPlayingPlayAriaLabel) || coverAlt} onClick={() => setVideoPlaying(true)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setVideoPlaying(true); } }}><img src={coverImageDesktop} alt={coverAlt} /><button type="button" className="chapterPlay" tabIndex={-1} aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7L8 5z" /></svg></button></div>}

@@ -6,6 +6,7 @@ import {
   getColor,
   PageContainer,
 } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 /* ── Styled Components ── */
 const Recognition = styled.div`
@@ -271,7 +272,7 @@ export default function Alerts(props) {
                 <p className="fable-eyebrow" style={subTitleColor ? { color: subTitleColor } : undefined}>{subTitle}</p>
               ) : null}
               {titleEnabled && mainTitle ? (
-                <h2 className="recognition-heading" style={{ color: titleColor }}>{mainTitle}</h2>
+                <h2 className="recognition-heading" style={{ color: titleColor }}>{renderHighlightedTitle(mainTitle, props)}</h2>
               ) : null}
             </header>
           ) : null}

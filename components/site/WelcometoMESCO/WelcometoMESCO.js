@@ -8,6 +8,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styled from "styled-components";
 import { normalizeTarget } from "@/components/appearance/editorUtils";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 import {
   FullWidthBackground,
   getColor,
@@ -496,7 +497,7 @@ export default function WelcometoMESCO(props) {
             ),
           }}
         >
-          {subTitle ? <p className="statementSubTitle">{subTitle}</p> : null}
+          {subTitle ? <p className="statementSubTitle">{renderHighlightedTitle(subTitle, props)}</p> : null}
           {statementText ? (
             <p className="statementText">{statementNodes}</p>
           ) : null}

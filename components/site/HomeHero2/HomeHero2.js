@@ -7,6 +7,7 @@ import { Row, Col } from "antd";
 import { RightCircleFilled } from "@ant-design/icons";
 import { getColor, PageContainer, ThemeButton } from "@/styles/Theme";
 import CircularSlider from "@/components/site/CircularSlider";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 /**
  * Hero section styling matching mescotrust home index (lines 50–84):
@@ -35,13 +36,17 @@ const HomeContainer = styled.section`
     @media (max-width: 576px) {
       padding: 16% 0px 0% 0px;
     }
-    em {
+    .heroIcon {
       position: absolute;
       margin-left: -36px;
       margin-top: -10px;
     }
-    span {
-      background: linear-gradient(90deg, #E03C33 0%, #B92E27 100%);
+    em:not(.heroIcon) {
+      color: ${(p) => p.$highlightColor || getColor("primary")};
+      font-style: normal;
+    }
+    .heroHighlightLine {
+      background: ${(p) => p.$highlightColor || "linear-gradient(90deg, #E03C33 0%, #B92E27 100%)"};
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -102,6 +107,9 @@ export default function HomeHero2(props) {
   const buttonTextColorKey = (props?.homeHero2ButtonTextColorKey ?? "")
     .toString()
     .trim();
+  const highlightColor = props?.titleHighlightColorKey
+    ? getColor(props.titleHighlightColorKey)
+    : undefined;
   const buttonStyle =
     buttonBgColorKey || buttonTextColorKey
       ? {
@@ -178,19 +186,20 @@ export default function HomeHero2(props) {
       $bgType={sectionBgType}
       $bgImage={sectionBgType === "image" ? heroBgImage : undefined}
       $bgColor={sectionBgColor}
+      $highlightColor={highlightColor}
     >
       <PageContainer className="py-0">
         <Row gutter={[16, 16]}>
           <Col xs={24} className="text-center">
             <h1>
-              <em>
+              <em className="heroIcon">
                 <img
                   loading="lazy"
                   src={heroIconUrl || "/images/hero-icon.svg"}
                   alt="Hero Icon"
                 />
               </em>
-              {mainTitle} <br /> <span>{mainTitleHighlight}</span>
+              {renderHighlightedTitle(mainTitle, props)} <br /> <span className="heroHighlightLine">{mainTitleHighlight}</span>
             </h1>
           </Col>
           <Col

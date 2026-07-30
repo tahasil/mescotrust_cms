@@ -12,6 +12,7 @@ import {
 } from "@/lib/formValidation";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 import { DEFAULT_VOLUNTEERS_FEEDBACK_PROPS } from "./constants";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 function text(value, fallback = "") {
   if (value == null) return fallback;
@@ -702,7 +703,7 @@ export default function VolunteersFeedback(props = {}) {
                 <HeaderSubTitle>{subTitle}</HeaderSubTitle>
               ) : null}
               {titleEnabled && mainTitle ? (
-                <HeaderTitle>{mainTitle}</HeaderTitle>
+                <HeaderTitle>{renderHighlightedTitle(mainTitle, props)}</HeaderTitle>
               ) : null}
               {descriptionEnabled && description ? (
                 <HeaderDescription>{description}</HeaderDescription>

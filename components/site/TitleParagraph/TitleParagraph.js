@@ -10,6 +10,7 @@ import {
   PageContainer,
 } from "@/styles/Theme";
 import SafeHtml from "@/components/cms/SafeHtml";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 const ContentWrapper = styled.div`
   font-size: 16px;
@@ -223,7 +224,7 @@ export default function TitleParagraph(props) {
                 className="fable-heading"
                 style={titleColor ? { color: titleColor } : undefined}
               >
-                {mainTitle}
+                {renderHighlightedTitle(mainTitle, props)}
               </MainTitle>
             )}
             {content && (

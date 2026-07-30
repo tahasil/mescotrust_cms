@@ -11,6 +11,7 @@ import {
   SubTitle,
 } from "@/styles/Theme";
 import { isValidEmail, isValidName, isValidPhone, normalizeText } from "@/lib/formValidation";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 /**
  * Site component: EventRegistrationForm.
@@ -312,7 +313,7 @@ export default function EventRegistrationForm(props = {}) {
                 </SubTitle>
               )}
               {titleEnabled && mainTitle && (
-                <MainTitle className="fable-heading" color={titleColor}>{mainTitle}</MainTitle>
+                <MainTitle className="fable-heading" color={titleColor}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
               )}
             </Col>
           </Row>

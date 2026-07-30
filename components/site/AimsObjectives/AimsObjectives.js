@@ -5,18 +5,13 @@ import {
   getColor,
   PageContainer,
 } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 function normalizeItem(it) {
   return { text: it?.text != null ? String(it.text).trim() : "" };
 }
 
 const ROMAN_NUMERALS = ["i.", "ii.", "iii.", "iv.", "v.", "vi.", "vii.", "viii.", "ix.", "x."];
-
-function renderTitle(value) {
-  return String(value || "").split(/(\*[^*]+\*)/g).map((part, index) =>
-    part.startsWith("*") && part.endsWith("*") ? <em key={index}>{part.slice(1, -1)}</em> : <span key={index}>{part}</span>,
-  );
-}
 
 const DEFAULT_ITEMS = [
   { text: "To promote education amongst the weaker section of society primarily and others generally. The promotion of education shall include the promotion of Science and Literature." },
@@ -111,7 +106,7 @@ export default function AimsObjectives(props) {
         <div className="fable-section">
           <header className="fable-section-heading">
             {subTitle ? <p className="fable-eyebrow" style={{ color: subTitleColor }}>{subTitle}</p> : null}
-            {mainTitle ? <h2 className="fable-heading" style={{ color: titleColor }}>{renderTitle(mainTitle)}</h2> : null}
+            {mainTitle ? <h2 className="fable-heading" style={{ color: titleColor }}>{renderHighlightedTitle(mainTitle, props)}</h2> : null}
           </header>
           <div className="fable-aims">
             {items.map((item, index) => (

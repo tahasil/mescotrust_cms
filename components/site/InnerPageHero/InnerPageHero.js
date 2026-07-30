@@ -2,22 +2,7 @@
 
 import Link from "next/link";
 import { getColor, InnerBanner, PageContainer } from "@/styles/Theme";
-
-function renderTitle(value) {
-  const text = String(value || "");
-  if (!text.includes("*")) {
-    const parts = text.split(/\s+/).filter(Boolean);
-    const accent = parts.pop();
-    return <>{parts.length ? `${parts.join(" ")} ` : ""}<em>{accent}</em></>;
-  }
-  return text.split(/(\*[^*]+\*)/g).map((part, index) =>
-    part.startsWith("*") && part.endsWith("*") ? (
-      <em key={`${part}-${index}`}>{part.slice(1, -1)}</em>
-    ) : (
-      <span key={`${part}-${index}`}>{part}</span>
-    ),
-  );
-}
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 /** Inner-page banner matching the current MESCO page-hero design. */
 export default function InnerPageHero(props) {
@@ -78,7 +63,10 @@ export default function InnerPageHero(props) {
             })}
           </nav>
           <h1 className="fable-page-hero__title" style={titleColor ? { color: titleColor } : undefined}>
-            {renderTitle(title)}
+            {renderHighlightedTitle(title, props, {
+              legacyColorKey: props?.innerPageHeroAccentColorKey,
+              fallbackColorKey: "primarySoft",
+            })}
           </h1>
           {description ? (
             <p className="fable-page-hero__description" style={descriptionColor ? { color: descriptionColor } : undefined}>

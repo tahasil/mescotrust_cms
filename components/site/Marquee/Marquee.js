@@ -8,6 +8,7 @@ import {
   getColor,
   PageContainer,
 } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 function fetchMarquee() {
   return fetch("/api/theme/marquee", {
@@ -318,7 +319,7 @@ export default function Marquee(props) {
                   className="partners-sub-title"
                   style={{ color: partnersTitleColor }}
                 >
-                  {partnersTitle}
+                  {renderHighlightedTitle(partnersTitle, settings)}
                 </h2>
               ) : null}
               {awardsTitle ? (
@@ -326,7 +327,7 @@ export default function Marquee(props) {
                   className="partners-note"
                   style={{ color: awardsTitleColor }}
                 >
-                  {awardsTitle}
+                  {renderHighlightedTitle(awardsTitle, settings)}
                 </p>
               ) : null}
             </div>

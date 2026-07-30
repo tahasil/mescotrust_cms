@@ -8,6 +8,7 @@ import {
   getColor,
   PageContainer,
 } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 /* ── Styled Components ── */
 const CardWrapper = styled.article`
@@ -446,7 +447,7 @@ export default function CommitteeMembers(props) {
                 ...(titleColor ? { color: titleColor } : {}),
               }}
             >
-              {String(mainTitle).split(/(\*[^*]+\*)/g).map((part, index) => part.startsWith("*") && part.endsWith("*") ? <em key={index}>{part.slice(1, -1)}</em> : <span key={index}>{part}</span>)}
+              {renderHighlightedTitle(mainTitle, props)}
             </h2>
         <div className="fable-people">
           {members.map((member, idx) => {

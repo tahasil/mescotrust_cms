@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Row, Col } from "antd";
 import styled from "styled-components";
 import { usePageReadyTask } from "@/lib/pageReadiness";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 import {
   FullWidthBackground,
   getColor,
@@ -1316,7 +1317,7 @@ export default function SocialMediaWall(props) {
                     {subTitle}
                   </SubTitle>
                 )}
-                {titleEnabled && <MainTitle color={titleColor}>{mainTitle}</MainTitle>}
+                {titleEnabled && <MainTitle color={titleColor}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>}
               </Col>
             </Row>
           )}

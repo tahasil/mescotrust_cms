@@ -6,6 +6,7 @@ import { Carousel } from "antd";
 import { RightCircleFilled, PlayCircleFilled } from "@ant-design/icons";
 import Link from "next/link";
 import { ThemeButton, getColor, PageContainer } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 /** Full-width slider banner: background image + dark overlay + left-aligned text + CTA. No default image — from DB only. */
 const SliderSection = styled.section.attrs((p) => ({
@@ -143,6 +144,7 @@ function SingleSlide({
   videoUrl,
   overlayEnabled,
   slideAspectRatio,
+  titleHighlightColorKey,
 }) {
   const safeTitle = title != null ? String(title).trim() : "";
   const safeDescription = description != null ? String(description).trim() : "";
@@ -200,7 +202,7 @@ function SingleSlide({
       >
         {safeTitle && (
           <h2 className="slider-title" style={titleStyle}>
-            {safeTitle}
+            {renderHighlightedTitle(safeTitle, { titleHighlightColorKey })}
           </h2>
         )}
         {safeDescription && (
@@ -368,6 +370,7 @@ export default function HomeHero(props) {
     buttonTextColor,
     contentContainer,
     overlayEnabled,
+    titleHighlightColorKey: props?.titleHighlightColorKey,
   };
   const resolveSlideBgImage = (slide) => {
     const desktop = slide?.bgImageUrlDesktop || slide?.bgImageUrl || "";

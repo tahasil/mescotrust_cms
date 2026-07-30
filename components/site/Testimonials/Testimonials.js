@@ -7,6 +7,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { usePathname } from "next/navigation";
 import styled from "styled-components";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -46,7 +47,7 @@ export default function Testimonials(props) {
     <FullWidthBackground>
       <PageContainer className="py-0">
         <QuoteSection ref={rootRef} style={{"--q-ink":color(props?.testimonialsTitleColorKey,"#2A283E"),"--q-subtitle":color(props?.testimonialsTitleColorKey,"#E03C33"),"--q-mark":color(props?.testimonialsQuoteMarkColorKey,"#E03C33"),"--q-quote":color(props?.testimonialsQuoteColorKey,"#2A283E"),"--q-name":color(props?.testimonialsNameColorKey,"#2A283E"),"--q-role":color(props?.testimonialsRoleColorKey,"rgba(42,40,62,.55)"),"--q-dot":color(props?.testimonialsDotColorKey,"rgba(42,40,62,.18)"),"--q-dot-active":color(props?.testimonialsDotActiveColorKey,"#E03C33"),"--q-link":color(props?.testimonialsLinkColorKey,"#2A283E"),"--q-duration":`${num(props?.testimonialsSpeed,650)/1000}s`}}>
-          {props?.testimonialsTitleEnabled !== false && text(props?.testimonialsTitle) ? <p className="qSubTitle qReveal">{text(props.testimonialsTitle)}</p> : null}
+          {props?.testimonialsTitleEnabled !== false && text(props?.testimonialsTitle) ? <p className="qSubTitle qReveal">{renderHighlightedTitle(text(props.testimonialsTitle), props)}</p> : null}
           {item ? <div className="qSlider qReveal"><span className="qMark" aria-hidden="true">“</span><figure className="qSlide" key={active}><p className="qQuote">{text(item?.quote)}</p><figcaption className="qWho"><strong>{text(item?.name)}</strong><span>{text(item?.title)}</span></figcaption></figure>{props?.testimonialsShowDots !== false&&items.length>1?<div className="qDots" role="tablist" aria-label="Choose testimonial">{items.map((entry,index)=><button type="button" role="tab" aria-selected={index===active} aria-label={`Show testimonial ${index+1}`} className={`qDot${index===active?" is-active":""}`} onClick={()=>setActive(index)} key={`${text(entry?.name)}-${index}`} />)}</div>:null}</div>:null}
           {text(props?.testimonialsViewAllLabel)&&text(props?.testimonialsViewAllUrl)?<a className="qAll qReveal" href={text(props.testimonialsViewAllUrl)} target={target} rel={target==="_blank"?"noopener noreferrer":undefined}>{text(props.testimonialsViewAllLabel)} <ArrowRightOutlined aria-hidden="true" /></a>:null}
         </QuoteSection>

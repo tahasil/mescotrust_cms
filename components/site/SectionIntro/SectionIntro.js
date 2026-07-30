@@ -10,6 +10,7 @@ import {
   SubTitle,
 } from "@/styles/Theme";
 import SafeHtml from "@/components/cms/SafeHtml";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 const DescriptionWrapper = styled.div`
   width: 100%;
@@ -298,7 +299,7 @@ export default function SectionIntro(props) {
               </SubTitle>
             ) : null}
             {titleEnabled && mainTitle ? (
-              <MainTitle className="fable-heading" color={titleColor}>{mainTitle}</MainTitle>
+              <MainTitle className="fable-heading" color={titleColor}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
             ) : null}
             {sectionIntroParagraph && (
               <DescriptionWrapper className="fable-lead"

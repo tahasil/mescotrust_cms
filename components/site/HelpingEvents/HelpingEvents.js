@@ -11,6 +11,7 @@ import {
   Paragraph,
   ThemeButton,
 } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 /**
  * Site component: HelpingEvents.
@@ -113,7 +114,7 @@ export default function HelpingEvents(props) {
           >
             <SubTitle className="text-white">{subTitle}</SubTitle>
             <MainTitle className="text-white" color={titleColor}>
-              {mainTitle}
+              {renderHighlightedTitle(mainTitle, props)}
             </MainTitle>
           </Col>
         </Row>

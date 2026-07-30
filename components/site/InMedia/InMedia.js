@@ -11,6 +11,7 @@ import {
   SubTitle,
 } from "@/styles/Theme";
 import { ThemeModal } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 /* ── Styled Components ── */
 const ThemeScrollModal = styled(ThemeModal)`
@@ -363,7 +364,7 @@ export default function InMedia(props) {
                   </SubTitle>
                 )}
                 {titleEnabled && (
-                  <MainTitle className="fable-heading" color={titleColor}>{mainTitle}</MainTitle>
+                  <MainTitle className="fable-heading" color={titleColor}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
                 )}
               </Col>
             </Row>

@@ -7,6 +7,7 @@ import {
 } from "@/styles/Theme";
 import SafeHtml from "@/components/cms/SafeHtml";
 import styled from "styled-components";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 const CsrScheme = styled.div`
   .fable-eyebrow {
@@ -118,7 +119,7 @@ export default function ManagingCommittee(props) {
               className="fable-heading"
               style={titleColor ? { color: titleColor } : undefined}
             >
-              {String(mainTitle).split(/(\*[^*]+\*)/g).map((part, index) => part.startsWith("*") && part.endsWith("*") ? <em key={index}>{part.slice(1, -1)}</em> : <span key={index}>{part}</span>)}
+              {renderHighlightedTitle(mainTitle, props)}
             </h2>
             {paragraph && (
               <div

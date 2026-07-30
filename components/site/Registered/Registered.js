@@ -5,6 +5,7 @@ import {
   getColor,
   PageContainer,
 } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 function normalizeItem(it) {
   return {
@@ -124,7 +125,7 @@ export default function Registered(props) {
         <div className="fable-section">
           <header className="fable-section-heading">
             {subTitle ? <p className="fable-eyebrow" style={{ color: subTitleColor }}>{subTitle}</p> : null}
-            <h2 className="fable-heading" style={titleColor ? { color: titleColor } : undefined}><RenderCardText text={mainTitle} /></h2>
+            <h2 className="fable-heading" style={titleColor ? { color: titleColor } : undefined}>{renderHighlightedTitle(mainTitle, props)}</h2>
           </header>
           <div className="fable-badges">
           {items.map((item, index) => (

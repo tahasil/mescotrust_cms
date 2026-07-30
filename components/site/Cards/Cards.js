@@ -7,6 +7,7 @@ import {
   PageContainer,
   SubTitle,
 } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 const DEFAULT_ITEMS = [
   {
@@ -285,7 +286,7 @@ export default function Cards(props) {
               <p className="fable-eyebrow" style={subTitleColor ? { color: subTitleColor } : undefined}>{subTitle}</p>
             ) : null}
             {titleEnabled && mainTitle ? (
-              <h2 className="fable-heading" style={mainTitleColor ? { color: mainTitleColor } : undefined}>{mainTitle}</h2>
+              <h2 className="fable-heading" style={mainTitleColor ? { color: mainTitleColor } : undefined}>{renderHighlightedTitle(mainTitle, props)}</h2>
             ) : null}
           </header>
         ) : null}

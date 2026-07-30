@@ -13,6 +13,7 @@ import {
   TeamOutlined,
 } from "@ant-design/icons";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 import {
   CelebrationsMilestonesIcon,
   CharitablePhysiotherapyIcon,
@@ -26,14 +27,6 @@ import {
 } from "./icons";
 
 const clean = (value, fallback = "") => value == null ? fallback : String(value).trim();
-
-function renderTitle(value) {
-  return String(value || "").split(/(\*[^*]+\*)/g).map((part, index) =>
-    part.startsWith("*") && part.endsWith("*")
-      ? <em key={`${part}-${index}`}>{part.slice(1, -1)}</em>
-      : <span key={`${part}-${index}`}>{part}</span>,
-  );
-}
 
 const ICONS = {
   "mumbai-city-unit": MumbaiCityUnitIcon,
@@ -159,7 +152,7 @@ export default function MissionVision(props) {
                 <p className="fable-eyebrow" style={{ color: subTitleColor }}>{subTitle}</p>
               ) : null}
               {titleEnabled && mainTitle ? (
-                <h2 className="fable-heading" style={{ color: mainTitleColor }}>{renderTitle(mainTitle)}</h2>
+                <h2 className="fable-heading" style={{ color: mainTitleColor }}>{renderHighlightedTitle(mainTitle, props)}</h2>
               ) : null}
             </header>
           ) : null}

@@ -16,6 +16,7 @@ import {
   ThemeButton,
   ThemeModal,
 } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 const GalleryTabs = styled.div`
   display: flex;
@@ -471,7 +472,7 @@ export default function Videogallery(props) {
         {(subTitle || mainTitle) ? (
           <header className="fable-section-heading">
             {subTitle ? <p className="fable-eyebrow" style={{ color: subTitleColor }}>{subTitle}</p> : null}
-            {mainTitle ? <h2 className="fable-heading" style={{ color: titleColor }}>{mainTitle.split(/(\*[^*]+\*)/g).map((part, index) => part.startsWith("*") && part.endsWith("*") ? <em key={index}>{part.slice(1, -1)}</em> : <span key={index}>{part}</span>)}</h2> : null}
+            {mainTitle ? <h2 className="fable-heading" style={{ color: titleColor }}>{renderHighlightedTitle(mainTitle, props, { legacyColorKey: props?.videogalleryAccentColorKey })}</h2> : null}
           </header>
         ) : null}
         <GalleryTabs className="fable-filters">

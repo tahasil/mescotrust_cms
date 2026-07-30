@@ -6,6 +6,7 @@ import { Checkbox, Col, ConfigProvider, Row, notification } from "antd";
 import styled from "styled-components";
 import { submitContact } from "@/app/actions/contact";
 import { FullWidthBackground, PageContainer, getColor } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 import {
   hasMinText,
   isValidAge,
@@ -863,7 +864,7 @@ export default function Volunteer(props = {}) {
           <section className="volunteer-eligibility">
             <p className="fable-eyebrow">Eligibility</p>
             {sideTitle ? (
-              <h2 className="fable-heading">{sideTitle}</h2>
+              <h2 className="fable-heading">{renderHighlightedTitle(sideTitle, props)}</h2>
             ) : null}
             {sideDescription ? (
               <p className="volunteer-eligibility__description">{sideDescription}</p>
@@ -876,7 +877,7 @@ export default function Volunteer(props = {}) {
           </section>
           <header className="volunteer-form-heading">
             <p className="fable-eyebrow">Apply</p>
-            <h2 className="fable-heading">Volunteer application <em>form.</em></h2>
+            <h2 className="fable-heading">{renderHighlightedTitle("Volunteer application *form.*", props)}</h2>
           </header>
           <Row gutter={[gridColumnGap, gridRowGap]} className="volunteer-shell">
             <Col span={24}>

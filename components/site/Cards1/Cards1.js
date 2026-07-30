@@ -9,6 +9,7 @@ import {
   PageContainer,
   SubTitle,
 } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 const CARD_VARIANTS = new Set(["style1", "style2", "style3"]);
 
@@ -551,7 +552,7 @@ export default function Cards1(props) {
               <SubTitle color={subTitleColor}>{subTitle}</SubTitle>
             ) : null}
             {titleEnabled && mainTitle ? (
-              <MainTitle color={mainTitleColor}>{mainTitle}</MainTitle>
+              <MainTitle color={mainTitleColor}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
             ) : null}
           </div>
         ) : null}

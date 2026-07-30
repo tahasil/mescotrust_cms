@@ -6,6 +6,7 @@ import FormEmbed from "@/components/site/FormEmbed/FormEmbed";
 import * as PublicSiteComponents from "@/components/site/publicComponents";
 import { SITE_COMPONENT_IDS } from "@/lib/siteComponentRegistry";
 import { usePageReadyTask } from "@/lib/pageReadiness";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 import {
   buildShortcodeFromSelection,
   normalizeShortcodeText,
@@ -393,7 +394,7 @@ export default function ShortCode(props) {
                 <SubTitle color={subTitleColor}>{subTitle}</SubTitle>
               ) : null}
               {titleEnabled && mainTitle ? (
-                <MainTitle color={mainTitleColor}>{mainTitle}</MainTitle>
+                <MainTitle color={mainTitleColor}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
               ) : null}
             </Col>
           </Row>
