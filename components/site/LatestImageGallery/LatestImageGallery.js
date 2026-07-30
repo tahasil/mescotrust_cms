@@ -27,7 +27,7 @@ const GallerySection = styled.section`
   -webkit-font-smoothing: antialiased;
 
   .latest-gallery__head {
-    width: min(90%, var(--layout-width, 1440px));
+    width: 90%;
     margin: 0 auto clamp(36px, 4vw, 56px);
     display: flex;
     align-items: flex-end;
