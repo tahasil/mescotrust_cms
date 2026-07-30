@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  CalendarOutlined,
   ClockCircleOutlined,
   EnvironmentOutlined,
   SearchOutlined,
@@ -20,6 +19,7 @@ import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 import {
   formatEventDateRange,
   formatLocationLine,
+  getEventDateStatus,
   getEventImageSources,
 } from "@/components/events/eventDisplay";
 
@@ -200,29 +200,33 @@ const ListingRoot = styled.div`
     border: 1px solid var(--events-border);
     border-radius: var(--events-radius);
     background: var(--events-card-bg);
-    box-shadow: 0 2px 10px color-mix(in srgb, var(--events-ink) 5%, transparent);
-    transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+    box-shadow: none;
+    transition:
+      transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 300ms ease,
+      box-shadow 300ms ease;
   }
 
   .event-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--events-accent);
-    box-shadow: 0 14px 30px color-mix(in srgb, var(--events-ink) 11%, transparent);
+    transform: translateY(-5px);
+    border-color: color-mix(in srgb, var(--events-accent) 42%, var(--events-border));
+    box-shadow: 0 22px 44px color-mix(in srgb, var(--events-ink) 10%, transparent);
   }
 
   .event-card__image-wrap {
     display: block;
-    padding: 10px 10px 0;
+    overflow: hidden;
+    color: inherit;
+    text-decoration: none;
   }
 
   .event-card__image {
     width: 100%;
-    aspect-ratio: 2 / 1;
+    aspect-ratio: 16 / 9;
     display: grid;
     place-items: center;
     overflow: hidden;
-    border: 1px solid var(--events-border);
-    border-radius: calc(var(--events-radius) * 0.65);
+    border-bottom: 1px solid var(--events-border);
     color: var(--events-muted);
     background: var(--events-surface);
     font-size: 13px;
@@ -237,11 +241,11 @@ const ListingRoot = styled.div`
 
   .event-card__image img {
     object-fit: cover;
-    transition: transform 350ms ease;
+    transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .event-card:hover .event-card__image img {
-    transform: scale(1.025);
+    transform: scale(1.05);
   }
 
   .event-card__body {
@@ -249,40 +253,27 @@ const ListingRoot = styled.div`
     min-width: 0;
     flex: 1;
     flex-direction: column;
-    padding: 16px;
+    padding: clamp(16px, 1.7vw, 22px);
   }
 
   .event-card__status {
-    width: fit-content;
-    margin: 0 0 10px;
+    margin: 0 0 9px;
     color: var(--events-accent);
-    font-size: 11px;
-    font-weight: 750;
-    letter-spacing: 0.12em;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    line-height: 1.35;
     text-transform: uppercase;
   }
 
-  .event-card__status--live::before {
-    width: 7px;
-    height: 7px;
-    display: inline-block;
-    margin-right: 7px;
-    border-radius: 50%;
-    background: var(--events-accent);
-    content: "";
-    animation: event-live-pulse 1.8s ease-in-out infinite;
-  }
-
-  @keyframes event-live-pulse {
-    50% { opacity: 0.35; transform: scale(0.8); }
-  }
-
   .event-card__title {
-    margin: 0 0 10px;
+    margin: 0 0 8px;
     color: var(--events-ink);
-    font-size: 16px;
-    font-weight: 750;
-    line-height: 1.3;
+    font-family: var(--font-display, inherit);
+    font-size: clamp(16px, 1.35vw, 19px);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.22;
   }
 
   .event-card__title a {
@@ -290,31 +281,43 @@ const ListingRoot = styled.div`
     text-decoration: none;
   }
 
+  .event-card__title a:focus-visible,
+  .event-card__image-wrap:focus-visible,
+  .event-card__button:focus-visible {
+    outline: 2px solid var(--events-accent);
+    outline-offset: 3px;
+  }
+
   .event-card__meta {
     display: flex;
-    flex-direction: column;
-    gap: 7px;
-    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 5px 13px;
+    margin-bottom: 0;
     color: var(--events-muted);
-    font-size: 12px;
-    line-height: 1.45;
+    font-size: 11px;
+    line-height: 1.4;
   }
 
   .event-card__meta span {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
+    gap: 5px;
+  }
+
+  .event-card__meta svg {
+    color: var(--events-accent);
+    font-size: 10px;
   }
 
   .event-card__description {
     display: -webkit-box;
-    margin: 0 0 16px;
+    margin: 13px 0 0;
     overflow: hidden;
     color: var(--events-muted);
-    font-size: 13px;
-    line-height: 1.65;
+    font-size: 12px;
+    line-height: 1.5;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 2;
   }
 
   .event-card__button,
@@ -335,11 +338,24 @@ const ListingRoot = styled.div`
 
   .event-card__button {
     width: fit-content;
+    min-height: auto;
+    justify-content: flex-start;
     margin-top: auto;
-    padding: 10px 14px;
+    padding: 14px 0 3px;
+    border: 0;
+    border-bottom: 1px solid currentColor;
+    border-radius: 0;
+    color: var(--events-ink);
+    background: transparent;
+    font-size: 12px;
   }
 
-  .event-card__button:hover,
+  .event-card__button:hover {
+    border-color: var(--events-accent);
+    color: var(--events-accent);
+    background: transparent;
+  }
+
   .events-page-button:hover:not(:disabled) {
     border-color: var(--events-button-hover-bg);
     color: var(--events-button-hover-text);
@@ -414,6 +430,12 @@ const ListingRoot = styled.div`
     .events-grid {
       grid-template-columns: 1fr;
     }
+    .event-card__body {
+      padding: 16px;
+    }
+    .event-card__title {
+      font-size: 18px;
+    }
     .events-pagination {
       flex-wrap: wrap;
     }
@@ -442,9 +464,9 @@ function themeColor(key, fallback) {
 }
 
 function initialQuery() {
-  if (typeof window === "undefined") return { q: "", page: 1, view: "live" };
+  if (typeof window === "undefined") return { q: "", page: 1, view: "all" };
   const params = new URLSearchParams(window.location.search);
-  const view = FILTERS.includes(params.get("view")) ? params.get("view") : "live";
+  const view = FILTERS.includes(params.get("view")) ? params.get("view") : "all";
   return {
     q: safeText(params.get("q")),
     page: Math.max(1, Number.parseInt(params.get("page"), 10) || 1),
@@ -456,6 +478,10 @@ function EventCard({ event, buttonLabel, showDescription }) {
   const href = event?.slug ? `/events/${event.slug}` : "/events";
   const { desktop, mobile } = getEventImageSources(event);
   const date = formatEventDateRange(event?.startDate, event?.endDate);
+  const status = getEventDateStatus(event);
+  const dateLabel = date
+    ? `${status === "live" ? "Live · " : status === "upcoming" ? "Upcoming · " : ""}${date}`
+    : "";
   const time = safeText(event?.time);
   const location = formatLocationLine(event);
   const description = stripMarkup(event?.description || event?.content);
@@ -478,12 +504,12 @@ function EventCard({ event, buttonLabel, showDescription }) {
         </div>
       </Link>
       <div className="event-card__body">
+        {dateLabel ? <p className="event-card__status">{dateLabel}</p> : null}
         <h3 className="event-card__title"><Link href={href}>{event?.title}</Link></h3>
-        <div className="event-card__meta">
-          {date ? <span><CalendarOutlined />{date}</span> : null}
+        {time || location ? <div className="event-card__meta">
           {time ? <span><ClockCircleOutlined />{time}</span> : null}
           {location ? <span><EnvironmentOutlined />{location}</span> : null}
-        </div>
+        </div> : null}
         {showDescription && description ? <p className="event-card__description">{description}</p> : null}
         <Link className="event-card__button" href={href}>{buttonLabel}</Link>
       </div>
@@ -534,14 +560,14 @@ function buildSectionStyles(props) {
 export default function EventsListing(props) {
   const pathname = usePathname() || "/events";
   const router = useRouter();
-  const [query, setQuery] = useState({ q: "", page: 1, view: "live" });
+  const [query, setQuery] = useState({ q: "", page: 1, view: "all" });
   const [searchText, setSearchText] = useState("");
   const [data, setData] = useState({ items: [], total: 0, totalPages: 1 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const pageSize = clamp(props?.eventsListingActivePageSize, 1, 24, 9);
-  const columns = clamp(props?.eventsListingActiveColumns, 1, 4, 4);
+  const columns = clamp(props?.eventsListingActiveColumns, 1, 3, 3);
   const gap = clamp(props?.eventsListingCardGap, 8, 64, 22);
   const radius = clamp(props?.eventsListingCardRadius, 0, 40, 14);
   const showSearch = props?.eventsListingShowSearch !== false;
@@ -584,7 +610,7 @@ export default function EventsListing(props) {
       const params = new URLSearchParams();
       if (next.q) params.set("q", next.q);
       if (next.page > 1) params.set("page", String(next.page));
-      if (next.view !== "live") params.set("view", next.view);
+      if (next.view !== "all") params.set("view", next.view);
       const search = params.toString();
       router.replace(search ? `${pathname}?${search}` : pathname, { scroll: false });
     }
@@ -596,7 +622,7 @@ export default function EventsListing(props) {
       visibility: query.view,
       page: String(query.page),
       limit: String(pageSize),
-      sort: query.view === "live" ? "upcoming" : "recent",
+      sort: query.view === "all" ? "grouped" : query.view === "live" ? "upcoming" : "recent",
     });
     if (query.q) params.set("search", query.q);
     setLoading(true);

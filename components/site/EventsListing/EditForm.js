@@ -63,7 +63,7 @@ const DEFAULT_VALUES = {
   eventsListingShowFilters: true,
   eventsListingShowDescriptions: true,
   eventsListingActivePageSize: 9,
-  eventsListingActiveColumns: 4,
+  eventsListingActiveColumns: 3,
   eventsListingCardGap: 22,
   eventsListingCardRadius: 14,
   eventsListingTextColorKey: "Black",
@@ -165,7 +165,7 @@ function EventsListingEditForm(
         ...DEFAULT_VALUES,
         ...values,
         eventsListingActivePageSize: Math.max(1, Number(values.eventsListingActivePageSize) || 9),
-        eventsListingActiveColumns: Math.max(1, Number(values.eventsListingActiveColumns) || 4),
+        eventsListingActiveColumns: Math.min(3, Math.max(1, Number(values.eventsListingActiveColumns) || 3)),
         eventsListingCardGap: Math.max(8, Number(values.eventsListingCardGap) || 22),
         eventsListingCardRadius: Math.max(0, Number(values.eventsListingCardRadius) || 0),
         ...getManageSectionPayload(PREFIX, values),
@@ -285,7 +285,7 @@ function EventsListingEditForm(
                   <InputNumber min={1} max={24} style={{ width: "100%" }} />
                 </Form.Item>
                 <Form.Item name="eventsListingActiveColumns" label="Columns (desktop)">
-                  <InputNumber min={1} max={4} style={{ width: "100%" }} />
+                  <InputNumber min={1} max={3} style={{ width: "100%" }} />
                 </Form.Item>
                 <Form.Item name="eventsListingCardGap" label="Card gap (px)">
                   <InputNumber min={8} max={64} style={{ width: "100%" }} />

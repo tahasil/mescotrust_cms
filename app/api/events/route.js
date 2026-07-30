@@ -66,6 +66,57 @@ function buildLiveDateCondition(todayStart) {
   };
 }
 
+function buildStatusGroupedItemsQuery({ filter, todayStart, page, limit }) {
+  const todayEnd = getEndOfTodayUtc(todayStart);
+  const epoch = new Date(0);
+  const farFuture = new Date("9999-12-31T23:59:59.999Z");
+  const effectiveEndDate = { $ifNull: ["$endDate", "$startDate"] };
+  const isLive = {
+    $and: [
+      { $ne: ["$startDate", null] },
+      { $lte: ["$startDate", todayEnd] },
+      { $gte: [effectiveEndDate, todayStart] },
+    ],
+  };
+  const isPast = {
+    $and: [
+      { $ne: [effectiveEndDate, null] },
+      { $lt: [effectiveEndDate, todayStart] },
+    ],
+  };
+
+  return Event.aggregate([
+    { $match: filter },
+    {
+      $addFields: {
+        __eventStatusRank: {
+          $cond: [isLive, 0, { $cond: [isPast, 2, 1] }],
+        },
+      },
+    },
+    {
+      $addFields: {
+        __eventGroupSortDate: {
+          $cond: [
+            { $eq: ["$__eventStatusRank", 2] },
+            { $subtract: [epoch, effectiveEndDate] },
+            {
+              $subtract: [
+                { $ifNull: ["$startDate", farFuture] },
+                epoch,
+              ],
+            },
+          ],
+        },
+      },
+    },
+    { $sort: { __eventStatusRank: 1, __eventGroupSortDate: 1, updatedAt: -1 } },
+    { $skip: (page - 1) * limit },
+    { $limit: limit },
+    { $project: { __eventStatusRank: 0, __eventGroupSortDate: 0 } },
+  ]);
+}
+
 /**
  * Public events API.
  * GET /api/events — paginated list (published + active by default)
@@ -141,13 +192,18 @@ export async function GET(req) {
         : null;
     const includeTotal = fieldsMode !== "sidebar";
 
-    const findQuery = Event.find(filter)
-      .sort(sort)
-      .skip((page - 1) * limit)
-      .limit(limit);
-    if (select) findQuery.select(select);
+    const useStatusGroupedSort = sortMode === "grouped" && fieldsMode !== "sidebar";
+    const findQuery = useStatusGroupedSort
+      ? null
+      : Event.find(filter)
+          .sort(sort)
+          .skip((page - 1) * limit)
+          .limit(limit);
+    if (select && findQuery) findQuery.select(select);
 
-    const itemsPromise = findQuery.lean();
+    const itemsPromise = useStatusGroupedSort
+      ? buildStatusGroupedItemsQuery({ filter, todayStart, page, limit })
+      : findQuery.lean();
     const totalPromise = includeTotal ? Event.countDocuments(filter) : Promise.resolve(null);
     const [items, total] = await Promise.all([itemsPromise, totalPromise]);
 
