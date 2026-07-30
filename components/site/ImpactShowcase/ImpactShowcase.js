@@ -8,6 +8,11 @@ function text(value, fallback = "") {
   return value == null ? fallback : String(value).trim();
 }
 
+function numberInRange(value, fallback, min, max) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.min(max, Math.max(min, parsed)) : fallback;
+}
+
 export default function ImpactShowcase(props) {
   const prefix = "impactShowcase";
   const imageDesktop = text(
@@ -41,6 +46,7 @@ export default function ImpactShowcase(props) {
     props.impactShowcaseStatLabel,
     "families touched every year",
   );
+  const bodyFontSize = numberInRange(props.impactShowcaseBodyFontSize, 17, 10, 32);
 
   const color = (key, fallback) =>
     text(props[key]) ? getColor(props[key]) : fallback;
@@ -104,8 +110,8 @@ export default function ImpactShowcase(props) {
           <div className="fable-about-intro__copy">
             {subTitle ? <p className="fable-eyebrow" style={{ color: subtitleColor }}>{subTitle}</p> : null}
             {mainTitle ? <h2 className="fable-heading" style={{ color: titleColor }}>{renderHighlightedTitle(mainTitle, props)}</h2> : null}
-            {body1 ? <div className="fable-prose" style={{ color: bodyColor }}><SafeHtml html={body1} /></div> : null}
-            {body2 ? <div className="fable-prose" style={{ color: bodyColor }}><SafeHtml html={body2} /></div> : null}
+            {body1 ? <div className="fable-prose" style={{ color: bodyColor, fontSize: `${bodyFontSize}px` }}><SafeHtml html={body1} /></div> : null}
+            {body2 ? <div className="fable-prose" style={{ color: bodyColor, fontSize: `${bodyFontSize}px` }}><SafeHtml html={body2} /></div> : null}
           </div>
         </div>
       </PageContainer>

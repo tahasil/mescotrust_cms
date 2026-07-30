@@ -1,7 +1,7 @@
 "use client";
 
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { Collapse, Form, Input, Spin, message } from "antd";
+import { Collapse, Form, Input, InputNumber, Spin, message } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import RichTextEditor from "@/components/admin/RichTextEditor";
@@ -31,8 +31,13 @@ const COLOR_FIELDS = [
   "impactShowcaseBodyColorKey", "impactShowcaseStatValueColorKey",
   "impactShowcaseStatLabelColorKey",
 ];
+const DESCRIPTION_FONT_SIZE_DEFAULT = 17;
 const CONTENT_FIELDS = Object.keys(FALLBACK);
 const clean = (value) => value == null ? "" : String(value).trim();
+const numberInRange = (value, fallback, min, max) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.min(max, Math.max(min, parsed)) : fallback;
+};
 const validateDesktopImageDimensions = createDesktopImageDimensionValidator({
   allowedSizes: IMPACT_SHOWCASE_DESKTOP_ALLOWED_SIZES,
   allowedCompactText: IMPACT_SHOWCASE_DESKTOP_ALLOWED_COMPACT_TEXT,
@@ -54,6 +59,12 @@ function ImpactShowcaseEditForm({ source, initialData: initialDataProp, onSaveTo
       impactShowcaseImageDesktop: clean(data.impactShowcaseImageDesktop ?? legacyImage ?? "/images/about-mesco-1.png"),
       impactShowcaseImageMobile: clean(data.impactShowcaseImageMobile ?? data.impactShowcaseLeftImageMobile),
       ...Object.fromEntries(COLOR_FIELDS.map((field) => [field, clean(data[field])])),
+      impactShowcaseBodyFontSize: numberInRange(
+        data.impactShowcaseBodyFontSize,
+        DESCRIPTION_FONT_SIZE_DEFAULT,
+        10,
+        32,
+      ),
       ...getManageSectionInitialValues(PREFIX, data),
     });
   };
@@ -88,6 +99,12 @@ function ImpactShowcaseEditForm({ source, initialData: initialDataProp, onSaveTo
 
   const payloadFrom = (values) => ({
     ...Object.fromEntries([...CONTENT_FIELDS, ...COLOR_FIELDS, "impactShowcaseImageDesktop", "impactShowcaseImageMobile"].map((field) => [field, clean(values[field])])),
+    impactShowcaseBodyFontSize: numberInRange(
+      values.impactShowcaseBodyFontSize,
+      DESCRIPTION_FONT_SIZE_DEFAULT,
+      10,
+      32,
+    ),
     ...getManageSectionPayload(PREFIX, values),
   });
   const handleUpdate = () => form.validateFields().then(() => {
@@ -110,6 +127,11 @@ function ImpactShowcaseEditForm({ source, initialData: initialDataProp, onSaveTo
       <Collapse defaultActiveKey={["content"]} items={[
         { key: "section", label: "Manage Section", children: <ManageSectionFields prefix={PREFIX} form={form} themeColorOptions={themeColorOptions} /> },
         { key: "titles", label: "Titles & Colors", children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("ImpactShowcase")} /> },
+        { key: "typography", label: "Typography", children: (
+          <Form.Item name="impactShowcaseBodyFontSize" label="Description font size">
+            <InputNumber min={10} max={32} step={0.5} addonAfter="px" style={{ width: "100%" }} />
+          </Form.Item>
+        ) },
         { key: "content", label: "Content", children: <>
           <Form.Item name="impactShowcaseBody1" label="First paragraph"><RichTextEditor /></Form.Item>
           <Form.Item name="impactShowcaseBody2" label="Second paragraph"><RichTextEditor /></Form.Item>
