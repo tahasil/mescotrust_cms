@@ -6,7 +6,6 @@ import styled from "styled-components";
 import {
   FullWidthBackground,
   getColor,
-  MainTitle,
   PageContainer,
   SubTitle,
 } from "@/styles/Theme";
@@ -364,7 +363,12 @@ export default function InMedia(props) {
                   </SubTitle>
                 )}
                 {titleEnabled && (
-                  <MainTitle className="fable-heading" color={titleColor}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
+                  <h2
+                    className="fable-heading"
+                    style={titleColor ? { color: titleColor } : undefined}
+                  >
+                    {renderHighlightedTitle(mainTitle, props)}
+                  </h2>
                 )}
               </Col>
             </Row>
