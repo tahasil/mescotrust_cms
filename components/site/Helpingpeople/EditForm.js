@@ -23,6 +23,14 @@ const REQUIRED_BACKGROUND_IMAGE_HEIGHT = 620;
 const REQUIRED_BACKGROUND_IMAGE_TEXT =
   `${REQUIRED_BACKGROUND_IMAGE_WIDTH} \u00D7 ${REQUIRED_BACKGROUND_IMAGE_HEIGHT} px`;
 
+function normalizeDescriptionHtml(value) {
+  if (value == null) return "";
+  return String(value)
+    .replace(/&amp;nbsp;|&nbsp;|&#160;|&#x0*a0;/gi, " ")
+    .replace(/\u00a0/g, " ")
+    .trim();
+}
+
 const validateDesktopImageDimensions = createDesktopImageDimensionValidator({
   allowedSizes: HELPINGPEOPLE_DESKTOP_ALLOWED_SIZES,
   allowedCompactText: HELPINGPEOPLE_DESKTOP_ALLOWED_COMPACT_TEXT,
@@ -86,7 +94,7 @@ function HelpingpeopleEditForm({ source, initialData: initialDataProp, onSaveToP
     form.setFieldsValue({
       helpingpeopleSubTitle: data?.helpingpeopleSubTitle != null ? String(data.helpingpeopleSubTitle).trim() : "The People",
       helpingpeopleMainTitle: data?.helpingpeopleMainTitle != null ? String(data.helpingpeopleMainTitle).trim() : "Helping people live better tomorrow",
-      helpingpeopleParagraph: data?.helpingpeopleParagraph != null ? String(data.helpingpeopleParagraph).trim() : "",
+      helpingpeopleParagraph: normalizeDescriptionHtml(data?.helpingpeopleParagraph),
       helpingpeopleImageDesktop:
         data?.helpingpeopleImageDesktop != null
           ? String(data.helpingpeopleImageDesktop).trim()
@@ -158,7 +166,7 @@ function HelpingpeopleEditForm({ source, initialData: initialDataProp, onSaveToP
       const payload = {
         helpingpeopleSubTitle: values.helpingpeopleSubTitle != null ? String(values.helpingpeopleSubTitle).trim() : "",
         helpingpeopleMainTitle: values.helpingpeopleMainTitle != null ? String(values.helpingpeopleMainTitle).trim() : "",
-        helpingpeopleParagraph: values.helpingpeopleParagraph != null ? String(values.helpingpeopleParagraph).trim() : "",
+        helpingpeopleParagraph: normalizeDescriptionHtml(values.helpingpeopleParagraph),
         helpingpeopleImageDesktop:
           values.helpingpeopleImageDesktop != null
             ? String(values.helpingpeopleImageDesktop).trim()

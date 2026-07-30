@@ -8,6 +8,14 @@ import {
 import SafeHtml from "@/components/cms/SafeHtml";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
+function normalizeDescriptionHtml(value) {
+  if (value == null) return "";
+  return String(value)
+    .replace(/&amp;nbsp;|&nbsp;|&#160;|&#x0*a0;/gi, " ")
+    .replace(/\u00a0/g, " ")
+    .trim();
+}
+
 /**
  * Site component: Helpingpeople (Helping People).
  * Two-column layout: title + paragraph on left, image on right.
@@ -20,7 +28,7 @@ export default function Helpingpeople(props) {
   )
     .toString()
     .trim();
-  const paragraph = (props?.helpingpeopleParagraph ?? "").toString().trim();
+  const paragraph = normalizeDescriptionHtml(props?.helpingpeopleParagraph);
   const imageDesktop = (
     props?.helpingpeopleImageDesktop ??
     props?.helpingpeopleImageUrl ??
