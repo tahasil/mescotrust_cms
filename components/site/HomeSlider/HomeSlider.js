@@ -317,7 +317,7 @@ export default function HomeSlider(props) {
         .home-slider-structure-container { display: contents; }
         .home-cinematic-slider { --home-slider-body: "Instrument Sans", system-ui, sans-serif; --home-slider-display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif; position: relative; width: 100%; overflow: hidden; color: #fbfaf7; background: var(--home-slider-background); font-family: var(--home-slider-body); font-synthesis: none; -webkit-font-smoothing: antialiased; touch-action: pan-y; }
         .home-cinematic-slider::before { content: ""; position: absolute; inset: 0; z-index: 1; background: radial-gradient(52% 60% at 82% 10%,rgba(224,60,51,.16),transparent 70%),radial-gradient(40% 50% at 8% 92%,rgba(224,60,51,.1),transparent 70%); pointer-events: none; }
-        .home-slider-stage { position: relative; min-height: max(100svh,var(--home-slider-min-height)); }
+        .home-slider-stage { position: relative; min-height: max(calc(100svh - var(--home-slider-viewport-offset,0px)),var(--home-slider-min-height)); min-height: max(calc(100dvh - var(--home-slider-viewport-offset,0px)),var(--home-slider-min-height)); }
         .home-slider-slide { position: absolute; inset: 0; z-index: 0; visibility: hidden; clip-path: inset(100% 0 0 0); }
         .home-slider-slide.is-active { z-index: 1; visibility: visible; clip-path: inset(0); transition: clip-path var(--home-slider-transition) cubic-bezier(.77,0,.18,1); }
         .home-slider-slide.was-active { z-index: 0; visibility: visible; clip-path: inset(0); }
@@ -332,7 +332,8 @@ export default function HomeSlider(props) {
         .home-slider-caption a { display: inline-flex; align-items: center; gap: 8px; padding-bottom: 3px; color: rgba(250,246,239,.92) !important; -webkit-text-fill-color: rgba(250,246,239,.92) !important; border-bottom: 1.5px solid currentColor; font-size: 14px; font-weight: 600; text-decoration: none !important; }
         .home-slider-slide.is-active .home-slider-caption p, .home-slider-slide.is-active .home-slider-caption a { animation: homeSliderCaptionUp .8s cubic-bezier(.16,1,.3,1) .45s backwards; }
         .home-slider-slide.is-active .home-slider-caption a { animation-delay: .6s; }
-        .home-slider-content { position: relative; z-index: 3; min-height: max(100svh,var(--home-slider-min-height)); padding-top: var(--home-slider-container-padding-top,112px); padding-bottom: var(--home-slider-container-padding-bottom,120px); display: flex; flex-direction: column; justify-content: center; align-items: flex-start; pointer-events: none; }
+        .home-slider-content { position: relative; z-index: 3; min-height: max(calc(100svh - var(--home-slider-viewport-offset,0px)),var(--home-slider-min-height)); min-height: max(calc(100dvh - var(--home-slider-viewport-offset,0px)),var(--home-slider-min-height)); padding-top: var(--home-slider-container-padding-top,112px); padding-bottom: var(--home-slider-container-padding-bottom,120px); display: flex; flex-direction: column; justify-content: center; align-items: flex-start; pointer-events: none; }
+        .public-site[data-has-header-ribbon="true"] .home-cinematic-slider { --home-slider-viewport-offset: var(--appearance-ribbon-height,40.6px); }
         .home-slider-content > * { pointer-events: auto; }
         .home-slider-content.align-center { align-items: center; text-align: center; }
         .home-slider-content.align-right { align-items: flex-end; text-align: right; }
@@ -373,7 +374,7 @@ export default function HomeSlider(props) {
           .home-slider-title { max-width: 16ch; font-size: clamp(38px,7vw,68px) !important; }
         }
         @media (max-width: 767px) {
-          .home-slider-stage, .home-slider-content { min-height: max(540px,calc(100svh - 96px)); min-height: max(540px,calc(100dvh - 96px)); }
+          .home-slider-stage, .home-slider-content { min-height: max(540px,calc(100svh - 96px - var(--home-slider-viewport-offset,0px))); min-height: max(540px,calc(100dvh - 96px - var(--home-slider-viewport-offset,0px))); }
           .home-slider-content { --home-slider-mobile-content-top: 94px; justify-content: flex-start; padding-top: var(--home-slider-container-padding-top,var(--home-slider-mobile-content-top)); padding-bottom: var(--home-slider-container-padding-bottom,48px); }
           .public-site[data-has-header-ribbon="true"] .home-slider-content { --home-slider-mobile-content-top: 86px; }
           .home-slider-title { max-width: 12ch; margin-bottom: 14px; font-size: clamp(32px,9.6vw,44px) !important; line-height: 1.02 !important; }
