@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, Collapse, message, Spin } from "antd";
+import { Form, Input, Select, Collapse, message, Spin } from "antd";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
@@ -104,6 +104,10 @@ function HelpingpeopleEditForm({ source, initialData: initialDataProp, onSaveToP
             ? String(data.helpingpeopleImageUrl).trim()
             : "/images/about-mesco-3.png",
       helpingpeopleImageAlt: data?.helpingpeopleImageAlt != null ? String(data.helpingpeopleImageAlt).trim() : "Helping people",
+      helpingpeopleImagePosition:
+        String(data?.helpingpeopleImagePosition || "right").toLowerCase() === "left"
+          ? "left"
+          : "right",
       helpingpeopleTitleColorKey: data?.helpingpeopleTitleColorKey != null ? String(data.helpingpeopleTitleColorKey).trim() : "",
       helpingpeopleSubTitleColorKey: data?.helpingpeopleSubTitleColorKey != null ? String(data.helpingpeopleSubTitleColorKey).trim() : "",
       helpingpeopleTextColorKey: data?.helpingpeopleTextColorKey != null ? String(data.helpingpeopleTextColorKey).trim() : "",
@@ -172,6 +176,10 @@ function HelpingpeopleEditForm({ source, initialData: initialDataProp, onSaveToP
               ? String(values.helpingpeopleImageUrl).trim()
               : "",
         helpingpeopleImageAlt: values.helpingpeopleImageAlt != null ? String(values.helpingpeopleImageAlt).trim() : "",
+        helpingpeopleImagePosition:
+          String(values.helpingpeopleImagePosition || "right").toLowerCase() === "left"
+            ? "left"
+            : "right",
         helpingpeopleTitleColorKey: values.helpingpeopleTitleColorKey != null ? String(values.helpingpeopleTitleColorKey).trim() : "",
         helpingpeopleSubTitleColorKey: values.helpingpeopleSubTitleColorKey != null ? String(values.helpingpeopleSubTitleColorKey).trim() : "",
         helpingpeopleTextColorKey: values.helpingpeopleTextColorKey != null ? String(values.helpingpeopleTextColorKey).trim() : "",
@@ -243,6 +251,14 @@ function HelpingpeopleEditForm({ source, initialData: initialDataProp, onSaveToP
             label: "Content",
             children: (
               <>
+                <Form.Item name="helpingpeopleImagePosition" label="Image Position">
+                  <Select
+                    options={[
+                      { label: "Left", value: "left" },
+                      { label: "Right", value: "right" },
+                    ]}
+                  />
+                </Form.Item>
                 <Form.Item name="helpingpeopleParagraph" label="Paragraph">
                   <RichTextEditor placeholder="Enter paragraph text..." />
                 </Form.Item>

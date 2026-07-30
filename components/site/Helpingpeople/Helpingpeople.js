@@ -34,6 +34,11 @@ export default function Helpingpeople(props) {
   const imageAlt = (props?.helpingpeopleImageAlt ?? "Helping people")
     .toString()
     .trim();
+  const imagePosition =
+    (props?.helpingpeopleImagePosition ?? "right").toString().toLowerCase() ===
+    "left"
+      ? "left"
+      : "right";
 
   const titleColorKey = (props?.helpingpeopleTitleColorKey ?? "")
     .toString()
@@ -197,7 +202,7 @@ export default function Helpingpeople(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
       <PageContainer $managedStyle={pageContainerBgStyle}>
-        <div className="fable-section fable-scheme fable-about-people fable-helping-people">
+        <div className={`fable-section fable-scheme fable-about-people fable-helping-people is-image-${imagePosition}`}>
           <div>
             {subTitle ? <p className="fable-eyebrow" style={{ color: subTitleColor }}>{subTitle}</p> : null}
             <h2
