@@ -1,73 +1,107 @@
 "use client";
 
-import { Row, Col } from "antd";
 import styled from "styled-components";
 import {
   FullWidthBackground,
   getColor,
-  MainTitle,
   PageContainer,
   SubTitle,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 /* ── Styled Components ── */
-const TestimonialCard = styled.div`
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 16px;
-  padding: 32px;
-  background: #fff;
-  margin-bottom: 16px;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.05);
-  &:last-child {
-    margin-bottom: 0;
+const TestimonialsGrid = styled.div`
+  && {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(18px, 2vw, 28px);
+    align-items: stretch;
   }
-  @media (max-width: 768px) {
-    padding: 24px;
+
+  @media (max-width: 767px) {
+    && { grid-template-columns: minmax(0, 1fr); }
   }
 `;
 
-const QuoteIcon = styled.div`
-  margin-bottom: 16px;
-  svg {
-    width: 40px;
-    height: 40px;
+const TestimonialsHeading = styled.header`
+  margin-bottom: clamp(28px, 4vw, 54px);
+
+  .fable-eyebrow {
+    margin-bottom: 18px;
   }
-  @media (max-width: 768px) {
-    svg {
-      width: 32px;
-      height: 32px;
-    }
+
+  .fable-heading {
+    margin-bottom: 0;
   }
+`;
+
+const TestimonialCard = styled.article`
+  && {
+    min-width: 0;
+    min-height: clamp(210px, 18vw, 270px);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: clamp(24px, 2.5vw, 34px);
+    border: 1px solid var(--donor-card-border);
+    border-radius: 16px;
+    background: var(--donor-card-bg);
+    box-shadow: none;
+    transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 280ms ease;
+  }
+
+  &&:nth-child(odd) {
+    background: var(--donor-card-bg-alt);
+    border-color: transparent;
+  }
+
+  &&:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 34px color-mix(in srgb, var(--donor-card-shadow) 9%, transparent);
+  }
+
+  @media (max-width: 767px) {
+    && { min-height: 0; padding: 24px; }
+  }
+`;
+
+const QuoteIcon = styled.span`
+  display: block;
+  margin: 0 0 clamp(24px, 2.4vw, 34px);
+  color: var(--donor-quote-icon);
+  font-family: Georgia, serif;
+  font-size: calc(var(--donor-quote-icon-size) * 1px);
+  font-weight: 700;
+  line-height: 0.65;
 `;
 
 const QuoteText = styled.p`
-  font-size: 16px;
-  line-height: 1.7;
-  color: rgba(0, 0, 0, 0.7);
-  margin-bottom: 20px;
-  @media (max-width: 768px) {
-    font-size: 13px;
-  }
+  margin: 0 0 22px;
+  color: var(--donor-quote-text);
+  font-size: calc(var(--donor-quote-text-size) * 1px);
+  font-weight: 400;
+  line-height: 1.48;
 `;
 
-const PersonName = styled.div`
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1.4;
-  margin-bottom: 2px;
-  padding-top: 16px;
-  border-top: 1px dashed rgba(0, 0, 0, 0.12);
-  @media (max-width: 768px) {
-    font-size: 15px;
-  }
+const PersonDetails = styled.footer`
+  margin-top: auto;
 `;
 
-const PersonRole = styled.div`
-  font-size: 16px;
-  font-weight: 500;
+const PersonName = styled.strong`
+  display: block;
+  margin: 0 0 3px;
+  color: var(--donor-name);
+  font-size: calc(var(--donor-name-size) * 1px);
+  font-weight: 650;
   line-height: 1.4;
-  color: rgba(0, 0, 0, 0.5);
+`;
+
+const PersonRole = styled.span`
+  display: block;
+  color: var(--donor-role);
+  font-size: calc(var(--donor-role-size) * 1px);
+  font-weight: 400;
+  line-height: 1.4;
 `;
 
 /**
@@ -112,6 +146,26 @@ export default function DonorTestimonials(props) {
     .toString()
     .trim();
   const roleColor = roleColorKey ? getColor(roleColorKey) : undefined;
+  const fontSize = (value, fallback, min, max) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed)
+      ? Math.min(max, Math.max(min, parsed))
+      : fallback;
+  };
+  const designStyle = {
+    "--donor-card-bg": getColor("white"),
+    "--donor-card-bg-alt": getColor("surface"),
+    "--donor-card-border": getColor("border"),
+    "--donor-card-shadow": getColor("black"),
+    "--donor-quote-icon": quoteIconColor,
+    "--donor-quote-text": quoteTextColor || getColor("black"),
+    "--donor-name": nameColor || getColor("black"),
+    "--donor-role": roleColor || getColor("blackLight"),
+    "--donor-quote-icon-size": fontSize(props?.donorTestimonialsQuoteIconFontSize, 32, 16, 72),
+    "--donor-quote-text-size": fontSize(props?.donorTestimonialsQuoteTextFontSize, 16, 11, 32),
+    "--donor-name-size": fontSize(props?.donorTestimonialsNameFontSize, 12, 10, 28),
+    "--donor-role-size": fontSize(props?.donorTestimonialsRoleFontSize, 11, 9, 24),
+  };
 
   /* ── Items ── */
   const items = Array.isArray(props?.donorTestimonialsItems)
@@ -268,10 +322,9 @@ export default function DonorTestimonials(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
       <PageContainer $managedStyle={pageContainerBgStyle}>
-        <div className="fable-section">
+        <div className="fable-section" style={designStyle}>
         {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) && (
-          <Row gutter={[16, 16]}>
-            <Col span={24} className="mb-4">
+          <TestimonialsHeading>
               {subTitleEnabled && subTitle && (
                 <SubTitle className="fable-eyebrow"
                   style={subTitleColor ? { color: subTitleColor } : undefined}
@@ -280,55 +333,38 @@ export default function DonorTestimonials(props) {
                 </SubTitle>
               )}
               {titleEnabled && mainTitle && (
-                <MainTitle className="fable-heading" color={titleColor}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
+                <h2
+                  className="fable-heading"
+                  style={titleColor ? { color: titleColor } : undefined}
+                >
+                  {renderHighlightedTitle(mainTitle, props)}
+                </h2>
               )}
-            </Col>
-          </Row>
+          </TestimonialsHeading>
         )}
-        <div className="fable-testimonials">
+        <TestimonialsGrid className="fable-testimonials">
         {items.map((item, idx) => {
           const quote = (item?.quote ?? "").toString().trim();
           const name = (item?.name ?? "").toString().trim();
           const role = (item?.role ?? "").toString().trim();
           return (
-            <TestimonialCard className="fable-testimonial" key={idx}>
-              <QuoteIcon className="fable-testimonial__mark">
-                <svg
-                  viewBox="0 0 40 32"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M0 32V12.8C0 9.07 0.853 5.97 2.56 3.52C4.267 1.07 7.04 0 10.88 0V6.4C9.173 6.4 7.893 7.04 7.04 8.32C6.187 9.6 5.76 11.2 5.76 13.12H12.8V32H0ZM21.76 32V12.8C21.76 9.07 22.613 5.97 24.32 3.52C26.027 1.07 28.8 0 32.64 0V6.4C30.933 6.4 29.653 7.04 28.8 8.32C27.947 9.6 27.52 11.2 27.52 13.12H34.56V32H21.76Z"
-                    fill={quoteIconColor}
-                  />
-                </svg>
+            <TestimonialCard key={idx}>
+              <QuoteIcon aria-hidden="true">
+                &ldquo;
               </QuoteIcon>
               {quote && (
-                <QuoteText
-                  style={quoteTextColor ? { color: quoteTextColor } : undefined}
-                >
-                  {quote}
-                </QuoteText>
+                <QuoteText>{quote}</QuoteText>
               )}
-              {name && (
-                <PersonName
-                  style={nameColor ? { color: nameColor } : undefined}
-                >
-                  {name}
-                </PersonName>
-              )}
-              {role && (
-                <PersonRole
-                  style={roleColor ? { color: roleColor } : undefined}
-                >
-                  {role}
-                </PersonRole>
-              )}
+              {name || role ? (
+                <PersonDetails>
+                  {name ? <PersonName>{name}</PersonName> : null}
+                  {role ? <PersonRole>{role}</PersonRole> : null}
+                </PersonDetails>
+              ) : null}
             </TestimonialCard>
           );
         })}
-        </div>
+        </TestimonialsGrid>
         </div>
       </PageContainer>
     </FullWidthBackground>

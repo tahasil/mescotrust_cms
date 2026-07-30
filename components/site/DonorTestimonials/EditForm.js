@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, Row, Col, Collapse, message, Spin } from "antd";
+import { Form, Input, InputNumber, Row, Col, Collapse, Card, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
@@ -69,6 +69,10 @@ function DonorTestimonialsEditForm({ source, initialData: initialDataProp, onSav
         donorTestimonialsNameColorKey: data?.donorTestimonialsNameColorKey != null ? String(data.donorTestimonialsNameColorKey).trim() : "",
         donorTestimonialsQuoteTextColorKey: data?.donorTestimonialsQuoteTextColorKey != null ? String(data.donorTestimonialsQuoteTextColorKey).trim() : "",
         donorTestimonialsRoleColorKey: data?.donorTestimonialsRoleColorKey != null ? String(data.donorTestimonialsRoleColorKey).trim() : "",
+        donorTestimonialsQuoteIconFontSize: Number(data?.donorTestimonialsQuoteIconFontSize ?? 32),
+        donorTestimonialsQuoteTextFontSize: Number(data?.donorTestimonialsQuoteTextFontSize ?? 16),
+        donorTestimonialsNameFontSize: Number(data?.donorTestimonialsNameFontSize ?? 12),
+        donorTestimonialsRoleFontSize: Number(data?.donorTestimonialsRoleFontSize ?? 11),
         donorTestimonialsItems: items.length > 0 ? items : DEFAULT_ITEMS.map(normalizeItem),
       });
       if (theme) {
@@ -120,6 +124,10 @@ function DonorTestimonialsEditForm({ source, initialData: initialDataProp, onSav
         donorTestimonialsNameColorKey: values.donorTestimonialsNameColorKey != null ? String(values.donorTestimonialsNameColorKey).trim() : "",
         donorTestimonialsQuoteTextColorKey: values.donorTestimonialsQuoteTextColorKey != null ? String(values.donorTestimonialsQuoteTextColorKey).trim() : "",
         donorTestimonialsRoleColorKey: values.donorTestimonialsRoleColorKey != null ? String(values.donorTestimonialsRoleColorKey).trim() : "",
+        donorTestimonialsQuoteIconFontSize: Number(values.donorTestimonialsQuoteIconFontSize ?? 32),
+        donorTestimonialsQuoteTextFontSize: Number(values.donorTestimonialsQuoteTextFontSize ?? 16),
+        donorTestimonialsNameFontSize: Number(values.donorTestimonialsNameFontSize ?? 12),
+        donorTestimonialsRoleFontSize: Number(values.donorTestimonialsRoleFontSize ?? 11),
         donorTestimonialsItems: items,
       };
       if (isPageBlock && onSaveToPage) {
@@ -161,6 +169,36 @@ function DonorTestimonialsEditForm({ source, initialData: initialDataProp, onSav
             key: "title-colors",
             label: "Title & Colors",
             children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("DonorTestimonials")} />,
+          },
+          {
+            key: "typography",
+            label: "Typography",
+            children: (
+              <Card size="small" title="Card element font sizes">
+                <Row gutter={[16, 0]}>
+                  <Col xs={24} md={12}>
+                    <Form.Item name="donorTestimonialsQuoteIconFontSize" label="Quote mark size">
+                      <InputNumber min={16} max={72} addonAfter="px" style={{ width: "100%" }} />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Form.Item name="donorTestimonialsQuoteTextFontSize" label="Quote text size">
+                      <InputNumber min={11} max={32} addonAfter="px" style={{ width: "100%" }} />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Form.Item name="donorTestimonialsNameFontSize" label="Donor name size">
+                      <InputNumber min={10} max={28} addonAfter="px" style={{ width: "100%" }} />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Form.Item name="donorTestimonialsRoleFontSize" label="Role size">
+                      <InputNumber min={9} max={24} addonAfter="px" style={{ width: "100%" }} />
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </Card>
+            ),
           },
           {
             key: "items",
