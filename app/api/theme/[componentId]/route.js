@@ -21,6 +21,7 @@ import {
 } from "@/lib/innerPageHeroImageValidation";
 import { validateStoriesSliderImages } from "@/lib/storiesSliderImageValidation";
 import { validateImpactShowcaseImages } from "@/lib/impactShowcaseImageValidation";
+import { validateVolunteerMescoImage } from "@/lib/volunteerMescoImageValidation";
 import { validateHelpingpeopleImage } from "@/lib/helpingpeopleImageValidation";
 import { validateManagingCommitteeImage } from "@/lib/managingCommitteeImageValidation";
 import { validateCommitteeMembersImages } from "@/lib/committeeMembersImageValidation";
@@ -257,6 +258,16 @@ export async function PUT(req, { params }) {
       }
     }
 
+    if (componentId === "VolunteerMesco") {
+      const validationErrors = await validateVolunteerMescoImage(defaultProps);
+      if (validationErrors.length > 0) {
+        return NextResponse.json(
+          { error: validationErrors[0] },
+          { status: 400 },
+        );
+      }
+    }
+
     if (componentId === "Helpingpeople") {
       const validationErrors = await validateHelpingpeopleImage(defaultProps);
       if (validationErrors.length > 0) {
@@ -386,7 +397,8 @@ export async function PUT(req, { params }) {
     if (!doc) {
       doc = await Component.create({
         name: componentId,
-        displayName: componentId,
+        displayName:
+          componentId === "VolunteerMesco" ? "Volunteer Mesco" : componentId,
         type: "custom",
         baseComponent: componentId,
         defaultProps: safeDefaultProps,

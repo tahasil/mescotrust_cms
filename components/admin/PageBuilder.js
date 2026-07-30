@@ -80,6 +80,7 @@ import {
 } from "@/lib/manageSectionFields";
 import { getDefaultTitleAndColorsProps } from "@/lib/titleAndColorsConfig";
 import { HOME_SLIDER_DEFAULT_PROPS } from "@/components/site/HomeSlider/defaults";
+import { VOLUNTEER_MESCO_DEFAULT_PROPS } from "@/components/site/VolunteerMesco/defaults";
 
 /** Site components that have full edit flow in page builder. Header/Footer excluded. */
 const EDITABLE_SITE_COMPONENTS = SITE_COMPONENT_IDS.filter(
@@ -281,6 +282,12 @@ function getDefaultPropsForNewSiteComponent(componentId) {
         ],
         ourImpactCountEnabled: true,
         ourImpactRevealEnabled: true,
+      };
+    case "VolunteerMesco":
+      return {
+        ...base,
+        ...VOLUNTEER_MESCO_DEFAULT_PROPS,
+        volunteerMescoChips: [...VOLUNTEER_MESCO_DEFAULT_PROPS.volunteerMescoChips],
       };
     case "OverviewOfOurWork":
       return {

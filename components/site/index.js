@@ -41,6 +41,7 @@ export { default as Registered, RegisteredEditForm } from "./Registered/index";
 export { default as Helpingpeople, HelpingpeopleEditForm } from "./Helpingpeople/index";
 export { default as AnimationsText, AnimationsTextEditForm } from "./AnimationsText/index";
 export { default as ImpactShowcase, ImpactShowcaseEditForm } from "./ImpactShowcase/index";
+export { default as VolunteerMesco, VolunteerMescoEditForm } from "./VolunteerMesco/index";
 export { default as InnerPageHero, InnerPageHeroEditForm } from "./InnerPageHero/index";
 export { default as HelpingEvents, HelpingEventsEditForm } from "./HelpingEvents/index";
 export { default as Notices, NoticesEditForm } from "./Notices/index";
@@ -98,6 +99,7 @@ import RegisteredEditForm from "./Registered/EditForm";
 import HelpingpeopleEditForm from "./Helpingpeople/EditForm";
 import AnimationsTextEditForm from "./AnimationsText/EditForm";
 import ImpactShowcaseEditForm from "./ImpactShowcase/EditForm";
+import VolunteerMescoEditForm from "./VolunteerMesco/EditForm";
 import InnerPageHeroEditForm from "./InnerPageHero/EditForm";
 import HelpingEventsEditForm from "./HelpingEvents/EditForm";
 import NoticesEditForm from "./Notices/EditForm";
@@ -150,6 +152,7 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   HelpingEvents: HelpingEventsEditForm,
   InnerPageHero: InnerPageHeroEditForm,
   ImpactShowcase: ImpactShowcaseEditForm,
+  VolunteerMesco: VolunteerMescoEditForm,
   AnimationsText: AnimationsTextEditForm,
   Helpingpeople: HelpingpeopleEditForm,
   Registered: RegisteredEditForm,

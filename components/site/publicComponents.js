@@ -37,6 +37,7 @@ export { default as Registered } from "./Registered/Registered";
 export { default as Helpingpeople } from "./Helpingpeople/Helpingpeople";
 export { default as AnimationsText } from "./AnimationsText/AnimationsText";
 export { default as ImpactShowcase } from "./ImpactShowcase/ImpactShowcase";
+export { default as VolunteerMesco } from "./VolunteerMesco/VolunteerMesco";
 export { default as InnerPageHero } from "./InnerPageHero/InnerPageHero";
 export { default as HelpingEvents } from "./HelpingEvents/HelpingEvents";
 export { default as Notices } from "./Notices/Notices";

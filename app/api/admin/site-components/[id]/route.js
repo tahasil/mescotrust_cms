@@ -86,6 +86,8 @@ export async function GET(req, { params }) {
     const fallbackDisplayName =
       id === "OurImpact"
         ? "Our Impact"
+        : id === "VolunteerMesco"
+          ? "Volunteer Mesco"
         : id === LATEST_NEWS_ID
           ? "Latest News"
           : id;
