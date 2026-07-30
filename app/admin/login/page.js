@@ -89,18 +89,18 @@ export default function AdminLoginPage() {
         />
 
         <div className={styles.formPanel}>
-          {theme.adminLogoUrl ? (
-            <div className={styles.logoArea}>
-              <div
-                className={styles.logo}
-                role="img"
-                aria-label="Admin logo"
-                style={{ backgroundImage: `url(${JSON.stringify(theme.adminLogoUrl)})` }}
-              />
-            </div>
-          ) : null}
-
           <div className={styles.formWrap}>
+            {theme.adminLogoUrl ? (
+              <div className={styles.logoArea}>
+                <div
+                  className={styles.logo}
+                  role="img"
+                  aria-label="Admin logo"
+                  style={{ backgroundImage: `url(${JSON.stringify(theme.adminLogoUrl)})` }}
+                />
+              </div>
+            ) : null}
+
             <div className={styles.headingBlock}>
               <p>Please enter your details to sign in to your account</p>
             </div>

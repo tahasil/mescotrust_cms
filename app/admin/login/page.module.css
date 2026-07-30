@@ -67,12 +67,12 @@
   grid-column: 2;
   grid-row: 1;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   min-width: 0;
   min-height: 0;
   margin: 14px;
-  padding: clamp(132px, 11vw, 154px) clamp(30px, 5vw, 76px) clamp(30px, 5vw, 76px);
+  padding: clamp(30px, 5vw, 76px);
   overflow: hidden;
   border: 1px solid rgba(42, 40, 62, 0.08);
   border-radius: clamp(18px, 2vw, 27px);
@@ -146,16 +146,12 @@
 }
 
 .logoArea {
-  position: absolute;
-  z-index: 2;
-  top: clamp(24px, 3.2vw, 42px);
-  left: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   width: clamp(128px, 14vw, 180px);
   height: clamp(62px, 7vw, 82px);
-  transform: translateX(-50%);
+  margin: 0 auto clamp(18px, 2.5vh, 26px);
 }
 
 .logo {
@@ -266,7 +262,7 @@
   }
 
   .formPanel {
-    padding: clamp(112px, 15vw, 132px) clamp(28px, 5vw, 48px) clamp(28px, 5vw, 48px);
+    padding: clamp(28px, 5vw, 48px);
   }
 }
 
@@ -289,14 +285,13 @@
     grid-column: 1;
     grid-row: 2;
     margin: 8px 10px 10px;
-    padding: 88px clamp(22px, 5vw, 38px) clamp(22px, 5vw, 38px);
+    padding: clamp(22px, 5vw, 38px);
   }
 
   .logoArea {
-    top: 14px;
-    left: 50%;
     width: 124px;
     height: 54px;
+    margin-bottom: 16px;
   }
 
   .headingBlock {
@@ -335,12 +330,10 @@
   .formPanel {
     height: 100%;
     margin: 8px;
-    padding: 88px clamp(20px, 7vw, 34px) clamp(24px, 8vw, 40px);
+    padding: clamp(24px, 8vw, 40px) clamp(20px, 7vw, 34px);
   }
 
   .logoArea {
-    top: 18px;
-    left: 50%;
     width: 132px;
     height: 58px;
   }
@@ -352,15 +345,14 @@
 
 @media (max-height: 470px) and (orientation: landscape) {
   .formPanel {
-    padding-top: 58px;
+    padding-top: 16px;
     padding-bottom: 16px;
   }
 
   .logoArea {
-    top: 8px;
-    left: 50%;
     width: 96px;
     height: 42px;
+    margin-bottom: 10px;
   }
 
   .headingBlock {
@@ -380,14 +372,14 @@
 
 @media (max-height: 760px) and (min-width: 481px) {
   .formPanel {
-    padding-top: 90px;
+    padding-top: 16px;
     padding-bottom: 16px;
   }
 
   .logoArea {
-    top: 14px;
     width: 124px;
     height: 54px;
+    margin-bottom: 12px;
   }
 
   .headingBlock {
@@ -416,14 +408,14 @@
   .formPanel {
     box-sizing: border-box;
     height: calc(100% - 16px);
-    padding-top: 48px;
+    padding-top: 8px;
     padding-bottom: 8px;
   }
 
   .logoArea {
-    top: 6px;
     width: 88px;
     height: 36px;
+    margin-bottom: 6px;
   }
 
   .headingBlock {
