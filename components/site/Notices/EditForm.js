@@ -108,6 +108,8 @@ function NoticesEditForm(
         noticesRevealStagger: data?.noticesRevealStagger ?? 0.08,
         noticesRevealDistance: data?.noticesRevealDistance ?? 30,
         noticesRevealEase: String(data?.noticesRevealEase ?? "power3.out").trim(),
+        noticesItemsStyle:
+          data?.noticesItemsStyle === "style2" ? "style2" : "style1",
         ...Object.fromEntries(COLOR_FIELDS.map((key) => [key, String(data?.[key] ?? "").trim()])),
         noticesItems:
           items.length > 0 ? items : [normalizeItem({}), normalizeItem({}), normalizeItem({})],
@@ -175,6 +177,8 @@ function NoticesEditForm(
         noticesRevealStagger: Number(values.noticesRevealStagger ?? 0.08),
         noticesRevealDistance: Number(values.noticesRevealDistance ?? 30),
         noticesRevealEase: String(values.noticesRevealEase ?? "power3.out").trim(),
+        noticesItemsStyle:
+          values.noticesItemsStyle === "style2" ? "style2" : "style1",
         ...Object.fromEntries(COLOR_FIELDS.map((key) => [key, String(values?.[key] ?? "").trim()])),
         noticesItems: items,
       };
@@ -241,66 +245,76 @@ function NoticesEditForm(
             key: "items",
             label: "Notice Items",
             children: (
-              <Form.List name="noticesItems">
-                {(fields, { add, remove, move }) => (
-                  <SortableFormList
-                    fields={fields}
-                    add={add}
-                    remove={remove}
-                    move={move}
-                    itemLabel="Notice"
-                    addButtonText="Add notice"
-                    defaultAddPayload={{
-                      indexLabel: "",
-                      label: "",
-                      subLabel: "",
-                      link: "",
-                      target: "_self",
-                      ariaLabel: "",
-                    }}
-                    reorderMovedIndex={reorderMovedIndex}
-                    reorderDirection={reorderDirection}
-                    onMoveWithTransition={(from, to) => {
-                      setReorderDirection(to < from ? "up" : "down");
-                      setReorderMovedIndex(to);
-                      setTimeout(() => setReorderMovedIndex(-1), 400);
-                    }}
-                    renderItemContent={(name, restField) => (
-                      <Row gutter={[16, 16]}>
-                        <Col span={8}><Form.Item {...restField} name={[name, "indexLabel"]} label="Index"><Input placeholder="01" /></Form.Item></Col>
-                        <Col span={16}><Form.Item {...restField} name={[name, "subLabel"]} label="Type / meta"><Input placeholder="PDF download" /></Form.Item></Col>
-                        <Col span={24}>
-                          <Form.Item
-                            {...restField}
-                            name={[name, "label"]}
-                            label="Label"
-                            rules={[{ required: true, message: "Label is required" }]}
-                          >
-                            <Input placeholder="e.g. Form5A PF" size="large" />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}><Form.Item {...restField} name={[name, "target"]} label="Target"><Select options={[{label:"Same Tab (_self)",value:"_self"},{label:"New Tab (_blank)",value:"_blank"}]} /></Form.Item></Col>
-                        <Col span={24}>
-                          <Form.Item
-                            {...restField}
-                            name={[name, "link"]}
-                            label="Link / Document"
-                            extra="Enter a page URL or select/upload a document from Media."
-                          >
-                            <MediaPickerInput
-                              mediaType="document"
-                              showVariants={false}
-                              uiVariant="stacked"
-                              placeholder="/get-involved/notices or /media/..."
-                            />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}><Form.Item {...restField} name={[name, "ariaLabel"]} label="Accessible link label" extra="Optional. Useful when the visible title does not fully describe the link action."><Input placeholder="e.g. Download Form 5A PF" /></Form.Item></Col>
-                      </Row>
-                    )}
+              <>
+                <Form.Item name="noticesItemsStyle" label="Style">
+                  <Select
+                    options={[
+                      { label: "Style 1", value: "style1" },
+                      { label: "Style 2", value: "style2" },
+                    ]}
                   />
-                )}
-              </Form.List>
+                </Form.Item>
+                <Form.List name="noticesItems">
+                  {(fields, { add, remove, move }) => (
+                    <SortableFormList
+                      fields={fields}
+                      add={add}
+                      remove={remove}
+                      move={move}
+                      itemLabel="Notice"
+                      addButtonText="Add notice"
+                      defaultAddPayload={{
+                        indexLabel: "",
+                        label: "",
+                        subLabel: "",
+                        link: "",
+                        target: "_self",
+                        ariaLabel: "",
+                      }}
+                      reorderMovedIndex={reorderMovedIndex}
+                      reorderDirection={reorderDirection}
+                      onMoveWithTransition={(from, to) => {
+                        setReorderDirection(to < from ? "up" : "down");
+                        setReorderMovedIndex(to);
+                        setTimeout(() => setReorderMovedIndex(-1), 400);
+                      }}
+                      renderItemContent={(name, restField) => (
+                        <Row gutter={[16, 16]}>
+                          <Col span={8}><Form.Item {...restField} name={[name, "indexLabel"]} label="Index"><Input placeholder="01" /></Form.Item></Col>
+                          <Col span={16}><Form.Item {...restField} name={[name, "subLabel"]} label="Type / meta"><Input placeholder="PDF download" /></Form.Item></Col>
+                          <Col span={24}>
+                            <Form.Item
+                              {...restField}
+                              name={[name, "label"]}
+                              label="Label"
+                              rules={[{ required: true, message: "Label is required" }]}
+                            >
+                              <Input placeholder="e.g. Form5A PF" size="large" />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}><Form.Item {...restField} name={[name, "target"]} label="Target"><Select options={[{label:"Same Tab (_self)",value:"_self"},{label:"New Tab (_blank)",value:"_blank"}]} /></Form.Item></Col>
+                          <Col span={24}>
+                            <Form.Item
+                              {...restField}
+                              name={[name, "link"]}
+                              label="Link / Document"
+                              extra="Enter a page URL or select/upload a document from Media."
+                            >
+                              <MediaPickerInput
+                                mediaType="document"
+                                showVariants={false}
+                                uiVariant="stacked"
+                                placeholder="/get-involved/notices or /media/..."
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}><Form.Item {...restField} name={[name, "ariaLabel"]} label="Accessible link label" extra="Optional. Useful when the visible title does not fully describe the link action."><Input placeholder="e.g. Download Form 5A PF" /></Form.Item></Col>
+                        </Row>
+                      )}
+                    />
+                  )}
+                </Form.List>
+              </>
             ),
           },
         ]}

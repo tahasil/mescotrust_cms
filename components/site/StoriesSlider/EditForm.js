@@ -14,6 +14,49 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 const API_PATH = "/api/theme/StoriesSlider";
 const PREFIX = "storiesSlider";
 const DEFAULT_ITEMS = [];
+const REQUIRED_DESKTOP_IMAGE_WIDTH = 800;
+const REQUIRED_DESKTOP_IMAGE_HEIGHT = 415;
+const REQUIRED_DESKTOP_IMAGE_TEXT =
+  `${REQUIRED_DESKTOP_IMAGE_WIDTH} \u00D7 ${REQUIRED_DESKTOP_IMAGE_HEIGHT} px`;
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () =>
+      resolve({
+        width: Number(image.naturalWidth) || 0,
+        height: Number(image.naturalHeight) || 0,
+      });
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = imageUrl;
+  });
+}
+
+async function validateDesktopImageDimensions(_, value) {
+  const imageUrl = String(value || "").trim();
+  if (!imageUrl) return Promise.resolve();
+
+  try {
+    const { width, height } = await getImageDimensions(imageUrl);
+    if (
+      width === REQUIRED_DESKTOP_IMAGE_WIDTH &&
+      height === REQUIRED_DESKTOP_IMAGE_HEIGHT
+    ) {
+      return Promise.resolve();
+    }
+    return Promise.reject(
+      new Error(
+        `Desktop image must be exactly ${REQUIRED_DESKTOP_IMAGE_TEXT}. Selected image is ${width} \u00D7 ${height} px.`,
+      ),
+    );
+  } catch {
+    return Promise.reject(
+      new Error(
+        `Unable to validate desktop image size. Required size: ${REQUIRED_DESKTOP_IMAGE_TEXT}.`,
+      ),
+    );
+  }
+}
 
 function normalizeItem(it, index = 0) {
   return {
@@ -328,12 +371,13 @@ function StoriesSliderEditForm({ source, initialData: initialDataProp, onSaveToP
                               {...restField}
                               name={[name, "image"]}
                               validateTrigger={["onChange", "onBlur"]}
+                              rules={[{ validator: validateDesktopImageDimensions }]}
                               style={{ marginBottom: 0 }}
                             >
                               <MediaPickerInput
                                 placeholder="/uploads/story-desktop.webp"
                                 uiVariant="stacked"
-                                hintText="Recommended: landscape, 4:3 ratio"
+                                hintText={`Required size: ${REQUIRED_DESKTOP_IMAGE_TEXT}`}
                               />
                             </Form.Item>
                           </Card>

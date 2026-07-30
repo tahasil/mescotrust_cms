@@ -47,7 +47,7 @@ const GallerySection = styled.section`
   }
 
   .latest-gallery__title {
-    max-width: 14ch;
+    max-width: 20ch;
     margin: 0;
     color: var(--latest-gallery-title);
     font-family: var(--fable-display, "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif);

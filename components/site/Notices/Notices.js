@@ -166,6 +166,91 @@ const NoticeBoard = styled.div`
     outline-offset: 5px;
   }
 
+  &.noticeBoard--style2 {
+    display: grid;
+    grid-template-columns: minmax(240px, 0.78fr) minmax(0, 1.22fr);
+    grid-template-rows: auto auto;
+    column-gap: clamp(56px, 8vw, 144px);
+    align-items: start;
+  }
+
+  &.noticeBoard--style2 .noticeHeader {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    max-width: 400px;
+    margin-bottom: 0;
+  }
+
+  &.noticeBoard--style2 .noticeHeading {
+    max-width: 10ch;
+    font-size: clamp(38px, 4vw, 58px);
+  }
+
+  &.noticeBoard--style2 .noticeIntro {
+    max-width: 36ch;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  &.noticeBoard--style2 .noticeList {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  &.noticeBoard--style2 .noticeRow {
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    gap: 18px;
+    padding: 18px 0;
+  }
+
+  &.noticeBoard--style2 .noticeIndex {
+    font-size: 12px;
+  }
+
+  &.noticeBoard--style2 .noticeTitle {
+    font-size: clamp(15px, 1.15vw, 18px);
+    font-weight: 560;
+  }
+
+  &.noticeBoard--style2 .noticeMeta {
+    margin-top: 2px;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    line-height: 1.35;
+    text-transform: uppercase;
+  }
+
+  &.noticeBoard--style2 .noticeArrow {
+    font-size: 16px;
+  }
+
+  &.noticeBoard--style2 .noticeMore {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: start;
+    margin-top: 18px;
+    font-size: 13px;
+  }
+
+  @media (max-width: 900px) {
+    &.noticeBoard--style2 {
+      display: block;
+    }
+
+    &.noticeBoard--style2 .noticeHeader {
+      max-width: min(100%, 760px);
+      margin-bottom: 30px;
+    }
+
+    &.noticeBoard--style2 .noticeHeading {
+      max-width: 16ch;
+    }
+
+    &.noticeBoard--style2 .noticeIntro {
+      max-width: 58ch;
+    }
+  }
+
   @media (max-width: 767px) {
     .noticeHeader {
       margin-bottom: 30px;
@@ -322,6 +407,7 @@ export default function Notices(props) {
   const { sectionBgClassName, sectionProps, containerProps } = backgrounds(props);
   const moreTarget = props?.noticesMoreTarget === "_blank" ? "_blank" : "_self";
   const showHeader = props?.noticesTitleEnabled !== false;
+  const itemsStyle = props?.noticesItemsStyle === "style2" ? "style2" : "style1";
 
   useLayoutEffect(() => {
     if (
@@ -361,6 +447,7 @@ export default function Notices(props) {
     <PageContainer {...containerProps}>
       <NoticeBoard
         ref={rootRef}
+        className={`noticeBoard--${itemsStyle}`}
         style={{
           "--notice-ink": color(props?.noticesTextColorKey, getColor("black")),
           "--notice-subtitle": color(
