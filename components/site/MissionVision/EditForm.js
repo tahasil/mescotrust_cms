@@ -6,8 +6,6 @@ import {
   AimOutlined,
   BookOutlined,
   BulbOutlined,
-  CompassOutlined,
-  EyeOutlined,
   GlobalOutlined,
   HeartOutlined,
   MedicineBoxOutlined,
@@ -22,6 +20,8 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 import {
   CelebrationsMilestonesIcon,
   CharitablePhysiotherapyIcon,
+  FigmaMissionIcon,
+  FigmaVisionIcon,
   GuidanceMotivationIcon,
   MedicalAidDispensaryIcon,
   MumbaiCityUnitIcon,
@@ -43,8 +43,8 @@ const ICON_OPTIONS = [
   ["saturday-activities", "Saturday Activities", SaturdayActivitiesIcon],
   ["medical-aid-dispensary", "Medical Aid Dispensary", MedicalAidDispensaryIcon],
   ["charitable-physiotherapy", "Charitable Physiotherapy Centre", CharitablePhysiotherapyIcon],
-  ["eye", "Eye", EyeOutlined],
-  ["compass", "Compass", CompassOutlined],
+  ["eye", "Vision Eye", FigmaVisionIcon],
+  ["compass", "Mission Compass", FigmaMissionIcon],
   ["aim", "Aim", AimOutlined],
   ["heart", "Heart", HeartOutlined],
   ["bulb", "Idea", BulbOutlined],
@@ -55,7 +55,12 @@ const ICON_OPTIONS = [
   ["global", "Global", GlobalOutlined],
 ].map(([value, text, Icon]) => ({
   value,
-  label: <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><Icon />{text}</span>,
+  label: (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+      <Icon style={{ display: "block", flex: "0 0 18px", width: 18, height: 18 }} />
+      <span>{text}</span>
+    </span>
+  ),
 }));
 const ICON_VALUES = new Set(ICON_OPTIONS.map((item) => item.value));
 const normalizeIcon = (value, fallback) => ICON_VALUES.has(clean(value)) ? clean(value) : fallback;

@@ -4,8 +4,6 @@ import {
   AimOutlined,
   BookOutlined,
   BulbOutlined,
-  CompassOutlined,
-  EyeOutlined,
   GlobalOutlined,
   HeartOutlined,
   MedicineBoxOutlined,
@@ -17,6 +15,8 @@ import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 import {
   CelebrationsMilestonesIcon,
   CharitablePhysiotherapyIcon,
+  FigmaMissionIcon,
+  FigmaVisionIcon,
   GuidanceMotivationIcon,
   MedicalAidDispensaryIcon,
   MumbaiCityUnitIcon,
@@ -38,8 +38,8 @@ const ICONS = {
   "saturday-activities": SaturdayActivitiesIcon,
   "medical-aid-dispensary": MedicalAidDispensaryIcon,
   "charitable-physiotherapy": CharitablePhysiotherapyIcon,
-  eye: EyeOutlined,
-  compass: CompassOutlined,
+  eye: FigmaVisionIcon,
+  compass: FigmaMissionIcon,
   aim: AimOutlined,
   heart: HeartOutlined,
   bulb: BulbOutlined,
@@ -53,7 +53,7 @@ const ICONS = {
 const getIcon = (value, fallback) => ICONS[clean(value)] || fallback;
 
 function normalizeCard(item, index) {
-  const fallbackIcons = [EyeOutlined, CompassOutlined];
+  const fallbackIcons = [FigmaVisionIcon, FigmaMissionIcon];
   return {
     title: clean(item?.title),
     description: clean(item?.description),

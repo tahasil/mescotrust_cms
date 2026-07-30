@@ -18,6 +18,49 @@ const phosphorProps = {
   "aria-hidden": "true",
 };
 
+export function FigmaVisionIcon(props) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      focusable="false"
+      aria-hidden="true"
+      {...props}
+    >
+      <path
+        d="M2.5 12s3.45-5.75 9.5-5.75S21.5 12 21.5 12 18.05 17.75 12 17.75 2.5 12 2.5 12Z"
+        fill="#FFF8E8"
+        stroke="#2A283E"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="12" r="4.1" fill="#B9783E" stroke="#E3B65F" strokeWidth="1" />
+      <circle cx="12" cy="12" r="2.15" fill="#2A283E" />
+      <circle cx="13.15" cy="10.85" r="0.72" fill="#FFFFFF" />
+    </svg>
+  );
+}
+
+export function FigmaMissionIcon(props) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      focusable="false"
+      aria-hidden="true"
+      {...props}
+    >
+      <circle cx="12" cy="12" r="9.25" fill="#F7FAFC" stroke="#9CA8B6" strokeWidth="1.25" />
+      <circle cx="12" cy="12" r="7.3" stroke="#D7DEE7" strokeWidth="0.8" />
+      <path d="m13.65 10.35 4.25-4.25-2.2 5.95-2.05-1.7Z" fill="#E04A4A" />
+      <path d="m10.35 13.65-4.25 4.25 2.2-5.95 2.05 1.7Z" fill="#5B7188" />
+      <path d="m10.35 13.65 3.3-3.3 2.05 1.7-5.35 1.6Z" fill="#F2867F" />
+      <path d="m13.65 10.35-3.3 3.3-2.05-1.7 5.35-1.6Z" fill="#7E91A5" />
+      <circle cx="12" cy="12" r="1.15" fill="#FFFFFF" stroke="#48586A" strokeWidth="0.8" />
+    </svg>
+  );
+}
+
 export function MedicalAidDispensaryIcon(props) {
   return (
     <svg {...sharedProps} {...props}>

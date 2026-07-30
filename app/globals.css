@@ -1158,16 +1158,16 @@ div:has(> .fable-section.fable-scheme) {
 .fable-mission-vision__icon {
   display: grid;
   place-items: center;
-  width: 56px;
-  height: 56px;
-  margin-bottom: 18px;
+  width: 24px;
+  height: 24px;
+  margin-bottom: 12px;
   color: var(--mission-vision-icon);
   background: var(--mission-vision-icon-bg);
-  border-radius: 14px;
-  font-size: 36px;
+  border-radius: 6px;
+  font-size: 22px;
   transition: color .3s, background-color .3s;
 }
-.fable-mission-vision__icon > svg { display: block; width: 36px; height: 36px; }
+.fable-mission-vision__icon > svg { display: block; width: 22px; height: 22px; }
 .fable-mission-vision .fable-feature:hover .fable-mission-vision__icon { color: var(--mission-vision-icon-hover); background: var(--mission-vision-icon-hover-bg); }
 .fable-aims { display: flex; flex-direction: column; }
 .fable-aim { display: grid; grid-template-columns: 90px minmax(0,1fr); gap: clamp(20px,3vw,48px); padding-block: clamp(26px,3vw,40px); border-bottom: 1px solid var(--fable-border); }
