@@ -626,7 +626,8 @@ export const ThemeAdminCard = styled(Card)`
       gap: 8px !important;
     }
     .ant-card-extra .ant-input-affix-wrapper,
-    .ant-card-extra .ant-select {
+    .ant-card-extra .ant-select,
+    .ant-card-extra .ant-picker {
       width: 100% !important;
     }
   }

@@ -408,6 +408,13 @@ export async function POST(req) {
       donor,
       matchedSubmissionId: String(donation?._id || ""),
       matchedStatus: toTrimmedString(donation?.status || ""),
+      verificationProof: createVerificationToken({
+        sid: String(donation?._id || ""),
+        verified: true,
+        email: donorEmail,
+        mobile: donorMobileNational,
+        exp: Date.now() + VERIFICATION_TTL_MS,
+      }),
     });
   } catch (err) {
     logLookupDebug("verify-error", {

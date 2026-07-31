@@ -1,103 +1,169 @@
+import crypto from "crypto";
 import { connectDB } from "@/lib/db";
 import DonateNowSubmission from "@/models/DonateNowSubmission";
 import ThemeConfig from "@/models/ThemeConfig";
 import { decrypt, parseResponse } from "@/lib/ccavenue";
 import { sendDonationReceipt } from "@/lib/email";
 
+export const dynamic = "force-dynamic";
+
+function toText(value) {
+  return String(value ?? "").trim();
+}
+
+function mapPaymentStatus(orderStatus) {
+  const normalized = toText(orderStatus).toLowerCase();
+  if (normalized === "success") return "success";
+  if (["aborted", "cancelled", "canceled"].includes(normalized)) return "cancelled";
+  return "failed";
+}
+
+function verifyGatewayResponse(donation, data, desiredStatus) {
+  const errors = [];
+  const responseAmount = Number(data.amount);
+  const responseCurrency = toText(data.currency).toUpperCase();
+  const responseMerchantId = toText(data.merchant_id);
+  const expectedMerchantId = toText(process.env.CCAVENUE_MERCHANT_ID);
+
+  if (toText(data.order_id) !== toText(donation.orderId)) {
+    errors.push("Order ID does not match");
+  }
+  if (responseMerchantId && expectedMerchantId && responseMerchantId !== expectedMerchantId) {
+    errors.push("Merchant ID does not match");
+  }
+  if (Number.isFinite(responseAmount)) {
+    if (Math.abs(responseAmount - Number(donation.amount)) >= 0.01) {
+      errors.push("Amount does not match");
+    }
+  } else if (desiredStatus === "success") {
+    errors.push("Payment amount is missing");
+  }
+  if (responseCurrency) {
+    if (responseCurrency !== toText(donation.currency || "INR").toUpperCase()) {
+      errors.push("Currency does not match");
+    }
+  } else if (desiredStatus === "success") {
+    errors.push("Payment currency is missing");
+  }
+  if (desiredStatus === "success" && !toText(data.tracking_id)) {
+    errors.push("Tracking ID is missing");
+  }
+
+  return errors;
+}
+
+function paymentRedirect({ status, orderId = "", reason = "" }) {
+  const configured =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXTAUTH_URL ||
+    "http://localhost:3000";
+  const target = new URL("/donate-now", configured);
+  target.searchParams.set("donation", status === "success" ? "success" : "failed");
+  if (orderId) target.searchParams.set("order", orderId);
+  if (status && status !== "success") target.searchParams.set("status", status);
+  if (reason) target.searchParams.set("reason", reason);
+  return Response.redirect(target, 303);
+}
+
 /**
- * CCAvenue posts encrypted response here after payment.
- * This is a form POST (application/x-www-form-urlencoded), not JSON.
+ * CCAvenue browser callback. Decryption authenticates the response with the
+ * working key; order, amount and currency are then reconciled with our pending
+ * record before a payment can become successful.
  */
 export async function POST(req) {
+  let orderId = "";
   try {
     const workingKey = process.env.CCAVENUE_WORKING_KEY;
     if (!workingKey) {
-      return redirectTo("/?donation=failed&reason=config");
+      return paymentRedirect({ status: "failed", reason: "config" });
     }
 
-    // CCAvenue sends form-urlencoded data
     const formData = await req.formData();
-    const encResp = formData.get("encResp");
-
+    const encResp = toText(formData.get("encResp"));
     if (!encResp) {
-      return redirectTo("/?donation=failed&reason=no-response");
+      return paymentRedirect({ status: "failed", reason: "no-response" });
     }
 
-    // Decrypt the response
-    const decrypted = decrypt(encResp, workingKey);
-    const data = parseResponse(decrypted);
+    const data = parseResponse(decrypt(encResp, workingKey));
+    orderId = toText(data.order_id);
+    if (!orderId) {
+      return paymentRedirect({ status: "failed", reason: "missing-order" });
+    }
 
-    const orderId = data.order_id || "";
-    const orderStatus = (data.order_status || "").toLowerCase();
-    const trackingId = data.tracking_id || "";
-    const bankRefNo = data.bank_ref_no || "";
-    const paymentMode = data.payment_mode || "";
-    const cardName = data.card_name || "";
-    const statusCode = data.status_code || "";
-    const statusMsg = data.status_message || "";
-
-    // Map CCAvenue status to our status
-    let status = "failed";
-    if (orderStatus === "success") status = "success";
-    else if (orderStatus === "aborted") status = "aborted";
-    else status = "failed";
-
-    // Update donation in database
     await connectDB();
     const donation = await DonateNowSubmission.findOne({ orderId });
-    if (donation) {
-      donation.status = status;
+    if (!donation) {
+      return paymentRedirect({ status: "failed", orderId, reason: "order-not-found" });
+    }
+
+    const desiredStatus = mapPaymentStatus(data.order_status);
+    const verificationErrors = verifyGatewayResponse(donation, data, desiredStatus);
+    const verified = verificationErrors.length === 0;
+    const nextStatus = verified ? desiredStatus : "failed";
+    const wasSuccessful = donation.status === "success";
+    const trackingId = toText(data.tracking_id);
+    const callbackReceivedAt = new Date();
+
+    // A duplicate/late callback must never downgrade an already verified payment.
+    if (!wasSuccessful) {
+      donation.status = nextStatus;
+      donation.completedAt = nextStatus === "pending" ? null : callbackReceivedAt;
       donation.payment = {
+        gateway: "CCAvenue",
         trackingId,
-        bankRefNo,
-        paymentMode,
-        cardName,
-        statusCode,
-        statusMsg,
+        transactionId: toText(data.transaction_id) || trackingId,
+        paymentId: toText(data.payment_id) || trackingId,
+        bankRefNo: toText(data.bank_ref_no),
+        paymentMode: toText(data.payment_mode),
+        cardName: toText(data.card_name),
+        orderStatus: toText(data.order_status),
+        amount: Number.isFinite(Number(data.amount)) ? Number(data.amount) : null,
+        currency: toText(data.currency),
+        statusCode: toText(data.status_code),
+        statusMsg: toText(data.status_message),
+        failureMessage: toText(data.failure_message),
+        responseCode: toText(data.response_code),
+        verificationStatus: verified ? "verified" : "mismatch",
+        verificationMessage: verified
+          ? "Encrypted callback verified and matched to the donation order"
+          : verificationErrors.join("; "),
+        responseHash: crypto.createHash("sha256").update(encResp).digest("hex"),
+        callbackReceivedAt,
       };
       await donation.save();
+    }
 
-      // Best-effort: send receipt email on success. Never blocks the redirect.
-      if (status === "success") {
-        try {
-          const theme = await ThemeConfig.findOne({}).lean();
-          const orgInfo = theme
-            ? {
-                siteTitle: theme.siteTitle,
-                footerEmail: theme.footerEmail,
-                footerPhone: theme.footerPhone,
-                footerAddress: theme.footerAddress,
-                logoLightUrl: theme.logoLightUrl,
-                logoImageUrl: theme.logoImageUrl,
-              }
-            : {};
-          await sendDonationReceipt(donation.toObject(), orgInfo);
-        } catch (mailErr) {
-          console.error("[PaymentCallback] Receipt email failed:", mailErr?.message || mailErr);
-        }
+    if (!wasSuccessful && nextStatus === "success") {
+      try {
+        const theme = await ThemeConfig.findOne({}).lean();
+        const orgInfo = theme
+          ? {
+              siteTitle: theme.siteTitle,
+              footerEmail: theme.footerEmail,
+              footerPhone: theme.footerPhone,
+              footerAddress: theme.footerAddress,
+              logoLightUrl: theme.logoLightUrl,
+              logoImageUrl: theme.logoImageUrl,
+            }
+          : {};
+        await sendDonationReceipt(donation.toObject(), orgInfo);
+      } catch (mailErr) {
+        console.error("[PaymentCallback] Receipt email failed:", mailErr?.message || mailErr);
       }
     }
 
-    // Return to the homepage because dedicated donation result pages are not used.
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
-    if (status === "success") {
-      return Response.redirect(
-        `${siteUrl}/?donation=success&order=${encodeURIComponent(orderId)}`,
-        303
-      );
-    } else {
-      return Response.redirect(
-        `${siteUrl}/?donation=failed&order=${encodeURIComponent(orderId)}&status=${encodeURIComponent(status)}`,
-        303
-      );
-    }
+    const finalStatus = wasSuccessful ? "success" : nextStatus;
+    return paymentRedirect({
+      status: finalStatus,
+      orderId,
+      reason: verified ? "" : "verification-failed",
+    });
   } catch (err) {
     console.error("Payment callback error:", err);
-    return redirectTo("/?donation=failed&reason=error");
+    return paymentRedirect({ status: "failed", orderId, reason: "invalid-response" });
   }
 }
 
-function redirectTo(path) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
-  return Response.redirect(`${siteUrl}${path}`, 303);
+export async function GET() {
+  return paymentRedirect({ status: "failed", reason: "invalid-callback-method" });
 }

@@ -335,7 +335,7 @@ Tracks background bulk optimization jobs.
 | note          | String | no       | Donor's note |
 | donor         | Object | yes      | Donor details (see below) |
 | payment       | Object | no       | Payment gateway response (see below) |
-| status        | String | no       | `"pending"` \| `"success"` \| `"failed"` \| `"aborted"` (default: `"pending"`) |
+| status        | String | no       | `"pending"` \| `"success"` \| `"failed"` \| `"cancelled"` (`"aborted"` is retained for legacy records) |
 | createdAt     | Date   | auto     | Timestamps |
 | updatedAt     | Date   | auto     | Timestamps |
 
@@ -358,11 +358,13 @@ Tracks background bulk optimization jobs.
 | Field       | Type   | Description |
 |------------|--------|-------------|
 | trackingId | String | CCAvenue tracking ID |
+| transactionId / paymentId | String | Normalized transaction/payment identifiers (CCAvenue tracking ID fallback) |
 | bankRefNo  | String | Bank reference number |
 | paymentMode| String | Card/NetBanking/Wallet/UPI |
 | cardName   | String | Card type (VISA/MC etc.) |
 | statusCode | String | CCAvenue status code |
 | statusMsg  | String | CCAvenue status message |
+| verificationStatus | String | Callback reconciliation result (`pending`, `verified`, `mismatch`, `invalid`) |
 
 **Indexes:** `{ orderId: 1 }`, `{ status: 1 }`, `{ "donor.email": 1 }`, `{ createdAt: -1 }`
 
@@ -516,9 +518,10 @@ CCAVENUE_GATEWAY_URL=https://test.ccavenue.com/transaction/transaction.do  # Tes
    â”œâ”€ Parse key=value pairs from decrypted string
    â”œâ”€ Extract: order_id, order_status, tracking_id, bank_ref_no, payment_mode
    â”œâ”€ Find Donation by orderId, update:
-   â”‚   â”œâ”€ status: "success" | "failed" | "aborted"
-   â”‚   â””â”€ payment: { trackingId, bankRefNo, paymentMode, cardName, statusCode, statusMsg }
-   â””â”€ Redirect user to /donation/success or /donation/failed
+   â”‚   â”œâ”€ Reconcile order ID, amount, currency and merchant before accepting success
+   â”‚   â”œâ”€ status: "success" | "failed" | "cancelled"
+   â”‚   â””â”€ payment: gateway IDs, bank reference, mode, status and verification audit fields
+   â””â”€ Redirect user back to /donate-now with the verified result
 
 5. QR CODE OPTION ("Donate Now with QR")
    â”œâ”€ Shows UPI QR code image (uploaded via Media Library, URL in drawer)
@@ -529,7 +532,7 @@ CCAVENUE_GATEWAY_URL=https://test.ccavenue.com/transaction/transaction.do  # Tes
 
 CCAvenue uses **AES-128-CBC** encryption:
 - **Key**: MD5 hash of `CCAVENUE_WORKING_KEY` (produces 16 bytes)
-- **IV**: First 16 bytes of the key (or provided by CCAvenue)
+- **IV**: CCAvenue's fixed 16-byte sequence `0x00` through `0x0f`
 - **Encrypt**: `crypto.createCipheriv('aes-128-cbc', md5Key, iv)` â†’ hex output
 - **Decrypt**: `crypto.createDecipheriv('aes-128-cbc', md5Key, iv)` â†’ plaintext
 

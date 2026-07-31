@@ -1,18 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Button,
+  DatePicker,
   Descriptions,
   Input,
   Modal,
+  Popconfirm,
   Select,
   Space,
   Table,
   Tag,
+  Tooltip,
   message,
 } from "antd";
-import { EyeOutlined, SearchOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EyeOutlined, SearchOutlined } from "@ant-design/icons";
 import { formatDateTime } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
 
@@ -20,8 +23,16 @@ const STATUS_COLORS = {
   pending: "orange",
   success: "green",
   failed: "red",
+  cancelled: "default",
   aborted: "default",
 };
+
+function formatStatus(status) {
+  if (["aborted", "cancelled"].includes(String(status || "").toLowerCase())) {
+    return "CANCELLED";
+  }
+  return String(status || "unknown").toUpperCase();
+}
 
 function formatInr(amount) {
   const parsed = Number(amount);
@@ -41,40 +52,78 @@ export default function AdminDonationsPage() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("");
   const [search, setSearch] = useState("");
+  const [dateRange, setDateRange] = useState(null);
   const [viewItem, setViewItem] = useState(null);
+  const [deletingId, setDeletingId] = useState("");
 
-  const fetchDonations = (nextPage = page, nextSearch = search, nextStatus = statusFilter) => {
+  const fetchDonations = (
+    nextPage = page,
+    nextSearch = search,
+    nextStatus = statusFilter,
+    nextDateRange = dateRange,
+  ) => {
     setLoading(true);
     const params = new URLSearchParams({ page: String(nextPage), limit: "20" });
     if (nextStatus) params.set("status", nextStatus);
     if (nextSearch) params.set("search", nextSearch);
+    if (nextDateRange?.[0]) {
+      params.set("from", nextDateRange[0].startOf("day").toISOString());
+    }
+    if (nextDateRange?.[1]) {
+      params.set("to", nextDateRange[1].endOf("day").toISOString());
+    }
 
     fetch(`/api/admin/donations?${params}`)
-      .then((res) => (res.ok ? res.json() : { items: [] }))
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || "Failed to load donations");
+        return data;
+      })
       .then((data) => {
         setItems(Array.isArray(data?.items) ? data.items : []);
         setTotal(Number(data?.total) || 0);
       })
-      .catch(() => message.error("Failed to load donations"))
+      .catch((error) => message.error(error.message || "Failed to load donations"))
       .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    fetchDonations(1, search, statusFilter);
+    fetchDonations(1, search, statusFilter, dateRange);
     setPage(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, search]);
+  }, [statusFilter, search, dateRange]);
 
-  const columns = useMemo(
-    () => [
-      {
+  const deleteDonation = async (record) => {
+    setDeletingId(record._id);
+    try {
+      const response = await fetch(`/api/admin/donations/${record._id}`, {
+        method: "DELETE",
+      });
+      const result = await response.json();
+      if (!response.ok || !result?.softDeleted) {
+        throw new Error(result?.error || "Failed to delete donation");
+      }
+      if (viewItem?._id === record._id) setViewItem(null);
+      message.success("Donation deleted");
+      const nextPage = items.length === 1 && page > 1 ? page - 1 : page;
+      setPage(nextPage);
+      fetchDonations(nextPage, search, statusFilter, dateRange);
+    } catch (error) {
+      message.error(error.message || "Failed to delete donation");
+    } finally {
+      setDeletingId("");
+    }
+  };
+
+  const columns = [
+    {
         title: "Submission Date & Time",
         dataIndex: "createdAt",
         key: "createdAt",
         width: 190,
         render: (value) => formatDateTime(value),
-      },
-      {
+    },
+    {
         title: "Donor Information",
         key: "donor",
         width: 260,
@@ -85,8 +134,8 @@ export default function AdminDonationsPage() {
             <div style={{ fontSize: 12, color: "#777" }}>{renderMaybeText(row?.donor?.mobile)}</div>
           </div>
         ),
-      },
-      {
+    },
+    {
         title: "Donation Purpose",
         key: "purpose",
         width: 220,
@@ -98,59 +147,90 @@ export default function AdminDonationsPage() {
             ) : null}
           </div>
         ),
-      },
-      {
+    },
+    {
         title: "Donation Amount",
         dataIndex: "amount",
         key: "amount",
         width: 140,
         render: (amount) => formatInr(amount),
-      },
-      {
+    },
+    {
         title: "Payment Status",
         dataIndex: "status",
         key: "status",
         width: 130,
         render: (status) => (
           <Tag color={STATUS_COLORS[status] || "default"}>
-            {String(status || "unknown").toUpperCase()}
+            {formatStatus(status)}
           </Tag>
         ),
-      },
-      {
+    },
+    {
         title: "Transaction Details",
         key: "transaction",
         width: 210,
         render: (_, row) => (
           <div style={{ fontSize: 12 }}>
             <div>Order: {renderMaybeText(row?.orderId)}</div>
+            <div>Transaction: {renderMaybeText(row?.payment?.transactionId)}</div>
             <div>Tracking: {renderMaybeText(row?.payment?.trackingId)}</div>
             <div>Bank Ref: {renderMaybeText(row?.payment?.bankRefNo)}</div>
           </div>
         ),
-      },
-      {
-        title: "",
+    },
+    {
+        title: "Actions",
         key: "actions",
-        width: 60,
+        width: 110,
+        fixed: "right",
         render: (_, record) => (
-          <Button
-            type="link"
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => setViewItem(record)}
-          />
+          <Space size={4}>
+            <Tooltip title="View donation">
+              <Button
+                type="text"
+                size="small"
+                aria-label="View donation"
+                icon={<EyeOutlined />}
+                onClick={() => setViewItem(record)}
+              />
+            </Tooltip>
+            <Popconfirm
+              title="Are you sure you want to delete this donation submission?"
+              okText="Delete"
+              okButtonProps={{ danger: true }}
+              cancelText="Cancel"
+              onConfirm={() => deleteDonation(record)}
+            >
+              <Tooltip title="Delete donation">
+                <Button
+                  danger
+                  type="text"
+                  size="small"
+                  aria-label="Delete donation"
+                  loading={deletingId === record._id}
+                  icon={<DeleteOutlined />}
+                />
+              </Tooltip>
+            </Popconfirm>
+          </Space>
         ),
-      },
-    ],
-    [],
-  );
+    },
+  ];
 
   return (
     <ThemeAdminCard
-      title="Donate Now Submissions"
+      title="Donate Submissions"
       extra={
-        <Space>
+        <Space wrap style={{ justifyContent: "flex-end" }}>
+          <DatePicker.RangePicker
+            value={dateRange}
+            onChange={(dates) => setDateRange(dates)}
+            allowClear
+            format="DD MMM YYYY"
+            placeholder={["Start date", "End date"]}
+            style={{ width: 260 }}
+          />
           <Select
             placeholder="All status"
             allowClear
@@ -161,7 +241,8 @@ export default function AdminDonationsPage() {
               { value: "pending", label: "Pending" },
               { value: "success", label: "Success" },
               { value: "failed", label: "Failed" },
-              { value: "aborted", label: "Aborted" },
+              { value: "cancelled", label: "Cancelled" },
+              { value: "aborted", label: "Cancelled (legacy)" },
             ]}
           />
           <Input
@@ -179,16 +260,20 @@ export default function AdminDonationsPage() {
         rowKey="_id"
         loading={loading}
         dataSource={items}
-        scroll={{ x: 1220 }}
+        size="middle"
+        scroll={{ x: 1320 }}
         pagination={{
           current: page,
           total,
           pageSize: 20,
           onChange: (nextPage) => {
             setPage(nextPage);
-            fetchDonations(nextPage, search, statusFilter);
+            fetchDonations(nextPage, search, statusFilter, dateRange);
           },
           showTotal: (count) => `${count} submissions`,
+          showSizeChanger: false,
+          responsive: true,
+          showLessItems: true,
         }}
         columns={columns}
       />
@@ -199,16 +284,17 @@ export default function AdminDonationsPage() {
         footer={null}
         title="Donation Details"
         width={860}
+        styles={{ body: { maxHeight: "70vh", overflowY: "auto" } }}
       >
         {viewItem ? (
-          <Descriptions column={2} bordered size="small">
+          <Descriptions column={{ xs: 1, sm: 1, md: 2 }} bordered size="small">
             <Descriptions.Item label="Submission Date & Time" span={2}>
               {formatDateTime(viewItem.createdAt)}
             </Descriptions.Item>
             <Descriptions.Item label="Order ID">{renderMaybeText(viewItem.orderId)}</Descriptions.Item>
             <Descriptions.Item label="Status">
               <Tag color={STATUS_COLORS[viewItem.status] || "default"}>
-                {String(viewItem.status || "unknown").toUpperCase()}
+                {formatStatus(viewItem.status)}
               </Tag>
             </Descriptions.Item>
             <Descriptions.Item label="Purpose">{renderMaybeText(viewItem.purpose)}</Descriptions.Item>
@@ -236,6 +322,25 @@ export default function AdminDonationsPage() {
             <Descriptions.Item label="Country">{renderMaybeText(viewItem?.donor?.country)}</Descriptions.Item>
             <Descriptions.Item label="Pincode">{renderMaybeText(viewItem?.donor?.pincode)}</Descriptions.Item>
 
+            <Descriptions.Item label="Donor Type">
+              {renderMaybeText(viewItem?.donorType)}
+            </Descriptions.Item>
+            <Descriptions.Item label="Linked Donor Submission">
+              {renderMaybeText(viewItem?.lookup?.matchedSubmissionId)}
+            </Descriptions.Item>
+
+            <Descriptions.Item label="Gateway">
+              {renderMaybeText(viewItem?.payment?.gateway)}
+            </Descriptions.Item>
+            <Descriptions.Item label="Gateway Order Status">
+              {renderMaybeText(viewItem?.payment?.orderStatus)}
+            </Descriptions.Item>
+            <Descriptions.Item label="Transaction ID">
+              {renderMaybeText(viewItem?.payment?.transactionId)}
+            </Descriptions.Item>
+            <Descriptions.Item label="Payment ID">
+              {renderMaybeText(viewItem?.payment?.paymentId)}
+            </Descriptions.Item>
             <Descriptions.Item label="Tracking ID">
               {renderMaybeText(viewItem?.payment?.trackingId)}
             </Descriptions.Item>
@@ -253,6 +358,34 @@ export default function AdminDonationsPage() {
             </Descriptions.Item>
             <Descriptions.Item label="Status Message">
               {renderMaybeText(viewItem?.payment?.statusMsg)}
+            </Descriptions.Item>
+            <Descriptions.Item label="Failure Message">
+              {renderMaybeText(viewItem?.payment?.failureMessage)}
+            </Descriptions.Item>
+            <Descriptions.Item label="Response Code">
+              {renderMaybeText(viewItem?.payment?.responseCode)}
+            </Descriptions.Item>
+            <Descriptions.Item label="Gateway Amount">
+              {viewItem?.payment?.amount == null
+                ? "—"
+                : formatInr(viewItem.payment.amount)}
+            </Descriptions.Item>
+            <Descriptions.Item label="Gateway Currency">
+              {renderMaybeText(viewItem?.payment?.currency)}
+            </Descriptions.Item>
+            <Descriptions.Item label="Verification">
+              {renderMaybeText(viewItem?.payment?.verificationStatus)}
+            </Descriptions.Item>
+            <Descriptions.Item label="Verification Details">
+              {renderMaybeText(viewItem?.payment?.verificationMessage)}
+            </Descriptions.Item>
+            <Descriptions.Item label="Payment Completed">
+              {viewItem?.completedAt ? formatDateTime(viewItem.completedAt) : "—"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Callback Received">
+              {viewItem?.payment?.callbackReceivedAt
+                ? formatDateTime(viewItem.payment.callbackReceivedAt)
+                : "—"}
             </Descriptions.Item>
 
             <Descriptions.Item label="Additional Fields" span={2}>

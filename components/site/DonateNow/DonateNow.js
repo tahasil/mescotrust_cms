@@ -174,6 +174,7 @@ function getInitialLookupState() {
     found: false,
     verified: false,
     verificationToken: "",
+    verificationProof: "",
     requiresPanLast4: false,
     masked: null,
     matchedSubmissionId: "",
@@ -194,6 +195,7 @@ export default function DonateNow(props = {}) {
   const [errors, setErrors] = useState({});
   const [encData, setEncData] = useState(null);
   const gatewayFormRef = useRef(null);
+  const paymentResultHandledRef = useRef(false);
   const lookupTimerRef = useRef(null);
   const previousPurposeIdRef = useRef("");
 
@@ -210,6 +212,59 @@ export default function DonateNow(props = {}) {
     paymentSettings,
     defaultPurposeId,
   } = normalizedConfig;
+
+  useEffect(() => {
+    if (!encData) return;
+    const gatewayForm = gatewayFormRef.current;
+    if (!gatewayForm) {
+      notification.error({
+        message: "Payment gateway error",
+        description: "Unable to open the payment gateway. Please try again.",
+        placement: "bottomRight",
+      });
+      setSubmitting(false);
+      return;
+    }
+    gatewayForm.submit();
+  }, [encData]);
+
+  useEffect(() => {
+    if (paymentResultHandledRef.current || typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const paymentResult = params.get("donation");
+    if (!paymentResult) return;
+    paymentResultHandledRef.current = true;
+
+    const orderId = params.get("order") || "";
+    if (paymentResult === "success") {
+      notification.success({
+        message: "Donation successful",
+        description: orderId
+          ? `Your payment was verified. Order ID: ${orderId}`
+          : "Your payment was verified successfully.",
+        placement: "bottomRight",
+        duration: 8,
+      });
+    } else {
+      const status = params.get("status");
+      notification.error({
+        message: status === "cancelled" ? "Payment cancelled" : "Payment unsuccessful",
+        description: orderId
+          ? `No successful payment was recorded for order ${orderId}.`
+          : "The payment could not be completed or verified. Please try again.",
+        placement: "bottomRight",
+        duration: 8,
+      });
+    }
+
+    ["donation", "order", "status", "reason"].forEach((key) => params.delete(key));
+    const cleanQuery = params.toString();
+    window.history.replaceState(
+      {},
+      "",
+      `${window.location.pathname}${cleanQuery ? `?${cleanQuery}` : ""}${window.location.hash}`,
+    );
+  }, []);
   const selectablePurposes = useMemo(
     () =>
       purposes.filter((purpose) => {
@@ -732,6 +787,7 @@ export default function DonateNow(props = {}) {
         found: true,
         verified: false,
         verificationToken: String(data.verificationToken || ""),
+        verificationProof: "",
         requiresPanLast4: Boolean(data.requiresPanLast4),
         masked: data.masked || null,
         matchedSubmissionId: String(data.matchedSubmissionId || ""),
@@ -849,6 +905,7 @@ export default function DonateNow(props = {}) {
         verified: true,
         matchedSubmissionId:
           String(data?.matchedSubmissionId || "") || previous.matchedSubmissionId,
+        verificationProof: String(data?.verificationProof || ""),
       }));
 
       setFieldValues((previous) => {
@@ -1035,6 +1092,7 @@ export default function DonateNow(props = {}) {
         method: lookupRaw ? lookupMethod : "none",
         matched: lookupState.found,
         matchedSubmissionId: lookupState.matchedSubmissionId || "",
+        verificationProof: lookupState.verificationProof || "",
       },
       purposeRuleSnapshot: {
         purpose: selectedPurpose || {},
@@ -1072,9 +1130,6 @@ export default function DonateNow(props = {}) {
       });
 
       setEncData(data);
-      window.setTimeout(() => {
-        gatewayFormRef.current?.submit();
-      }, 120);
     } catch (error) {
       notification.error({
         message: "Submission failed",

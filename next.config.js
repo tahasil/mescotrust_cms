@@ -37,7 +37,7 @@ const nextConfig = {
               "default-src 'self'",
               "base-uri 'self'",
               "object-src 'none'",
-              "form-action 'self'",
+              "form-action 'self' https://test.ccavenue.com https://secure.ccavenue.com",
               "script-src 'self' 'unsafe-eval' 'unsafe-inline' blob: https://cdn.jsdelivr.net https://www.instagram.com https://platform.twitter.com https://connect.facebook.net https://www.google.com https://www.gstatic.com https://www.recaptcha.net",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com data:",

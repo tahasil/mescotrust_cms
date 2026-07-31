@@ -1,14 +1,57 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
+import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
 import DonateNowSubmission from "@/models/DonateNowSubmission";
 import { encrypt, generateOrderId } from "@/lib/ccavenue";
 
-function toSafeString(value) {
-  return String(value ?? "").trim();
+function toSafeString(value, maxLength = 500) {
+  return String(value ?? "").trim().slice(0, maxLength);
 }
 
 function toDigits(value) {
   return String(value ?? "").replace(/\D/g, "");
+}
+
+function getSiteUrl() {
+  const configured =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXTAUTH_URL ||
+    "http://localhost:3000";
+  return new URL(configured).origin;
+}
+
+function getGatewayUrl(configuredUrl) {
+  const url = new URL(configuredUrl);
+  if (!url.pathname || url.pathname === "/") {
+    url.pathname = "/transaction/transaction.do";
+  }
+  url.searchParams.set("command", "initiateTransaction");
+  return url.toString();
+}
+
+function verifyDonorProof(token) {
+  const [payloadEncoded, signature, ...extra] = String(token || "").split(".");
+  if (!payloadEncoded || !signature || extra.length) return null;
+  const expected = crypto
+    .createHmac("sha256", process.env.NEXTAUTH_SECRET || "donor_lookup_secret")
+    .update(payloadEncoded)
+    .digest("base64url");
+  if (
+    expected.length !== signature.length ||
+    !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
+  ) {
+    return null;
+  }
+  try {
+    const payload = JSON.parse(Buffer.from(payloadEncoded, "base64url").toString("utf8"));
+    if (!payload?.verified || !payload?.sid || Date.now() > Number(payload?.exp || 0)) {
+      return null;
+    }
+    return payload;
+  } catch {
+    return null;
+  }
 }
 
 export async function POST(req) {
@@ -24,11 +67,21 @@ export async function POST(req) {
       );
     }
 
-    if (Number(amount) <= 0) {
+    const normalizedAmount = Number(amount);
+    if (!Number.isFinite(normalizedAmount) || normalizedAmount <= 0) {
       return NextResponse.json(
         { error: "Amount must be greater than 0" },
         { status: 400 }
       );
+    }
+
+    const normalizedEmail = toSafeString(donor.email, 254).toLowerCase();
+    const normalizedMobile = toDigits(donor.mobile);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      return NextResponse.json({ error: "A valid email is required" }, { status: 400 });
+    }
+    if (normalizedMobile.length < 10 || normalizedMobile.length > 15) {
+      return NextResponse.json({ error: "A valid mobile number is required" }, { status: 400 });
     }
 
     const merchantId = process.env.CCAVENUE_MERCHANT_ID;
@@ -43,13 +96,25 @@ export async function POST(req) {
       );
     }
 
+    let resolvedGatewayUrl;
+    let siteUrl;
+    try {
+      resolvedGatewayUrl = getGatewayUrl(gatewayUrl);
+      siteUrl = getSiteUrl();
+    } catch {
+      return NextResponse.json(
+        { error: "Payment gateway URL configuration is invalid" },
+        { status: 500 },
+      );
+    }
+
     await connectDB();
 
     const orderId = generateOrderId();
     const normalizedDonor = {
       name: toSafeString(donor.name),
-      email: toSafeString(donor.email).toLowerCase(),
-      mobile: toDigits(donor.mobile) || toSafeString(donor.mobile),
+      email: normalizedEmail,
+      mobile: normalizedMobile,
       pan: toSafeString(donor.pan).toUpperCase(),
       address: toSafeString(donor.address),
       city: toSafeString(donor.city),
@@ -85,15 +150,50 @@ export async function POST(req) {
         ? "existing"
         : "new";
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
+    if (donorType === "existing") {
+      const linkedId = lookupMeta.matchedSubmissionId;
+      const donorProof = verifyDonorProof(body?.lookup?.verificationProof);
+      if (
+        !mongoose.Types.ObjectId.isValid(linkedId) ||
+        donorProof?.sid !== linkedId ||
+        donorProof?.email !== normalizedEmail ||
+        donorProof?.mobile !== normalizedMobile.slice(-10)
+      ) {
+        return NextResponse.json(
+          { error: "Existing donor verification is required" },
+          { status: 400 },
+        );
+      }
+      const linkedDonation = await DonateNowSubmission.findById(linkedId)
+        .select("donor.email donor.mobile")
+        .lean();
+      const lookupQuery = lookupMeta.query.toLowerCase();
+      const linkedEmail = toSafeString(linkedDonation?.donor?.email).toLowerCase();
+      const lookupMobile = toDigits(lookupMeta.query).slice(-10);
+      const linkedMobile = toDigits(linkedDonation?.donor?.mobile).slice(-10);
+      const linkMatches =
+        lookupMeta.method === "email"
+          ? Boolean(lookupQuery && lookupQuery === linkedEmail)
+          : Boolean(lookupMobile && lookupMobile === linkedMobile);
+      if (!linkedDonation || !lookupMeta.matched || !linkMatches) {
+        return NextResponse.json(
+          { error: "Existing donor verification could not be confirmed" },
+          { status: 400 },
+        );
+      }
+    } else {
+      lookupMeta.matched = false;
+      lookupMeta.matchedSubmissionId = "";
+    }
+
     const redirectUrl = `${siteUrl}/api/payment/callback`;
     const cancelUrl = `${siteUrl}/api/payment/callback`;
 
     // Save donate-now submission with pending status
     await DonateNowSubmission.create({
       orderId,
-      amount: Number(amount),
-      currency: toSafeString(body?.currency || "INR") || "INR",
+      amount: normalizedAmount,
+      currency: "INR",
       purpose: toSafeString(purpose),
       purposeId: toSafeString(purposeId),
       zakat: zakat || "No",
@@ -117,38 +217,45 @@ export async function POST(req) {
       source: toSafeString(body?.source || "DonateNow"),
       pagePath,
       status: "pending",
+      initiatedAt: new Date(),
+      payment: {
+        gateway: "CCAvenue",
+        amount: normalizedAmount,
+        currency: "INR",
+        verificationStatus: "pending",
+      },
     });
 
     // Build CCAvenue request parameters
-    const params = [
-      `merchant_id=${merchantId}`,
-      `order_id=${orderId}`,
-      `currency=INR`,
-      `amount=${Number(amount).toFixed(2)}`,
-      `redirect_url=${redirectUrl}`,
-      `cancel_url=${cancelUrl}`,
-      `language=EN`,
-      `billing_name=${normalizedDonor.name}`,
-      `billing_email=${normalizedDonor.email}`,
-      `billing_tel=${toDigits(normalizedDonor.mobile) || normalizedDonor.mobile}`,
-      `billing_address=${normalizedDonor.address || ""}`,
-      `billing_city=${normalizedDonor.city || ""}`,
-      `billing_state=${normalizedDonor.state || ""}`,
-      `billing_zip=${normalizedDonor.pincode || ""}`,
-      `billing_country=${normalizedDonor.country || "India"}`,
-      `merchant_param1=${toSafeString(purpose)}`,
-      `merchant_param2=${zakat || "No"}`,
-      `merchant_param3=${normalizedDonor.pan || ""}`,
-      `merchant_param4=${toSafeString(note) || ""}`,
-      `merchant_param5=${toSafeString(purposeId) || ""}`,
-    ].join("&");
+    const params = new URLSearchParams({
+      merchant_id: merchantId,
+      order_id: orderId,
+      currency: "INR",
+      amount: normalizedAmount.toFixed(2),
+      redirect_url: redirectUrl,
+      cancel_url: cancelUrl,
+      language: "EN",
+      billing_name: normalizedDonor.name,
+      billing_email: normalizedDonor.email,
+      billing_tel: normalizedDonor.mobile,
+      billing_address: normalizedDonor.address,
+      billing_city: normalizedDonor.city,
+      billing_state: normalizedDonor.state,
+      billing_zip: normalizedDonor.pincode,
+      billing_country: normalizedDonor.country || "India",
+      merchant_param1: toSafeString(purpose),
+      merchant_param2: toSafeString(zakat || "No"),
+      merchant_param3: normalizedDonor.pan,
+      merchant_param4: toSafeString(note),
+      merchant_param5: toSafeString(purposeId),
+    }).toString();
 
     const encRequest = encrypt(params, workingKey);
 
     return NextResponse.json({
       encRequest,
       accessCode,
-      gatewayUrl: `${gatewayUrl}?command=initiateTransaction`,
+      gatewayUrl: resolvedGatewayUrl,
       orderId,
     });
   } catch (err) {

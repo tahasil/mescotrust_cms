@@ -22,7 +22,9 @@
     "test:social-wall": "npm run test:social-wall-contracts && npm run test:social-wall-smoke",
     "test:photo-gallery": "node --test scripts/test-photo-gallery-contracts.js",
     "test:media-phase8": "npm run test:media-delivery && npm run test:media-crop-contract && npm run test:media-ui-contracts",
-    "qa:media-phase8": "node scripts/media-phase8-qa.js"
+    "qa:media-phase8": "node scripts/media-phase8-qa.js",
+    "test:e2e:payment": "playwright test e2e/payment-gateway.spec.js",
+    "test:e2e:payment:report": "playwright show-report playwright-report/payment-gateway"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.0",
@@ -54,6 +56,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "dotenv": "^16.4.5",
     "eslint": "^8.57.0",
     "eslint-config-next": "14.2.18"
