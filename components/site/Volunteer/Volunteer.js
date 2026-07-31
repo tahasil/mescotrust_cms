@@ -6,7 +6,6 @@ import { Checkbox, Col, ConfigProvider, Row, notification } from "antd";
 import styled from "styled-components";
 import { submitContact } from "@/app/actions/contact";
 import { FullWidthBackground, PageContainer, getColor } from "@/styles/Theme";
-import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 import {
   hasMinText,
   isValidAge,
@@ -40,6 +39,9 @@ function listFromValue(value, separator = ",") {
 }
 
 const Wrapper = styled.div`
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
   --volunteer-placeholder-color: rgba(0, 0, 0, 0.35);
   --volunteer-focus-border-color: rgba(0, 0, 0, 0.32);
   --volunteer-field-gap: 14px;
@@ -58,30 +60,88 @@ const Wrapper = styled.div`
   --volunteer-input-size: 14px;
   --volunteer-required-color: var(--primary-color);
   --volunteer-error-color: var(--primary-color);
-
-  .volunteer-eligibility { max-width: 900px; margin-bottom: clamp(44px, 5vw, 72px); }
-  .volunteer-eligibility .fable-heading { margin-bottom: 16px; }
-  .volunteer-eligibility__description { max-width: 62ch; margin: 0 0 22px; color: var(--theme-black-light); font-size: 15.5px; }
-  .volunteer-eligibility__chips { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none; }
-  .volunteer-eligibility__chips li {
-    padding: 8px 16px;
-    color: var(--theme-black);
-    background: var(--theme-surface);
-    border: 1px solid var(--theme-border);
-    border-radius: 999px;
-    font-size: 14px;
-    font-weight: 570;
-  }
-
-  .volunteer-form-heading { max-width: 900px; margin-bottom: clamp(28px, 3.6vw, 48px); }
+  --volunteer-form-background: #fff;
+  --volunteer-form-border: rgba(0, 0, 0, 0.1);
+  --volunteer-form-border-width: 1px;
+  --volunteer-form-radius: 16px;
+  --volunteer-form-padding: 32px;
+  --volunteer-input-radius: 8px;
+  --volunteer-form-title-color: var(--theme-black);
+  --volunteer-eligibility-title-color: var(--primary-color);
+  --volunteer-chip-background: var(--theme-surface);
+  --volunteer-chip-border: var(--theme-border);
+  --volunteer-chip-text: var(--theme-black);
 
   .volunteer-shell {
+    width: 100%;
+    justify-content: center;
     align-items: stretch;
+  }
+
+  .volunteer-shell > .ant-col {
+    width: 100%;
+    max-width: 1180px;
+    margin-inline: auto;
   }
 
   .volunteer-form-card {
     width: 100%;
-    max-width: 900px;
+    margin-inline: auto;
+    padding: var(--volunteer-form-padding);
+    background: var(--volunteer-form-background);
+    border: var(--volunteer-form-border-width) solid var(--volunteer-form-border);
+    border-radius: var(--volunteer-form-radius);
+  }
+
+  .volunteer-form-heading {
+    max-width: none;
+    margin: 0 0 clamp(24px, 2.4vw, 34px);
+  }
+
+  .volunteer-form-heading h2 {
+    margin: 0;
+    color: var(--volunteer-form-title-color);
+    font-family: var(--fable-display);
+    font-size: clamp(21px, 1.9vw, 27px);
+    font-weight: 620;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+  }
+
+  .volunteer-eligibility {
+    width: 100%;
+    max-width: 1180px;
+    margin: clamp(32px, 3.5vw, 48px) auto 0;
+  }
+
+  .volunteer-eligibility__title {
+    margin: 0 0 15px;
+    color: var(--volunteer-eligibility-title-color);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.35;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .volunteer-eligibility__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .volunteer-eligibility__chips li {
+    padding: 7px 13px;
+    color: var(--volunteer-chip-text);
+    background: var(--volunteer-chip-background);
+    border: 1px solid var(--volunteer-chip-border);
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 560;
+    line-height: 1.25;
   }
 
   .volunteer-field {
@@ -111,10 +171,10 @@ const Wrapper = styled.div`
   .volunteer-input {
     width: 100%;
     border: 1px solid rgba(0, 0, 0, 0.12);
-    border-radius: 16px;
-    padding: 14px 20px;
-    min-height: 52px;
-    font-size: 15.5px;
+    border-radius: var(--volunteer-input-radius);
+    padding: 10px 14px;
+    min-height: var(--volunteer-input-min-height);
+    font-size: var(--volunteer-input-size);
     line-height: 1.4;
     background: var(--theme-white);
     color: rgba(0, 0, 0, 0.88);
@@ -132,7 +192,7 @@ const Wrapper = styled.div`
 
   .volunteer-textarea {
     resize: vertical;
-    min-height: 140px;
+    min-height: var(--volunteer-textarea-min-height);
   }
 
   .volunteer-areas {
@@ -159,7 +219,7 @@ const Wrapper = styled.div`
   .volunteer-submit {
     border: none;
     border-radius: 999px;
-    min-height: 48px;
+    min-height: 42px;
     font-weight: 600;
     line-height: 1;
     cursor: pointer;
@@ -184,71 +244,11 @@ const Wrapper = styled.div`
     cursor: not-allowed;
   }
 
-  .volunteer-side-card {
-    border-radius: 14px;
-    padding: 24px;
-    min-height: 80px;
-    color: #fff;
-    border: 1px solid transparent;
-    background: linear-gradient(148deg, #E03C33 0%, #B92E27 100%);
-  }
-
-  .volunteer-side-title {
-    margin: 0 0 10px 0;
-    font-size: var(--volunteer-side-title-size);
-    line-height: var(--volunteer-side-title-line-height);
-    font-weight: 500;
-    color: inherit;
-  }
-
-  .volunteer-side-description {
-    margin: 0 0 14px 0;
-    font-size: var(--volunteer-side-description-size);
-    line-height: 1.5;
-    color: inherit;
-    opacity: 0.95;
-  }
-
-  .volunteer-side-list {
-    margin: 0;
-    padding-left: 18px;
-  }
-
-  .volunteer-side-list li {
-    font-size: var(--volunteer-side-item-size);
-    line-height: 1.6;
-    margin-bottom: 8px;
-    color: inherit;
-  }
-
-  .volunteer-side-list li::marker {
-    color: var(--volunteer-bullet-color, #fff);
-  }
-
-  .volunteer-side-list--icon {
-    list-style: none;
-    padding-left: 0;
-  }
-
-  .volunteer-side-list--icon li {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    margin-bottom: 8px;
-  }
-
-  .volunteer-side-bullet-icon {
-    width: 14px;
-    height: 14px;
-    object-fit: contain;
-    margin-top: 3px;
-    flex: 0 0 auto;
-  }
-
   @media (max-width: 991px) {
-    .volunteer-side-title {
-      font-size: calc(var(--volunteer-side-title-size) - 6px);
+    .volunteer-form-card {
+      padding: clamp(24px, 4vw, var(--volunteer-form-padding));
     }
+
     .volunteer-areas {
       grid-template-columns: repeat(
         var(--volunteer-area-cols-tablet),
@@ -258,15 +258,33 @@ const Wrapper = styled.div`
   }
 
   @media (max-width: 767px) {
-    .volunteer-side-title {
-      font-size: calc(var(--volunteer-side-title-size) - 10px);
+    .volunteer-form-card {
+      padding: 22px 18px;
+      border-radius: min(var(--volunteer-form-radius), 14px);
     }
+
+    .volunteer-form-heading {
+      margin-bottom: 22px;
+    }
+
+    .volunteer-form-heading h2 {
+      font-size: 21px;
+    }
+
     .volunteer-areas {
       grid-template-columns: repeat(
         var(--volunteer-area-cols-mobile),
         minmax(0, 1fr)
       );
       gap: 8px;
+    }
+
+    .volunteer-submit {
+      width: 100%;
+    }
+
+    .volunteer-eligibility__chips {
+      gap: 7px;
     }
   }
 `;
@@ -421,12 +439,8 @@ export default function Volunteer(props = {}) {
       "Minimum Age: 18 years\nMinimum: High school (10th/12th pass)\nInterest in community development\nMinimum 5-10 hours/week\nTeamwork and collaboration\nClean background (no criminal record)\nWillingness to travel locally (if needed)",
     "\n",
   );
-  const sideBulletIconUrl = text(props?.volunteerChecklistBulletIconUrl, "");
-  const sideBulletIconAlt = text(
-    props?.volunteerChecklistBulletIconAlt,
-    "Bullet icon",
-  );
-
+  const eligibilityTitle =
+    sideTitle.replace(/\s+criteria\s*$/i, "").trim() || "Eligibility";
   const submitIconUrl = text(props?.volunteerSubmitIconUrl, "");
   const submitIconAlt = text(props?.volunteerSubmitIconAlt, "Submit icon");
 
@@ -567,6 +581,7 @@ export default function Volunteer(props = {}) {
 
   const formCardBgColorKey = text(props?.volunteerFormCardBgColorKey);
   const formCardBorderColorKey = text(props?.volunteerFormCardBorderColorKey);
+  const formTitleColorKey = text(props?.volunteerFormTitleColorKey);
   const labelColorKey = text(props?.volunteerLabelColorKey);
   const inputBgColorKey = text(props?.volunteerInputBgColorKey);
   const inputBorderColorKey = text(props?.volunteerInputBorderColorKey);
@@ -581,12 +596,17 @@ export default function Volunteer(props = {}) {
   const errorTextColorKey = text(props?.volunteerErrorTextColorKey);
   const submitBtnBgColorKey = text(props?.volunteerButtonBgColorKey);
   const submitBtnTextColorKey = text(props?.volunteerButtonTextColorKey);
-  const sideBgColorKey = text(props?.volunteerChecklistBgColorKey);
-  const sideTitleColorKey = text(props?.volunteerChecklistTitleColorKey);
-  const sideTextColorKey = text(props?.volunteerChecklistTextColorKey);
-  const sideBulletColorKey = text(props?.volunteerChecklistBulletColorKey);
-  const sideCardBorderColorKey = text(
-    props?.volunteerChecklistCardBorderColorKey,
+  const eligibilityTitleColorKey = text(
+    props?.volunteerEligibilityTitleColorKey,
+  );
+  const eligibilityChipBgColorKey = text(
+    props?.volunteerEligibilityChipBgColorKey,
+  );
+  const eligibilityChipBorderColorKey = text(
+    props?.volunteerEligibilityChipBorderColorKey,
+  );
+  const eligibilityChipTextColorKey = text(
+    props?.volunteerEligibilityChipTextColorKey,
   );
 
   const formCardBgColor = colorFromKey(formCardBgColorKey, "#ffffff");
@@ -594,6 +614,7 @@ export default function Volunteer(props = {}) {
     formCardBorderColorKey,
     "rgba(0,0,0,0.08)",
   );
+  const formTitleColor = colorFromKey(formTitleColorKey, getColor("black"));
   const labelColor = colorFromKey(labelColorKey, "rgba(0,0,0,0.85)");
   const inputBgColor = colorFromKey(inputBgColorKey, "#ffffff");
   const inputBorderColor = colorFromKey(
@@ -614,49 +635,39 @@ export default function Volunteer(props = {}) {
   const requiredStarColor = colorFromKey(requiredStarColorKey, "#E03C33");
   const errorTextColor = colorFromKey(errorTextColorKey, "#E03C33");
 
-  const submitCustomBackground = text(props?.volunteerButtonBackground);
-  const submitBtnBgColor =
-    submitCustomBackground ||
-    colorFromKey(
-      submitBtnBgColorKey,
-      "linear-gradient(140deg, #b6342b 0%, #6f1f1b 100%)",
-    );
+  const submitBtnBgColor = colorFromKey(submitBtnBgColorKey, getColor("black"));
   const submitBtnTextColor = colorFromKey(submitBtnTextColorKey, "#ffffff");
-
-  const sideCustomBackground = text(props?.volunteerChecklistBackground);
-  const sideBgColor =
-    sideCustomBackground ||
-    colorFromKey(
-      sideBgColorKey,
-      "linear-gradient(148deg, #E03C33 0%, #B92E27 100%)",
-    );
-  const sideTitleColor = colorFromKey(sideTitleColorKey, "#ffffff");
-  const sideTextColor = colorFromKey(sideTextColorKey, "#ffffff");
-  const sideBulletColor = colorFromKey(sideBulletColorKey, "#ffffff");
-  const sideCardBorderColor = colorFromKey(
-    sideCardBorderColorKey,
-    "transparent",
+  const eligibilityTitleColor = colorFromKey(
+    eligibilityTitleColorKey,
+    getColor("primary"),
+  );
+  const eligibilityChipBgColor = colorFromKey(
+    eligibilityChipBgColorKey,
+    getColor("surface"),
+  );
+  const eligibilityChipBorderColor = colorFromKey(
+    eligibilityChipBorderColorKey,
+    getColor("border"),
+  );
+  const eligibilityChipTextColor = colorFromKey(
+    eligibilityChipTextColorKey,
+    getColor("black"),
   );
 
   const formCardRadius = clamp(props?.volunteerFormCardRadius, 0, 48, 14);
-  const inputRadius = clamp(props?.volunteerInputRadius, 0, 24, 8);
-  const sideCardRadius = clamp(props?.volunteerChecklistCardRadius, 0, 48, 14);
-  const formCardPadding = clamp(props?.volunteerFormCardPadding, 8, 72, 24);
-  const sideCardPadding = clamp(
-    props?.volunteerChecklistCardPadding,
-    8,
-    72,
-    24,
+  const formCardBorderWidth = clamp(
+    props?.volunteerFormCardBorderWidth,
+    0,
+    4,
+    1,
   );
+  const inputRadius = clamp(props?.volunteerInputRadius, 0, 24, 8);
+  const formCardPadding = clamp(props?.volunteerFormCardPadding, 8, 72, 24);
   const fieldGap = clamp(props?.volunteerFieldGap, 6, 36, 14);
   const gridColumnGap = clamp(props?.volunteerGridColumnGap, 8, 36, 14);
   const gridRowGap = clamp(props?.volunteerGridRowGap, 4, 24, 8);
   const areasColumnGap = clamp(props?.volunteerAreasColumnGap, 4, 24, 12);
   const areasRowGap = clamp(props?.volunteerAreasRowGap, 4, 24, 8);
-  const submitRadius = clamp(props?.volunteerSubmitRadius, 0, 40, 10);
-  const submitPaddingY = clamp(props?.volunteerSubmitPaddingY, 6, 24, 11);
-  const submitPaddingX = clamp(props?.volunteerSubmitPaddingX, 10, 40, 22);
-  const submitFontSize = clamp(props?.volunteerSubmitFontSize, 12, 24, 15);
   const submitIconSize = clamp(props?.volunteerSubmitIconSize, 10, 36, 16);
   const submitIconGap = clamp(props?.volunteerSubmitIconGap, 4, 20, 8);
   const labelFontSize = clamp(props?.volunteerLabelFontSize, 11, 24, 13);
@@ -668,30 +679,12 @@ export default function Volunteer(props = {}) {
     220,
     78,
   );
-  const sideTitleSize = clamp(props?.volunteerChecklistTitleSize, 18, 56, 36);
-  const sideTitleLineHeight = clamp(
-    props?.volunteerChecklistTitleLineHeight,
-    1,
-    2,
-    1.12,
-  );
-  const sideDescriptionSize = clamp(
-    props?.volunteerChecklistDescriptionSize,
-    11,
-    24,
-    14,
-  );
-  const sideItemSize = clamp(props?.volunteerChecklistItemSize, 11, 24, 13);
   const areaColsDesktop = clamp(props?.volunteerAreaColumnsDesktop, 1, 6, 3);
   const areaColsTablet = clamp(props?.volunteerAreaColumnsTablet, 1, 4, 2);
   const areaColsMobile = clamp(props?.volunteerAreaColumnsMobile, 1, 2, 1);
   const experienceRows = clamp(props?.volunteerExperienceRows, 2, 10, 3);
   const motivationRows = clamp(props?.volunteerMotivationRows, 2, 12, 4);
-  const formColumnSpanLg = clamp(props?.volunteerFormColumnSpanLg, 10, 20, 16);
-  const sideColumnSpanLg = 24 - formColumnSpanLg;
-
-  const formCardCustomBackground = text(props?.volunteerFormCardBackground);
-  const formCardBackground = formCardCustomBackground || formCardBgColor;
+  const formCardBackground = formCardBgColor;
 
   const sectionBgType = text(props?.volunteerSectionBgType, "default");
   const sectionBgImage = text(props?.volunteerSectionBgImage, "");
@@ -851,37 +844,29 @@ export default function Volunteer(props = {}) {
             "--volunteer-area-cols-desktop": String(areaColsDesktop),
             "--volunteer-area-cols-tablet": String(areaColsTablet),
             "--volunteer-area-cols-mobile": String(areaColsMobile),
-            "--volunteer-side-title-size": `${sideTitleSize}px`,
-            "--volunteer-side-title-line-height": String(sideTitleLineHeight),
-            "--volunteer-side-description-size": `${sideDescriptionSize}px`,
-            "--volunteer-side-item-size": `${sideItemSize}px`,
             "--volunteer-label-size": `${labelFontSize}px`,
             "--volunteer-input-size": `${inputFontSize}px`,
             "--volunteer-required-color": requiredStarColor,
             "--volunteer-error-color": errorTextColor,
+            "--volunteer-form-background": formCardBackground,
+            "--volunteer-form-border": formCardBorderColor,
+            "--volunteer-form-border-width": `${formCardBorderWidth}px`,
+            "--volunteer-form-radius": `${formCardRadius}px`,
+            "--volunteer-form-padding": `${formCardPadding}px`,
+            "--volunteer-input-radius": `${inputRadius}px`,
+            "--volunteer-form-title-color": formTitleColor,
+            "--volunteer-eligibility-title-color": eligibilityTitleColor,
+            "--volunteer-chip-background": eligibilityChipBgColor,
+            "--volunteer-chip-border": eligibilityChipBorderColor,
+            "--volunteer-chip-text": eligibilityChipTextColor,
           }}
         >
-          <section className="volunteer-eligibility">
-            <p className="fable-eyebrow">Eligibility</p>
-            {sideTitle ? (
-              <h2 className="fable-heading">{renderHighlightedTitle(sideTitle, props)}</h2>
-            ) : null}
-            {sideDescription ? (
-              <p className="volunteer-eligibility__description">{sideDescription}</p>
-            ) : null}
-            {sideItems.length > 0 ? (
-              <ul className="volunteer-eligibility__chips">
-                {sideItems.map((item, idx) => <li key={`${item}-${idx}`}>{item}</li>)}
-              </ul>
-            ) : null}
-          </section>
-          <header className="volunteer-form-heading">
-            <p className="fable-eyebrow">Apply</p>
-            <h2 className="fable-heading">{renderHighlightedTitle("Volunteer application *form.*", props)}</h2>
-          </header>
           <Row gutter={[gridColumnGap, gridRowGap]} className="volunteer-shell">
             <Col span={24}>
               <div className="volunteer-form-card">
+                <header className="volunteer-form-heading">
+                  <h2>Volunteer application form</h2>
+                </header>
                 <form
                   ref={formRef}
                   action={formAction}
@@ -1078,7 +1063,7 @@ export default function Volunteer(props = {}) {
                       </div>
                     </Col>
 
-                    <Col xs={24}>
+                    <Col xs={24} md={12}>
                       <div className="volunteer-field">
                         <label
                           className="volunteer-label"
@@ -1113,7 +1098,7 @@ export default function Volunteer(props = {}) {
                       </div>
                     </Col>
 
-                    <Col xs={24}>
+                    <Col xs={24} md={12}>
                       <div className="volunteer-field">
                         <label
                           className="volunteer-label"
@@ -1141,7 +1126,7 @@ export default function Volunteer(props = {}) {
                       </div>
                     </Col>
 
-                    <Col xs={24}>
+                    <Col xs={24} md={12}>
                       <div className="volunteer-field">
                         <label
                           className="volunteer-label"
@@ -1159,7 +1144,7 @@ export default function Volunteer(props = {}) {
                       </div>
                     </Col>
 
-                    <Col xs={24}>
+                    <Col xs={24} md={12}>
                       <div className="volunteer-field">
                         <label
                           className="volunteer-label"
@@ -1216,6 +1201,21 @@ export default function Volunteer(props = {}) {
             </Col>
 
           </Row>
+          {sideItems.length > 0 ? (
+            <section
+              className="volunteer-eligibility"
+              aria-label={sideDescription || sideTitle}
+            >
+              <p className="volunteer-eligibility__title">
+                {eligibilityTitle} — What we ask of you
+              </p>
+              <ul className="volunteer-eligibility__chips">
+                {sideItems.map((item, idx) => (
+                  <li key={`${item}-${idx}`}>{item}</li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
         </Wrapper>
         </div>
       </PageContainer>

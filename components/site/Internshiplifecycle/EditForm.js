@@ -4,8 +4,6 @@ import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHand
 import {
   Form,
   Input,
-  InputNumber,
-  Select,
   Row,
   Col,
   message,
@@ -13,10 +11,8 @@ import {
   Collapse,
 } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
-import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
-import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 import {
@@ -28,15 +24,6 @@ import {
 
 const API_PATH = "/api/theme/Internshiplifecycle";
 const PREFIX = "internshiplifecycle";
-const ICON_MIN_WIDTH = 48;
-const ICON_MIN_HEIGHT = 48;
-
-function parseMediaId(value) {
-  const raw = String(value || "").trim();
-  if (!raw) return "";
-  const match = raw.match(/\/media\/([a-fA-F0-9]{24})(?:[/?#]|$)/);
-  return match ? String(match[1]) : "";
-}
 
 function InternshiplifecycleEditForm(
   {
@@ -57,7 +44,6 @@ function InternshiplifecycleEditForm(
   const [reorderDirection, setReorderDirection] = useState("up");
   const themeFetchedForColorsRef = useRef(false);
   const componentDataLoadedRef = useRef(false);
-  const mediaDimensionsCacheRef = useRef(new Map());
   const isPageBlock = source === "page";
 
   const fetchThemeColorOptions = useCallback((theme) => {
@@ -72,41 +58,13 @@ function InternshiplifecycleEditForm(
     setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
   }, []);
 
-  const validateIconResolution = useCallback(async (_, value) => {
-    const mediaId = parseMediaId(value);
-    if (!mediaId) return Promise.resolve();
-
-    let dimensions = mediaDimensionsCacheRef.current.get(mediaId);
-    if (!dimensions) {
-      try {
-        const res = await fetch(`/api/admin/media/${mediaId}`, { cache: "no-store" });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data?.error || "Unable to load media dimensions");
-        dimensions = {
-          width: Number(data?.width) || 0,
-          height: Number(data?.height) || 0,
-        };
-        mediaDimensionsCacheRef.current.set(mediaId, dimensions);
-      } catch (err) {
-        throw new Error(err?.message || "Unable to validate selected icon.");
-      }
-    }
-
-    if (dimensions.width < ICON_MIN_WIDTH || dimensions.height < ICON_MIN_HEIGHT) {
-      throw new Error(
-        `Icon must be at least ${ICON_MIN_WIDTH}x${ICON_MIN_HEIGHT}px. Current: ${dimensions.width}x${dimensions.height}px.`,
-      );
-    }
-
-    return Promise.resolve();
-  }, []);
-
   const setFormAndColors = useCallback((data, theme) => {
     const normalized = getInternshipLifecycleDefaults(data || {});
     form.setFieldsValue({
       ...getManageSectionInitialValues(PREFIX, data || {}),
       mainTitle: normalized.mainTitle,
-      titleColorKey: normalized.titleColorKey,
+      internshiplifecycleAccentColorKey:
+        normalized.internshiplifecycleAccentColorKey,
       internshiplifecycleDescriptionColorKey:
         normalized.internshiplifecycleDescriptionColorKey,
       internshiplifecycleCircleBgColorKey:
@@ -215,10 +173,10 @@ function InternshiplifecycleEditForm(
             values.mainTitle != null
               ? String(values.mainTitle).trim()
               : INTERNSHIP_LIFECYCLE_DEFAULTS.mainTitle,
-          titleColorKey:
-            values.titleColorKey != null
-              ? String(values.titleColorKey).trim()
-              : INTERNSHIP_LIFECYCLE_DEFAULTS.titleColorKey,
+          internshiplifecycleAccentColorKey:
+            values.internshiplifecycleAccentColorKey != null
+              ? String(values.internshiplifecycleAccentColorKey).trim()
+              : INTERNSHIP_LIFECYCLE_DEFAULTS.internshiplifecycleAccentColorKey,
           internshiplifecycleDescriptionColorKey:
             values.internshiplifecycleDescriptionColorKey != null
               ? String(values.internshiplifecycleDescriptionColorKey).trim()
@@ -322,7 +280,7 @@ function InternshiplifecycleEditForm(
   return (
     <Form form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={["manage-section", "title-colors", "title-typography", "layout", "content"]}
+        defaultActiveKey={["manage-section", "title-colors", "content"]}
         items={[
           {
             key: "manage-section",
@@ -344,98 +302,6 @@ function InternshiplifecycleEditForm(
                 themeColorOptions={themeColorOptions}
                 {...getTitleAndColorsConfig("Internshiplifecycle")}
               />
-            ),
-          },
-          {
-            key: "title-typography",
-            label: "Title Typography",
-            children: (
-              <Row gutter={[12, 12]}>
-                <Col span={24}>
-                  <Form.Item name="internshiplifecycleTitleFontFamily" label="Font family">
-                    <Input placeholder='e.g. "Inter", sans-serif' />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} sm={12}>
-                  <Form.Item name="internshiplifecycleTitleFontSize" label="Font size (px)">
-                    <InputNumber min={20} max={120} style={{ width: "100%" }} />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} sm={12}>
-                  <Form.Item name="internshiplifecycleTitleFontWeight" label="Font weight">
-                    <Select
-                      options={[
-                        { label: "100", value: 100 },
-                        { label: "200", value: 200 },
-                        { label: "300", value: 300 },
-                        { label: "400", value: 400 },
-                        { label: "500", value: 500 },
-                        { label: "600", value: 600 },
-                        { label: "700", value: 700 },
-                        { label: "800", value: 800 },
-                        { label: "900", value: 900 },
-                      ]}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} sm={12}>
-                  <Form.Item name="internshiplifecycleTitleLineHeight" label="Line height">
-                    <InputNumber min={0.8} max={2.2} step={0.01} style={{ width: "100%" }} />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} sm={12}>
-                  <Form.Item
-                    name="internshiplifecycleTitleLetterSpacing"
-                    label="Letter spacing (px)"
-                  >
-                    <InputNumber min={-4} max={20} step={0.1} style={{ width: "100%" }} />
-                  </Form.Item>
-                </Col>
-                <Col span={24}>
-                  <Form.Item name="internshiplifecycleTitleTextTransform" label="Text transform">
-                    <Select
-                      options={[
-                        { label: "None", value: "none" },
-                        { label: "Uppercase", value: "uppercase" },
-                        { label: "Lowercase", value: "lowercase" },
-                        { label: "Capitalize", value: "capitalize" },
-                      ]}
-                    />
-                  </Form.Item>
-                </Col>
-              </Row>
-            ),
-          },
-          {
-            key: "layout",
-            label: "Layout",
-            children: (
-              <Row gutter={[12, 12]}>
-                <Col xs={24} sm={8}>
-                  <Form.Item
-                    name="internshiplifecycleCircleSize"
-                    label="Circle size (px)"
-                  >
-                    <InputNumber min={40} max={120} style={{ width: "100%" }} />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} sm={8}>
-                  <Form.Item
-                    name="internshiplifecycleIconSize"
-                    label="Icon size (px)"
-                  >
-                    <InputNumber min={16} max={84} style={{ width: "100%" }} />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} sm={8}>
-                  <Form.Item
-                    name="internshiplifecycleStepGap"
-                    label="Step gap (px)"
-                  >
-                    <InputNumber min={8} max={80} style={{ width: "100%" }} />
-                  </Form.Item>
-                </Col>
-              </Row>
             ),
           },
           {
@@ -482,28 +348,6 @@ function InternshiplifecycleEditForm(
                               placeholder="Optional supporting text"
                             />
                           </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item
-                            {...restField}
-                            name={[name, "icon"]}
-                            label="Circle icon/image"
-                            rules={[
-                              { required: true, message: "Icon/image is required" },
-                              { validator: validateIconResolution },
-                            ]}
-                            extra={`Use Media Module images with at least ${ICON_MIN_WIDTH}x${ICON_MIN_HEIGHT}px for clear rendering.`}
-                          >
-                            <MediaPickerInput
-                              placeholder="/media/<id>"
-                              uiVariant="stacked"
-                              allowManual={false}
-                              hintText="Choose from Media Module. SVG or square PNG/WebP works best."
-                            />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <SwitchSettingsCard items={[{ name: [name, "highlighted"], label: "Use active/highlight state", tooltip: "Render this lifecycle item in its highlighted state." }]} />
                         </Col>
                       </Row>
                     )}

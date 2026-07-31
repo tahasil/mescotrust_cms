@@ -8,260 +8,96 @@ import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 const TimelineSection = styled.div`
   width: 100%;
   position: relative;
-  --timeline-title-size: ${(p) => `${p.$titleSize}px`};
-  --timeline-title-weight: ${(p) => p.$titleWeight};
-  --timeline-title-line-height: ${(p) => p.$titleLineHeight};
-  --timeline-title-letter-spacing: ${(p) => `${p.$titleLetterSpacing}px`};
-  --timeline-circle-size: ${(p) => `${p.$circleSize}px`};
-  --timeline-icon-size: ${(p) => `${p.$iconSize}px`};
-  --timeline-step-gap: ${(p) => `${p.$stepGap}px`};
-  --timeline-title-color: ${(p) => p.$titleColor};
+  max-width: 1280px;
+  margin-inline: auto;
   --timeline-description-color: ${(p) => p.$descriptionColor};
-  --timeline-circle-bg: ${(p) => p.$circleBg};
-  --timeline-circle-bg-hover: ${(p) => p.$circleHoverBg};
-  --timeline-icon-color: ${(p) => p.$iconColor};
-  --timeline-icon-hover-color: ${(p) => p.$iconHoverColor};
+  --timeline-accent-color: ${(p) => p.$accentColor};
   --timeline-connector-color: ${(p) => p.$connectorColor};
   --timeline-connector-color-safe: ${(p) => p.$connectorColor || "#d9d9d9"};
-  --timeline-mobile-row-gap: 18px;
-  --timeline-mobile-content-gap: 12px;
 
   .internshipLifecycleTitle {
     margin: 0;
-    color: var(--timeline-title-color);
+    padding-bottom: 22px;
+    color: var(--timeline-accent-color);
+    border-bottom: 1px solid var(--timeline-connector-color-safe);
     font-family: ${(p) =>
       p.$titleFontFamily ? p.$titleFontFamily : "inherit"};
-    font-size: var(--timeline-title-size);
-    font-weight: var(--timeline-title-weight);
-    line-height: var(--timeline-title-line-height);
-    letter-spacing: var(--timeline-title-letter-spacing);
-    text-transform: ${(p) => p.$titleTextTransform || "none"};
+    font-size: clamp(11px, 0.9vw, 13px);
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
   }
 
   .internshipLifecycleTrack {
     position: relative;
-    margin-top: clamp(18px, 2.5vw, 32px);
-    isolation: isolate;
-  }
-
-  .internshipLifecycleTrack::before {
-    content: "";
-    position: absolute;
-    left: calc(var(--timeline-circle-size) / 2);
-    right: calc(var(--timeline-circle-size) / 2);
-    top: calc(var(--timeline-circle-size) / 2);
-    border-top: 2px dotted var(--timeline-connector-color-safe);
-    opacity: 1;
-    z-index: 0;
-    pointer-events: none;
   }
 
   .internshipLifecycleGrid {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    grid-template-columns: repeat(var(--timeline-columns, 5), minmax(0, 1fr));
-    gap: var(--timeline-step-gap);
+    display: block;
   }
 
   .internshipLifecycleStep {
     min-width: 0;
-    display: flex;
-    flex-direction: column;
+    min-height: 96px;
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr);
     align-items: center;
-    position: relative;
+    gap: clamp(18px, 2.4vw, 36px);
+    padding: 22px 0;
+    border-bottom: 1px solid var(--timeline-connector-color-safe);
   }
 
   .internshipLifecycleStepContent {
     width: 100%;
-    margin-top: 14px;
+    min-width: 0;
   }
 
-  .internshipLifecycleCircle {
-    width: var(--timeline-circle-size);
-    height: var(--timeline-circle-size);
-    border-radius: 999px;
-    margin: 0 auto;
-    background: var(--timeline-circle-bg);
-    display: grid;
-    place-items: center;
-    transition:
-      background-color 0.25s ease,
-      transform 0.25s ease;
+  .internshipLifecycleNumber {
+    color: var(--timeline-accent-color);
+    font-family: var(--fable-display, inherit);
+    font-size: clamp(26px, 2.2vw, 34px);
+    font-weight: 620;
+    line-height: 1;
+    letter-spacing: -0.02em;
   }
 
-  .internshipLifecycleIconMask {
-    position: relative;
-    width: var(--timeline-icon-size);
-    height: var(--timeline-icon-size);
-    display: inline-block;
-    flex-shrink: 0;
-  }
-
-  .internshipLifecycleIconMaskLayer {
-    position: absolute;
-    inset: 0;
-    display: block;
-    transition: opacity 0.25s ease;
-    -webkit-mask-position: center;
-    mask-position: center;
-    -webkit-mask-size: contain;
-    mask-size: contain;
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-  }
-
-  .internshipLifecycleIconMaskDefault {
-    opacity: 1;
-    background: var(--timeline-icon-color);
-  }
-
-  .internshipLifecycleIconMaskHover {
-    opacity: 0;
-    background: var(--timeline-icon-hover-color);
-  }
-
-  .internshipLifecycleText {
-    text-align: center;
-    color: var(--timeline-description-color);
-    font-weight: 700;
-    font-size: 16px;
-    line-height: 1.2;
-    letter-spacing: 0;
-    text-wrap: balance;
-  }
-
+  .internshipLifecycleText,
   .internshipLifecycleDescription {
-    margin-top: 6px;
-    text-align: center;
+    margin: 0;
+    text-align: left;
     color: var(--timeline-description-color);
-    font-weight: 500;
-    font-size: 14px;
-    line-height: 1.45;
-    opacity: 0.95;
+    font-weight: 560;
+    font-size: clamp(15px, 1.25vw, 18px);
+    line-height: 1.5;
+    letter-spacing: 0;
     white-space: pre-line;
-  }
-
-  .internshipLifecycleStep.isHighlighted .internshipLifecycleCircle,
-  .internshipLifecycleStep:hover .internshipLifecycleCircle {
-    background: var(--timeline-circle-bg-hover);
-    transform: translateY(-2px);
-  }
-
-  .internshipLifecycleStep.isHighlighted .internshipLifecycleIconMaskDefault,
-  .internshipLifecycleStep:hover .internshipLifecycleIconMaskDefault {
-    opacity: 0;
-  }
-
-  .internshipLifecycleStep.isHighlighted .internshipLifecycleIconMaskHover,
-  .internshipLifecycleStep:hover .internshipLifecycleIconMaskHover {
-    opacity: 1;
-  }
-
-  @media (max-width: 1200px) {
-    .internshipLifecycleGrid {
-      gap: clamp(20px, 2.2vw, var(--timeline-step-gap));
-    }
-    .internshipLifecycleTitle {
-      font-size: min(var(--timeline-title-size), 48px);
-    }
-    .internshipLifecycleText {
-      font-size: 15px;
-    }
-  }
-
-  @media (max-width: 900px) {
-    .internshipLifecycleTrack::before {
-      display: none;
-    }
-
-    .internshipLifecycleGrid {
-      grid-template-columns: 1fr;
-      gap: 0;
-    }
-
-    .internshipLifecycleStep {
-      display: grid;
-      grid-template-columns: var(--timeline-circle-size) minmax(0, 1fr);
-      column-gap: var(--timeline-mobile-content-gap);
-      align-items: flex-start;
-      padding-bottom: 0;
-    }
-
-    .internshipLifecycleStep:not(.isLast) {
-      padding-bottom: var(--timeline-mobile-row-gap);
-    }
-
-    .internshipLifecycleStepContent {
-      margin-top: 2px;
-      min-height: calc(var(--timeline-circle-size) - 2px);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    .internshipLifecycleCircle {
-      margin: 0;
-    }
-
-    .internshipLifecycleStep:not(.isLast)::after {
-      content: "";
-      position: absolute;
-      top: calc(var(--timeline-circle-size) + 6px);
-      bottom: 0;
-      left: calc(var(--timeline-circle-size) / 2);
-      border-left: 2px dotted var(--timeline-connector-color-safe);
-      pointer-events: none;
-    }
-
-    .internshipLifecycleText {
-      text-align: left;
-      font-size: 15px;
-      line-height: 1.25;
-    }
-
-    .internshipLifecycleDescription {
-      text-align: left;
-      font-size: 13px;
-      line-height: 1.45;
-    }
-
-    .internshipLifecycleStep.isHighlighted .internshipLifecycleCircle,
-    .internshipLifecycleStep:hover .internshipLifecycleCircle {
-      transform: none;
-    }
   }
 
   @media (max-width: 767px) {
     .internshipLifecycleTitle {
-      font-size: min(var(--timeline-title-size), 34px);
-      line-height: 1.15;
+      padding-bottom: 16px;
+      font-size: 11px;
     }
-    .internshipLifecycleText {
-      font-size: 14px;
-    }
-    .internshipLifecycleDescription {
-      font-size: 13px;
-    }
-  }
 
-  @media (max-width: 460px) {
     .internshipLifecycleStep {
-      grid-template-columns: calc(var(--timeline-circle-size) - 4px) minmax(0, 1fr);
-      column-gap: 10px;
+      min-height: 82px;
+      grid-template-columns: 38px minmax(0, 1fr);
+      gap: 12px;
+      padding: 18px 0;
     }
-    .internshipLifecycleStep:not(.isLast)::after {
-      left: calc((var(--timeline-circle-size) - 4px) / 2);
+
+    .internshipLifecycleNumber {
+      font-size: 26px;
+    }
+
+    .internshipLifecycleText,
+    .internshipLifecycleDescription {
+      font-size: 14px;
+      line-height: 1.45;
     }
   }
 `;
-
-function toMaskUrl(url) {
-  const value = String(url || "").trim();
-  if (!value) return "";
-  const escaped = value.replace(/"/g, '\\"');
-  return `url("${escaped}")`;
-}
 
 function getSectionStyles(props) {
   const sectionBgType = (
@@ -421,14 +257,10 @@ function getContainerStyles(props) {
  */
 export default function Internshiplifecycle(props) {
   const data = getInternshipLifecycleDefaults(props);
-  const titleColor = getColor(data.titleColorKey);
   const descriptionColor = getColor(
     data.internshiplifecycleDescriptionColorKey,
   );
-  const circleBg = getColor(data.internshiplifecycleCircleBgColorKey);
-  const circleHoverBg = getColor(data.internshiplifecycleCircleHoverBgColorKey);
-  const iconColor = getColor(data.internshiplifecycleIconColorKey);
-  const iconHoverColor = getColor(data.internshiplifecycleIconHoverColorKey);
+  const accentColor = getColor(data.internshiplifecycleAccentColorKey);
   const connectorColor = getColor(data.internshiplifecycleConnectorColorKey);
   const { sectionBgClassName, sectionBgStyle } = getSectionStyles(props);
   const { pageContainerBgStyle } = getContainerStyles(props);
@@ -438,73 +270,30 @@ export default function Internshiplifecycle(props) {
       <PageContainer $managedStyle={pageContainerBgStyle}>
         <div className="fable-section">
         <TimelineSection
-          $titleColor={titleColor}
           $descriptionColor={descriptionColor}
-          $circleBg={circleBg}
-          $circleHoverBg={circleHoverBg}
-          $iconColor={iconColor}
-          $iconHoverColor={iconHoverColor}
+          $accentColor={accentColor}
           $connectorColor={connectorColor}
           $titleFontFamily={data.internshiplifecycleTitleFontFamily}
-          $titleTextTransform={data.internshiplifecycleTitleTextTransform}
-          $titleSize={data.internshiplifecycleTitleFontSize}
-          $titleWeight={data.internshiplifecycleTitleFontWeight}
-          $titleLineHeight={data.internshiplifecycleTitleLineHeight}
-          $titleLetterSpacing={data.internshiplifecycleTitleLetterSpacing}
-          $circleSize={data.internshiplifecycleCircleSize}
-          $iconSize={data.internshiplifecycleIconSize}
-          $stepGap={data.internshiplifecycleStepGap}
         >
           <h2 className="internshipLifecycleTitle">{renderHighlightedTitle(data.mainTitle, props)}</h2>
 
           <div className="internshipLifecycleTrack">
-            <div
-              className="internshipLifecycleGrid"
-              style={{
-                "--timeline-columns": Math.max(
-                  data.internshiplifecycleItems.length,
-                  1,
-                ),
-              }}
-            >
+            <div className="internshipLifecycleGrid">
               {data.internshiplifecycleItems.map((item, index) => {
-                const iconMask = toMaskUrl(item.icon);
-                const isLast =
-                  index === data.internshiplifecycleItems.length - 1;
                 return (
                   <div
                     key={`${item.title || "step"}-${index}`}
-                    className={`internshipLifecycleStep${item.highlighted ? " isHighlighted" : ""}${isLast ? " isLast" : ""}`}
+                    className="internshipLifecycleStep"
                   >
-                    <div className="internshipLifecycleCircle">
-                      {iconMask ? (
-                        <span
-                          className="internshipLifecycleIconMask"
-                          aria-hidden
-                        >
-                          <span
-                            className="internshipLifecycleIconMaskLayer internshipLifecycleIconMaskDefault"
-                            style={{
-                              WebkitMaskImage: iconMask,
-                              maskImage: iconMask,
-                            }}
-                          />
-                          <span
-                            className="internshipLifecycleIconMaskLayer internshipLifecycleIconMaskHover"
-                            style={{
-                              WebkitMaskImage: iconMask,
-                              maskImage: iconMask,
-                            }}
-                          />
-                        </span>
-                      ) : null}
+                    <div className="internshipLifecycleNumber" aria-hidden>
+                      {index + 1}.
                     </div>
                     <div className="internshipLifecycleStepContent">
-                      <div className="internshipLifecycleText">{item.title}</div>
+                      <span className="internshipLifecycleText">{item.title}</span>
                       {item.description ? (
-                        <div className="internshipLifecycleDescription">
-                          {item.description}
-                        </div>
+                        <span className="internshipLifecycleDescription">
+                          {` — ${item.description}`}
+                        </span>
                       ) : null}
                     </div>
                   </div>

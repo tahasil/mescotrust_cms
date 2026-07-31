@@ -74,6 +74,7 @@ const DEFAULTS = {
   volunteerErrorMotivationMin: "Minimum 5 characters required",
 
   volunteerFormCardRadius: 14,
+  volunteerFormCardBorderWidth: 1,
   volunteerInputRadius: 8,
   volunteerChecklistCardRadius: 14,
   volunteerFormCardPadding: 24,
@@ -106,6 +107,7 @@ const DEFAULTS = {
 
   volunteerFormCardBgColorKey: "",
   volunteerFormCardBorderColorKey: "",
+  volunteerFormTitleColorKey: "Black",
   volunteerLabelColorKey: "",
   volunteerInputBgColorKey: "",
   volunteerInputBorderColorKey: "",
@@ -118,6 +120,10 @@ const DEFAULTS = {
   volunteerErrorTextColorKey: "",
   volunteerButtonBgColorKey: "",
   volunteerButtonTextColorKey: "",
+  volunteerEligibilityTitleColorKey: "Primary",
+  volunteerEligibilityChipBgColorKey: "Surface",
+  volunteerEligibilityChipBorderColorKey: "Border",
+  volunteerEligibilityChipTextColorKey: "Black",
   volunteerChecklistBgColorKey: "",
   volunteerChecklistCardBorderColorKey: "",
   volunteerChecklistTitleColorKey: "",
@@ -205,6 +211,7 @@ function applyFormValues(form, data) {
     volunteerErrorMotivationMin: toText(data, "volunteerErrorMotivationMin"),
 
     volunteerFormCardRadius: toNum(data, "volunteerFormCardRadius"),
+    volunteerFormCardBorderWidth: toNum(data, "volunteerFormCardBorderWidth"),
     volunteerInputRadius: toNum(data, "volunteerInputRadius"),
     volunteerChecklistCardRadius: toNum(data, "volunteerChecklistCardRadius"),
     volunteerFormCardPadding: toNum(data, "volunteerFormCardPadding"),
@@ -237,6 +244,7 @@ function applyFormValues(form, data) {
 
     volunteerFormCardBgColorKey: toText(data, "volunteerFormCardBgColorKey"),
     volunteerFormCardBorderColorKey: toText(data, "volunteerFormCardBorderColorKey"),
+    volunteerFormTitleColorKey: toText(data, "volunteerFormTitleColorKey"),
     volunteerLabelColorKey: toText(data, "volunteerLabelColorKey"),
     volunteerInputBgColorKey: toText(data, "volunteerInputBgColorKey"),
     volunteerInputBorderColorKey: toText(data, "volunteerInputBorderColorKey"),
@@ -249,6 +257,10 @@ function applyFormValues(form, data) {
     volunteerErrorTextColorKey: toText(data, "volunteerErrorTextColorKey"),
     volunteerButtonBgColorKey: toText(data, "volunteerButtonBgColorKey"),
     volunteerButtonTextColorKey: toText(data, "volunteerButtonTextColorKey"),
+    volunteerEligibilityTitleColorKey: toText(data, "volunteerEligibilityTitleColorKey"),
+    volunteerEligibilityChipBgColorKey: toText(data, "volunteerEligibilityChipBgColorKey"),
+    volunteerEligibilityChipBorderColorKey: toText(data, "volunteerEligibilityChipBorderColorKey"),
+    volunteerEligibilityChipTextColorKey: toText(data, "volunteerEligibilityChipTextColorKey"),
     volunteerChecklistBgColorKey: toText(data, "volunteerChecklistBgColorKey"),
     volunteerChecklistCardBorderColorKey: toText(data, "volunteerChecklistCardBorderColorKey"),
     volunteerChecklistTitleColorKey: toText(data, "volunteerChecklistTitleColorKey"),
@@ -404,6 +416,12 @@ function VolunteerEditForm(
             0,
             48,
             DEFAULTS.volunteerFormCardRadius,
+          ),
+          volunteerFormCardBorderWidth: clamp(
+            values.volunteerFormCardBorderWidth,
+            0,
+            4,
+            DEFAULTS.volunteerFormCardBorderWidth,
           ),
           volunteerInputRadius: clamp(values.volunteerInputRadius, 0, 24, DEFAULTS.volunteerInputRadius),
           volunteerChecklistCardRadius: clamp(
@@ -565,6 +583,7 @@ function VolunteerEditForm(
           volunteerDescriptionColorKey: "",
           volunteerFormCardBgColorKey: String(values.volunteerFormCardBgColorKey ?? "").trim(),
           volunteerFormCardBorderColorKey: String(values.volunteerFormCardBorderColorKey ?? "").trim(),
+          volunteerFormTitleColorKey: String(values.volunteerFormTitleColorKey ?? "").trim(),
           volunteerLabelColorKey: String(values.volunteerLabelColorKey ?? "").trim(),
           volunteerInputBgColorKey: String(values.volunteerInputBgColorKey ?? "").trim(),
           volunteerInputBorderColorKey: String(values.volunteerInputBorderColorKey ?? "").trim(),
@@ -579,6 +598,10 @@ function VolunteerEditForm(
           volunteerErrorTextColorKey: String(values.volunteerErrorTextColorKey ?? "").trim(),
           volunteerButtonBgColorKey: String(values.volunteerButtonBgColorKey ?? "").trim(),
           volunteerButtonTextColorKey: String(values.volunteerButtonTextColorKey ?? "").trim(),
+          volunteerEligibilityTitleColorKey: String(values.volunteerEligibilityTitleColorKey ?? "").trim(),
+          volunteerEligibilityChipBgColorKey: String(values.volunteerEligibilityChipBgColorKey ?? "").trim(),
+          volunteerEligibilityChipBorderColorKey: String(values.volunteerEligibilityChipBorderColorKey ?? "").trim(),
+          volunteerEligibilityChipTextColorKey: String(values.volunteerEligibilityChipTextColorKey ?? "").trim(),
           volunteerChecklistBgColorKey: String(values.volunteerChecklistBgColorKey ?? "").trim(),
           volunteerChecklistCardBorderColorKey: String(
             values.volunteerChecklistCardBorderColorKey ?? "",
@@ -658,6 +681,38 @@ function VolunteerEditForm(
                 themeColorOptions={themeColorOptions}
                 {...getTitleAndColorsConfig("Volunteer")}
               />
+            ),
+          },
+          {
+            key: "border",
+            label: "Border & Shape",
+            children: (
+              <Row gutter={[16, 16]}>
+                <Col xs={24} md={12}>
+                  <Form.Item
+                    name="volunteerFormCardBorderWidth"
+                    label="Form border width (px)"
+                    extra="Set to 0 to remove the form card border. Its color is managed under Title & Colors → Form card border."
+                  >
+                    <InputNumber min={0} max={4} style={{ width: "100%" }} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Form.Item name="volunteerFormCardRadius" label="Form card radius (px)">
+                    <InputNumber min={0} max={48} style={{ width: "100%" }} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Form.Item name="volunteerInputRadius" label="Input radius (px)">
+                    <InputNumber min={0} max={24} style={{ width: "100%" }} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Form.Item name="volunteerFormCardPadding" label="Form card padding (px)">
+                    <InputNumber min={8} max={72} style={{ width: "100%" }} />
+                  </Form.Item>
+                </Col>
+              </Row>
             ),
           },
           {
@@ -778,39 +833,19 @@ function VolunteerEditForm(
           },
           {
             key: "right-card",
-            label: "Eligibility Card",
+            label: "Eligibility",
             children: (
               <>
-                <Form.Item name="volunteerChecklistTitle" label="Card title">
+                <Form.Item name="volunteerChecklistTitle" label="Eligibility title">
                   <Input placeholder="Eligibility Criteria" />
-                </Form.Item>
-                <Form.Item name="volunteerChecklistDescription" label="Card description">
-                  <Input.TextArea rows={3} placeholder="Card intro text..." />
                 </Form.Item>
                 <Form.Item
                   name="volunteerChecklistItems"
-                  label="Bullet points"
-                  extra="One line per bullet"
+                  label="Eligibility chips"
+                  extra="Enter one chip per line. Colors are managed under Title & Colors."
                 >
                   <Input.TextArea rows={6} placeholder={DEFAULTS.volunteerChecklistItems} />
                 </Form.Item>
-                <Row gutter={[16, 16]}>
-                  <Col xs={24} md={12}>
-                    <Form.Item name="volunteerChecklistBackground" label="Card background CSS (optional)">
-                      <Input placeholder="linear-gradient(...)" />
-                    </Form.Item>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <Form.Item name="volunteerButtonBackground" label="Button background CSS (optional)">
-                      <Input placeholder="linear-gradient(...)" />
-                    </Form.Item>
-                  </Col>
-                  <Col span={24}>
-                    <Form.Item name="volunteerFormCardBackground" label="Form card background CSS (optional)">
-                      <Input placeholder="#ffffff or linear-gradient(...)" />
-                    </Form.Item>
-                  </Col>
-                </Row>
               </>
             ),
           },
