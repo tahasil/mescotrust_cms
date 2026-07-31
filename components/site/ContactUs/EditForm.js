@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, Collapse, message, Spin } from "antd";
+import { Col, Collapse, Form, Input, InputNumber, Row, Spin, message } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
@@ -9,6 +9,25 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/ContactUs";
 const PREFIX = "contactUs";
+const TYPOGRAPHY_DEFAULTS = {
+  contactUsFormHeadingFontSize: 24,
+  contactUsFormHeadingFontWeight: 620,
+  contactUsFormHeadingLineHeight: 1.2,
+  contactUsInfoLabelFontSize: 13,
+  contactUsInfoLabelFontWeight: 620,
+  contactUsInfoLabelLineHeight: 1.4,
+  contactUsInfoTextFontSize: 13,
+  contactUsInfoTextLineHeight: 1.55,
+  contactUsFieldLabelFontSize: 12,
+  contactUsFieldLabelLineHeight: 1.4,
+  contactUsInputTextFontSize: 13,
+  contactUsButtonFontSize: 13,
+};
+
+function numericValue(data, key) {
+  const value = Number(data?.[key]);
+  return Number.isFinite(value) ? value : TYPOGRAPHY_DEFAULTS[key];
+}
 
 function ContactUsEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [] }, ref) {
   const [form] = Form.useForm();
@@ -27,24 +46,29 @@ function ContactUsEditForm({ source, initialData: initialDataProp, onSaveToPage,
     const setFormAndColors = (data, theme) => {
       form.setFieldsValue({
         ...getManageSectionInitialValues(PREFIX, data),
-        mainTitle: data?.mainTitle != null ? String(data.mainTitle).trim() : "",
-        subTitle: data?.subTitle != null ? String(data.subTitle).trim() : "",
-        titleColorKey: data?.titleColorKey != null ? String(data.titleColorKey).trim() : "",
-        contactUsTitleEnabled: data?.contactUsTitleEnabled !== false,
-        contactUsSubTitleEnabled: data?.contactUsSubTitleEnabled !== false,
-        contactUsSubTitleColorKey: data?.contactUsSubTitleColorKey != null ? String(data.contactUsSubTitleColorKey).trim() : "",
         contactUsBtnBgColorKey: data?.contactUsBtnBgColorKey != null ? String(data.contactUsBtnBgColorKey).trim() : "",
         contactUsBtnTextColorKey: data?.contactUsBtnTextColorKey != null ? String(data.contactUsBtnTextColorKey).trim() : "",
         contactUsFormHeadingColorKey: data?.contactUsFormHeadingColorKey != null ? String(data.contactUsFormHeadingColorKey).trim() : "",
-        contactUsFormDescColorKey: data?.contactUsFormDescColorKey != null ? String(data.contactUsFormDescColorKey).trim() : "",
-        contactUsIconColorKey: data?.contactUsIconColorKey != null ? String(data.contactUsIconColorKey).trim() : "",
+        contactUsInfoLabelColorKey: data?.contactUsInfoLabelColorKey != null ? String(data.contactUsInfoLabelColorKey).trim() : "Primary",
+        contactUsInfoTextColorKey: data?.contactUsInfoTextColorKey != null ? String(data.contactUsInfoTextColorKey).trim() : "Black Light",
+        contactUsInfoCardBgColorKey: data?.contactUsInfoCardBgColorKey != null ? String(data.contactUsInfoCardBgColorKey).trim() : "White",
+        contactUsInfoCardBorderColorKey: data?.contactUsInfoCardBorderColorKey != null ? String(data.contactUsInfoCardBorderColorKey).trim() : "Border",
+        contactUsFormCardBgColorKey: data?.contactUsFormCardBgColorKey != null ? String(data.contactUsFormCardBgColorKey).trim() : "White",
+        contactUsFormCardBorderColorKey: data?.contactUsFormCardBorderColorKey != null ? String(data.contactUsFormCardBorderColorKey).trim() : "Border",
+        contactUsFieldLabelColorKey: data?.contactUsFieldLabelColorKey != null ? String(data.contactUsFieldLabelColorKey).trim() : "Black",
+        contactUsInputBgColorKey: data?.contactUsInputBgColorKey != null ? String(data.contactUsInputBgColorKey).trim() : "White",
+        contactUsInputBorderColorKey: data?.contactUsInputBorderColorKey != null ? String(data.contactUsInputBorderColorKey).trim() : "Border",
+        contactUsInputFocusColorKey: data?.contactUsInputFocusColorKey != null ? String(data.contactUsInputFocusColorKey).trim() : "Primary",
+        contactUsInputTextColorKey: data?.contactUsInputTextColorKey != null ? String(data.contactUsInputTextColorKey).trim() : "Black",
         contactUsRegdOffice: data?.contactUsRegdOffice ?? "110, Natalwala Building, V. S. Road, Mahim(W), Mumbai - 400 016.",
-        contactUsInfoTitle: data?.contactUsInfoTitle ?? "Visit, call or write.",
         contactUsAdminOffice: data?.contactUsAdminOffice ?? "1 & 2, Plot No 423, Landmark Building, Next to Johnson & Johnson, Near Saraswati Mandir School, Senapati Bapat Marg, Mahim(W), Mumbai - 400016.",
         contactUsEmail: data?.contactUsEmail ?? "mescotrust@mescotrust.org",
         contactUsPhone: data?.contactUsPhone ?? "(+9122) 24441442, (+9122) 24448637",
         contactUsSubjects: data?.contactUsSubjects ?? "General Inquiry, Volunteering, Donation, Partnership, Other",
         contactUsMapEmbedUrl: data?.contactUsMapEmbedUrl ?? "",
+        ...Object.fromEntries(
+          Object.keys(TYPOGRAPHY_DEFAULTS).map((key) => [key, numericValue(data, key)]),
+        ),
       });
       if (theme) {
         const palette = theme?.themePalette || {};
@@ -83,24 +107,34 @@ function ContactUsEditForm({ source, initialData: initialDataProp, onSaveToPage,
       const values = form.getFieldsValue(true);
       const payload = {
         ...getManageSectionPayload(PREFIX, values),
-        mainTitle: values.mainTitle != null ? String(values.mainTitle).trim() : "",
-        subTitle: values.subTitle != null ? String(values.subTitle).trim() : "",
-        titleColorKey: values.titleColorKey != null ? String(values.titleColorKey).trim() : "",
-        contactUsTitleEnabled: values.contactUsTitleEnabled !== false,
-        contactUsSubTitleEnabled: values.contactUsSubTitleEnabled !== false,
-        contactUsSubTitleColorKey: values.contactUsSubTitleColorKey != null ? String(values.contactUsSubTitleColorKey).trim() : "",
         contactUsBtnBgColorKey: values.contactUsBtnBgColorKey != null ? String(values.contactUsBtnBgColorKey).trim() : "",
         contactUsBtnTextColorKey: values.contactUsBtnTextColorKey != null ? String(values.contactUsBtnTextColorKey).trim() : "",
         contactUsFormHeadingColorKey: values.contactUsFormHeadingColorKey != null ? String(values.contactUsFormHeadingColorKey).trim() : "",
-        contactUsFormDescColorKey: values.contactUsFormDescColorKey != null ? String(values.contactUsFormDescColorKey).trim() : "",
-        contactUsIconColorKey: values.contactUsIconColorKey != null ? String(values.contactUsIconColorKey).trim() : "",
+        contactUsInfoLabelColorKey: String(values.contactUsInfoLabelColorKey ?? "").trim(),
+        contactUsInfoTextColorKey: String(values.contactUsInfoTextColorKey ?? "").trim(),
+        contactUsInfoCardBgColorKey: String(values.contactUsInfoCardBgColorKey ?? "").trim(),
+        contactUsInfoCardBorderColorKey: String(values.contactUsInfoCardBorderColorKey ?? "").trim(),
+        contactUsFormCardBgColorKey: String(values.contactUsFormCardBgColorKey ?? "").trim(),
+        contactUsFormCardBorderColorKey: String(values.contactUsFormCardBorderColorKey ?? "").trim(),
+        contactUsFieldLabelColorKey: String(values.contactUsFieldLabelColorKey ?? "").trim(),
+        contactUsInputBgColorKey: String(values.contactUsInputBgColorKey ?? "").trim(),
+        contactUsInputBorderColorKey: String(values.contactUsInputBorderColorKey ?? "").trim(),
+        contactUsInputFocusColorKey: String(values.contactUsInputFocusColorKey ?? "").trim(),
+        contactUsInputTextColorKey: String(values.contactUsInputTextColorKey ?? "").trim(),
         contactUsRegdOffice: values.contactUsRegdOffice != null ? String(values.contactUsRegdOffice).trim() : "",
-        contactUsInfoTitle: values.contactUsInfoTitle != null ? String(values.contactUsInfoTitle).trim() : "",
         contactUsAdminOffice: values.contactUsAdminOffice != null ? String(values.contactUsAdminOffice).trim() : "",
         contactUsEmail: values.contactUsEmail != null ? String(values.contactUsEmail).trim() : "",
         contactUsPhone: values.contactUsPhone != null ? String(values.contactUsPhone).trim() : "",
         contactUsSubjects: values.contactUsSubjects != null ? String(values.contactUsSubjects).trim() : "",
         contactUsMapEmbedUrl: values.contactUsMapEmbedUrl != null ? String(values.contactUsMapEmbedUrl).trim() : "",
+        ...Object.fromEntries(
+          Object.keys(TYPOGRAPHY_DEFAULTS).map((key) => [
+            key,
+            Number.isFinite(Number(values[key]))
+              ? Number(values[key])
+              : TYPOGRAPHY_DEFAULTS[key],
+          ]),
+        ),
       };
       if (isPageBlock && onSaveToPage) {
         onSaveToPage(payload);
@@ -130,7 +164,7 @@ function ContactUsEditForm({ source, initialData: initialDataProp, onSaveToPage,
   return (
     <Form form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={["contact-info"]}
+        defaultActiveKey={["title-colors", "typography", "contact-info"]}
         items={[
           {
             key: "manage-section",
@@ -139,17 +173,82 @@ function ContactUsEditForm({ source, initialData: initialDataProp, onSaveToPage,
           },
           {
             key: "title-colors",
-            label: "Title & Colors",
+            label: "Colors",
             children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("ContactUs")} />,
+          },
+          {
+            key: "typography",
+            label: "Typography",
+            children: (
+              <Row gutter={[12, 12]}>
+                <Col xs={24} sm={12}>
+                  <Form.Item name="contactUsFormHeadingFontSize" label="Form heading size (px)">
+                    <InputNumber min={16} max={64} style={{ width: "100%" }} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12}>
+                  <Form.Item name="contactUsFormHeadingFontWeight" label="Form heading weight">
+                    <InputNumber min={100} max={900} step={10} style={{ width: "100%" }} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12}>
+                  <Form.Item name="contactUsFormHeadingLineHeight" label="Form heading line height">
+                    <InputNumber min={0.8} max={2.2} step={0.05} style={{ width: "100%" }} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12}>
+                  <Form.Item name="contactUsInfoLabelFontSize" label="Information label size (px)">
+                    <InputNumber min={10} max={28} style={{ width: "100%" }} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12}>
+                  <Form.Item name="contactUsInfoLabelFontWeight" label="Information label weight">
+                    <InputNumber min={100} max={900} step={10} style={{ width: "100%" }} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12}>
+                  <Form.Item name="contactUsInfoLabelLineHeight" label="Information label line height">
+                    <InputNumber min={0.8} max={2.2} step={0.05} style={{ width: "100%" }} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12}>
+                  <Form.Item name="contactUsInfoTextFontSize" label="Information text size (px)">
+                    <InputNumber min={10} max={28} style={{ width: "100%" }} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12}>
+                  <Form.Item name="contactUsInfoTextLineHeight" label="Information text line height">
+                    <InputNumber min={0.8} max={2.2} step={0.05} style={{ width: "100%" }} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12}>
+                  <Form.Item name="contactUsFieldLabelFontSize" label="Field label size (px)">
+                    <InputNumber min={10} max={28} style={{ width: "100%" }} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12}>
+                  <Form.Item name="contactUsFieldLabelLineHeight" label="Field label line height">
+                    <InputNumber min={0.8} max={2.2} step={0.05} style={{ width: "100%" }} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12}>
+                  <Form.Item name="contactUsInputTextFontSize" label="Input text size (px)">
+                    <InputNumber min={10} max={28} style={{ width: "100%" }} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12}>
+                  <Form.Item name="contactUsButtonFontSize" label="Button text size (px)">
+                    <InputNumber min={10} max={28} style={{ width: "100%" }} />
+                  </Form.Item>
+                </Col>
+              </Row>
+            ),
           },
           {
             key: "contact-info",
             label: "Contact Information",
             children: (
               <>
-                <Form.Item name="contactUsInfoTitle" label="Contact heading">
-                  <Input placeholder="e.g. Visit, call or write." />
-                </Form.Item>
                 <Form.Item name="contactUsRegdOffice" label="Regd. Office Address">
                   <Input.TextArea rows={2} placeholder="Registered office address" />
                 </Form.Item>

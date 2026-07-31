@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
-import { Row, Col, notification } from "antd";
+import { notification } from "antd";
 import styled from "styled-components";
 import { submitContact } from "@/app/actions/contact";
 import { getColor } from "@/styles/Theme";
@@ -15,85 +15,157 @@ import {
 } from "@/lib/formValidation";
 
 const FormWrapper = styled.div`
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+
+  .contact-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: clamp(40px, 4.5vw, 64px);
+    align-items: start;
+  }
+
+  .contact-info-panel,
+  .contact-form-panel {
+    min-width: 0;
+  }
+
+  .contact-form-panel {
+    padding: clamp(26px, 2.5vw, 36px);
+    background: var(--contact-form-card-bg, var(--theme-white, #fff));
+    border: 1px solid var(--contact-form-card-border, var(--theme-border, rgba(42, 40, 62, 0.14)));
+    border-radius: 18px;
+  }
+
   .form-heading {
-    margin-bottom: 8px;
-    color: var(--primary-color);
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    margin: 0 0 24px;
+    color: var(--contact-form-heading-color, var(--theme-black, #2a283e));
+    font-family: var(--fable-display, inherit);
+    font-size: var(--contact-form-heading-size, 24px);
+    font-weight: var(--contact-form-heading-weight, 620);
+    line-height: var(--contact-form-heading-line-height, 1.2);
+    letter-spacing: -0.015em;
+    text-transform: none;
   }
-  .form-description {
-    font-size: 14px;
-    color: rgba(0, 0, 0, 0.55);
-    margin-bottom: 24px;
-    line-height: 1.6;
-  }
+
   .form-label {
     display: block;
-    margin-bottom: 6px;
+    margin-bottom: 7px;
     font-weight: 600;
-    font-size: 14px;
-    color: rgba(0, 0, 0, 0.85);
+    font-size: var(--contact-field-label-size, 13px);
+    line-height: var(--contact-field-label-line-height, 1.4);
+    color: var(--contact-field-label-color, var(--theme-black, #2a283e));
   }
+
   .form-label .required {
     color: var(--primary-color);
   }
+
   .form-field {
     width: 100%;
-    padding: 14px 20px;
-    border: 1px solid rgba(0, 0, 0, 0.12);
-    border-radius: 16px;
-    font-size: 15.5px;
+    min-height: 42px;
+    padding: 9px 13px;
+    border: 1px solid var(--contact-input-border, var(--theme-border, rgba(42, 40, 62, 0.14)));
+    border-radius: 12px;
+    font: inherit;
+    font-size: var(--contact-input-text-size, 13px);
     line-height: 1.5;
     outline: none;
-    background: var(--theme-white);
-    transition: border-color 0.2s ease;
+    background: var(--contact-input-bg, var(--theme-white, #fff));
+    color: var(--contact-input-text-color, var(--theme-black, #2a283e));
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      background-color 0.2s ease;
     &:focus {
-      border-color: rgba(0, 0, 0, 0.3);
+      border-color: var(--contact-input-focus, var(--primary-color, #e03c33));
+      box-shadow: 0 0 0 3px var(--theme-primary-light, rgba(224, 60, 51, 0.1));
     }
     &::placeholder {
-      color: rgba(0, 0, 0, 0.3);
+      color: var(--theme-black-muted, rgba(42, 40, 62, 0.52));
     }
   }
+
   select.form-field {
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 16px center;
-    padding-right: 40px;
+    background-position: right 17px center;
+    padding-right: 42px;
     cursor: pointer;
   }
+
   textarea.form-field {
     resize: vertical;
-    min-height: 140px;
+    min-height: 104px;
   }
-  .contact-message-form { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .contact-message-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 14px;
+  }
+
   .contact-message-form .form-group { margin: 0; }
   .contact-message-form .form-group:nth-of-type(5) { grid-column: 1 / -1; }
-  .contact-message-form > button { justify-self: start; }
+  .contact-message-form > button {
+    justify-self: start;
+    margin-top: 4px;
+  }
+
   .error-text {
     margin-top: 6px;
     font-size: 12px;
     line-height: 1.4;
     color: var(--primary-color);
   }
+
+  @media (max-width: 1023px) {
+    .contact-layout {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 48px;
+    }
+
+  }
+
   @media (max-width: 767px) {
+    .contact-layout {
+      gap: 36px;
+    }
+
+    .contact-form-panel {
+      padding: 24px 18px;
+      border-radius: 18px;
+    }
+
     .contact-message-form { grid-template-columns: 1fr; }
     .contact-message-form .form-group:nth-of-type(5) { grid-column: auto; }
+    .contact-message-form > button { width: 100%; }
   }
 `;
 
 const SubmitBtn = styled.button`
-  padding: 12px 32px;
-  border: none;
-  border-radius: 24px;
-  font-size: 14px;
+  min-height: 40px;
+  padding: 10px 24px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: var(--contact-button-text-size, 13px);
   font-weight: 600;
+  line-height: 1;
   cursor: pointer;
-  transition: opacity 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   &:hover {
-    opacity: 0.85;
+    opacity: 0.92;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(42, 40, 62, 0.16);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--primary-color, #e03c33);
+    outline-offset: 3px;
   }
   &:disabled {
     opacity: 0.5;
@@ -104,36 +176,51 @@ const SubmitBtn = styled.button`
 const InfoCard = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 `;
 
 const InfoItem = styled.div`
-  padding: 22px 26px;
-  background: var(--theme-white);
-  border: 1px solid var(--theme-border);
-  border-radius: 20px;
+  padding: 17px 20px;
+  background: var(--contact-info-card-bg, var(--theme-white, #fff));
+  border: 1px solid var(--contact-info-card-border, var(--theme-border, rgba(42, 40, 62, 0.14)));
+  border-radius: 15px;
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+
+  &:hover {
+    border-color: var(--theme-primary-pale, rgba(224, 60, 51, 0.38));
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(42, 40, 62, 0.07);
+  }
+
   .info-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
   }
-  .info-icon {
-    width: 20px;
-    height: 20px;
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
+
   .info-title {
-    font-size: 15px;
-    font-weight: 650;
+    font-size: var(--contact-info-label-size, 13px);
+    font-weight: var(--contact-info-label-weight, 620);
+    line-height: var(--contact-info-label-line-height, 1.4);
+    color: var(--contact-info-label-color, var(--primary-color, #e03c33));
   }
+
   .info-text {
-    font-size: 14px;
-    color: var(--theme-black-light);
-    line-height: 1.6;
+    font-size: var(--contact-info-text-size, 13px);
+    color: var(--contact-info-text-color, var(--theme-black-light));
+    line-height: var(--contact-info-text-line-height, 1.55);
     margin: 0;
-    padding-left: 30px;
+    overflow-wrap: anywhere;
+  }
+
+  .info-text a:hover {
+    color: var(--primary-color, #e03c33) !important;
+  }
+
+  @media (max-width: 480px) {
+    padding: 18px;
+
   }
 `;
 
@@ -151,14 +238,17 @@ function SubmitButton({ btnBgColor, btnTextColor }) {
 }
 
 const MapWrapper = styled.div`
-  margin-top: 40px;
-  border-radius: 16px;
+  margin-top: clamp(40px, 5vw, 64px);
+  border: 1px solid var(--theme-border, rgba(42, 40, 62, 0.14));
+  border-radius: 22px;
   overflow: hidden;
   width: 100%;
-  height: 400px;
+  height: clamp(300px, 31vw, 420px);
+  background: var(--theme-surface, #f2f0ea);
   @media (max-width: 768px) {
     height: 280px;
-    margin-top: 32px;
+    margin-top: 40px;
+    border-radius: 16px;
   }
   iframe {
     width: 100%;
@@ -173,12 +263,21 @@ export default function ContactForm({
   source,
   subjectOptions,
   contactInfo,
-  infoTitle = "Visit, call or write.",
   btnBgColor,
   btnTextColor,
-  iconColor,
   formHeadingColor,
-  formDescColor,
+  infoLabelColor,
+  infoTextColor,
+  infoCardBgColor,
+  infoCardBorderColor,
+  formCardBgColor,
+  formCardBorderColor,
+  fieldLabelColor,
+  inputBgColor,
+  inputBorderColor,
+  inputFocusColor,
+  inputTextColor,
+  typography = {},
   mapEmbedUrl,
 }) {
   const [state, formAction] = useFormState(submitContact, null);
@@ -186,7 +285,6 @@ export default function ContactForm({
   const [errors, setErrors] = useState({});
   const resolvedBtnBg = btnBgColor || getColor("primary");
   const resolvedBtnText = btnTextColor || getColor("white");
-  const resolvedIconColor = iconColor || getColor("primary");
 
   const subjects =
     Array.isArray(subjectOptions) && subjectOptions.length > 0
@@ -251,130 +349,41 @@ export default function ContactForm({
   };
 
   return (
-    <FormWrapper>
-      <Row gutter={[48, 32]}>
-        <Col xs={{ span: 24, order: 2 }} md={{ span: 12, order: 2 }}>
-          <div className="form-heading" style={formHeadingColor ? { color: formHeadingColor } : undefined}>Send Us a Message</div>
-          <p className="form-description" style={formDescColor ? { color: formDescColor } : undefined}>
-            Have a question or want to get involved? Fill out the form and we'll
-            get back to you shortly.
-          </p>
-          <form className="contact-message-form" ref={formRef} action={formAction} onSubmit={handleSubmit} noValidate>
-            <input type="hidden" name="page" value={page || ""} />
-            <input type="hidden" name="source" value={source || ""} />
-
-            <div className="form-group">
-              <label className="form-label">
-                Full Name <span className="required">*</span>
-              </label>
-              <input
-                name="name"
-                required
-                className="form-field"
-                placeholder="Your name"
-                onChange={() => errors.name && setErrors((prev) => ({ ...prev, name: "" }))}
-                style={errors.name ? { borderColor: "#E03C33" } : undefined}
-              />
-              {errors.name ? <div className="error-text">{errors.name}</div> : null}
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">
-                Email <span className="required">*</span>
-              </label>
-              <input
-                name="email"
-                type="email"
-                required
-                className="form-field"
-                placeholder="your@email.com"
-                onChange={() => errors.email && setErrors((prev) => ({ ...prev, email: "" }))}
-                style={errors.email ? { borderColor: "#E03C33" } : undefined}
-              />
-              {errors.email ? <div className="error-text">{errors.email}</div> : null}
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">
-                Phone <span className="required">*</span>
-              </label>
-              <input
-                name="phone"
-                type="tel"
-                required
-                className="form-field"
-                placeholder="+91 00000 00000"
-                onChange={() => errors.phone && setErrors((prev) => ({ ...prev, phone: "" }))}
-                style={errors.phone ? { borderColor: "#E03C33" } : undefined}
-              />
-              {errors.phone ? <div className="error-text">{errors.phone}</div> : null}
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">
-                Subject <span className="required">*</span>
-              </label>
-              <select
-                name="subject"
-                required
-                className="form-field"
-                defaultValue=""
-                onChange={() => errors.subject && setErrors((prev) => ({ ...prev, subject: "" }))}
-                style={errors.subject ? { borderColor: "#E03C33" } : undefined}
-              >
-                <option value="" disabled>
-                  Select a subject
-                </option>
-                {subjects.map((s, i) => (
-                  <option key={i} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-              {errors.subject ? <div className="error-text">{errors.subject}</div> : null}
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">
-                Message <span className="required">*</span>
-              </label>
-              <textarea
-                name="message"
-                required
-                className="form-field"
-                placeholder="How can we help you?"
-                rows={5}
-                onChange={() => errors.message && setErrors((prev) => ({ ...prev, message: "" }))}
-                style={errors.message ? { borderColor: "#E03C33" } : undefined}
-              />
-              {errors.message ? <div className="error-text">{errors.message}</div> : null}
-            </div>
-
-            <SubmitButton
-              btnBgColor={resolvedBtnBg}
-              btnTextColor={resolvedBtnText}
-            />
-          </form>
-        </Col>
-
-        <Col xs={{ span: 24, order: 1 }} md={{ span: 12, order: 1 }}>
-          <div className="form-heading" style={formHeadingColor ? { color: formHeadingColor } : undefined}>Get in Touch</div>
-          {infoTitle ? <h2 className="fable-heading" style={{ marginBottom: 24 }}>{infoTitle}</h2> : null}
-          <p className="form-description" style={formDescColor ? { color: formDescColor } : undefined}>
-            Visit us or reach out through any of the channels below.
-          </p>
+    <FormWrapper
+      style={{
+        "--contact-form-heading-color": formHeadingColor,
+        "--contact-info-label-color": infoLabelColor,
+        "--contact-info-text-color": infoTextColor,
+        "--contact-info-card-bg": infoCardBgColor,
+        "--contact-info-card-border": infoCardBorderColor,
+        "--contact-form-card-bg": formCardBgColor,
+        "--contact-form-card-border": formCardBorderColor,
+        "--contact-field-label-color": fieldLabelColor,
+        "--contact-input-bg": inputBgColor,
+        "--contact-input-text-color": inputTextColor,
+        "--contact-input-focus": inputFocusColor,
+        "--contact-form-heading-size": `${typography.formHeadingSize}px`,
+        "--contact-form-heading-weight": typography.formHeadingWeight,
+        "--contact-form-heading-line-height": typography.formHeadingLineHeight,
+        "--contact-info-label-size": `${typography.infoLabelSize}px`,
+        "--contact-info-label-weight": typography.infoLabelWeight,
+        "--contact-info-label-line-height": typography.infoLabelLineHeight,
+        "--contact-info-text-size": `${typography.infoTextSize}px`,
+        "--contact-info-text-line-height": typography.infoTextLineHeight,
+        "--contact-field-label-size": `${typography.fieldLabelSize}px`,
+        "--contact-field-label-line-height": typography.fieldLabelLineHeight,
+        "--contact-input-text-size": `${typography.inputTextSize}px`,
+        "--contact-button-text-size": `${typography.buttonTextSize}px`,
+        "--contact-input-border": inputBorderColor,
+      }}
+    >
+      <div className="contact-layout">
+        <section className="contact-info-panel" aria-label="Contact information">
           <InfoCard>
             {info.regdOffice && (
               <InfoItem>
                 <div className="info-header">
-                  <svg className="info-icon" viewBox="0 0 20 20" fill="none">
-                    <path
-                      d="M10 1C6.5 1 4 3.5 4 7C4 11.5 10 19 10 19C10 19 16 11.5 16 7C16 3.5 13.5 1 10 1Z"
-                      fill={resolvedIconColor}
-                    />
-                    <circle cx="10" cy="7" r="2.5" fill="#fff" />
-                  </svg>
-                  <span className="info-title">Regd. Office</span>
+                  <span className="info-title">Registered Office</span>
                 </div>
                 <p className="info-text">{info.regdOffice}</p>
               </InfoItem>
@@ -382,13 +391,6 @@ export default function ContactForm({
             {info.adminOffice && (
               <InfoItem>
                 <div className="info-header">
-                  <svg className="info-icon" viewBox="0 0 20 20" fill="none">
-                    <path
-                      d="M10 1C6.5 1 4 3.5 4 7C4 11.5 10 19 10 19C10 19 16 11.5 16 7C16 3.5 13.5 1 10 1Z"
-                      fill={resolvedIconColor}
-                    />
-                    <circle cx="10" cy="7" r="2.5" fill="#fff" />
-                  </svg>
                   <span className="info-title">Admin Office</span>
                 </div>
                 <p className="info-text">{info.adminOffice}</p>
@@ -397,24 +399,6 @@ export default function ContactForm({
             {info.email && (
               <InfoItem>
                 <div className="info-header">
-                  <svg className="info-icon" viewBox="0 0 20 20" fill="none">
-                    <rect
-                      x="2"
-                      y="4"
-                      width="16"
-                      height="12"
-                      rx="2"
-                      stroke={resolvedIconColor}
-                      strokeWidth="1.5"
-                      fill="none"
-                    />
-                    <path
-                      d="M2 6L10 11L18 6"
-                      stroke={resolvedIconColor}
-                      strokeWidth="1.5"
-                      fill="none"
-                    />
-                  </svg>
                   <span className="info-title">Email</span>
                 </div>
                 <p className="info-text">
@@ -430,20 +414,129 @@ export default function ContactForm({
             {info.phone && (
               <InfoItem>
                 <div className="info-header">
-                  <svg className="info-icon" viewBox="0 0 20 20" fill="none">
-                    <path
-                      d="M17 14.5C17 15.3 16.3 16 15.5 16C8 16 3 11 3 3.5C3 2.7 3.7 2 4.5 2H7L9 6L7 8C8 10 10 12 12 13L14 11L18 13L17 14.5Z"
-                      fill={resolvedIconColor}
-                    />
-                  </svg>
                   <span className="info-title">Phone</span>
                 </div>
                 <p className="info-text">{info.phone}</p>
               </InfoItem>
             )}
           </InfoCard>
-        </Col>
-      </Row>
+        </section>
+
+        <section className="contact-form-panel" aria-labelledby="contact-form-title">
+          <h2 id="contact-form-title" className="form-heading">Send us a message</h2>
+          <form className="contact-message-form" ref={formRef} action={formAction} onSubmit={handleSubmit} noValidate>
+            <input type="hidden" name="page" value={page || ""} />
+            <input type="hidden" name="source" value={source || ""} />
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="contact-name">
+                Full Name <span className="required" aria-hidden="true">*</span>
+              </label>
+              <input
+                id="contact-name"
+                name="name"
+                required
+                aria-invalid={Boolean(errors.name)}
+                aria-describedby={errors.name ? "contact-name-error" : undefined}
+                className="form-field"
+                placeholder="Your name"
+                onChange={() => errors.name && setErrors((prev) => ({ ...prev, name: "" }))}
+                style={errors.name ? { borderColor: "#E03C33" } : undefined}
+              />
+              {errors.name ? <div id="contact-name-error" className="error-text" role="alert">{errors.name}</div> : null}
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="contact-email">
+                Email <span className="required" aria-hidden="true">*</span>
+              </label>
+              <input
+                id="contact-email"
+                name="email"
+                type="email"
+                required
+                aria-invalid={Boolean(errors.email)}
+                aria-describedby={errors.email ? "contact-email-error" : undefined}
+                className="form-field"
+                placeholder="your@email.com"
+                onChange={() => errors.email && setErrors((prev) => ({ ...prev, email: "" }))}
+                style={errors.email ? { borderColor: "#E03C33" } : undefined}
+              />
+              {errors.email ? <div id="contact-email-error" className="error-text" role="alert">{errors.email}</div> : null}
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="contact-phone">
+                Phone <span className="required" aria-hidden="true">*</span>
+              </label>
+              <input
+                id="contact-phone"
+                name="phone"
+                type="tel"
+                required
+                aria-invalid={Boolean(errors.phone)}
+                aria-describedby={errors.phone ? "contact-phone-error" : undefined}
+                className="form-field"
+                placeholder="+91 00000 00000"
+                onChange={() => errors.phone && setErrors((prev) => ({ ...prev, phone: "" }))}
+                style={errors.phone ? { borderColor: "#E03C33" } : undefined}
+              />
+              {errors.phone ? <div id="contact-phone-error" className="error-text" role="alert">{errors.phone}</div> : null}
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="contact-subject">
+                Subject <span className="required" aria-hidden="true">*</span>
+              </label>
+              <select
+                id="contact-subject"
+                name="subject"
+                required
+                aria-invalid={Boolean(errors.subject)}
+                aria-describedby={errors.subject ? "contact-subject-error" : undefined}
+                className="form-field"
+                defaultValue=""
+                onChange={() => errors.subject && setErrors((prev) => ({ ...prev, subject: "" }))}
+                style={errors.subject ? { borderColor: "#E03C33" } : undefined}
+              >
+                <option value="" disabled>
+                  Select a subject
+                </option>
+                {subjects.map((subject) => (
+                  <option key={subject} value={subject}>
+                    {subject}
+                  </option>
+                ))}
+              </select>
+              {errors.subject ? <div id="contact-subject-error" className="error-text" role="alert">{errors.subject}</div> : null}
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="contact-message">
+                Message <span className="required" aria-hidden="true">*</span>
+              </label>
+              <textarea
+                id="contact-message"
+                name="message"
+                required
+                aria-invalid={Boolean(errors.message)}
+                aria-describedby={errors.message ? "contact-message-error" : undefined}
+                className="form-field"
+                placeholder="How can we help you?"
+                rows={5}
+                onChange={() => errors.message && setErrors((prev) => ({ ...prev, message: "" }))}
+                style={errors.message ? { borderColor: "#E03C33" } : undefined}
+              />
+              {errors.message ? <div id="contact-message-error" className="error-text" role="alert">{errors.message}</div> : null}
+            </div>
+
+            <SubmitButton
+              btnBgColor={resolvedBtnBg}
+              btnTextColor={resolvedBtnText}
+            />
+          </form>
+        </section>
+      </div>
       {mapEmbedUrl && (
         <MapWrapper>
           <iframe

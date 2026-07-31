@@ -1,15 +1,18 @@
 "use client";
 
-import { Row, Col } from "antd";
 import {
   FullWidthBackground,
   getColor,
-  MainTitle,
   PageContainer,
-  SubTitle,
 } from "@/styles/Theme";
 import ContactForm from "@/components/forms/ContactForm";
-import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+
+function numberInRange(value, fallback, min, max) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed)
+    ? Math.min(max, Math.max(min, parsed))
+    : fallback;
+}
 
 /**
  * Site component: ContactUs.
@@ -17,16 +20,6 @@ import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
  * All contact info, subject options, and colors are managed from the drawer.
  */
 export default function ContactUs(props) {
-  /* ── Title fields ── */
-  const mainTitle = (props?.mainTitle ?? "").toString().trim();
-  const subTitle = (props?.subTitle ?? "").toString().trim();
-  const titleEnabled = props?.contactUsTitleEnabled !== false;
-  const subTitleEnabled = props?.contactUsSubTitleEnabled !== false;
-  const titleColorKey = (props?.titleColorKey ?? "").toString().trim();
-  const titleColor = titleColorKey ? getColor(titleColorKey) : getColor("primary");
-  const subTitleColorKey = (props?.contactUsSubTitleColorKey ?? "").toString().trim();
-  const subTitleColor = subTitleColorKey ? getColor(subTitleColorKey) : undefined;
-
   /* ── Contact info ── */
   const contactInfo = {
     regdOffice: (props?.contactUsRegdOffice ?? "").toString().trim(),
@@ -43,14 +36,28 @@ export default function ContactUs(props) {
   /* ── Colors ── */
   const formHeadingColorKey = (props?.contactUsFormHeadingColorKey ?? "").toString().trim();
   const formHeadingColor = formHeadingColorKey ? getColor(formHeadingColorKey) : undefined;
-  const formDescColorKey = (props?.contactUsFormDescColorKey ?? "").toString().trim();
-  const formDescColor = formDescColorKey ? getColor(formDescColorKey) : undefined;
   const btnBgColorKey = (props?.contactUsBtnBgColorKey ?? "").toString().trim();
   const btnBgColor = btnBgColorKey ? getColor(btnBgColorKey) : undefined;
   const btnTextColorKey = (props?.contactUsBtnTextColorKey ?? "").toString().trim();
   const btnTextColor = btnTextColorKey ? getColor(btnTextColorKey) : undefined;
-  const iconColorKey = (props?.contactUsIconColorKey ?? "").toString().trim();
-  const iconColor = iconColorKey ? getColor(iconColorKey) : undefined;
+  const resolveColor = (key, fallback) => {
+    const value = (props?.[key] ?? "").toString().trim();
+    return value ? getColor(value) : getColor(fallback);
+  };
+  const typography = {
+    formHeadingSize: numberInRange(props?.contactUsFormHeadingFontSize, 24, 16, 64),
+    formHeadingWeight: numberInRange(props?.contactUsFormHeadingFontWeight, 620, 100, 900),
+    formHeadingLineHeight: numberInRange(props?.contactUsFormHeadingLineHeight, 1.2, 0.8, 2.2),
+    infoLabelSize: numberInRange(props?.contactUsInfoLabelFontSize, 13, 10, 28),
+    infoLabelWeight: numberInRange(props?.contactUsInfoLabelFontWeight, 620, 100, 900),
+    infoLabelLineHeight: numberInRange(props?.contactUsInfoLabelLineHeight, 1.4, 0.8, 2.2),
+    infoTextSize: numberInRange(props?.contactUsInfoTextFontSize, 13, 10, 28),
+    infoTextLineHeight: numberInRange(props?.contactUsInfoTextLineHeight, 1.55, 0.8, 2.2),
+    fieldLabelSize: numberInRange(props?.contactUsFieldLabelFontSize, 12, 10, 28),
+    fieldLabelLineHeight: numberInRange(props?.contactUsFieldLabelLineHeight, 1.4, 0.8, 2.2),
+    inputTextSize: numberInRange(props?.contactUsInputTextFontSize, 13, 10, 28),
+    buttonTextSize: numberInRange(props?.contactUsButtonFontSize, 13, 10, 28),
+  };
 
   /* ── Map ── */
   const mapEmbedUrl = (props?.contactUsMapEmbedUrl ?? "").toString().trim();
@@ -114,29 +121,26 @@ export default function ContactUs(props) {
     <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
       <PageContainer $managedStyle={pageContainerBgStyle}>
         <div className="fable-section">
-        {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) && (
-          <Row gutter={[16, 16]}>
-            <Col span={24} className="mb-4">
-              {subTitleEnabled && subTitle && (
-                <SubTitle className="fable-eyebrow" style={subTitleColor ? { color: subTitleColor } : undefined}>{subTitle}</SubTitle>
-              )}
-              {titleEnabled && mainTitle && (
-                <MainTitle className="fable-heading" color={titleColor}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
-              )}
-            </Col>
-          </Row>
-        )}
         <ContactForm
           page="contact-us"
           source="page-builder"
           contactInfo={contactInfo}
-          infoTitle={(props?.contactUsInfoTitle ?? "Visit, call or write.").toString().trim()}
           subjectOptions={subjectOptions}
           btnBgColor={btnBgColor}
           btnTextColor={btnTextColor}
-          iconColor={iconColor}
           formHeadingColor={formHeadingColor}
-          formDescColor={formDescColor}
+          infoLabelColor={resolveColor("contactUsInfoLabelColorKey", "primary")}
+          infoTextColor={resolveColor("contactUsInfoTextColorKey", "blackLight")}
+          infoCardBgColor={resolveColor("contactUsInfoCardBgColorKey", "white")}
+          infoCardBorderColor={resolveColor("contactUsInfoCardBorderColorKey", "border")}
+          formCardBgColor={resolveColor("contactUsFormCardBgColorKey", "white")}
+          formCardBorderColor={resolveColor("contactUsFormCardBorderColorKey", "border")}
+          fieldLabelColor={resolveColor("contactUsFieldLabelColorKey", "black")}
+          inputBgColor={resolveColor("contactUsInputBgColorKey", "white")}
+          inputBorderColor={resolveColor("contactUsInputBorderColorKey", "border")}
+          inputFocusColor={resolveColor("contactUsInputFocusColorKey", "primary")}
+          inputTextColor={resolveColor("contactUsInputTextColorKey", "black")}
+          typography={typography}
           mapEmbedUrl={mapEmbedUrl}
         />
         </div>

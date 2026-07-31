@@ -8,7 +8,6 @@ import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 const TimelineSection = styled.div`
   width: 100%;
   position: relative;
-  max-width: 1280px;
   margin-inline: auto;
   --timeline-description-color: ${(p) => p.$descriptionColor};
   --timeline-accent-color: ${(p) => p.$accentColor};
