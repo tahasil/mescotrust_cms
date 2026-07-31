@@ -1,5 +1,6 @@
 "use client";
 
+import styled from "styled-components";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 import SafeHtml from "@/components/cms/SafeHtml";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
@@ -12,6 +13,12 @@ function numberInRange(value, fallback, min, max) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? Math.min(max, Math.max(min, parsed)) : fallback;
 }
+
+const ImpactMedia = styled.div`
+  width: 80%;
+  min-width: 0;
+  margin-inline: auto;
+`;
 
 export default function ImpactShowcase(props) {
   const prefix = "impactShowcase";
@@ -93,7 +100,7 @@ export default function ImpactShowcase(props) {
     <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
       <PageContainer $managedStyle={pageContainerBgStyle}>
         <div className="fable-section fable-about-intro">
-          <div className="fable-about-intro__media">
+          <ImpactMedia className="fable-about-intro__media">
             <div className="fable-about-intro__arch">
               <picture>
                 {imageMobile ? <source media="(max-width: 767px)" srcSet={imageMobile} /> : null}
@@ -106,7 +113,7 @@ export default function ImpactShowcase(props) {
                 {statLabel}
               </p>
             ) : null}
-          </div>
+          </ImpactMedia>
           <div className="fable-about-intro__copy">
             {subTitle ? <p className="fable-eyebrow" style={{ color: subtitleColor }}>{subTitle}</p> : null}
             {mainTitle ? <h2 className="fable-heading" style={{ color: titleColor }}>{renderHighlightedTitle(mainTitle, props)}</h2> : null}
