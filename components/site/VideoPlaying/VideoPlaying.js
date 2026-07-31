@@ -14,6 +14,10 @@ gsap.registerPlugin(ScrollTrigger);
 
 const Chapter = styled.div`
   position: relative;
+  width: min(80%, 1200px);
+  max-width: 100%;
+  box-sizing: border-box;
+  margin-inline: auto;
   overflow: hidden;
   border-radius: ${(p) => p.$radius}px;
   padding: ${(p) => p.$paddingTop}px ${(p) => p.$paddingX}px ${(p) => p.$paddingBottom}px;
@@ -81,11 +85,16 @@ const Chapter = styled.div`
   .chapterLink { display: inline-flex; align-items: center; gap: 8px; color: var(--chapter-link); font-size: ${(p) => p.$linkSize}px; font-weight: 650; text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--chapter-link) 55%, transparent); padding-bottom: 3px; transition: gap 0.25s ease; }
   .chapterLink:hover { gap: 13px; }
 
+  @media (max-width: 1279px) {
+    width: 84%;
+  }
   @media (max-width: 1023px) {
+    width: 90%;
     padding-top: clamp(28px, 5vw, 44px);
     padding-bottom: clamp(28px, 5vw, 44px);
   }
   @media (max-width: 767px) {
+    width: 100%;
     padding-top: 24px;
     padding-bottom: 24px;
     padding-inline: ${(p) => Math.min(p.$paddingX, 20)}px;
