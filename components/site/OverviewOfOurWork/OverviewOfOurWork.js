@@ -192,23 +192,37 @@ const WorksWrapper = styled.div`
     text-align: center;
   }
 
-  @media (max-width: 767px) {
+  @media (max-width: 1023px) {
     .worksPin {
       overflow: visible;
     }
 
     .worksTrack {
-      width: 100vw;
+      width: 100%;
+      max-width: 100%;
+      margin-left: 0;
+      padding-inline: 0;
       overflow-x: auto;
       padding-bottom: 10px;
       scroll-snap-type: x mandatory;
+      overscroll-behavior-inline: contain;
+      scrollbar-width: none;
       will-change: auto;
     }
 
+    .worksTrack::-webkit-scrollbar {
+      display: none;
+    }
+
+    .workCard {
+      scroll-snap-align: start;
+    }
+  }
+
+  @media (max-width: 767px) {
     .workCard {
       width: 84vw;
       aspect-ratio: 4 / 4.4;
-      scroll-snap-align: start;
     }
   }
 
@@ -355,7 +369,7 @@ export default function OverviewOfOurWork(props) {
       media = gsap.matchMedia();
       media.add(
         {
-          desktop: "(min-width: 768px)",
+          desktop: "(min-width: 1024px)",
           reduceMotion: "(prefers-reduced-motion: reduce)",
         },
         (context) => {
