@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeftOutlined, ArrowRightOutlined } from "@ant-design/icons";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -26,9 +26,13 @@ const Board = styled.div`
   .storyLink:hover svg { transform: translateX(4px); }
   .storyButton { width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1px solid var(--story-border); background: var(--story-button-bg); color: var(--story-button-icon); font-size: 18px; display: grid; place-items: center; cursor: pointer; transition: background .2s,color .2s,border-color .2s,transform .25s cubic-bezier(.16,1,.3,1); }
   .storyButton:hover { background: var(--story-button-hover-bg); color: var(--story-button-hover-icon); border-color: var(--story-button-hover-bg); transform: translateY(-2px); }
-  .storyTrack { display: flex; gap: clamp(18px, 2vw, 30px); overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 4px; scrollbar-width: none; -ms-overflow-style: none; }
-  .storyTrack::-webkit-scrollbar { display: none; }
-  .storyPanel { flex: 0 0 auto; width: clamp(290px, 27vw, 400px); min-height: 460px; margin: 0; border-radius: var(--story-radius); overflow: hidden; scroll-snap-align: start; display: flex; flex-direction: column; background: var(--story-card-bg); border: 1px solid var(--story-border); color: inherit; text-decoration: none; }
+  .storyCarousel { width: 100%; overflow: hidden; touch-action: pan-y; user-select: none; padding-bottom: 1px; }
+  .storyCarousel img { -webkit-user-drag: none; user-select: none; }
+  .storyCarouselTrack { display: flex; align-items: stretch; gap: clamp(18px, 2vw, 30px); will-change: transform; }
+  .storyCarouselTrack.is-animated { transition: transform var(--story-transition-speed) cubic-bezier(.22,.61,.36,1); }
+  .storyCarouselTrack.is-dragging { cursor: grabbing; }
+  .storySlide { flex: 0 0 clamp(290px, 27vw, 400px); min-width: 0; }
+  .storyPanel { width: 100%; height: 100%; min-height: 460px; box-sizing: border-box; margin: 0; border-radius: var(--story-radius); overflow: hidden; display: flex; flex-direction: column; background: var(--story-card-bg); border: 1px solid var(--story-border); color: inherit; text-decoration: none; }
   .storyPanel.is-ink { background: var(--story-ink-card-bg); color: var(--story-ink-card-text); border-color: transparent; }
   .storyPanel.is-tint { background: var(--story-tint-card-bg); }
   .storyImage { width: 100%; height: 210px; object-fit: cover; display: block; }
@@ -42,9 +46,15 @@ const Board = styled.div`
   .storyWho span { display: block; color: var(--story-role); font-size: 13.5px; }
   .is-ink .storyWho strong { color: var(--story-ink-card-text); }
   .is-ink .storyWho span { color: var(--story-ink-role); }
+  .storyButton:disabled { opacity: .38; cursor: not-allowed; transform: none; }
+  .storyDots { display: flex; justify-content: center; align-items: center; gap: 10px; height: 12px; margin-top: 24px; }
+  .storyDot { width: 9px; height: 9px; padding: 0; border: 0; border-radius: 50%; background: color-mix(in srgb, var(--story-dot-active) 30%, transparent); cursor: pointer; transition: background .2s ease; }
+  .storyDot.is-active { background: var(--story-dot-active); }
+  .storyDot:focus-visible { outline: 2px solid var(--story-dot-active); outline-offset: 3px; }
 
   @media (max-width: 767px) {
-    .storyPanel { width: 82vw; min-height: 0; }
+    .storySlide { flex-basis: 82vw; }
+    .storyPanel { min-height: 0; }
     .storyHead { align-items: flex-start; }
     .storyNav { width: 100%; }
     .storyLink { margin-right: auto; }
@@ -77,11 +87,124 @@ function backgroundProps(props, prefix) {
 
 export default function StoriesSlider(props) {
   const rootRef = useRef(null);
+  const carouselRef = useRef(null);
   const trackRef = useRef(null);
+  const dragStartRef = useRef(0);
+  const dragOffsetRef = useRef(0);
+  const draggingRef = useRef(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [physicalIndex, setPhysicalIndex] = useState(0);
+  const [step, setStep] = useState(0);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const [animated, setAnimated] = useState(true);
   const pathname = usePathname();
   const isEditor = pathname?.startsWith("/admin") === true;
-  const items = Array.isArray(props?.storiesSliderItems) ? props.storiesSliderItems : [];
+  const sourceItems = props?.storiesSliderItems;
+  const items = useMemo(() => Array.isArray(sourceItems) ? sourceItems : [], [sourceItems]);
+  const itemCount = items.length;
+  const infinite = props?.storiesSliderInfinite !== false && itemCount > 1;
+  const autoplay = props?.storiesSliderAutoplay === true && itemCount > 1;
+  const autoplayDelay = Math.max(1000, num(props?.storiesSliderAutoplaySpeed, 5000));
+  const transitionDuration = Math.max(200, num(props?.storiesSliderSpeed, 400));
+  const renderedItems = useMemo(() => {
+    const copies = infinite ? 3 : 1;
+    return Array.from({ length: copies }, (_, copyIndex) =>
+      items.map((item, logicalIndex) => ({
+        item,
+        logicalIndex,
+        clone: infinite && copyIndex !== 1,
+        key: `${copyIndex}-${logicalIndex}-${text(item?.name)}`,
+      })),
+    ).flat();
+  }, [infinite, items]);
   const { sectionBgClassName, sectionBgStyle, pageContainerBgStyle } = backgroundProps(props, "storiesSlider");
+
+  const move = useCallback((direction) => {
+    if (itemCount < 2) return;
+    setAnimated(true);
+    setDragOffset(0);
+    setPhysicalIndex((current) => {
+      const next = infinite
+        ? current + direction
+        : Math.min(itemCount - 1, Math.max(0, current + direction));
+      setActiveIndex(((next % itemCount) + itemCount) % itemCount);
+      return next;
+    });
+  }, [infinite, itemCount]);
+
+  useLayoutEffect(() => {
+    const initialIndex = infinite ? itemCount : 0;
+    setAnimated(false);
+    setPhysicalIndex(initialIndex);
+    setActiveIndex(0);
+    const frame = requestAnimationFrame(() => setAnimated(true));
+    return () => cancelAnimationFrame(frame);
+  }, [infinite, itemCount]);
+
+  useLayoutEffect(() => {
+    const viewport = carouselRef.current;
+    const track = trackRef.current;
+    if (!viewport || !track) return undefined;
+    const measure = () => {
+      const firstSlide = track.firstElementChild;
+      if (!firstSlide) return;
+      const gap = parseFloat(getComputedStyle(track).gap) || 0;
+      setStep(firstSlide.getBoundingClientRect().width + gap);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(viewport);
+    return () => observer.disconnect();
+  }, [renderedItems.length]);
+
+  useEffect(() => {
+    if (!autoplay || paused || !step) return undefined;
+    const timer = window.setTimeout(() => move(1), autoplayDelay);
+    return () => window.clearTimeout(timer);
+  }, [autoplay, autoplayDelay, move, paused, physicalIndex, step]);
+
+  const handleTransitionEnd = (event) => {
+    if (event.target !== event.currentTarget || !infinite || !itemCount) return;
+    if (physicalIndex >= itemCount && physicalIndex < itemCount * 2) return;
+    const normalized = itemCount + (((physicalIndex % itemCount) + itemCount) % itemCount);
+    setAnimated(false);
+    setPhysicalIndex(normalized);
+    requestAnimationFrame(() => requestAnimationFrame(() => setAnimated(true)));
+  };
+
+  const handlePointerDown = (event) => {
+    if (itemCount < 2) return;
+    dragStartRef.current = event.clientX;
+    dragOffsetRef.current = 0;
+    draggingRef.current = true;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    setPaused(true);
+    setDragging(true);
+    setAnimated(false);
+  };
+
+  const handlePointerMove = (event) => {
+    if (!draggingRef.current) return;
+    const nextOffset = event.clientX - dragStartRef.current;
+    dragOffsetRef.current = nextOffset;
+    setDragOffset(nextOffset);
+  };
+
+  const finishDrag = () => {
+    if (!draggingRef.current) return;
+    draggingRef.current = false;
+    const threshold = Math.max(40, step * 0.12);
+    const finalOffset = dragOffsetRef.current;
+    const direction = Math.abs(finalOffset) >= threshold ? (finalOffset < 0 ? 1 : -1) : 0;
+    dragOffsetRef.current = 0;
+    setDragging(false);
+    setPaused(false);
+    setAnimated(true);
+    if (direction) move(direction);
+    else setDragOffset(0);
+  };
 
   useLayoutEffect(() => {
     if (isEditor || !rootRef.current || props?.storiesSliderRevealEnabled === false || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -90,13 +213,6 @@ export default function StoriesSlider(props) {
     return () => context.revert();
   }, [isEditor, items, props]);
 
-  const scroll = (direction) => {
-    const track = trackRef.current;
-    const first = track?.firstElementChild;
-    if (!track) return;
-    const gap = parseFloat(getComputedStyle(track).gap) || 24;
-    track.scrollBy({ left: direction * ((first?.getBoundingClientRect().width || 400) + gap), behavior: "smooth" });
-  };
 
   const linkTarget = text(props?.storiesSliderViewAllTarget) || "_self";
   const isInnerPageVariant =
@@ -154,6 +270,7 @@ export default function StoriesSlider(props) {
           "--story-button-icon": color(props?.storiesSliderArrowColorKey, "#2A283E"),
           "--story-button-hover-bg": color(props?.storiesSliderButtonHoverBgColorKey, "#2A283E"),
           "--story-button-hover-icon": color(props?.storiesSliderButtonHoverIconColorKey, "#FAF6EF"),
+          "--story-dot-active": color(props?.storiesSliderDotActiveColorKey, "#E03C33"),
           "--story-radius": `${num(props?.storiesSliderCardRadius, 18)}px`,
         }}>
           <div className="storyHead storyReveal">
@@ -163,18 +280,42 @@ export default function StoriesSlider(props) {
             </div>
             <div className="storyNav">
               {text(props?.storiesSliderViewAllLabel) && text(props?.storiesSliderViewAllUrl) ? <a className="storyLink" href={text(props.storiesSliderViewAllUrl)} target={linkTarget} rel={linkTarget === "_blank" ? "noopener noreferrer" : undefined}>{text(props.storiesSliderViewAllLabel)} <ArrowRightOutlined aria-hidden="true" /></a> : null}
-              {props?.storiesSliderShowArrows !== false && items.length > 1 ? <><button type="button" className="storyButton" onClick={() => scroll(-1)} aria-label={text(props?.storiesSliderPreviousLabel) || "Previous story"}><ArrowLeftOutlined /></button><button type="button" className="storyButton" onClick={() => scroll(1)} aria-label={text(props?.storiesSliderNextLabel) || "Next story"}><ArrowRightOutlined /></button></> : null}
+              {props?.storiesSliderShowArrows !== false && items.length > 1 ? <><button type="button" className="storyButton" disabled={!infinite && activeIndex === 0} onClick={() => move(-1)} aria-label={text(props?.storiesSliderPreviousLabel) || "Previous story"}><ArrowLeftOutlined /></button><button type="button" className="storyButton" disabled={!infinite && activeIndex === itemCount - 1} onClick={() => move(1)} aria-label={text(props?.storiesSliderNextLabel) || "Next story"}><ArrowRightOutlined /></button></> : null}
             </div>
           </div>
-          <div className="storyTrack storyReveal" ref={trackRef}>
-            {items.map((item, index) => {
+          <div
+            ref={carouselRef}
+            className="storyCarousel storyReveal"
+            role="region"
+            aria-roledescription="carousel"
+            aria-label="Success stories"
+            onMouseEnter={() => setPaused(true)}
+            onMouseLeave={() => setPaused(false)}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={finishDrag}
+            onPointerCancel={finishDrag}
+            onMouseDown={handlePointerDown}
+            onMouseMove={handlePointerMove}
+            onMouseUp={finishDrag}
+            onDragStart={(event) => event.preventDefault()}
+          >
+            <div
+              ref={trackRef}
+              className={`storyCarouselTrack${animated && !dragging ? " is-animated" : ""}${dragging ? " is-dragging" : ""}`}
+              style={{ transform: `translate3d(${-(physicalIndex * step) + dragOffset}px, 0, 0)`, "--story-transition-speed": `${transitionDuration}ms`, opacity: step ? 1 : 0 }}
+              onTransitionEnd={handleTransitionEnd}
+            >
+            {renderedItems.map(({ item, logicalIndex: index, clone, key }) => {
               const image = text(item?.image || item?.mobileImage);
               const style = text(item?.panelStyle) || (index % 4 === 1 ? "ink" : index % 4 === 3 ? "tint" : "default");
               const target = text(item?.target) || "_self";
               const content = <><picture>{text(item?.mobileImage) ? <source media="(max-width: 767px)" srcSet={text(item.mobileImage)} /> : null}{image ? <img className="storyImage" src={image} alt={text(item?.imageAlt || item?.name)} loading="lazy" /> : null}</picture><div className="storyBody"><span className="storyIndex">{text(item?.indexLabel) || String(index + 1).padStart(2, "0")}{text(item?.category) ? ` · ${text(item.category)}` : ""}</span>{text(item?.quote) ? <p className="storyQuote">{text(item.quote)}</p> : null}<figcaption className="storyWho"><strong>{text(item?.name)}</strong><span>{text(item?.role)}</span></figcaption></div></>;
-              return text(item?.link) ? <a className={`storyPanel is-${style}`} href={text(item.link)} target={target} rel={target === "_blank" ? "noopener noreferrer" : undefined} key={`${text(item?.name)}-${index}`}>{content}</a> : <figure className={`storyPanel is-${style}`} key={`${text(item?.name)}-${index}`}>{content}</figure>;
+              return <div className="storySlide" key={key} aria-hidden={clone || undefined}>{text(item?.link) ? <a className={`storyPanel is-${style}`} href={text(item.link)} target={target} rel={target === "_blank" ? "noopener noreferrer" : undefined} tabIndex={clone ? -1 : undefined}>{content}</a> : <figure className={`storyPanel is-${style}`}>{content}</figure>}</div>;
             })}
+            </div>
           </div>
+          {props?.storiesSliderShowDots !== false && itemCount > 1 ? <div className="storyDots" role="group" aria-label="Choose a story">{items.map((item, index) => <button type="button" className={`storyDot${activeIndex === index ? " is-active" : ""}`} aria-label={`Go to story ${index + 1}${text(item?.name) ? `: ${text(item.name)}` : ""}`} aria-current={activeIndex === index ? "true" : undefined} onClick={() => { setAnimated(true); setDragOffset(0); setActiveIndex(index); setPhysicalIndex(infinite ? itemCount + index : index); }} key={`${text(item?.name)}-${index}`} />)}</div> : null}
         </Board>
       </PageContainer>
     </FullWidthBackground>
