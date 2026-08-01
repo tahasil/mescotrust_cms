@@ -24,7 +24,7 @@ Next.js 14 CMS with MongoDB, NextAuth, and Ant Design admin.
 
    - `MONGODB_URI` — MongoDB connection string
    - `NEXTAUTH_SECRET` — long random string (e.g. `openssl rand -base64 32`)
-   - `NEXTAUTH_URL` — app URL (e.g. `http://localhost:3000`)
+   - `NEXTAUTH_URL` — canonical app URL. Use `http://localhost:3000` locally and the public HTTPS URL on the deployed server (for example, `https://example.org`).
    - `ADMIN_EMAIL` and `ADMIN_PASSWORD` — for the initial admin user (used by seed)
 
 3. **Seed initial admin**

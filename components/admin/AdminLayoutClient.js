@@ -973,13 +973,24 @@ export default function AdminLayoutClient({ children, userName, userRole, userRo
     </div>
   );
 
+  const handleSignOut = async () => {
+    try {
+      // Invalidate the session without following NextAuth's server-generated
+      // callback URL, which is derived from NEXTAUTH_URL.
+      await signOut({ redirect: false, callbackUrl: "/admin/login" });
+    } finally {
+      // Keep navigation on the origin that is currently serving the admin UI.
+      window.location.assign("/admin/login");
+    }
+  };
+
   const userMenu = {
     items: [
       {
         key: "logout",
         icon: <LogoutOutlined />,
         label: "Sign out",
-        onClick: () => signOut({ callbackUrl: "/admin/login" }),
+        onClick: handleSignOut,
       },
     ],
   };
