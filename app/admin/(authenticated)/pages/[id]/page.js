@@ -7,6 +7,7 @@ import { ArrowLeftOutlined, SettingOutlined, SaveOutlined } from "@ant-design/ic
 import Link from "next/link";
 import PageBuilder from "@/components/admin/PageBuilder";
 import { ThemeAdminCard } from "@/styles/Theme";
+import { getPagePreviewUrl } from "@/lib/pagePreviewUrl.mjs";
 
 function toUrlSlug(value) {
   return String(value || "")
@@ -32,6 +33,7 @@ export default function AdminPageEditPage() {
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const selectedParentRef = useRef("");
   const watchedSlug = Form.useWatch("slug", form);
+  const previewUrl = getPagePreviewUrl(page?.slug, process.env.NEXT_PUBLIC_SITE_URL);
 
   const updateSelectedParent = (val) => {
     setSelectedParent(val);
@@ -213,7 +215,7 @@ export default function AdminPageEditPage() {
             Page Settings
           </Button>
           <Link
-            href={page?.slug ? `${(process.env.NEXT_PUBLIC_SITE_URL || "").replace(/\/$/, "")}/${page.slug}` : "#"}
+            href={previewUrl}
             target="_blank"
             style={{ textDecoration: "none" }}
           >
