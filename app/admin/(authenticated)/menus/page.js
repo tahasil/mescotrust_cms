@@ -38,6 +38,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useAdminPermission } from "@/components/admin/AdminAuthContext";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import {
   PDF_LINK_TARGET_OPTIONS,
   isPdfDocumentUrl,
@@ -50,6 +51,7 @@ function generateId() {
 }
 
 function getMenuItemTarget(item) {
+  if (item?.type === "modal") return "modal";
   if (item?.target === "modal") return "modal";
   if (item?.target === "_blank" || item?.openInNewTab) return "_blank";
   return normalizePdfTarget(
@@ -59,7 +61,10 @@ function getMenuItemTarget(item) {
 }
 
 function supportsPdfModal(item) {
-  return item?.type === "custom_link" && isPdfDocumentUrl(item?.url);
+  return (
+    item?.type === "modal" ||
+    (item?.type === "custom_link" && isPdfDocumentUrl(item?.url))
+  );
 }
 
 function getTargetOptions(item) {
@@ -81,7 +86,12 @@ function treeToFlat(items, depth = 0) {
       order: it.order ?? i,
       openInNewTab: !!it.openInNewTab,
       target: getMenuItemTarget(it),
-      type: it.type === "page" ? "page" : "custom_link",
+      type:
+        it.type === "page"
+          ? "page"
+          : it.type === "modal"
+            ? "modal"
+            : "custom_link",
       pageSlug: it.pageSlug || "",
       depth,
     });
@@ -96,11 +106,13 @@ function flatToTree(flat) {
   const out = [];
   const stack = [];
   flat.forEach((it) => {
-    const target = supportsPdfModal(it)
-      ? getMenuItemTarget(it)
-      : getMenuItemTarget(it) === "_blank"
-        ? "_blank"
-        : "_self";
+    const target = it.type === "modal"
+      ? "modal"
+      : supportsPdfModal(it)
+        ? getMenuItemTarget(it)
+        : getMenuItemTarget(it) === "_blank"
+          ? "_blank"
+          : "_self";
     const node = {
       label: it.label,
       url: it.url,
@@ -189,7 +201,11 @@ function SortableMenuItem({
           )}
         </span>
         <span style={{ color: "#666", fontSize: 12, marginRight: 8 }}>
-          {item.type === "page" ? "Page" : "Custom Link"}
+          {item.type === "page"
+            ? "Page"
+            : item.type === "modal"
+              ? "Modal"
+              : "Custom Link"}
         </span>
         <Button
           type="text"
@@ -226,22 +242,40 @@ function SortableMenuItem({
               <Select
                 style={{ width: "100%" }}
                 value={item.type}
-                onChange={(v) =>
+                onChange={(v) => {
+                  if (v === "modal") {
+                    onUpdate({
+                      ...item,
+                      type: v,
+                      url: isPdfDocumentUrl(item.url) ? item.url : "",
+                      pageSlug: "",
+                      target: "modal",
+                      openInNewTab: false,
+                    });
+                    return;
+                  }
+                  if (v === "page") {
+                    onUpdate({
+                      ...item,
+                      type: v,
+                      url: "",
+                      target: item.target === "_blank" ? "_blank" : "_self",
+                      openInNewTab: item.target === "_blank",
+                    });
+                    return;
+                  }
                   onUpdate({
                     ...item,
                     type: v,
-                    ...(v === "page"
-                      ? {
-                          url: "",
-                          target: item.target === "modal" ? "_self" : item.target,
-                          openInNewTab: item.target === "_blank",
-                        }
-                      : { pageSlug: "" }),
-                  })
-                }
+                    pageSlug: "",
+                    target: item.target === "_blank" ? "_blank" : "_self",
+                    openInNewTab: item.target === "_blank",
+                  });
+                }}
                 options={[
                   { value: "custom_link", label: "Custom Link" },
                   { value: "page", label: "Page" },
+                  { value: "modal", label: "Modal" },
                 ]}
               />
             </Form.Item>
@@ -266,6 +300,25 @@ function SortableMenuItem({
                     value: p.slug,
                     label: `${p.title} (/${p.slug})`,
                   }))}
+                />
+              </Form.Item>
+            ) : item.type === "modal" ? (
+              <Form.Item label="PDF Link / Document" style={{ marginBottom: 8 }}>
+                <MediaPickerInput
+                  value={item.url}
+                  onChange={(url) =>
+                    onUpdate({
+                      ...item,
+                      url: String(url || "").trim(),
+                      target: "modal",
+                      openInNewTab: false,
+                    })
+                  }
+                  mediaType="document"
+                  showVariants={false}
+                  uiVariant="stacked"
+                  placeholder="/uploads/document.pdf or https://example.com/document.pdf"
+                  hintText="Select/upload a PDF from Media or enter an external PDF URL."
                 />
               </Form.Item>
             ) : (
@@ -299,7 +352,12 @@ function SortableMenuItem({
                     })
                   }
                   style={{ minWidth: 180 }}
-                  options={getTargetOptions(item)}
+                  options={
+                    item.type === "modal"
+                      ? [{ value: "modal", label: "Modal" }]
+                      : getTargetOptions(item)
+                  }
+                  disabled={item.type === "modal"}
                 />
                 {depth > 0 && onPromote && (
                   <Button
@@ -468,6 +526,16 @@ export default function AdminMenusPage() {
     const name = (menuName || "").trim();
     if (!name) {
       message.error("Menu name is required");
+      return;
+    }
+    const invalidModalItem = flatItems.find(
+      (item) => item.type === "modal" && !isPdfDocumentUrl(item.url),
+    );
+    if (invalidModalItem) {
+      message.error(
+        `Select or enter a valid PDF document for "${invalidModalItem.label || "Modal item"}".`,
+      );
+      setExpandedIds((current) => new Set([...current, invalidModalItem.id]));
       return;
     }
     const tree = flatToTree(flatItems.map((it, i) => ({ ...it, order: i })));

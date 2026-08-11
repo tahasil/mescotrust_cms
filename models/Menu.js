@@ -11,7 +11,11 @@ const menuItemSchema = new mongoose.Schema(
       enum: ["_self", "_blank", "modal"],
       default: "_self",
     },
-    type: { type: String, enum: ["custom_link", "page"], default: "custom_link" },
+    type: {
+      type: String,
+      enum: ["custom_link", "page", "modal"],
+      default: "custom_link",
+    },
     pageSlug: { type: String, trim: true, default: "" },
   },
   { _id: true }
