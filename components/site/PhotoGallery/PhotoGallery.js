@@ -101,7 +101,12 @@ const GalleryRoot = styled.div`
 const Filters = styled.div`
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: ${(props) =>
+    props.$alignment === "left"
+      ? "flex-start"
+      : props.$alignment === "right"
+        ? "flex-end"
+        : "center"};
   gap: 12px;
   flex-wrap: wrap;
   margin-bottom: calc(var(--gallery-filter-gap) * 1px);
@@ -489,6 +494,9 @@ export default function PhotoGallery(props) {
   );
   const tabs = useMemo(() => normalizeTabs(props?.photoGalleryTabs), [props?.photoGalleryTabs]);
   const filtersVisible = props?.photoGalleryFiltersVisible !== false && tabs.length > 1;
+  const tabAlignment = ["left", "center", "right"].includes(props?.photoGalleryTabAlignment)
+    ? props.photoGalleryTabAlignment
+    : "center";
   const limitEnabled = props?.photoGalleryLimitEnabled === true || props?.photoGalleryLimitEnabled === "true";
   const limitCount = Math.floor(numberInRange(props?.photoGalleryLimitCount, 6, 1, 60));
 
@@ -682,7 +690,7 @@ export default function PhotoGallery(props) {
           ) : null}
 
           {filtersVisible ? (
-            <Filters aria-label="Filter photo albums">
+            <Filters $alignment={tabAlignment} aria-label="Filter photo albums">
               {tabs.map((tab) => (
                 <FilterButton
                   key={tab}

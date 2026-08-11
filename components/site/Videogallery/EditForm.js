@@ -40,6 +40,9 @@ function applyFormValues(form, data) {
     videogalleryTabInactiveTextColorKey: data?.videogalleryTabInactiveTextColorKey ?? "",
     videogalleryTabHoverBorderColorKey: data?.videogalleryTabHoverBorderColorKey ?? "",
     videogalleryTabHoverTextColorKey: data?.videogalleryTabHoverTextColorKey ?? "",
+    videogalleryTabAlignment: ["left", "center", "right"].includes(data?.videogalleryTabAlignment)
+      ? data.videogalleryTabAlignment
+      : "center",
     videogalleryLimitEnabled: data?.videogalleryLimitEnabled ?? false,
     videogalleryLimitCount: data?.videogalleryLimitCount ?? 6,
     videogalleryViewMoreText: data?.videogalleryViewMoreText ?? "View More",
@@ -120,6 +123,9 @@ function VideogalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
         videogalleryTabInactiveTextColorKey: values.videogalleryTabInactiveTextColorKey ?? "",
         videogalleryTabHoverBorderColorKey: values.videogalleryTabHoverBorderColorKey ?? "",
         videogalleryTabHoverTextColorKey: values.videogalleryTabHoverTextColorKey ?? "",
+        videogalleryTabAlignment: ["left", "center", "right"].includes(values.videogalleryTabAlignment)
+          ? values.videogalleryTabAlignment
+          : "center",
         videogalleryLimitEnabled: values.videogalleryLimitEnabled ?? false,
         videogalleryLimitCount: values.videogalleryLimitCount ?? 6,
         videogalleryViewMoreText: values.videogalleryViewMoreText ?? "View More",
@@ -196,14 +202,26 @@ function VideogalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
             key: "tabs",
             label: "Manage Tabs",
             children: (
-              <Form.Item name="videogalleryTabs" label="Category Tabs">
-                <Select
-                  mode="tags"
-                  placeholder="Type tab name and press Enter"
-                  size="large"
-                  tokenSeparators={[","]}
-                />
-              </Form.Item>
+              <>
+                <Form.Item name="videogalleryTabAlignment" label="Tab alignment">
+                  <Select
+                    size="large"
+                    options={[
+                      { label: "Left", value: "left" },
+                      { label: "Center", value: "center" },
+                      { label: "Right", value: "right" },
+                    ]}
+                  />
+                </Form.Item>
+                <Form.Item name="videogalleryTabs" label="Category Tabs">
+                  <Select
+                    mode="tags"
+                    placeholder="Type tab name and press Enter"
+                    size="large"
+                    tokenSeparators={[","]}
+                  />
+                </Form.Item>
+              </>
             ),
           },
           {

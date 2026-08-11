@@ -38,10 +38,34 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useAdminPermission } from "@/components/admin/AdminAuthContext";
+import {
+  PDF_LINK_TARGET_OPTIONS,
+  isPdfDocumentUrl,
+  normalizePdfTarget,
+} from "@/components/site/shared/PdfViewerModal";
 import { ThemeAdminCard } from "@/styles/Theme";
 
 function generateId() {
   return "mi_" + Math.random().toString(36).slice(2, 11);
+}
+
+function getMenuItemTarget(item) {
+  if (item?.target === "modal") return "modal";
+  if (item?.target === "_blank" || item?.openInNewTab) return "_blank";
+  return normalizePdfTarget(
+    item?.target,
+    "_self",
+  );
+}
+
+function supportsPdfModal(item) {
+  return item?.type === "custom_link" && isPdfDocumentUrl(item?.url);
+}
+
+function getTargetOptions(item) {
+  return supportsPdfModal(item)
+    ? PDF_LINK_TARGET_OPTIONS
+    : PDF_LINK_TARGET_OPTIONS.filter((option) => option.value !== "modal");
 }
 
 // Convert tree (API) to flat list with depth for editing
@@ -56,6 +80,7 @@ function treeToFlat(items, depth = 0) {
       url: it.url || "#",
       order: it.order ?? i,
       openInNewTab: !!it.openInNewTab,
+      target: getMenuItemTarget(it),
       type: it.type === "page" ? "page" : "custom_link",
       pageSlug: it.pageSlug || "",
       depth,
@@ -71,11 +96,17 @@ function flatToTree(flat) {
   const out = [];
   const stack = [];
   flat.forEach((it) => {
+    const target = supportsPdfModal(it)
+      ? getMenuItemTarget(it)
+      : getMenuItemTarget(it) === "_blank"
+        ? "_blank"
+        : "_self";
     const node = {
       label: it.label,
       url: it.url,
       order: it.order,
-      openInNewTab: it.openInNewTab,
+      openInNewTab: target === "_blank",
+      target,
       type: it.type,
       pageSlug: it.pageSlug || "",
     };
@@ -199,7 +230,13 @@ function SortableMenuItem({
                   onUpdate({
                     ...item,
                     type: v,
-                    ...(v === "page" ? { url: "" } : { pageSlug: "" }),
+                    ...(v === "page"
+                      ? {
+                          url: "",
+                          target: item.target === "modal" ? "_self" : item.target,
+                          openInNewTab: item.target === "_blank",
+                        }
+                      : { pageSlug: "" }),
                   })
                 }
                 options={[
@@ -235,7 +272,17 @@ function SortableMenuItem({
               <Form.Item label="URL" style={{ marginBottom: 8 }}>
                 <Input
                   value={item.url}
-                  onChange={(e) => onUpdate({ ...item, url: e.target.value })}
+                  onChange={(e) => {
+                    const url = e.target.value;
+                    const keepModal = item.target !== "modal" || isPdfDocumentUrl(url);
+                    onUpdate({
+                      ...item,
+                      url,
+                      ...(keepModal
+                        ? {}
+                        : { target: "_self", openInNewTab: false }),
+                    });
+                  }}
                   placeholder="https:// or /path"
                 />
               </Form.Item>
@@ -243,15 +290,16 @@ function SortableMenuItem({
             <Form.Item label="Target" style={{ marginBottom: 0 }}>
               <Space wrap>
                 <Select
-                  value={item.openInNewTab ? "_blank" : "_self"}
+                  value={getMenuItemTarget(item)}
                   onChange={(value) =>
-                    onUpdate({ ...item, openInNewTab: value === "_blank" })
+                    onUpdate({
+                      ...item,
+                      target: value,
+                      openInNewTab: value === "_blank",
+                    })
                   }
                   style={{ minWidth: 180 }}
-                  options={[
-                    { value: "_self", label: "Same Tab (_self)" },
-                    { value: "_blank", label: "New Tab (_blank)" },
-                  ]}
+                  options={getTargetOptions(item)}
                 />
                 {depth > 0 && onPromote && (
                   <Button
@@ -407,6 +455,7 @@ export default function AdminMenusPage() {
       url: "#",
       order: flatItems.length,
       openInNewTab: false,
+      target: "_self",
       type: "custom_link",
       pageSlug: "",
       depth: 0,

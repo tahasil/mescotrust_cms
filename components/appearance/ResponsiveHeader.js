@@ -58,6 +58,7 @@ import {
   SearchResultMeta,
   SearchState,
 } from "./ResponsiveHeaderStyle";
+import { isPdfDocumentUrl } from "@/components/site/shared/PdfViewerModal";
 
 const SCROLL_THRESHOLD_PX = 10;
 
@@ -71,10 +72,18 @@ function cmsMenuToHeaderItems(items) {
     const submenu = children.length
       ? cmsMenuToHeaderItems(children)
       : undefined;
+    const configuredTarget =
+      item.target === "modal"
+        ? "modal"
+        : item.target === "_blank" || item.openInNewTab
+          ? "_blank"
+          : "_self";
     return {
       label: String(item.label ?? ""),
       href: url,
-      target: item.openInNewTab ? "_blank" : undefined,
+      target: configuredTarget === "_blank" ? "_blank" : undefined,
+      opensPdfModal:
+        configuredTarget === "modal" && isPdfDocumentUrl(url),
       submenu,
     };
   });
@@ -257,6 +266,7 @@ export default function Header({
   sectionShadow = "",
   appearanceResponsive = false,
   onResponsiveLayerChange,
+  onOpenPdf,
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openAccordion, setOpenAccordion] = useState(null);
@@ -539,6 +549,17 @@ export default function Header({
     setOpenAccordion(null);
   };
 
+  const handleMenuLinkClick = (event, item, closeMenu = false) => {
+    if (closeMenu) closeMobile();
+    if (!item?.opensPdfModal) return;
+    event.preventDefault();
+    onOpenPdf?.({
+      url: item.href,
+      title: item.label || "PDF document",
+      trigger: event.currentTarget,
+    });
+  };
+
   const closeSearch = () => {
     setSearchOpen(false);
     setSearchError("");
@@ -663,6 +684,9 @@ export default function Header({
                                         ? "noopener noreferrer"
                                         : undefined
                                     }
+                                    onClick={(event) =>
+                                      handleMenuLinkClick(event, child)
+                                    }
                                   >
                                     {child.label}
                                   </DropdownItem>
@@ -683,6 +707,9 @@ export default function Header({
                                   ? "noopener noreferrer"
                                   : undefined
                               }
+                              onClick={(event) =>
+                                handleMenuLinkClick(event, sub)
+                              }
                             >
                               {sub.label}
                             </DropdownItem>
@@ -699,6 +726,7 @@ export default function Header({
                           ? "noopener noreferrer"
                           : undefined
                       }
+                      onClick={(event) => handleMenuLinkClick(event, item)}
                     >
                       {item.label}
                     </NavLink>
@@ -838,7 +866,9 @@ export default function Header({
                                 ? "noopener noreferrer"
                                 : undefined
                             }
-                            onClick={closeMobile}
+                            onClick={(event) =>
+                              handleMenuLinkClick(event, child, true)
+                            }
                           >
                             {child.label}
                           </MobileSubLinkNested>
@@ -854,7 +884,9 @@ export default function Header({
                             ? "noopener noreferrer"
                             : undefined
                         }
-                        onClick={closeMobile}
+                        onClick={(event) =>
+                          handleMenuLinkClick(event, sub, true)
+                        }
                       >
                         {sub.label}
                       </MobileSubLink>
@@ -870,7 +902,7 @@ export default function Header({
                 rel={
                   item.target === "_blank" ? "noopener noreferrer" : undefined
                 }
-                onClick={closeMobile}
+                onClick={(event) => handleMenuLinkClick(event, item, true)}
               >
                 {item.label}
               </MobileNavLink>

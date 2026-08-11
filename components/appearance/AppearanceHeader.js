@@ -2,6 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import ResponsiveHeader from "./ResponsiveHeader";
+import {
+  isPdfDocumentUrl,
+  usePdfViewerModal,
+} from "@/components/site/shared/PdfViewerModal";
 import { PageContainer } from "@/styles/Theme";
 
 const SearchIcon = () => (
@@ -19,22 +23,41 @@ const CloseIcon = () => (
 
 function normalizeMenuItems(items) {
   if (!Array.isArray(items)) return [];
-  return items.map((item) => ({
-    label: String(item?.label || ""),
-    url: String(item?.url || item?.href || "#"),
-    openInNewTab: item?.openInNewTab === true || item?.target === "_blank",
-    children: normalizeMenuItems(item?.children || item?.submenu),
-  }));
+  return items.map((item) => {
+    const url = String(item?.url || item?.href || "#");
+    return {
+      label: String(item?.label || ""),
+      url,
+      openInNewTab: item?.openInNewTab === true || item?.target === "_blank",
+      opensPdfModal: item?.target === "modal" && isPdfDocumentUrl(url),
+      children: normalizeMenuItems(item?.children || item?.submenu),
+    };
+  });
 }
 
-function DesktopMenuItem({ item }) {
+function openMenuPdf(event, item, openPdf) {
+  if (!item.opensPdfModal) return;
+  event.preventDefault();
+  openPdf({
+    url: item.url,
+    title: item.label || "PDF document",
+    trigger: event.currentTarget,
+  });
+}
+
+function DesktopMenuItem({ item, openPdf }) {
   const hasChildren = item.children.length > 0;
   const target = item.openInNewTab ? "_blank" : undefined;
   const rel = target ? "noopener noreferrer" : undefined;
 
   return (
     <div className={`appearance-nav-item${hasChildren ? " has-dropdown" : ""}`}>
-      <a href={item.url} target={target} rel={rel}>
+      <a
+        href={item.url}
+        target={target}
+        rel={rel}
+        onClick={(event) => openMenuPdf(event, item, openPdf)}
+      >
         {item.label}
         {hasChildren ? (
           <svg viewBox="0 0 12 8" width="11" height="7" aria-hidden="true">
@@ -48,6 +71,7 @@ function DesktopMenuItem({ item }) {
             <DesktopDropdownItem
               key={`${child.label}-${index}`}
               item={child}
+              openPdf={openPdf}
             />
           ))}
         </div>
@@ -56,7 +80,7 @@ function DesktopMenuItem({ item }) {
   );
 }
 
-function DesktopDropdownItem({ item }) {
+function DesktopDropdownItem({ item, openPdf }) {
   const hasChildren = item.children.length > 0;
   const target = item.openInNewTab ? "_blank" : undefined;
   return (
@@ -65,6 +89,7 @@ function DesktopDropdownItem({ item }) {
         href={item.url}
         target={target}
         rel={target ? "noopener noreferrer" : undefined}
+        onClick={(event) => openMenuPdf(event, item, openPdf)}
       >
         {item.label}
         {hasChildren ? <span aria-hidden="true">›</span> : null}
@@ -72,7 +97,11 @@ function DesktopDropdownItem({ item }) {
       {hasChildren ? (
         <div className="appearance-submenu">
           {item.children.map((child, index) => (
-            <DesktopDropdownItem key={`${child.label}-${index}`} item={child} />
+            <DesktopDropdownItem
+              key={`${child.label}-${index}`}
+              item={child}
+              openPdf={openPdf}
+            />
           ))}
         </div>
       ) : null}
@@ -89,6 +118,7 @@ export default function AppearanceHeader(props) {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState("");
   const searchInputRef = useRef(null);
+  const { modal: pdfViewerModal, openPdf } = usePdfViewerModal();
   const {
     menuItems = [],
     siteTitle = "MESCO Trust",
@@ -230,7 +260,11 @@ export default function AppearanceHeader(props) {
             </a>
             <nav className="appearance-links" aria-label="Primary navigation">
               {items.map((item, index) => (
-                <DesktopMenuItem key={`${item.label}-${index}`} item={item} />
+                <DesktopMenuItem
+                  key={`${item.label}-${index}`}
+                  item={item}
+                  openPdf={openPdf}
+                />
               ))}
             </nav>
             <div className="appearance-actions">
@@ -276,6 +310,7 @@ export default function AppearanceHeader(props) {
           donateHrefTarget={donateHrefTarget}
           appearanceResponsive
           onResponsiveLayerChange={setResponsiveLayerOpen}
+          onOpenPdf={openPdf}
         />
       </div>
       <div
@@ -324,6 +359,7 @@ export default function AppearanceHeader(props) {
           </div>
         </div>
       </div>
+      {pdfViewerModal}
       <style dangerouslySetInnerHTML={{ __html: `
         .appearance-header, .appearance-header * { box-sizing: border-box; }
         .appearance-header { --appearance-font-body: "Instrument Sans", system-ui, sans-serif; --appearance-font-display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif; position: relative; z-index: 100; font-family: var(--appearance-font-body); font-synthesis: none; -webkit-font-smoothing: antialiased; }

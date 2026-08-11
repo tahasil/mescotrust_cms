@@ -37,6 +37,12 @@ export function menuItemsToNavItems(items) {
             : "#"),
         openInNewTab:
           item?.openInNewTab === true || item?.target === "_blank",
+        target:
+          item?.target === "modal"
+            ? "modal"
+            : item?.openInNewTab === true || item?.target === "_blank"
+              ? "_blank"
+              : "_self",
         hasDropdown: children.length > 0,
         children,
       };

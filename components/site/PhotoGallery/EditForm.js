@@ -111,6 +111,9 @@ function applyFormValues(form, data) {
     photoGalleryTitleVisible: data?.photoGalleryTitleVisible !== false,
     photoGallerySubTitleVisible: data?.photoGallerySubTitleVisible !== false,
     photoGalleryFiltersVisible: data?.photoGalleryFiltersVisible !== false,
+    photoGalleryTabAlignment: ["left", "center", "right"].includes(data?.photoGalleryTabAlignment)
+      ? data.photoGalleryTabAlignment
+      : "center",
     photoGalleryPhotoCountVisible: data?.photoGalleryPhotoCountVisible !== false,
     photoGalleryHoverArrowVisible: data?.photoGalleryHoverArrowVisible !== false,
     photoGalleryViewAllText: String(data?.photoGalleryViewAllText ?? data?.photoGalleryViewMoreText ?? "").trim(),
@@ -226,6 +229,9 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
         photoGalleryTitleVisible: values.photoGalleryTitleVisible !== false,
         photoGallerySubTitleVisible: values.photoGallerySubTitleVisible !== false,
         photoGalleryFiltersVisible: values.photoGalleryFiltersVisible !== false,
+        photoGalleryTabAlignment: ["left", "center", "right"].includes(values.photoGalleryTabAlignment)
+          ? values.photoGalleryTabAlignment
+          : "center",
         photoGalleryPhotoCountVisible: values.photoGalleryPhotoCountVisible !== false,
         photoGalleryHoverArrowVisible: values.photoGalleryHoverArrowVisible !== false,
         photoGalleryViewAllText: String(values.photoGalleryViewAllText ?? "").trim(),
@@ -375,6 +381,15 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
             children: (
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 <Card size="small" title="Filter categories">
+                  <Form.Item name="photoGalleryTabAlignment" label="Tab alignment">
+                    <Select
+                      options={[
+                        { label: "Left", value: "left" },
+                        { label: "Center", value: "center" },
+                        { label: "Right", value: "right" },
+                      ]}
+                    />
+                  </Form.Item>
                   <Form.List name="photoGalleryTabs">
                     {(tabFields, { add: addTab, remove: removeTab }) => (
                       <>

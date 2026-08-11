@@ -6,6 +6,11 @@ const menuItemSchema = new mongoose.Schema(
     url: { type: String, required: true, trim: true },
     order: { type: Number, default: 0 },
     openInNewTab: { type: Boolean, default: false },
+    target: {
+      type: String,
+      enum: ["_self", "_blank", "modal"],
+      default: "_self",
+    },
     type: { type: String, enum: ["custom_link", "page"], default: "custom_link" },
     pageSlug: { type: String, trim: true, default: "" },
   },

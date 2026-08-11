@@ -21,8 +21,12 @@ import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 const GalleryTabs = styled.div`
   display: flex;
   align-items: center;
-  justify-content: center;
-  justify-content: flex-start;
+  justify-content: ${(props) =>
+    props.$alignment === "left"
+      ? "flex-start"
+      : props.$alignment === "right"
+        ? "flex-end"
+        : "center"};
   gap: 12px;
   flex-wrap: wrap;
   margin-bottom: 46px;
@@ -240,6 +244,11 @@ export default function Videogallery(props) {
           .map((t) => (typeof t === "string" ? t : t?.label || "").trim())
           .filter(Boolean)
       : DEFAULT_TABS;
+  const tabAlignment = ["left", "center", "right"].includes(
+    props?.videogalleryTabAlignment,
+  )
+    ? props.videogalleryTabAlignment
+    : "center";
 
   const accentColorKey = (props?.videogalleryAccentColorKey ?? "")
     .toString()
@@ -475,7 +484,7 @@ export default function Videogallery(props) {
             {mainTitle ? <h2 className="fable-heading" style={{ color: titleColor }}>{renderHighlightedTitle(mainTitle, props, { legacyColorKey: props?.videogalleryAccentColorKey })}</h2> : null}
           </header>
         ) : null}
-        <GalleryTabs className="fable-filters">
+        <GalleryTabs className="fable-filters" $alignment={tabAlignment}>
           {tabs.map((tab) => (
             <GalleryTab
               className={`fable-filter${activeTab === tab ? " is-active" : ""}`}
