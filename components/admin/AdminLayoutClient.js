@@ -23,7 +23,6 @@ import {
   FileTextOutlined,
   BookOutlined,
   AppstoreOutlined,
-  MenuOutlined,
   BgColorsOutlined,
   TeamOutlined,
   MailOutlined,
@@ -115,16 +114,39 @@ const baseMenuItems = [
           </Link>
         ),
       },
+      {
+        key: "/admin/menus",
+        label: (
+          <Link href="/admin/menus" style={linkStyle}>
+            Menu
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/chatbot",
+        label: (
+          <Link href="/admin/chatbot" style={linkStyle}>
+            Chatbot
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/theme",
+        label: (
+          <Link href="/admin/theme" style={linkStyle}>
+            Theme
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/social-wall",
+        label: (
+          <Link href="/admin/social-wall" style={linkStyle}>
+            Social Wall
+          </Link>
+        ),
+      },
     ],
-  },
-  {
-    key: "/admin/social-wall",
-    icon: <AppstoreOutlined />,
-    label: (
-      <Link href="/admin/social-wall" style={linkStyle}>
-        Social Wall
-      </Link>
-    ),
   },
   {
     key: "/admin/form-builder",
@@ -256,33 +278,6 @@ const baseMenuItems = [
     ],
   },
   {
-    key: "/admin/menus",
-    icon: <MenuOutlined />,
-    label: (
-      <Link href="/admin/menus" style={linkStyle}>
-        Menus
-      </Link>
-    ),
-  },
-  {
-    key: "/admin/chatbot",
-    icon: <MessageOutlined />,
-    label: (
-      <Link href="/admin/chatbot" style={linkStyle}>
-        Chatbot
-      </Link>
-    ),
-  },
-  {
-    key: "/admin/theme",
-    icon: <BgColorsOutlined />,
-    label: (
-      <Link href="/admin/theme" style={linkStyle}>
-        Theme
-      </Link>
-    ),
-  },
-  {
     key: "/admin/submissions",
     icon: <MailOutlined />,
     label: "Submissions",
@@ -367,6 +362,20 @@ function filterMenuItemsByPermission(items, authContext) {
       return canAccessMenu(authContext, item.key) ? item : null;
     })
     .filter(Boolean);
+}
+
+function findOpenMenuKeys(items, selectedKey, parents = []) {
+  for (const item of items) {
+    if (item.key === selectedKey) return parents;
+    if (Array.isArray(item.children)) {
+      const match = findOpenMenuKeys(item.children, selectedKey, [
+        ...parents,
+        item.key,
+      ]);
+      if (match) return match;
+    }
+  }
+  return null;
 }
 
 const DEFAULT_ADMIN_THEME = {
@@ -722,6 +731,8 @@ export default function AdminLayoutClient({ children, userName, userRole, userRo
     : String(pathname || "").startsWith("/admin/social-wall/")
       ? "/admin/social-wall"
     : pathname;
+  const defaultOpenMenuKeys =
+    findOpenMenuKeys(menuItems, selectedMenuKey) || [];
 
   const fetchNotifications = useCallback(() => {
     if (normalizedRoleKey === "author") {
@@ -1434,7 +1445,7 @@ export default function AdminLayoutClient({ children, userName, userRole, userRo
             theme="light"
             mode="inline"
             selectedKeys={[selectedMenuKey]}
-            // defaultOpenKeys={["/admin/blogs"]}
+            defaultOpenKeys={defaultOpenMenuKeys}
             items={menuItems}
             style={{
               borderRight: 0,
