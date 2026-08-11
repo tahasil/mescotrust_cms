@@ -24,6 +24,29 @@ import {
   BookOutlined,
   AppstoreOutlined,
   BgColorsOutlined,
+  InsertRowAboveOutlined,
+  NotificationOutlined,
+  InsertRowBelowOutlined,
+  MenuOutlined,
+  RobotOutlined,
+  SkinOutlined,
+  ShareAltOutlined,
+  FormOutlined,
+  SlidersOutlined,
+  BorderOutlined,
+  CalendarOutlined,
+  PictureOutlined,
+  FolderOpenOutlined,
+  CompressOutlined,
+  SettingOutlined,
+  ScheduleOutlined,
+  UserAddOutlined,
+  UnorderedListOutlined,
+  PlusCircleOutlined,
+  TagsOutlined,
+  CommentOutlined,
+  InboxOutlined,
+  ContactsOutlined,
   TeamOutlined,
   MailOutlined,
   UserOutlined,
@@ -92,6 +115,7 @@ const baseMenuItems = [
     children: [
       {
         key: "/admin/appearance/header",
+        icon: <InsertRowAboveOutlined />,
         label: (
           <Link href="/admin/appearance/header" style={linkStyle}>
             Header
@@ -100,6 +124,7 @@ const baseMenuItems = [
       },
       {
         key: "/admin/appearance/header-ribbon",
+        icon: <NotificationOutlined />,
         label: (
           <Link href="/admin/appearance/header-ribbon" style={linkStyle}>
             Header Ribbon
@@ -108,6 +133,7 @@ const baseMenuItems = [
       },
       {
         key: "/admin/appearance/footer",
+        icon: <InsertRowBelowOutlined />,
         label: (
           <Link href="/admin/appearance/footer" style={linkStyle}>
             Footer
@@ -116,6 +142,7 @@ const baseMenuItems = [
       },
       {
         key: "/admin/menus",
+        icon: <MenuOutlined />,
         label: (
           <Link href="/admin/menus" style={linkStyle}>
             Menu
@@ -124,6 +151,7 @@ const baseMenuItems = [
       },
       {
         key: "/admin/chatbot",
+        icon: <RobotOutlined />,
         label: (
           <Link href="/admin/chatbot" style={linkStyle}>
             Chatbot
@@ -132,6 +160,7 @@ const baseMenuItems = [
       },
       {
         key: "/admin/theme",
+        icon: <SkinOutlined />,
         label: (
           <Link href="/admin/theme" style={linkStyle}>
             Theme
@@ -140,6 +169,7 @@ const baseMenuItems = [
       },
       {
         key: "/admin/social-wall",
+        icon: <ShareAltOutlined />,
         label: (
           <Link href="/admin/social-wall" style={linkStyle}>
             Social Wall
@@ -150,7 +180,7 @@ const baseMenuItems = [
   },
   {
     key: "/admin/form-builder",
-    icon: <FileTextOutlined />,
+    icon: <FormOutlined />,
     label: (
       <Link href="/admin/form-builder" style={linkStyle}>
         Form Builder
@@ -159,7 +189,7 @@ const baseMenuItems = [
   },
   {
     key: "/admin/sliders",
-    icon: <AppstoreOutlined />,
+    icon: <SlidersOutlined />,
     label: (
       <Link href="/admin/sliders" style={linkStyle}>
         Sliders
@@ -168,7 +198,7 @@ const baseMenuItems = [
   },
   {
     key: "/admin/popups",
-    icon: <AppstoreOutlined />,
+    icon: <BorderOutlined />,
     label: (
       <Link href="/admin/popups" style={linkStyle}>
         Popups
@@ -191,6 +221,7 @@ const baseMenuItems = [
     children: [
       {
         key: "/admin/blogs",
+        icon: <UnorderedListOutlined />,
         label: (
           <Link href="/admin/blogs" style={linkStyle}>
             View All Posts
@@ -199,6 +230,7 @@ const baseMenuItems = [
       },
       {
         key: "/admin/blogs/new",
+        icon: <PlusCircleOutlined />,
         label: (
           <Link href="/admin/blogs/new" style={linkStyle}>
             Add Post
@@ -207,6 +239,7 @@ const baseMenuItems = [
       },
       {
         key: "/admin/blog-categories",
+        icon: <TagsOutlined />,
         label: (
           <Link href="/admin/blog-categories" style={linkStyle}>
             Categories
@@ -215,6 +248,7 @@ const baseMenuItems = [
       },
       {
         key: "/admin/blog-comments",
+        icon: <CommentOutlined />,
         label: (
           <Link href="/admin/blog-comments" style={linkStyle}>
             Comments
@@ -225,11 +259,12 @@ const baseMenuItems = [
   },
   {
     key: "group:admin:events",
-    icon: <ClockCircleOutlined />,
+    icon: <CalendarOutlined />,
     label: "Events",
     children: [
       {
         key: "/admin/events",
+        icon: <UnorderedListOutlined />,
         label: (
           <Link href="/admin/events" style={linkStyle}>
             View All Events
@@ -238,6 +273,7 @@ const baseMenuItems = [
       },
       {
         key: "/admin/events/new",
+        icon: <PlusCircleOutlined />,
         label: (
           <Link href="/admin/events/new" style={linkStyle}>
             Add Event
@@ -248,11 +284,12 @@ const baseMenuItems = [
   },
   {
     key: "/admin/media",
-    icon: <AppstoreOutlined />,
+    icon: <PictureOutlined />,
     label: "Media",
     children: [
       {
         key: "/admin/media",
+        icon: <FolderOpenOutlined />,
         label: (
           <Link href="/admin/media" style={linkStyle}>
             Library
@@ -261,6 +298,7 @@ const baseMenuItems = [
       },
       {
         key: "/admin/media/bulk-optimize",
+        icon: <CompressOutlined />,
         label: (
           <Link href="/admin/media/bulk-optimize" style={linkStyle}>
             Bulk Optimize
@@ -269,6 +307,7 @@ const baseMenuItems = [
       },
       {
         key: "/admin/media/settings",
+        icon: <SettingOutlined />,
         label: (
           <Link href="/admin/media/settings" style={linkStyle}>
             Settings
@@ -279,11 +318,12 @@ const baseMenuItems = [
   },
   {
     key: "/admin/submissions",
-    icon: <MailOutlined />,
+    icon: <InboxOutlined />,
     label: "Submissions",
     children: [
       {
         key: "/admin/subscribers",
+        icon: <MailOutlined />,
         label: (
           <Link href="/admin/subscribers" style={linkStyle}>
             Subscribers
@@ -292,6 +332,7 @@ const baseMenuItems = [
       },
       {
         key: "/admin/event-registrations",
+        icon: <ScheduleOutlined />,
         label: (
           <Link href="/admin/event-registrations" style={linkStyle}>
             Event Register
@@ -300,6 +341,7 @@ const baseMenuItems = [
       },
       {
         key: "/admin/donations",
+        icon: <DollarOutlined />,
         label: (
           <Link href="/admin/donations" style={linkStyle}>
             Donate
@@ -308,6 +350,7 @@ const baseMenuItems = [
       },
       {
         key: "/admin/volunteer-form",
+        icon: <UserAddOutlined />,
         label: (
           <Link href="/admin/volunteer-form" style={linkStyle}>
             Volunteer Form
@@ -316,6 +359,7 @@ const baseMenuItems = [
       },
       {
         key: "/admin/volunteers-feedback",
+        icon: <MessageOutlined />,
         label: (
           <Link href="/admin/volunteers-feedback" style={linkStyle}>
             Volunteers Feedback
@@ -324,6 +368,7 @@ const baseMenuItems = [
       },
       {
         key: "/admin/contacts",
+        icon: <ContactsOutlined />,
         label: (
           <Link href="/admin/contacts" style={linkStyle}>
             Contact Us
@@ -334,7 +379,7 @@ const baseMenuItems = [
   },
   {
     key: "/admin/users",
-    icon: <TeamOutlined />,
+    icon: <UserOutlined />,
     label: (
       <Link href="/admin/users" style={linkStyle}>
         Users
