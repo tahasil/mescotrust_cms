@@ -11,7 +11,7 @@ export async function generateMetadata() {
   return getPageSeoMetadata({
     slug: "home",
     fallbackTitle: "Home",
-    fallbackDescription: "Welcome to Mesco Trust",
+    fallbackDescription: "Welcome to MESCO Trust",
     fallbackCanonical: "/",
     fallbackOpenGraphUrl: "/",
   });

@@ -180,7 +180,7 @@ function FormColor({ name, label, placeholder }) {
 }
 
 const initialFormValues = {
-  siteTitle: "Mesco Trust",
+  siteTitle: "MESCO Trust",
   tagline: "",
   logoType: "text",
   logoLightUrl: "",
@@ -469,7 +469,7 @@ export default function AdminThemePage() {
                 label="Branding name"
                 tooltip="Used across website title, header and branding references."
               >
-                <Input placeholder="e.g. Mesco Trust" />
+                <Input placeholder="e.g. MESCO Trust" />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12}>
@@ -874,7 +874,7 @@ export default function AdminThemePage() {
           <Row gutter={[16, 0]}>
             <Col xs={24} sm={12}>
               <Form.Item name="adminSiteName" label="Admin panel title" tooltip="Displayed in the sidebar header. Falls back to Site Title if empty.">
-                <Input placeholder="e.g. Mesco CMS" />
+                <Input placeholder="e.g. MESCO CMS" />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12}>

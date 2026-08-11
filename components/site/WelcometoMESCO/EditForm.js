@@ -26,12 +26,12 @@ const PREFIX = "welcometoMESCO";
 const COLOR_ITEMS = [
   ["welcometoMESCOSubTitleColorKey", "Sub Title"],
   ["welcometoMESCOStatementColorKey", "Statement words"],
-  ["welcometoMESCOPrimaryButtonBgColorKey", "Mesco at a Glance background"],
-  ["welcometoMESCOPrimaryButtonTextColorKey", "Mesco at a Glance text"],
-  ["welcometoMESCOPrimaryButtonBorderColorKey", "Mesco at a Glance border"],
-  ["welcometoMESCOPrimaryButtonHoverBgColorKey", "Mesco at a Glance hover background"],
-  ["welcometoMESCOPrimaryButtonHoverTextColorKey", "Mesco at a Glance hover text"],
-  ["welcometoMESCOPrimaryButtonHoverBorderColorKey", "Mesco at a Glance hover border"],
+  ["welcometoMESCOPrimaryButtonBgColorKey", "MESCO at a Glance background"],
+  ["welcometoMESCOPrimaryButtonTextColorKey", "MESCO at a Glance text"],
+  ["welcometoMESCOPrimaryButtonBorderColorKey", "MESCO at a Glance border"],
+  ["welcometoMESCOPrimaryButtonHoverBgColorKey", "MESCO at a Glance hover background"],
+  ["welcometoMESCOPrimaryButtonHoverTextColorKey", "MESCO at a Glance hover text"],
+  ["welcometoMESCOPrimaryButtonHoverBorderColorKey", "MESCO at a Glance hover border"],
   ["welcometoMESCOSecondaryLinkColorKey", "Zakat Appeal"],
   ["welcometoMESCOSecondaryLinkHoverColorKey", "Zakat Appeal hover"],
   ["welcometoMESCOEstablishmentLabelColorKey", "Establishment label"],
@@ -42,7 +42,7 @@ const INITIAL_CONTENT = {
   welcometoMESCOSubTitle: "Welcome to MESCO",
   welcometoMESCOStatementText:
     "A selfless effort for serving mankind. What began in 1968 as a few friends around a table now reaches 15,000 families a year, carrying education, medical aid and dignity from those who want to give to those who need it most.",
-  welcometoMESCOPrimaryButtonText: "Mesco at a Glance",
+  welcometoMESCOPrimaryButtonText: "MESCO at a Glance",
   welcometoMESCOPrimaryButtonLink: "/about-us/mesco-at-glance",
   welcometoMESCOPrimaryButtonTarget: "_self",
   welcometoMESCOSecondaryLinkText: "Zakat Appeal",
@@ -419,19 +419,19 @@ function WelcometoMESCOEditForm(
               <>
                 <Form.Item
                   name="welcometoMESCOPrimaryButtonText"
-                  label="Mesco at a Glance label"
+                  label="MESCO at a Glance label"
                 >
                   <Input />
                 </Form.Item>
                 <Form.Item
                   name="welcometoMESCOPrimaryButtonLink"
-                  label="Mesco at a Glance URL"
+                  label="MESCO at a Glance URL"
                 >
                   <Input />
                 </Form.Item>
                 <Form.Item
                   name="welcometoMESCOPrimaryButtonTarget"
-                  label="Mesco at a Glance target"
+                  label="MESCO at a Glance target"
                 >
                   <Select options={LINK_TARGET_OPTIONS} />
                 </Form.Item>

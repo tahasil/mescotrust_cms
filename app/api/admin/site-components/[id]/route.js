@@ -87,7 +87,7 @@ export async function GET(req, { params }) {
       id === "OurImpact"
         ? "Our Impact"
         : id === "VolunteerMesco"
-          ? "Volunteer Mesco"
+          ? "Volunteer MESCO"
         : id === LATEST_NEWS_ID
           ? "Latest News"
           : id;

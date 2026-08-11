@@ -1,6 +1,6 @@
 # 1. Overview of the Admin Panel
 
-The admin panel is your control room for the entire Mesco Trust website. After logging in at `/admin/login`, you will see three main areas.
+The admin panel is your control room for the entire MESCO Trust website. After logging in at `/admin/login`, you will see three main areas.
 
 ## Layout at a glance
 

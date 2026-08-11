@@ -1,6 +1,6 @@
 # Roles and Permissions
 
-The admin uses database-backed role-based access control (RBAC). The permission catalog is generated from the current Mesco Trust admin module manifest in `lib/rbac/catalog.js`; it is not shared with or copied from another CMS.
+The admin uses database-backed role-based access control (RBAC). The permission catalog is generated from the current MESCO Trust admin module manifest in `lib/rbac/catalog.js`; it is not shared with or copied from another CMS.
 
 ## System roles
 

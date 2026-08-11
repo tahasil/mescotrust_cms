@@ -138,7 +138,7 @@ function VolunteerMescoEditForm({ source, initialData: initialDataProp, onSaveTo
         applyValues(data);
         applyColors(data);
       })
-      .catch(() => message.error("Failed to load Volunteer Mesco"))
+      .catch(() => message.error("Failed to load Volunteer MESCO"))
       .finally(() => setLoading(false));
   }, [applyColors, applyValues, initialDataProp, isPageBlock, suppliedColors.length]);
 
@@ -175,8 +175,8 @@ function VolunteerMescoEditForm({ source, initialData: initialDataProp, onSaveTo
       body: JSON.stringify(payload),
     })
       .then((response) => response.ok ? undefined : response.json().then((data) => Promise.reject(data)))
-      .then(() => { message.success("Volunteer Mesco saved"); onSuccess?.(); })
-      .catch((error) => message.error(error?.error || "Failed to save Volunteer Mesco"))
+      .then(() => { message.success("Volunteer MESCO saved"); onSuccess?.(); })
+      .catch((error) => message.error(error?.error || "Failed to save Volunteer MESCO"))
       .finally(() => setSaving(false));
   }).catch(() => {}), [form, isPageBlock, onSaveToPage, onSuccess, payloadFrom]);
 

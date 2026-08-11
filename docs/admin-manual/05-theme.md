@@ -41,7 +41,7 @@ filter tokens are available in the same list.
 
 Click **+ Add color** to add a project-specific named color. Saved color names
 become selectable from block and site-component editors. Existing installations
-using the former default Mesco palette are upgraded automatically; genuinely
+using the former default MESCO palette are upgraded automatically; genuinely
 custom color collections are preserved.
 
 ---

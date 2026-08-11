@@ -172,7 +172,7 @@ export default function RolesModule() {
       }
     >
       <Typography.Paragraph style={{ marginBottom: 16 }}>
-        Create reusable roles and control access to the current Mesco Trust admin modules.
+        Create reusable roles and control access to the current MESCO Trust admin modules.
       </Typography.Paragraph>
       {loadError ? (
         <Alert type="error" showIcon message={loadError} action={<Button onClick={loadData}>Retry</Button>} style={{ marginBottom: 16 }} />

@@ -1,4 +1,4 @@
-# Mesco Trust CMS
+# MESCO Trust CMS
 
 Next.js 14 CMS with MongoDB, NextAuth, and Ant Design admin.
 

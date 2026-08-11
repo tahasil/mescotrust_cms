@@ -21,7 +21,7 @@ const DEFAULT_CONTENT = {
   subTitle: "Welcome to MESCO",
   statement:
     "A selfless effort for serving mankind. What began in 1968 as a few friends around a table now reaches 15,000 families a year, carrying education, medical aid and dignity from those who want to give to those who need it most.",
-  primaryLabel: "Mesco at a Glance",
+  primaryLabel: "MESCO at a Glance",
   primaryUrl: "/about-us/mesco-at-glance",
   secondaryLabel: "Zakat Appeal",
   secondaryUrl: "/donate-now",

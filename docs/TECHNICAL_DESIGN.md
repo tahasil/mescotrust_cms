@@ -1,6 +1,6 @@
 ﻿# Technical Design Document
 
-Low-level reference for **data models**, **API endpoints**, and **database** usage in the Mesco Trust CMS. For high-level API usage and conventions, see [API.md](./API.md).
+Low-level reference for **data models**, **API endpoints**, and **database** usage in the MESCO Trust CMS. For high-level API usage and conventions, see [API.md](./API.md).
 
 ---
 

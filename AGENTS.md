@@ -4,7 +4,7 @@ Project operating guide for engineers and coding agents working in `mescotrust_c
 
 ## 1. Project Snapshot
 
-- Project: Mesco Trust CMS
+- Project: MESCO Trust CMS
 - Framework: Next.js 14 (App Router)
 - Runtime: Node.js + React 18
 - Database: MongoDB via Mongoose

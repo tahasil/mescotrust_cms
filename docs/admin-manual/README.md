@@ -1,6 +1,6 @@
-# Mesco Trust CMS — Admin User Guide
+# MESCO Trust CMS — Admin User Guide
 
-Welcome! This guide explains how to operate the Mesco Trust CMS from the admin panel. It is written for **non-technical content managers** — no coding required.
+Welcome! This guide explains how to operate the MESCO Trust CMS from the admin panel. It is written for **non-technical content managers** — no coding required.
 
 ## How to log in
 

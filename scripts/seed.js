@@ -138,11 +138,11 @@ async function seed() {
       slug: "home",
       status: "published",
       layout: [
-        { instanceId: "seed_h1", baseComponent: "Heading", props: { level: 1, text: "Welcome to Mesco Trust" }, order: 0 },
+        { instanceId: "seed_h1", baseComponent: "Heading", props: { level: 1, text: "Welcome to MESCO Trust" }, order: 0 },
         { instanceId: "seed_p1", baseComponent: "Paragraph", props: { text: "This is the default home page. Edit it from the admin panel." }, order: 1 },
         { instanceId: "seed_b1", baseComponent: "Buttons", props: { buttons: [{ label: "View Blog", url: "/blog", variant: "solid" }, { label: "Contact Us", url: "/contact", variant: "outline" }] }, order: 2 },
       ],
-      meta: { metaTitle: "Mesco Trust", metaDescription: "Welcome to Mesco Trust" },
+      meta: { metaTitle: "MESCO Trust", metaDescription: "Welcome to MESCO Trust" },
     });
     console.log("Created default home page");
   }

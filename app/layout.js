@@ -46,7 +46,7 @@ export async function generateMetadata() {
   const defaultMetaKeywords = parseKeywordList(theme?.defaultMetaKeywords);
   const defaultMetaImage = getGlobalMetaImage(theme);
   const faviconUrl = String(theme?.faviconUrl || "").trim();
-  const resolvedTitle = defaultMetaTitle || siteName || "Mesco Trust";
+  const resolvedTitle = defaultMetaTitle || siteName || "MESCO Trust";
   const resolvedDescription = defaultMetaDescription || "Content management system";
   const titleTemplateBase = siteName || resolvedTitle;
 

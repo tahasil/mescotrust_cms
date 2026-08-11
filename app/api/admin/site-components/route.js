@@ -76,7 +76,7 @@ export async function GET(req) {
         displayName = "Home Slider";
       }
       if (id === "VolunteerMesco" && (!displayName || displayName === "VolunteerMesco")) {
-        displayName = "Volunteer Mesco";
+        displayName = "Volunteer MESCO";
       }
       if (id === "FormEmbed" && (!displayName || displayName === "FormEmbed")) {
         displayName = "Form Embed";

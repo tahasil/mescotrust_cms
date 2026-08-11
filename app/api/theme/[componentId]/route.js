@@ -398,7 +398,7 @@ export async function PUT(req, { params }) {
       doc = await Component.create({
         name: componentId,
         displayName:
-          componentId === "VolunteerMesco" ? "Volunteer Mesco" : componentId,
+          componentId === "VolunteerMesco" ? "Volunteer MESCO" : componentId,
         type: "custom",
         baseComponent: componentId,
         defaultProps: safeDefaultProps,
