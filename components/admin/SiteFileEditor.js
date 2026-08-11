@@ -2,17 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Alert,
   Button,
   Input,
   message,
   Modal,
   Space,
   Spin,
-  Typography,
 } from "antd";
 import {
-  ExportOutlined,
   ReloadOutlined,
   SaveOutlined,
   SyncOutlined,
@@ -24,25 +21,13 @@ const FILE_CONFIG = Object.freeze({
     title: "Sitemap",
     generateLabel: "Generate Sitemap",
     saveLabel: "Save Sitemap",
-    publicUrl: "/sitemap.xml",
-    description:
-      "Generate the sitemap from published frontend pages, blogs, and events, or edit the XML manually.",
   },
   robots: {
     title: "Robots",
     generateLabel: "Generate Robots",
     saveLabel: "Save Robots",
-    publicUrl: "/robots.txt",
-    description:
-      "Generate robots.txt from the configured website URL, or edit the crawler directives manually.",
   },
 });
-
-function displayDate(value) {
-  if (!value) return "Not yet";
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "Not yet" : date.toLocaleString();
-}
 
 export default function SiteFileEditor({ type }) {
   const config = FILE_CONFIG[type];
@@ -51,23 +36,11 @@ export default function SiteFileEditor({ type }) {
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [dirty, setDirty] = useState(false);
-  const [details, setDetails] = useState({
-    isSaved: false,
-    generatedAt: null,
-    updatedAt: null,
-    updatedBy: "",
-  });
 
   const endpoint = useMemo(() => `/api/admin/settings/${type}`, [type]);
 
   const applyResponse = useCallback((data) => {
     setContent(String(data?.content || ""));
-    setDetails({
-      isSaved: Boolean(data?.isSaved),
-      generatedAt: data?.generatedAt || null,
-      updatedAt: data?.updatedAt || null,
-      updatedBy: data?.updatedBy || "",
-    });
     setDirty(false);
   }, []);
 
@@ -139,64 +112,42 @@ export default function SiteFileEditor({ type }) {
 
   if (!config) return null;
 
+  const headerActions = (
+    <Space wrap size={8} className="site-file-editor-actions">
+      <Button
+        icon={<ReloadOutlined />}
+        onClick={loadContent}
+        disabled={loading || saving || generating}
+      >
+        Refresh
+      </Button>
+      <Button
+        icon={<SyncOutlined />}
+        onClick={handleGenerate}
+        loading={generating}
+        disabled={loading || saving}
+      >
+        {config.generateLabel}
+      </Button>
+      <Button
+        type="primary"
+        icon={<SaveOutlined />}
+        onClick={handleSave}
+        loading={saving}
+        disabled={loading || generating || !content.trim() || !dirty}
+      >
+        {config.saveLabel}
+      </Button>
+    </Space>
+  );
+
   return (
-    <ThemeAdminCard className="site-file-editor-card" title={config.title}>
+    <ThemeAdminCard
+      className="site-file-editor-card"
+      title={config.title}
+      extra={headerActions}
+    >
       <div className="site-file-editor">
-        <div className="site-file-editor-toolbar">
-          <div className="site-file-editor-summary">
-            <Typography.Text>{config.description}</Typography.Text>
-            <Typography.Text type="secondary" className="site-file-editor-meta">
-              Last updated: {displayDate(details.updatedAt)}
-              {details.updatedBy ? ` by ${details.updatedBy}` : ""}
-              {details.generatedAt ? ` · Last generated: ${displayDate(details.generatedAt)}` : ""}
-            </Typography.Text>
-          </div>
-          <Space wrap className="site-file-editor-actions">
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={loadContent}
-              disabled={loading || saving || generating}
-            >
-              Refresh
-            </Button>
-            <Button
-              icon={<SyncOutlined />}
-              onClick={handleGenerate}
-              loading={generating}
-              disabled={loading || saving}
-            >
-              {config.generateLabel}
-            </Button>
-            <Button
-              type="primary"
-              icon={<SaveOutlined />}
-              onClick={handleSave}
-              loading={saving}
-              disabled={loading || generating || !content.trim() || !dirty}
-            >
-              {config.saveLabel}
-            </Button>
-          </Space>
-        </div>
-
-        <Alert
-          type="info"
-          showIcon
-          message={
-            <span>
-              Public URL:{" "}
-              <Typography.Link href={config.publicUrl} target="_blank" rel="noreferrer">
-                {config.publicUrl} <ExportOutlined />
-              </Typography.Link>
-            </span>
-          }
-          description={
-            details.isSaved
-              ? "The saved content below is currently published at this URL."
-              : "No custom version has been saved yet. The editor is showing freshly generated content."
-          }
-        />
-
         <Spin spinning={loading}>
           <Input.TextArea
             className="site-file-editor-textarea"
@@ -220,26 +171,8 @@ export default function SiteFileEditor({ type }) {
           gap: 16px;
           min-width: 0;
         }
-        .site-file-editor-toolbar {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 16px;
-        }
-        .site-file-editor-summary {
-          display: flex;
-          flex: 1 1 360px;
-          min-width: 0;
-          flex-direction: column;
-          gap: 4px;
-        }
-        .site-file-editor-meta {
-          font-size: 12px;
-          overflow-wrap: anywhere;
-        }
         .site-file-editor-actions {
           display: flex;
-          flex: 0 1 auto;
           justify-content: flex-end;
         }
         .site-file-editor-textarea.ant-input {
@@ -255,22 +188,12 @@ export default function SiteFileEditor({ type }) {
           white-space: pre;
         }
         @media (max-width: 767px) {
-          .site-file-editor-toolbar {
-            flex-direction: column;
-          }
-          .site-file-editor-summary,
           .site-file-editor-actions {
             width: 100%;
-            flex-basis: auto;
-          }
-          .site-file-editor-actions {
-            justify-content: stretch;
+            justify-content: flex-end;
           }
           .site-file-editor-actions .ant-space-item {
-            flex: 1 1 140px;
-          }
-          .site-file-editor-actions .ant-btn {
-            width: 100%;
+            flex: 1 1 auto;
           }
           .site-file-editor-textarea.ant-input {
             min-height: 52vh;
