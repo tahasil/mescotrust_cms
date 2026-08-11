@@ -25,6 +25,7 @@ import {
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 import {
   DONATE_NOW_BASE_FIELDS,
+  DONATE_NOW_OTHER_PURPOSE_ID,
   normalizeDonateNowConfig,
 } from "@/lib/donateNowConfig";
 
@@ -102,22 +103,30 @@ function normalizeFieldConfigForForm(fieldConfigMap) {
 }
 
 function normalizePurposeForSave(purpose = {}, index = 0) {
+  const purposeId = resolvePurposeId(purpose, index);
+  const isOtherDonation =
+    purposeId === DONATE_NOW_OTHER_PURPOSE_ID ||
+    toTrimmedString(purpose.name).toLowerCase() === "other donation";
   const amount =
-    Number.isFinite(Number(purpose.amount)) && Number(purpose.amount) >= 0
-      ? Number(purpose.amount)
-      : Number.isFinite(Number(purpose.defaultAmount)) && Number(purpose.defaultAmount) >= 0
-        ? Number(purpose.defaultAmount)
-        : Number.isFinite(Number(purpose.fixedAmount)) && Number(purpose.fixedAmount) >= 0
-          ? Number(purpose.fixedAmount)
-          : 0;
-  const showStudentsCount = Boolean(purpose.showStudentsCount);
+    isOtherDonation
+      ? 0
+      : Number.isFinite(Number(purpose.amount)) && Number(purpose.amount) >= 0
+        ? Number(purpose.amount)
+        : Number.isFinite(Number(purpose.defaultAmount)) && Number(purpose.defaultAmount) >= 0
+          ? Number(purpose.defaultAmount)
+          : Number.isFinite(Number(purpose.fixedAmount)) && Number(purpose.fixedAmount) >= 0
+            ? Number(purpose.fixedAmount)
+            : 0;
+  const showStudentsCount = isOtherDonation
+    ? false
+    : Boolean(purpose.showStudentsCount);
   const defaultStudentsCount =
     Number.isFinite(Number(purpose.defaultStudentsCount)) &&
     Number(purpose.defaultStudentsCount) >= 1
       ? Math.round(Number(purpose.defaultStudentsCount))
       : 1;
   const name = toTrimmedString(purpose.name);
-  const id = resolvePurposeId(purpose, index);
+  const id = isOtherDonation ? DONATE_NOW_OTHER_PURPOSE_ID : purposeId;
   const generatedAmountText =
     amount > 0
       ? `Rs. ${amount.toLocaleString("en-IN")}${
@@ -127,15 +136,15 @@ function normalizePurposeForSave(purpose = {}, index = 0) {
 
   return {
     id,
-    name,
-    cardTitle: name,
+    name: isOtherDonation ? "Other Donation" : name,
+    cardTitle: isOtherDonation ? "Other Donation" : name,
     cardIcon: toTrimmedString(purpose.cardIcon),
     cardAmountText: toTrimmedString(purpose.cardAmountText) || generatedAmountText,
     cardDescription: toTrimmedString(purpose.cardDescription),
     amount,
     defaultAmount: amount,
     fixedAmount: amount,
-    amountMode: "fixed",
+    amountMode: isOtherDonation ? "custom" : "fixed",
     calculationMode: showStudentsCount ? "multiply_by_students" : "none",
     quantityFieldKey: "studentsCount",
     minQuantity: defaultStudentsCount,
@@ -148,8 +157,8 @@ function normalizePurposeForSave(purpose = {}, index = 0) {
       Number.isFinite(Number(purpose.displayOrder)) && Number(purpose.displayOrder) > 0
         ? Number(purpose.displayOrder)
         : index + 1,
-    active: purpose.active !== false,
-    showOnCard: true,
+    active: isOtherDonation ? true : purpose.active !== false,
+    showOnCard: !isOtherDonation,
     showStudentsCount,
     highlight: false,
     badgeText: "",

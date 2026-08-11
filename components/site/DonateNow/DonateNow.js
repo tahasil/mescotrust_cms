@@ -451,7 +451,10 @@ export default function DonateNow(props = {}) {
         purpose: selectedPurpose,
         quantityValue,
         studentsCount: next.studentsCount,
-        currentAmount: previous.amount,
+        currentAmount:
+          purposeChanged && selectedPurpose.amountMode === "custom"
+            ? ""
+            : previous.amount,
         amountTouched,
       });
       if (String(previous.amount || "") !== nextAmount) {
@@ -1275,13 +1278,16 @@ export default function DonateNow(props = {}) {
               key === "amount" || key === "studentsCount" ? "number" : "text"
             }
             inputMode={
-              key === "amount" ||
-              key === "studentsCount" ||
-              key === "mobile" ||
-              key === "pincode"
-                ? "numeric"
-                : "text"
+              key === "amount"
+                ? "decimal"
+                : key === "studentsCount" ||
+                    key === "mobile" ||
+                    key === "pincode"
+                  ? "numeric"
+                  : "text"
             }
+            min={key === "amount" ? "0.01" : undefined}
+            step={key === "amount" ? "0.01" : undefined}
             value={value}
             placeholder={placeholder}
             disabled={key === "lookup" ? lookupState.loading : disabled}
