@@ -156,12 +156,14 @@ export default function CookieConsent() {
           transform: translateY(-1px);
         }
         .mesco-cookie-btn-primary {
-          background: var(--primary-color, #E03C33);
-          border-color: var(--primary-color, #E03C33);
+          background: var(--primary-color, var(--theme-primary, #E03C33));
+          border-color: var(--primary-color, var(--theme-primary, #E03C33));
           color: var(--button-color, #ffffff);
         }
         .mesco-cookie-btn-secondary {
           background: transparent;
+          border-color: var(--primary-color, var(--theme-primary, #E03C33));
+          color: var(--primary-color, var(--theme-primary, #E03C33));
         }
         @keyframes mescoCookieFadeIn {
           from {
@@ -175,17 +177,48 @@ export default function CookieConsent() {
         }
         @media (max-width: 640px) {
           .mesco-cookie-banner {
-            left: 8px;
-            right: 8px;
-            bottom: 8px;
-            padding: 14px 16px;
+            box-sizing: border-box;
+            left: max(8px, env(safe-area-inset-left, 0px));
+            right: max(8px, env(safe-area-inset-right, 0px));
+            bottom: max(8px, env(safe-area-inset-bottom, 0px));
+            max-height: calc(100vh - 16px - env(safe-area-inset-bottom, 0px));
+            max-height: calc(100dvh - 16px - env(safe-area-inset-bottom, 0px));
+            padding: 14px;
+            overflow-x: hidden;
+            overflow-y: auto;
+            overscroll-behavior: contain;
           }
           .mesco-cookie-inner {
             flex-direction: column;
             align-items: stretch;
+            gap: 12px;
+          }
+          .mesco-cookie-text {
+            flex: 0 1 auto;
+            width: 100%;
+            overflow-wrap: anywhere;
           }
           .mesco-cookie-actions {
-            justify-content: flex-end;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            width: 100%;
+            gap: 8px;
+          }
+          .mesco-cookie-btn {
+            width: 100%;
+            min-height: 44px;
+            padding: 10px 12px;
+            line-height: 1.2;
+            white-space: normal;
+          }
+        }
+        @media (max-width: 360px) {
+          .mesco-cookie-banner {
+            padding: 12px;
+            font-size: 13px;
+          }
+          .mesco-cookie-inner {
+            gap: 10px;
           }
         }
       ` }} />
