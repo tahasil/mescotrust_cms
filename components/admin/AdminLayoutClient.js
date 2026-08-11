@@ -39,6 +39,8 @@ import {
   FolderOpenOutlined,
   CompressOutlined,
   SettingOutlined,
+  GlobalOutlined,
+  FileProtectOutlined,
   ScheduleOutlined,
   UserAddOutlined,
   UnorderedListOutlined,
@@ -372,6 +374,31 @@ const baseMenuItems = [
         label: (
           <Link href="/admin/contacts" style={linkStyle}>
             Contact Us
+          </Link>
+        ),
+      },
+    ],
+  },
+  {
+    key: "group:admin:settings",
+    icon: <SettingOutlined />,
+    label: "Settings",
+    children: [
+      {
+        key: "/admin/settings/sitemap",
+        icon: <GlobalOutlined />,
+        label: (
+          <Link href="/admin/settings/sitemap" style={linkStyle}>
+            Sitemap
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/settings/robots",
+        icon: <FileProtectOutlined />,
+        label: (
+          <Link href="/admin/settings/robots" style={linkStyle}>
+            Robots
           </Link>
         ),
       },

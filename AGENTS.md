@@ -69,6 +69,7 @@ Models in `models/`:
 - `Menu`
 - `User`
 - `Media`
+- `SiteFileSetting`
 - `Blog`
 - `BlogCategory`
 - `BlogComment`
@@ -110,6 +111,7 @@ Key public groups:
 Key admin groups:
 - Pages, blogs, categories, comments, components, site-components, menus
 - Appearance Header Ribbon/Header/Footer under `/api/admin/appearance/*`
+- Sitemap and robots management under `/api/admin/settings/*`
 - Media, contacts, users, subscribers, donations, events, event-registrations, volunteers-feedback, fonts
 - Roles and permissions under `/api/admin/rbac/*`
 
