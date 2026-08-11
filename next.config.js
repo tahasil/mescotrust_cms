@@ -20,7 +20,9 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: "/:path*",
+        // The Notices PDF endpoint supplies its own same-origin-only framing
+        // policy so PDFs can render inside that component's modal viewer.
+        source: "/((?!api/public/notices/pdf).*)",
         headers: [
           {
             key: "Strict-Transport-Security",

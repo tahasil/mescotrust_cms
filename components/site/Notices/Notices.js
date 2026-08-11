@@ -1,6 +1,7 @@
 "use client";
 
-import { useLayoutEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Modal } from "antd";
 import { ArrowRightOutlined, ArrowUpOutlined } from "@ant-design/icons";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -72,6 +73,7 @@ const NoticeBoard = styled.div`
     border-bottom: 1px solid var(--notice-border);
     background: transparent;
     color: inherit;
+    font: inherit;
     text-align: left;
     text-decoration: none;
     transition:
@@ -83,12 +85,12 @@ const NoticeBoard = styled.div`
     border-top: 1px solid var(--notice-border);
   }
 
-  .noticeRow[href] {
+  .noticeRow.isInteractive {
     cursor: pointer;
   }
 
-  .noticeRow[href]:hover,
-  .noticeRow[href]:focus-visible {
+  .noticeRow.isInteractive:hover,
+  .noticeRow.isInteractive:focus-visible {
     padding-left: 12px;
     background: var(--notice-row-hover);
   }
@@ -135,8 +137,8 @@ const NoticeBoard = styled.div`
     transition: color 0.2s ease, transform 0.3s ease;
   }
 
-  .noticeRow[href]:hover .noticeArrow,
-  .noticeRow[href]:focus-visible .noticeArrow {
+  .noticeRow.isInteractive:hover .noticeArrow,
+  .noticeRow.isInteractive:focus-visible .noticeArrow {
     color: var(--notice-arrow-hover);
     transform: translate(3px, -3px);
   }
@@ -267,8 +269,8 @@ const NoticeBoard = styled.div`
       padding-block: 18px;
     }
 
-    .noticeRow[href]:hover,
-    .noticeRow[href]:focus-visible {
+    .noticeRow.isInteractive:hover,
+    .noticeRow.isInteractive:focus-visible {
       padding-left: 6px;
     }
 
@@ -306,6 +308,210 @@ const NoticeBoard = styled.div`
       transition: none !important;
     }
   }
+
+`;
+
+const NoticesPdfModal = styled(Modal)`
+  width: min(1120px, calc(100vw - 32px)) !important;
+  max-width: calc(100vw - 32px);
+  padding-bottom: 0;
+
+  .ant-modal-content {
+    display: flex;
+    flex-direction: column;
+    height: min(860px, calc(100vh - 32px));
+    height: min(860px, calc(100dvh - 32px));
+    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid #e3e5e8;
+    border-radius: 9px;
+    background: #ffffff;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.22);
+  }
+
+  .ant-modal-header {
+    flex: 0 0 auto;
+    margin: 0;
+    min-height: 32px;
+    padding: 22px 64px 18px 22px;
+    border: 0;
+    border-radius: 0;
+    background: #ffffff;
+  }
+
+  .ant-modal-title {
+    overflow: hidden;
+    color: #2a283e;
+    font-family: "Bricolage Grotesque", system-ui, sans-serif;
+    font-size: clamp(15px, 1.5vw, 18px);
+    font-weight: 500;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ant-modal-close {
+    top: 14px;
+    right: 14px;
+    width: 40px;
+    height: 40px;
+    color: #8c8c8c;
+  }
+
+  .ant-modal-close:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: rgba(0, 0, 0, 0.88);
+  }
+
+  .ant-modal-close:focus-visible {
+    outline: 2px solid rgba(0, 0, 0, 0.2);
+    outline-offset: 1px;
+  }
+
+  .ant-modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  @media (max-width: 767px) {
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px);
+    margin-inline: auto;
+    padding-bottom: 0;
+
+    .ant-modal-content {
+      height: calc(100vh - 16px);
+      height: calc(100dvh - 16px);
+      max-height: calc(100vh - 16px);
+      max-height: calc(100dvh - 16px);
+      border-radius: 9px;
+    }
+
+    .ant-modal-header {
+      min-height: 40px;
+      padding: 14px 52px 12px 14px;
+    }
+
+    .ant-modal-close {
+      top: 7px;
+      right: 7px;
+    }
+
+    .ant-modal-title {
+      font-size: 15px;
+    }
+  }
+
+  @media (max-width: 359px) {
+    width: calc(100vw - 12px) !important;
+    max-width: calc(100vw - 12px);
+
+    .ant-modal-content {
+      height: calc(100vh - 12px);
+      height: calc(100dvh - 12px);
+      max-height: calc(100vh - 12px);
+      max-height: calc(100dvh - 12px);
+      border-radius: 7px;
+    }
+
+    .ant-modal-header {
+      padding: 12px 48px 10px 12px;
+    }
+
+    .ant-modal-title {
+      font-size: 14px;
+    }
+
+    .ant-modal-close {
+      top: 5px;
+      right: 5px;
+    }
+  }
+
+  @media (max-height: 479px) {
+    .ant-modal-content {
+      height: calc(100vh - 12px);
+      height: calc(100dvh - 12px);
+      max-height: calc(100vh - 12px);
+      max-height: calc(100dvh - 12px);
+    }
+
+    .ant-modal-header {
+      min-height: 36px;
+      padding: 9px 50px 8px 12px;
+    }
+
+    .ant-modal-close {
+      top: 4px;
+      right: 5px;
+      width: 36px;
+      height: 36px;
+    }
+  }
+`;
+
+const PdfViewerBody = styled.div`
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0 0 8px 8px;
+  background: #525659;
+
+  .noticePdfFrame {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #525659;
+    opacity: 0;
+  }
+
+  .noticePdfFrame.isLoaded {
+    opacity: 1;
+  }
+
+  .noticePdfStatus {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 24px;
+    background: #f3f4f6;
+    color: #303744;
+    font: 600 15px/1.5 "Instrument Sans", system-ui, sans-serif;
+    text-align: center;
+  }
+
+  .noticePdfSpinner {
+    width: 38px;
+    height: 38px;
+    border: 4px solid rgba(48, 55, 68, 0.2);
+    border-top-color: var(--notice-pdf-accent);
+    border-radius: 50%;
+    animation: noticePdfSpin 0.85s linear infinite;
+  }
+
+  @keyframes noticePdfSpin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .noticePdfSpinner {
+      animation-duration: 1.8s;
+    }
+  }
 `;
 
 const text = (value) => (value == null ? "" : String(value).trim());
@@ -317,6 +523,63 @@ const managedNumber = (value) =>
   value !== "" && value != null && number(value, -1) >= 0
     ? number(value, 0)
     : undefined;
+
+function normalizeNoticeTarget(value) {
+  if (value === "modal") return "modal";
+  return value === "_blank" ? "_blank" : "_self";
+}
+
+function isPdfDocumentLink(value) {
+  const href = text(value);
+  if (!href || href.startsWith("#")) return false;
+
+  try {
+    const parsed = new URL(href, "https://notices.local");
+    const pathname = parsed.pathname.toLowerCase();
+    return (
+      pathname.endsWith(".pdf") ||
+      /^\/(?:api\/)?media\/[0-9a-f]{24}\/?$/i.test(pathname)
+    );
+  } catch {
+    return false;
+  }
+}
+
+function getPdfViewerHref(value) {
+  const href = text(value);
+  if (!href || typeof window === "undefined") return "";
+
+  try {
+    const parsed = new URL(href, window.location.origin);
+    if (!["http:", "https:"].includes(parsed.protocol)) return "";
+
+    const documentHash = parsed.hash;
+    parsed.hash = "";
+    const source =
+      parsed.origin === window.location.origin
+        ? `${parsed.pathname}${parsed.search}`
+        : parsed.toString();
+    return `/api/public/notices/pdf?src=${encodeURIComponent(source)}${documentHash}`;
+  } catch {
+    return "";
+  }
+}
+
+async function verifyPdfResponse(viewerHref, signal) {
+  const response = await fetch(viewerHref.split("#", 1)[0], {
+    headers: { Range: "bytes=0-0" },
+    signal,
+  });
+  const contentType = String(response.headers.get("content-type") || "")
+    .split(";", 1)[0]
+    .trim()
+    .toLowerCase();
+  await response.body?.cancel();
+  return {
+    isPdf: response.ok && contentType === "application/pdf",
+    status: response.status,
+  };
+}
 
 function backgrounds(props) {
   const type = text(props?.noticesSectionBgType || "default");
@@ -354,9 +617,11 @@ function backgrounds(props) {
   };
 }
 
-function NoticeRow({ item, index }) {
+function NoticeRow({ item, index, onOpenPdf }) {
   const href = text(item?.link);
-  const target = item?.target === "_blank" ? "_blank" : "_self";
+  const configuredTarget = normalizeNoticeTarget(item?.target);
+  const opensPdfModal = configuredTarget === "modal" && isPdfDocumentLink(href);
+  const target = configuredTarget === "_blank" ? "_blank" : "_self";
   const indexLabel = text(item?.indexLabel) || String(index + 1).padStart(2, "0");
   const content = (
     <>
@@ -383,9 +648,29 @@ function NoticeRow({ item, index }) {
     return <div className="noticeRow noticeReveal">{content}</div>;
   }
 
+  if (opensPdfModal) {
+    return (
+      <button
+        type="button"
+        className="noticeRow noticeReveal isInteractive noticeRow--modal"
+        onClick={(event) =>
+          onOpenPdf({
+            href,
+            title: text(item?.label) || "PDF document",
+            trigger: event.currentTarget,
+          })
+        }
+        aria-label={text(item?.ariaLabel) || undefined}
+        aria-haspopup="dialog"
+      >
+        {content}
+      </button>
+    );
+  }
+
   return (
     <a
-      className="noticeRow noticeReveal"
+      className="noticeRow noticeReveal isInteractive"
       href={href}
       target={target}
       rel={target === "_blank" ? "noopener noreferrer" : undefined}
@@ -396,8 +681,95 @@ function NoticeRow({ item, index }) {
   );
 }
 
+function PdfViewerModal({ pdfDocument, onClose, onUnsupportedDocument }) {
+  const [viewerSrc, setViewerSrc] = useState("");
+  const [viewerState, setViewerState] = useState("loading");
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const viewerHref = text(pdfDocument?.viewerHref);
+
+    setViewerSrc("");
+    setViewerState("loading");
+
+    if (!viewerHref) {
+      setViewerState("error");
+      return () => controller.abort();
+    }
+
+    async function verifyPdf() {
+      try {
+        const result = await verifyPdfResponse(viewerHref, controller.signal);
+        if (result.status === 415) {
+          onUnsupportedDocument(pdfDocument.sourceHref);
+          return;
+        }
+        if (!result.isPdf) {
+          throw new Error("Invalid PDF response");
+        }
+
+        setViewerSrc(viewerHref);
+        setViewerState("ready");
+      } catch (error) {
+        if (error?.name !== "AbortError") setViewerState("error");
+      }
+    }
+
+    verifyPdf();
+    return () => controller.abort();
+  }, [onUnsupportedDocument, pdfDocument?.sourceHref, pdfDocument?.viewerHref]);
+
+  return (
+    <NoticesPdfModal
+      open
+      centered
+      destroyOnHidden
+      footer={null}
+      keyboard
+      maskClosable
+      onCancel={onClose}
+      title={pdfDocument.title}
+      width="min(1120px, calc(100vw - 24px))"
+      zIndex={10050}
+      style={{ "--notice-pdf-accent": pdfDocument.accent }}
+      styles={{
+        mask: {
+          background: "rgba(5, 10, 18, 0.72)",
+          backdropFilter: "blur(3px)",
+        },
+      }}
+    >
+      <PdfViewerBody>
+        {viewerState === "loading" ? (
+          <div className="noticePdfStatus" role="status" aria-live="polite">
+            <span className="noticePdfSpinner" aria-hidden="true" />
+            <span>Loading PDF…</span>
+          </div>
+        ) : null}
+        {viewerState === "error" ? (
+          <div className="noticePdfStatus" role="alert">
+            The PDF could not be loaded. Please close the viewer and try again.
+          </div>
+        ) : null}
+        {viewerSrc ? (
+          <iframe
+            className={`noticePdfFrame${viewerState === "ready" ? " isLoaded" : ""}`}
+            src={viewerSrc}
+            title={`${pdfDocument.title} PDF document`}
+            onLoad={() => setViewerState("ready")}
+            onError={() => setViewerState("error")}
+          />
+        ) : null}
+      </PdfViewerBody>
+    </NoticesPdfModal>
+  );
+}
+
 export default function Notices(props) {
   const rootRef = useRef(null);
+  const lastModalTriggerRef = useRef(null);
+  const pdfSelectionRef = useRef(0);
+  const [activePdf, setActivePdf] = useState(null);
   const pathname = usePathname();
   const isEditor = pathname?.startsWith("/admin") === true;
   const items = useMemo(
@@ -408,6 +780,32 @@ export default function Notices(props) {
   const moreTarget = props?.noticesMoreTarget === "_blank" ? "_blank" : "_self";
   const showHeader = props?.noticesTitleEnabled !== false;
   const itemsStyle = props?.noticesItemsStyle === "style2" ? "style2" : "style1";
+  const modalAccent = color(
+    props?.noticesArrowHoverColorKey,
+    getColor("primary"),
+  );
+
+  const openPdfModal = useCallback((document) => {
+    lastModalTriggerRef.current = document.trigger || null;
+    pdfSelectionRef.current += 1;
+    setActivePdf({
+      accent: modalAccent,
+      id: pdfSelectionRef.current,
+      sourceHref: document.href,
+      title: document.title,
+      viewerHref: getPdfViewerHref(document.href),
+    });
+  }, [modalAccent]);
+
+  const closePdfModal = useCallback(() => {
+    setActivePdf(null);
+    window.requestAnimationFrame(() => lastModalTriggerRef.current?.focus());
+  }, []);
+
+  const openUnsupportedDocument = useCallback((href) => {
+    setActivePdf(null);
+    window.location.assign(href);
+  }, []);
 
   useLayoutEffect(() => {
     if (
@@ -488,7 +886,7 @@ export default function Notices(props) {
           ),
           "--notice-arrow-hover": color(
             props?.noticesArrowHoverColorKey,
-            getColor("primary"),
+            modalAccent,
           ),
           "--notice-row-hover": color(
             props?.noticesRowHoverColorKey,
@@ -533,6 +931,7 @@ export default function Notices(props) {
             <NoticeRow
               item={item}
               index={index}
+              onOpenPdf={openPdfModal}
               key={`${text(item?.indexLabel)}-${text(item?.label)}-${index}`}
             />
           ))}
@@ -548,6 +947,14 @@ export default function Notices(props) {
             {text(props.noticesMoreLabel)}
             <ArrowRightOutlined aria-hidden="true" />
           </a>
+        ) : null}
+        {activePdf ? (
+          <PdfViewerModal
+            key={activePdf.id}
+            pdfDocument={activePdf}
+            onClose={closePdfModal}
+            onUnsupportedDocument={openUnsupportedDocument}
+          />
         ) : null}
       </NoticeBoard>
     </PageContainer>

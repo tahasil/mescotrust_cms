@@ -50,13 +50,24 @@ const FALLBACK_THEME_COLOR_KEYS = [
   "gradient",
 ];
 
+const NOTICE_LINK_TARGET_OPTIONS = [
+  { label: "Same Tab (_self)", value: "_self" },
+  { label: "New Tab (_blank)", value: "_blank" },
+  { label: "Modal", value: "modal" },
+];
+
+function normalizeNoticeTarget(value) {
+  if (value === "modal") return "modal";
+  return value === "_blank" ? "_blank" : "_self";
+}
+
 function normalizeItem(it) {
   return {
     indexLabel: it?.indexLabel != null ? String(it.indexLabel).trim() : "",
     label: it?.label != null ? String(it.label).trim() : "",
     subLabel: it?.subLabel != null ? String(it.subLabel).trim() : "",
     link: it?.link != null ? String(it.link).trim() : "",
-    target: it?.target === "_blank" ? "_blank" : "_self",
+    target: normalizeNoticeTarget(it?.target),
     ariaLabel: it?.ariaLabel != null ? String(it.ariaLabel).trim() : "",
   };
 }
@@ -292,7 +303,16 @@ function NoticesEditForm(
                               <Input placeholder="e.g. Form5A PF" size="large" />
                             </Form.Item>
                           </Col>
-                          <Col span={24}><Form.Item {...restField} name={[name, "target"]} label="Target"><Select options={[{label:"Same Tab (_self)",value:"_self"},{label:"New Tab (_blank)",value:"_blank"}]} /></Form.Item></Col>
+                          <Col span={24}>
+                            <Form.Item
+                              {...restField}
+                              name={[name, "target"]}
+                              label="Target"
+                              extra="Modal opens PDF documents inside an on-page viewer. Other links continue to use same-tab navigation."
+                            >
+                              <Select options={NOTICE_LINK_TARGET_OPTIONS} />
+                            </Form.Item>
+                          </Col>
                           <Col span={24}>
                             <Form.Item
                               {...restField}
