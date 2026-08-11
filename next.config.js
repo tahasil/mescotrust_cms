@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // React-PDF's PDF.js worker is an ES module. Next.js 14 requires the
+  // non-SWC minifier path to preserve the worker's import.meta syntax.
+  swcMinify: false,
   compiler: {
     styledComponents: true,
   },
@@ -20,9 +23,9 @@ const nextConfig = {
   async headers() {
     return [
       {
-        // The Notices PDF endpoint supplies its own same-origin-only framing
-        // policy so PDFs can render inside that component's modal viewer.
-        source: "/((?!api/public/notices/pdf).*)",
+        // The shared PDF viewer endpoint supplies its own same-origin-only
+        // framing policy so PDFs can render inside the reusable modal.
+        source: "/((?!api/public/pdf-viewer).*)",
         headers: [
           {
             key: "Strict-Transport-Security",

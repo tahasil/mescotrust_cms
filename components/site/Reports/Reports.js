@@ -9,6 +9,11 @@ import {
   SubTitle,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import {
+  isPdfDocumentUrl,
+  normalizePdfTarget,
+  usePdfViewerModal,
+} from "@/components/site/shared/PdfViewerModal";
 
 /* ── Styled Components (same hover effect as InMedia) ── */
 const CardWrapper = styled.div`
@@ -126,6 +131,7 @@ const ViewBtn = styled.a`
   border: 2px solid var(--reports-button-border);
   background: var(--reports-button-bg);
   color: var(--reports-button-text);
+  font-family: inherit;
   cursor: pointer;
   text-decoration: none;
   opacity: 0;
@@ -190,6 +196,9 @@ export default function Reports(props) {
     "--reports-button-hover-text": color(props?.reportsButtonHoverTextColorKey, getColor("primary")),
     "--reports-button-hover-border": color(props?.reportsButtonHoverBorderColorKey, getColor("primary")),
   };
+  const { modal: pdfViewerModal, openPdf } = usePdfViewerModal({
+    accentColor: designStyle["--reports-button-bg"],
+  });
 
   /* ── Section bg ── */
   const sectionBgType = (props?.reportsSectionBgType ?? "default").toString();
@@ -368,7 +377,10 @@ export default function Reports(props) {
             const imageMobile = (item?.imageMobile ?? "").toString().trim();
             const image = imageDesktop || imageMobile;
             const pdfUrl = (item?.pdfUrl ?? "").toString().trim();
-            const target = item?.target === "_self" ? "_self" : "_blank";
+            const configuredTarget = normalizePdfTarget(item?.target, "_blank");
+            const opensPdfModal =
+              configuredTarget === "modal" && isPdfDocumentUrl(pdfUrl);
+            const target = configuredTarget === "_blank" ? "_blank" : "_self";
             return (
               <Col key={idx} xs={24} sm={12} md={12} lg={8}>
                 <CardWrapper className="card-wrapper fable-card">
@@ -399,13 +411,30 @@ export default function Reports(props) {
                   </ReportCard>
                   {pdfUrl && (
                     <ProfileOverlay>
-                      <ViewBtn
-                        href={pdfUrl}
-                        target={target}
-                        rel={target === "_blank" ? "noopener noreferrer" : undefined}
-                      >
-                        View
-                      </ViewBtn>
+                      {opensPdfModal ? (
+                        <ViewBtn
+                          as="button"
+                          type="button"
+                          aria-haspopup="dialog"
+                          onClick={(event) =>
+                            openPdf({
+                              url: pdfUrl,
+                              title: name || "PDF document",
+                              trigger: event.currentTarget,
+                            })
+                          }
+                        >
+                          View
+                        </ViewBtn>
+                      ) : (
+                        <ViewBtn
+                          href={pdfUrl}
+                          target={target}
+                          rel={target === "_blank" ? "noopener noreferrer" : undefined}
+                        >
+                          View
+                        </ViewBtn>
+                      )}
                     </ProfileOverlay>
                   )}
                 </CardWrapper>
@@ -414,6 +443,7 @@ export default function Reports(props) {
           })}
         </Row>
         </div>
+        {pdfViewerModal}
       </PageContainer>
     </FullWidthBackground>
   );

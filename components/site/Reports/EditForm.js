@@ -2,7 +2,10 @@
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle, useCallback } from "react";
 import { Form, Input, Row, Col, Collapse, message, Spin, Select } from "antd";
-import { LINK_TARGET_OPTIONS, normalizeTarget } from "@/components/appearance/editorUtils";
+import {
+  PDF_LINK_TARGET_OPTIONS,
+  normalizePdfTarget,
+} from "@/components/site/shared/PdfViewerModal";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
@@ -68,7 +71,7 @@ function normalizeItem(it) {
     imageMobile: mobileImage,
     image: desktopImage,
     pdfUrl: it?.pdfUrl != null ? String(it.pdfUrl).trim() : "",
-    target: normalizeTarget(it?.target),
+    target: normalizePdfTarget(it?.target, "_blank"),
   };
 }
 
@@ -259,6 +262,7 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                       imageMobile: "",
                       image: "",
                       pdfUrl: "",
+                      target: "_blank",
                     }}
                     reorderMovedIndex={reorderMovedIndex}
                     reorderDirection={reorderDirection}
@@ -315,12 +319,17 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                         </Col>
                         <Col span={24}>
                           <Form.Item {...restField} name={[name, "pdfUrl"]} label="Document URL">
-                            <Input placeholder="/uploads/annual-report-2024.pdf" size="large" />
+                            <MediaPickerInput
+                              mediaType="document"
+                              showVariants={false}
+                              uiVariant="stacked"
+                              placeholder="/uploads/annual-report-2024.pdf"
+                            />
                           </Form.Item>
                         </Col>
                         <Col span={24}>
                           <Form.Item {...restField} name={[name, "target"]} label="Target">
-                            <Select options={LINK_TARGET_OPTIONS} />
+                            <Select options={PDF_LINK_TARGET_OPTIONS} />
                           </Form.Item>
                         </Col>
                       </Row>

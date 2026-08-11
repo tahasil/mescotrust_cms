@@ -169,7 +169,7 @@ export async function GET(req) {
   const source = getSafeSource(req);
   if (!source) {
     return NextResponse.json(
-      { error: "A valid local Notices PDF URL is required." },
+      { error: "A valid PDF URL is required." },
       { status: 400 },
     );
   }
@@ -188,7 +188,7 @@ export async function GET(req) {
     if (!upstream.ok && upstream.status !== 206) {
       await upstream.body?.cancel();
       return NextResponse.json(
-        { error: "The requested Notices PDF could not be loaded." },
+        { error: "The requested PDF could not be loaded." },
         { status: upstream.status === 404 ? 404 : 502 },
       );
     }
@@ -200,7 +200,7 @@ export async function GET(req) {
     if (contentType !== "application/pdf") {
       await upstream.body?.cancel();
       return NextResponse.json(
-        { error: "The selected Notices document is not a PDF." },
+        { error: "The selected document is not a PDF." },
         { status: 415 },
       );
     }
@@ -229,7 +229,7 @@ export async function GET(req) {
     });
   } catch {
     return NextResponse.json(
-      { error: "The requested Notices PDF could not be loaded." },
+      { error: "The requested PDF could not be loaded." },
       { status: 502 },
     );
   }

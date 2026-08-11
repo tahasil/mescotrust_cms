@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useMemo, useRef } from "react";
 import { ArrowUpOutlined } from "@ant-design/icons";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -9,6 +9,11 @@ import { usePathname } from "next/navigation";
 import styled from "styled-components";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import {
+  isPdfDocumentUrl,
+  normalizePdfTarget,
+  usePdfViewerModal,
+} from "@/components/site/shared/PdfViewerModal";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -18,7 +23,7 @@ const NewsSection = styled.div`
   .newsSubTitle { margin:0 0 18px;color:var(--news-sub-title);font-size:13px;font-weight:650;letter-spacing:.16em;line-height:1.4;text-transform:uppercase; }
   .newsHeading { margin:0;color:var(--news-heading);font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:clamp(36px,4.6vw,64px);font-weight:620;letter-spacing:-.02em;line-height:1.08; }
   .newsList { display: flex; flex-direction: column; }
-  .newsRow { display:grid;grid-template-columns:92px minmax(0,1fr) auto;align-items:center;gap:36px;padding-block:34px;border-bottom:1px solid var(--news-border);color:inherit;text-decoration:none;transition:padding-left .3s cubic-bezier(.16,1,.3,1); }
+  .newsRow { display:grid;grid-template-columns:92px minmax(0,1fr) auto;align-items:center;gap:36px;width:100%;padding-block:34px;border:0;border-bottom:1px solid var(--news-border);background:transparent;color:inherit;font:inherit;text-align:left;text-decoration:none;cursor:pointer;transition:padding-left .3s cubic-bezier(.16,1,.3,1); }
   .newsRow:first-child { border-top:1px solid var(--news-border); }
   .newsRow:hover { padding-left:14px; }
   .newsTag { color:var(--news-tag);border:1px solid var(--news-tag-border);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:700;letter-spacing:.1em;line-height:1.3;text-align:center;text-transform:uppercase; }
@@ -40,7 +45,15 @@ const isLocalDownload = (href) => href.startsWith("/media/") || href.startsWith(
 
 export default function LatestNews(props) {
   const pathname = usePathname(); const rootRef = useRef(null); const isEditorPreview = pathname?.startsWith("/admin") === true;
-  const items = Array.isArray(props?.latestEvents1Items) ? props.latestEvents1Items : [];
+  const items = useMemo(
+    () =>
+      Array.isArray(props?.latestEvents1Items)
+        ? props.latestEvents1Items
+        : [],
+    [props?.latestEvents1Items],
+  );
+  const modalAccent = color(props?.latestEvents1ArrowHoverColorKey, getColor("primary"));
+  const { modal: pdfViewerModal, openPdf } = usePdfViewerModal({ accentColor: modalAccent });
   useLayoutEffect(() => {
     if (isEditorPreview || !rootRef.current || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const targets = rootRef.current.querySelectorAll(".newsIntro, .newsRow");
@@ -52,17 +65,77 @@ export default function LatestNews(props) {
   const sectionBgStyle = { ...(sectionBgType === "image" && sectionBgImage ? { backgroundImage: `url(${sectionBgImage})`, backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" } : sectionBgType === "color" && sectionBgColorKey ? { backgroundColor: getColor(sectionBgColorKey), backgroundImage: "none" } : {}), ...Object.fromEntries([["paddingTop", props?.latestEvents1SectionPaddingTop], ["paddingBottom", props?.latestEvents1SectionPaddingBottom], ["marginTop", props?.latestEvents1SectionMarginTop], ["marginBottom", props?.latestEvents1SectionMarginBottom]].filter(([, value]) => value != null && value !== "" && number(value, -1) >= 0).map(([key, value]) => [key, `${number(value, 0)}px`])) };
   const pageContainerBgType = text(props?.latestEvents1PageContainerBgType || "default"); const pageContainerBgImage = text(props?.latestEvents1PageContainerBgImage); const pageContainerBgColorKey = text(props?.latestEvents1PageContainerBgColorKey);
   const pageContainerBgStyle = { ...(pageContainerBgType === "image" && pageContainerBgImage ? { backgroundImage: `url(${pageContainerBgImage})`, backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" } : pageContainerBgType === "color" && pageContainerBgColorKey ? { backgroundColor: getColor(pageContainerBgColorKey), backgroundImage: "none" } : {}), ...Object.fromEntries([["paddingTop", props?.latestEvents1PageContainerPaddingTop], ["paddingRight", props?.latestEvents1PageContainerPaddingRight], ["paddingBottom", props?.latestEvents1PageContainerPaddingBottom], ["paddingLeft", props?.latestEvents1PageContainerPaddingLeft], ["marginTop", props?.latestEvents1PageContainerMarginTop], ["marginBottom", props?.latestEvents1PageContainerMarginBottom]].filter(([, value]) => value != null && value !== "" && number(value, -1) >= 0).map(([key, value]) => [key, `${number(value, 0)}px`])) };
+  const renderNewsItem = (item, index) => {
+    const href = text(item?.buttonLink);
+    const fallbackTarget = item?.buttonOpenInNewTab ? "_blank" : "_self";
+    const configuredTarget = normalizePdfTarget(
+      item?.target || item?.buttonTarget,
+      fallbackTarget,
+    );
+    const target = configuredTarget === "_blank" ? "_blank" : "_self";
+    const opensPdfModal =
+      configuredTarget === "modal" && isPdfDocumentUrl(href);
+    const title = text(item?.title);
+    const key = `${title}-${index}`;
+    const content = (
+      <>
+        <span className="newsTag">{text(item?.date)}</span>
+        <span className="newsBody">
+          <h3 className="newsTitle">{title}</h3>
+        </span>
+        <span className="newsAction">
+          <ArrowUpOutlined rotate={45} aria-hidden="true" />
+        </span>
+      </>
+    );
+
+    if (!href) return <div className="newsRow" key={key}>{content}</div>;
+    if (opensPdfModal) {
+      return (
+        <button
+          type="button"
+          className="newsRow"
+          aria-haspopup="dialog"
+          onClick={(event) =>
+            openPdf({
+              url: href,
+              title: title || "PDF document",
+              trigger: event.currentTarget,
+            })
+          }
+          key={key}
+        >
+          {content}
+        </button>
+      );
+    }
+    if (isExternalOrAsset(href) || target === "_blank") {
+      return (
+        <a
+          className="newsRow"
+          href={href}
+          target={target}
+          rel={target === "_blank" ? "noopener noreferrer" : undefined}
+          download={target === "_self" && isLocalDownload(href) ? true : undefined}
+          key={key}
+        >
+          {content}
+        </a>
+      );
+    }
+    return <Link className="newsRow" href={href} key={key}>{content}</Link>;
+  };
+
   return (
     <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
       <PageContainer $managedStyle={pageContainerBgStyle}>
-        <NewsSection ref={rootRef} style={{ "--news-sub-title": color(props?.latestEvents1SubTitleColorKey, getColor("primary")), "--news-heading": color(props?.latestEvents1MainTitleColorKey, getColor("black")), "--news-border": color(props?.latestEvents1BorderColorKey, getColor("border")), "--news-tag": color(props?.latestEvents1TagColorKey, getColor("primary")), "--news-tag-border": color(props?.latestEvents1TagBorderColorKey, "rgba(224,60,51,.35)"), "--news-title": color(props?.latestEvents1ItemTitleColorKey, getColor("black")), "--news-arrow": color(props?.latestEvents1ArrowColorKey, getColor("blackMuted")), "--news-arrow-hover": color(props?.latestEvents1ArrowHoverColorKey, getColor("primary")) }}>
+        <NewsSection ref={rootRef} style={{ "--news-sub-title": color(props?.latestEvents1SubTitleColorKey, getColor("primary")), "--news-heading": color(props?.latestEvents1MainTitleColorKey, getColor("black")), "--news-border": color(props?.latestEvents1BorderColorKey, getColor("border")), "--news-tag": color(props?.latestEvents1TagColorKey, getColor("primary")), "--news-tag-border": color(props?.latestEvents1TagBorderColorKey, "rgba(224,60,51,.35)"), "--news-title": color(props?.latestEvents1ItemTitleColorKey, getColor("black")), "--news-arrow": color(props?.latestEvents1ArrowColorKey, getColor("blackMuted")), "--news-arrow-hover": modalAccent }}>
           <div className="newsGrid">
             <div className="newsIntro"><p className="newsSubTitle">{text(props?.latestEvents1SubTitle)}</p><h2 className="newsHeading">{renderHighlightedTitle(text(props?.latestEvents1MainTitle), props)}</h2></div>
-            <div className="newsList">{items.map((item, index) => { const href = text(item?.buttonLink); const target = text(item?.target || item?.buttonTarget) === "_blank" || item?.buttonOpenInNewTab ? "_blank" : "_self"; const key = `${text(item?.title)}-${index}`; const content = <><span className="newsTag">{text(item?.date)}</span><span className="newsBody"><h3 className="newsTitle">{text(item?.title)}</h3></span><span className="newsAction"><ArrowUpOutlined rotate={45} aria-hidden="true" /></span></>;
-              if (!href) return <div className="newsRow" key={key}>{content}</div>;
-              return isExternalOrAsset(href) || target === "_blank" ? <a className="newsRow" href={href} target={target} rel={target === "_blank" ? "noopener noreferrer" : undefined} download={target === "_self" && isLocalDownload(href) ? true : undefined} key={key}>{content}</a> : <Link className="newsRow" href={href} key={key}>{content}</Link>; })}</div>
+            <div className="newsList">{items.map(renderNewsItem)}</div>
           </div>
         </NewsSection>
+        {pdfViewerModal}
       </PageContainer>
     </FullWidthBackground>
   );

@@ -9,12 +9,12 @@ import {
 import { Collapse, Form, Input, Select, Space, Spin, message } from "antd";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import {
+  PDF_LINK_TARGET_OPTIONS,
+  normalizePdfTarget,
+} from "@/components/site/shared/PdfViewerModal";
 
 const API_PATH = "/api/theme/CTABanner";
-const TARGET_OPTIONS = [
-  { value: "_self", label: "Same Tab (_self)" },
-  { value: "_blank", label: "New Tab (_blank)" },
-];
 const DEFAULTS = {
   ctaBannerTitle: "Be someone's *tomorrow.*",
   ctaBannerDonateText: "Donate Now",
@@ -28,7 +28,6 @@ const DEFAULTS = {
 const FIELDS = Object.keys(DEFAULTS);
 const clean = (value, fallback = "") =>
   value == null ? fallback : String(value).trim();
-const normalizeTarget = (value) => (value === "_blank" ? "_blank" : "_self");
 const pageUrl = (slug) => {
   const value = clean(slug).replace(/^\/+|\/+$/g, "");
   return !value || value === "home" ? "/" : `/${value}`;
@@ -136,7 +135,7 @@ function CTABannerEditForm(
           FIELDS.map((field) => [
             field,
             field.endsWith("Target")
-              ? normalizeTarget(values[field])
+              ? normalizePdfTarget(values[field])
               : clean(values[field]),
           ]),
         );
@@ -239,7 +238,7 @@ function CTABannerEditForm(
                   name="ctaBannerDonateTarget"
                   label="Donate Button Target"
                 >
-                  <Select options={TARGET_OPTIONS} />
+                  <Select options={PDF_LINK_TARGET_OPTIONS} />
                 </Form.Item>
               </>
             ),
@@ -270,7 +269,7 @@ function CTABannerEditForm(
                   name="ctaBannerVolunteerTarget"
                   label="Volunteer Button Target"
                 >
-                  <Select options={TARGET_OPTIONS} />
+                  <Select options={PDF_LINK_TARGET_OPTIONS} />
                 </Form.Item>
               </>
             ),

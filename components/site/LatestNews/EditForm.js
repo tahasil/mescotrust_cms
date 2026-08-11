@@ -17,6 +17,10 @@ import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
+import {
+  PDF_LINK_TARGET_OPTIONS,
+  normalizePdfTarget,
+} from "@/components/site/shared/PdfViewerModal";
 
 const API_PATH = "/api/theme/LatestNews";
 // Keep the persisted latestEvents1* namespace so existing CMS content remains editable.
@@ -41,6 +45,9 @@ async function validateLink(_, value) {
 }
 
 function normalizeItem(it) {
+  const configuredTarget = String(it?.target || it?.buttonTarget || "")
+    .trim()
+    .toLowerCase();
   const legacyTarget =
     Boolean(it?.buttonOpenInNewTab ?? it?.openInNewTab) ||
     String(it?.target || it?.buttonTarget || "").toLowerCase() === "_blank";
@@ -52,10 +59,9 @@ function normalizeItem(it) {
         ? String(it.buttonLink).trim()
         : "",
     target:
-      String(it?.target || it?.buttonTarget || "").toLowerCase() === "_blank" ||
-      legacyTarget
-        ? "_blank"
-        : "_self",
+      configuredTarget === "modal"
+        ? "modal"
+        : normalizePdfTarget(configuredTarget, legacyTarget ? "_blank" : "_self"),
   };
 }
 
@@ -192,7 +198,7 @@ function LatestNewsEditForm(
     }).catch(() => {});
   };
 
-  useImperativeHandle(ref, () => ({ update: handleUpdate }), []);
+  useImperativeHandle(ref, () => ({ update: handleUpdate }));
 
   if (loading) {
     return (
@@ -272,10 +278,7 @@ function LatestNewsEditForm(
                             label="Target"
                           >
                             <Select
-                              options={[
-                                { label: "Same Window (_self)", value: "_self" },
-                                { label: "New Tab (_blank)", value: "_blank" },
-                              ]}
+                              options={PDF_LINK_TARGET_OPTIONS}
                             />
                           </Form.Item>
                         </Col>

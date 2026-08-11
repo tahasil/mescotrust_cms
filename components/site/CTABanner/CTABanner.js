@@ -2,6 +2,11 @@
 
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import {
+  isPdfDocumentUrl,
+  normalizePdfTarget,
+  usePdfViewerModal,
+} from "@/components/site/shared/PdfViewerModal";
 
 const text = (value, fallback = "") =>
   value == null ? fallback : String(value).trim();
@@ -14,9 +19,31 @@ function isDownloadable(value) {
   );
 }
 
-function CtaButton({ className, href, target, children }) {
+function CtaButton({ className, href, target, children, onOpenPdf }) {
   if (!href || !children) return null;
-  const resolvedTarget = target === "_blank" ? "_blank" : "_self";
+  const configuredTarget = normalizePdfTarget(target);
+  const opensPdfModal =
+    configuredTarget === "modal" && isPdfDocumentUrl(href);
+  const resolvedTarget = configuredTarget === "_blank" ? "_blank" : "_self";
+
+  if (opensPdfModal) {
+    return (
+      <button
+        type="button"
+        className={className}
+        aria-haspopup="dialog"
+        onClick={(event) =>
+          onOpenPdf({
+            url: href,
+            title: String(children),
+            trigger: event.currentTarget,
+          })
+        }
+      >
+        {children}
+      </button>
+    );
+  }
   return (
     <a
       className={className}
@@ -42,6 +69,9 @@ export default function CTABanner(props) {
     props?.ctaBannerVolunteerLink,
     "/about-us/volunteer",
   );
+  const { modal: pdfViewerModal, openPdf } = usePdfViewerModal({
+    accentColor: getColor("primary"),
+  });
 
   // CTA Banner deliberately exposes only the seven design/content fields.
   const sectionBgClassName = undefined;
@@ -76,6 +106,7 @@ export default function CTABanner(props) {
                 className="ctaBanner__button ctaBanner__button--primary"
                 href={donateLink}
                 target={props?.ctaBannerDonateTarget}
+                onOpenPdf={openPdf}
               >
                 {donateText}
               </CtaButton>
@@ -83,6 +114,7 @@ export default function CTABanner(props) {
                 className="ctaBanner__button ctaBanner__button--ghost"
                 href={volunteerLink}
                 target={props?.ctaBannerVolunteerTarget}
+                onOpenPdf={openPdf}
               >
                 {volunteerText}
               </CtaButton>
@@ -138,6 +170,7 @@ export default function CTABanner(props) {
             gap: 14px;
           }
           .ctaBanner__button {
+            appearance: none;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -203,6 +236,7 @@ export default function CTABanner(props) {
             }
           }
         ` }} />
+        {pdfViewerModal}
       </PageContainer>
     </FullWidthBackground>
   );

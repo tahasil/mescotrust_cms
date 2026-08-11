@@ -10,6 +10,11 @@ import {
   SubTitle,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import {
+  isPdfDocumentUrl,
+  normalizePdfTarget,
+  usePdfViewerModal,
+} from "@/components/site/shared/PdfViewerModal";
 
 /* Styled Components */
 const NewsletterRow = styled.div`
@@ -97,8 +102,11 @@ const ContentArea = styled.div`
 
 const ViewLink = styled.a`
   flex-shrink: 0;
+  font-family: inherit;
   font-size: 13px;
   font-weight: 500;
+  background: transparent;
+  cursor: pointer;
   text-decoration: none;
   padding: 6px 20px;
   border: 1px solid ${getColor("transparent")};
@@ -185,6 +193,9 @@ export default function Newsletters(props) {
   const items = Array.isArray(props?.newslettersItems)
     ? props.newslettersItems
     : [];
+  const { modal: pdfViewerModal, openPdf } = usePdfViewerModal({
+    accentColor: viewColor,
+  });
 
   /* Section bg */
   const PREFIX = "newsletters";
@@ -357,6 +368,10 @@ export default function Newsletters(props) {
           const date = (item?.date ?? "").toString().trim();
           const tag = (item?.tag ?? "").toString().trim();
           const pdfUrl = (item?.pdfUrl ?? "").toString().trim();
+          const configuredTarget = normalizePdfTarget(item?.target, "_blank");
+          const opensPdfModal =
+            configuredTarget === "modal" && isPdfDocumentUrl(pdfUrl);
+          const target = configuredTarget === "_blank" ? "_blank" : "_self";
           return (
             <NewsletterRow className="fable-row-link"
               key={idx}
@@ -397,9 +412,16 @@ export default function Newsletters(props) {
                 </div>
               </ContentArea>
               <ViewLink
-                href={pdfUrl || "#"}
-                target={pdfUrl ? "_blank" : undefined}
-                rel={pdfUrl ? "noopener noreferrer" : undefined}
+                as={opensPdfModal ? "button" : "a"}
+                type={opensPdfModal ? "button" : undefined}
+                href={opensPdfModal ? undefined : pdfUrl || "#"}
+                target={!opensPdfModal && pdfUrl ? target : undefined}
+                rel={
+                  !opensPdfModal && pdfUrl && target === "_blank"
+                    ? "noopener noreferrer"
+                    : undefined
+                }
+                aria-haspopup={opensPdfModal ? "dialog" : undefined}
                 style={{
                   color: viewColor,
                   ...(viewBgColor
@@ -411,7 +433,18 @@ export default function Newsletters(props) {
                       }
                     : {}),
                 }}
-                onClick={pdfUrl ? undefined : (e) => e.preventDefault()}
+                onClick={
+                  opensPdfModal
+                    ? (event) =>
+                        openPdf({
+                          url: pdfUrl,
+                          title: title || "PDF document",
+                          trigger: event.currentTarget,
+                        })
+                    : pdfUrl
+                      ? undefined
+                      : (event) => event.preventDefault()
+                }
               >
                 View
               </ViewLink>
@@ -419,6 +452,7 @@ export default function Newsletters(props) {
           );
         })}
         </div>
+        {pdfViewerModal}
       </PageContainer>
     </FullWidthBackground>
   );

@@ -18,6 +18,10 @@ import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
+import {
+  PDF_LINK_TARGET_OPTIONS,
+  normalizePdfTarget,
+} from "@/components/site/shared/PdfViewerModal";
 
 const API_PATH = "/api/theme/Notices";
 const PREFIX = "notices";
@@ -50,24 +54,13 @@ const FALLBACK_THEME_COLOR_KEYS = [
   "gradient",
 ];
 
-const NOTICE_LINK_TARGET_OPTIONS = [
-  { label: "Same Tab (_self)", value: "_self" },
-  { label: "New Tab (_blank)", value: "_blank" },
-  { label: "Modal", value: "modal" },
-];
-
-function normalizeNoticeTarget(value) {
-  if (value === "modal") return "modal";
-  return value === "_blank" ? "_blank" : "_self";
-}
-
 function normalizeItem(it) {
   return {
     indexLabel: it?.indexLabel != null ? String(it.indexLabel).trim() : "",
     label: it?.label != null ? String(it.label).trim() : "",
     subLabel: it?.subLabel != null ? String(it.subLabel).trim() : "",
     link: it?.link != null ? String(it.link).trim() : "",
-    target: normalizeNoticeTarget(it?.target),
+    target: normalizePdfTarget(it?.target),
     ariaLabel: it?.ariaLabel != null ? String(it.ariaLabel).trim() : "",
   };
 }
@@ -310,7 +303,7 @@ function NoticesEditForm(
                               label="Target"
                               extra="Modal opens PDF documents inside an on-page viewer. Other links continue to use same-tab navigation."
                             >
-                              <Select options={NOTICE_LINK_TARGET_OPTIONS} />
+                              <Select options={PDF_LINK_TARGET_OPTIONS} />
                             </Form.Item>
                           </Col>
                           <Col span={24}>

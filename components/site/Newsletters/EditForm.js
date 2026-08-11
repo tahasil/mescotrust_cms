@@ -1,12 +1,17 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, Row, Col, Collapse, message, Spin } from "antd";
+import { Form, Input, Row, Col, Collapse, message, Select, Spin } from "antd";
+import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
+import {
+  PDF_LINK_TARGET_OPTIONS,
+  normalizePdfTarget,
+} from "@/components/site/shared/PdfViewerModal";
 
 const API_PATH = "/api/theme/Newsletters";
 const PREFIX = "newsletters";
@@ -23,6 +28,7 @@ function normalizeItem(it) {
     date: it?.date != null ? String(it.date).trim() : "",
     tag: it?.tag != null ? String(it.tag).trim() : "",
     pdfUrl: it?.pdfUrl != null ? String(it.pdfUrl).trim() : "",
+    target: normalizePdfTarget(it?.target, "_blank"),
   };
 }
 
@@ -136,7 +142,7 @@ function NewslettersEditForm({ source, initialData: initialDataProp, onSaveToPag
     }).catch(() => {});
   };
 
-  useImperativeHandle(ref, () => ({ update: handleUpdate }), []);
+  useImperativeHandle(ref, () => ({ update: handleUpdate }));
 
   if (loading) {
     return <div style={{ padding: 48, textAlign: "center" }}><Spin /></div>;
@@ -175,6 +181,7 @@ function NewslettersEditForm({ source, initialData: initialDataProp, onSaveToPag
                       date: "",
                       tag: "Newsletter",
                       pdfUrl: "",
+                      target: "_blank",
                     }}
                     reorderMovedIndex={reorderMovedIndex}
                     reorderDirection={reorderDirection}
@@ -207,7 +214,17 @@ function NewslettersEditForm({ source, initialData: initialDataProp, onSaveToPag
                         </Col>
                         <Col span={24}>
                           <Form.Item {...restField} name={[name, "pdfUrl"]} label="PDF URL">
-                            <Input placeholder="/uploads/newsletter-jan-2023.pdf" size="large" />
+                            <MediaPickerInput
+                              mediaType="document"
+                              showVariants={false}
+                              uiVariant="stacked"
+                              placeholder="/uploads/newsletter-jan-2023.pdf"
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item {...restField} name={[name, "target"]} label="Target">
+                            <Select options={PDF_LINK_TARGET_OPTIONS} />
                           </Form.Item>
                         </Col>
                       </Row>
