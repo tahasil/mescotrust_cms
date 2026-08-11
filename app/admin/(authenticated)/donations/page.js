@@ -5,6 +5,7 @@ import {
   Button,
   DatePicker,
   Descriptions,
+  Dropdown,
   Input,
   Modal,
   Popconfirm,
@@ -15,7 +16,16 @@ import {
   Tooltip,
   message,
 } from "antd";
-import { DeleteOutlined, EyeOutlined, SearchOutlined } from "@ant-design/icons";
+import {
+  DeleteOutlined,
+  DownloadOutlined,
+  DownOutlined,
+  EyeOutlined,
+  FileExcelOutlined,
+  FilePdfOutlined,
+  FileTextOutlined,
+  SearchOutlined,
+} from "@ant-design/icons";
 import { formatDateTime } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
 
@@ -45,6 +55,29 @@ function renderMaybeText(value) {
   return text || "—";
 }
 
+function buildDonationQueryParams({
+  page,
+  search,
+  status,
+  dateRange,
+  includePagination = true,
+}) {
+  const params = new URLSearchParams();
+  if (includePagination) {
+    params.set("page", String(page || 1));
+    params.set("limit", "20");
+  }
+  if (status) params.set("status", status);
+  if (search) params.set("search", search);
+  if (dateRange?.[0]) {
+    params.set("from", dateRange[0].startOf("day").toISOString());
+  }
+  if (dateRange?.[1]) {
+    params.set("to", dateRange[1].endOf("day").toISOString());
+  }
+  return params;
+}
+
 export default function AdminDonationsPage() {
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
@@ -55,6 +88,7 @@ export default function AdminDonationsPage() {
   const [dateRange, setDateRange] = useState(null);
   const [viewItem, setViewItem] = useState(null);
   const [deletingId, setDeletingId] = useState("");
+  const [exportingFormat, setExportingFormat] = useState("");
 
   const fetchDonations = (
     nextPage = page,
@@ -63,15 +97,12 @@ export default function AdminDonationsPage() {
     nextDateRange = dateRange,
   ) => {
     setLoading(true);
-    const params = new URLSearchParams({ page: String(nextPage), limit: "20" });
-    if (nextStatus) params.set("status", nextStatus);
-    if (nextSearch) params.set("search", nextSearch);
-    if (nextDateRange?.[0]) {
-      params.set("from", nextDateRange[0].startOf("day").toISOString());
-    }
-    if (nextDateRange?.[1]) {
-      params.set("to", nextDateRange[1].endOf("day").toISOString());
-    }
+    const params = buildDonationQueryParams({
+      page: nextPage,
+      search: nextSearch,
+      status: nextStatus,
+      dateRange: nextDateRange,
+    });
 
     fetch(`/api/admin/donations?${params}`)
       .then(async (res) => {
@@ -85,6 +116,56 @@ export default function AdminDonationsPage() {
       })
       .catch((error) => message.error(error.message || "Failed to load donations"))
       .finally(() => setLoading(false));
+  };
+
+  const exportDonations = async (format) => {
+    if (exportingFormat) return;
+    setExportingFormat(format);
+    try {
+      const params = buildDonationQueryParams({
+        search,
+        status: statusFilter,
+        dateRange,
+        includePagination: false,
+      });
+      params.set("format", format);
+      const response = await fetch(`/api/admin/donations/export?${params}`, {
+        cache: "no-store",
+      });
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error?.error || "Failed to export donations");
+      }
+
+      const blob = await response.blob();
+      const disposition = response.headers.get("content-disposition") || "";
+      const filenameMatch = disposition.match(/filename="?([^";]+)"?/i);
+      const filename =
+        filenameMatch?.[1] ||
+        `donate-submissions-${new Date().toISOString().slice(0, 10)}.${format}`;
+      const downloadUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = downloadUrl;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+      message.success(`${format.toUpperCase()} export downloaded`);
+    } catch (error) {
+      message.error(error.message || "Failed to export donations");
+    } finally {
+      setExportingFormat("");
+    }
+  };
+
+  const exportMenu = {
+    items: [
+      { key: "csv", icon: <FileTextOutlined />, label: "CSV" },
+      { key: "xlsx", icon: <FileExcelOutlined />, label: "Excel (.xlsx)" },
+      { key: "pdf", icon: <FilePdfOutlined />, label: "PDF" },
+    ],
+    onClick: ({ key }) => exportDonations(key),
   };
 
   useEffect(() => {
@@ -253,6 +334,19 @@ export default function AdminDonationsPage() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
+          <Dropdown
+            menu={exportMenu}
+            trigger={["click"]}
+            placement="bottomRight"
+            disabled={Boolean(exportingFormat)}
+          >
+            <Button
+              icon={<DownloadOutlined />}
+              loading={Boolean(exportingFormat)}
+            >
+              Export <DownOutlined style={{ fontSize: 10 }} />
+            </Button>
+          </Dropdown>
         </Space>
       }
     >
