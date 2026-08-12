@@ -116,6 +116,10 @@ export default async function SiteLayout({ children }) {
           theme,
           appearanceHeaderProps.headerBgColorKey,
         ),
+        headerNavTextValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerNavTextColorKey,
+        ),
         headerCtaBgValue: resolveThemeColor(
           theme,
           appearanceHeaderProps.headerCtaBgColorKey,
@@ -132,6 +136,46 @@ export default async function SiteLayout({ children }) {
           theme,
           appearanceHeaderProps.headerDonateTextColorKey,
         ),
+        headerResponsiveButtonBorderValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerResponsiveButtonBorderColorKey,
+        ),
+        headerDesktopSearchBorderValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerDesktopSearchBorderColorKey,
+        ),
+        headerResponsiveVolunteerIconValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerResponsiveVolunteerIconColorKey,
+        ),
+        headerResponsiveVolunteerCircleBgValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerResponsiveVolunteerCircleBgColorKey,
+        ),
+        headerResponsiveDonateIconValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerResponsiveDonateIconColorKey,
+        ),
+        headerResponsiveDonateCircleBgValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerResponsiveDonateCircleBgColorKey,
+        ),
+        headerMobileButton1IconUrl:
+          appearanceHeaderProps.headerMobileButton1IconUrl || "",
+        headerMobileButton2IconUrl:
+          appearanceHeaderProps.headerMobileButton2IconUrl || "",
+        headerMobileButton1Href:
+          appearanceHeaderProps.headerMobileButton1Href || "",
+        headerMobileButton2Href:
+          appearanceHeaderProps.headerMobileButton2Href || "",
+        headerMobileButton1Target:
+          appearanceHeaderProps.headerMobileButton1Target || "_self",
+        headerMobileButton2Target:
+          appearanceHeaderProps.headerMobileButton2Target || "_self",
+        headerMobileButton1AriaLabel:
+          appearanceHeaderProps.headerMobileButton1AriaLabel || "Button 1",
+        headerMobileButton2AriaLabel:
+          appearanceHeaderProps.headerMobileButton2AriaLabel || "Button 2",
         sectionBg: appearanceHeaderProps._sectionBg || "",
         sectionPadding: appearanceHeaderProps._sectionPadding || "",
         sectionBorderSize: appearanceHeaderProps._sectionBorderSize || "",

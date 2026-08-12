@@ -23,7 +23,7 @@ import {
 } from "./editorUtils";
 
 function AppearanceHeaderEditForm(
-  { dataEndpoint, themeColorOptions = [], onSuccess },
+  { dataEndpoint, themeColorOptions = [], onSuccess, onValuesChange },
   ref,
 ) {
   const [form] = Form.useForm();
@@ -83,19 +83,35 @@ function AppearanceHeaderEditForm(
           headerVolunteerHrefTarget: normalizeTarget(
             record?.headerVolunteerHrefTarget,
           ),
+          headerVolunteerIconUrl: record?.headerVolunteerIconUrl || "/images/volunteer-icon.svg",
           headerDonateLabel: record?.headerDonateLabel || "Donate Now",
           headerDonateHref: record?.headerDonateHref || "",
           headerDonateHrefTarget: normalizeTarget(
             record?.headerDonateHrefTarget,
           ),
+          headerDonateIconUrl: record?.headerDonateIconUrl || "/images/donate-now-icon.svg",
           headerBgColorKey:
-            record?.headerBgColorKey || "rgba(27, 24, 38, 0.72)",
-          headerCtaBgColorKey: record?.headerCtaBgColorKey || "Primary Light",
-          headerCtaTextColorKey: record?.headerCtaTextColorKey || "Black",
+            record?.headerBgColorKey || "#ffffff",
+          headerNavTextColorKey:
+            record?.headerNavTextColorKey || "#1a1a1a",
+          headerCtaBgColorKey: record?.headerCtaBgColorKey || "#FDF1F1",
+          headerCtaTextColorKey: record?.headerCtaTextColorKey || "#A82D2D",
           headerDonateBgColorKey:
-            record?.headerDonateBgColorKey || "#E03C33",
+            record?.headerDonateBgColorKey || "#A82D2D",
           headerDonateTextColorKey:
-            record?.headerDonateTextColorKey || "white",
+            record?.headerDonateTextColorKey || "#ffffff",
+          headerResponsiveButtonBorderColorKey:
+            record?.headerResponsiveButtonBorderColorKey || "#A82D2D",
+          headerDesktopSearchBorderColorKey:
+            record?.headerDesktopSearchBorderColorKey || "rgba(0,0,0,.12)",
+          headerResponsiveVolunteerIconColorKey:
+            record?.headerResponsiveVolunteerIconColorKey || "#A82D2D",
+          headerResponsiveVolunteerCircleBgColorKey:
+            record?.headerResponsiveVolunteerCircleBgColorKey || "#ffffff",
+          headerResponsiveDonateIconColorKey:
+            record?.headerResponsiveDonateIconColorKey || "#ffffff",
+          headerResponsiveDonateCircleBgColorKey:
+            record?.headerResponsiveDonateCircleBgColorKey || "#A82D2D",
         });
       })
       .catch((error) => message.error(error?.message || "Failed to load Header"))
@@ -177,10 +193,13 @@ function AppearanceHeaderEditForm(
         headerVolunteerHrefTarget: normalizeTarget(
           values.headerVolunteerHrefTarget,
         ),
+        headerVolunteerIconUrl: String(values.headerVolunteerIconUrl || "").trim(),
         headerDonateLabel: String(values.headerDonateLabel || "").trim(),
         headerDonateHref: String(values.headerDonateHref || "").trim(),
         headerDonateHrefTarget: normalizeTarget(values.headerDonateHrefTarget),
+        headerDonateIconUrl: String(values.headerDonateIconUrl || "").trim(),
         headerBgColorKey: String(values.headerBgColorKey || "").trim(),
+        headerNavTextColorKey: String(values.headerNavTextColorKey || "").trim(),
         headerCtaBgColorKey: String(values.headerCtaBgColorKey || "").trim(),
         headerCtaTextColorKey: String(values.headerCtaTextColorKey || "").trim(),
         headerDonateBgColorKey: String(
@@ -188,6 +207,24 @@ function AppearanceHeaderEditForm(
         ).trim(),
         headerDonateTextColorKey: String(
           values.headerDonateTextColorKey || "",
+        ).trim(),
+        headerResponsiveButtonBorderColorKey: String(
+          values.headerResponsiveButtonBorderColorKey || "",
+        ).trim(),
+        headerDesktopSearchBorderColorKey: String(
+          values.headerDesktopSearchBorderColorKey || "",
+        ).trim(),
+        headerResponsiveVolunteerIconColorKey: String(
+          values.headerResponsiveVolunteerIconColorKey || "",
+        ).trim(),
+        headerResponsiveVolunteerCircleBgColorKey: String(
+          values.headerResponsiveVolunteerCircleBgColorKey || "",
+        ).trim(),
+        headerResponsiveDonateIconColorKey: String(
+          values.headerResponsiveDonateIconColorKey || "",
+        ).trim(),
+        headerResponsiveDonateCircleBgColorKey: String(
+          values.headerResponsiveDonateCircleBgColorKey || "",
         ).trim(),
       };
       const response = await fetch(dataEndpoint, {
@@ -215,8 +252,13 @@ function AppearanceHeaderEditForm(
   if (loading) return <div style={{ padding: 48, textAlign: "center" }}><Spin /></div>;
 
   const colorOptions = [
+    { label: "White", value: "#ffffff" },
+    { label: "Dark text", value: "#1a1a1a" },
+    { label: "Volunteer pink", value: "#FDF1F1" },
+    { label: "Brand red", value: "#A82D2D" },
+    { label: "Light border", value: "rgba(0,0,0,.12)" },
     { label: "Translucent navy", value: "rgba(27, 24, 38, 0.72)" },
-    { label: "Brand red", value: "#E03C33" },
+    { label: "Header cream", value: "#faf6ef" },
     ...themeColorOptions.map((option) => ({
       label: option.label,
       value: option.value,
@@ -224,7 +266,12 @@ function AppearanceHeaderEditForm(
   ];
 
   return (
-    <Form form={form} layout="vertical" disabled={saving}>
+    <Form
+      form={form}
+      layout="vertical"
+      disabled={saving}
+      onValuesChange={(_, allValues) => onValuesChange?.(allValues)}
+    >
       <Collapse
         defaultActiveKey={["brand"]}
         items={[
@@ -307,10 +354,17 @@ function AppearanceHeaderEditForm(
                 <Form.Item name="headerVolunteerLabel" label="Volunteer label"><Input /></Form.Item>
                 <Form.Item name="headerVolunteerHref" label="Volunteer URL"><Input /></Form.Item>
                 <Form.Item name="headerVolunteerHrefTarget" label="Volunteer target"><Select options={LINK_TARGET_OPTIONS} /></Form.Item>
-                <Form.Item name="headerCtaBgColorKey" label="Tablet/mobile background">
+                <Form.Item
+                  name="headerVolunteerIconUrl"
+                  label="Volunteer icon"
+                  tooltip="Used in the desktop pill button and the mobile header circle button."
+                >
+                  <MediaPickerInput />
+                </Form.Item>
+                <Form.Item name="headerCtaBgColorKey" label="Volunteer background">
                   <Select showSearch allowClear options={colorOptions} optionFilterProp="label" />
                 </Form.Item>
-                <Form.Item name="headerCtaTextColorKey" label="Tablet/mobile text">
+                <Form.Item name="headerCtaTextColorKey" label="Volunteer text">
                   <Select showSearch allowClear options={colorOptions} optionFilterProp="label" />
                 </Form.Item>
               </>
@@ -324,6 +378,13 @@ function AppearanceHeaderEditForm(
                 <Form.Item name="headerDonateLabel" label="Donate label"><Input /></Form.Item>
                 <Form.Item name="headerDonateHref" label="Donate URL"><Input /></Form.Item>
                 <Form.Item name="headerDonateHrefTarget" label="Donate target"><Select options={LINK_TARGET_OPTIONS} /></Form.Item>
+                <Form.Item
+                  name="headerDonateIconUrl"
+                  label="Donate icon"
+                  tooltip="Used in the desktop pill button and the mobile header circle button."
+                >
+                  <MediaPickerInput />
+                </Form.Item>
                 <Form.Item name="headerDonateBgColorKey" label="Background">
                   <Select showSearch allowClear options={colorOptions} optionFilterProp="label" />
                 </Form.Item>
@@ -339,7 +400,65 @@ function AppearanceHeaderEditForm(
             children: (
               <ColorSettingsCard
                 options={colorOptions}
-                items={[{ name: "headerBgColorKey", label: "Navigation background", tooltip: "Header navigation background color." }]}
+                items={[
+                  {
+                    name: "headerBgColorKey",
+                    label: "Navigation background",
+                    tooltip: "Header navigation background color.",
+                  },
+                  {
+                    name: "headerNavTextColorKey",
+                    label: "Menu text color",
+                    tooltip: "Primary navigation menu link text color.",
+                  },
+                  {
+                    name: "headerResponsiveButtonBorderColorKey",
+                    label: "Responsive button border",
+                    tooltip:
+                      "Border color for circular Volunteer and Donate icon buttons on mobile and tablet.",
+                  },
+                  {
+                    name: "headerDesktopSearchBorderColorKey",
+                    label: "Search Button Border",
+                    tooltip: "Border color for the Search button in the desktop header.",
+                  },
+                ]}
+              />
+            ),
+          },
+          {
+            key: "responsive-buttons",
+            label: "Responsive Buttons",
+            children: (
+              <ColorSettingsCard
+                options={colorOptions}
+                title="Volunteer & Donate (mobile/tablet)"
+                items={[
+                  {
+                    name: "headerResponsiveVolunteerIconColorKey",
+                    label: "Volunteer Icon Color",
+                    tooltip:
+                      "Icon color for the circular Volunteer button on mobile and tablet.",
+                  },
+                  {
+                    name: "headerResponsiveVolunteerCircleBgColorKey",
+                    label: "Volunteer Circle Background",
+                    tooltip:
+                      "Background color for the circular Volunteer button on mobile and tablet.",
+                  },
+                  {
+                    name: "headerResponsiveDonateIconColorKey",
+                    label: "Donate Now Icon Color",
+                    tooltip:
+                      "Icon color for the circular Donate Now button on mobile and tablet.",
+                  },
+                  {
+                    name: "headerResponsiveDonateCircleBgColorKey",
+                    label: "Donate Now Circle Background",
+                    tooltip:
+                      "Background color for the circular Donate Now button on mobile and tablet.",
+                  },
+                ]}
               />
             ),
           },

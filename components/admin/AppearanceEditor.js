@@ -47,12 +47,12 @@ function headerPreviewProps(props, theme) {
     volunteerLabel: props?.headerVolunteerLabel || "",
     volunteerHref: props?.headerVolunteerHref || "",
     volunteerHrefTarget: props?.headerVolunteerHrefTarget || "_self",
-    volunteerIconUrl: props?.headerVolunteerIconUrl || "",
+    volunteerIconUrl: props?.headerVolunteerIconUrl || "/images/volunteer-icon.svg",
     volunteerIconUrlMobile: props?.headerVolunteerIconUrlMobile || "",
     donateLabel: props?.headerDonateLabel || "",
     donateHref: props?.headerDonateHref || "",
     donateHrefTarget: props?.headerDonateHrefTarget || "_self",
-    donateIconUrl: props?.headerDonateIconUrl || "",
+    donateIconUrl: props?.headerDonateIconUrl || "/images/donate-now-icon.svg",
     headerAnnouncementTextColor: resolveThemeColor(
       theme,
       props?.headerAnnouncementTextColor,
@@ -62,6 +62,7 @@ function headerPreviewProps(props, theme) {
       props?.headerAnnouncementBackgroundColor,
     ),
     headerBgValue: resolveThemeColor(theme, props?.headerBgColorKey),
+    headerNavTextValue: resolveThemeColor(theme, props?.headerNavTextColorKey),
     headerCtaBgValue: resolveThemeColor(theme, props?.headerCtaBgColorKey),
     headerCtaTextValue: resolveThemeColor(theme, props?.headerCtaTextColorKey),
     headerDonateBgValue: resolveThemeColor(
@@ -72,6 +73,38 @@ function headerPreviewProps(props, theme) {
       theme,
       props?.headerDonateTextColorKey,
     ),
+    headerResponsiveButtonBorderValue: resolveThemeColor(
+      theme,
+      props?.headerResponsiveButtonBorderColorKey,
+    ),
+    headerDesktopSearchBorderValue: resolveThemeColor(
+      theme,
+      props?.headerDesktopSearchBorderColorKey,
+    ),
+    headerResponsiveVolunteerIconValue: resolveThemeColor(
+      theme,
+      props?.headerResponsiveVolunteerIconColorKey,
+    ),
+    headerResponsiveVolunteerCircleBgValue: resolveThemeColor(
+      theme,
+      props?.headerResponsiveVolunteerCircleBgColorKey,
+    ),
+    headerResponsiveDonateIconValue: resolveThemeColor(
+      theme,
+      props?.headerResponsiveDonateIconColorKey,
+    ),
+    headerResponsiveDonateCircleBgValue: resolveThemeColor(
+      theme,
+      props?.headerResponsiveDonateCircleBgColorKey,
+    ),
+    headerMobileButton1IconUrl: props?.headerMobileButton1IconUrl || "",
+    headerMobileButton2IconUrl: props?.headerMobileButton2IconUrl || "",
+    headerMobileButton1Href: props?.headerMobileButton1Href || "",
+    headerMobileButton2Href: props?.headerMobileButton2Href || "",
+    headerMobileButton1Target: props?.headerMobileButton1Target || "_self",
+    headerMobileButton2Target: props?.headerMobileButton2Target || "_self",
+    headerMobileButton1AriaLabel: props?.headerMobileButton1AriaLabel || "Button 1",
+    headerMobileButton2AriaLabel: props?.headerMobileButton2AriaLabel || "Button 2",
     sectionBg: props?._sectionBg || "",
     sectionPadding: props?._sectionPadding || "",
     sectionBorderSize: props?._sectionBorderSize || "",
@@ -109,6 +142,7 @@ export default function AppearanceEditor({ moduleKey }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerPreviewOverrides, setDrawerPreviewOverrides] = useState(null);
 
   const loadData = useCallback(async () => {
     const [recordResponse, themeResponse] = await Promise.all([
@@ -145,6 +179,10 @@ export default function AppearanceEditor({ moduleKey }) {
   }, [theme]);
 
   const props = record?.defaultProps || {};
+  const previewProps =
+    drawerPreviewOverrides && normalizedModule === "header"
+      ? { ...props, ...drawerPreviewOverrides }
+      : props;
   const title =
     record?.displayName ||
     (normalizedModule === "header"
@@ -195,7 +233,7 @@ export default function AppearanceEditor({ moduleKey }) {
     >
       <div style={{ border: "1px solid #e8e8e8", borderRadius: 8, overflow: "hidden", background: "#fafafa" }}>
         {normalizedModule === "header" ? (
-          <AppearanceHeader {...headerPreviewProps(props, theme)} />
+          <AppearanceHeader {...headerPreviewProps(previewProps, theme)} />
         ) : normalizedModule === "header-ribbon" ? (
           <AppearanceHeaderRibbon {...props} preview />
         ) : (
@@ -208,7 +246,10 @@ export default function AppearanceEditor({ moduleKey }) {
         placement="right"
         width={Math.min(520, typeof window !== "undefined" ? window.innerWidth * 0.9 : 520)}
         open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
+        onClose={() => {
+          setDrawerOpen(false);
+          setDrawerPreviewOverrides(null);
+        }}
         extra={
           <Button
             type="primary"
@@ -232,11 +273,16 @@ export default function AppearanceEditor({ moduleKey }) {
             ref={editFormRef}
             dataEndpoint={endpoint}
             themeColorOptions={themeColorOptions}
+            onValuesChange={setDrawerPreviewOverrides}
             onSuccess={async () => {
               await loadData();
+              setDrawerPreviewOverrides(null);
               setDrawerOpen(false);
             }}
-            onCancel={() => setDrawerOpen(false)}
+            onCancel={() => {
+              setDrawerPreviewOverrides(null);
+              setDrawerOpen(false);
+            }}
           />
         ) : normalizedModule === "header-ribbon" ? (
           <AppearanceHeaderRibbonEditForm

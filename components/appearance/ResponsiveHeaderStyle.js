@@ -497,6 +497,46 @@ export const HamburgerBtn = styled.button`
   }
   @media (max-width: ${HEADER_BREAKPOINT}) {
     display: flex;
+    flex: 0 0 44px;
+  }
+`;
+
+export const MobileQuickActions = styled.div`
+  display: none;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  @media (max-width: ${HEADER_BREAKPOINT}) {
+    display: flex;
+  }
+`;
+
+export const MobileQuickActionBtn = styled.a`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(250, 246, 239, 0.32);
+  background: transparent;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 0.25s,
+    border-color 0.25s;
+  img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    display: block;
+  }
+  &:hover {
+    transform: translateY(-2px);
+    border-color: currentColor;
   }
 `;
 

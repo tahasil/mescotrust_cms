@@ -1347,12 +1347,6 @@ div:has(> .fable-section.fable-scheme) {
 
   /* Keep the breadcrumb below the fixed mobile header on public pages. */
   .public-site .fable-page-hero .fable-page-hero__content {
-    padding-top: 94px;
-  }
-
-  .public-site[data-has-header-ribbon="true"]
-    .fable-page-hero
-    .fable-page-hero__content {
-    padding-top: 86px;
+    padding-top: calc(var(--appearance-header-offset, 94px) + 12px);
   }
 }

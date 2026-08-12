@@ -30,6 +30,8 @@ import {
   HamburgerBtn,
   MobileOverlay,
   MobileMenu,
+  MobileQuickActions,
+  MobileQuickActionBtn,
   MobileNav,
   MobileNavLink,
   MobileNavItem,
@@ -258,6 +260,7 @@ export default function Header({
   headerCtaTextValue = "",
   headerDonateBgValue = "",
   headerDonateTextValue = "",
+  headerNavTextValue = "",
   sectionBg = "",
   sectionPadding = "",
   sectionBorderSize = "",
@@ -311,6 +314,8 @@ export default function Header({
     String(volunteerIconMobile || "").trim() || volunteerIconDesktopSrc;
   const donateIconSrc =
     String(donateIconUrl || "").trim() || "/images/donate-now-icon.svg";
+  const showAppearanceMobileIconActions =
+    appearanceResponsive && (volunteerHrefValue || donateHref);
   const announcementEnabled = headerAnnouncementEnabled === true;
   const normalizeAnnouncementItem = (item) => ({
     text: item?.text != null ? String(item.text).trim() : "",
@@ -788,6 +793,53 @@ export default function Header({
                 </BtnDonate>
               )}
             </Actions>
+
+            {showAppearanceMobileIconActions ? (
+              <MobileQuickActions className="site-header-mobile-quick-actions">
+                {volunteerHrefValue ? (
+                  <MobileQuickActionBtn
+                    className="site-header-mobile-quick-action site-header-mobile-volunteer"
+                    href={volunteerHrefValue}
+                    target={volunteerTarget}
+                    rel={
+                      volunteerTarget === "_blank"
+                        ? "noopener noreferrer"
+                        : undefined
+                    }
+                    aria-label={volunteerLabel || "Volunteer"}
+                    style={{
+                      "--mobile-quick-action-icon-url": `url("${volunteerIconMobileSrc}")`,
+                    }}
+                  >
+                    <span
+                      className="site-header-mobile-quick-action-icon"
+                      aria-hidden="true"
+                    />
+                  </MobileQuickActionBtn>
+                ) : null}
+                {donateHref ? (
+                  <MobileQuickActionBtn
+                    className="site-header-mobile-quick-action site-header-mobile-donate"
+                    href={donateHref}
+                    target={donateTarget}
+                    rel={
+                      donateTarget === "_blank"
+                        ? "noopener noreferrer"
+                        : undefined
+                    }
+                    aria-label={donateLabel || "Donate Now"}
+                    style={{
+                      "--mobile-quick-action-icon-url": `url("${donateIconSrc}")`,
+                    }}
+                  >
+                    <span
+                      className="site-header-mobile-quick-action-icon"
+                      aria-hidden="true"
+                    />
+                  </MobileQuickActionBtn>
+                ) : null}
+              </MobileQuickActions>
+            ) : null}
 
             <HamburgerBtn
               className="site-header-hamburger"
