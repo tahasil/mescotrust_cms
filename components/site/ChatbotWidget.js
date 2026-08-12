@@ -445,6 +445,58 @@ function dedupeQuestions(items) {
   return out;
 }
 
+const CHATBOT_SESSION_STORAGE_KEY = "mesco_chatbot_session_id";
+
+function getOrCreateSessionId() {
+  if (typeof window === "undefined") return `chat-${Date.now()}`;
+  try {
+    const existing = window.localStorage.getItem(CHATBOT_SESSION_STORAGE_KEY);
+    if (existing && /^[a-zA-Z0-9-]{8,128}$/.test(existing)) return existing;
+    const created =
+      typeof window.crypto?.randomUUID === "function"
+        ? window.crypto.randomUUID()
+        : `chat-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    window.localStorage.setItem(CHATBOT_SESSION_STORAGE_KEY, created);
+    return created;
+  } catch {
+    return `chat-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+}
+
+function setStoredSessionId(sessionId) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(
+      CHATBOT_SESSION_STORAGE_KEY,
+      String(sessionId || "").trim(),
+    );
+  } catch {
+    // ignore storage failures
+  }
+}
+
+function createClientMessageId() {
+  if (
+    typeof window !== "undefined" &&
+    typeof window.crypto?.randomUUID === "function"
+  ) {
+    return window.crypto.randomUUID();
+  }
+  return `msg-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function buildMessage(role, content, extra = {}) {
+  return {
+    messageId: createClientMessageId(),
+    role,
+    content: String(content || "").trim(),
+    contentHtml: String(extra.contentHtml || "").trim(),
+    messageType: String(extra.messageType || "faq"),
+    metadata:
+      extra.metadata && typeof extra.metadata === "object" ? extra.metadata : {},
+  };
+}
+
 function htmlToText(input) {
   const raw = String(input || "").trim();
   if (!raw) return "";
@@ -486,15 +538,12 @@ function ContactAction({ href, label, target, onClick, accentColor }) {
 }
 
 export default function ChatbotWidget() {
-  const [sessionId] = useState(() => {
-    if (typeof window === "undefined") return `chat-${Date.now()}`;
-    if (typeof window.crypto?.randomUUID === "function")
-      return window.crypto.randomUUID();
-    return `chat-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-  });
+  const [sessionId, setSessionId] = useState(() => getOrCreateSessionId());
 
   const [loading, setLoading] = useState(true);
   usePageReadyTask(loading, "chatbot");
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [historyError, setHistoryError] = useState("");
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [openedAt, setOpenedAt] = useState(0);
@@ -502,21 +551,22 @@ export default function ChatbotWidget() {
   const [roots, setRoots] = useState([]);
   const [featured, setFeatured] = useState([]);
   const [popular, setPopular] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [current, setCurrent] = useState(null);
   const [history, setHistory] = useState([]);
   const [query, setQuery] = useState("");
-  const [lastSubmittedQuery, setLastSubmittedQuery] = useState("");
   const [searching, setSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [searchError, setSearchError] = useState("");
   const [typing, setTyping] = useState(false);
   const [streamedBotText, setStreamedBotText] = useState("");
-  const [botReplyText, setBotReplyText] = useState("");
   const [streamingMode, setStreamingMode] = useState(null);
   const [nodeResponseReadyId, setNodeResponseReadyId] = useState(null);
   const chatScrollRef = useRef(null);
   const touchStartYRef = useRef(0);
   const activeStreamRef = useRef({ runId: 0, timer: null });
+  const messagesRef = useRef([]);
+  const historyLoadedRef = useRef(false);
 
   const sendEvent = useCallback(
     async (eventType, payload = {}) => {
@@ -540,6 +590,140 @@ export default function ChatbotWidget() {
     },
     [sessionId],
   );
+
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  const persistMessages = useCallback(
+    async (newMessages) => {
+      if (!Array.isArray(newMessages) || newMessages.length === 0) return;
+      const totalCount = messagesRef.current.length;
+      const baseIndex = Math.max(0, totalCount - newMessages.length);
+      const payload = newMessages.map((item, index) => ({
+        ...item,
+        orderIndex:
+          item?.orderIndex != null && Number.isFinite(Number(item.orderIndex))
+            ? Number(item.orderIndex)
+            : baseIndex + index,
+      }));
+
+      try {
+        const res = await fetch(
+          `/api/public/chatbot/conversations/${encodeURIComponent(sessionId)}/messages`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ messages: payload }),
+          },
+        );
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data?.success) {
+          throw new Error(
+            extractApiError(data, "Failed to save conversation history"),
+          );
+        }
+      } catch (err) {
+        setHistoryError(err.message || "Failed to save conversation history");
+      }
+    },
+    [sessionId],
+  );
+
+  const appendLocalMessages = useCallback((newMessages) => {
+    if (!Array.isArray(newMessages) || newMessages.length === 0) return;
+    setMessages((prev) => {
+      const existingIds = new Set(prev.map((item) => String(item.messageId)));
+      const deduped = newMessages.filter(
+        (item) => item?.messageId && !existingIds.has(String(item.messageId)),
+      );
+      if (!deduped.length) return prev;
+      return [...prev, ...deduped];
+    });
+  }, []);
+
+  const loadNodeContext = useCallback(async (id, { track = true } = {}) => {
+    if (!id) return null;
+    const url = `/api/public/chatbot/faqs/${id}${track ? "" : "?track=false"}`;
+    const res = await fetch(url);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data?.success) {
+      throw new Error(extractApiError(data, "Failed to load question"));
+    }
+    setCurrent(data.data || null);
+    setNodeResponseReadyId(String(data?.data?.node?._id || id || ""));
+    return data.data || null;
+  }, []);
+
+  const restoreContextFromMessages = useCallback(
+    async (loadedMessages) => {
+      const items = Array.isArray(loadedMessages) ? loadedMessages : [];
+      const lastBot = [...items].reverse().find((item) => item?.role === "bot");
+      if (!lastBot) {
+        setCurrent(null);
+        setHistory([]);
+        setSearchResults([]);
+        setNodeResponseReadyId(null);
+        return;
+      }
+
+      const meta = lastBot.metadata || {};
+      if (Array.isArray(meta.searchResults) && meta.searchResults.length > 0) {
+        setSearchResults(meta.searchResults);
+        setCurrent(null);
+        setHistory([]);
+        setNodeResponseReadyId(null);
+        return;
+      }
+
+      if (meta.questionId) {
+        if (Array.isArray(meta.faqHistory)) {
+          setHistory(meta.faqHistory.map((item) => String(item)));
+        }
+        try {
+          await loadNodeContext(String(meta.questionId), { track: false });
+        } catch {
+          setCurrent(null);
+          setNodeResponseReadyId(null);
+        }
+        return;
+      }
+
+      setCurrent(null);
+      setHistory([]);
+      setSearchResults([]);
+      setNodeResponseReadyId(null);
+    },
+    [loadNodeContext],
+  );
+
+  const loadConversationHistory = useCallback(async () => {
+    setHistoryLoading(true);
+    setHistoryError("");
+    try {
+      const entryPage =
+        typeof window !== "undefined" ? window.location.pathname : "";
+      const params = new URLSearchParams({ sessionId, entryPage });
+      const res = await fetch(
+        `/api/public/chatbot/conversations?${params.toString()}`,
+        { cache: "no-store" },
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.success) {
+        throw new Error(
+          extractApiError(data, "Failed to load conversation history"),
+        );
+      }
+      const loaded = Array.isArray(data?.data?.messages) ? data.data.messages : [];
+      setMessages(loaded);
+      await restoreContextFromMessages(loaded);
+      historyLoadedRef.current = true;
+    } catch (err) {
+      setHistoryError(err.message || "Failed to load conversation history");
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [restoreContextFromMessages, sessionId]);
 
   const scrollToBottom = useCallback((behavior = "smooth") => {
     const node = chatScrollRef.current;
@@ -703,7 +887,8 @@ export default function ChatbotWidget() {
 
   useEffect(() => {
     loadBootstrap();
-  }, [loadBootstrap]);
+    loadConversationHistory();
+  }, [loadBootstrap, loadConversationHistory]);
 
   useEffect(() => {
     if (!open) return;
@@ -740,8 +925,9 @@ export default function ChatbotWidget() {
     searchResults,
     searchError,
     streamedBotText,
-    lastSubmittedQuery,
+    messages,
     nodeResponseReadyId,
+    historyLoading,
     scrollToBottom,
   ]);
 
@@ -764,9 +950,8 @@ export default function ChatbotWidget() {
         setStreamedBotText("");
         setSearchError("");
         setSearchResults([]);
-        setBotReplyText("");
-        setNodeResponseReadyId(null);
         setQuery("");
+
         const url = `/api/public/chatbot/faqs/${id}${track ? "" : "?track=false"}`;
         const res = await fetch(url);
         const data = await res.json().catch(() => ({}));
@@ -777,7 +962,23 @@ export default function ChatbotWidget() {
         const resolvedUserText = String(
           userText || data?.data?.node?.question || "",
         ).trim();
-        if (resolvedUserText) setLastSubmittedQuery(resolvedUserText);
+
+        const nextHistory = pushHistory
+          ? history[history.length - 1] === String(id)
+            ? history
+            : [...history, String(id)]
+          : history;
+        if (pushHistory) setHistory(nextHistory);
+
+        const userMessage = resolvedUserText
+          ? buildMessage("user", resolvedUserText, {
+              messageType: "faq",
+              metadata: { questionId: String(id) },
+            })
+          : null;
+        if (userMessage) {
+          appendLocalMessages([userMessage]);
+        }
 
         setCurrent(data.data || null);
         sendEvent("question_click", {
@@ -785,17 +986,26 @@ export default function ChatbotWidget() {
           questionTitle: String(data?.data?.node?.question || ""),
           depth: Number(data?.data?.breadcrumb?.length || 0),
         });
-        if (pushHistory) {
-          setHistory((prev) => {
-            if (prev[prev.length - 1] === String(id)) return prev;
-            return [...prev, String(id)];
-          });
-        }
 
         const answerText = htmlToText(data?.data?.node?.answerHtml || "");
         const responseNodeId = String(data?.data?.node?._id || id || "");
-        streamText(answerText, "node", () => {
+        const answerHtml = String(data?.data?.node?.answerHtml || "");
+        streamText(answerText, "node", async () => {
           setNodeResponseReadyId(responseNodeId);
+          const botMessage = buildMessage("bot", answerText, {
+            contentHtml: answerHtml,
+            messageType: "faq",
+            metadata: {
+              questionId: responseNodeId,
+              breadcrumb: data?.data?.breadcrumb || [],
+              children: data?.data?.children || [],
+              showNeedMoreInfo: Boolean(data?.data?.node?.showNeedMoreInfo),
+              faqHistory: nextHistory,
+            },
+          });
+          appendLocalMessages([botMessage]);
+          const toPersist = [userMessage, botMessage].filter(Boolean);
+          await persistMessages(toPersist);
         });
       } catch (err) {
         setTyping(false);
@@ -804,7 +1014,14 @@ export default function ChatbotWidget() {
         setSearchError(err.message || "Failed to load");
       }
     },
-    [cancelActiveStream, sendEvent, streamText],
+    [
+      appendLocalMessages,
+      cancelActiveStream,
+      history,
+      persistMessages,
+      sendEvent,
+      streamText,
+    ],
   );
 
   const runSearch = useCallback(async () => {
@@ -828,9 +1045,14 @@ export default function ChatbotWidget() {
       setSearchError("");
       setCurrent(null);
       setNodeResponseReadyId(null);
-      setLastSubmittedQuery(text);
-      setBotReplyText("");
       setSearchResults([]);
+
+      const userMessage = buildMessage("user", text, {
+        messageType: "search",
+        metadata: { searchQuery: text },
+      });
+      appendLocalMessages([userMessage]);
+
       const params = new URLSearchParams({
         q: text,
         page: "1",
@@ -853,9 +1075,17 @@ export default function ChatbotWidget() {
           : settings?.enableRelatedQuestions === false
             ? "I could not find an exact answer. Please use the Need more info option below."
             : "I could not find an exact answer. Please try another keyword or choose from suggested questions.";
-      streamText(responseText, "search", () => {
-        setBotReplyText(responseText);
+      streamText(responseText, "search", async () => {
+        const botMessage = buildMessage("bot", responseText, {
+          messageType: "search",
+          metadata: {
+            searchQuery: text,
+            searchResults: dedupedItems,
+          },
+        });
+        appendLocalMessages([botMessage]);
         setSearchResults(dedupedItems);
+        await persistMessages([userMessage, botMessage]);
       });
       if (items.length === 0) {
         sendEvent("search_no_result", { query: text });
@@ -866,37 +1096,66 @@ export default function ChatbotWidget() {
       setStreamingMode(null);
       setStreamedBotText("");
       setSearchResults([]);
-      setBotReplyText("");
       setSearchError(err.message || "Search failed");
     } finally {
       setSearching(false);
     }
-  }, [cancelActiveStream, query, sendEvent, settings, streamText]);
+  }, [
+    appendLocalMessages,
+    cancelActiveStream,
+    persistMessages,
+    query,
+    sendEvent,
+    settings,
+    streamText,
+  ]);
 
   const onBack = async () => {
     cancelActiveStream();
     if (history.length <= 1) {
       setCurrent(null);
       setHistory([]);
-      setBotReplyText("");
-      setLastSubmittedQuery("");
+      setSearchResults([]);
+      setNodeResponseReadyId(null);
       return;
     }
     const next = history.slice(0, -1);
     setHistory(next);
-    await openNode(next[next.length - 1], { track: false, pushHistory: false });
+    try {
+      await loadNodeContext(next[next.length - 1], { track: false });
+    } catch (err) {
+      setSearchError(err.message || "Failed to go back");
+    }
   };
 
-  const onHome = () => {
+  const onHome = async () => {
     cancelActiveStream();
+    try {
+      const entryPage =
+        typeof window !== "undefined" ? window.location.pathname : "";
+      const res = await fetch("/api/public/chatbot/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "new", entryPage }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data?.success && data?.data?.conversation?.sessionId) {
+        const newSessionId = String(data.data.conversation.sessionId);
+        setStoredSessionId(newSessionId);
+        historyLoadedRef.current = true;
+        setSessionId(newSessionId);
+      }
+    } catch {
+      // keep local reset even if API fails
+    }
+    setMessages([]);
     setCurrent(null);
     setHistory([]);
     setSearchResults([]);
     setSearchError("");
-    setBotReplyText("");
     setNodeResponseReadyId(null);
-    setLastSubmittedQuery("");
     setQuery("");
+    setHistoryError("");
   };
 
   const toggleOpen = () => {
@@ -1010,12 +1269,82 @@ export default function ChatbotWidget() {
   const launcherIconColor = "#ffffff";
   const sendButtonTextColor = "#ffffff";
 
+  const lastBotMessage = useMemo(() => {
+    return [...messages].reverse().find((item) => item?.role === "bot") || null;
+  }, [messages]);
+
   if (loading || !settings || settings.enabled === false) return null;
+
   const currentNodeId = String(current?.node?._id || "");
   const isCurrentNodeResponseReady =
     Boolean(currentNodeId) && nodeResponseReadyId === currentNodeId;
-  const nodeAnswerHtml = String(current?.node?.answerHtml || "");
-  const hasNodeAnswer = hasRenderableHtml(nodeAnswerHtml);
+
+  const showWelcomeScreen =
+    !historyLoading &&
+    messages.length === 0 &&
+    !typing &&
+    !searching &&
+    !current?.node &&
+    !searchResults.length;
+
+  const showActiveContext =
+    !historyLoading &&
+    !typing &&
+    !searching &&
+    (Boolean(current?.node) || searchResults.length > 0);
+
+  const renderTranscriptMessage = (message) => {
+    if (!message) return null;
+    if (message.role === "user") {
+      return (
+        <div
+          key={String(message.messageId)}
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            marginBottom: elementGap + 2,
+          }}
+        >
+          <UserMessageBubble
+            $bg={userBubbleBg}
+            $text={userBubbleText}
+            $borderColor={borderColor}
+            $bubbleShadow={bubbleShadow}
+          >
+            {message.content}
+          </UserMessageBubble>
+        </div>
+      );
+    }
+
+    const html = String(message.contentHtml || "").trim();
+    const hasHtml = hasRenderableHtml(html);
+    return (
+      <div
+        key={String(message.messageId)}
+        style={{ marginBottom: elementGap + 2 }}
+      >
+        <BotMessageBubble
+          $bg={botBubbleBg}
+          $text={botBubbleText}
+          $borderColor={borderColor}
+          $accentColor={accentColor}
+          $bubbleShadow={bubbleShadow}
+          $padding={hasHtml ? "12px 14px" : "10px 13px"}
+          $lineHeight={hasHtml ? "1.5" : "normal"}
+          $whiteSpace={hasHtml ? "normal" : "pre-wrap"}
+          {...(hasHtml
+            ? {
+                // eslint-disable-next-line react/no-danger
+                dangerouslySetInnerHTML: {
+                  __html: DOMPurify.sanitize(html),
+                },
+              }
+            : { children: message.content })}
+        />
+      </div>
+    );
+  };
 
   const collapsedWindowStyle = {
     top: "auto",
@@ -1253,24 +1582,32 @@ export default function ChatbotWidget() {
             </div>
           ) : null}
 
-          {!!lastSubmittedQuery ? (
+          {historyLoading ? (
+            <BotMessageBubble
+              $bg={botBubbleBg}
+              $text={botBubbleText}
+              $borderColor={borderColor}
+              $accentColor={accentColor}
+              $bubbleShadow={bubbleShadow}
+            >
+              Loading conversation...
+            </BotMessageBubble>
+          ) : null}
+
+          {!historyLoading && historyError ? (
             <div
               style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                marginBottom: elementGap + 2,
+                marginBottom: elementGap,
+                color: "#cf1322",
+                fontWeight: 500,
+                fontSize: 12,
               }}
             >
-              <UserMessageBubble
-                $bg={userBubbleBg}
-                $text={userBubbleText}
-                $borderColor={borderColor}
-                $bubbleShadow={bubbleShadow}
-              >
-                {lastSubmittedQuery}
-              </UserMessageBubble>
+              {historyError}
             </div>
           ) : null}
+
+          {!historyLoading ? messages.map(renderTranscriptMessage) : null}
 
           {typing ? (
             <BotMessageBubble
@@ -1298,10 +1635,7 @@ export default function ChatbotWidget() {
             </BotMessageBubble>
           ) : null}
 
-          {!typing &&
-          !current?.node &&
-          !searchResults.length &&
-          !lastSubmittedQuery ? (
+          {showWelcomeScreen ? (
             <>
               {welcomeBannerSrc ? (
                 <WelcomeBannerImage
@@ -1326,21 +1660,19 @@ export default function ChatbotWidget() {
             </>
           ) : null}
 
-          {!typing && searchResults.length > 0 ? (
-            <>
-              <BotMessageBubble
-                $bg={botBubbleBg}
-                $text={botBubbleText}
-                $borderColor={borderColor}
-                $accentColor={accentColor}
-                $bubbleShadow={bubbleShadow}
-                $whiteSpace="pre-wrap"
-              >
-                {botReplyText || "Here are matching questions:"}
-              </BotMessageBubble>
-              {showRelatedQuestions ? renderChoiceChips(searchResults) : null}
-            </>
+          {!historyLoading &&
+          !typing &&
+          messages.length > 0 &&
+          !current?.node &&
+          !searchResults.length ? (
+            showRelatedQuestions ? renderChoiceChips(quickOptions) : null
           ) : null}
+
+          {showActiveContext && searchResults.length > 0
+            ? showRelatedQuestions
+              ? renderChoiceChips(searchResults)
+              : null
+            : null}
 
           {!typing && searching ? (
             <BotMessageBubble
@@ -1354,23 +1686,8 @@ export default function ChatbotWidget() {
             </BotMessageBubble>
           ) : null}
 
-          {!typing && !searchResults.length && current?.node ? (
+          {showActiveContext && !searchResults.length && current?.node ? (
             <>
-              {hasNodeAnswer && isCurrentNodeResponseReady ? (
-                <BotMessageBubble
-                  $bg={botBubbleBg}
-                  $text={botBubbleText}
-                  $borderColor={borderColor}
-                  $accentColor={accentColor}
-                  $bubbleShadow={bubbleShadow}
-                  $padding="12px 14px"
-                  $lineHeight="1.5"
-                  // eslint-disable-next-line react/no-danger
-                  dangerouslySetInnerHTML={{
-                    __html: DOMPurify.sanitize(nodeAnswerHtml),
-                  }}
-                />
-              ) : null}
               {showRelatedQuestions && isCurrentNodeResponseReady
                 ? renderChoiceChips(dedupeQuestions(current.children || []))
                 : null}
@@ -1389,28 +1706,12 @@ export default function ChatbotWidget() {
           {!typing &&
           !searching &&
           !current?.node &&
-          !!lastSubmittedQuery &&
           !searchResults.length &&
           !searchError &&
-          !!botReplyText ? (
-            <BotMessageBubble
-              $bg={botBubbleBg}
-              $text={botBubbleText}
-              $borderColor={borderColor}
-              $accentColor={accentColor}
-              $bubbleShadow={bubbleShadow}
-              $whiteSpace="pre-wrap"
-            >
-              {botReplyText}
-            </BotMessageBubble>
-          ) : null}
-
-          {!typing &&
-          !searching &&
-          !current?.node &&
-          !!lastSubmittedQuery &&
-          !searchResults.length &&
-          !searchError
+          messages.length > 0 &&
+          lastBotMessage?.messageType === "search" &&
+          (!Array.isArray(lastBotMessage?.metadata?.searchResults) ||
+            lastBotMessage.metadata.searchResults.length === 0)
             ? renderContactActions(contactOnlyActions)
             : null}
         </ChatBody>
