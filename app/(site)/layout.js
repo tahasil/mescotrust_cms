@@ -201,6 +201,31 @@ export default async function SiteLayout({ children }) {
           theme,
           appearanceFooterProps.footerCopyrightBarColorKey,
         ),
+        footerSectionTitleValue: resolveThemeColor(
+          theme,
+          appearanceFooterProps.footerSectionTitleColorKey ||
+            appearanceFooterProps.footerCol1TitleColorKey,
+        ),
+        footerTopBorderValue: resolveThemeColor(
+          theme,
+          appearanceFooterProps.footerTopBorderColorKey,
+        ),
+        footerCopyrightTopBorderValue: resolveThemeColor(
+          theme,
+          appearanceFooterProps.footerCopyrightTopBorderColorKey,
+        ),
+        footerCopyrightTextValue: resolveThemeColor(
+          theme,
+          appearanceFooterProps.footerCopyrightTextColorKey,
+        ),
+        footerLinkHoverValue: resolveThemeColor(
+          theme,
+          appearanceFooterProps.footerLinkHoverColorKey,
+        ),
+        footerBrandDescriptionValue: resolveThemeColor(
+          theme,
+          appearanceFooterProps.footerBrandDescriptionColorKey,
+        ),
       }
     : null;
   const appearanceHeaderRibbon = appearanceHeaderRibbonRecord

@@ -39,7 +39,7 @@ const SOCIAL_OPTIONS = [
 }));
 
 function AppearanceFooterEditForm(
-  { dataEndpoint, themeColorOptions = [], onSuccess },
+  { dataEndpoint, themeColorOptions = [], onSuccess, onValuesChange },
   ref,
 ) {
   const [form] = Form.useForm();
@@ -82,6 +82,19 @@ function AppearanceFooterEditForm(
             record?.footerTextColorKey || "rgba(250, 246, 239, 0.82)",
           footerCopyrightBarColorKey:
             record?.footerCopyrightBarColorKey || "dark",
+          footerSectionTitleColorKey:
+            record?.footerSectionTitleColorKey ||
+            record?.footerCol1TitleColorKey ||
+            "#ffffff",
+          footerTopBorderColorKey: record?.footerTopBorderColorKey || "",
+          footerCopyrightTopBorderColorKey:
+            record?.footerCopyrightTopBorderColorKey ||
+            "rgba(250,246,239,.14)",
+          footerCopyrightTextColorKey:
+            record?.footerCopyrightTextColorKey || "",
+          footerLinkHoverColorKey: record?.footerLinkHoverColorKey || "",
+          footerBrandDescriptionColorKey:
+            record?.footerBrandDescriptionColorKey || "",
         });
       })
       .catch((error) => message.error(error?.message || "Failed to load Footer"))
@@ -124,6 +137,24 @@ function AppearanceFooterEditForm(
         footerCopyrightBarColorKey: String(
           values.footerCopyrightBarColorKey || "",
         ).trim(),
+        footerSectionTitleColorKey: String(
+          values.footerSectionTitleColorKey || "",
+        ).trim(),
+        footerTopBorderColorKey: String(
+          values.footerTopBorderColorKey || "",
+        ).trim(),
+        footerCopyrightTopBorderColorKey: String(
+          values.footerCopyrightTopBorderColorKey || "",
+        ).trim(),
+        footerCopyrightTextColorKey: String(
+          values.footerCopyrightTextColorKey || "",
+        ).trim(),
+        footerLinkHoverColorKey: String(
+          values.footerLinkHoverColorKey || "",
+        ).trim(),
+        footerBrandDescriptionColorKey: String(
+          values.footerBrandDescriptionColorKey || "",
+        ).trim(),
       };
       const response = await fetch(dataEndpoint, {
         method: "PUT",
@@ -150,8 +181,11 @@ function AppearanceFooterEditForm(
   if (loading) return <div style={{ padding: 48, textAlign: "center" }}><Spin /></div>;
 
   const colorOptions = [
+    { label: "White", value: "#ffffff" },
     { label: "Light text", value: "rgba(250, 246, 239, 0.82)" },
+    { label: "Subtle divider", value: "rgba(250,246,239,.14)" },
     { label: "Dark navy", value: "#211E30" },
+    { label: "Light border", value: "rgba(0,0,0,.12)" },
     ...themeColorOptions.map((option) => ({
       label: option.label,
       value: option.value,
@@ -188,7 +222,12 @@ function AppearanceFooterEditForm(
   );
 
   return (
-    <Form form={form} layout="vertical" disabled={saving}>
+    <Form
+      form={form}
+      layout="vertical"
+      disabled={saving}
+      onValuesChange={(_, allValues) => onValuesChange?.(allValues)}
+    >
       <Collapse
         defaultActiveKey={["brand"]}
         items={[
@@ -279,7 +318,13 @@ function AppearanceFooterEditForm(
                 <ColorSettingsCard options={colorOptions} items={[
                   { name: "footerBgColorKey", label: "Footer background", tooltip: "Footer background color." },
                   { name: "footerTextColorKey", label: "Text color", tooltip: "Footer content text color." },
-                  { name: "footerCopyrightBarColorKey", label: "Bottom bar background", tooltip: "Copyright bar background color." },
+                  { name: "footerBrandDescriptionColorKey", label: "Logo description color", tooltip: "Color for the organisation description text below the footer logo." },
+                  { name: "footerLinkHoverColorKey", label: "Link hover color", tooltip: "Color for Our Works, Media, and Contact column links on hover." },
+                  { name: "footerCopyrightBarColorKey", label: "Bottom bar background", tooltip: "Full-width copyright bar background color." },
+                  { name: "footerSectionTitleColorKey", label: "Section title color", tooltip: "Color for Our Works, Media, and Contact column headings." },
+                  { name: "footerCopyrightTextColorKey", label: "Copyright text color", tooltip: "Color for copyright text and legal links in the bottom bar." },
+                  { name: "footerTopBorderColorKey", label: "Footer top border", tooltip: "Full-width top border color for the footer." },
+                  { name: "footerCopyrightTopBorderColorKey", label: "Copyright top border", tooltip: "Full-width top border color above the copyright section." },
                 ]} />
                 <Form.Item name="footerBackgroundImageUrl" label="Optional background image"><MediaPickerInput /></Form.Item>
               </>

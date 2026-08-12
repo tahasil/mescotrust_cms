@@ -125,6 +125,30 @@ function footerPreviewProps(props, theme) {
       theme,
       props?.footerCopyrightBarColorKey,
     ),
+    footerSectionTitleValue: resolveThemeColor(
+      theme,
+      props?.footerSectionTitleColorKey || props?.footerCol1TitleColorKey,
+    ),
+    footerTopBorderValue: resolveThemeColor(
+      theme,
+      props?.footerTopBorderColorKey,
+    ),
+    footerCopyrightTopBorderValue: resolveThemeColor(
+      theme,
+      props?.footerCopyrightTopBorderColorKey,
+    ),
+    footerCopyrightTextValue: resolveThemeColor(
+      theme,
+      props?.footerCopyrightTextColorKey,
+    ),
+    footerLinkHoverValue: resolveThemeColor(
+      theme,
+      props?.footerLinkHoverColorKey,
+    ),
+    footerBrandDescriptionValue: resolveThemeColor(
+      theme,
+      props?.footerBrandDescriptionColorKey,
+    ),
   };
 }
 
@@ -180,7 +204,8 @@ export default function AppearanceEditor({ moduleKey }) {
 
   const props = record?.defaultProps || {};
   const previewProps =
-    drawerPreviewOverrides && normalizedModule === "header"
+    drawerPreviewOverrides &&
+    (normalizedModule === "header" || normalizedModule === "footer")
       ? { ...props, ...drawerPreviewOverrides }
       : props;
   const title =
@@ -237,7 +262,7 @@ export default function AppearanceEditor({ moduleKey }) {
         ) : normalizedModule === "header-ribbon" ? (
           <AppearanceHeaderRibbon {...props} preview />
         ) : (
-          <AppearanceFooter {...footerPreviewProps(props, theme)} />
+          <AppearanceFooter {...footerPreviewProps(previewProps, theme)} />
         )}
       </div>
 
@@ -300,11 +325,16 @@ export default function AppearanceEditor({ moduleKey }) {
             ref={editFormRef}
             dataEndpoint={endpoint}
             themeColorOptions={themeColorOptions}
+            onValuesChange={setDrawerPreviewOverrides}
             onSuccess={async () => {
               await loadData();
+              setDrawerPreviewOverrides(null);
               setDrawerOpen(false);
             }}
-            onCancel={() => setDrawerOpen(false)}
+            onCancel={() => {
+              setDrawerPreviewOverrides(null);
+              setDrawerOpen(false);
+            }}
           />
         )}
       </Drawer>
