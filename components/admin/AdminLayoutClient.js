@@ -29,7 +29,6 @@ import {
   InsertRowBelowOutlined,
   MenuOutlined,
   RobotOutlined,
-  SkinOutlined,
   ShareAltOutlined,
   FormOutlined,
   SlidersOutlined,
@@ -157,15 +156,6 @@ const baseMenuItems = [
         label: (
           <Link href="/admin/chatbot" style={linkStyle}>
             Chatbot
-          </Link>
-        ),
-      },
-      {
-        key: "/admin/theme",
-        icon: <SkinOutlined />,
-        label: (
-          <Link href="/admin/theme" style={linkStyle}>
-            Theme
           </Link>
         ),
       },
@@ -384,6 +374,24 @@ const baseMenuItems = [
     icon: <SettingOutlined />,
     label: "Settings",
     children: [
+      {
+        key: "/admin/settings/admin-theme",
+        icon: <SettingOutlined />,
+        label: (
+          <Link href="/admin/settings/admin-theme" style={linkStyle}>
+            Admin Setting
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/settings/frontend-theme",
+        icon: <BgColorsOutlined />,
+        label: (
+          <Link href="/admin/settings/frontend-theme" style={linkStyle}>
+            Frontend Setting
+          </Link>
+        ),
+      },
       {
         key: "/admin/settings/sitemap",
         icon: <GlobalOutlined />,
