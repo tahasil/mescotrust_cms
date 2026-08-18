@@ -564,20 +564,31 @@ const EmptyState = styled.div`
 const ModalScrollBody = styled(ThemeModal)`
   .ant-modal {
     width: min(940px, calc(100vw - 24px)) !important;
-    max-width: 940px;
+    max-width: calc(100vw - 24px);
     top: 18px;
+    margin-inline: auto;
   }
   .ant-modal-content {
+    aspect-ratio: auto !important;
     border-radius: 24px;
     overflow: hidden;
     border: 1px solid rgba(15, 23, 42, 0.08);
     box-shadow: 0 26px 80px rgba(2, 6, 23, 0.28);
     padding: 0;
+    max-height: calc(100vh - 36px);
+    max-height: calc(100dvh - 36px);
+    display: flex;
+    flex-direction: column;
   }
   .ant-modal-body {
+    flex: 1 1 auto;
     max-height: calc(100vh - 56px);
+    max-height: calc(100dvh - 56px);
     overflow-y: auto;
+    overflow-x: auto;
     overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
     padding: 0;
   }
   .ant-modal-close {
@@ -593,6 +604,22 @@ const ModalScrollBody = styled(ThemeModal)`
     &:hover {
       background: #fff !important;
       color: rgba(2, 6, 23, 0.95) !important;
+    }
+  }
+  @media (max-width: 768px) {
+    .ant-modal {
+      top: 12px;
+      width: min(940px, calc(100vw - 16px)) !important;
+      max-width: calc(100vw - 16px);
+    }
+    .ant-modal-content {
+      max-height: calc(100vh - 24px);
+      max-height: calc(100dvh - 24px);
+      border-radius: 16px;
+    }
+    .ant-modal-body {
+      max-height: calc(100vh - 24px);
+      max-height: calc(100dvh - 24px);
     }
   }
 `;

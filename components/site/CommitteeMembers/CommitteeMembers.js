@@ -127,6 +127,12 @@ const ProfileDetailUI = styled.div`
     align-items: center;
     gap: 24px;
     margin-bottom: 20px;
+    @media (max-width: 768px) {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 16px;
+    }
   }
   .profile-detail-image {
     flex-shrink: 0;
@@ -147,8 +153,9 @@ const ProfileDetailUI = styled.div`
     flex: 1;
     text-align: left;
     min-width: 0;
-    max-height: 70vh;
-    overflow-y: auto;
+    @media (max-width: 768px) {
+      text-align: center;
+    }
   }
   .profile-detail-name {
     font-size: 20px;
@@ -186,6 +193,32 @@ const ProfileDetailUI = styled.div`
     right: 0;
     height: 1px;
     background: var(--committee-modal-divider);
+  }
+`;
+
+const ProfileModal = styled(Modal)`
+  .ant-modal-content {
+    border-radius: 16px;
+    overflow: hidden;
+    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
+    display: flex;
+    flex-direction: column;
+  }
+  .ant-modal-body {
+    flex: 1 1 auto;
+    max-height: calc(100vh - 48px);
+    max-height: calc(100dvh - 48px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+  @media (max-width: 768px) {
+    width: min(640px, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px);
+    margin-inline: auto;
+    top: 12px;
+    padding-bottom: 12px;
   }
 `;
 
@@ -494,7 +527,7 @@ export default function CommitteeMembers(props) {
         </div>
       </PageContainer>
 
-      <Modal
+      <ProfileModal
         className="committee-members-modal"
         open={profileModalOpen}
         onCancel={() => {
@@ -505,6 +538,7 @@ export default function CommitteeMembers(props) {
         width={640}
         centered
         destroyOnClose
+        data-lenis-prevent
         styles={{
           content: {
             background: componentColorVars["--committee-modal-bg"],
@@ -543,7 +577,7 @@ export default function CommitteeMembers(props) {
             )}
           </ProfileDetailUI>
         )}
-      </Modal>
+      </ProfileModal>
     </FullWidthBackground>
   );
 }

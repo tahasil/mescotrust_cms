@@ -393,7 +393,7 @@ export default function RoutePopupHost() {
               <span className="route-popup-close-icon" aria-hidden="true" />
             </button>
           )}
-          <div className="route-popup-content">
+          <div className="route-popup-content" data-lenis-prevent>
             {imageNode ? (
               <div className="route-popup-media">
                 {link.enabled ? (
@@ -470,6 +470,8 @@ export default function RoutePopupHost() {
           box-sizing: border-box;
           display: flex;
           flex-direction: column;
+          max-height: calc(100vh - 24px);
+          max-height: calc(100dvh - 24px);
         }
         .route-popup-overlay.open .route-popup-modal {
           transform: translateY(0) scale(1);
@@ -533,9 +535,12 @@ export default function RoutePopupHost() {
           flex-direction: column;
           justify-content: flex-start;
           align-items: stretch;
-          overflow-x: hidden;
+          overflow-x: auto;
           overflow-y: auto;
-          max-height: calc(100svh - 96px);
+          -webkit-overflow-scrolling: touch;
+          touch-action: pan-x pan-y;
+          max-height: calc(100vh - 40px);
+          max-height: calc(100dvh - 40px);
           padding: 0;
         }
         .route-popup-media {

@@ -562,9 +562,42 @@ export const ThemeModal = styled(ModalWrapper)`
   .ant-modal-content {
     border-radius: 16px;
     overflow: hidden;
-    cursor: pointer;
-    aspect-ratio: 4 / 3;
+    cursor: default;
+    aspect-ratio: auto;
+    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
+    display: flex;
+    flex-direction: column;
     filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+  }
+  .ant-modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: calc(100vh - 64px);
+    max-height: calc(100dvh - 64px);
+    overflow-y: auto;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+  }
+  @media (max-width: 768px) {
+    width: min(800px, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px);
+    margin-inline: auto;
+    top: 12px;
+    padding-bottom: 12px;
+    .ant-modal-close {
+      top: 6px;
+      right: 6px;
+    }
+    .ant-modal-content {
+      max-height: calc(100vh - 24px);
+      max-height: calc(100dvh - 24px);
+    }
+    .ant-modal-body {
+      max-height: calc(100vh - 48px);
+      max-height: calc(100dvh - 48px);
+    }
   }
 `;
 

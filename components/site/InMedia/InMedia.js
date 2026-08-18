@@ -14,42 +14,65 @@ import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
 /* ── Styled Components ── */
 const ThemeScrollModal = styled(ThemeModal)`
+  .ant-modal-content {
+    aspect-ratio: auto !important;
+    max-height: calc(100vh - 24px) !important;
+    max-height: calc(100dvh - 24px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    border-radius: 16px !important;
+  }
   .ant-modal-body {
-    max-height: 80vh;
-    overflow-y: auto;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: calc(100vh - 48px) !important;
+    max-height: calc(100dvh - 48px) !important;
+    overflow-y: auto !important;
+    overflow-x: auto !important;
     overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+    padding: 16px !important;
     &::-webkit-scrollbar {
-      width: 2px; /* Width of the vertical scrollbar */
+      width: 4px;
+      height: 4px;
     }
-
-    /* The background of the scrollbar */
     &::-webkit-scrollbar-track {
-      background: rgba(0, 0, 0, 0.1);
+      background: rgba(0, 0, 0, 0.05);
       border-radius: 10px;
     }
-
-    /* The actual draggable handle */
     &::-webkit-scrollbar-thumb {
       background: rgba(0, 0, 0, 0.2);
       border-radius: 10px;
     }
-
-    /* Hover effect on the handle */
     &::-webkit-scrollbar-thumb:hover {
       background: rgba(0, 0, 0, 0.3);
     }
   }
   .ant-modal-close {
     background: #dbdbdb !important;
-    top: 6px !important;
-    right: 6px !important;
+    top: 8px !important;
+    right: 8px !important;
     border-radius: 50% !important;
     z-index: 99 !important;
+    width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     svg {
       font-size: 14px !important;
       color: ${getColor("black")} !important;
       opacity: 0.7 !important;
     }
+  }
+  @media (max-width: 768px) {
+    width: min(800px, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px);
+    margin-inline: auto;
+    top: 12px;
+    padding-bottom: 12px;
   }
 `;
 const CardWrapper = styled.div`
@@ -467,7 +490,18 @@ export default function InMedia(props) {
         {selectedItem &&
         ((selectedItem.imageDesktop ?? selectedItem.image ?? "").toString().trim() ||
           (selectedItem.imageMobile ?? "").toString().trim()) && (
-          <div data-lenis-prevent>
+          <div
+            data-lenis-prevent
+            style={{
+              width: "100%",
+              height: "auto",
+              maxHeight: "100%",
+              overflowX: "auto",
+              overflowY: "auto",
+              WebkitOverflowScrolling: "touch",
+              touchAction: "pan-x pan-y",
+            }}
+          >
             <img
               loading="lazy"
               src={
@@ -477,7 +511,14 @@ export default function InMedia(props) {
                 (selectedItem.imageMobile ?? "").toString().trim()
               }
               alt={selectedItem.name || "Media"}
-              style={{ display: "block", width: "100%", height: "auto" }}
+              style={{
+                display: "block",
+                maxWidth: "100%",
+                width: "100%",
+                height: "auto",
+                objectFit: "contain",
+                margin: "0 auto",
+              }}
             />
           </div>
         )}
