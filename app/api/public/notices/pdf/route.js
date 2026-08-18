@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
+import { createReadStream } from "node:fs";
+import { stat } from "node:fs/promises";
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
+import { Readable } from "node:stream";
+import { toAbsolutePath } from "@/lib/storage/localStorage";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -74,6 +78,28 @@ async function assertSafeExternalUrl(url) {
   }
 }
 
+function isLocalUrl(sourceUrl, req) {
+  if (sourceUrl.origin === req.nextUrl.origin) return true;
+
+  const hostHeader = req.headers.get("x-forwarded-host") || req.headers.get("host");
+  if (hostHeader) {
+    const hostWithPort = hostHeader.toLowerCase().trim();
+    if (sourceUrl.host.toLowerCase() === hostWithPort) return true;
+  }
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  if (siteUrl) {
+    try {
+      const parsedSiteUrl = new URL(siteUrl);
+      if (sourceUrl.origin.toLowerCase() === parsedSiteUrl.origin.toLowerCase()) {
+        return true;
+      }
+    } catch {}
+  }
+
+  return false;
+}
+
 function getSafeSource(req) {
   const rawSource = String(req.nextUrl.searchParams.get("src") || "").trim();
   if (!rawSource) return null;
@@ -99,7 +125,7 @@ function getSafeSource(req) {
     return null;
   }
 
-  const isLocal = sourceUrl.origin === req.nextUrl.origin;
+  const isLocal = isLocalUrl(sourceUrl, req);
   if (
     !isLocal &&
     (!["http:", "https:"].includes(sourceUrl.protocol) ||
@@ -119,6 +145,7 @@ function getSafeSource(req) {
   if (!isUploadedPdf && !isMediaDocument && !isExternalPdf) return null;
 
   return {
+    isUploadedPdf,
     pathname,
     url: sourceUrl,
   };
@@ -136,6 +163,61 @@ function inlineFileName(pathname) {
 function copyHeader(source, target, name) {
   const value = source.headers.get(name);
   if (value) target.set(name, value);
+}
+
+async function tryServeLocalUploadedPdf(pathname, req) {
+  const normalizedPath = String(pathname || "").trim();
+  if (!normalizedPath.toLowerCase().startsWith("/uploads/")) return null;
+
+  const storageKey = normalizedPath.replace(/^\/+/, "");
+  const absolutePath = toAbsolutePath(storageKey);
+
+  try {
+    const fileStat = await stat(absolutePath);
+    if (!fileStat.isFile()) return null;
+
+    const fileSize = fileStat.size;
+    const rangeHeader = String(req?.headers?.get("range") || "").trim();
+    const rangeMatch = rangeHeader.match(/^bytes=(\d*)-(\d*)$/i);
+
+    const headers = new Headers({
+      "Accept-Ranges": "bytes",
+      "Cache-Control": "private, no-cache, no-store, must-revalidate",
+      "Content-Disposition": `inline; filename="${inlineFileName(pathname)}"`,
+      "Content-Security-Policy": "default-src 'none'; frame-ancestors 'self'",
+      "Content-Type": "application/pdf",
+      "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "SAMEORIGIN",
+      "X-XSS-Protection": "0",
+    });
+
+    if (rangeMatch) {
+      const start = rangeMatch[1] ? Number(rangeMatch[1]) : 0;
+      const requestedEnd = rangeMatch[2] ? Number(rangeMatch[2]) : fileSize - 1;
+      const end = Math.min(requestedEnd, fileSize - 1);
+
+      if (!Number.isInteger(start) || start < 0 || start >= fileSize || end < start) {
+        headers.set("Content-Range", `bytes */${fileSize}`);
+        return new NextResponse(null, { status: 416, headers });
+      }
+
+      const contentLength = end - start + 1;
+      headers.set("Content-Length", String(contentLength));
+      headers.set("Content-Range", `bytes ${start}-${end}/${fileSize}`);
+
+      const stream = Readable.toWeb(createReadStream(absolutePath, { start, end }));
+      return new NextResponse(stream, { status: 206, headers });
+    }
+
+    headers.set("Content-Length", String(fileSize));
+    const stream = Readable.toWeb(createReadStream(absolutePath));
+    return new NextResponse(stream, { status: 200, headers });
+  } catch {
+    return null;
+  }
 }
 
 async function fetchPdfSource(initialUrl, requestHeaders, requestOrigin) {
@@ -172,6 +254,11 @@ export async function GET(req) {
       { error: "A valid PDF URL is required." },
       { status: 400 },
     );
+  }
+
+  if (source.isUploadedPdf) {
+    const localResponse = await tryServeLocalUploadedPdf(source.pathname, req);
+    if (localResponse) return localResponse;
   }
 
   try {
@@ -234,3 +321,4 @@ export async function GET(req) {
     );
   }
 }
+

@@ -796,27 +796,6 @@ export default function Header({
 
             {showAppearanceMobileIconActions ? (
               <MobileQuickActions className="site-header-mobile-quick-actions">
-                {volunteerHrefValue ? (
-                  <MobileQuickActionBtn
-                    className="site-header-mobile-quick-action site-header-mobile-volunteer"
-                    href={volunteerHrefValue}
-                    target={volunteerTarget}
-                    rel={
-                      volunteerTarget === "_blank"
-                        ? "noopener noreferrer"
-                        : undefined
-                    }
-                    aria-label={volunteerLabel || "Volunteer"}
-                    style={{
-                      "--mobile-quick-action-icon-url": `url("${volunteerIconMobileSrc}")`,
-                    }}
-                  >
-                    <span
-                      className="site-header-mobile-quick-action-icon"
-                      aria-hidden="true"
-                    />
-                  </MobileQuickActionBtn>
-                ) : null}
                 {donateHref ? (
                   <MobileQuickActionBtn
                     className="site-header-mobile-quick-action site-header-mobile-donate"
@@ -830,6 +809,27 @@ export default function Header({
                     aria-label={donateLabel || "Donate Now"}
                     style={{
                       "--mobile-quick-action-icon-url": `url("${donateIconSrc}")`,
+                    }}
+                  >
+                    <span
+                      className="site-header-mobile-quick-action-icon"
+                      aria-hidden="true"
+                    />
+                  </MobileQuickActionBtn>
+                ) : null}
+                {volunteerHrefValue ? (
+                  <MobileQuickActionBtn
+                    className="site-header-mobile-quick-action site-header-mobile-volunteer"
+                    href={volunteerHrefValue}
+                    target={volunteerTarget}
+                    rel={
+                      volunteerTarget === "_blank"
+                        ? "noopener noreferrer"
+                        : undefined
+                    }
+                    aria-label={volunteerLabel || "Volunteer"}
+                    style={{
+                      "--mobile-quick-action-icon-url": `url("${volunteerIconMobileSrc}")`,
                     }}
                   >
                     <span
