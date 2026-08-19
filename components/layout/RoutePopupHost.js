@@ -7,7 +7,13 @@ import { resolvePopupFormShortcode } from "@/lib/popupShortcode";
 import FormEmbed from "@/components/site/FormEmbed/FormEmbed";
 
 const CLOSE_ANIMATION_FALLBACK_MS = 280;
-const POPUP_REFRESH_INTERVAL_MS = 5000;
+// Popup configuration changes rarely, so the background refresh is lazy. Admin
+// saves still land immediately through the `popup_config_updated_at` storage
+// event, which forces a reload regardless of these intervals.
+const POPUP_REFRESH_INTERVAL_MS = 300000;
+// Route changes, window focus and visibilitychange usually fire together;
+// treating data younger than this as fresh collapses them into one request.
+const POPUP_REFRESH_MIN_AGE_MS = 30000;
 
 function readCookie(name) {
   if (typeof document === "undefined") return "";
@@ -145,6 +151,8 @@ export default function RoutePopupHost() {
   const closeTimerRef = useRef(null);
   const activePopupIdRef = useRef("");
   const fetchSeqRef = useRef(0);
+  const lastLoadedAtRef = useRef(0);
+  const inFlightRef = useRef(null);
   const localDismissedRef = useRef(new Set());
 
   const normalizedCurrentRoute = useMemo(
@@ -152,18 +160,49 @@ export default function RoutePopupHost() {
     [pathname],
   );
 
-  const loadPopups = useCallback(async () => {
+  /**
+   * @param {{ force?: boolean, maxAgeMs?: number }} [options]
+   *   `force` always refetches. Otherwise an in-flight request is reused and a
+   *   successful load newer than `maxAgeMs` is treated as still fresh.
+   */
+  const loadPopups = useCallback(async (options = {}) => {
+    const { force = false, maxAgeMs = 0 } = options;
+
+    if (!force) {
+      if (inFlightRef.current) return inFlightRef.current;
+      if (
+        maxAgeMs > 0 &&
+        lastLoadedAtRef.current > 0 &&
+        Date.now() - lastLoadedAtRef.current < maxAgeMs
+      ) {
+        return undefined;
+      }
+    }
+
     const seq = fetchSeqRef.current + 1;
     fetchSeqRef.current = seq;
+
+    const request = (async () => {
+      try {
+        const res = await fetch("/api/public/popups", { cache: "no-store" });
+        const rows = res.ok ? await res.json() : [];
+        if (fetchSeqRef.current !== seq) return;
+        // Only a success refreshes the timestamp, so failures retry promptly.
+        lastLoadedAtRef.current = Date.now();
+        setPopups(Array.isArray(rows) ? rows : []);
+      } catch {
+        if (fetchSeqRef.current !== seq) return;
+        setPopups([]);
+      }
+    })();
+
+    inFlightRef.current = request;
     try {
-      const res = await fetch("/api/public/popups", { cache: "no-store" });
-      const rows = res.ok ? await res.json() : [];
-      if (fetchSeqRef.current !== seq) return;
-      setPopups(Array.isArray(rows) ? rows : []);
-    } catch {
-      if (fetchSeqRef.current !== seq) return;
-      setPopups([]);
+      await request;
+    } finally {
+      if (inFlightRef.current === request) inFlightRef.current = null;
     }
+    return undefined;
   }, []);
 
   useEffect(() => {
@@ -175,17 +214,24 @@ export default function RoutePopupHost() {
   }, [normalizedCurrentRoute]);
 
   useEffect(() => {
-    loadPopups();
+    loadPopups({ maxAgeMs: POPUP_REFRESH_MIN_AGE_MS });
   }, [loadPopups, normalizedCurrentRoute]);
 
   useEffect(() => {
-    const pollTimer = window.setInterval(loadPopups, POPUP_REFRESH_INTERVAL_MS);
-    const onFocus = () => loadPopups();
+    const pollTimer = window.setInterval(() => {
+      // Background tabs do not need popup updates until they come back.
+      if (document.visibilityState !== "visible") return;
+      loadPopups({ maxAgeMs: POPUP_REFRESH_INTERVAL_MS });
+    }, POPUP_REFRESH_INTERVAL_MS);
+    const onFocus = () => loadPopups({ maxAgeMs: POPUP_REFRESH_MIN_AGE_MS });
     const onVisibilityChange = () => {
-      if (document.visibilityState === "visible") loadPopups();
+      if (document.visibilityState === "visible") {
+        loadPopups({ maxAgeMs: POPUP_REFRESH_MIN_AGE_MS });
+      }
     };
     const onStorage = (event) => {
-      if (event.key === "popup_config_updated_at") loadPopups();
+      // An admin just saved popup config: refresh straight away.
+      if (event.key === "popup_config_updated_at") loadPopups({ force: true });
     };
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onVisibilityChange);

@@ -3,6 +3,7 @@ const assert = require("node:assert/strict");
 const path = require("node:path");
 const fs = require("node:fs");
 const { toAbsolutePath } = require("../lib/storage/localStorage");
+const mongoose = require("mongoose");
 
 const BASE_URL = process.env.TEST_BASE_URL || "http://localhost:3000";
 
@@ -60,6 +61,56 @@ test("PDF viewer proxy route live contract tests", async (t) => {
     );
     const body = await res.arrayBuffer();
     assert.equal(body.byteLength, 1);
+  });
+
+  await t.test("serves /media/<id> documents from disk without an internal self-fetch", async () => {
+    // Regression: behind a reverse proxy `req.nextUrl.origin` is the internal
+    // listener, so resolving /media/<id> via HTTP self-fetch returned 502.
+    const uri = fs
+      .readFileSync(path.join(__dirname, "..", ".env"), "utf8")
+      .match(/MONGODB_URI=(.*)/)[1]
+      .trim();
+    await mongoose.connect(uri);
+
+    const mediaId = new mongoose.Types.ObjectId();
+    const storageKey = `uploads/${mediaId}-media-contract.pdf`;
+    const mediaFilePath = toAbsolutePath(storageKey);
+    fs.mkdirSync(path.dirname(mediaFilePath), { recursive: true });
+    fs.writeFileSync(mediaFilePath, dummyPdfBuffer);
+
+    const collection = mongoose.connection.db.collection("media");
+    await collection.insertOne({
+      _id: mediaId,
+      filename: "media-contract.pdf",
+      mimeType: "application/pdf",
+      url: `/${storageKey}`,
+      originalUrl: `/${storageKey}`,
+      storageProvider: "local",
+    });
+
+    try {
+      // Proxy headers make the resolved origin unreachable from this process,
+      // so a passing request proves the file came off disk.
+      const res = await fetch(
+        `${BASE_URL}/api/public/pdf-viewer?src=%2Fmedia%2F${mediaId}%3Fsize%3Doriginal%26format%3Dauto`,
+        {
+          headers: {
+            "x-forwarded-host": "mescotrust.org",
+            "x-forwarded-proto": "https",
+          },
+        }
+      );
+      assert.equal(res.status, 200);
+      assert.equal(res.headers.get("content-type"), "application/pdf");
+      const body = await res.arrayBuffer();
+      assert.equal(body.byteLength, dummyPdfBuffer.length);
+    } finally {
+      await collection.deleteOne({ _id: mediaId });
+      await mongoose.disconnect();
+      try {
+        fs.unlinkSync(mediaFilePath);
+      } catch {}
+    }
   });
 
   await t.test("recognizes production domain match as local URL via X-Forwarded-Host header", async () => {

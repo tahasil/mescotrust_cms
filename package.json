@@ -15,6 +15,7 @@
     "form-upload-cleanup": "node scripts/form-upload-cleanup.js",
     "form-builder-qa": "node scripts/form-builder-qa.js",
     "test:media-delivery": "node --test scripts/test-media-delivery.js",
+    "test:pdf-viewer": "node --test scripts/test-pdf-viewer-contracts.js",
     "test:media-crop-contract": "node --test scripts/test-media-crop-contract.js",
     "test:media-ui-contracts": "node --test scripts/test-media-ui-contracts.js",
     "test:social-wall-contracts": "node --test scripts/test-social-wall-module-contracts.js scripts/test-social-wall-pagebuilder-contracts.js",
