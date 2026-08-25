@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "node scripts/seed.js",
-    "check-db": "node scripts/check-db.js"
+    "check-db": "node scripts/check-db.js",
+    "migrate:remote": "node scripts/migrate-remote.js"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.0",

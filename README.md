@@ -84,10 +84,27 @@ In **Admin → Components** you can manage block *types* (Paragraph, Heading, Im
 
 New block *types* (e.g. a new "Button" component) require adding the React component under `components/cms/blocks/` and registering it in `components/cms/ComponentRenderer.js` (code change), then you can add a component definition in the admin that uses that `baseComponent` name.
 
+## Database & Migration
+
+- **Verify Database Connection:**
+  ```bash
+  npm run check-db
+  ```
+- **Seed Initial Admin & System Components:**
+  ```bash
+  npm run seed
+  ```
+- **Migrate Data from Remote MongoDB (Optional):**
+  ```bash
+  npm run migrate:remote -- <REMOTE_MONGODB_URI>
+  ```
+
 ## Scripts
 
 - `npm run dev` — development server
 - `npm run build` — production build
 - `npm run start` — start production server
-- `npm run seed` — create initial admin user (set ADMIN_EMAIL, ADMIN_PASSWORD)
+- `npm run seed` — seed admin user and default components
+- `npm run check-db` — test DB connection & list collection stats
+- `npm run migrate:remote` — clone remote MongoDB data into local DB
 - `npm run lint` — ESLint
