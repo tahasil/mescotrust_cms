@@ -182,6 +182,45 @@ function getInitialLookupState() {
   };
 }
 
+const RAZORPAY_CHECKOUT_SCRIPT = "https://checkout.razorpay.com/v1/checkout.js";
+let razorpayScriptPromise = null;
+
+/**
+ * Load Razorpay's checkout script once per page and resolve with the global
+ * constructor it installs.
+ */
+function loadRazorpayCheckout() {
+  if (typeof window === "undefined") {
+    return Promise.reject(new Error("Razorpay checkout is browser only"));
+  }
+  if (window.Razorpay) return Promise.resolve(window.Razorpay);
+  if (razorpayScriptPromise) return razorpayScriptPromise;
+
+  razorpayScriptPromise = new Promise((resolve, reject) => {
+    const existing = document.querySelector(
+      `script[src="${RAZORPAY_CHECKOUT_SCRIPT}"]`,
+    );
+    const script = existing || document.createElement("script");
+    const onLoad = () =>
+      window.Razorpay
+        ? resolve(window.Razorpay)
+        : reject(new Error("Razorpay checkout failed to initialise"));
+    script.addEventListener("load", onLoad);
+    script.addEventListener("error", () => {
+      razorpayScriptPromise = null;
+      reject(new Error("Razorpay checkout script failed to load"));
+    });
+    if (!existing) {
+      script.src = RAZORPAY_CHECKOUT_SCRIPT;
+      script.async = true;
+      document.body.appendChild(script);
+    } else if (window.Razorpay) {
+      onLoad();
+    }
+  });
+  return razorpayScriptPromise;
+}
+
 function getInitialVerificationState() {
   return {
     email: "",
@@ -215,14 +254,60 @@ export default function DonateNow(props = {}) {
 
   useEffect(() => {
     if (!encData) return;
-    const gatewayForm = gatewayFormRef.current;
-    if (!gatewayForm) {
+
+    const failGateway = () => {
       notification.error({
         message: "Payment gateway error",
         description: "Unable to open the payment gateway. Please try again.",
         placement: "bottomRight",
       });
+      setEncData(null);
       setSubmitting(false);
+    };
+
+    // Razorpay opens its own checkout overlay and, with redirect enabled,
+    // posts the result to our callback route just like CCAvenue does.
+    if (encData.provider === "razorpay") {
+      let cancelled = false;
+      loadRazorpayCheckout()
+        .then((Razorpay) => {
+          if (cancelled) return;
+          const checkout = new Razorpay({
+            key: encData.keyId,
+            amount: encData.amount,
+            currency: encData.currency,
+            order_id: encData.razorpayOrderId,
+            name: encData.name,
+            description: encData.description,
+            prefill: encData.prefill || {},
+            notes: encData.notes || {},
+            callback_url: encData.callbackUrl,
+            redirect: true,
+            modal: {
+              ondismiss: () => {
+                notification.info({
+                  message: "Payment cancelled",
+                  description: "You closed the payment window before completing the donation.",
+                  placement: "bottomRight",
+                });
+                setEncData(null);
+                setSubmitting(false);
+              },
+            },
+          });
+          checkout.open();
+        })
+        .catch(() => {
+          if (!cancelled) failGateway();
+        });
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const gatewayForm = gatewayFormRef.current;
+    if (!gatewayForm) {
+      failGateway();
       return;
     }
     gatewayForm.submit();
@@ -1682,7 +1767,7 @@ export default function DonateNow(props = {}) {
           </Col>
         </Row>
 
-        {encData ? (
+        {encData && encData.provider !== "razorpay" ? (
           <form
             ref={gatewayFormRef}
             method="POST"

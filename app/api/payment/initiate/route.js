@@ -3,7 +3,17 @@ import crypto from "crypto";
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
 import DonateNowSubmission from "@/models/DonateNowSubmission";
-import { encrypt, generateOrderId } from "@/lib/ccavenue";
+import ThemeConfig from "@/models/ThemeConfig";
+import { encrypt } from "@/lib/ccavenue";
+import * as razorpay from "@/lib/razorpay";
+import {
+  CCAVENUE,
+  RAZORPAY,
+  generateOrderId,
+  getActiveGateway,
+  getGatewayLabel,
+  getSiteUrl,
+} from "@/lib/paymentGateway";
 
 function toSafeString(value, maxLength = 500) {
   return String(value ?? "").trim().slice(0, maxLength);
@@ -11,14 +21,6 @@ function toSafeString(value, maxLength = 500) {
 
 function toDigits(value) {
   return String(value ?? "").replace(/\D/g, "");
-}
-
-function getSiteUrl() {
-  const configured =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    process.env.NEXTAUTH_URL ||
-    "http://localhost:3000";
-  return new URL(configured).origin;
 }
 
 function getGatewayUrl(configuredUrl) {
@@ -84,22 +86,32 @@ export async function POST(req) {
       return NextResponse.json({ error: "A valid mobile number is required" }, { status: 400 });
     }
 
+    // PAYMENT_GATEWAY decides which provider collects this donation.
+    const activeGateway = getActiveGateway();
+
     const merchantId = process.env.CCAVENUE_MERCHANT_ID;
     const accessCode = process.env.CCAVENUE_ACCESS_CODE;
     const workingKey = process.env.CCAVENUE_WORKING_KEY;
     const gatewayUrl = process.env.CCAVENUE_GATEWAY_URL;
 
-    if (!merchantId || !accessCode || !workingKey || !gatewayUrl) {
+    const gatewayConfigured =
+      activeGateway === RAZORPAY
+        ? razorpay.isConfigured()
+        : Boolean(merchantId && accessCode && workingKey && gatewayUrl);
+
+    if (!gatewayConfigured) {
       return NextResponse.json(
         { error: "Payment gateway not configured" },
         { status: 500 }
       );
     }
 
-    let resolvedGatewayUrl;
+    let resolvedGatewayUrl = "";
     let siteUrl;
     try {
-      resolvedGatewayUrl = getGatewayUrl(gatewayUrl);
+      if (activeGateway === CCAVENUE) {
+        resolvedGatewayUrl = getGatewayUrl(gatewayUrl);
+      }
       siteUrl = getSiteUrl();
     } catch {
       return NextResponse.json(
@@ -190,7 +202,7 @@ export async function POST(req) {
     const cancelUrl = `${siteUrl}/api/payment/callback`;
 
     // Save donate-now submission with pending status
-    await DonateNowSubmission.create({
+    const donation = await DonateNowSubmission.create({
       orderId,
       amount: normalizedAmount,
       currency: "INR",
@@ -219,12 +231,68 @@ export async function POST(req) {
       status: "pending",
       initiatedAt: new Date(),
       payment: {
-        gateway: "CCAvenue",
+        gateway: getGatewayLabel(activeGateway),
         amount: normalizedAmount,
         currency: "INR",
         verificationStatus: "pending",
       },
     });
+
+    if (activeGateway === RAZORPAY) {
+      let razorpayOrder;
+      try {
+        razorpayOrder = await razorpay.createOrder({
+          amount: normalizedAmount,
+          currency: "INR",
+          receipt: orderId,
+          notes: {
+            orderId,
+            purpose: toSafeString(purpose, 200),
+            purposeId: toSafeString(purposeId, 100),
+            zakat: toSafeString(zakat || "No", 20),
+            pan: normalizedDonor.pan,
+            note: toSafeString(note, 200),
+          },
+        });
+      } catch (orderErr) {
+        console.error("Razorpay order creation failed:", orderErr?.message || orderErr);
+        donation.status = "failed";
+        donation.completedAt = new Date();
+        donation.payment.verificationStatus = "invalid";
+        donation.payment.verificationMessage = `Razorpay order creation failed: ${
+          orderErr?.message || "unknown error"
+        }`;
+        await donation.save().catch(() => {});
+        return NextResponse.json(
+          { error: "Failed to initiate payment" },
+          { status: 502 },
+        );
+      }
+
+      // Razorpay callbacks identify the order by its own id, not ours.
+      donation.payment.gatewayOrderId = razorpayOrder.id;
+      await donation.save();
+
+      const theme = await ThemeConfig.findOne({}).select("siteTitle").lean();
+
+      return NextResponse.json({
+        provider: RAZORPAY,
+        orderId,
+        keyId: razorpay.getCredentials().keyId,
+        razorpayOrderId: razorpayOrder.id,
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+        callbackUrl: `${siteUrl}/api/payment/razorpay/callback`,
+        name: toSafeString(theme?.siteTitle, 100) || "Donation",
+        description: toSafeString(purpose, 200) || "Donation",
+        prefill: {
+          name: normalizedDonor.name,
+          email: normalizedDonor.email,
+          contact: normalizedDonor.mobile,
+        },
+        notes: razorpayOrder.notes || {},
+      });
+    }
 
     // Build CCAvenue request parameters
     const params = new URLSearchParams({
@@ -253,6 +321,7 @@ export async function POST(req) {
     const encRequest = encrypt(params, workingKey);
 
     return NextResponse.json({
+      provider: CCAVENUE,
       encRequest,
       accessCode,
       gatewayUrl: resolvedGatewayUrl,

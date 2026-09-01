@@ -357,7 +357,9 @@ Tracks background bulk optimization jobs.
 
 | Field       | Type   | Description |
 |------------|--------|-------------|
-| trackingId | String | CCAvenue tracking ID |
+| gateway | String | `CCAvenue` or `Razorpay` |
+| gatewayOrderId | String | Gateway-side order reference (Razorpay order id; our orderId for CCAvenue) |
+| trackingId | String | CCAvenue tracking ID (Razorpay payment id) |
 | transactionId / paymentId | String | Normalized transaction/payment identifiers (CCAvenue tracking ID fallback) |
 | bankRefNo  | String | Bank reference number |
 | paymentMode| String | Card/NetBanking/Wallet/UPI |
@@ -422,8 +424,9 @@ Base URL: `/api`. Auth: public (no auth), admin (JWT via NextAuth + `requireAuth
 | GET | `/api/theme/marquee` | Theme marquee slice |
 | POST | `/api/contact` | Submit contact form (rate-limited) |
 | GET | `/media/[id]` | Stable media delivery (`format=auto`: WebP -> AVIF -> original/JPG). Legacy size params resolve to original. |
-| POST | `/api/payment/initiate` | Create donation order, encrypt & return CCAvenue form data |
+| POST | `/api/payment/initiate` | Create donation order for the gateway selected by `PAYMENT_GATEWAY` |
 | POST | `/api/payment/callback` | CCAvenue posts encrypted response here after payment |
+| POST | `/api/payment/razorpay/callback` | Razorpay Checkout posts the payment result here |
 | GET | `/api/payment/donor-lookup` | Auto-fill: lookup previous donor by email or mobile |
 | GET | `/api/health` | Health check (DB) |
 
@@ -477,19 +480,31 @@ Base URL: `/api`. Auth: public (no auth), admin (JWT via NextAuth + `requireAuth
 
 ---
 
-## 4. CCAvenue Donation Payment Flow
+## 4. Donation Payment Flow (CCAvenue / Razorpay)
+
+Two gateways are supported. `PAYMENT_GATEWAY` selects which one collects new
+donations; the other stays dormant. Both callback routes remain mounted so
+in-flight orders created before a switch still reconcile correctly.
 
 ### 4.1 Environment Variables
 
 ```bash
+PAYMENT_GATEWAY=ccavenue     # ccavenue (default) | razorpay
+
+# CCAvenue (used when PAYMENT_GATEWAY=ccavenue)
 CCAVENUE_MERCHANT_ID=        # From CCAvenue M.A.R.S â†’ Settings â†’ API Keys
 CCAVENUE_ACCESS_CODE=        # Uppercase alphanumeric
 CCAVENUE_WORKING_KEY=        # Uppercase alphanumeric (for AES encryption)
 CCAVENUE_GATEWAY_URL=https://test.ccavenue.com/transaction/transaction.do  # Test
 # CCAVENUE_GATEWAY_URL=https://secure.ccavenue.com/transaction/transaction.do  # Production
+
+# Razorpay (used when PAYMENT_GATEWAY=razorpay)
+RAZORPAY_KEY_ID=             # rzp_test_... / rzp_live_...
+RAZORPAY_KEY_SECRET=         # Razorpay Dashboard -> Account & Settings -> API Keys
+# RAZORPAY_API_KEY / RAZORPAY_API_SECRET are accepted as aliases
 ```
 
-### 4.2 Payment Flow
+### 4.2 CCAvenue Payment Flow
 
 ```
 1. USER FILLS FORM (DonateNow site component)
@@ -528,7 +543,41 @@ CCAVENUE_GATEWAY_URL=https://test.ccavenue.com/transaction/transaction.do  # Tes
    â””â”€ User scans QR â†’ pays via UPI app (manual reconciliation)
 ```
 
-### 4.3 Encryption / Decryption
+### 4.3 Razorpay Payment Flow
+
+```
+1. USER FILLS FORM (same DonateNow site component and validation)
+
+2. INITIATE (POST /api/payment/initiate)
+   - Same validation, orderId and pending Donation record as CCAvenue
+   - Creates a Razorpay order (POST https://api.razorpay.com/v1/orders)
+     amount in paise, receipt = our orderId, donation details as notes
+   - Stores the Razorpay order id on payment.gatewayOrderId
+   - Returns { provider: "razorpay", keyId, razorpayOrderId, amount,
+               currency, callbackUrl, prefill, notes } to the frontend
+
+3. OPEN CHECKOUT (Frontend)
+   - Loads https://checkout.razorpay.com/v1/checkout.js once
+   - Opens the checkout overlay with redirect: true and callback_url
+   - Closing the overlay cancels client-side; the record stays "pending"
+
+4. CALLBACK (POST /api/payment/razorpay/callback)
+   - Razorpay posts razorpay_order_id, razorpay_payment_id, razorpay_signature
+     (or error[...] fields when checkout itself failed)
+   - Finds the Donation by payment.gatewayOrderId
+   - Verifies HMAC-SHA256("<order_id>|<payment_id>", key_secret)
+   - Re-fetches the payment from Razorpay and reconciles order, amount,
+     currency and status before accepting success
+   - Redirects back to /donate-now with the verified result
+```
+
+Utility file: `lib/razorpay.js` - `createOrder`, `fetchPayment`,
+`verifyPaymentSignature`. Uses `fetch` + built-in `crypto`; no SDK dependency.
+
+Shared helpers live in `lib/paymentGateway.js` (`getActiveGateway`,
+`generateOrderId`, `paymentRedirect`) and `lib/donationReceipt.js`.
+
+### 4.4 CCAvenue Encryption / Decryption
 
 CCAvenue uses **AES-128-CBC** encryption:
 - **Key**: MD5 hash of `CCAVENUE_WORKING_KEY` (produces 16 bytes)
@@ -538,14 +587,14 @@ CCAvenue uses **AES-128-CBC** encryption:
 
 Utility file: `lib/ccavenue.js` â€” exports `encrypt(data, workingKey)` and `decrypt(data, workingKey)`.
 
-### 4.4 Auto-fill Donor Lookup
+### 4.5 Auto-fill Donor Lookup
 
 `GET /api/payment/donor-lookup?q=<email_or_mobile>`
 - Searches `donations` collection for latest successful donation matching email or mobile
 - Returns donor details (name, email, mobile, PAN, address, city, state, country, pincode)
 - Used by the "Email / Mobile No." field at top of form to pre-fill fields
 
-### 4.5 Site Component: DonateNow
+### 4.6 Site Component: DonateNow
 
 Managed from Page Builder drawer (same pattern as ContactUs):
 - **Manage Section** â€” backgrounds, padding, margins
@@ -554,7 +603,7 @@ Managed from Page Builder drawer (same pattern as ContactUs):
 - **Form Settings** â€” Purpose of Donation options (comma-separated), QR code image URL
 - **Contact/Address** â€” optional info displayed alongside form
 
-### 4.6 Admin: /admin/donations
+### 4.7 Admin: /admin/donations
 
 - Table view of all donations: orderId, donor name, email, amount, status, date
 - Filter by status (pending/success/failed/aborted)

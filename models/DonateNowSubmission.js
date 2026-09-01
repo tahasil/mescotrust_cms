@@ -18,6 +18,9 @@ const donorSchema = new mongoose.Schema(
 const paymentSchema = new mongoose.Schema(
   {
     gateway: { type: String, default: "CCAvenue" },
+    // Gateway-side order reference (CCAvenue reuses our orderId; Razorpay
+    // issues its own order id that callbacks are matched on).
+    gatewayOrderId: { type: String, default: "", trim: true },
     trackingId: { type: String, default: "" },
     transactionId: { type: String, default: "" },
     paymentId: { type: String, default: "" },
@@ -106,6 +109,7 @@ donateNowSubmissionSchema.index({ isDeleted: 1, createdAt: -1 });
 donateNowSubmissionSchema.index({ "donor.email": 1 });
 donateNowSubmissionSchema.index({ "donor.mobile": 1 });
 donateNowSubmissionSchema.index({ purposeId: 1, createdAt: -1 });
+donateNowSubmissionSchema.index({ "payment.gatewayOrderId": 1 });
 
 module.exports =
   (mongoose.models && mongoose.models.DonateNowSubmission) ||

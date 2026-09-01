@@ -9,8 +9,12 @@ const loginPath = "/admin/login";
 const LEGACY_ADMIN_ROUTE_REDIRECTS = new Map([
   ["/admin/components/theme-components", "/admin/components"],
 ]);
+// Payment gateways POST their result back cross-origin, so the CSRF origin
+// check cannot apply. Both routes authenticate the payload themselves —
+// CCAvenue by working-key decryption, Razorpay by HMAC signature.
 const CSRF_ORIGIN_EXEMPT_PATHS = new Set([
   "/api/payment/callback",
+  "/api/payment/razorpay/callback",
 ]);
 
 const LOGIN_WINDOW_MS = 60_000;

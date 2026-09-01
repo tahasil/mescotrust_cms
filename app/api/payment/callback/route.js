@@ -1,9 +1,9 @@
 import crypto from "crypto";
 import { connectDB } from "@/lib/db";
 import DonateNowSubmission from "@/models/DonateNowSubmission";
-import ThemeConfig from "@/models/ThemeConfig";
 import { decrypt, parseResponse } from "@/lib/ccavenue";
-import { sendDonationReceipt } from "@/lib/email";
+import { paymentRedirect } from "@/lib/paymentGateway";
+import { sendDonationReceiptSafely } from "@/lib/donationReceipt";
 
 export const dynamic = "force-dynamic";
 
@@ -52,19 +52,6 @@ function verifyGatewayResponse(donation, data, desiredStatus) {
   return errors;
 }
 
-function paymentRedirect({ status, orderId = "", reason = "" }) {
-  const configured =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    process.env.NEXTAUTH_URL ||
-    "http://localhost:3000";
-  const target = new URL("/donate-now", configured);
-  target.searchParams.set("donation", status === "success" ? "success" : "failed");
-  if (orderId) target.searchParams.set("order", orderId);
-  if (status && status !== "success") target.searchParams.set("status", status);
-  if (reason) target.searchParams.set("reason", reason);
-  return Response.redirect(target, 303);
-}
-
 /**
  * CCAvenue browser callback. Decryption authenticates the response with the
  * working key; order, amount and currency are then reconciled with our pending
@@ -110,6 +97,7 @@ export async function POST(req) {
       donation.completedAt = nextStatus === "pending" ? null : callbackReceivedAt;
       donation.payment = {
         gateway: "CCAvenue",
+        gatewayOrderId: toText(donation.orderId),
         trackingId,
         transactionId: toText(data.transaction_id) || trackingId,
         paymentId: toText(data.payment_id) || trackingId,
@@ -134,22 +122,7 @@ export async function POST(req) {
     }
 
     if (!wasSuccessful && nextStatus === "success") {
-      try {
-        const theme = await ThemeConfig.findOne({}).lean();
-        const orgInfo = theme
-          ? {
-              siteTitle: theme.siteTitle,
-              footerEmail: theme.footerEmail,
-              footerPhone: theme.footerPhone,
-              footerAddress: theme.footerAddress,
-              logoLightUrl: theme.logoLightUrl,
-              logoImageUrl: theme.logoImageUrl,
-            }
-          : {};
-        await sendDonationReceipt(donation.toObject(), orgInfo);
-      } catch (mailErr) {
-        console.error("[PaymentCallback] Receipt email failed:", mailErr?.message || mailErr);
-      }
+      await sendDonationReceiptSafely(donation);
     }
 
     const finalStatus = wasSuccessful ? "success" : nextStatus;
