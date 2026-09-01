@@ -2,6 +2,7 @@ import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import { getDefaultPermissionKeysForRole, getPermissionForAdminPage, getRequiredPermissionsForAdminApi } from "@/lib/rbac/catalog";
 import { isConfiguredSuperAdminEmail, ROLE_KEYS } from "@/lib/rbac/constants";
+import { readTokenPermissionKeys } from "@/lib/rbac/permissionCodec";
 import { hasAnyPermissionKey, hasPermissionKey } from "@/lib/rbac/permissionUtils";
 
 const adminPathPrefix = "/admin";
@@ -194,15 +195,17 @@ export async function middleware(req) {
     );
     return clearSessionCookies(req, response);
   }
-  const tokenPermissionKeys = Array.isArray(token.permissionKeys)
-    ? token.permissionKeys
-    : Array.from(
-        getDefaultPermissionKeysForRole(
-          isConfiguredSuperAdminEmail(token.email)
-            ? ROLE_KEYS.SUPER_ADMIN
-            : token.roleKey || token.role,
-        ),
-      );
+  // A null snapshot means the token predates the current permission catalog;
+  // fall back to the role's defaults until the jwt callback re-signs it.
+  const tokenPermissionKeys =
+    readTokenPermissionKeys(token) ||
+    Array.from(
+      getDefaultPermissionKeysForRole(
+        isConfiguredSuperAdminEmail(token.email)
+          ? ROLE_KEYS.SUPER_ADMIN
+          : token.roleKey || token.role,
+      ),
+    );
   const requiredPermission = pathname.startsWith("/api/")
     ? getRequiredPermissionsForAdminApi(pathname, req.method)
     : getPermissionForAdminPage(pathname);
