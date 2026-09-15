@@ -19,6 +19,8 @@ import { ThemeAdminCard } from "@/styles/Theme";
 
 const PAGES_LIST_CACHE_KEY = "admin-pages-list-cache-v1";
 const PAGES_LIST_CACHE_TTL_MS = 20_000;
+const PAGES_SEARCH_STORAGE_KEY = "admin-pages-search-query-v1";
+const PAGES_FOLDER_STORAGE_KEY = "admin-pages-folder-filter-v1";
 
 export default function AdminPagesPage() {
   const router = useRouter();
@@ -29,6 +31,66 @@ export default function AdminPagesPage() {
   const [form] = Form.useForm();
   const [folderFilter, setFolderFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlSearch = urlParams.get("search") || urlParams.get("q");
+    const storedSearch = sessionStorage.getItem(PAGES_SEARCH_STORAGE_KEY);
+    const resolvedSearch = urlSearch ?? storedSearch ?? "";
+    if (resolvedSearch) {
+      setSearchQuery(resolvedSearch);
+    }
+
+    const urlFolder = urlParams.get("folder");
+    const storedFolder = sessionStorage.getItem(PAGES_FOLDER_STORAGE_KEY);
+    const resolvedFolder = urlFolder ?? storedFolder ?? "all";
+    if (resolvedFolder && resolvedFolder !== "all") {
+      setFolderFilter(resolvedFolder);
+    }
+  }, []);
+
+  const handleSearchChange = (e) => {
+    const val = e.target.value;
+    setSearchQuery(val);
+    if (typeof window !== "undefined") {
+      if (val) {
+        sessionStorage.setItem(PAGES_SEARCH_STORAGE_KEY, val);
+      } else {
+        sessionStorage.removeItem(PAGES_SEARCH_STORAGE_KEY);
+      }
+      const params = new URLSearchParams(window.location.search);
+      if (val) {
+        params.set("search", val);
+      } else {
+        params.delete("search");
+        params.delete("q");
+      }
+      const newSearch = params.toString();
+      const newUrl = `${window.location.pathname}${newSearch ? `?${newSearch}` : ""}`;
+      window.history.replaceState(null, "", newUrl);
+    }
+  };
+
+  const handleFolderChange = (val) => {
+    setFolderFilter(val);
+    if (typeof window !== "undefined") {
+      if (val && val !== "all") {
+        sessionStorage.setItem(PAGES_FOLDER_STORAGE_KEY, val);
+      } else {
+        sessionStorage.removeItem(PAGES_FOLDER_STORAGE_KEY);
+      }
+      const params = new URLSearchParams(window.location.search);
+      if (val && val !== "all") {
+        params.set("folder", val);
+      } else {
+        params.delete("folder");
+      }
+      const newSearch = params.toString();
+      const newUrl = `${window.location.pathname}${newSearch ? `?${newSearch}` : ""}`;
+      window.history.replaceState(null, "", newUrl);
+    }
+  };
 
   const fetchPages = useCallback(async ({ background = false } = {}) => {
     if (!background) setLoading(true);
@@ -220,7 +282,7 @@ export default function AdminPagesPage() {
             allowClear
             style={{ width: 220 }}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleSearchChange}
           />
           <Link href="/admin/pages/new">
             <Button type="primary" icon={<PlusOutlined />}>
@@ -234,7 +296,7 @@ export default function AdminPagesPage() {
         <div style={{ marginBottom: 16 }}>
           <Select
             value={folderFilter}
-            onChange={setFolderFilter}
+            onChange={handleFolderChange}
             style={{ width: 240 }}
             options={[
               { label: "All pages", value: "all" },

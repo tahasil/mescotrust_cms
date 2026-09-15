@@ -69,20 +69,79 @@ function createUploadError(data, fallback = "Upload failed") {
   return error;
 }
 
+const MEDIA_SEARCH_STORAGE_KEY = "admin-media-search-query-v1";
+const MEDIA_TYPE_STORAGE_KEY = "admin-media-type-filter-v1";
+const MEDIA_MONTH_STORAGE_KEY = "admin-media-month-filter-v1";
+const MEDIA_VIEW_MODE_STORAGE_KEY = "admin-media-view-mode-v1";
+
 export default function AdminMediaLibrary() {
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState("grid");
+  const [viewMode, setViewMode] = useState(() => {
+    if (typeof window === "undefined") return "grid";
+    const p = new URLSearchParams(window.location.search);
+    return p.get("view") || sessionStorage.getItem(MEDIA_VIEW_MODE_STORAGE_KEY) || "grid";
+  });
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [bulkAction, setBulkAction] = useState("");
   const [bulkLoading, setBulkLoading] = useState(false);
-  const [searchInput, setSearchInput] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [monthFilter, setMonthFilter] = useState("all");
+  const [searchInput, setSearchInput] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const p = new URLSearchParams(window.location.search);
+    return p.get("q") || sessionStorage.getItem(MEDIA_SEARCH_STORAGE_KEY) || "";
+  });
+  const [searchQuery, setSearchQuery] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const p = new URLSearchParams(window.location.search);
+    return p.get("q") || sessionStorage.getItem(MEDIA_SEARCH_STORAGE_KEY) || "";
+  });
+  const [typeFilter, setTypeFilter] = useState(() => {
+    if (typeof window === "undefined") return "all";
+    const p = new URLSearchParams(window.location.search);
+    return p.get("type") || sessionStorage.getItem(MEDIA_TYPE_STORAGE_KEY) || "all";
+  });
+  const [monthFilter, setMonthFilter] = useState(() => {
+    if (typeof window === "undefined") return "all";
+    const p = new URLSearchParams(window.location.search);
+    return p.get("month") || sessionStorage.getItem(MEDIA_MONTH_STORAGE_KEY) || "all";
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (searchQuery.trim()) {
+      sessionStorage.setItem(MEDIA_SEARCH_STORAGE_KEY, searchQuery);
+      url.searchParams.set("q", searchQuery);
+    } else {
+      sessionStorage.removeItem(MEDIA_SEARCH_STORAGE_KEY);
+      url.searchParams.delete("q");
+    }
+    if (typeFilter && typeFilter !== "all") {
+      sessionStorage.setItem(MEDIA_TYPE_STORAGE_KEY, typeFilter);
+      url.searchParams.set("type", typeFilter);
+    } else {
+      sessionStorage.removeItem(MEDIA_TYPE_STORAGE_KEY);
+      url.searchParams.delete("type");
+    }
+    if (monthFilter && monthFilter !== "all") {
+      sessionStorage.setItem(MEDIA_MONTH_STORAGE_KEY, monthFilter);
+      url.searchParams.set("month", monthFilter);
+    } else {
+      sessionStorage.removeItem(MEDIA_MONTH_STORAGE_KEY);
+      url.searchParams.delete("month");
+    }
+    if (viewMode && viewMode !== "grid") {
+      sessionStorage.setItem(MEDIA_VIEW_MODE_STORAGE_KEY, viewMode);
+      url.searchParams.set("view", viewMode);
+    } else {
+      sessionStorage.removeItem(MEDIA_VIEW_MODE_STORAGE_KEY);
+      url.searchParams.delete("view");
+    }
+    window.history.replaceState(null, "", `${url.pathname}${url.search}`);
+  }, [searchQuery, typeFilter, monthFilter, viewMode]);
   const [monthOptions, setMonthOptions] = useState([]);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [uploadFileList, setUploadFileList] = useState([]);
@@ -575,12 +634,7 @@ export default function AdminMediaLibrary() {
   return (
     <>
       <ThemeAdminCard
-        title={
-          <div>
-            <div>Media Library</div>
-            <div className={styles.headerSubtitle}>WordPress-style media manager</div>
-          </div>
-        }
+        title="Media Library"
         extra={
           <Space>
             <Button

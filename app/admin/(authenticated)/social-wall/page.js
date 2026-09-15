@@ -122,14 +122,34 @@ export default function SocialWallAdminPage() {
   const [syncResult, setSyncResult] = useState(null);
   const [postsLoading, setPostsLoading] = useState(false);
   const [postsData, setPostsData] = useState({ page: 1, limit: 20, total: 0, items: [] });
-  const [postFilters, setPostFilters] = useState({
-    platform: "",
-    status: "",
-    featured: "",
-    dateFrom: "",
-    dateTo: "",
-    search: "",
+  const [postFilters, setPostFilters] = useState(() => {
+    if (typeof window === "undefined") {
+      return { platform: "", status: "", featured: "", dateFrom: "", dateTo: "", search: "" };
+    }
+    try {
+      const saved = sessionStorage.getItem("admin-social-wall-post-filters-v1");
+      if (saved) {
+        return {
+          platform: "",
+          status: "",
+          featured: "",
+          dateFrom: "",
+          dateTo: "",
+          search: "",
+          ...JSON.parse(saved),
+        };
+      }
+    } catch {}
+    return { platform: "", status: "", featured: "", dateFrom: "", dateTo: "", search: "" };
   });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      sessionStorage.setItem("admin-social-wall-post-filters-v1", JSON.stringify(postFilters));
+    } catch {}
+  }, [postFilters]);
+
   const [moderationLoading, setModerationLoading] = useState(false);
   const [moderationData, setModerationData] = useState({ page: 1, limit: 20, total: 0, items: [] });
   const [logsLoading, setLogsLoading] = useState(false);

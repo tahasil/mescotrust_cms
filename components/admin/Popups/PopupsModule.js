@@ -7,6 +7,10 @@ import { ThemeAdminCard } from "@/styles/Theme";
 import PopupCreateModal from "./PopupCreateModal";
 import PopupsTable from "./PopupsTable";
 
+const POPUPS_SEARCH_STORAGE_KEY = "admin-popups-search-query-v1";
+const POPUPS_STATUS_STORAGE_KEY = "admin-popups-status-filter-v1";
+const POPUPS_ENABLED_STORAGE_KEY = "admin-popups-enabled-filter-v1";
+
 export default function PopupsModule() {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,6 +22,73 @@ export default function PopupsModule() {
   const [statusFilter, setStatusFilter] = useState("");
   const [enabledFilter, setEnabledFilter] = useState("");
   const [form] = Form.useForm();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlSearch = urlParams.get("search") || urlParams.get("q");
+    const storedSearch = sessionStorage.getItem(POPUPS_SEARCH_STORAGE_KEY);
+    const resolvedSearch = urlSearch ?? storedSearch ?? "";
+    if (resolvedSearch) {
+      setSearch(resolvedSearch);
+    }
+
+    const urlStatus = urlParams.get("status");
+    const storedStatus = sessionStorage.getItem(POPUPS_STATUS_STORAGE_KEY);
+    const resolvedStatus = urlStatus ?? storedStatus ?? "";
+    if (resolvedStatus) {
+      setStatusFilter(resolvedStatus);
+    }
+
+    const urlEnabled = urlParams.get("enabled");
+    const storedEnabled = sessionStorage.getItem(POPUPS_ENABLED_STORAGE_KEY);
+    const resolvedEnabled = urlEnabled ?? storedEnabled ?? "";
+    if (resolvedEnabled) {
+      setEnabledFilter(resolvedEnabled);
+    }
+  }, []);
+
+  const updateUrlParams = (newSearch, newStatus, newEnabled) => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (newSearch) params.set("search", newSearch);
+    else { params.delete("search"); params.delete("q"); }
+    if (newStatus) params.set("status", newStatus);
+    else params.delete("status");
+    if (newEnabled) params.set("enabled", newEnabled);
+    else params.delete("enabled");
+    const qs = params.toString();
+    const newUrl = `${window.location.pathname}${qs ? `?${qs}` : ""}`;
+    window.history.replaceState(null, "", newUrl);
+  };
+
+  const handleSearchChange = (e) => {
+    const val = e.target.value;
+    setSearch(val);
+    if (typeof window !== "undefined") {
+      if (val) sessionStorage.setItem(POPUPS_SEARCH_STORAGE_KEY, val);
+      else sessionStorage.removeItem(POPUPS_SEARCH_STORAGE_KEY);
+      updateUrlParams(val, statusFilter, enabledFilter);
+    }
+  };
+
+  const handleStatusChange = (val) => {
+    setStatusFilter(val);
+    if (typeof window !== "undefined") {
+      if (val) sessionStorage.setItem(POPUPS_STATUS_STORAGE_KEY, val);
+      else sessionStorage.removeItem(POPUPS_STATUS_STORAGE_KEY);
+      updateUrlParams(search, val, enabledFilter);
+    }
+  };
+
+  const handleEnabledChange = (val) => {
+    setEnabledFilter(val);
+    if (typeof window !== "undefined") {
+      if (val) sessionStorage.setItem(POPUPS_ENABLED_STORAGE_KEY, val);
+      else sessionStorage.removeItem(POPUPS_ENABLED_STORAGE_KEY);
+      updateUrlParams(search, statusFilter, val);
+    }
+  };
 
   const fetchPopups = useCallback(() => {
     setLoading(true);
@@ -168,7 +239,7 @@ export default function PopupsModule() {
             <Input
               allowClear
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={handleSearchChange}
               onPressEnter={fetchPopups}
               prefix={<SearchOutlined style={{ color: "#bbb" }} />}
               placeholder="Search popup..."
@@ -176,7 +247,7 @@ export default function PopupsModule() {
             />
             <Select
               value={statusFilter}
-              onChange={setStatusFilter}
+              onChange={handleStatusChange}
               placeholder="Publish status"
               style={{ width: 150 }}
               options={[
@@ -187,7 +258,7 @@ export default function PopupsModule() {
             />
             <Select
               value={enabledFilter}
-              onChange={setEnabledFilter}
+              onChange={handleEnabledChange}
               placeholder="Enabled"
               style={{ width: 140 }}
               options={[

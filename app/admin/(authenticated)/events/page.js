@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
@@ -6,12 +6,64 @@ import { Table, Button, Space, message, Modal, Input, Select, Tag } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 
+const EVENTS_SEARCH_STORAGE_KEY = "admin-events-search-query-v1";
+const EVENTS_STATUS_STORAGE_KEY = "admin-events-status-filter-v1";
+
 export default function AdminEventsPage() {
   const router = useRouter();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState(null);
   const [searchText, setSearchText] = useState("");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlSearch = urlParams.get("search") || urlParams.get("q");
+    const storedSearch = sessionStorage.getItem(EVENTS_SEARCH_STORAGE_KEY);
+    const resolvedSearch = urlSearch ?? storedSearch ?? "";
+    if (resolvedSearch) {
+      setSearchText(resolvedSearch);
+    }
+
+    const urlStatus = urlParams.get("status");
+    const storedStatus = sessionStorage.getItem(EVENTS_STATUS_STORAGE_KEY);
+    const resolvedStatus = urlStatus ?? storedStatus ?? null;
+    if (resolvedStatus) {
+      setFilterStatus(resolvedStatus);
+    }
+  }, []);
+
+  const updateUrlParams = (newSearch, newStatus) => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (newSearch) params.set("search", newSearch);
+    else { params.delete("search"); params.delete("q"); }
+    if (newStatus) params.set("status", newStatus);
+    else params.delete("status");
+    const qs = params.toString();
+    const newUrl = `${window.location.pathname}${qs ? `?${qs}` : ""}`;
+    window.history.replaceState(null, "", newUrl);
+  };
+
+  const handleSearchChange = (e) => {
+    const val = e.target.value;
+    setSearchText(val);
+    if (typeof window !== "undefined") {
+      if (val) sessionStorage.setItem(EVENTS_SEARCH_STORAGE_KEY, val);
+      else sessionStorage.removeItem(EVENTS_SEARCH_STORAGE_KEY);
+      updateUrlParams(val, filterStatus);
+    }
+  };
+
+  const handleStatusChange = (val) => {
+    setFilterStatus(val);
+    if (typeof window !== "undefined") {
+      if (val) sessionStorage.setItem(EVENTS_STATUS_STORAGE_KEY, val);
+      else sessionStorage.removeItem(EVENTS_STATUS_STORAGE_KEY);
+      updateUrlParams(searchText, val);
+    }
+  };
 
   const fetchEvents = async () => {
     const res = await fetch("/api/admin/events");
@@ -130,14 +182,14 @@ export default function AdminEventsPage() {
             allowClear
             style={{ width: 220 }}
             value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
+            onChange={handleSearchChange}
           />
           <Select
             placeholder="Status"
             allowClear
             style={{ width: 120 }}
             value={filterStatus}
-            onChange={setFilterStatus}
+            onChange={handleStatusChange}
             options={[
               { value: "draft", label: "Draft" },
               { value: "published", label: "Published" },

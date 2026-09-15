@@ -6,16 +6,59 @@ import { CheckOutlined, DeleteOutlined, EyeOutlined, SearchOutlined } from "@ant
 import { formatDateTime } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
 
+const VOLUNTEERS_FEEDBACK_SEARCH_STORAGE_KEY = "admin-volunteers-feedback-search-query-v1";
+const VOLUNTEERS_FEEDBACK_STATUS_STORAGE_KEY = "admin-volunteers-feedback-status-filter-v1";
+const VOLUNTEERS_FEEDBACK_SOURCE_STORAGE_KEY = "admin-volunteers-feedback-source-filter-v1";
+
 export default function AdminVolunteersFeedbackPage() {
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [sourceFilter, setSourceFilter] = useState("");
+  const [search, setSearch] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const params = new URLSearchParams(window.location.search);
+    return params.get("search") || sessionStorage.getItem(VOLUNTEERS_FEEDBACK_SEARCH_STORAGE_KEY) || "";
+  });
+  const [statusFilter, setStatusFilter] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const params = new URLSearchParams(window.location.search);
+    return params.get("status") || sessionStorage.getItem(VOLUNTEERS_FEEDBACK_STATUS_STORAGE_KEY) || "";
+  });
+  const [sourceFilter, setSourceFilter] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const params = new URLSearchParams(window.location.search);
+    return params.get("source") || sessionStorage.getItem(VOLUNTEERS_FEEDBACK_SOURCE_STORAGE_KEY) || "";
+  });
   const [sourceOptions, setSourceOptions] = useState([]);
   const [viewItem, setViewItem] = useState(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (search.trim()) {
+      sessionStorage.setItem(VOLUNTEERS_FEEDBACK_SEARCH_STORAGE_KEY, search);
+      url.searchParams.set("search", search);
+    } else {
+      sessionStorage.removeItem(VOLUNTEERS_FEEDBACK_SEARCH_STORAGE_KEY);
+      url.searchParams.delete("search");
+    }
+    if (statusFilter) {
+      sessionStorage.setItem(VOLUNTEERS_FEEDBACK_STATUS_STORAGE_KEY, statusFilter);
+      url.searchParams.set("status", statusFilter);
+    } else {
+      sessionStorage.removeItem(VOLUNTEERS_FEEDBACK_STATUS_STORAGE_KEY);
+      url.searchParams.delete("status");
+    }
+    if (sourceFilter) {
+      sessionStorage.setItem(VOLUNTEERS_FEEDBACK_SOURCE_STORAGE_KEY, sourceFilter);
+      url.searchParams.set("source", sourceFilter);
+    } else {
+      sessionStorage.removeItem(VOLUNTEERS_FEEDBACK_SOURCE_STORAGE_KEY);
+      url.searchParams.delete("source");
+    }
+    window.history.replaceState(null, "", `${url.pathname}${url.search}`);
+  }, [search, statusFilter, sourceFilter]);
 
   const fetchList = (p = page, s = search, st = statusFilter, src = sourceFilter) => {
     setLoading(true);

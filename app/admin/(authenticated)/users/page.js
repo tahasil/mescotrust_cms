@@ -16,6 +16,10 @@ function isSuperAdminUser(user) {
   return user?.roleKey === "super_admin";
 }
 
+const USERS_SEARCH_STORAGE_KEY = "admin-users-search-query-v1";
+const USERS_ROLE_STORAGE_KEY = "admin-users-role-filter-v1";
+const USERS_STATUS_STORAGE_KEY = "admin-users-status-filter-v1";
+
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
@@ -24,10 +28,49 @@ export default function AdminUsersPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [filterRole, setFilterRole] = useState();
-  const [filterStatus, setFilterStatus] = useState();
-  const [searchText, setSearchText] = useState("");
+  const [filterRole, setFilterRole] = useState(() => {
+    if (typeof window === "undefined") return undefined;
+    const params = new URLSearchParams(window.location.search);
+    return params.get("role") || sessionStorage.getItem(USERS_ROLE_STORAGE_KEY) || undefined;
+  });
+  const [filterStatus, setFilterStatus] = useState(() => {
+    if (typeof window === "undefined") return undefined;
+    const params = new URLSearchParams(window.location.search);
+    return params.get("status") || sessionStorage.getItem(USERS_STATUS_STORAGE_KEY) || undefined;
+  });
+  const [searchText, setSearchText] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const params = new URLSearchParams(window.location.search);
+    return params.get("search") || sessionStorage.getItem(USERS_SEARCH_STORAGE_KEY) || "";
+  });
   const [form] = Form.useForm();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (searchText.trim()) {
+      sessionStorage.setItem(USERS_SEARCH_STORAGE_KEY, searchText);
+      url.searchParams.set("search", searchText);
+    } else {
+      sessionStorage.removeItem(USERS_SEARCH_STORAGE_KEY);
+      url.searchParams.delete("search");
+    }
+    if (filterRole) {
+      sessionStorage.setItem(USERS_ROLE_STORAGE_KEY, filterRole);
+      url.searchParams.set("role", filterRole);
+    } else {
+      sessionStorage.removeItem(USERS_ROLE_STORAGE_KEY);
+      url.searchParams.delete("role");
+    }
+    if (filterStatus) {
+      sessionStorage.setItem(USERS_STATUS_STORAGE_KEY, filterStatus);
+      url.searchParams.set("status", filterStatus);
+    } else {
+      sessionStorage.removeItem(USERS_STATUS_STORAGE_KEY);
+      url.searchParams.delete("status");
+    }
+    window.history.replaceState(null, "", `${url.pathname}${url.search}`);
+  }, [searchText, filterRole, filterStatus]);
 
   const roleOptions = useMemo(
     () => roles.filter((role) => role.isActive !== false).map((role) => ({ value: role.key, label: role.name })),
@@ -149,6 +192,7 @@ export default function AdminUsersPage() {
           placeholder="Search name or email"
           allowClear
           style={{ width: 240 }}
+          value={searchText}
           onSearch={setSearchText}
           onChange={(event) => setSearchText(event.target.value)}
         />

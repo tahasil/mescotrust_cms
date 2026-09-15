@@ -6,13 +6,44 @@ import { DeleteOutlined, SearchOutlined, MailOutlined } from "@ant-design/icons"
 import { formatDate } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
 
+const SUBSCRIBERS_SEARCH_STORAGE_KEY = "admin-subscribers-search-query-v1";
+const SUBSCRIBERS_STATUS_STORAGE_KEY = "admin-subscribers-status-filter-v1";
+
 export default function AdminSubscribersPage() {
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState("");
-  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const params = new URLSearchParams(window.location.search);
+    return params.get("status") || sessionStorage.getItem(SUBSCRIBERS_STATUS_STORAGE_KEY) || "";
+  });
+  const [search, setSearch] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const params = new URLSearchParams(window.location.search);
+    return params.get("search") || sessionStorage.getItem(SUBSCRIBERS_SEARCH_STORAGE_KEY) || "";
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (search.trim()) {
+      sessionStorage.setItem(SUBSCRIBERS_SEARCH_STORAGE_KEY, search);
+      url.searchParams.set("search", search);
+    } else {
+      sessionStorage.removeItem(SUBSCRIBERS_SEARCH_STORAGE_KEY);
+      url.searchParams.delete("search");
+    }
+    if (statusFilter) {
+      sessionStorage.setItem(SUBSCRIBERS_STATUS_STORAGE_KEY, statusFilter);
+      url.searchParams.set("status", statusFilter);
+    } else {
+      sessionStorage.removeItem(SUBSCRIBERS_STATUS_STORAGE_KEY);
+      url.searchParams.delete("status");
+    }
+    window.history.replaceState(null, "", `${url.pathname}${url.search}`);
+  }, [search, statusFilter]);
 
   const fetchSubscribers = (p = page, s = search, st = statusFilter) => {
     setLoading(true);

@@ -6,14 +6,33 @@ import { CheckOutlined, CloseOutlined, DeleteOutlined, EyeOutlined } from "@ant-
 import { ThemeAdminCard } from "@/styles/Theme";
 import { formatDateTime } from "@/lib/formatDate";
 
+const BLOG_COMMENTS_STATUS_STORAGE_KEY = "admin-blog-comments-status-filter-v1";
+
 export default function AdminBlogCommentsPage() {
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const params = new URLSearchParams(window.location.search);
+    return params.get("status") || sessionStorage.getItem(BLOG_COMMENTS_STATUS_STORAGE_KEY) || "";
+  });
   const [viewItem, setViewItem] = useState(null);
   const [commentsEnabled, setCommentsEnabled] = useState(true);
   const [togglingEnabled, setTogglingEnabled] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (statusFilter) {
+      sessionStorage.setItem(BLOG_COMMENTS_STATUS_STORAGE_KEY, statusFilter);
+      url.searchParams.set("status", statusFilter);
+    } else {
+      sessionStorage.removeItem(BLOG_COMMENTS_STATUS_STORAGE_KEY);
+      url.searchParams.delete("status");
+    }
+    window.history.replaceState(null, "", `${url.pathname}${url.search}`);
+  }, [statusFilter]);
 
   const fetchComments = (p = page, st = statusFilter) => {
     const params = new URLSearchParams({ page: p, limit: 20 });

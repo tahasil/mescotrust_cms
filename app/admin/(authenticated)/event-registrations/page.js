@@ -35,13 +35,56 @@ const STATUS_COLORS = {
   cancelled: "default",
 };
 
+const EVENT_REG_SEARCH_STORAGE_KEY = "admin-event-reg-search-query-v1";
+const EVENT_REG_STATUS_STORAGE_KEY = "admin-event-reg-status-filter-v1";
+const EVENT_REG_EVENT_STORAGE_KEY = "admin-event-reg-event-filter-v1";
+
 export default function AdminEventRegistrationsPage() {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewItem, setViewItem] = useState(null);
-  const [statusFilter, setStatusFilter] = useState(null);
-  const [eventFilter, setEventFilter] = useState(null);
-  const [searchText, setSearchText] = useState("");
+  const [statusFilter, setStatusFilter] = useState(() => {
+    if (typeof window === "undefined") return null;
+    const params = new URLSearchParams(window.location.search);
+    return params.get("status") || sessionStorage.getItem(EVENT_REG_STATUS_STORAGE_KEY) || null;
+  });
+  const [eventFilter, setEventFilter] = useState(() => {
+    if (typeof window === "undefined") return null;
+    const params = new URLSearchParams(window.location.search);
+    return params.get("event") || sessionStorage.getItem(EVENT_REG_EVENT_STORAGE_KEY) || null;
+  });
+  const [searchText, setSearchText] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const params = new URLSearchParams(window.location.search);
+    return params.get("search") || sessionStorage.getItem(EVENT_REG_SEARCH_STORAGE_KEY) || "";
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (searchText.trim()) {
+      sessionStorage.setItem(EVENT_REG_SEARCH_STORAGE_KEY, searchText);
+      url.searchParams.set("search", searchText);
+    } else {
+      sessionStorage.removeItem(EVENT_REG_SEARCH_STORAGE_KEY);
+      url.searchParams.delete("search");
+    }
+    if (statusFilter) {
+      sessionStorage.setItem(EVENT_REG_STATUS_STORAGE_KEY, statusFilter);
+      url.searchParams.set("status", statusFilter);
+    } else {
+      sessionStorage.removeItem(EVENT_REG_STATUS_STORAGE_KEY);
+      url.searchParams.delete("status");
+    }
+    if (eventFilter) {
+      sessionStorage.setItem(EVENT_REG_EVENT_STORAGE_KEY, eventFilter);
+      url.searchParams.set("event", eventFilter);
+    } else {
+      sessionStorage.removeItem(EVENT_REG_EVENT_STORAGE_KEY);
+      url.searchParams.delete("event");
+    }
+    window.history.replaceState(null, "", `${url.pathname}${url.search}`);
+  }, [searchText, statusFilter, eventFilter]);
 
   const fetchList = () => {
     setLoading(true);

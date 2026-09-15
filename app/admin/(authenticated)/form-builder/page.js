@@ -19,6 +19,7 @@ const STATUS_COLORS = {
   published: "green",
   archived: "orange",
 };
+const FORMS_SEARCH_STORAGE_KEY = "admin-forms-search-query-v1";
 
 function getShortcodeSnippet(shortcode) {
   const value = String(shortcode || "").trim();
@@ -36,6 +37,39 @@ export default function FormBuilderListPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [createName, setCreateName] = useState("");
   const [creating, setCreating] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlSearch = urlParams.get("search") || urlParams.get("q");
+    const storedSearch = sessionStorage.getItem(FORMS_SEARCH_STORAGE_KEY);
+    const resolvedSearch = urlSearch ?? storedSearch ?? "";
+    if (resolvedSearch) {
+      setSearch(resolvedSearch);
+    }
+  }, []);
+
+  const handleSearchChange = (e) => {
+    const val = e.target.value;
+    setSearch(val);
+    if (typeof window !== "undefined") {
+      if (val) {
+        sessionStorage.setItem(FORMS_SEARCH_STORAGE_KEY, val);
+      } else {
+        sessionStorage.removeItem(FORMS_SEARCH_STORAGE_KEY);
+      }
+      const params = new URLSearchParams(window.location.search);
+      if (val) {
+        params.set("search", val);
+      } else {
+        params.delete("search");
+        params.delete("q");
+      }
+      const newSearch = params.toString();
+      const newUrl = `${window.location.pathname}${newSearch ? `?${newSearch}` : ""}`;
+      window.history.replaceState(null, "", newUrl);
+    }
+  };
 
   const fetchForms = useCallback(async (nextPage = page, nextSearch = search) => {
     setLoading(true);
@@ -119,26 +153,26 @@ export default function FormBuilderListPage() {
           const shortCodeValue = String(shortcode || "").trim();
           const snippet = getShortcodeSnippet(shortCodeValue);
           return (
-          <Space size={8}>
-            <Typography.Text code>{shortCodeValue}</Typography.Text>
-            <Button
-              type="text"
-              size="small"
-              icon={<CopyOutlined />}
-              disabled={!snippet}
-              aria-label="Copy shortcode"
-              title="Copy shortcode"
-              onClick={async () => {
-                try {
-                  await navigator.clipboard.writeText(snippet);
-                  message.success("Shortcode copied");
-                } catch {
-                  message.error("Copy failed");
-                }
-              }}
-            />
-          </Space>
-        );
+            <Space size={8}>
+              <Typography.Text code>{shortCodeValue}</Typography.Text>
+              <Button
+                type="text"
+                size="small"
+                icon={<CopyOutlined />}
+                disabled={!snippet}
+                aria-label="Copy shortcode"
+                title="Copy shortcode"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(snippet);
+                    message.success("Shortcode copied");
+                  } catch {
+                    message.error("Copy failed");
+                  }
+                }}
+              />
+            </Space>
+          );
         },
       },
       {
@@ -217,7 +251,7 @@ export default function FormBuilderListPage() {
             placeholder="Search by name/formId/shortcode"
             style={{ width: 280 }}
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={handleSearchChange}
           />
           <Button icon={<ReloadOutlined />} onClick={() => fetchForms(page, search)}>
             Refresh

@@ -17,6 +17,7 @@ const EXCLUDED_COMPONENT_IDS = new Set([
 ]);
 const COMPONENTS_LIST_CACHE_KEY = "admin-components-list-cache-v2";
 const COMPONENTS_LIST_CACHE_TTL_MS = 20_000;
+const COMPONENTS_SEARCH_STORAGE_KEY = "admin-components-search-query-v1";
 
 function deriveComponentId(displayName) {
   if (!displayName || typeof displayName !== "string") return "";
@@ -42,6 +43,39 @@ export default function AdminComponentsPage() {
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlSearch = urlParams.get("search") || urlParams.get("q");
+    const storedSearch = sessionStorage.getItem(COMPONENTS_SEARCH_STORAGE_KEY);
+    const resolvedSearch = urlSearch ?? storedSearch ?? "";
+    if (resolvedSearch) {
+      setSearchQuery(resolvedSearch);
+    }
+  }, []);
+
+  const handleSearchChange = (e) => {
+    const val = e.target.value;
+    setSearchQuery(val);
+    if (typeof window !== "undefined") {
+      if (val) {
+        sessionStorage.setItem(COMPONENTS_SEARCH_STORAGE_KEY, val);
+      } else {
+        sessionStorage.removeItem(COMPONENTS_SEARCH_STORAGE_KEY);
+      }
+      const params = new URLSearchParams(window.location.search);
+      if (val) {
+        params.set("search", val);
+      } else {
+        params.delete("search");
+        params.delete("q");
+      }
+      const newSearch = params.toString();
+      const newUrl = `${window.location.pathname}${newSearch ? `?${newSearch}` : ""}`;
+      window.history.replaceState(null, "", newUrl);
+    }
+  };
 
   const filteredList = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
@@ -226,7 +260,7 @@ export default function AdminComponentsPage() {
               prefix={<SearchOutlined style={{ color: "#bbb" }} />}
               placeholder="Search components..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchChange}
               allowClear
               style={{ width: 250 }}
             />
@@ -315,4 +349,3 @@ export default function AdminComponentsPage() {
     </>
   );
 }
-

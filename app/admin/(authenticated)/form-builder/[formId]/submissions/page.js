@@ -140,12 +140,79 @@ export default function FormSubmissionsPage() {
   });
   const [exportColumns, setExportColumns] = useState([]);
 
-  const [searchInput, setSearchInput] = useState("");
-  const [search, setSearch] = useState("");
-  const [isRead, setIsRead] = useState("all");
-  const [sort, setSort] = useState("createdAt_desc");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  const getStorageKey = (key) => `admin-form-submissions-${formId || "all"}-${key}-v1`;
+
+  const [searchInput, setSearchInput] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const p = new URLSearchParams(window.location.search);
+    return p.get("search") || (formId ? sessionStorage.getItem(`admin-form-submissions-${formId}-search-v1`) : "") || "";
+  });
+  const [search, setSearch] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const p = new URLSearchParams(window.location.search);
+    return p.get("search") || (formId ? sessionStorage.getItem(`admin-form-submissions-${formId}-search-v1`) : "") || "";
+  });
+  const [isRead, setIsRead] = useState(() => {
+    if (typeof window === "undefined") return "all";
+    const p = new URLSearchParams(window.location.search);
+    return p.get("isRead") || (formId ? sessionStorage.getItem(`admin-form-submissions-${formId}-isRead-v1`) : "") || "all";
+  });
+  const [sort, setSort] = useState(() => {
+    if (typeof window === "undefined") return "createdAt_desc";
+    const p = new URLSearchParams(window.location.search);
+    return p.get("sort") || (formId ? sessionStorage.getItem(`admin-form-submissions-${formId}-sort-v1`) : "") || "createdAt_desc";
+  });
+  const [dateFrom, setDateFrom] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const p = new URLSearchParams(window.location.search);
+    return p.get("dateFrom") || (formId ? sessionStorage.getItem(`admin-form-submissions-${formId}-dateFrom-v1`) : "") || "";
+  });
+  const [dateTo, setDateTo] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const p = new URLSearchParams(window.location.search);
+    return p.get("dateTo") || (formId ? sessionStorage.getItem(`admin-form-submissions-${formId}-dateTo-v1`) : "") || "";
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !formId) return;
+    const url = new URL(window.location.href);
+    if (search.trim()) {
+      sessionStorage.setItem(getStorageKey("search"), search);
+      url.searchParams.set("search", search);
+    } else {
+      sessionStorage.removeItem(getStorageKey("search"));
+      url.searchParams.delete("search");
+    }
+    if (isRead && isRead !== "all") {
+      sessionStorage.setItem(getStorageKey("isRead"), isRead);
+      url.searchParams.set("isRead", isRead);
+    } else {
+      sessionStorage.removeItem(getStorageKey("isRead"));
+      url.searchParams.delete("isRead");
+    }
+    if (sort && sort !== "createdAt_desc") {
+      sessionStorage.setItem(getStorageKey("sort"), sort);
+      url.searchParams.set("sort", sort);
+    } else {
+      sessionStorage.removeItem(getStorageKey("sort"));
+      url.searchParams.delete("sort");
+    }
+    if (dateFrom) {
+      sessionStorage.setItem(getStorageKey("dateFrom"), dateFrom);
+      url.searchParams.set("dateFrom", dateFrom);
+    } else {
+      sessionStorage.removeItem(getStorageKey("dateFrom"));
+      url.searchParams.delete("dateFrom");
+    }
+    if (dateTo) {
+      sessionStorage.setItem(getStorageKey("dateTo"), dateTo);
+      url.searchParams.set("dateTo", dateTo);
+    } else {
+      sessionStorage.removeItem(getStorageKey("dateTo"));
+      url.searchParams.delete("dateTo");
+    }
+    window.history.replaceState(null, "", `${url.pathname}${url.search}`);
+  }, [formId, search, isRead, sort, dateFrom, dateTo]);
 
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);

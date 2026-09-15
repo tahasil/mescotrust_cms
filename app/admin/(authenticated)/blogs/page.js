@@ -6,6 +6,10 @@ import { Table, Button, Space, message, Modal, Input, Select, Tag } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 
+const BLOGS_SEARCH_STORAGE_KEY = "admin-blogs-search-query-v1";
+const BLOGS_STATUS_STORAGE_KEY = "admin-blogs-status-filter-v1";
+const BLOGS_CATEGORY_STORAGE_KEY = "admin-blogs-category-filter-v1";
+
 export default function AdminBlogsPage() {
   const router = useRouter();
   const [list, setList] = useState([]);
@@ -14,6 +18,73 @@ export default function AdminBlogsPage() {
   const [filterStatus, setFilterStatus] = useState(null);
   const [filterCategory, setFilterCategory] = useState(null);
   const [searchText, setSearchText] = useState("");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlSearch = urlParams.get("search") || urlParams.get("q");
+    const storedSearch = sessionStorage.getItem(BLOGS_SEARCH_STORAGE_KEY);
+    const resolvedSearch = urlSearch ?? storedSearch ?? "";
+    if (resolvedSearch) {
+      setSearchText(resolvedSearch);
+    }
+
+    const urlStatus = urlParams.get("status");
+    const storedStatus = sessionStorage.getItem(BLOGS_STATUS_STORAGE_KEY);
+    const resolvedStatus = urlStatus ?? storedStatus ?? null;
+    if (resolvedStatus) {
+      setFilterStatus(resolvedStatus);
+    }
+
+    const urlCat = urlParams.get("category");
+    const storedCat = sessionStorage.getItem(BLOGS_CATEGORY_STORAGE_KEY);
+    const resolvedCat = urlCat ?? storedCat ?? null;
+    if (resolvedCat) {
+      setFilterCategory(resolvedCat);
+    }
+  }, []);
+
+  const updateUrlParams = (newSearch, newStatus, newCat) => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (newSearch) params.set("search", newSearch);
+    else { params.delete("search"); params.delete("q"); }
+    if (newStatus) params.set("status", newStatus);
+    else params.delete("status");
+    if (newCat) params.set("category", newCat);
+    else params.delete("category");
+    const qs = params.toString();
+    const newUrl = `${window.location.pathname}${qs ? `?${qs}` : ""}`;
+    window.history.replaceState(null, "", newUrl);
+  };
+
+  const handleSearchChange = (e) => {
+    const val = e.target.value;
+    setSearchText(val);
+    if (typeof window !== "undefined") {
+      if (val) sessionStorage.setItem(BLOGS_SEARCH_STORAGE_KEY, val);
+      else sessionStorage.removeItem(BLOGS_SEARCH_STORAGE_KEY);
+      updateUrlParams(val, filterStatus, filterCategory);
+    }
+  };
+
+  const handleStatusChange = (val) => {
+    setFilterStatus(val);
+    if (typeof window !== "undefined") {
+      if (val) sessionStorage.setItem(BLOGS_STATUS_STORAGE_KEY, val);
+      else sessionStorage.removeItem(BLOGS_STATUS_STORAGE_KEY);
+      updateUrlParams(searchText, val, filterCategory);
+    }
+  };
+
+  const handleCategoryChange = (val) => {
+    setFilterCategory(val);
+    if (typeof window !== "undefined") {
+      if (val) sessionStorage.setItem(BLOGS_CATEGORY_STORAGE_KEY, val);
+      else sessionStorage.removeItem(BLOGS_CATEGORY_STORAGE_KEY);
+      updateUrlParams(searchText, filterStatus, val);
+    }
+  };
 
   const fetchBlogs = async () => {
     const res = await fetch("/api/admin/blogs");
@@ -122,14 +193,14 @@ export default function AdminBlogsPage() {
             allowClear
             style={{ width: 220 }}
             value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
+            onChange={handleSearchChange}
           />
           <Select
             placeholder="Status"
             allowClear
             style={{ width: 120 }}
             value={filterStatus}
-            onChange={setFilterStatus}
+            onChange={handleStatusChange}
             options={[
               { value: "draft", label: "Draft" },
               { value: "published", label: "Published" },
@@ -140,7 +211,7 @@ export default function AdminBlogsPage() {
             allowClear
             style={{ width: 160 }}
             value={filterCategory}
-            onChange={setFilterCategory}
+            onChange={handleCategoryChange}
             options={categories.map((c) => ({ value: c._id, label: c.name }))}
           />
           <Button
