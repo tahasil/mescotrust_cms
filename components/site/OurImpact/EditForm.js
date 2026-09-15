@@ -2,6 +2,7 @@
 
 import {
   forwardRef,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useState,
@@ -274,8 +275,14 @@ function OurImpactEditForm(
     };
   }, [form, initialDataProp, isPageBlock, providedColors.length]);
 
-  const update = async () => {
-    const values = await form.validateFields();
+  const update = useCallback(async () => {
+    let values;
+    try {
+      values = await form.validateFields();
+    } catch {
+      values = form.getFieldsValue(true);
+    }
+    const rawItems = values.ourImpactItems ?? [];
     const payload = {
       ...values,
       ...getManageSectionPayload(PREFIX, values),
@@ -287,8 +294,8 @@ function OurImpactEditForm(
       ourImpactLinkUrl: text(values.ourImpactLinkUrl),
       ourImpactLinkTarget: normalizeTarget(values.ourImpactLinkTarget),
       ourImpactNumberLocale: text(values.ourImpactNumberLocale) || "en-IN",
-      ourImpactItems: Array.isArray(values.ourImpactItems)
-        ? values.ourImpactItems.map(normalizeItem)
+      ourImpactItems: Array.isArray(rawItems)
+        ? rawItems.map(normalizeItem)
         : [],
     };
 
@@ -314,14 +321,9 @@ function OurImpactEditForm(
     } finally {
       setSaving(false);
     }
-  };
+  }, [form, isPageBlock, onSaveToPage, onSuccess]);
 
-  useImperativeHandle(ref, () => ({ update }), [
-    form,
-    isPageBlock,
-    onSaveToPage,
-    onSuccess,
-  ]);
+  useImperativeHandle(ref, () => ({ update }), [update]);
 
   if (loading || saving) {
     return (
@@ -424,7 +426,6 @@ function OurImpactEditForm(
                             {...restField}
                             name={[name, "number"]}
                             label="Number"
-                            rules={[{ required: true, message: "Number is required" }]}
                           >
                             <InputNumber min={0} precision={0} style={{ width: "100%" }} />
                           </Form.Item>
@@ -434,7 +435,6 @@ function OurImpactEditForm(
                             {...restField}
                             name={[name, "label"]}
                             label="Label"
-                            rules={[{ required: true, message: "Label is required" }]}
                           >
                             <Input.TextArea rows={2} />
                           </Form.Item>

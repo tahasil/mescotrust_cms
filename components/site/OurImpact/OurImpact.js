@@ -359,8 +359,7 @@ export default function OurImpact(props) {
   const sectionBgType = text(props?.ourImpactSectionBgType || "default");
   const sectionBgImage = text(props?.ourImpactSectionBgImage);
   const sectionBgColorKey = text(props?.ourImpactSectionBgColorKey);
-  const sectionBgClassName =
-    sectionBgType === "default" ? "defaultBackground" : undefined;
+  const sectionBgClassName = undefined;
   const defaultBackground = color(
     props?.ourImpactBandBgColorKey,
     getColor("dark"),
@@ -369,18 +368,29 @@ export default function OurImpact(props) {
     props?.ourImpactGlowColorKey,
     "rgba(224, 60, 51, 0.14)",
   );
+  const sectionBgStyleBase =
+    sectionBgType === "image" && sectionBgImage
+      ? {
+          backgroundImage: `url(${sectionBgImage})`,
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          backgroundSize: "cover",
+        }
+      : sectionBgType === "color" && sectionBgColorKey
+        ? {
+            backgroundColor: getColor(sectionBgColorKey),
+            backgroundImage: "none",
+          }
+        : {
+            backgroundColor: defaultBackground,
+            backgroundImage: `radial-gradient(46% 60% at 90% 0%, ${glowColor}, transparent 70%)`,
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+          };
+
   const sectionBgStyle = {
-    backgroundColor:
-      sectionBgType === "color" && sectionBgColorKey
-        ? getColor(sectionBgColorKey)
-        : defaultBackground,
-    backgroundImage:
-      sectionBgType === "image" && sectionBgImage
-        ? `url(${sectionBgImage})`
-        : `radial-gradient(46% 60% at 90% 0%, ${glowColor}, transparent 70%)`,
-    backgroundPosition: "center",
-    backgroundRepeat: "no-repeat",
-    backgroundSize: "cover",
+    ...sectionBgStyleBase,
     ...Object.fromEntries(
       [
         ["paddingTop", props?.ourImpactSectionPaddingTop],
@@ -400,9 +410,8 @@ export default function OurImpact(props) {
   const pageContainerBgColorKey = text(
     props?.ourImpactPageContainerBgColorKey,
   );
-  const pageContainerBgStyle = {
-    
-    ...(pageContainerBgType === "image" && pageContainerBgImage
+  const pageContainerBgStyleBase =
+    pageContainerBgType === "image" && pageContainerBgImage
       ? {
           backgroundImage: `url(${pageContainerBgImage})`,
           backgroundPosition: "center",
@@ -410,8 +419,14 @@ export default function OurImpact(props) {
           backgroundSize: "cover",
         }
       : pageContainerBgType === "color" && pageContainerBgColorKey
-        ? { backgroundColor: getColor(pageContainerBgColorKey) }
-        : {}),
+        ? {
+            backgroundColor: getColor(pageContainerBgColorKey),
+            backgroundImage: "none",
+          }
+        : undefined;
+
+  const pageContainerBgStyle = {
+    ...(pageContainerBgStyleBase || {}),
     ...Object.fromEntries(
       [
         ["paddingTop", props?.ourImpactPageContainerPaddingTop],
@@ -441,8 +456,15 @@ export default function OurImpact(props) {
   const linkTarget = normalizeTarget(props?.ourImpactLinkTarget);
 
   return (
-    <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
-      <PageContainer $managedStyle={pageContainerBgStyle}>
+    <FullWidthBackground
+      className={sectionBgClassName}
+      style={sectionBgStyle}
+      $managedStyle={sectionBgStyle}
+    >
+      <PageContainer
+        style={pageContainerBgStyle}
+        $managedStyle={pageContainerBgStyle}
+      >
         <Ledger
           ref={rootRef}
           className={isEditorPreview ? "isEditorPreview" : undefined}
