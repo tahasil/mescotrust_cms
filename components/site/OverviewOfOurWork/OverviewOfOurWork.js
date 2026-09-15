@@ -192,34 +192,12 @@ const WorksWrapper = styled.div`
     text-align: center;
   }
 
-  @media (max-width: 1023px) {
-    .worksPin {
-      overflow: visible;
-    }
-
-    .worksTrack {
-      width: 100%;
-      max-width: 100%;
-      margin-left: 0;
-      padding-inline: 0;
-      overflow-x: auto;
-      padding-bottom: 10px;
-      scroll-snap-type: x mandatory;
-      overscroll-behavior-inline: contain;
-      scrollbar-width: none;
-      will-change: auto;
-    }
-
-    .worksTrack::-webkit-scrollbar {
-      display: none;
-    }
-
-    .workCard {
-      scroll-snap-align: start;
-    }
-  }
-
   @media (max-width: 767px) {
+    .worksHead {
+      padding-top: max(0px, calc(var(--appearance-header-offset, 85px) - 30px));
+      margin-bottom: clamp(20px, 3vh, 32px);
+    }
+
     .workCard {
       width: 84vw;
       aspect-ratio: 4 / 4.4;
@@ -368,12 +346,11 @@ export default function OverviewOfOurWork(props) {
       initialized = true;
       media = gsap.matchMedia();
       media.add(
-        {
-          desktop: "(min-width: 1024px)",
-          reduceMotion: "(prefers-reduced-motion: reduce)",
-        },
-        (context) => {
-          if (!context.conditions.desktop || context.conditions.reduceMotion) {
+        "(min-width: 0px)",
+        () => {
+          if (
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ) {
             return;
           }
 
