@@ -2,9 +2,22 @@
 
 import { useState, useEffect } from "react";
 import { Table, Button, Space, Tag, Modal, Descriptions, message } from "antd";
-import { CheckOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons";
+import { CheckOutlined, DeleteOutlined, EyeOutlined, ReloadOutlined } from "@ant-design/icons";
 import { formatDateTime } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
+import AdminExportDropdown from "@/components/admin/AdminExportDropdown";
+
+const VOLUNTEER_EXPORT_COLUMNS = [
+  { key: "submitted_at", label: "Submitted At" },
+  { key: "status", label: "Status" },
+  { key: "name", label: "Name" },
+  { key: "email", label: "Email" },
+  { key: "phone", label: "Phone" },
+  { key: "subject", label: "Subject" },
+  { key: "message", label: "Message" },
+  { key: "page", label: "Page" },
+  { key: "source", label: "Source" },
+];
 
 export default function AdminVolunteerFormPage() {
   const [list, setList] = useState([]);
@@ -61,7 +74,22 @@ export default function AdminVolunteerFormPage() {
   };
 
   return (
-    <ThemeAdminCard title="Volunteer form submissions">
+    <ThemeAdminCard
+      title="Volunteer form submissions"
+      extra={
+        <Space wrap>
+          <AdminExportDropdown
+            exportUrl="/api/admin/contacts/export?submissionType=volunteer"
+            filters={{}}
+            availableColumns={VOLUNTEER_EXPORT_COLUMNS}
+            defaultFilename="volunteer-submissions"
+          />
+          <Button icon={<ReloadOutlined />} onClick={fetchList}>
+            Refresh
+          </Button>
+        </Space>
+      }
+    >
       <Table
         rowKey="_id"
         loading={loading}

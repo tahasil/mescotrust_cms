@@ -2,12 +2,21 @@
 
 import { useState, useEffect } from "react";
 import { Table, Button, Space, Tag, Input, Select, Modal, message } from "antd";
-import { DeleteOutlined, SearchOutlined, MailOutlined } from "@ant-design/icons";
+import { DeleteOutlined, SearchOutlined, MailOutlined, ReloadOutlined } from "@ant-design/icons";
 import { formatDate } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
+import AdminExportDropdown from "@/components/admin/AdminExportDropdown";
 
 const SUBSCRIBERS_SEARCH_STORAGE_KEY = "admin-subscribers-search-query-v1";
 const SUBSCRIBERS_STATUS_STORAGE_KEY = "admin-subscribers-status-filter-v1";
+
+const SUBSCRIBER_EXPORT_COLUMNS = [
+  { key: "email", label: "Email" },
+  { key: "status", label: "Status" },
+  { key: "source", label: "Source" },
+  { key: "subscribed_at", label: "Subscribed At" },
+  { key: "updated_at", label: "Updated At" },
+];
 
 export default function AdminSubscribersPage() {
   const [items, setItems] = useState([]);
@@ -87,7 +96,7 @@ export default function AdminSubscribersPage() {
     <ThemeAdminCard
       title="Subscribers"
       extra={
-        <Space>
+        <Space wrap>
           <Select
             placeholder="All status"
             allowClear
@@ -107,6 +116,15 @@ export default function AdminSubscribersPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          <AdminExportDropdown
+            exportUrl="/api/admin/subscribers/export"
+            filters={{ search, status: statusFilter }}
+            availableColumns={SUBSCRIBER_EXPORT_COLUMNS}
+            defaultFilename="subscribers-export"
+          />
+          <Button icon={<ReloadOutlined />} onClick={() => fetchSubscribers(page, search, statusFilter)}>
+            Refresh
+          </Button>
         </Space>
       }
     >

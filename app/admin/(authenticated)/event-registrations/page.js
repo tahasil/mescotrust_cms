@@ -16,10 +16,12 @@ import {
   CheckOutlined,
   DeleteOutlined,
   EyeOutlined,
+  ReloadOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
 import { formatDateTime } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
+import AdminExportDropdown from "@/components/admin/AdminExportDropdown";
 
 const STATUS_OPTIONS = [
   { value: "new", label: "New" },
@@ -38,6 +40,22 @@ const STATUS_COLORS = {
 const EVENT_REG_SEARCH_STORAGE_KEY = "admin-event-reg-search-query-v1";
 const EVENT_REG_STATUS_STORAGE_KEY = "admin-event-reg-status-filter-v1";
 const EVENT_REG_EVENT_STORAGE_KEY = "admin-event-reg-event-filter-v1";
+
+const EVENT_REG_EXPORT_COLUMNS = [
+  { key: "submitted_at", label: "Submitted At" },
+  { key: "event_title", label: "Event Title" },
+  { key: "event_date", label: "Event Date" },
+  { key: "name", label: "Applicant Name" },
+  { key: "email", label: "Email" },
+  { key: "phone", label: "Phone" },
+  { key: "school", label: "School / Institution" },
+  { key: "class_or_year", label: "Class / Year" },
+  { key: "message", label: "Message" },
+  { key: "status", label: "Status" },
+  { key: "read_status", label: "Read Status" },
+  { key: "page", label: "Page" },
+  { key: "source", label: "Source" },
+];
 
 export default function AdminEventRegistrationsPage() {
   const [list, setList] = useState([]);
@@ -180,7 +198,7 @@ export default function AdminEventRegistrationsPage() {
     <ThemeAdminCard
       title="Registered Applicants"
       extra={
-        <Space>
+        <Space wrap>
           <Input
             prefix={<SearchOutlined />}
             placeholder="Search name, email, event"
@@ -205,6 +223,15 @@ export default function AdminEventRegistrationsPage() {
             onChange={setEventFilter}
             options={eventOptions}
           />
+          <AdminExportDropdown
+            exportUrl="/api/admin/event-registrations/export"
+            filters={{ search: searchText, status: statusFilter, event: eventFilter }}
+            availableColumns={EVENT_REG_EXPORT_COLUMNS}
+            defaultFilename="event-registrations-export"
+          />
+          <Button icon={<ReloadOutlined />} onClick={fetchList}>
+            Refresh
+          </Button>
         </Space>
       }
     >

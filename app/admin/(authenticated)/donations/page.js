@@ -5,7 +5,6 @@ import {
   Button,
   DatePicker,
   Descriptions,
-  Dropdown,
   Input,
   Modal,
   Popconfirm,
@@ -18,16 +17,13 @@ import {
 } from "antd";
 import {
   DeleteOutlined,
-  DownloadOutlined,
-  DownOutlined,
   EyeOutlined,
-  FileExcelOutlined,
-  FilePdfOutlined,
-  FileTextOutlined,
+  ReloadOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
 import { formatDateTime } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
+import AdminExportDropdown from "@/components/admin/AdminExportDropdown";
 
 const STATUS_COLORS = {
   pending: "orange",
@@ -36,6 +32,38 @@ const STATUS_COLORS = {
   cancelled: "default",
   aborted: "default",
 };
+
+const DONATION_EXPORT_COLUMNS = [
+  { key: "createdAt", label: "Submission Date & Time" },
+  { key: "donor_name", label: "Donor Name" },
+  { key: "email", label: "Email" },
+  { key: "mobile", label: "Mobile" },
+  { key: "pan", label: "PAN" },
+  { key: "address", label: "Address" },
+  { key: "city", label: "City" },
+  { key: "state", label: "State" },
+  { key: "country", label: "Country" },
+  { key: "pincode", label: "Pincode" },
+  { key: "purpose", label: "Donation Purpose" },
+  { key: "purposeId", label: "Purpose ID" },
+  { key: "amount", label: "Donation Amount" },
+  { key: "currency", label: "Currency" },
+  { key: "status", label: "Payment Status" },
+  { key: "zakat", label: "Zakat" },
+  { key: "interestMoney", label: "Interest Money" },
+  { key: "studentsCount", label: "Student Count" },
+  { key: "donorType", label: "Donor Type" },
+  { key: "orderId", label: "Order ID" },
+  { key: "transactionId", label: "Transaction ID" },
+  { key: "paymentId", label: "Payment ID" },
+  { key: "trackingId", label: "Tracking ID" },
+  { key: "bankRefNo", label: "Bank Reference" },
+  { key: "paymentMode", label: "Payment Mode" },
+  { key: "orderStatus", label: "Gateway Status" },
+  { key: "verificationStatus", label: "Verification Status" },
+  { key: "completedAt", label: "Completed Date & Time" },
+  { key: "note", label: "Note" },
+];
 
 function formatStatus(status) {
   if (["aborted", "cancelled"].includes(String(status || "").toLowerCase())) {
@@ -99,7 +127,6 @@ export default function AdminDonationsPage() {
   const [dateRange, setDateRange] = useState(null);
   const [viewItem, setViewItem] = useState(null);
   const [deletingId, setDeletingId] = useState("");
-  const [exportingFormat, setExportingFormat] = useState("");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -149,56 +176,6 @@ export default function AdminDonationsPage() {
       .finally(() => setLoading(false));
   };
 
-  const exportDonations = async (format) => {
-    if (exportingFormat) return;
-    setExportingFormat(format);
-    try {
-      const params = buildDonationQueryParams({
-        search,
-        status: statusFilter,
-        dateRange,
-        includePagination: false,
-      });
-      params.set("format", format);
-      const response = await fetch(`/api/admin/donations/export?${params}`, {
-        cache: "no-store",
-      });
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error?.error || "Failed to export donations");
-      }
-
-      const blob = await response.blob();
-      const disposition = response.headers.get("content-disposition") || "";
-      const filenameMatch = disposition.match(/filename="?([^";]+)"?/i);
-      const filename =
-        filenameMatch?.[1] ||
-        `donate-submissions-${new Date().toISOString().slice(0, 10)}.${format}`;
-      const downloadUrl = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = downloadUrl;
-      anchor.download = filename;
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
-      message.success(`${format.toUpperCase()} export downloaded`);
-    } catch (error) {
-      message.error(error.message || "Failed to export donations");
-    } finally {
-      setExportingFormat("");
-    }
-  };
-
-  const exportMenu = {
-    items: [
-      { key: "csv", icon: <FileTextOutlined />, label: "CSV" },
-      { key: "xlsx", icon: <FileExcelOutlined />, label: "Excel (.xlsx)" },
-      { key: "pdf", icon: <FilePdfOutlined />, label: "PDF" },
-    ],
-    onClick: ({ key }) => exportDonations(key),
-  };
-
   useEffect(() => {
     fetchDonations(1, search, statusFilter, dateRange);
     setPage(1);
@@ -229,104 +206,104 @@ export default function AdminDonationsPage() {
 
   const columns = [
     {
-        title: "Submission Date & Time",
-        dataIndex: "createdAt",
-        key: "createdAt",
-        width: 190,
-        render: (value) => formatDateTime(value),
+      title: "Submission Date & Time",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      width: 190,
+      render: (value) => formatDateTime(value),
     },
     {
-        title: "Donor Information",
-        key: "donor",
-        width: 260,
-        render: (_, row) => (
-          <div>
-            <div style={{ fontWeight: 600 }}>{renderMaybeText(row?.donor?.name)}</div>
-            <div style={{ fontSize: 12, color: "#777" }}>{renderMaybeText(row?.donor?.email)}</div>
-            <div style={{ fontSize: 12, color: "#777" }}>{renderMaybeText(row?.donor?.mobile)}</div>
-          </div>
-        ),
+      title: "Donor Information",
+      key: "donor",
+      width: 260,
+      render: (_, row) => (
+        <div>
+          <div style={{ fontWeight: 600 }}>{renderMaybeText(row?.donor?.name)}</div>
+          <div style={{ fontSize: 12, color: "#777" }}>{renderMaybeText(row?.donor?.email)}</div>
+          <div style={{ fontSize: 12, color: "#777" }}>{renderMaybeText(row?.donor?.mobile)}</div>
+        </div>
+      ),
     },
     {
-        title: "Donation Purpose",
-        key: "purpose",
-        width: 220,
-        render: (_, row) => (
-          <div>
-            <div>{renderMaybeText(row?.purpose)}</div>
-            {row?.purposeId ? (
-              <div style={{ fontSize: 11, color: "#888" }}>ID: {row.purposeId}</div>
-            ) : null}
-          </div>
-        ),
+      title: "Donation Purpose",
+      key: "purpose",
+      width: 220,
+      render: (_, row) => (
+        <div>
+          <div>{renderMaybeText(row?.purpose)}</div>
+          {row?.purposeId ? (
+            <div style={{ fontSize: 11, color: "#888" }}>ID: {row.purposeId}</div>
+          ) : null}
+        </div>
+      ),
     },
     {
-        title: "Donation Amount",
-        dataIndex: "amount",
-        key: "amount",
-        width: 140,
-        render: (amount) => formatInr(amount),
+      title: "Donation Amount",
+      dataIndex: "amount",
+      key: "amount",
+      width: 140,
+      render: (amount) => formatInr(amount),
     },
     {
-        title: "Payment Status",
-        dataIndex: "status",
-        key: "status",
-        width: 130,
-        render: (status) => (
-          <Tag color={STATUS_COLORS[status] || "default"}>
-            {formatStatus(status)}
-          </Tag>
-        ),
+      title: "Payment Status",
+      dataIndex: "status",
+      key: "status",
+      width: 130,
+      render: (status) => (
+        <Tag color={STATUS_COLORS[status] || "default"}>
+          {formatStatus(status)}
+        </Tag>
+      ),
     },
     {
-        title: "Transaction Details",
-        key: "transaction",
-        width: 210,
-        render: (_, row) => (
-          <div style={{ fontSize: 12 }}>
-            <div>Order: {renderMaybeText(row?.orderId)}</div>
-            <div>Transaction: {renderMaybeText(row?.payment?.transactionId)}</div>
-            <div>Tracking: {renderMaybeText(row?.payment?.trackingId)}</div>
-            <div>Bank Ref: {renderMaybeText(row?.payment?.bankRefNo)}</div>
-          </div>
-        ),
+      title: "Transaction Details",
+      key: "transaction",
+      width: 210,
+      render: (_, row) => (
+        <div style={{ fontSize: 12 }}>
+          <div>Order: {renderMaybeText(row?.orderId)}</div>
+          <div>Transaction: {renderMaybeText(row?.payment?.transactionId)}</div>
+          <div>Tracking: {renderMaybeText(row?.payment?.trackingId)}</div>
+          <div>Bank Ref: {renderMaybeText(row?.payment?.bankRefNo)}</div>
+        </div>
+      ),
     },
     {
-        title: "Actions",
-        key: "actions",
-        width: 110,
-        fixed: "right",
-        render: (_, record) => (
-          <Space size={4}>
-            <Tooltip title="View donation">
+      title: "Actions",
+      key: "actions",
+      width: 110,
+      fixed: "right",
+      render: (_, record) => (
+        <Space size={4}>
+          <Tooltip title="View donation">
+            <Button
+              type="text"
+              size="small"
+              aria-label="View donation"
+              icon={<EyeOutlined />}
+              onClick={() => setViewItem(record)}
+            />
+          </Tooltip>
+          <Popconfirm
+            title="Are you sure you want to delete this donation submission?"
+            okText="Delete"
+            okButtonProps={{ danger: true }}
+            cancelText="Cancel"
+            onConfirm={() => deleteDonation(record)}
+          >
+            <Tooltip title="Delete donation">
               <Button
+                danger
                 type="text"
                 size="small"
-                aria-label="View donation"
-                icon={<EyeOutlined />}
-                onClick={() => setViewItem(record)}
+                aria-label="Delete donation"
+                loading={deletingId === record._id}
+                icon={<DeleteOutlined />}
               />
             </Tooltip>
-            <Popconfirm
-              title="Are you sure you want to delete this donation submission?"
-              okText="Delete"
-              okButtonProps={{ danger: true }}
-              cancelText="Cancel"
-              onConfirm={() => deleteDonation(record)}
-            >
-              <Tooltip title="Delete donation">
-                <Button
-                  danger
-                  type="text"
-                  size="small"
-                  aria-label="Delete donation"
-                  loading={deletingId === record._id}
-                  icon={<DeleteOutlined />}
-                />
-              </Tooltip>
-            </Popconfirm>
-          </Space>
-        ),
+          </Popconfirm>
+        </Space>
+      ),
     },
   ];
 
@@ -365,19 +342,23 @@ export default function AdminDonationsPage() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
-          <Dropdown
-            menu={exportMenu}
-            trigger={["click"]}
-            placement="bottomRight"
-            disabled={Boolean(exportingFormat)}
+          <AdminExportDropdown
+            exportUrl="/api/admin/donations/export"
+            filters={{
+              search,
+              status: statusFilter,
+              dateFrom: dateRange?.[0] ? dateRange[0].startOf("day").toISOString() : "",
+              dateTo: dateRange?.[1] ? dateRange[1].endOf("day").toISOString() : "",
+            }}
+            availableColumns={DONATION_EXPORT_COLUMNS}
+            defaultFilename="donations-export"
+          />
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={() => fetchDonations(page, search, statusFilter, dateRange)}
           >
-            <Button
-              icon={<DownloadOutlined />}
-              loading={Boolean(exportingFormat)}
-            >
-              Export <DownOutlined style={{ fontSize: 10 }} />
-            </Button>
-          </Dropdown>
+            Refresh
+          </Button>
         </Space>
       }
     >
@@ -408,134 +389,49 @@ export default function AdminDonationsPage() {
         onCancel={() => setViewItem(null)}
         footer={null}
         title="Donation Details"
-        width={860}
-        styles={{ body: { maxHeight: "70vh", overflowY: "auto" } }}
+        width={760}
       >
         {viewItem ? (
-          <Descriptions column={{ xs: 1, sm: 1, md: 2 }} bordered size="small">
+          <Descriptions column={2} bordered size="small">
             <Descriptions.Item label="Submission Date & Time" span={2}>
               {formatDateTime(viewItem.createdAt)}
             </Descriptions.Item>
-            <Descriptions.Item label="Order ID">{renderMaybeText(viewItem.orderId)}</Descriptions.Item>
-            <Descriptions.Item label="Status">
+            <Descriptions.Item label="Donor Name">{renderMaybeText(viewItem.donor?.name)}</Descriptions.Item>
+            <Descriptions.Item label="Email">{renderMaybeText(viewItem.donor?.email)}</Descriptions.Item>
+            <Descriptions.Item label="Mobile">{renderMaybeText(viewItem.donor?.mobile)}</Descriptions.Item>
+            <Descriptions.Item label="PAN">{renderMaybeText(viewItem.donor?.pan)}</Descriptions.Item>
+            <Descriptions.Item label="Address" span={2}>{renderMaybeText(viewItem.donor?.address)}</Descriptions.Item>
+            <Descriptions.Item label="City">{renderMaybeText(viewItem.donor?.city)}</Descriptions.Item>
+            <Descriptions.Item label="State">{renderMaybeText(viewItem.donor?.state)}</Descriptions.Item>
+            <Descriptions.Item label="Country">{renderMaybeText(viewItem.donor?.country)}</Descriptions.Item>
+            <Descriptions.Item label="Pincode">{renderMaybeText(viewItem.donor?.pincode)}</Descriptions.Item>
+            <Descriptions.Item label="Purpose">{renderMaybeText(viewItem.purpose)}</Descriptions.Item>
+            <Descriptions.Item label="Purpose ID">{renderMaybeText(viewItem.purposeId)}</Descriptions.Item>
+            <Descriptions.Item label="Amount">{formatInr(viewItem.amount)}</Descriptions.Item>
+            <Descriptions.Item label="Payment Status">
               <Tag color={STATUS_COLORS[viewItem.status] || "default"}>
                 {formatStatus(viewItem.status)}
               </Tag>
             </Descriptions.Item>
-            <Descriptions.Item label="Purpose">{renderMaybeText(viewItem.purpose)}</Descriptions.Item>
-            <Descriptions.Item label="Purpose ID">{renderMaybeText(viewItem.purposeId)}</Descriptions.Item>
-            <Descriptions.Item label="Amount">{formatInr(viewItem.amount)}</Descriptions.Item>
-            <Descriptions.Item label="Currency">{renderMaybeText(viewItem.currency || "INR")}</Descriptions.Item>
             <Descriptions.Item label="Zakat">{renderMaybeText(viewItem.zakat)}</Descriptions.Item>
-            <Descriptions.Item label="Interest Money">
-              {renderMaybeText(viewItem.interestMoney)}
+            <Descriptions.Item label="Interest Money">{renderMaybeText(viewItem.interestMoney)}</Descriptions.Item>
+            <Descriptions.Item label="Student Count">{renderMaybeText(viewItem.studentsCount)}</Descriptions.Item>
+            <Descriptions.Item label="Donor Type">{renderMaybeText(viewItem.donorType)}</Descriptions.Item>
+            <Descriptions.Item label="Order ID">{renderMaybeText(viewItem.orderId)}</Descriptions.Item>
+            <Descriptions.Item label="Transaction ID">{renderMaybeText(viewItem.payment?.transactionId)}</Descriptions.Item>
+            <Descriptions.Item label="Payment ID">{renderMaybeText(viewItem.payment?.paymentId)}</Descriptions.Item>
+            <Descriptions.Item label="Tracking ID">{renderMaybeText(viewItem.payment?.trackingId)}</Descriptions.Item>
+            <Descriptions.Item label="Bank Reference">{renderMaybeText(viewItem.payment?.bankRefNo)}</Descriptions.Item>
+            <Descriptions.Item label="Payment Mode">{renderMaybeText(viewItem.payment?.paymentMode)}</Descriptions.Item>
+            <Descriptions.Item label="Gateway Status">{renderMaybeText(viewItem.payment?.orderStatus)}</Descriptions.Item>
+            <Descriptions.Item label="Verification Status">{renderMaybeText(viewItem.payment?.verificationStatus)}</Descriptions.Item>
+            <Descriptions.Item label="Completed At" span={2}>
+              {viewItem.completedAt ? formatDateTime(viewItem.completedAt) : "—"}
             </Descriptions.Item>
-            <Descriptions.Item label="Students Count">
-              {renderMaybeText(viewItem.studentsCount)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Terms Accepted">
-              {viewItem.termsAccepted ? "Yes" : "No"}
-            </Descriptions.Item>
-
-            <Descriptions.Item label="Donor Name">{renderMaybeText(viewItem?.donor?.name)}</Descriptions.Item>
-            <Descriptions.Item label="Email">{renderMaybeText(viewItem?.donor?.email)}</Descriptions.Item>
-            <Descriptions.Item label="Mobile">{renderMaybeText(viewItem?.donor?.mobile)}</Descriptions.Item>
-            <Descriptions.Item label="PAN">{renderMaybeText(viewItem?.donor?.pan)}</Descriptions.Item>
-            <Descriptions.Item label="Address">{renderMaybeText(viewItem?.donor?.address)}</Descriptions.Item>
-            <Descriptions.Item label="City">{renderMaybeText(viewItem?.donor?.city)}</Descriptions.Item>
-            <Descriptions.Item label="State">{renderMaybeText(viewItem?.donor?.state)}</Descriptions.Item>
-            <Descriptions.Item label="Country">{renderMaybeText(viewItem?.donor?.country)}</Descriptions.Item>
-            <Descriptions.Item label="Pincode">{renderMaybeText(viewItem?.donor?.pincode)}</Descriptions.Item>
-
-            <Descriptions.Item label="Donor Type">
-              {renderMaybeText(viewItem?.donorType)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Linked Donor Submission">
-              {renderMaybeText(viewItem?.lookup?.matchedSubmissionId)}
-            </Descriptions.Item>
-
-            <Descriptions.Item label="Gateway">
-              {renderMaybeText(viewItem?.payment?.gateway)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Gateway Order Status">
-              {renderMaybeText(viewItem?.payment?.orderStatus)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Transaction ID">
-              {renderMaybeText(viewItem?.payment?.transactionId)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Payment ID">
-              {renderMaybeText(viewItem?.payment?.paymentId)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Tracking ID">
-              {renderMaybeText(viewItem?.payment?.trackingId)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Bank Reference">
-              {renderMaybeText(viewItem?.payment?.bankRefNo)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Payment Mode">
-              {renderMaybeText(viewItem?.payment?.paymentMode)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Card Name">
-              {renderMaybeText(viewItem?.payment?.cardName)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Status Code">
-              {renderMaybeText(viewItem?.payment?.statusCode)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Status Message">
-              {renderMaybeText(viewItem?.payment?.statusMsg)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Failure Message">
-              {renderMaybeText(viewItem?.payment?.failureMessage)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Response Code">
-              {renderMaybeText(viewItem?.payment?.responseCode)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Gateway Amount">
-              {viewItem?.payment?.amount == null
-                ? "—"
-                : formatInr(viewItem.payment.amount)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Gateway Currency">
-              {renderMaybeText(viewItem?.payment?.currency)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Verification">
-              {renderMaybeText(viewItem?.payment?.verificationStatus)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Verification Details">
-              {renderMaybeText(viewItem?.payment?.verificationMessage)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Payment Completed">
-              {viewItem?.completedAt ? formatDateTime(viewItem.completedAt) : "—"}
-            </Descriptions.Item>
-            <Descriptions.Item label="Callback Received">
-              {viewItem?.payment?.callbackReceivedAt
-                ? formatDateTime(viewItem.payment.callbackReceivedAt)
-                : "—"}
-            </Descriptions.Item>
-
-            <Descriptions.Item label="Additional Fields" span={2}>
-              {viewItem?.additionalFields && Object.keys(viewItem.additionalFields).length > 0 ? (
-                <pre
-                  style={{
-                    margin: 0,
-                    whiteSpace: "pre-wrap",
-                    wordBreak: "break-word",
-                    fontSize: 12,
-                  }}
-                >
-                  {JSON.stringify(viewItem.additionalFields, null, 2)}
-                </pre>
-              ) : (
-                "—"
-              )}
-            </Descriptions.Item>
-            <Descriptions.Item label="Note" span={2}>
-              {renderMaybeText(viewItem.note)}
-            </Descriptions.Item>
+            <Descriptions.Item label="Note" span={2}>{renderMaybeText(viewItem.note)}</Descriptions.Item>
           </Descriptions>
         ) : null}
       </Modal>
     </ThemeAdminCard>
   );
 }
-

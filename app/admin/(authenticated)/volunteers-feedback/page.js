@@ -2,13 +2,25 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Button, Descriptions, Input, Modal, Select, Space, Table, Tag, message } from "antd";
-import { CheckOutlined, DeleteOutlined, EyeOutlined, SearchOutlined } from "@ant-design/icons";
+import { CheckOutlined, DeleteOutlined, EyeOutlined, ReloadOutlined, SearchOutlined } from "@ant-design/icons";
 import { formatDateTime } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
+import AdminExportDropdown from "@/components/admin/AdminExportDropdown";
 
 const VOLUNTEERS_FEEDBACK_SEARCH_STORAGE_KEY = "admin-volunteers-feedback-search-query-v1";
 const VOLUNTEERS_FEEDBACK_STATUS_STORAGE_KEY = "admin-volunteers-feedback-status-filter-v1";
 const VOLUNTEERS_FEEDBACK_SOURCE_STORAGE_KEY = "admin-volunteers-feedback-source-filter-v1";
+
+const FEEDBACK_EXPORT_COLUMNS = [
+  { key: "submitted_at", label: "Submitted At" },
+  { key: "name", label: "Name" },
+  { key: "email", label: "Email" },
+  { key: "phone", label: "Phone" },
+  { key: "message", label: "Message" },
+  { key: "source", label: "Source" },
+  { key: "page", label: "Page" },
+  { key: "status", label: "Status" },
+];
 
 export default function AdminVolunteersFeedbackPage() {
   const [items, setItems] = useState([]);
@@ -170,10 +182,22 @@ export default function AdminVolunteersFeedbackPage() {
             prefix={<SearchOutlined />}
             placeholder="Search name/email/phone/message"
             allowClear
-            style={{ width: 280 }}
+            style={{ width: 260 }}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          <AdminExportDropdown
+            exportUrl="/api/admin/volunteers-feedback/export"
+            filters={{ search, status: statusFilter, source: sourceFilter }}
+            availableColumns={FEEDBACK_EXPORT_COLUMNS}
+            defaultFilename="volunteers-feedback-export"
+          />
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={() => fetchList(page, search, statusFilter, sourceFilter)}
+          >
+            Refresh
+          </Button>
         </Space>
       }
     >
