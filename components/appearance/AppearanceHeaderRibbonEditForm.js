@@ -5,12 +5,16 @@ import {
   Collapse,
   Form,
   Input,
+  InputNumber,
+  Row,
+  Col,
   Select,
   Spin,
   message,
 } from "antd";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
+import SortableFormList from "@/components/admin/SortableFormList";
 import { LINK_TARGET_OPTIONS, normalizeTarget } from "./editorUtils";
 
 function text(value) {
@@ -26,6 +30,77 @@ function legacyValues(items) {
     actionTarget: normalizeTarget(list[1]?.target),
     actionEnabled: list[1]?.enabled !== false,
   };
+}
+
+function normalizeRibbonItems(record) {
+  if (Array.isArray(record?.ribbonItems) && record.ribbonItems.length > 0) {
+    if (
+      record.ribbonItems.length === 2 &&
+      !record.ribbonItems[0]?.noticeText &&
+      (record.ribbonItems[0]?.text || record.ribbonItems[0]?.label) &&
+      (record.ribbonItems[1]?.url || record.ribbonItems[1]?.href)
+    ) {
+      const legacy = legacyValues(record.ribbonItems);
+      return [
+        {
+          noticeText: legacy.noticeText,
+          actionText: legacy.actionText,
+          actionUrl: legacy.actionUrl,
+          actionTarget: normalizeTarget(legacy.actionTarget),
+        },
+      ];
+    }
+    return record.ribbonItems.map((item, idx) => ({
+      noticeText: text(item?.noticeText ?? item?.text ?? item?.label),
+      actionText: text(
+        item?.actionText ??
+          item?.linkText ??
+          (idx === 0 ? record?.ribbonActionText : "View Notice"),
+      ),
+      actionUrl: text(
+        item?.actionUrl ??
+          item?.url ??
+          item?.href ??
+          (idx === 0 ? record?.ribbonActionUrl : ""),
+      ),
+      actionTarget: normalizeTarget(
+        item?.actionTarget ??
+          item?.target ??
+          (idx === 0 ? record?.ribbonActionTarget : "_self"),
+      ),
+    }));
+  }
+
+  const legacy = legacyValues(record?.ribbonItems);
+  const noticeText = text(record?.ribbonNoticeText) || legacy.noticeText;
+  const actionText =
+    text(record?.ribbonActionText) || legacy.actionText || "View Notice";
+  const actionUrl =
+    text(record?.ribbonActionUrl) || legacy.actionUrl || "/get-involved/notices";
+  const actionTarget = normalizeTarget(
+    record?.ribbonActionTarget || legacy.actionTarget,
+  );
+
+  if (noticeText || actionUrl) {
+    return [
+      {
+        noticeText,
+        actionText,
+        actionUrl,
+        actionTarget,
+      },
+    ];
+  }
+
+  return [
+    {
+      noticeText:
+        "Notice: List of Selected Students — School Scholarship 2026-27",
+      actionText: "View Notice",
+      actionUrl: "/get-involved/notices",
+      actionTarget: "_self",
+    },
+  ];
 }
 
 const SWITCH_ITEMS = [
@@ -51,6 +126,11 @@ const SWITCH_ITEMS = [
   },
 ];
 
+const DIRECTION_OPTIONS = [
+  { label: "Left to Right", value: "ltr" },
+  { label: "Right to Left", value: "rtl" },
+];
+
 const COLOR_ITEMS = [
   { name: "ribbonBackgroundColorKey", label: "Background", tooltip: "Ribbon background color." },
   { name: "ribbonTextColorKey", label: "Notice text", tooltip: "Normal notice text color." },
@@ -63,12 +143,14 @@ const COLOR_ITEMS = [
 ];
 
 export default forwardRef(function AppearanceHeaderRibbonEditForm(
-  { dataEndpoint, themeColorOptions = [], onSuccess },
+  { dataEndpoint, themeColorOptions = [], onSuccess, onValuesChange },
   ref,
 ) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [reorderMovedIndex, setReorderMovedIndex] = useState(-1);
+  const [reorderDirection, setReorderDirection] = useState("up");
 
   useEffect(() => {
     fetch(dataEndpoint, { cache: "no-store" })
@@ -78,19 +160,26 @@ export default forwardRef(function AppearanceHeaderRibbonEditForm(
           : Promise.reject(new Error("Failed to load Header Ribbon")),
       )
       .then((record) => {
-        const legacy = legacyValues(record?.ribbonItems);
+        const items = normalizeRibbonItems(record);
         form.setFieldsValue({
           active: record?.active !== false,
+          ribbonDirection:
+            String(record?.ribbonDirection || "rtl").toLowerCase() === "ltr"
+              ? "ltr"
+              : "rtl",
+          ribbonSpeed:
+            record?.ribbonSpeed != null && Number(record?.ribbonSpeed) > 0
+              ? Number(record?.ribbonSpeed)
+              : 45,
           ribbonAriaLabel: record?.ribbonAriaLabel || "",
-          ribbonNoticeText: record?.ribbonNoticeText || legacy.noticeText,
-          ribbonActionText: record?.ribbonActionText || legacy.actionText,
-          ribbonActionUrl: record?.ribbonActionUrl || legacy.actionUrl,
-          ribbonActionTarget: normalizeTarget(
-            record?.ribbonActionTarget || legacy.actionTarget,
-          ),
+          ribbonItems: items,
+          ribbonNoticeText: items[0]?.noticeText || "",
+          ribbonActionText: items[0]?.actionText || "",
+          ribbonActionUrl: items[0]?.actionUrl || "",
+          ribbonActionTarget: items[0]?.actionTarget || "_self",
           ribbonActionEnabled:
             record?.ribbonActionEnabled == null
-              ? legacy.actionEnabled
+              ? true
               : record.ribbonActionEnabled !== false,
           ribbonShowNoticeIcon: record?.ribbonShowNoticeIcon !== false,
           ribbonShowLinkArrow: record?.ribbonShowLinkArrow !== false,
@@ -115,12 +204,40 @@ export default forwardRef(function AppearanceHeaderRibbonEditForm(
   const save = async () => {
     await form.validateFields();
     const values = form.getFieldsValue(true);
+    const rawItems = values.ribbonItems ?? [];
+    const items = Array.isArray(rawItems)
+      ? rawItems
+          .map((item) => ({
+            noticeText: text(item?.noticeText),
+            actionText: text(item?.actionText),
+            actionUrl: text(item?.actionUrl),
+            actionTarget: normalizeTarget(item?.actionTarget),
+          }))
+          .filter(
+            (item) =>
+              item.noticeText || item.actionText || item.actionUrl,
+          )
+      : [];
+
+    const firstItem = items[0] || {
+      noticeText: "",
+      actionText: "",
+      actionUrl: "",
+      actionTarget: "_self",
+    };
+
     const payload = {
+      ribbonItems: items,
+      ribbonDirection: values.ribbonDirection === "ltr" ? "ltr" : "rtl",
+      ribbonSpeed:
+        values.ribbonSpeed != null && Number(values.ribbonSpeed) > 0
+          ? Number(values.ribbonSpeed)
+          : 45,
+      ribbonNoticeText: firstItem.noticeText,
+      ribbonActionText: firstItem.actionText,
+      ribbonActionUrl: firstItem.actionUrl,
+      ribbonActionTarget: firstItem.actionTarget,
       ribbonAriaLabel: text(values.ribbonAriaLabel),
-      ribbonNoticeText: text(values.ribbonNoticeText),
-      ribbonActionText: text(values.ribbonActionText),
-      ribbonActionUrl: text(values.ribbonActionUrl),
-      ribbonActionTarget: normalizeTarget(values.ribbonActionTarget),
       ribbonActionEnabled: values.ribbonActionEnabled !== false,
       ribbonShowNoticeIcon: values.ribbonShowNoticeIcon !== false,
       ribbonShowLinkArrow: values.ribbonShowLinkArrow !== false,
@@ -176,7 +293,12 @@ export default forwardRef(function AppearanceHeaderRibbonEditForm(
   );
 
   return (
-    <Form form={form} layout="vertical" disabled={saving}>
+    <Form
+      form={form}
+      layout="vertical"
+      disabled={saving}
+      onValuesChange={(_, allValues) => onValuesChange?.(allValues)}
+    >
       <Collapse
         defaultActiveKey={["settings", "content", "colors"]}
         items={[
@@ -184,8 +306,34 @@ export default forwardRef(function AppearanceHeaderRibbonEditForm(
             key: "settings",
             label: "Ribbon Settings",
             children: (
-              <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                 <SwitchSettingsCard items={SWITCH_ITEMS} />
+                <Row gutter={[16, 16]}>
+                  <Col span={12}>
+                    <Form.Item
+                      name="ribbonDirection"
+                      label="Scrolling Direction"
+                      tooltip="Direction for the marquee scrolling effect when multiple items exist."
+                    >
+                      <Select options={DIRECTION_OPTIONS} />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      name="ribbonSpeed"
+                      label="Marquee Speed"
+                      tooltip="Scrolling speed in pixels per second (e.g. 45)."
+                    >
+                      <InputNumber
+                        min={5}
+                        max={300}
+                        step={5}
+                        style={{ width: "100%" }}
+                        placeholder="45"
+                      />
+                    </Form.Item>
+                  </Col>
+                </Row>
                 <Form.Item name="ribbonAriaLabel" label="Accessible label">
                   <Input placeholder="Important notice" />
                 </Form.Item>
@@ -196,33 +344,87 @@ export default forwardRef(function AppearanceHeaderRibbonEditForm(
             key: "content",
             label: "Content",
             children: (
-              <>
-                <Form.Item
-                  name="ribbonNoticeText"
-                  label="Notice Text"
-                  rules={[{ required: true, message: "Notice Text is required" }]}
-                  tooltip="Normal text only; this notice is not a hyperlink."
-                >
-                  <Input />
-                </Form.Item>
-                <Form.Item
-                  name="ribbonActionText"
-                  label="Link Text"
-                  rules={[{ required: true, message: "Link Text is required" }]}
-                >
-                  <Input placeholder="View Notice" />
-                </Form.Item>
-                <Form.Item
-                  name="ribbonActionUrl"
-                  label="URL"
-                  rules={[{ required: true, message: "URL is required" }]}
-                >
-                  <Input />
-                </Form.Item>
-                <Form.Item name="ribbonActionTarget" label="Target">
-                  <Select options={LINK_TARGET_OPTIONS} />
-                </Form.Item>
-              </>
+              <Form.List name="ribbonItems">
+                {(fields, { add, remove, move }) => (
+                  <SortableFormList
+                    fields={fields}
+                    add={add}
+                    remove={remove}
+                    move={move}
+                    itemLabel="Notice"
+                    addButtonText="Add item"
+                    defaultAddPayload={{
+                      noticeText: "",
+                      actionText: "View Notice",
+                      actionUrl: "",
+                      actionTarget: "_self",
+                    }}
+                    reorderMovedIndex={reorderMovedIndex}
+                    reorderDirection={reorderDirection}
+                    onMoveWithTransition={(from, to) => {
+                      setReorderDirection(to < from ? "up" : "down");
+                      setReorderMovedIndex(to);
+                      setTimeout(() => setReorderMovedIndex(-1), 400);
+                    }}
+                    resolveItemTitle={(name) => {
+                      const item = form.getFieldValue(["ribbonItems", name]);
+                      const notice = String(item?.noticeText || "").trim();
+                      if (notice) {
+                        return notice.length > 32
+                          ? `${notice.slice(0, 32)}...`
+                          : notice;
+                      }
+                      return `Notice ${name + 1}`;
+                    }}
+                    renderItemContent={(fieldName, restField) => (
+                      <>
+                        <Form.Item
+                          {...restField}
+                          name={[fieldName, "noticeText"]}
+                          label="Notice Text"
+                          rules={[
+                            {
+                              required: true,
+                              message: "Notice Text is required",
+                            },
+                          ]}
+                          tooltip="Normal text only; this notice is not a hyperlink."
+                        >
+                          <Input placeholder="Notice: List of Selected Students — School Scholarship 2026-27" />
+                        </Form.Item>
+                        <Form.Item
+                          {...restField}
+                          name={[fieldName, "actionText"]}
+                          label="Link Text"
+                          rules={[
+                            {
+                              required: true,
+                              message: "Link Text is required",
+                            },
+                          ]}
+                        >
+                          <Input placeholder="View Notice" />
+                        </Form.Item>
+                        <Form.Item
+                          {...restField}
+                          name={[fieldName, "actionUrl"]}
+                          label="URL"
+                          rules={[{ required: true, message: "URL is required" }]}
+                        >
+                          <Input placeholder="/get-involved/notices" />
+                        </Form.Item>
+                        <Form.Item
+                          {...restField}
+                          name={[fieldName, "actionTarget"]}
+                          label="Target"
+                        >
+                          <Select options={LINK_TARGET_OPTIONS} />
+                        </Form.Item>
+                      </>
+                    )}
+                  />
+                )}
+              </Form.List>
             ),
           },
           {

@@ -203,11 +203,9 @@ export default function AppearanceEditor({ moduleKey }) {
   }, [theme]);
 
   const props = record?.defaultProps || {};
-  const previewProps =
-    drawerPreviewOverrides &&
-    (normalizedModule === "header" || normalizedModule === "footer")
-      ? { ...props, ...drawerPreviewOverrides }
-      : props;
+  const previewProps = drawerPreviewOverrides
+    ? { ...props, ...drawerPreviewOverrides }
+    : props;
   const title =
     record?.displayName ||
     (normalizedModule === "header"
@@ -260,7 +258,7 @@ export default function AppearanceEditor({ moduleKey }) {
         {normalizedModule === "header" ? (
           <AppearanceHeader {...headerPreviewProps(previewProps, theme)} />
         ) : normalizedModule === "header-ribbon" ? (
-          <AppearanceHeaderRibbon {...props} preview />
+          <AppearanceHeaderRibbon {...previewProps} preview />
         ) : (
           <AppearanceFooter {...footerPreviewProps(previewProps, theme)} />
         )}
@@ -314,11 +312,16 @@ export default function AppearanceEditor({ moduleKey }) {
             ref={editFormRef}
             dataEndpoint={endpoint}
             themeColorOptions={themeColorOptions}
+            onValuesChange={setDrawerPreviewOverrides}
             onSuccess={async () => {
               await loadData();
+              setDrawerPreviewOverrides(null);
               setDrawerOpen(false);
             }}
-            onCancel={() => setDrawerOpen(false)}
+            onCancel={() => {
+              setDrawerPreviewOverrides(null);
+              setDrawerOpen(false);
+            }}
           />
         ) : (
           <AppearanceFooterEditForm

@@ -243,7 +243,13 @@ export default function PublicShell({
         String(appearanceHeaderRibbon.ribbonActionText || "").trim()) ||
       (Array.isArray(appearanceHeaderRibbon.ribbonItems) &&
         appearanceHeaderRibbon.ribbonItems.some((item) =>
-          String(item?.text || item?.label || "").trim(),
+          String(
+            item?.noticeText ||
+              item?.actionText ||
+              item?.text ||
+              item?.label ||
+              "",
+          ).trim(),
         ))
     );
   const hasAppearanceFooter =
