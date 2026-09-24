@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Row, Col } from "antd";
 import styled from "styled-components";
-import { usePageReadyTask } from "@/lib/pageReadiness";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 import {
   FullWidthBackground,
@@ -829,7 +828,6 @@ export default function SocialMediaWall(props) {
     props?.socialMediaWallEnabled !== false &&
       props?.socialMediaWallEnableLivePosts !== false,
   );
-  usePageReadyTask(loadingLive, "social-media-wall");
   const [runtimePlatformConfigs, setRuntimePlatformConfigs] = useState([]);
 
   const componentEnabled = props?.socialMediaWallEnabled !== false;

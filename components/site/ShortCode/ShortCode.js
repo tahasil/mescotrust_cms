@@ -5,7 +5,6 @@ import { Col, Row } from "antd";
 import FormEmbed from "@/components/site/FormEmbed/FormEmbed";
 import * as PublicSiteComponents from "@/components/site/publicComponents";
 import { SITE_COMPONENT_IDS } from "@/lib/siteComponentRegistry";
-import { usePageReadyTask } from "@/lib/pageReadiness";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 import {
   buildShortcodeFromSelection,
@@ -276,12 +275,6 @@ export default function ShortCode(props) {
   const [moduleLoading, setModuleLoading] = useState(false);
   const [moduleError, setModuleError] = useState("");
   const [loadedComponentId, setLoadedComponentId] = useState("");
-  const moduleNeedsInitialData = Boolean(
-    resolvedComponentId &&
-      resolvedComponentId !== "ShortCode" &&
-      loadedComponentId !== resolvedComponentId,
-  );
-  usePageReadyTask(moduleNeedsInitialData, `shortcode-${resolvedComponentId || "module"}`);
 
   useEffect(() => {
     let cancelled = false;
@@ -345,8 +338,6 @@ export default function ShortCode(props) {
     }
 
     if (resolvedComponentId) {
-      if (moduleNeedsInitialData || moduleLoading) return null;
-
       const ComponentToRender = PublicSiteComponents[resolvedComponentId];
       if (typeof ComponentToRender !== "function") {
         return (
@@ -364,6 +355,7 @@ export default function ShortCode(props) {
             </div>
           ) : null}
           <ComponentToRender
+            {...props}
             {...moduleProps}
             {...(resolvedComponentId === "Subscribe" && props?.shortCodeSectionBgType === "image"
               ? { subscribeRenderVariant: "cta-band" }

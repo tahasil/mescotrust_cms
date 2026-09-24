@@ -23,7 +23,6 @@ import {
 import { UploadOutlined } from "@ant-design/icons";
 import { FORM_DEFAULTS } from "@/lib/forms/constants";
 import { getColor } from "@/styles/Theme";
-import { usePageReadyTask } from "@/lib/pageReadiness";
 
 const { Paragraph, Text, Title } = Typography;
 const DATE_FORMAT = "YYYY-MM-DD";
@@ -636,7 +635,6 @@ export default function FormEmbed(props = {}) {
   );
 
   const [runtimeLoading, setRuntimeLoading] = useState(true);
-  usePageReadyTask(runtimeLoading, "form-embed");
   const [runtimeError, setRuntimeError] = useState("");
   const [runtimeForm, setRuntimeForm] = useState(null);
   const [submitting, setSubmitting] = useState(false);

@@ -226,8 +226,16 @@ export default function AppearanceHeader(props) {
       const ribbonBottom = ribbon
         ? Math.max(0, Math.ceil(ribbon.getBoundingClientRect().bottom))
         : 0;
+      const ribbonHeight = ribbon
+        ? Math.max(0, Math.ceil(ribbon.offsetHeight))
+        : 0;
 
       root.style.setProperty("--appearance-header-top", `${ribbonBottom}px`);
+      if (ribbonHeight > 0) {
+        root.style.setProperty("--appearance-ribbon-height", `${ribbonHeight}px`);
+      } else if (!ribbon) {
+        root.style.setProperty("--appearance-ribbon-height", "0px");
+      }
       setScrolled(window.scrollY >= 10);
 
       const isMobile = window.matchMedia("(max-width: 1199px)").matches;
@@ -235,6 +243,11 @@ export default function AppearanceHeader(props) {
         ? headerEl.querySelector(".current-mobile .site-header-shell")
         : headerEl.querySelector(".appearance-nav");
       if (!activeHeader) return;
+
+      const headerHeight = Math.max(0, Math.ceil(activeHeader.offsetHeight));
+      if (headerHeight > 0) {
+        root.style.setProperty("--appearance-header-height", `${headerHeight}px`);
+      }
 
       const offset = Math.max(0, Math.ceil(activeHeader.getBoundingClientRect().bottom));
       root.style.setProperty("--appearance-header-offset", `${offset}px`);
@@ -251,7 +264,6 @@ export default function AppearanceHeader(props) {
       observer.disconnect();
       window.removeEventListener("resize", updateHeaderLayout);
       window.removeEventListener("scroll", updateHeaderLayout);
-      root.style.removeProperty("--appearance-header-top");
     };
   }, [preview]);
 
@@ -564,6 +576,14 @@ export default function AppearanceHeader(props) {
           .appearance-header .current-mobile .site-mobile-menu > div:last-child * { font-family: var(--appearance-font-body); }
           .appearance-header .appearance-search-overlay { padding-top: 72px; }
           .appearance-header .appearance-search-panel { max-height: calc(100vh - 96px); border-radius: 14px; }
+        }
+        @media (max-width: 480px) {
+          .appearance-header .current-mobile .site-header-main { padding: 10px 0 !important; gap: 8px !important; }
+          .appearance-header .current-mobile .site-header-logo img { height: 42px !important; max-width: 140px !important; }
+          .appearance-header .current-mobile .site-header-mobile-quick-actions { gap: 6px !important; }
+          .appearance-header .current-mobile .site-header-mobile-quick-action { width: 38px !important; height: 38px !important; flex: 0 0 38px !important; }
+          .appearance-header .current-mobile .site-header-mobile-quick-action-icon { width: 17px !important; height: 17px !important; flex: 0 0 17px !important; }
+          .appearance-header .current-mobile .site-header-hamburger { width: 38px !important; height: 38px !important; flex: 0 0 38px !important; }
         }
         @media (min-width: 1200px) {
           .appearance-header .appearance-desktop { display: block; }

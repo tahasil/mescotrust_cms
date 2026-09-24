@@ -21,7 +21,6 @@ import {
 } from "@/components/events/eventDisplay";
 import MediaImage from "@/components/shared/MediaImage";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
-import { usePageReadyTask } from "@/lib/pageReadiness";
 
 const SliderWrapper = styled.div`
   --events-ink: #2a283e;
@@ -524,7 +523,6 @@ export default function EventsSlider(props) {
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  usePageReadyTask(loading, "events-slider");
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");

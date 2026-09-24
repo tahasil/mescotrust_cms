@@ -20,7 +20,6 @@ import {
   PageContainer,
   getColor,
 } from "@/styles/Theme";
-import { usePageReadyTask } from "@/lib/pageReadiness";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 import { SOCIAL_WALL_FEED_DEFAULTS as DEFAULTS } from "./constants";
 
@@ -701,7 +700,6 @@ export default function SocialWallFeed(props) {
 
   const [loading, setLoading] = useState(enabled);
   const [initialLoading, setInitialLoading] = useState(enabled);
-  usePageReadyTask(enabled && initialLoading, "social-wall-feed");
   const [loadingMore, setLoadingMore] = useState(false);
   const [items, setItems] = useState([]);
   const [nextCursor, setNextCursor] = useState(null);

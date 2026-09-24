@@ -12,7 +12,6 @@ import {
   HomeOutlined,
   MessageOutlined,
 } from "@ant-design/icons";
-import { usePageReadyTask } from "@/lib/pageReadiness";
 
 const chatbotTypingPulse = keyframes`
   0%, 80%, 100% {
@@ -541,7 +540,6 @@ export default function ChatbotWidget() {
   const [sessionId, setSessionId] = useState(() => getOrCreateSessionId());
 
   const [loading, setLoading] = useState(true);
-  usePageReadyTask(loading, "chatbot");
   const [historyLoading, setHistoryLoading] = useState(true);
   const [historyError, setHistoryError] = useState("");
   const [open, setOpen] = useState(false);
@@ -886,9 +884,32 @@ export default function ChatbotWidget() {
   }, []);
 
   useEffect(() => {
-    loadBootstrap();
-    loadConversationHistory();
-  }, [loadBootstrap, loadConversationHistory]);
+    let timer = null;
+    let idleId = null;
+    const run = () => {
+      loadBootstrap();
+      loadConversationHistory();
+    };
+
+    if (open) {
+      run();
+      return undefined;
+    }
+
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      idleId = window.requestIdleCallback(run, { timeout: 2500 });
+    } else if (typeof window !== "undefined") {
+      timer = window.setTimeout(run, 1200);
+    }
+    return () => {
+      if (idleId && typeof window !== "undefined" && "cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timer) {
+        window.clearTimeout(timer);
+      }
+    };
+  }, [loadBootstrap, loadConversationHistory, open]);
 
   useEffect(() => {
     if (!open) return;
