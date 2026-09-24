@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ArrowRightOutlined } from "@ant-design/icons";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -121,6 +121,16 @@ const previousSubTitleToken = ["Eye", "brow"].join("");
 const previousSubTitleField = (props, suffix = "") =>
   props?.[`videoPlaying${previousSubTitleToken}${suffix}`];
 
+function extractYouTubeId(input) {
+  const str = text(input);
+  if (!str) return "";
+  if (/^[a-zA-Z0-9_-]{11}$/.test(str)) return str;
+  const match = str.match(
+    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/,
+  );
+  return match ? match[1] : str;
+}
+
 export default function VideoPlaying(props) {
   const [videoPlaying, setVideoPlaying] = useState(false);
   const pathname = usePathname();
@@ -129,11 +139,43 @@ export default function VideoPlaying(props) {
   const quoteRef = useRef(null);
   const isEditorPreview = pathname?.startsWith("/admin") === true;
 
-  const youtubeVideoId = text(props?.youtubeVideoId);
+  const rawYoutubeVideoId = text(props?.youtubeVideoId);
+  const resolvedYoutubeId = extractYouTubeId(rawYoutubeVideoId);
   const coverImageDesktop = text(props?.coverImageDesktop ?? props?.coverImage);
   const coverAlt = text(props?.coverAlt);
   const quote = text(props?.videoPlayingQuote);
   const quoteWords = quote.split(/\s+/).filter(Boolean);
+
+  useEffect(() => {
+    if (isEditorPreview) return undefined;
+    const target = videoRef.current;
+    if (!target || !resolvedYoutubeId || videoPlaying) return undefined;
+
+    if (typeof IntersectionObserver === "undefined") {
+      setVideoPlaying(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry?.isIntersecting) {
+          setVideoPlaying(true);
+          observer.disconnect();
+        }
+      },
+      {
+        threshold: 0.15,
+        rootMargin: "0px 0px -20px 0px",
+      },
+    );
+
+    observer.observe(target);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [isEditorPreview, resolvedYoutubeId, videoPlaying]);
 
   useLayoutEffect(() => {
     if (isEditorPreview || !rootRef.current || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -247,7 +289,40 @@ export default function VideoPlaying(props) {
             {text(props?.videoPlayingTitle) || text(props?.videoPlayingTitleAccent) ? <h2 className="chapterTitle">{renderHighlightedTitle(text(props?.videoPlayingTitleAccent) ? `${text(props?.videoPlayingTitle)}${text(props?.videoPlayingTitle) ? " " : ""}*${text(props?.videoPlayingTitleAccent)}*` : text(props?.videoPlayingTitle), props, { legacyColorKey: props?.videoPlayingTitleAccentColorKey })}</h2> : null}
           </div> : null}
           <div ref={videoRef} className="chapterVideo">
-            {videoPlaying && youtubeVideoId ? <iframe src={`https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&rel=0`} title={text(props?.videoPlayingVideoTitle) || coverAlt} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen /> : <div className="chapterCover" role="button" tabIndex={0} aria-label={text(props?.videoPlayingPlayAriaLabel) || coverAlt} onClick={() => setVideoPlaying(true)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setVideoPlaying(true); } }}><img src={coverImageDesktop} alt={coverAlt} /><button type="button" className="chapterPlay" tabIndex={-1} aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7L8 5z" /></svg></button></div>}
+            {videoPlaying && resolvedYoutubeId ? (
+              <iframe
+                src={`https://www.youtube.com/embed/${resolvedYoutubeId}?autoplay=1&mute=1&playsinline=1&rel=0&enablejsapi=1`}
+                title={text(props?.videoPlayingVideoTitle) || coverAlt || "Video player"}
+                allow="autoplay; encrypted-media; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <div
+                className="chapterCover"
+                role="button"
+                tabIndex={0}
+                aria-label={text(props?.videoPlayingPlayAriaLabel) || coverAlt || "Play video"}
+                onClick={() => setVideoPlaying(true)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setVideoPlaying(true);
+                  }
+                }}
+              >
+                <img src={coverImageDesktop} alt={coverAlt} />
+                <button
+                  type="button"
+                  className="chapterPlay"
+                  tabIndex={-1}
+                  aria-hidden="true"
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 5v14l11-7L8 5z" />
+                  </svg>
+                </button>
+              </div>
+            )}
           </div>
           {quote ? <blockquote ref={quoteRef} className="chapterQuote"><p>{quoteWords.map((word, index) => <span className="chapterQuoteWord" key={`${word}-${index}`}>{index ? " " : ""}{word}</span>)}</p></blockquote> : null}
           {text(props?.videoPlayingAuthorName) || text(props?.videoPlayingAuthorRole) ? <figcaption className="chapterAttribution"><strong>{text(props?.videoPlayingAuthorName)}</strong><span>{text(props?.videoPlayingAuthorRole)}</span></figcaption> : null}
