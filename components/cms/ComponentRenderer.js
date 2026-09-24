@@ -298,8 +298,27 @@ export default function ComponentRenderer({
             }
           : {};
 
-        const isFullBleed = FULL_BLEED_SITE_COMPONENTS.includes(baseComponent);
-        const useFade = !NO_FADE_COMPONENTS.includes(baseComponent) && allProps._disableFadeAnimation !== true;
+        const shortcodeRaw = String(allProps.shortcode || allProps.shortCode || "").toLowerCase();
+        const isShortcodeFullBleed =
+          baseComponent === "ShortCode" &&
+          (shortcodeRaw.includes("homeslider") ||
+            shortcodeRaw.includes("homehero") ||
+            shortcodeRaw.includes("marquee") ||
+            shortcodeRaw.includes("subscribe"));
+
+        const isFullBleed = FULL_BLEED_SITE_COMPONENTS.includes(baseComponent) || isShortcodeFullBleed;
+        const isShortcodeNoFade =
+          baseComponent === "ShortCode" &&
+          (shortcodeRaw.includes("homeslider") ||
+            shortcodeRaw.includes("homehero") ||
+            shortcodeRaw.includes("overviewofourwork") ||
+            shortcodeRaw.includes("welcometomesco") ||
+            shortcodeRaw.includes("ourimpact"));
+
+        const useFade =
+          !NO_FADE_COMPONENTS.includes(baseComponent) &&
+          !isShortcodeNoFade &&
+          allProps._disableFadeAnimation !== true;
 
         if (isFullBleed) {
           const inner = (

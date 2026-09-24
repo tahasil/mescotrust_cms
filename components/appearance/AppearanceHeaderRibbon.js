@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import ReactMarquee from "react-fast-marquee";
 import { ArrowRightOutlined, NotificationFilled } from "@ant-design/icons";
 import { getColor } from "@/styles/Theme";
 import { normalizeTarget } from "./editorUtils";
@@ -192,70 +191,77 @@ export default function AppearanceHeaderRibbon({
       aria-label={text(ribbonAriaLabel) || undefined}
     >
       {isMultiItem ? (
-        <ReactMarquee
-          className="appearance-header-ribbon__marquee"
-          direction={marqueeDirection}
-          speed={marqueeSpeed}
-          pauseOnHover={true}
-          autoFill={true}
-          gradient={false}
-          loop={0}
-        >
-          {items.map((item, index) => {
-            const itemActionContent = (
-              <>
-                <span>{item.actionText}</span>
-                {ribbonShowLinkArrow ? (
-                  <ArrowRightOutlined
-                    className="appearance-header-ribbon__arrow"
-                    aria-hidden="true"
-                  />
-                ) : null}
-              </>
-            );
-
-            return (
+        <div className="appearance-header-ribbon__marquee" aria-live="off">
+          <div
+            className={`appearance-header-ribbon__track appearance-header-ribbon__track--${marqueeDirection}`}
+            style={{
+              "--ribbon-duration": `${Math.max(16, items.length * 9 * (45 / marqueeSpeed))}s`,
+            }}
+          >
+            {[0, 1, 2].map((setIdx) => (
               <div
-                key={`ribbon-item-${index}`}
-                className="appearance-header-ribbon__marquee-item"
+                key={`ribbon-set-${setIdx}`}
+                className="appearance-header-ribbon__set"
+                aria-hidden={setIdx > 0 ? "true" : undefined}
               >
-                {item.noticeText ? (
-                  <span className="appearance-header-ribbon__notice">
-                    {ribbonShowNoticeIcon ? (
-                      <NotificationFilled
-                        className="appearance-header-ribbon__notice-icon"
-                        aria-hidden="true"
-                      />
-                    ) : null}
-                    <span>{item.noticeText}</span>
-                  </span>
-                ) : null}
-                {actionEnabled && item.actionText ? (
-                  item.actionUrl ? (
-                    <a
-                      className="appearance-header-ribbon__action"
-                      href={item.actionUrl}
-                      target={
-                        item.actionTarget === "_blank" ? "_blank" : undefined
-                      }
-                      rel={
-                        item.actionTarget === "_blank"
-                          ? "noopener noreferrer"
-                          : undefined
-                      }
+                {items.map((item, index) => {
+                  const itemActionContent = (
+                    <>
+                      <span>{item.actionText}</span>
+                      {ribbonShowLinkArrow ? (
+                        <ArrowRightOutlined
+                          className="appearance-header-ribbon__arrow"
+                          aria-hidden="true"
+                        />
+                      ) : null}
+                    </>
+                  );
+
+                  return (
+                    <div
+                      key={`ribbon-item-${setIdx}-${index}`}
+                      className="appearance-header-ribbon__marquee-item"
                     >
-                      {itemActionContent}
-                    </a>
-                  ) : (
-                    <span className="appearance-header-ribbon__action">
-                      {itemActionContent}
-                    </span>
-                  )
-                ) : null}
+                      {item.noticeText ? (
+                        <span className="appearance-header-ribbon__notice">
+                          {ribbonShowNoticeIcon ? (
+                            <NotificationFilled
+                              className="appearance-header-ribbon__notice-icon"
+                              aria-hidden="true"
+                            />
+                          ) : null}
+                          <span>{item.noticeText}</span>
+                        </span>
+                      ) : null}
+                      {actionEnabled && item.actionText ? (
+                        item.actionUrl ? (
+                          <a
+                            className="appearance-header-ribbon__action"
+                            href={item.actionUrl}
+                            target={
+                              item.actionTarget === "_blank" ? "_blank" : undefined
+                            }
+                            rel={
+                              item.actionTarget === "_blank"
+                                ? "noopener noreferrer"
+                                : undefined
+                            }
+                          >
+                            {itemActionContent}
+                          </a>
+                        ) : (
+                          <span className="appearance-header-ribbon__action">
+                            {itemActionContent}
+                          </span>
+                        )
+                      ) : null}
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
-        </ReactMarquee>
+            ))}
+          </div>
+        </div>
       ) : (
         <div className="appearance-header-ribbon__inner">
           {items[0]?.noticeText ? (
@@ -309,27 +315,145 @@ export default function AppearanceHeaderRibbon({
         dangerouslySetInnerHTML={{
           __html: `
         .appearance-header-ribbon, .appearance-header-ribbon * { box-sizing: border-box; }
-        .appearance-header-ribbon { position: relative; z-index: 90; width: 100%; padding: 9px 24px; color: var(--ribbon-text); background: var(--ribbon-bg); box-shadow: 0 1px 0 var(--ribbon-border); font-family: "Instrument Sans", system-ui, sans-serif; font-size: 13.5px; font-weight: 550; line-height: 1.6; overflow: hidden; }
-        .appearance-header-ribbon__inner { display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; }
-        .appearance-header-ribbon__notice { display: inline-flex; align-items: center; gap: 8px; margin: 0; color: var(--ribbon-text); font: inherit; white-space: nowrap; }
-        .appearance-header-ribbon__action { display: inline-flex; align-items: center; gap: 6px; color: var(--ribbon-link); border-bottom: 1px solid var(--ribbon-link-border); font-weight: 700; text-decoration: none; white-space: nowrap; }
+        .appearance-header-ribbon {
+          position: relative;
+          z-index: 90;
+          width: 100%;
+          height: 40px;
+          min-height: 40px;
+          max-height: 40px;
+          padding: 0 24px;
+          color: var(--ribbon-text);
+          background: var(--ribbon-bg);
+          box-shadow: 0 1px 0 var(--ribbon-border);
+          font-family: "Instrument Sans", system-ui, sans-serif;
+          font-size: 13.5px;
+          font-weight: 550;
+          line-height: 40px;
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+        }
+        .appearance-header-ribbon__inner {
+          height: 100%;
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 18px;
+          flex-wrap: nowrap;
+        }
+        .appearance-header-ribbon__notice {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          margin: 0;
+          color: var(--ribbon-text);
+          font: inherit;
+          white-space: nowrap;
+          line-height: 1;
+        }
+        .appearance-header-ribbon__action {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          color: var(--ribbon-link);
+          border-bottom: 1px solid var(--ribbon-link-border);
+          font-weight: 700;
+          text-decoration: none;
+          white-space: nowrap;
+          line-height: 1.2;
+        }
         .appearance-header-ribbon a { transition: color .2s, border-color .2s; }
         .appearance-header-ribbon a:hover { color: var(--ribbon-hover); }
         .appearance-header-ribbon a:focus-visible { outline: 2px solid var(--ribbon-focus); outline-offset: 3px; }
-        .appearance-header-ribbon__notice-icon, .appearance-header-ribbon__arrow { flex: 0 0 auto; color: var(--ribbon-icon); font-size: 16px; }
-        .appearance-header-ribbon__marquee { display: flex; align-items: center; overflow: hidden; width: 100%; }
-        .appearance-header-ribbon__marquee-item { display: inline-flex; align-items: center; gap: 14px; margin-right: 56px; flex-shrink: 0; white-space: nowrap; }
+        .appearance-header-ribbon__notice-icon, .appearance-header-ribbon__arrow { flex: 0 0 auto; color: var(--ribbon-icon); font-size: 16px; display: inline-flex; align-items: center; }
+        .appearance-header-ribbon__marquee {
+          position: relative;
+          display: flex;
+          align-items: center;
+          overflow: hidden;
+          width: 100%;
+          height: 100%;
+          user-select: none;
+        }
+        .appearance-header-ribbon__track {
+          display: flex;
+          align-items: center;
+          width: max-content;
+          will-change: transform;
+        }
+        .appearance-header-ribbon__track--left {
+          animation: appearanceHeaderRibbonScrollLeft var(--ribbon-duration, 30s) linear infinite;
+        }
+        .appearance-header-ribbon__track--right {
+          animation: appearanceHeaderRibbonScrollRight var(--ribbon-duration, 30s) linear infinite;
+        }
+        .appearance-header-ribbon:hover .appearance-header-ribbon__track {
+          animation-play-state: paused;
+        }
+        .appearance-header-ribbon__set {
+          display: flex;
+          align-items: center;
+          flex-shrink: 0;
+        }
+        .appearance-header-ribbon__marquee-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 14px;
+          margin-right: 56px;
+          flex-shrink: 0;
+          white-space: nowrap;
+          line-height: 1;
+        }
+        @keyframes appearanceHeaderRibbonScrollLeft {
+          0% { transform: translate3d(0, 0, 0); }
+          100% { transform: translate3d(-33.333333%, 0, 0); }
+        }
+        @keyframes appearanceHeaderRibbonScrollRight {
+          0% { transform: translate3d(-33.333333%, 0, 0); }
+          100% { transform: translate3d(0, 0, 0); }
+        }
         @media (max-width: 767px) {
-          .appearance-header-ribbon { padding: 8px 16px; font-size: 12.5px; }
-          .appearance-header-ribbon__inner { justify-content: space-between; flex-wrap: nowrap; gap: 12px; }
-          .appearance-header-ribbon__inner .appearance-header-ribbon__notice { display: block; min-width: 0; overflow: hidden; white-space: nowrap; }
-          .appearance-header-ribbon__inner .appearance-header-ribbon__notice > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-          .appearance-header-ribbon__inner .appearance-header-ribbon__action { flex: 0 0 auto; white-space: nowrap; }
-          .appearance-header-ribbon__inner .appearance-header-ribbon__notice-icon { display: none !important; }
-          .appearance-header-ribbon__marquee-item { margin-right: 36px; gap: 10px; }
+          .appearance-header-ribbon {
+            height: 36px;
+            min-height: 36px;
+            max-height: 36px;
+            padding: 0 16px;
+            font-size: 12.5px;
+            line-height: 36px;
+          }
+          .appearance-header-ribbon__inner {
+            justify-content: space-between;
+            flex-wrap: nowrap;
+            gap: 12px;
+          }
+          .appearance-header-ribbon__inner .appearance-header-ribbon__notice {
+            display: block;
+            min-width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+          }
+          .appearance-header-ribbon__inner .appearance-header-ribbon__notice > span {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          .appearance-header-ribbon__inner .appearance-header-ribbon__action {
+            flex: 0 0 auto;
+            white-space: nowrap;
+          }
+          .appearance-header-ribbon__inner .appearance-header-ribbon__notice-icon {
+            display: none !important;
+          }
+          .appearance-header-ribbon__marquee-item {
+            margin-right: 36px;
+            gap: 10px;
+          }
         }
         @media (prefers-reduced-motion: reduce) {
-          .appearance-header-ribbon .rfm-marquee { animation-play-state: paused !important; }
+          .appearance-header-ribbon__track { animation-play-state: paused !important; }
         }
       `,
         }}
