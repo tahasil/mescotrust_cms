@@ -252,6 +252,16 @@ export default function AdminComponentsPage() {
 
   return (
     <>
+      <div style={{ marginBottom: 16, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: "#888", marginRight: 4 }}>Quick Navigation:</span>
+        <Link href="/admin/appearance/header-ribbon"><Button size="small">Header Ribbon</Button></Link>
+        <Link href="/admin/appearance/header"><Button size="small">Header</Button></Link>
+        <Link href="/admin/appearance/footer"><Button size="small">Footer</Button></Link>
+        <Link href="/admin/sliders"><Button size="small">Sliders</Button></Link>
+        <Link href="/admin/popups"><Button size="small">Popups</Button></Link>
+        <Link href="/admin/form-builder"><Button size="small">Form Builder</Button></Link>
+      </div>
+
       <ThemeAdminCard
         title="Components"
         extra={

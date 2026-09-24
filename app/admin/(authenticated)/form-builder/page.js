@@ -7,7 +7,9 @@ import {
   CopyOutlined,
   DeleteOutlined,
   EditOutlined,
+  EyeOutlined,
   FileDoneOutlined,
+  LinkOutlined,
   PlusOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
@@ -185,43 +187,73 @@ export default function FormBuilderListPage() {
       {
         title: "Actions",
         key: "actions",
-        width: 260,
-        render: (_, record) => (
-          <Space size={6}>
-            <Button
-              type="link"
-              size="small"
-              icon={<EditOutlined />}
-              href={`/admin/form-builder/${encodeURIComponent(record.formId)}/edit`}
-            >
-              Edit
-            </Button>
-            <Button
-              type="link"
-              size="small"
-              icon={<FileDoneOutlined />}
-              href={`/admin/form-builder/${encodeURIComponent(record.formId)}/submissions`}
-            >
-              Submissions
-            </Button>
-            <Popconfirm
-              title="Delete this form?"
-              description="Forms with submissions cannot be deleted."
-              okText="Delete"
-              okType="danger"
-              onConfirm={() => onDelete(record.formId)}
-            >
+        width: 320,
+        render: (_, record) => {
+          const publicSlug = record.shortcode || record.formId;
+          const publicUrl = `/forms/${encodeURIComponent(publicSlug)}`;
+          return (
+            <Space size={4} wrap>
               <Button
                 type="link"
                 size="small"
-                danger
-                icon={<DeleteOutlined />}
-                aria-label="Delete form"
-                title="Delete"
+                icon={<EditOutlined />}
+                href={`/admin/form-builder/${encodeURIComponent(record.formId)}/edit`}
+              >
+                Edit
+              </Button>
+              <Button
+                type="link"
+                size="small"
+                icon={<FileDoneOutlined />}
+                href={`/admin/form-builder/${encodeURIComponent(record.formId)}/submissions`}
+              >
+                Submissions
+              </Button>
+              <Button
+                type="text"
+                size="small"
+                icon={<LinkOutlined />}
+                aria-label="Copy Public Link"
+                title="Copy Public Link"
+                onClick={async () => {
+                  try {
+                    const fullUrl = `${window.location.origin}${publicUrl}`;
+                    await navigator.clipboard.writeText(fullUrl);
+                    message.success("Public link copied to clipboard");
+                  } catch {
+                    message.error("Failed to copy link");
+                  }
+                }}
               />
-            </Popconfirm>
-          </Space>
-        ),
+              <Button
+                type="text"
+                size="small"
+                icon={<EyeOutlined />}
+                href={publicUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="View Public Form"
+                title="View Public Form"
+              />
+              <Popconfirm
+                title="Delete this form?"
+                description="Forms with submissions cannot be deleted."
+                okText="Delete"
+                okType="danger"
+                onConfirm={() => onDelete(record.formId)}
+              >
+                <Button
+                  type="link"
+                  size="small"
+                  danger
+                  icon={<DeleteOutlined />}
+                  aria-label="Delete form"
+                  title="Delete"
+                />
+              </Popconfirm>
+            </Space>
+          );
+        },
       },
       {
         title: "Updated",

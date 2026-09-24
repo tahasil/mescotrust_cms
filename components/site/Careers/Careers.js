@@ -1,6 +1,8 @@
 "use client";
 
-import { Row, Col } from "antd";
+import { useState } from "react";
+import { Button, Col, Form, Input, Modal, Row, Upload, notification } from "antd";
+import { UploadOutlined } from "@ant-design/icons";
 import styled from "styled-components";
 import {
   FullWidthBackground,
@@ -104,6 +106,77 @@ const ApplyBtn = styled.a`
  * Vertical list of job cards with title, department, location, type, and Apply button.
  */
 export default function Careers(props) {
+  const [applyModalOpen, setApplyModalOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [form] = Form.useForm();
+  const [fileList, setFileList] = useState([]);
+
+  const handleOpenApplyModal = (jobItem) => {
+    setSelectedJob(jobItem);
+    setFileList([]);
+    form.resetFields();
+    setApplyModalOpen(true);
+  };
+
+  const handleApplySubmit = async () => {
+    try {
+      const values = await form.validateFields();
+      if (fileList.length === 0) {
+        notification.error({
+          message: "Resume Required",
+          description: "Please upload your resume (PDF/DOC).",
+          placement: "bottomRight",
+        });
+        return;
+      }
+      setSubmitting(true);
+      const formData = new FormData();
+      formData.append("jobTitle", selectedJob?.title || "General Application");
+      formData.append("name", values.name);
+      formData.append("email", values.email);
+      formData.append("phone", values.phone);
+      if (values.experience) formData.append("experience", values.experience);
+      if (values.currentOrganization) formData.append("currentOrganization", values.currentOrganization);
+      if (values.coverLetter) formData.append("coverLetter", values.coverLetter);
+      if (fileList[0]?.originFileObj) {
+        formData.append("resume", fileList[0].originFileObj);
+      }
+
+      const res = await fetch("/api/public/careers/apply", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        notification.success({
+          message: "Application Submitted",
+          description: "Thank you for applying! Our hiring team will review your profile.",
+          placement: "bottomRight",
+        });
+        setApplyModalOpen(false);
+        form.resetFields();
+        setFileList([]);
+      } else {
+        notification.error({
+          message: "Submission Failed",
+          description: data.error || "Unable to submit application.",
+          placement: "bottomRight",
+        });
+      }
+    } catch (err) {
+      if (!err?.errorFields) {
+        notification.error({
+          message: "Submission Error",
+          description: err?.message || "An unexpected error occurred.",
+          placement: "bottomRight",
+        });
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   /* ── Title fields ── */
   const mainTitle = (props?.mainTitle ?? "").toString().trim();
   const subTitle = (props?.subTitle ?? "").toString().trim();
@@ -431,9 +504,21 @@ export default function Careers(props) {
                 </div>
               </JobInfo>
               <ApplyBtn
-                href={applyUrl || "#"}
-                style={{ background: btnBgColor, color: btnTextColor }}
-                onClick={applyUrl ? undefined : (e) => e.preventDefault()}
+                as="button"
+                type="button"
+                style={{
+                  background: btnBgColor,
+                  color: btnTextColor,
+                  cursor: "pointer",
+                  border: "none",
+                }}
+                onClick={() => {
+                  if (applyUrl && /^https?:\/\//i.test(applyUrl)) {
+                    window.open(applyUrl, "_blank", "noopener,noreferrer");
+                  } else {
+                    handleOpenApplyModal(item);
+                  }
+                }}
               >
                 {btnText}
               </ApplyBtn>
@@ -442,6 +527,83 @@ export default function Careers(props) {
         })}
         </div>
         </div>
+
+        <Modal
+          title={`Apply for ${selectedJob?.title || "Position"}`}
+          open={applyModalOpen}
+          onCancel={() => setApplyModalOpen(false)}
+          onOk={handleApplySubmit}
+          okText="Submit Application"
+          confirmLoading={submitting}
+          destroyOnClose
+          width={600}
+        >
+          <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+            <Row gutter={16}>
+              <Col xs={24} sm={12}>
+                <Form.Item
+                  name="name"
+                  label="Full Name"
+                  rules={[{ required: true, message: "Please enter your full name" }]}
+                >
+                  <Input placeholder="e.g. Sarah Khan" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Form.Item
+                  name="email"
+                  label="Email Address"
+                  rules={[
+                    { required: true, message: "Please enter your email" },
+                    { type: "email", message: "Please enter a valid email" },
+                  ]}
+                >
+                  <Input placeholder="sarah@example.com" />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={16}>
+              <Col xs={24} sm={12}>
+                <Form.Item
+                  name="phone"
+                  label="Phone Number"
+                  rules={[{ required: true, message: "Please enter your contact number" }]}
+                >
+                  <Input placeholder="+91 98765 43210" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Form.Item name="experience" label="Relevant Experience">
+                  <Input placeholder="e.g. 3 years" />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Form.Item name="currentOrganization" label="Current / Recent Organization">
+              <Input placeholder="e.g. ABC Foundation" />
+            </Form.Item>
+
+            <Form.Item label="Resume / CV (PDF, DOC, DOCX)" required>
+              <Upload
+                beforeUpload={() => false}
+                fileList={fileList}
+                onChange={({ fileList: nextList }) => setFileList(nextList.slice(-1))}
+                maxCount={1}
+                accept=".pdf,.doc,.docx"
+              >
+                <Button icon={<UploadOutlined />}>Select Resume File</Button>
+              </Upload>
+            </Form.Item>
+
+            <Form.Item name="coverLetter" label="Cover Letter / Why MESCO?">
+              <Input.TextArea
+                rows={3}
+                placeholder="Briefly describe your background and interest in this role..."
+              />
+            </Form.Item>
+          </Form>
+        </Modal>
       </PageContainer>
     </FullWidthBackground>
   );

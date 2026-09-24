@@ -13,6 +13,7 @@ import {
   Badge,
   Tag,
   Popover,
+  Popconfirm,
   Modal as AntModal,
   ColorPicker,
   Divider,
@@ -2577,6 +2578,22 @@ export default function PageBuilder({
     });
   };
 
+  const handleResetBlockToDefaults = () => {
+    if (editingIndex == null) return;
+    const block = sorted[editingIndex];
+    if (!block) return;
+    const baseComp = block.baseComponent;
+    const defaultProps = getDefaultPropsForNewSiteComponentBlock(baseComp) || {};
+    const updatedBlocks = blocks.map((b) =>
+      b.instanceId === block.instanceId ? { ...b, props: { ...defaultProps } } : b,
+    );
+    setBlocks(updatedBlocks);
+    triggerChange(updatedBlocks);
+    form.resetFields();
+    form.setFieldsValue(defaultProps);
+    message.success(`Reset ${baseComp} to default settings.`);
+  };
+
   const handleRemoveInner = (sectionIndex, innerIndex) => {
     const sectionBlock = sorted[sectionIndex];
     const innerLayout = Array.isArray(sectionBlock?.props?.layout)
@@ -3107,6 +3124,19 @@ export default function PageBuilder({
                 <Button onClick={() => setEditingInnerBlock(null)}>
                   ← Back
                 </Button>
+              )}
+              {editingBlock && editingInnerBlock === null && editingElement === null && (
+                <Popconfirm
+                  title="Reset block to defaults?"
+                  description="This will restore all configuration fields of this block to default values."
+                  onConfirm={handleResetBlockToDefaults}
+                  okText="Reset"
+                  okType="danger"
+                >
+                  <Button danger type="dashed" size="small">
+                    Reset to Defaults
+                  </Button>
+                </Popconfirm>
               )}
               {!(
                 editingBlock &&

@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Button, InputNumber, Modal, Slider, Space, Typography } from "antd";
+import { Alert, Button, InputNumber, Modal, Radio, Slider, Space, Tag, Typography } from "antd";
 import { parsePositiveIntOrNull } from "./rasterMedia";
 import styles from "./AdminMediaLibrary.module.css";
 
@@ -108,6 +108,9 @@ export default function RasterCropConfirmModal({
   file,
   title = "Crop image before upload",
   confirmText = "Confirm crop",
+  recommendedWidth,
+  recommendedHeight,
+  contextLabel,
   onCancel,
   onConfirm,
 }) {
@@ -122,6 +125,7 @@ export default function RasterCropConfirmModal({
   const [widthInput, setWidthInput] = useState(null);
   const [heightInput, setHeightInput] = useState(null);
   const [manualSizeMode, setManualSizeMode] = useState(false);
+  const [aspectRatioPreset, setAspectRatioPreset] = useState("free");
   const [previewUrl, setPreviewUrl] = useState("");
   const [previewError, setPreviewError] = useState("");
   const [confirming, setConfirming] = useState(false);
@@ -140,6 +144,7 @@ export default function RasterCropConfirmModal({
     setWidthInput(null);
     setHeightInput(null);
     setManualSizeMode(false);
+    setAspectRatioPreset("free");
     setPreviewUrl("");
     setPreviewError("");
     setInteractionTick(0);
@@ -231,16 +236,46 @@ export default function RasterCropConfirmModal({
     setInteractionTick((prev) => prev + 1);
   }, []);
 
+  const handleAspectRatioChange = (preset) => {
+    setAspectRatioPreset(preset);
+    const cropper = cropperRef.current;
+    if (!cropper || !cropperReady) return;
+    if (preset === "16:9") {
+      cropper.setAspectRatio(16 / 9);
+    } else if (preset === "4:3") {
+      cropper.setAspectRatio(4 / 3);
+    } else if (preset === "1:1") {
+      cropper.setAspectRatio(1);
+    } else if (preset === "3:2") {
+      cropper.setAspectRatio(3 / 2);
+    } else if (preset === "21:9") {
+      cropper.setAspectRatio(21 / 9);
+    } else {
+      cropper.setAspectRatio(NaN);
+    }
+    syncCropData();
+  };
+
   useEffect(() => {
     const cropper = cropperRef.current;
     if (!cropper || !cropperReady) return;
     if (isManualSizeComplete) {
       cropper.setAspectRatio(parsedWidth / parsedHeight);
+    } else if (aspectRatioPreset === "16:9") {
+      cropper.setAspectRatio(16 / 9);
+    } else if (aspectRatioPreset === "4:3") {
+      cropper.setAspectRatio(4 / 3);
+    } else if (aspectRatioPreset === "1:1") {
+      cropper.setAspectRatio(1);
+    } else if (aspectRatioPreset === "3:2") {
+      cropper.setAspectRatio(3 / 2);
+    } else if (aspectRatioPreset === "21:9") {
+      cropper.setAspectRatio(21 / 9);
     } else {
       cropper.setAspectRatio(NaN);
     }
     syncCropData();
-  }, [cropperReady, isManualSizeComplete, parsedWidth, parsedHeight, syncCropData]);
+  }, [cropperReady, isManualSizeComplete, aspectRatioPreset, parsedWidth, parsedHeight, syncCropData]);
 
   useEffect(() => {
     const cropper = cropperRef.current;
@@ -382,6 +417,18 @@ export default function RasterCropConfirmModal({
     }
   };
 
+  const handleSkipCrop = () => {
+    onConfirm?.({
+      processedFile: file,
+      crop: null,
+      width: sourceWidth || orientedSourceWidth,
+      height: sourceHeight || orientedSourceHeight,
+      rotationDegrees: 0,
+      finalWidth: sourceWidth || orientedSourceWidth,
+      finalHeight: sourceHeight || orientedSourceHeight,
+    });
+  };
+
   return (
     <Modal
       open={open}
@@ -390,6 +437,9 @@ export default function RasterCropConfirmModal({
       width="min(980px, calc(100vw - 24px))"
       destroyOnClose
       footer={[
+        <Button key="skip" onClick={handleSkipCrop} disabled={confirming}>
+          Upload Original (Skip Crop)
+        </Button>,
         <Button key="cancel" onClick={onCancel} disabled={confirming}>
           Cancel
         </Button>,
@@ -405,6 +455,16 @@ export default function RasterCropConfirmModal({
       ]}
     >
       <div className={styles.cropModalBody}>
+        {((recommendedWidth && recommendedHeight) || contextLabel) && (
+          <div style={{ marginBottom: 12 }}>
+            <Tag color="blue">
+              {contextLabel ? <strong>{contextLabel}: </strong> : null}
+              {recommendedWidth && recommendedHeight
+                ? `Recommended ${recommendedWidth} x ${recommendedHeight}px`
+                : ""}
+            </Tag>
+          </div>
+        )}
         <div className={styles.cropModalGrid}>
           <div>
             <div className={styles.cropEditor}>
@@ -437,6 +497,25 @@ export default function RasterCropConfirmModal({
             </div>
 
             <div className={styles.cropControls}>
+              <div className={styles.cropControlItem}>
+                <Typography.Text strong style={{ display: "block", marginBottom: 4 }}>
+                  Aspect Ratio
+                </Typography.Text>
+                <Radio.Group
+                  value={aspectRatioPreset}
+                  onChange={(e) => handleAspectRatioChange(e.target.value)}
+                  optionType="button"
+                  buttonStyle="solid"
+                  size="small"
+                >
+                  <Radio.Button value="free">Free</Radio.Button>
+                  <Radio.Button value="16:9">16:9</Radio.Button>
+                  <Radio.Button value="4:3">4:3</Radio.Button>
+                  <Radio.Button value="1:1">1:1</Radio.Button>
+                  <Radio.Button value="3:2">3:2</Radio.Button>
+                  <Radio.Button value="21:9">21:9</Radio.Button>
+                </Radio.Group>
+              </div>
               <div className={styles.cropControlItem}>
                 <Typography.Text>Zoom</Typography.Text>
                 <Slider

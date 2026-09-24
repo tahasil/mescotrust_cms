@@ -290,7 +290,7 @@ export async function GET(req) {
       found: true,
       donorMasked,
       requiresVerification: true,
-      requiresPanLast4: hasPan,
+      requiresPanLast4: false,
       verificationToken,
       matchedStatus: toTrimmedString(donation?.status || ""),
       masked: {
@@ -377,8 +377,7 @@ export async function POST(req) {
         normalized.endsWith(donorMobileNational)
       );
     });
-    const panRequired = donorPan.length >= 4;
-    const panMatch = !panRequired || donorPan.slice(0, 4) === panLast4;
+    const panMatch = !panLast4 || (donorPan.length >= 4 && donorPan.slice(0, 4) === panLast4);
 
     if (!emailMatch || !mobileMatch || !panMatch) {
       logLookupDebug("verify-failed", {
@@ -391,7 +390,7 @@ export async function POST(req) {
         {
           verified: false,
           error:
-            "Verification failed. Please check email, mobile and PAN first 4 digits.",
+            "Verification failed. Please check that your email and mobile match your donor record.",
         },
         { status: 401 },
       );

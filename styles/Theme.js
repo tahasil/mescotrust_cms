@@ -18,13 +18,13 @@ export const HEADER_OFFSET_MOBILE = "56px";
 
 /** Semantic aliases map to CSS vars injected from DB-backed theme config. */
 export const THEME_COLOR_ALIASES = {
-  primary: "var(--primary-color, var(--theme-primary, #E03C33))",
-  primaryDark: "var(--theme-primary-dark, #B92E27)",
-  primarySoft: "var(--theme-primary-soft, #F2867F)",
-  primaryPale: "var(--theme-primary-pale, #F2A19B)",
+  primary: "var(--primary-color, var(--theme-primary, #D32F2F))",
+  primaryDark: "var(--theme-primary-dark, #B71C1C)",
+  primarySoft: "var(--theme-primary-soft, #EF5350)",
+  primaryPale: "var(--theme-primary-pale, #FFCDD2)",
   secondary: "var(--secondary-color, var(--theme-black, #2A283E))",
   white: "var(--theme-white, #FFFFFF)",
-  cream: "var(--theme-cream, #FBFAF7)",
+  cream: "#FBFAF7",
   warmWhite: "var(--theme-warm-white, #FAF6EF)",
   surface: "var(--theme-surface, #F2F0EA)",
   black: "var(--theme-black, #2A283E)",
@@ -36,8 +36,8 @@ export const THEME_COLOR_ALIASES = {
   headerCta: "var(--theme-header-cta)",
   ctaBorder: "var(--theme-cta-border, var(--theme-border, rgba(42, 40, 62, 0.14)))",
   gradient:
-    "var(--theme-gradient, linear-gradient(90deg, #E03C33 0%, #B92E27 100%))",
-  primaryLight: "var(--theme-primary-light, rgba(224, 60, 51, 0.1))",
+    "var(--theme-gradient, linear-gradient(90deg, #D32F2F 0%, #B71C1C 100%))",
+  primaryLight: "var(--theme-primary-light, rgba(211, 47, 47, 0.1))",
   themeBorder: "var(--theme-theme-border, var(--theme-border, rgba(42, 40, 62, 0.14)))",
   imgWhite:
     "var(--theme-img-white, var(--theme-img-fill-white, brightness(0) saturate(100%) invert(100%)))",
@@ -51,10 +51,10 @@ export const THEME_COLOR_ALIASES = {
 };
 
 const THEME_COLOR_FALLBACKS = {
-  primary: "#E03C33",
-  "primary-dark": "#B92E27",
-  "primary-soft": "#F2867F",
-  "primary-pale": "#F2A19B",
+  primary: "#D32F2F",
+  "primary-dark": "#B71C1C",
+  "primary-soft": "#EF5350",
+  "primary-pale": "#FFCDD2",
   secondary: "#2A283E",
   black: "#2A283E",
   "black-light": "rgba(42, 40, 62, 0.76)",
@@ -64,8 +64,8 @@ const THEME_COLOR_FALLBACKS = {
   "warm-white": "#FAF6EF",
   surface: "#F2F0EA",
   dark: "#211E30",
-  "primary-light": "rgba(224, 60, 51, 0.1)",
-  gradient: "linear-gradient(90deg, #E03C33 0%, #B92E27 100%)",
+  "primary-light": "rgba(211, 47, 47, 0.1)",
+  gradient: "linear-gradient(90deg, #D32F2F 0%, #B71C1C 100%))",
   border: "rgba(42, 40, 62, 0.14)",
   transparent: "transparent",
 };

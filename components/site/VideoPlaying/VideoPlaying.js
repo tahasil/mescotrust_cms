@@ -141,6 +141,14 @@ export default function VideoPlaying(props) {
       return;
     }
     const context = gsap.context(() => {
+      if (props?.videoPlayingAutoplayOnScroll && videoRef.current) {
+        ScrollTrigger.create({
+          trigger: videoRef.current,
+          start: "top 75%",
+          once: true,
+          onEnter: () => setVideoPlaying(true),
+        });
+      }
       if (props?.videoPlayingScaleAnimationEnabled !== false && videoRef.current) {
         gsap.fromTo(videoRef.current, { scale: number(props?.videoPlayingScaleFrom, 0.9) }, {
           scale: 1,
@@ -247,7 +255,7 @@ export default function VideoPlaying(props) {
             {text(props?.videoPlayingTitle) || text(props?.videoPlayingTitleAccent) ? <h2 className="chapterTitle">{renderHighlightedTitle(text(props?.videoPlayingTitleAccent) ? `${text(props?.videoPlayingTitle)}${text(props?.videoPlayingTitle) ? " " : ""}*${text(props?.videoPlayingTitleAccent)}*` : text(props?.videoPlayingTitle), props, { legacyColorKey: props?.videoPlayingTitleAccentColorKey })}</h2> : null}
           </div> : null}
           <div ref={videoRef} className="chapterVideo">
-            {videoPlaying && youtubeVideoId ? <iframe src={`https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&rel=0`} title={text(props?.videoPlayingVideoTitle) || coverAlt} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen /> : <div className="chapterCover" role="button" tabIndex={0} aria-label={text(props?.videoPlayingPlayAriaLabel) || coverAlt} onClick={() => setVideoPlaying(true)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setVideoPlaying(true); } }}><img src={coverImageDesktop} alt={coverAlt} /><button type="button" className="chapterPlay" tabIndex={-1} aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7L8 5z" /></svg></button></div>}
+            {videoPlaying && youtubeVideoId ? <iframe src={`https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&mute=1&playsinline=1&rel=0`} title={text(props?.videoPlayingVideoTitle) || coverAlt} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen /> : <div className="chapterCover" role="button" tabIndex={0} aria-label={text(props?.videoPlayingPlayAriaLabel) || coverAlt} onClick={() => setVideoPlaying(true)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setVideoPlaying(true); } }}><img src={coverImageDesktop} alt={coverAlt} /><button type="button" className="chapterPlay" tabIndex={-1} aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7L8 5z" /></svg></button></div>}
           </div>
           {quote ? <blockquote ref={quoteRef} className="chapterQuote"><p>{quoteWords.map((word, index) => <span className="chapterQuoteWord" key={`${word}-${index}`}>{index ? " " : ""}{word}</span>)}</p></blockquote> : null}
           {text(props?.videoPlayingAuthorName) || text(props?.videoPlayingAuthorRole) ? <figcaption className="chapterAttribution"><strong>{text(props?.videoPlayingAuthorName)}</strong><span>{text(props?.videoPlayingAuthorRole)}</span></figcaption> : null}

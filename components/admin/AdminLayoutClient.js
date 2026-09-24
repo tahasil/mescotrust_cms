@@ -58,6 +58,7 @@ import {
   DollarOutlined,
   CloseOutlined,
   SafetyCertificateOutlined,
+  IdcardOutlined,
 } from "@ant-design/icons";
 import { signOut } from "next-auth/react";
 import { roleLabelFromKey } from "@/lib/rbac/constants";
@@ -364,6 +365,15 @@ const baseMenuItems = [
         label: (
           <Link href="/admin/contacts" style={linkStyle}>
             Contact Us
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/careers",
+        icon: <IdcardOutlined />,
+        label: (
+          <Link href="/admin/careers" style={linkStyle}>
+            Careers
           </Link>
         ),
       },
@@ -1066,6 +1076,11 @@ export default function AdminLayoutClient({ children, userName, userRole, userRo
 
   const handleSignOut = async () => {
     try {
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("admin-components-search-query-v1");
+        sessionStorage.removeItem("admin-forms-search-query-v1");
+        sessionStorage.removeItem(ADMIN_NOTIFICATIONS_CLEARED_AT_PREFIX);
+      }
       // Invalidate the session without following NextAuth's server-generated
       // callback URL, which is derived from NEXTAUTH_URL.
       await signOut({ redirect: false, callbackUrl: "/admin/login" });

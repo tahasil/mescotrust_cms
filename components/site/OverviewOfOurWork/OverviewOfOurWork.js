@@ -400,17 +400,16 @@ export default function OverviewOfOurWork(props) {
       refreshAfterPaint();
     };
 
-    const layoutRoot =
-      wrapperRef.current.closest(".public-site") || document.body;
-    const resizeObserver = new ResizeObserver(refreshAfterPaint);
-    resizeObserver.observe(document.body);
-    if (layoutRoot !== document.body) resizeObserver.observe(layoutRoot);
-
-    const mutationObserver = new MutationObserver(refreshAfterPaint);
-    mutationObserver.observe(layoutRoot, { childList: true, subtree: true });
+    const resizeObserver = new ResizeObserver(() => {
+      refreshAfterPaint();
+    });
+    if (wrapperRef.current) {
+      resizeObserver.observe(wrapperRef.current);
+    }
 
     window.addEventListener("site-page-readiness-change", handlePageReadiness);
     window.addEventListener("load", handleWindowLoad, { once: true });
+    window.addEventListener("resize", refreshAfterPaint);
 
     initializeAfterPaint();
 
@@ -420,8 +419,8 @@ export default function OverviewOfOurWork(props) {
         handlePageReadiness,
       );
       window.removeEventListener("load", handleWindowLoad);
+      window.removeEventListener("resize", refreshAfterPaint);
       resizeObserver.disconnect();
-      mutationObserver.disconnect();
       window.cancelAnimationFrame(layoutFrame);
       window.cancelAnimationFrame(paintFrame);
       window.cancelAnimationFrame(refreshFrame);

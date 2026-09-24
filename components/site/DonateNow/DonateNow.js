@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Col, Row, Select, notification } from "antd";
@@ -1391,6 +1391,35 @@ export default function DonateNow(props = {}) {
               }
             }}
           />
+          {key === "amount" && (
+            <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
+              {[500, 1000, 5000, 10000].map((increment) => (
+                <button
+                  key={increment}
+                  type="button"
+                  onClick={() => {
+                    const currentVal = Number(fieldValues.amount) || 0;
+                    const nextVal = currentVal + increment;
+                    handleFieldValue("amount", String(nextVal));
+                    setAmountTouched(true);
+                  }}
+                  style={{
+                    padding: "4px 10px",
+                    borderRadius: "999px",
+                    border: "1px solid rgba(211, 47, 47, 0.3)",
+                    background: "rgba(211, 47, 47, 0.06)",
+                    color: "#D32F2F",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  +₹{increment.toLocaleString("en-IN")}
+                </button>
+              ))}
+            </div>
+          )}
           {error ? <FieldError>{error}</FieldError> : null}
         </FieldWrap>
       </Col>

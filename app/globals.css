@@ -2,15 +2,15 @@
 @import "cropperjs/dist/cropper.css";
 
 :root {
-  --primary-color: #e03c33;
+  --primary-color: #d32f2f;
   --secondary-color: #2a283e;
   --bg-color: #fbfaf7;
   --section-bg-color: #fbfaf7;
   --card-bg-color: #ffffff;
   --text-color: rgba(42, 40, 62, 0.76);
   --heading-color: #2a283e;
-  --link-color: #e03c33;
-  --link-hover-color: #b92e27;
+  --link-color: #d32f2f;
+  --link-hover-color: #b71c1c;
   --muted-text-color: rgba(42, 40, 62, 0.52);
   --border-color: rgba(42, 40, 62, 0.14);
   --divider-color: rgba(42, 40, 62, 0.14);
@@ -24,6 +24,9 @@
   --font-weight: 400;
   --heading-font-weight: 700;
   --layout-width: 1200px;
+  --appearance-header-height: 90px;
+  --appearance-ribbon-height: 40px;
+  --appearance-header-offset: 130px;
 }
 
 * {
@@ -43,6 +46,16 @@ body {
   letter-spacing: var(--letter-spacing);
   color: var(--text-color);
   background-color: var(--bg-color);
+}
+
+/* Accessibility: distinguishable hyperlinks in prose content */
+.cms-layout p a,
+.fable-prose a,
+.blog-content a,
+.content-area a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
 }
 
 /* Fade-in scroll animation — driven by CSS custom properties from theme settings */

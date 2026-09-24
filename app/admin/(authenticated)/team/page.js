@@ -6,10 +6,11 @@ import { EditOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { ThemeAdminCard } from "@/styles/Theme";
 
-const TEAM_COMPONENT_IDS = ["CommitteeMembers"];
+const TEAM_COMPONENT_IDS = ["CommitteeMembers", "ManagingCommittee"];
 
 const TEAM_LABELS = {
   CommitteeMembers: "Committee Members",
+  ManagingCommittee: "Managing Committee",
 };
 
 export default function AdminTeamPage() {

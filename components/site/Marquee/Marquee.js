@@ -75,17 +75,17 @@ const PartnersSection = styled.section`
   .marquee-item img {
     display: block;
     width: auto;
-    max-width: 190px;
-    height: 72px;
+    max-width: 240px;
+    height: 84px;
     object-fit: contain;
-    filter: grayscale(1);
-    opacity: 0.72;
-    transition: filter 0.3s ease, opacity 0.3s ease;
+    filter: none;
+    opacity: 1;
+    transition: transform 0.25s ease, opacity 0.25s ease;
   }
 
   .marquee-item img:hover {
-    filter: none;
-    opacity: 1;
+    transform: scale(1.04);
+    opacity: 0.95;
   }
 
   @media (max-width: 768px) {
@@ -94,8 +94,8 @@ const PartnersSection = styled.section`
     }
 
     .marquee-item img {
-      max-width: 150px;
-      height: 60px;
+      max-width: 180px;
+      height: 68px;
     }
   }
 
