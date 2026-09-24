@@ -57,12 +57,12 @@ const PartnersSection = styled.section`
     margin-left: calc(50% - 50vw);
     overflow: hidden;
     ${(p) =>
-      p.$showGradient
-        ? `
+    p.$showGradient
+      ? `
       -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
       mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
     `
-        : ""}
+      : ""}
   }
 
   .marquee-item {
@@ -76,10 +76,10 @@ const PartnersSection = styled.section`
     display: block;
     width: auto;
     max-width: 190px;
-    height: 72px;
+    height: 84px;
     object-fit: contain;
-    filter: grayscale(1);
-    opacity: 0.72;
+    // filter: grayscale(1);
+    // opacity: 0.72;
     transition: filter 0.3s ease, opacity 0.3s ease;
   }
 
@@ -200,8 +200,8 @@ export default function Marquee(props) {
       : legacyAwardsTitle;
   const partnersTitleColor = getColor(
     settings?.marqueePartnersTitleColorKey ||
-      settings?.marqueeTitleColorKey ||
-      "black",
+    settings?.marqueeTitleColorKey ||
+    "black",
   );
   const awardsTitleColor = getColor(
     settings?.marqueeAwardsTitleColorKey || "blackMuted",
@@ -222,16 +222,16 @@ export default function Marquee(props) {
   const sectionBgStyleBase =
     sectionBgType === "image" && sectionBgImage
       ? {
-          backgroundImage: `url(${sectionBgImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center center",
-          backgroundRepeat: "no-repeat",
-        }
+        backgroundImage: `url(${sectionBgImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center center",
+        backgroundRepeat: "no-repeat",
+      }
       : sectionBgType === "color" && sectionBgColorKey
         ? {
-            backgroundColor: getColor(sectionBgColorKey),
-            backgroundImage: "none",
-          }
+          backgroundColor: getColor(sectionBgColorKey),
+          backgroundImage: "none",
+        }
         : undefined;
   const sectionSpacing = {
     paddingTop: settings?.marqueeSectionPaddingTop,
@@ -266,16 +266,16 @@ export default function Marquee(props) {
   const pageContainerBgStyleBase =
     pageContainerBgType === "image" && pageContainerBgImage
       ? {
-          backgroundImage: `url(${pageContainerBgImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }
+        backgroundImage: `url(${pageContainerBgImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }
       : pageContainerBgType === "color" && pageContainerBgColorKey
         ? {
-            backgroundColor: getColor(pageContainerBgColorKey),
-            backgroundImage: "none",
-          }
+          backgroundColor: getColor(pageContainerBgColorKey),
+          backgroundImage: "none",
+        }
         : undefined;
   const pageContainerSpacing = {
     paddingTop: settings?.marqueePageContainerPaddingTop,
