@@ -8,6 +8,7 @@ import AppearanceHeader from "@/components/appearance/AppearanceHeader";
 import AppearanceFooter from "@/components/appearance/AppearanceFooter";
 import AppearanceHeaderRibbon from "@/components/appearance/AppearanceHeaderRibbon";
 import PublicPageReadySignal from "@/components/site/PublicPageReadySignal";
+import ScrollToTop from "@/components/site/ScrollToTop";
 
 const headerThemeProps = (props) => ({
   menuItems: props.headerItems,
@@ -433,6 +434,7 @@ export default function PublicShell({
       <Suspense fallback={null}>
         <PublicPageReadySignal />
       </Suspense>
+      <ScrollToTop />
       <ChatbotWidget />
     </div>
   );
