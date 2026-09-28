@@ -78,6 +78,14 @@ function AppearanceHeaderEditForm(
           headerSearchFallbackTitle:
             record?.headerSearchFallbackTitle || "Untitled",
           headerSearchFallbackMeta: record?.headerSearchFallbackMeta || "",
+          headerSearchBgColorKey:
+            record?.headerSearchBgColorKey || "transparent",
+          headerSearchTextColorKey:
+            record?.headerSearchTextColorKey || "#1a1a1a",
+          headerSearchHoverBgColorKey:
+            record?.headerSearchHoverBgColorKey || "#ffffff",
+          headerSearchHoverTextColorKey:
+            record?.headerSearchHoverTextColorKey || "#1a1a1a",
           headerVolunteerLabel: record?.headerVolunteerLabel || "Volunteer",
           headerVolunteerHref: record?.headerVolunteerHref || "",
           headerVolunteerHrefTarget: normalizeTarget(
@@ -96,10 +104,18 @@ function AppearanceHeaderEditForm(
             record?.headerNavTextColorKey || "#1a1a1a",
           headerCtaBgColorKey: record?.headerCtaBgColorKey || "#FDF1F1",
           headerCtaTextColorKey: record?.headerCtaTextColorKey || "#A82D2D",
+          headerCtaHoverBgColorKey:
+            record?.headerCtaHoverBgColorKey || "#FDF1F1",
+          headerCtaHoverTextColorKey:
+            record?.headerCtaHoverTextColorKey || "#A82D2D",
           headerDonateBgColorKey:
             record?.headerDonateBgColorKey || "#A82D2D",
           headerDonateTextColorKey:
             record?.headerDonateTextColorKey || "#ffffff",
+          headerDonateHoverBgColorKey:
+            record?.headerDonateHoverBgColorKey || "#8C1C13",
+          headerDonateHoverTextColorKey:
+            record?.headerDonateHoverTextColorKey || "#ffffff",
           headerResponsiveButtonBorderColorKey:
             record?.headerResponsiveButtonBorderColorKey || "#A82D2D",
           headerDesktopSearchBorderColorKey:
@@ -188,6 +204,18 @@ function AppearanceHeaderEditForm(
         headerSearchFallbackMeta: String(
           values.headerSearchFallbackMeta || "",
         ).trim(),
+        headerSearchBgColorKey: String(
+          values.headerSearchBgColorKey || "",
+        ).trim(),
+        headerSearchTextColorKey: String(
+          values.headerSearchTextColorKey || "",
+        ).trim(),
+        headerSearchHoverBgColorKey: String(
+          values.headerSearchHoverBgColorKey || "",
+        ).trim(),
+        headerSearchHoverTextColorKey: String(
+          values.headerSearchHoverTextColorKey || "",
+        ).trim(),
         headerVolunteerLabel: String(values.headerVolunteerLabel || "").trim(),
         headerVolunteerHref: String(values.headerVolunteerHref || "").trim(),
         headerVolunteerHrefTarget: normalizeTarget(
@@ -202,11 +230,23 @@ function AppearanceHeaderEditForm(
         headerNavTextColorKey: String(values.headerNavTextColorKey || "").trim(),
         headerCtaBgColorKey: String(values.headerCtaBgColorKey || "").trim(),
         headerCtaTextColorKey: String(values.headerCtaTextColorKey || "").trim(),
+        headerCtaHoverBgColorKey: String(
+          values.headerCtaHoverBgColorKey || "",
+        ).trim(),
+        headerCtaHoverTextColorKey: String(
+          values.headerCtaHoverTextColorKey || "",
+        ).trim(),
         headerDonateBgColorKey: String(
           values.headerDonateBgColorKey || "",
         ).trim(),
         headerDonateTextColorKey: String(
           values.headerDonateTextColorKey || "",
+        ).trim(),
+        headerDonateHoverBgColorKey: String(
+          values.headerDonateHoverBgColorKey || "",
+        ).trim(),
+        headerDonateHoverTextColorKey: String(
+          values.headerDonateHoverTextColorKey || "",
         ).trim(),
         headerResponsiveButtonBorderColorKey: String(
           values.headerResponsiveButtonBorderColorKey || "",
@@ -252,10 +292,12 @@ function AppearanceHeaderEditForm(
   if (loading) return <div style={{ padding: 48, textAlign: "center" }}><Spin /></div>;
 
   const colorOptions = [
+    { label: "Transparent", value: "transparent" },
     { label: "White", value: "#ffffff" },
     { label: "Dark text", value: "#1a1a1a" },
     { label: "Volunteer pink", value: "#FDF1F1" },
     { label: "Brand red", value: "#A82D2D" },
+    { label: "Hover red", value: "#8C1C13" },
     { label: "Light border", value: "rgba(0,0,0,.12)" },
     { label: "Translucent navy", value: "rgba(27, 24, 38, 0.72)" },
     { label: "Header cream", value: "#faf6ef" },
@@ -319,6 +361,18 @@ function AppearanceHeaderEditForm(
                 <SwitchSettingsCard items={[{ name: "headerSearchEnabled", label: "Show Search button", tooltip: "Display the search control in the Header." }]} />
                 <Form.Item name="headerSearchLabel" label="Button label"><Input /></Form.Item>
                 <Form.Item name="headerSearchPlaceholder" label="Input placeholder"><Input /></Form.Item>
+                <Form.Item name="headerSearchBgColorKey" label="Background color">
+                  <Select showSearch allowClear options={colorOptions} optionFilterProp="label" />
+                </Form.Item>
+                <Form.Item name="headerSearchTextColorKey" label="Text/icon color">
+                  <Select showSearch allowClear options={colorOptions} optionFilterProp="label" />
+                </Form.Item>
+                <Form.Item name="headerSearchHoverBgColorKey" label="Hover background color">
+                  <Select showSearch allowClear options={colorOptions} optionFilterProp="label" />
+                </Form.Item>
+                <Form.Item name="headerSearchHoverTextColorKey" label="Hover text/icon color">
+                  <Select showSearch allowClear options={colorOptions} optionFilterProp="label" />
+                </Form.Item>
                 <Collapse
                   size="small"
                   items={[{
@@ -361,10 +415,16 @@ function AppearanceHeaderEditForm(
                 >
                   <MediaPickerInput />
                 </Form.Item>
-                <Form.Item name="headerCtaBgColorKey" label="Volunteer background">
+                <Form.Item name="headerCtaBgColorKey" label="Background color">
                   <Select showSearch allowClear options={colorOptions} optionFilterProp="label" />
                 </Form.Item>
-                <Form.Item name="headerCtaTextColorKey" label="Volunteer text">
+                <Form.Item name="headerCtaTextColorKey" label="Text/icon color">
+                  <Select showSearch allowClear options={colorOptions} optionFilterProp="label" />
+                </Form.Item>
+                <Form.Item name="headerCtaHoverBgColorKey" label="Hover background color">
+                  <Select showSearch allowClear options={colorOptions} optionFilterProp="label" />
+                </Form.Item>
+                <Form.Item name="headerCtaHoverTextColorKey" label="Hover text/icon color">
                   <Select showSearch allowClear options={colorOptions} optionFilterProp="label" />
                 </Form.Item>
               </>
@@ -385,10 +445,16 @@ function AppearanceHeaderEditForm(
                 >
                   <MediaPickerInput />
                 </Form.Item>
-                <Form.Item name="headerDonateBgColorKey" label="Background">
+                <Form.Item name="headerDonateBgColorKey" label="Background color">
                   <Select showSearch allowClear options={colorOptions} optionFilterProp="label" />
                 </Form.Item>
-                <Form.Item name="headerDonateTextColorKey" label="Text">
+                <Form.Item name="headerDonateTextColorKey" label="Text/icon color">
+                  <Select showSearch allowClear options={colorOptions} optionFilterProp="label" />
+                </Form.Item>
+                <Form.Item name="headerDonateHoverBgColorKey" label="Hover background color">
+                  <Select showSearch allowClear options={colorOptions} optionFilterProp="label" />
+                </Form.Item>
+                <Form.Item name="headerDonateHoverTextColorKey" label="Hover text/icon color">
                   <Select showSearch allowClear options={colorOptions} optionFilterProp="label" />
                 </Form.Item>
               </>

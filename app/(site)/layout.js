@@ -120,6 +120,22 @@ export default async function SiteLayout({ children }) {
           theme,
           appearanceHeaderProps.headerNavTextColorKey,
         ),
+        headerSearchBgValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerSearchBgColorKey,
+        ),
+        headerSearchTextValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerSearchTextColorKey,
+        ),
+        headerSearchHoverBgValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerSearchHoverBgColorKey,
+        ),
+        headerSearchHoverTextValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerSearchHoverTextColorKey,
+        ),
         headerCtaBgValue: resolveThemeColor(
           theme,
           appearanceHeaderProps.headerCtaBgColorKey,
@@ -128,6 +144,14 @@ export default async function SiteLayout({ children }) {
           theme,
           appearanceHeaderProps.headerCtaTextColorKey,
         ),
+        headerCtaHoverBgValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerCtaHoverBgColorKey,
+        ),
+        headerCtaHoverTextValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerCtaHoverTextColorKey,
+        ),
         headerDonateBgValue: resolveThemeColor(
           theme,
           appearanceHeaderProps.headerDonateBgColorKey,
@@ -135,6 +159,14 @@ export default async function SiteLayout({ children }) {
         headerDonateTextValue: resolveThemeColor(
           theme,
           appearanceHeaderProps.headerDonateTextColorKey,
+        ),
+        headerDonateHoverBgValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerDonateHoverBgColorKey,
+        ),
+        headerDonateHoverTextValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerDonateHoverTextColorKey,
         ),
         headerResponsiveButtonBorderValue: resolveThemeColor(
           theme,
@@ -236,10 +268,18 @@ export default async function SiteLayout({ children }) {
     : null;
 
   const headerBgKey = theme.headerBgColorKey ?? "";
+  const headerSearchBgKey = theme.headerSearchBgColorKey ?? "";
+  const headerSearchTextKey = theme.headerSearchTextColorKey ?? "";
+  const headerSearchHoverBgKey = theme.headerSearchHoverBgColorKey ?? "";
+  const headerSearchHoverTextKey = theme.headerSearchHoverTextColorKey ?? "";
   const headerCtaBgKey = theme.headerCtaBgColorKey ?? "";
   const headerCtaTextKey = theme.headerCtaTextColorKey ?? "";
+  const headerCtaHoverBgKey = theme.headerCtaHoverBgColorKey ?? "";
+  const headerCtaHoverTextKey = theme.headerCtaHoverTextColorKey ?? "";
   const headerDonateBgKey = theme.headerDonateBgColorKey ?? "";
   const headerDonateTextKey = theme.headerDonateTextColorKey ?? "";
+  const headerDonateHoverBgKey = theme.headerDonateHoverBgColorKey ?? "";
+  const headerDonateHoverTextKey = theme.headerDonateHoverTextColorKey ?? "";
 
   const footerBgKey = theme.footerBgColorKey ?? "";
   const footerTextKey = theme.footerTextColorKey ?? "";
@@ -339,10 +379,33 @@ export default async function SiteLayout({ children }) {
         headerDonateIconUrl={theme.headerDonateIconUrl}
         headerDonateIconUrlMobile={theme.headerDonateIconUrlMobile ?? ""}
         headerBgValue={resolveThemeColor(theme, headerBgKey)}
+        headerSearchBgValue={resolveThemeColor(theme, headerSearchBgKey)}
+        headerSearchTextValue={resolveThemeColor(theme, headerSearchTextKey)}
+        headerSearchHoverBgValue={resolveThemeColor(
+          theme,
+          headerSearchHoverBgKey,
+        )}
+        headerSearchHoverTextValue={resolveThemeColor(
+          theme,
+          headerSearchHoverTextKey,
+        )}
         headerCtaBgValue={resolveThemeColor(theme, headerCtaBgKey)}
         headerCtaTextValue={resolveThemeColor(theme, headerCtaTextKey)}
+        headerCtaHoverBgValue={resolveThemeColor(theme, headerCtaHoverBgKey)}
+        headerCtaHoverTextValue={resolveThemeColor(
+          theme,
+          headerCtaHoverTextKey,
+        )}
         headerDonateBgValue={resolveThemeColor(theme, headerDonateBgKey)}
         headerDonateTextValue={resolveThemeColor(theme, headerDonateTextKey)}
+        headerDonateHoverBgValue={resolveThemeColor(
+          theme,
+          headerDonateHoverBgKey,
+        )}
+        headerDonateHoverTextValue={resolveThemeColor(
+          theme,
+          headerDonateHoverTextKey,
+        )}
         volunteerModalTitle={theme.volunteerModalTitle}
         volunteerModalSuccessTitle={theme.volunteerModalSuccessTitle ?? ""}
         volunteerModalSuccessDescription={theme.volunteerModalSuccessDescription ?? ""}

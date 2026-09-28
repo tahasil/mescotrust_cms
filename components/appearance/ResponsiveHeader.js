@@ -258,8 +258,16 @@ export default function Header({
   headerBgValue = "",
   headerCtaBgValue = "",
   headerCtaTextValue = "",
+  headerCtaHoverBgValue = "",
+  headerCtaHoverTextValue = "",
   headerDonateBgValue = "",
   headerDonateTextValue = "",
+  headerDonateHoverBgValue = "",
+  headerDonateHoverTextValue = "",
+  headerSearchBgValue = "",
+  headerSearchTextValue = "",
+  headerSearchHoverBgValue = "",
+  headerSearchHoverTextValue = "",
   headerNavTextValue = "",
   sectionBg = "",
   sectionPadding = "",
@@ -747,6 +755,10 @@ export default function Header({
                   type="button"
                   onClick={() => setSearchOpen(true)}
                   aria-label={headerSearchOpenAriaLabel || headerSearchLabel}
+                  $headerSearchBgValue={headerSearchBgValue}
+                  $headerSearchTextValue={headerSearchTextValue}
+                  $headerSearchHoverBgValue={headerSearchHoverBgValue}
+                  $headerSearchHoverTextValue={headerSearchHoverTextValue}
                 >
                   <SearchIcon />
                   {headerSearchLabel}
@@ -760,6 +772,8 @@ export default function Header({
                   rel={volunteerTarget === "_blank" ? "noopener noreferrer" : undefined}
                   $headerCtaBgValue={headerCtaBgValue}
                   $headerCtaTextValue={headerCtaTextValue}
+                  $headerCtaHoverBgValue={headerCtaHoverBgValue}
+                  $headerCtaHoverTextValue={headerCtaHoverTextValue}
                 >
                   <span className="btn-label">{volunteerLabel}</span>
                   <IconWrap>
@@ -780,6 +794,8 @@ export default function Header({
                   rel={donateTarget === "_blank" ? "noopener noreferrer" : undefined}
                   $headerDonateBgValue={headerDonateBgValue}
                   $headerDonateTextValue={headerDonateTextValue}
+                  $headerDonateHoverBgValue={headerDonateHoverBgValue}
+                  $headerDonateHoverTextValue={headerDonateHoverTextValue}
                 >
                   <span className="btn-label">{donateLabel}</span>
                   <IconWrap>
@@ -970,6 +986,10 @@ export default function Header({
                 setSearchOpen(true);
               }}
               aria-label={headerSearchOpenAriaLabel || headerSearchLabel}
+              $headerSearchBgValue={headerSearchBgValue}
+              $headerSearchTextValue={headerSearchTextValue}
+              $headerSearchHoverBgValue={headerSearchHoverBgValue}
+              $headerSearchHoverTextValue={headerSearchHoverTextValue}
             >
               <SearchIcon />
               {headerSearchLabel}
@@ -985,6 +1005,8 @@ export default function Header({
               }}
               $headerCtaBgValue={headerCtaBgValue}
               $headerCtaTextValue={headerCtaTextValue}
+              $headerCtaHoverBgValue={headerCtaHoverBgValue}
+              $headerCtaHoverTextValue={headerCtaHoverTextValue}
             >
               <span className="btn-label">{volunteerLabel}</span>
             </MobileBtnVolunteer>
@@ -997,6 +1019,8 @@ export default function Header({
               onClick={closeMobile}
               $headerDonateBgValue={headerDonateBgValue}
               $headerDonateTextValue={headerDonateTextValue}
+              $headerDonateHoverBgValue={headerDonateHoverBgValue}
+              $headerDonateHoverTextValue={headerDonateHoverTextValue}
             >
               <span className="btn-label">{donateLabel}</span>
             </MobileBtnDonate>

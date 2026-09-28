@@ -63,8 +63,32 @@ function headerPreviewProps(props, theme) {
     ),
     headerBgValue: resolveThemeColor(theme, props?.headerBgColorKey),
     headerNavTextValue: resolveThemeColor(theme, props?.headerNavTextColorKey),
+    headerSearchBgValue: resolveThemeColor(
+      theme,
+      props?.headerSearchBgColorKey,
+    ),
+    headerSearchTextValue: resolveThemeColor(
+      theme,
+      props?.headerSearchTextColorKey,
+    ),
+    headerSearchHoverBgValue: resolveThemeColor(
+      theme,
+      props?.headerSearchHoverBgColorKey,
+    ),
+    headerSearchHoverTextValue: resolveThemeColor(
+      theme,
+      props?.headerSearchHoverTextColorKey,
+    ),
     headerCtaBgValue: resolveThemeColor(theme, props?.headerCtaBgColorKey),
     headerCtaTextValue: resolveThemeColor(theme, props?.headerCtaTextColorKey),
+    headerCtaHoverBgValue: resolveThemeColor(
+      theme,
+      props?.headerCtaHoverBgColorKey,
+    ),
+    headerCtaHoverTextValue: resolveThemeColor(
+      theme,
+      props?.headerCtaHoverTextColorKey,
+    ),
     headerDonateBgValue: resolveThemeColor(
       theme,
       props?.headerDonateBgColorKey,
@@ -72,6 +96,14 @@ function headerPreviewProps(props, theme) {
     headerDonateTextValue: resolveThemeColor(
       theme,
       props?.headerDonateTextColorKey,
+    ),
+    headerDonateHoverBgValue: resolveThemeColor(
+      theme,
+      props?.headerDonateHoverBgColorKey,
+    ),
+    headerDonateHoverTextValue: resolveThemeColor(
+      theme,
+      props?.headerDonateHoverTextColorKey,
     ),
     headerResponsiveButtonBorderValue: resolveThemeColor(
       theme,

@@ -348,26 +348,40 @@ export const SearchBtn = styled.button`
   padding: 10px 16px;
   border-radius: 30px;
   border: 1px solid rgba(0, 0, 0, 0.14);
-  background: rgba(255, 255, 255, 0.86);
-  color: ${getColor("black")};
+  background: ${(props) =>
+    props.$headerSearchBgValue || "rgba(255, 255, 255, 0.86)"};
+  color: ${(props) => props.$headerSearchTextValue || getColor("black")};
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   transition:
     background 0.2s ease,
+    color 0.2s ease,
     border-color 0.2s ease,
     transform 0.2s ease;
+  svg {
+    display: block;
+    stroke: currentColor;
+  }
   &:hover {
-    background: #fff;
+    background: ${(props) =>
+      props.$headerSearchHoverBgValue ||
+      (props.$headerSearchBgValue && props.$headerSearchBgValue !== "transparent"
+        ? props.$headerSearchBgValue
+        : "#fff")};
+    color: ${(props) =>
+      props.$headerSearchHoverTextValue ||
+      props.$headerSearchTextValue ||
+      getColor("black")};
     border-color: rgba(0, 0, 0, 0.24);
     transform: translateY(-1px);
+    svg {
+      stroke: currentColor;
+    }
   }
   &:focus-visible {
     outline: 2px solid rgba(0, 0, 0, 0.3);
     outline-offset: 2px;
-  }
-  svg {
-    display: block;
   }
 `;
 
@@ -440,6 +454,14 @@ export const BtnVolunteer = styled(Btn)`
     --icon-size: 14px;
   }
   &:hover {
+    background: ${(props) =>
+      props.$headerCtaHoverBgValue ||
+      props.$headerCtaBgValue ||
+      "transparent"};
+    color: ${(props) =>
+      props.$headerCtaHoverTextValue ||
+      props.$headerCtaTextValue ||
+      "currentColor"};
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
   }
   @media (max-width: 1280px) {
@@ -465,7 +487,14 @@ export const BtnDonate = styled(Btn)`
     --icon-size: 14px;
   }
   &:hover {
-    color: ${(props) => props.$headerDonateTextValue || "currentColor"};
+    background: ${(props) =>
+      props.$headerDonateHoverBgValue ||
+      props.$headerDonateBgValue ||
+      "transparent"};
+    color: ${(props) =>
+      props.$headerDonateHoverTextValue ||
+      props.$headerDonateTextValue ||
+      "currentColor"};
     box-shadow: 0 8px 18px rgba(122, 22, 17, 0.26);
   }
   @media (max-width: 1280px) {
@@ -729,22 +758,35 @@ export const MobileBtnSearch = styled.button`
   font-size: 0.9rem;
   font-weight: 600;
   border: 1px solid rgba(0, 0, 0, 0.14);
-  background: #fff;
-  color: ${getColor("black")};
+  background: ${(props) => props.$headerSearchBgValue || "#fff"};
+  color: ${(props) => props.$headerSearchTextValue || getColor("black")};
   cursor: pointer;
   transition:
     background 0.2s ease,
+    color 0.2s ease,
     border-color 0.2s ease;
+  svg {
+    display: block;
+    stroke: currentColor;
+  }
   &:hover {
-    background: #fafafa;
+    background: ${(props) =>
+      props.$headerSearchHoverBgValue ||
+      (props.$headerSearchBgValue && props.$headerSearchBgValue !== "transparent"
+        ? props.$headerSearchBgValue
+        : "#fafafa")};
+    color: ${(props) =>
+      props.$headerSearchHoverTextValue ||
+      props.$headerSearchTextValue ||
+      getColor("black")};
     border-color: rgba(0, 0, 0, 0.24);
+    svg {
+      stroke: currentColor;
+    }
   }
   &:focus-visible {
     outline: 2px solid rgba(0, 0, 0, 0.3);
     outline-offset: 2px;
-  }
-  svg {
-    display: block;
   }
 `;
 
@@ -753,6 +795,21 @@ export const MobileBtnVolunteer = styled(MobileBtn)`
   color: ${(props) => props.$headerCtaTextValue || "currentColor"};
   border-radius: 999px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+  &:hover {
+    background: ${(props) =>
+      props.$headerCtaHoverBgValue ||
+      props.$headerCtaBgValue ||
+      "transparent"};
+    color: ${(props) =>
+      props.$headerCtaHoverTextValue ||
+      props.$headerCtaTextValue ||
+      "currentColor"};
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  }
 `;
 
 export const MobileBtnDonate = styled(MobileBtn)`
@@ -760,6 +817,21 @@ export const MobileBtnDonate = styled(MobileBtn)`
   color: ${(props) => props.$headerDonateTextValue || "currentColor"};
   border-radius: 999px;
   box-shadow: 0 6px 16px rgba(122, 22, 17, 0.22);
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+  &:hover {
+    background: ${(props) =>
+      props.$headerDonateHoverBgValue ||
+      props.$headerDonateBgValue ||
+      "transparent"};
+    color: ${(props) =>
+      props.$headerDonateHoverTextValue ||
+      props.$headerDonateTextValue ||
+      "currentColor"};
+    box-shadow: 0 8px 18px rgba(122, 22, 17, 0.26);
+  }
 `;
 
 export const SearchOverlay = styled.div`

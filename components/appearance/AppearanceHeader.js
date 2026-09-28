@@ -170,10 +170,18 @@ export default function AppearanceHeader(props) {
     headerSearchFallbackMeta = "",
     headerBgValue = "",
     headerNavTextValue = "",
+    headerSearchBgValue = "",
+    headerSearchTextValue = "",
+    headerSearchHoverBgValue = "",
+    headerSearchHoverTextValue = "",
     headerCtaBgValue = "",
     headerCtaTextValue = "",
+    headerCtaHoverBgValue = "",
+    headerCtaHoverTextValue = "",
     headerDonateBgValue = "",
     headerDonateTextValue = "",
+    headerDonateHoverBgValue = "",
+    headerDonateHoverTextValue = "",
     headerResponsiveButtonBorderValue = "",
     headerDesktopSearchBorderValue = "",
     headerResponsiveVolunteerIconValue = "",
@@ -194,10 +202,22 @@ export default function AppearanceHeader(props) {
   const navTextColor = headerNavTextValue || "#1a1a1a";
   const navBackground = resolveNavBackground(headerBgValue);
   const navBackgroundScrolled = resolveScrolledNavBackground(headerBgValue);
+  const searchBg = headerSearchBgValue || "transparent";
+  const searchText = headerSearchTextValue || navTextColor;
+  const searchHoverBg =
+    headerSearchHoverBgValue ||
+    (headerSearchBgValue && headerSearchBgValue !== "transparent"
+      ? headerSearchBgValue
+      : "#ffffff");
+  const searchHoverText = headerSearchHoverTextValue || searchText;
   const volunteerBg = headerCtaBgValue || "#FDF1F1";
   const volunteerText = headerCtaTextValue || "#A82D2D";
+  const volunteerHoverBg = headerCtaHoverBgValue || volunteerBg;
+  const volunteerHoverText = headerCtaHoverTextValue || volunteerText;
   const donateBg = headerDonateBgValue || "#A82D2D";
   const donateText = headerDonateTextValue || "#ffffff";
+  const donateHoverBg = headerDonateHoverBgValue || "#8C1C13";
+  const donateHoverText = headerDonateHoverTextValue || donateText;
   const responsiveButtonBorder =
     headerResponsiveButtonBorderValue || "#A82D2D";
   const desktopSearchBorder =
@@ -341,10 +361,18 @@ export default function AppearanceHeader(props) {
       style={{
         "--appearance-nav-background": navBackground,
         "--appearance-nav-background-scrolled": navBackgroundScrolled,
+        "--appearance-search-bg": searchBg,
+        "--appearance-search-text": searchText,
+        "--appearance-search-hover-bg": searchHoverBg,
+        "--appearance-search-hover-text": searchHoverText,
         "--appearance-volunteer-bg": volunteerBg,
         "--appearance-volunteer-text": volunteerText,
+        "--appearance-volunteer-hover-bg": volunteerHoverBg,
+        "--appearance-volunteer-hover-text": volunteerHoverText,
         "--appearance-donate-bg": donateBg,
         "--appearance-donate-text": donateText,
+        "--appearance-donate-hover-bg": donateHoverBg,
+        "--appearance-donate-hover-text": donateHoverText,
         "--appearance-responsive-button-border": responsiveButtonBorder,
         "--appearance-desktop-search-border": desktopSearchBorder,
         "--appearance-responsive-volunteer-icon": responsiveVolunteerIcon,
@@ -383,7 +411,6 @@ export default function AppearanceHeader(props) {
                 <button
                   type="button"
                   className="appearance-search"
-                  style={{ borderColor: desktopSearchBorder }}
                   onClick={() => setSearchOpen(true)}
                   aria-label={headerSearchOpenAriaLabel || headerSearchLabel}
                 >
@@ -505,8 +532,11 @@ export default function AppearanceHeader(props) {
         .appearance-header .appearance-submenu { position: absolute; top: -8px; left: calc(100% + 8px); min-width: 240px; padding: 8px; display: flex; flex-direction: column; background: var(--appearance-nav-background); border: 1px solid rgba(0,0,0,.08); border-radius: 12px; box-shadow: 0 16px 40px rgba(0,0,0,.12); opacity: 0; visibility: hidden; transform: translateX(8px); transition: opacity .2s, transform .2s, visibility .2s; }
         .appearance-header .appearance-dropdown-item:hover > .appearance-submenu, .appearance-header .appearance-dropdown-item:focus-within > .appearance-submenu { opacity: 1; visibility: visible; transform: translateX(0); }
         .appearance-header .appearance-actions { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; }
-        .appearance-header .appearance-actions a:not(.appearance-search), .appearance-header .appearance-actions button:not(.appearance-search) { position: relative; display: inline-flex; align-items: center; min-height: 46px; padding: 0 52px 0 22px; border-radius: 999px; font-size: 15px; font-weight: 600; line-height: 1.2; text-decoration: none !important; white-space: nowrap; transition: transform .25s, background .25s, box-shadow .25s; border: none; cursor: pointer; font-family: inherit; }
-        .appearance-header .appearance-actions button.appearance-search { position: relative; display: inline-flex; align-items: center; min-height: 46px; padding: 0 18px; border-radius: 999px; font-size: 15px; font-weight: 600; line-height: 1.2; white-space: nowrap; transition: transform .25s, border-color .25s, box-shadow .25s; cursor: pointer; font-family: inherit; gap: 8px; min-width: 44px; color: var(--appearance-nav-text); background: transparent; border: 1px solid var(--appearance-desktop-search-border, rgba(0,0,0,.12)); text-decoration: none !important; }
+        .appearance-header .appearance-actions a:not(.appearance-search), .appearance-header .appearance-actions button:not(.appearance-search) { position: relative; display: inline-flex; align-items: center; min-height: 46px; padding: 0 52px 0 22px; border-radius: 999px; font-size: 15px; font-weight: 600; line-height: 1.2; text-decoration: none !important; white-space: nowrap; transition: transform .25s, background .25s, color .25s, box-shadow .25s; border: none; cursor: pointer; font-family: inherit; }
+        .appearance-header .appearance-actions button.appearance-search,
+        .appearance-header .appearance-search { position: relative; display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 18px; border-radius: 999px; font-size: 15px; font-weight: 600; line-height: 1.2; white-space: nowrap; transition: transform .25s, border-color .25s, box-shadow .25s, background .25s, color .25s; cursor: pointer; font-family: inherit; gap: 8px; min-width: 44px; color: var(--appearance-search-text) !important; -webkit-text-fill-color: var(--appearance-search-text) !important; background: var(--appearance-search-bg) !important; border: 1px solid var(--appearance-desktop-search-border, rgba(0,0,0,.12)); text-decoration: none !important; }
+        .appearance-header .appearance-actions button.appearance-search svg,
+        .appearance-header .appearance-search svg { color: var(--appearance-search-text); stroke: currentColor; transition: stroke .25s, color .25s; }
         .appearance-header .appearance-desktop .appearance-actions a.appearance-volunteer,
         .appearance-header .appearance-desktop .appearance-actions a.appearance-donate { padding: 0 26px; }
         .appearance-header .appearance-desktop .appearance-btn-icon { display: none; }
@@ -515,13 +545,14 @@ export default function AppearanceHeader(props) {
         .appearance-header .appearance-btn-icon img { width: 14px; height: 14px; object-fit: contain; display: block; }
         .appearance-header .appearance-btn-icon-volunteer { background: #fff; }
         .appearance-header .appearance-btn-icon-donate { background: rgba(255,255,255,.22); }
-        .appearance-header .appearance-search { display: inline-flex; align-items: center; justify-content: center; color: var(--appearance-nav-text); background: transparent; border: 1px solid var(--appearance-desktop-search-border, rgba(0,0,0,.12)); padding: 0 18px; gap: 8px; min-width: 44px; }
-        .appearance-header .appearance-actions button.appearance-search:hover { border-color: var(--appearance-desktop-search-border, rgba(0,0,0,.12)); filter: brightness(0.92); transform: translateY(-1px); }
-        .appearance-header .appearance-search:hover { border-color: var(--appearance-desktop-search-border, rgba(0,0,0,.12)); filter: brightness(0.92); transform: translateY(-1px); }
-        .appearance-header .appearance-volunteer { color: var(--appearance-volunteer-text) !important; -webkit-text-fill-color: var(--appearance-volunteer-text) !important; background: var(--appearance-volunteer-bg); box-shadow: 0 2px 8px rgba(0,0,0,.06); }
-        .appearance-header .appearance-volunteer:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.1); }
-        .appearance-header .appearance-donate { color: var(--appearance-donate-text) !important; -webkit-text-fill-color: var(--appearance-donate-text) !important; background: var(--appearance-donate-bg); box-shadow: 0 6px 16px rgba(168,45,45,.22); }
-        .appearance-header .appearance-donate:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(168,45,45,.28); filter: brightness(1.03); }
+        .appearance-header .appearance-actions button.appearance-search:hover,
+        .appearance-header .appearance-search:hover { border-color: var(--appearance-desktop-search-border, rgba(0,0,0,.12)); background: var(--appearance-search-hover-bg) !important; color: var(--appearance-search-hover-text) !important; -webkit-text-fill-color: var(--appearance-search-hover-text) !important; transform: translateY(-1px); }
+        .appearance-header .appearance-actions button.appearance-search:hover svg,
+        .appearance-header .appearance-search:hover svg { color: var(--appearance-search-hover-text); stroke: currentColor; }
+        .appearance-header .appearance-volunteer { color: var(--appearance-volunteer-text) !important; -webkit-text-fill-color: var(--appearance-volunteer-text) !important; background: var(--appearance-volunteer-bg) !important; box-shadow: 0 2px 8px rgba(0,0,0,.06); transition: transform .25s, background .25s, color .25s, box-shadow .25s; }
+        .appearance-header .appearance-volunteer:hover { color: var(--appearance-volunteer-hover-text) !important; -webkit-text-fill-color: var(--appearance-volunteer-hover-text) !important; background: var(--appearance-volunteer-hover-bg) !important; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+        .appearance-header .appearance-donate { color: var(--appearance-donate-text) !important; -webkit-text-fill-color: var(--appearance-donate-text) !important; background: var(--appearance-donate-bg) !important; box-shadow: 0 6px 16px rgba(168,45,45,.22); transition: transform .25s, background .25s, color .25s, box-shadow .25s; }
+        .appearance-header .appearance-donate:hover { color: var(--appearance-donate-hover-text) !important; -webkit-text-fill-color: var(--appearance-donate-hover-text) !important; background: var(--appearance-donate-hover-bg) !important; transform: translateY(-1px); box-shadow: 0 8px 18px rgba(168,45,45,.28); }
         .appearance-header .appearance-search-overlay { position: fixed; inset: 0; z-index: 1400; padding: clamp(84px,14vh,130px) 16px 18px; display: flex; justify-content: center; align-items: flex-start; background: rgba(10,15,25,.6); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .25s,visibility .25s; }
         .appearance-header .appearance-search-overlay.is-preview { position: absolute; }
         .appearance-header .appearance-search-overlay.is-open { opacity: 1; visibility: visible; pointer-events: auto; }
