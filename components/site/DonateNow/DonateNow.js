@@ -225,7 +225,6 @@ function getInitialVerificationState() {
   return {
     email: "",
     mobile: "",
-    panLast4: "",
   };
 }
 
@@ -709,7 +708,6 @@ export default function DonateNow(props = {}) {
       delete next.donorVerification;
       delete next.verifyEmail;
       delete next.verifyMobile;
-      delete next.verifyPanLast4;
       return next;
     });
   };
@@ -743,7 +741,6 @@ export default function DonateNow(props = {}) {
     const errorKeyMap = {
       email: "verifyEmail",
       mobile: "verifyMobile",
-      panLast4: "verifyPanLast4",
     };
     const errorKey = errorKeyMap[fieldKey];
     setErrors((previous) => {
@@ -829,7 +826,6 @@ export default function DonateNow(props = {}) {
       delete next.donorVerification;
       delete next.verifyEmail;
       delete next.verifyMobile;
-      delete next.verifyPanLast4;
       return next;
     });
     try {
@@ -955,7 +951,6 @@ export default function DonateNow(props = {}) {
 
     const verifyEmail = normalizeText(verificationValues.email).toLowerCase();
     const verifyMobile = normalizeText(verificationValues.mobile);
-    const verifyPanLast4 = normalizeText(verificationValues.panLast4).toUpperCase();
     const nextErrors = {};
 
     if (!isValidEmail(verifyEmail)) {
@@ -963,11 +958,6 @@ export default function DonateNow(props = {}) {
     }
     if (!isValidPhone(verifyMobile)) {
       nextErrors.verifyMobile = "Please enter a valid mobile number";
-    }
-    if (lookupState.requiresPanLast4) {
-      if (!/^[A-Z0-9]{4}$/.test(verifyPanLast4)) {
-        nextErrors.verifyPanLast4 = "Enter first 4 PAN characters";
-      }
     }
 
     if (Object.keys(nextErrors).length > 0) {
@@ -991,7 +981,6 @@ export default function DonateNow(props = {}) {
           token: lookupState.verificationToken,
           email: verifyEmail,
           mobile: verifyMobile,
-          panLast4: verifyPanLast4,
           include: lookupAutofillFields.join(","),
         }),
       });
@@ -1039,7 +1028,6 @@ export default function DonateNow(props = {}) {
         delete next.donorVerification;
         delete next.verifyEmail;
         delete next.verifyMobile;
-        delete next.verifyPanLast4;
         return next;
       });
       notification.success({
@@ -1618,8 +1606,8 @@ export default function DonateNow(props = {}) {
                               placeholder="Enter registered mobile"
                               onChange={(event) =>
                                 handleVerificationValue(
-                                  "mobile",
-                                  event.target.value,
+                                   "mobile",
+                                   event.target.value,
                                 )
                               }
                             />
@@ -1627,29 +1615,6 @@ export default function DonateNow(props = {}) {
                               <FieldError>{errors.verifyMobile}</FieldError>
                             ) : null}
                           </Col>
-                          {lookupState.requiresPanLast4 ? (
-                            <Col xs={24} md={12}>
-                              <FieldLabel>
-                                PAN Start 4
-                                <span className="req">*</span>
-                              </FieldLabel>
-                              <FieldInput
-                                type="text"
-                                maxLength={4}
-                                value={verificationValues.panLast4}
-                                placeholder="First 4 PAN characters"
-                                onChange={(event) =>
-                                  handleVerificationValue(
-                                    "panLast4",
-                                    event.target.value.toUpperCase(),
-                                  )
-                                }
-                              />
-                              {errors.verifyPanLast4 ? (
-                                <FieldError>{errors.verifyPanLast4}</FieldError>
-                              ) : null}
-                            </Col>
-                          ) : null}
                         </Row>
                         {errors.donorVerification ? (
                           <FieldError>{errors.donorVerification}</FieldError>

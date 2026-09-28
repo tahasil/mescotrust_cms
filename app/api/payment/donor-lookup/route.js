@@ -365,8 +365,6 @@ export async function POST(req) {
     const donorEmail = toTrimmedString(donation?.donor?.email).toLowerCase();
     const donorMobileDigits = toDigits(donation?.donor?.mobile);
     const donorMobileNational = donorMobileDigits.slice(-10);
-    const donorPan = toTrimmedString(donation?.donor?.pan).toUpperCase();
-
     const emailMatch = donorEmail && donorEmail === email;
     const mobileMatch = mobileVariants.some((value) => {
       const normalized = toDigits(value);
@@ -377,21 +375,18 @@ export async function POST(req) {
         normalized.endsWith(donorMobileNational)
       );
     });
-    const panRequired = donorPan.length >= 4;
-    const panMatch = !panRequired || donorPan.slice(0, 4) === panLast4;
 
-    if (!emailMatch || !mobileMatch || !panMatch) {
+    if (!emailMatch || !mobileMatch) {
       logLookupDebug("verify-failed", {
         sid: tokenPayload.sid,
         emailMatch,
         mobileMatch,
-        panMatch,
       });
       return NextResponse.json(
         {
           verified: false,
           error:
-            "Verification failed. Please check email, mobile and PAN first 4 digits.",
+            "Verification failed. Please check your registered email and mobile number.",
         },
         { status: 401 },
       );
