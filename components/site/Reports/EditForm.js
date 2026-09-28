@@ -12,11 +12,6 @@ import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
-import {
-  REPORTS_DESKTOP_ALLOWED_COMPACT_TEXT,
-  REPORTS_DESKTOP_REQUIRED_TEXT,
-  isAllowedReportsDesktopSize,
-} from "@/lib/reportsImageConfig";
 
 const API_PATH = "/api/theme/Reports";
 const PREFIX = "reports";
@@ -75,53 +70,6 @@ function normalizeItem(it) {
   };
 }
 
-function getImageDimensions(imageUrl) {
-  return new Promise((resolve, reject) => {
-    const image = new window.Image();
-    image.onload = () =>
-      resolve({
-        width: Number(image.naturalWidth) || 0,
-        height: Number(image.naturalHeight) || 0,
-      });
-    image.onerror = () => reject(new Error("Failed to load image"));
-    image.src = imageUrl;
-  });
-}
-
-function buildDesktopImageValidationError(width, height, reportLabel) {
-  const selectedWidth = Number(width) || 0;
-  const selectedHeight = Number(height) || 0;
-  const prefix = reportLabel ? `${reportLabel}: ` : "";
-  return `${prefix}Supports Only ${REPORTS_DESKTOP_ALLOWED_COMPACT_TEXT} px. Selected image is ${selectedWidth}X${selectedHeight} px.`;
-}
-
-function createDesktopImageValidator(reportIndex) {
-  return async (_, value) => {
-    const imageUrl = String(value || "").trim();
-    if (!imageUrl) return Promise.resolve();
-
-    const reportLabel = Number.isInteger(Number(reportIndex))
-      ? `Report #${Number(reportIndex) + 1}`
-      : "";
-
-    try {
-      const { width, height } = await getImageDimensions(imageUrl);
-      if (isAllowedReportsDesktopSize(width, height)) {
-        return Promise.resolve();
-      }
-      return Promise.reject(
-        new Error(buildDesktopImageValidationError(width, height, reportLabel)),
-      );
-    } catch {
-      return Promise.reject(
-        new Error(
-          `${reportLabel ? `${reportLabel}: ` : ""}Unable to validate desktop image size. Supports Only ${REPORTS_DESKTOP_ALLOWED_COMPACT_TEXT} px.`,
-        ),
-      );
-    }
-  };
-}
-
 function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [] }, ref) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
@@ -148,6 +96,8 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
         subTitle: data?.subTitle != null ? String(data.subTitle).trim() : "",
         reportsTitleEnabled: data?.reportsTitleEnabled !== false,
         reportsSubTitleEnabled: data?.reportsSubTitleEnabled !== false,
+        reportsImageDisplayMode:
+          data?.reportsImageDisplayMode || data?.imageDisplayMode || "compress",
         ...Object.fromEntries(
           REPORTS_COLOR_FIELDS.map((key) => [key, String(data?.[key] ?? "").trim()]),
         ),
@@ -196,6 +146,7 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
         subTitle: values.subTitle != null ? String(values.subTitle).trim() : "",
         reportsTitleEnabled: values.reportsTitleEnabled !== false,
         reportsSubTitleEnabled: values.reportsSubTitleEnabled !== false,
+        reportsImageDisplayMode: values.reportsImageDisplayMode || "compress",
         ...Object.fromEntries(
           REPORTS_COLOR_FIELDS.map((key) => [key, String(values?.[key] ?? "").trim()]),
         ),
@@ -245,98 +196,116 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
             key: "items",
             label: "Manage Items",
             children: (
-              <Form.List name="reportsItems">
-                {(fields, { add, remove, move }) => (
-                  <SortableFormList
-                    fields={fields}
-                    add={add}
-                    remove={remove}
-                    move={move}
-                    itemLabel="Report"
-                    addButtonText="Add report"
-                    defaultAddPayload={{
-                      name: "",
-                      tag: "",
-                      description: "",
-                      imageDesktop: "",
-                      imageMobile: "",
-                      image: "",
-                      pdfUrl: "",
-                      target: "_blank",
-                    }}
-                    reorderMovedIndex={reorderMovedIndex}
-                    reorderDirection={reorderDirection}
-                    onMoveWithTransition={(from, to) => {
-                      setReorderDirection(to < from ? "up" : "down");
-                      setReorderMovedIndex(to);
-                      setTimeout(() => setReorderMovedIndex(-1), 400);
-                    }}
-                    renderItemContent={(name, restField) => (
-                      <Row gutter={[16, 16]}>
-                        <Col span={24}>
-                          <Form.Item
-                            {...restField}
-                            name={[name, "name"]}
-                            label="Title"
-                            rules={[{ required: true, message: "Title is required" }]}
-                          >
-                            <Input placeholder="e.g. Annual Report 2023-24" size="large" />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "description"]} label="Description">
-                            <Input.TextArea placeholder="Optional report or album description" rows={3} />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "tag"]} label="Date">
-                            <Input placeholder="e.g. January 2026" size="large" />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item
-                            {...restField}
-                            name={[name, "imageDesktop"]}
-                            label="Desktop Image"
-                            validateTrigger={["onChange", "onBlur"]}
-                            rules={[{ validator: createDesktopImageValidator(name) }]}
-                          >
-                            <MediaPickerInput
-                              placeholder="/uploads/report-cover.webp"
-                              uiVariant="stacked"
-                              hintText={`Required size: ${REPORTS_DESKTOP_REQUIRED_TEXT}`}
-                            />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "imageMobile"]} label="Mobile Image">
-                            <MediaPickerInput
-                              placeholder="/uploads/report-cover-mobile.webp"
-                              uiVariant="stacked"
-                              hintText="Optional. Desktop image will be used if empty."
-                            />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "pdfUrl"]} label="Document URL">
-                            <MediaPickerInput
-                              mediaType="document"
-                              showVariants={false}
-                              uiVariant="stacked"
-                              placeholder="/uploads/annual-report-2024.pdf"
-                            />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "target"]} label="Target">
-                            <Select options={PDF_LINK_TARGET_OPTIONS} />
-                          </Form.Item>
-                        </Col>
-                      </Row>
-                    )}
-                  />
-                )}
-              </Form.List>
+              <>
+                <Row gutter={[16, 16]} style={{ marginBottom: 12 }}>
+                  <Col span={24}>
+                    <Form.Item
+                      name="reportsImageDisplayMode"
+                      label="Image Display Mode"
+                      initialValue="compress"
+                      tooltip="Compress: keeps current display | Fit Full Image: fits entire image preserving original aspect ratio without cropping"
+                    >
+                      <Select
+                        size="large"
+                        options={[
+                          { label: "Compress", value: "compress" },
+                          { label: "Fit Full Image", value: "fit" },
+                        ]}
+                      />
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Form.List name="reportsItems">
+                  {(fields, { add, remove, move }) => (
+                    <SortableFormList
+                      fields={fields}
+                      add={add}
+                      remove={remove}
+                      move={move}
+                      itemLabel="Report"
+                      addButtonText="Add report"
+                      defaultAddPayload={{
+                        name: "",
+                        tag: "",
+                        description: "",
+                        imageDesktop: "",
+                        imageMobile: "",
+                        image: "",
+                        pdfUrl: "",
+                        target: "_blank",
+                      }}
+                      reorderMovedIndex={reorderMovedIndex}
+                      reorderDirection={reorderDirection}
+                      onMoveWithTransition={(from, to) => {
+                        setReorderDirection(to < from ? "up" : "down");
+                        setReorderMovedIndex(to);
+                        setTimeout(() => setReorderMovedIndex(-1), 400);
+                      }}
+                      renderItemContent={(name, restField) => (
+                        <Row gutter={[16, 16]}>
+                          <Col span={24}>
+                            <Form.Item
+                              {...restField}
+                              name={[name, "name"]}
+                              label="Title"
+                              rules={[{ required: true, message: "Title is required" }]}
+                            >
+                              <Input placeholder="e.g. Annual Report 2023-24" size="large" />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}>
+                            <Form.Item {...restField} name={[name, "description"]} label="Description">
+                              <Input.TextArea placeholder="Optional report or album description" rows={3} />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}>
+                            <Form.Item {...restField} name={[name, "tag"]} label="Date">
+                              <Input placeholder="e.g. January 2026" size="large" />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}>
+                            <Form.Item
+                              {...restField}
+                              name={[name, "imageDesktop"]}
+                              label="Desktop Image"
+                            >
+                              <MediaPickerInput
+                                placeholder="/uploads/report-cover.webp"
+                                uiVariant="stacked"
+                                hintText="Optional. Any aspect ratio/resolution supported in Fit Full Image mode."
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}>
+                            <Form.Item {...restField} name={[name, "imageMobile"]} label="Mobile Image">
+                              <MediaPickerInput
+                                placeholder="/uploads/report-cover-mobile.webp"
+                                uiVariant="stacked"
+                                hintText="Optional. Desktop image will be used if empty."
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}>
+                            <Form.Item {...restField} name={[name, "pdfUrl"]} label="Document URL">
+                              <MediaPickerInput
+                                mediaType="document"
+                                showVariants={false}
+                                uiVariant="stacked"
+                                placeholder="/uploads/annual-report-2024.pdf"
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}>
+                            <Form.Item {...restField} name={[name, "target"]} label="Target">
+                              <Select options={PDF_LINK_TARGET_OPTIONS} />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+                      )}
+                    />
+                  )}
+                </Form.List>
+              </>
             ),
           },
         ]}

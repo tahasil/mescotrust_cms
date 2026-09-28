@@ -66,6 +66,35 @@ const ReportCard = styled.div`
       max-width: 100%;
     }
   }
+
+  &.mode-fit .imageWrapper {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--reports-card-bg);
+
+    picture {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      object-position: center;
+      display: block;
+      margin: 0 auto;
+    }
+  }
 `;
 
 const CardBody = styled.div`
@@ -174,6 +203,16 @@ export default function Reports(props) {
     ? getColor(titleColorKey)
     : getColor("primary");
   const subTitleColor = color(props?.reportsSubTitleColorKey, undefined);
+
+  /* ── Image Display Mode ── */
+  const sectionDisplayMode = (
+    props?.reportsImageDisplayMode ??
+    props?.imageDisplayMode ??
+    "compress"
+  )
+    .toString()
+    .trim()
+    .toLowerCase();
 
   /* ── Items ── */
   const items = Array.isArray(props?.reportsItems) ? props.reportsItems : [];
@@ -381,10 +420,19 @@ export default function Reports(props) {
             const opensPdfModal =
               configuredTarget === "modal" && isPdfDocumentUrl(pdfUrl);
             const target = configuredTarget === "_blank" ? "_blank" : "_self";
+            const itemDisplayMode = (item?.imageDisplayMode || sectionDisplayMode)
+              .toString()
+              .trim()
+              .toLowerCase();
+            const isFitFullImage =
+              itemDisplayMode === "fit" ||
+              itemDisplayMode === "fit_full_image" ||
+              itemDisplayMode === "fitfullimage" ||
+              itemDisplayMode === "contain";
             return (
               <Col key={idx} xs={24} sm={12} md={12} lg={8}>
                 <CardWrapper className="card-wrapper fable-card">
-                  <ReportCard className="fable-card__inner">
+                  <ReportCard className={`fable-card__inner ${isFitFullImage ? "mode-fit" : "mode-compress"}`}>
                     {image ? (
                       <div className="imageWrapper">
                         <picture>
