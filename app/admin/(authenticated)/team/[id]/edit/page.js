@@ -7,15 +7,11 @@ import {
   Form,
   Input,
   Button,
-  Card,
   Collapse,
-  Select,
   Row,
   Col,
   Drawer,
   Space,
-  Tag,
-  Typography,
   message,
   Spin,
 } from "antd";
@@ -24,17 +20,13 @@ import {
   SaveOutlined,
   EditOutlined,
   CopyOutlined,
+  CheckOutlined,
 } from "@ant-design/icons";
 import styled from "styled-components";
-import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import TeamEmbed from "@/components/site/TeamEmbed/TeamEmbed";
-import {
-  getManageSectionInitialValues,
-  getManageSectionPayload,
-} from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const PREFIX = "committeeMembers";
@@ -57,14 +49,14 @@ const TopActionBar = styled.div`
   .left-section {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
   }
 
   .back-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    font-size: 15px;
+    gap: 8px;
+    font-size: 16px;
     font-weight: 600;
     color: #1f2937;
     text-decoration: none;
@@ -165,14 +157,6 @@ function normalizeMember(it) {
   };
 }
 
-function slugify(text) {
-  return String(text || "")
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
 export default function AdminTeamEditPage() {
   const params = useParams();
   const router = useRouter();
@@ -217,56 +201,8 @@ export default function AdminTeamEditPage() {
             ? data.committeeMembersItems.map(normalizeMember)
             : [normalizeMember({})];
 
-      const manageSectionData = {
-        [PREFIX + "SectionBgType"]:
-          data?.sectionBgType || data?.committeeMembersSectionBgType,
-        [PREFIX + "SectionBgImage"]:
-          data?.sectionBgImage || data?.committeeMembersSectionBgImage,
-        [PREFIX + "SectionBgColorKey"]:
-          data?.sectionBgColorKey || data?.committeeMembersSectionBgColorKey,
-        [PREFIX + "SectionPaddingTop"]:
-          data?.sectionPaddingTop ?? data?.committeeMembersSectionPaddingTop,
-        [PREFIX + "SectionPaddingBottom"]:
-          data?.sectionPaddingBottom ??
-          data?.committeeMembersSectionPaddingBottom,
-        [PREFIX + "SectionMarginTop"]:
-          data?.sectionMarginTop ?? data?.committeeMembersSectionMarginTop,
-        [PREFIX + "SectionMarginBottom"]:
-          data?.sectionMarginBottom ??
-          data?.committeeMembersSectionMarginBottom,
-        [PREFIX + "PageContainerBgType"]:
-          data?.pageContainerBgType || data?.committeeMembersPageContainerBgType,
-        [PREFIX + "PageContainerBgImage"]:
-          data?.pageContainerBgImage ||
-          data?.committeeMembersPageContainerBgImage,
-        [PREFIX + "PageContainerBgColorKey"]:
-          data?.pageContainerBgColorKey ||
-          data?.committeeMembersPageContainerBgColorKey,
-        [PREFIX + "PageContainerPaddingTop"]:
-          data?.containerPaddingTop ??
-          data?.committeeMembersContainerPaddingTop,
-        [PREFIX + "PageContainerPaddingRight"]:
-          data?.containerPaddingRight ??
-          data?.committeeMembersContainerPaddingRight,
-        [PREFIX + "PageContainerPaddingBottom"]:
-          data?.containerPaddingBottom ??
-          data?.committeeMembersContainerPaddingBottom,
-        [PREFIX + "PageContainerPaddingLeft"]:
-          data?.containerPaddingLeft ??
-          data?.committeeMembersContainerPaddingLeft,
-        [PREFIX + "PageContainerMarginTop"]:
-          data?.containerMarginTop ??
-          data?.committeeMembersContainerMarginTop,
-        [PREFIX + "PageContainerMarginBottom"]:
-          data?.containerMarginBottom ??
-          data?.committeeMembersContainerMarginBottom,
-      };
-
       form.setFieldsValue({
-        name: data?.name || "Team",
-        shortcode: data?.shortcode || "",
-        status: data?.status || "published",
-        description: data?.description || "",
+        name: data?.name || "Committee Members",
         committeeMembersSubTitle:
           data?.subTitle ?? data?.committeeMembersSubTitle ?? "",
         committeeMembersMainTitle:
@@ -341,7 +277,6 @@ export default function AdminTeamEditPage() {
           data?.committeeMembersModalImageBorderColorKey ??
           "",
         committeeMembersItems: members,
-        ...getManageSectionInitialValues(PREFIX, manageSectionData),
       });
     },
     [form],
@@ -376,21 +311,14 @@ export default function AdminTeamEditPage() {
       const values = await form.validateFields();
       setSaving(true);
 
-      const manageSection = getManageSectionPayload(PREFIX, values);
-
       const members = (values.committeeMembersItems || [])
         .map(normalizeMember)
         .filter((m) => m.name)
         .map((m, idx) => ({ ...m, order: idx + 1 }));
 
       const payload = {
-        name: values.name?.trim(),
-        shortcode: slugify(values.shortcode || values.name),
-        status: values.status || "published",
-        description: values.description?.trim() || "",
-
         subTitle: values.committeeMembersSubTitle ?? "",
-        mainTitle: values.committeeMembersMainTitle ?? values.name,
+        mainTitle: values.committeeMembersMainTitle ?? team?.name ?? "Committee Members",
         subTitleColorKey: values.committeeMembersSubTitleColorKey ?? "",
         titleColorKey: values.committeeMembersTitleColorKey ?? "",
         cardTitleColorKey: values.committeeMembersCardTitleColorKey ?? "",
@@ -414,33 +342,6 @@ export default function AdminTeamEditPage() {
         modalDividerColorKey: values.committeeMembersModalDividerColorKey ?? "",
         modalImageBorderColorKey:
           values.committeeMembersModalImageBorderColorKey ?? "",
-
-        // Manage Section
-        sectionBgType: manageSection[PREFIX + "SectionBgType"],
-        sectionBgImage: manageSection[PREFIX + "SectionBgImage"],
-        sectionBgColorKey: manageSection[PREFIX + "SectionBgColorKey"],
-        sectionPaddingTop: manageSection[PREFIX + "SectionPaddingTop"],
-        sectionPaddingBottom: manageSection[PREFIX + "SectionPaddingBottom"],
-        sectionMarginTop: manageSection[PREFIX + "SectionMarginTop"],
-        sectionMarginBottom: manageSection[PREFIX + "SectionMarginBottom"],
-
-        pageContainerBgType: manageSection[PREFIX + "PageContainerBgType"],
-        pageContainerBgImage: manageSection[PREFIX + "PageContainerBgImage"],
-        pageContainerBgColorKey:
-          manageSection[PREFIX + "PageContainerBgColorKey"],
-        containerPaddingTop:
-          manageSection[PREFIX + "PageContainerPaddingTop"],
-        containerPaddingRight:
-          manageSection[PREFIX + "PageContainerPaddingRight"],
-        containerPaddingBottom:
-          manageSection[PREFIX + "PageContainerPaddingBottom"],
-        containerPaddingLeft:
-          manageSection[PREFIX + "PageContainerPaddingLeft"],
-        containerMarginTop:
-          manageSection[PREFIX + "PageContainerMarginTop"],
-        containerMarginBottom:
-          manageSection[PREFIX + "PageContainerMarginBottom"],
-
         members,
       };
 
@@ -453,7 +354,7 @@ export default function AdminTeamEditPage() {
       const updated = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(updated?.error || "Failed to save team");
 
-      message.success("Team saved successfully");
+      message.success("Committee Members saved");
       setTeam(updated);
       populateForm(updated);
       setDrawerOpen(false);
@@ -468,7 +369,7 @@ export default function AdminTeamEditPage() {
     }
   };
 
-  const shortcodeString = `[shortcode="${team?.shortcode || ""}"]`;
+  const shortcodeString = `[shortcode="${team?.shortcode || "committee-members"}"]`;
 
   if (loading) {
     return (
@@ -484,14 +385,8 @@ export default function AdminTeamEditPage() {
       <TopActionBar>
         <div className="left-section">
           <Link href="/admin/team" className="back-btn">
-            <ArrowLeftOutlined /> Team
+            <ArrowLeftOutlined /> {team?.name || "Committee Members"}
           </Link>
-          <Typography.Title level={4} style={{ margin: 0 }}>
-            {team?.name || "Team"}
-          </Typography.Title>
-          <Tag color={team?.status === "published" ? "green" : "orange"}>
-            {String(team?.status || "published").toUpperCase()}
-          </Tag>
         </div>
 
         <div className="right-section">
@@ -541,82 +436,34 @@ export default function AdminTeamEditPage() {
 
       {/* Edit Drawer */}
       <Drawer
-        title={`Edit Team: ${team?.name || ""}`}
+        title={
+          <Space>
+            <EditOutlined />
+            <span>{team?.name || "CommitteeMembers"}</span>
+          </Space>
+        }
         placement="right"
-        width={720}
+        width={Math.min(
+          520,
+          typeof window !== "undefined" ? window.innerWidth * 0.9 : 520,
+        )}
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         extra={
-          <Space>
-            <Button onClick={() => setDrawerOpen(false)}>Cancel</Button>
-            <Button
-              type="primary"
-              icon={<SaveOutlined />}
-              loading={saving}
-              onClick={handleSave}
-            >
-              Update
-            </Button>
-          </Space>
+          <Button
+            type="primary"
+            icon={<CheckOutlined />}
+            loading={saving}
+            onClick={handleSave}
+          >
+            Update
+          </Button>
         }
       >
         <Form form={form} layout="vertical">
-          <Card title="Team Settings" size="small" style={{ marginBottom: 16 }}>
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="name"
-                  label="Team Name"
-                  rules={[{ required: true, message: "Team name is required" }]}
-                >
-                  <Input placeholder="e.g. Committee Members" size="large" />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="shortcode"
-                  label="Shortcode Slug"
-                  rules={[
-                    { required: true, message: "Shortcode slug is required" },
-                  ]}
-                  tooltip="Used in [shortcode='slug'] on pages"
-                >
-                  <Input placeholder="e.g. committee-members" size="large" />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item name="status" label="Status">
-                  <Select
-                    options={[
-                      { value: "published", label: "Published" },
-                      { value: "draft", label: "Draft" },
-                      { value: "archived", label: "Archived" },
-                    ]}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item name="description" label="Description / Internal Notes">
-                  <Input placeholder="Optional internal team description" />
-                </Form.Item>
-              </Col>
-            </Row>
-          </Card>
-
           <Collapse
-            defaultActiveKey={["members", "title-colors", "manage-section"]}
+            defaultActiveKey={["title-colors", "members"]}
             items={[
-              {
-                key: "manage-section",
-                label: "Manage Section",
-                children: (
-                  <ManageSectionFields
-                    prefix={PREFIX}
-                    form={form}
-                    themeColorOptions={themeColorOptions}
-                  />
-                ),
-              },
               {
                 key: "title-colors",
                 label: "Title & Colors",
