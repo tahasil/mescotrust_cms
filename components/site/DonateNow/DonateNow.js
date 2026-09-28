@@ -581,6 +581,56 @@ export default function DonateNow(props = {}) {
     props?.donateNowFormHeadingColorKey,
     "#111111",
   );
+  const cardBg = resolveColor(props?.donateNowCardBgColorKey, "#ffffff");
+  const cardBorder = resolveColor(
+    props?.donateNowCardBorderColorKey,
+    "rgba(224, 60, 51, 0.2)",
+  );
+  const cardTitleColor = resolveColor(
+    props?.donateNowCardTitleColorKey,
+    "rgba(38, 42, 44, 0.9)",
+  );
+  const cardAmountColor = resolveColor(
+    props?.donateNowCardAmountColorKey,
+    "#E03C33",
+  );
+  const cardDescColor = resolveColor(
+    props?.donateNowCardDescriptionColorKey,
+    "rgba(38, 42, 44, 0.9)",
+  );
+  const cardHoverBg = resolveColor(
+    props?.donateNowCardHoverBgColorKey,
+    "#fff6f5",
+  );
+  const cardHoverBorder = resolveColor(
+    props?.donateNowCardHoverBorderColorKey,
+    "rgba(224, 60, 51, 0.35)",
+  );
+  const cardHoverText = resolveColor(
+    props?.donateNowCardHoverTextColorKey,
+    "",
+  );
+  const cardHoverAmount = resolveColor(
+    props?.donateNowCardHoverAmountColorKey,
+    "",
+  );
+  const cardActiveBg = resolveColor(
+    props?.donateNowCardActiveBgColorKey || props?.donateNowPkgActiveColorKey,
+    "#fbebeb",
+  );
+  const cardActiveBorder = resolveColor(
+    props?.donateNowCardActiveBorderColorKey,
+    "",
+  );
+  const cardActiveText = resolveColor(
+    props?.donateNowCardActiveTextColorKey,
+    "",
+  );
+  const cardActiveAmount = resolveColor(
+    props?.donateNowCardActiveAmountColorKey,
+    "",
+  );
+  const pkgActiveColor = cardActiveBg;
 
   const qrImageDesktop = String(
     props?.donateNowQrImageDesktop || props?.donateNowQrImageUrl || "",
@@ -1457,10 +1507,24 @@ export default function DonateNow(props = {}) {
                         key={purpose.id}
                         type="button"
                         $active={active}
+                        $cardBg={cardBg}
+                        $cardBorder={cardBorder}
+                        $cardTitleColor={cardTitleColor}
+                        $cardAmountColor={cardAmountColor}
+                        $cardDescColor={cardDescColor}
+                        $cardHoverBg={cardHoverBg}
+                        $cardHoverBorder={cardHoverBorder}
+                        $cardHoverText={cardHoverText}
+                        $cardHoverAmount={cardHoverAmount}
+                        $cardActiveBg={cardActiveBg}
+                        $cardActiveBorder={cardActiveBorder}
+                        $cardActiveText={cardActiveText}
+                        $cardActiveAmount={cardActiveAmount}
+                        $pkgActiveColor={pkgActiveColor}
                         onClick={() => selectPurpose(purpose.id)}
                       >
                         {purpose.cardIcon ? (
-                          <CardIconWrap $active={active}>
+                          <CardIconWrap $active={active} $pkgActiveColor={cardActiveBg}>
                             <CardIcon
                               src={purpose.cardIcon}
                               alt={
@@ -1472,7 +1536,7 @@ export default function DonateNow(props = {}) {
                             />
                           </CardIconWrap>
                         ) : (
-                          <CardDot $active={active} />
+                          <CardDot $active={active} $pkgActiveColor={cardActiveBg} />
                         )}
                         <h4>{purpose.cardTitle || purpose.name}</h4>
                         <div className="amount">
@@ -2125,8 +2189,15 @@ const PurposeGrid = styled.div`
 `;
 
 const PurposeCard = styled.button`
-  border: 1px solid rgba(224, 60, 51, 0.2);
-  background: ${(props) => (props.$active ? "#fbebeb" : "#ffffff")};
+  border: 1px solid
+    ${(props) =>
+      props.$active
+        ? props.$cardActiveBorder || props.$cardBorder || "rgba(224, 60, 51, 0.2)"
+        : props.$cardBorder || "rgba(224, 60, 51, 0.2)"};
+  background: ${(props) =>
+    props.$active
+      ? props.$cardActiveBg || props.$pkgActiveColor || "#fbebeb"
+      : props.$cardBg || "#ffffff"};
   border-radius: 10px;
   text-align: center;
   padding: 14px 10px 10px;
@@ -2164,37 +2235,85 @@ const PurposeCard = styled.button`
     background: #E03C33;
   }
   &:hover {
-    border-color: rgba(224, 60, 51, 0.35);
-    background: ${(props) => (props.$active ? "#fbebeb" : "#fff6f5")};
+    border-color: ${(props) =>
+      props.$cardHoverBorder ||
+      (props.$active
+        ? props.$cardActiveBorder || props.$cardBorder || "rgba(224, 60, 51, 0.35)"
+        : "rgba(224, 60, 51, 0.35)")};
+    background: ${(props) =>
+      props.$cardHoverBg ||
+      (props.$active
+        ? props.$cardActiveBg || props.$pkgActiveColor || "#fbebeb"
+        : "#fff6f5")};
+    ${(props) =>
+      props.$cardHoverText
+        ? `
+      h4 {
+        color: ${props.$cardHoverText} !important;
+      }
+      p {
+        color: ${props.$cardHoverText} !important;
+      }
+    `
+        : ""}
+    ${(props) =>
+      props.$cardHoverAmount
+        ? `
+      .amount {
+        color: ${props.$cardHoverAmount} !important;
+      }
+    `
+        : props.$cardHoverText
+          ? `
+      .amount {
+        color: ${props.$cardHoverText} !important;
+      }
+    `
+          : ""}
   }
   h4 {
     margin: 0;
-    color: rgba(38, 42, 44, 0.9);
+    color: ${(props) =>
+      props.$active
+        ? props.$cardActiveText || props.$cardTitleColor || "rgba(38, 42, 44, 0.9)"
+        : props.$cardTitleColor || "rgba(38, 42, 44, 0.9)"};
     font-size: 14px;
     line-height: 1.3;
     font-weight: 700;
     text-align: center;
+    transition: color 0.15s ease;
     @media (max-width: 991px) {
       font-size: 13px;
       line-height: 1.25;
     }
   }
   .amount {
-    color: #E03C33;
+    color: ${(props) =>
+      props.$active
+        ? props.$cardActiveAmount ||
+          props.$cardActiveText ||
+          props.$cardAmountColor ||
+          "#E03C33"
+        : props.$cardAmountColor || "#E03C33"};
     font-size: 14px;
     font-weight: 700;
     line-height: 1.3;
     opacity: 0.9;
+    transition: color 0.15s ease;
     @media (max-width: 991px) {
       font-size: 13px;
     }
   }
   p {
     margin: 0;
-    color: rgba(38, 42, 44, 0.9);
+    color: ${(props) =>
+      props.$active
+        ? props.$cardActiveText || props.$cardDescColor || "rgba(38, 42, 44, 0.9)"
+        : props.$cardDescColor || "rgba(38, 42, 44, 0.9)"};
     font-size: 12px;
     line-height: 1.3;
     text-align: center;
+    transition: color 0.15s ease;
     @media (max-width: 991px) {
       font-size: 11px;
       line-height: 1.25;
@@ -2208,7 +2327,9 @@ const CardDot = styled.span`
   border-radius: 999px;
   background: ${(props) =>
     props.$active
-      ? "linear-gradient(135deg, #a92d26 0%, #7b1c1c 100%)"
+      ? (props.$pkgActiveColor
+        ? `linear-gradient(135deg, ${props.$pkgActiveColor} 0%, #7b1c1c 100%)`
+        : "linear-gradient(135deg, #a92d26 0%, #7b1c1c 100%)")
       : "#8b1a1a"};
   display: inline-block;
   position: relative;
@@ -2231,7 +2352,9 @@ const CardIconWrap = styled.span`
   border-radius: 999px;
   background: ${(props) =>
     props.$active
-      ? "linear-gradient(135deg, #a92d26 0%, #7b1c1c 100%)"
+      ? (props.$pkgActiveColor
+        ? `linear-gradient(135deg, ${props.$pkgActiveColor} 0%, #7b1c1c 100%)`
+        : "linear-gradient(135deg, #a92d26 0%, #7b1c1c 100%)")
       : "#8b1a1a"};
   display: inline-flex;
   align-items: center;
