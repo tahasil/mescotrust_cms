@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Col, Row } from "antd";
 import FormEmbed from "@/components/site/FormEmbed/FormEmbed";
+import TeamEmbed from "@/components/site/TeamEmbed/TeamEmbed";
 import * as PublicSiteComponents from "@/components/site/publicComponents";
 import { SITE_COMPONENT_IDS } from "@/lib/siteComponentRegistry";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
@@ -28,6 +29,8 @@ const PASSTHROUGH_COMPONENT_SHORTCODES = new Set([
   "Testimonials",
   "HomeSlider",
   "EventsSlider",
+  "CommitteeMembers",
+  "TeamEmbed",
 ]);
 
 function sanitizePayload(data) {
@@ -92,7 +95,7 @@ function getShortcodeTextFromProps(props) {
 /**
  * Site component: ShortCode (Short Code).
  * Supports a single shortcode format: [shortcode="Target"].
- * Target dynamically resolves to a site component ID first, otherwise to form shortcode.
+ * Target dynamically resolves to a site component ID first, team shortcode second, otherwise to form shortcode.
  */
 export default function ShortCode(props) {
   const mainTitle = (props?.mainTitle ?? "Section Title").toString().trim();
@@ -275,6 +278,7 @@ export default function ShortCode(props) {
   const [moduleLoading, setModuleLoading] = useState(false);
   const [moduleError, setModuleError] = useState("");
   const [loadedComponentId, setLoadedComponentId] = useState("");
+  const [teamData, setTeamData] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -285,9 +289,29 @@ export default function ShortCode(props) {
         setModuleError("");
         setModuleProps({});
         setLoadedComponentId("");
+
+        // Check if shortcode resolves to a team
+        if (shortcodeValue) {
+          try {
+            const res = await fetch(`/api/public/teams/${encodeURIComponent(shortcodeValue)}`, {
+              cache: "no-store",
+            });
+            if (res.ok && !cancelled) {
+              const data = await res.json();
+              setTeamData(data);
+            } else if (!cancelled) {
+              setTeamData(null);
+            }
+          } catch {
+            if (!cancelled) setTeamData(null);
+          }
+        } else {
+          setTeamData(null);
+        }
         return;
       }
 
+      setTeamData(null);
       setModuleLoading(true);
       setModuleError("");
       try {
@@ -310,7 +334,9 @@ export default function ShortCode(props) {
     return () => {
       cancelled = true;
     };
-  }, [resolvedComponentId]);
+  }, [resolvedComponentId, shortcodeValue]);
+
+  const isTeamShortcode = Boolean(teamData);
 
   const renderShortcodeContent = () => {
     if (!shortcodeText) {
@@ -365,6 +391,10 @@ export default function ShortCode(props) {
       );
     }
 
+    if (teamData) {
+      return <TeamEmbed initialTeam={teamData} {...props} />;
+    }
+
     return <FormEmbed mode="shortcode" shortcode={shortcodeValue.toLowerCase()} />;
   };
 
@@ -373,6 +403,10 @@ export default function ShortCode(props) {
   }
 
   if (isPassthroughShortcode) {
+    return renderShortcodeContent();
+  }
+
+  if (isTeamShortcode) {
     return renderShortcodeContent();
   }
 

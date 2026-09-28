@@ -62,6 +62,7 @@ export { default as EventRegistrationForm, EventRegistrationFormEditForm } from 
 export { default as SocialMediaWall, SocialMediaWallEditForm } from "./SocialMediaWall/index";
 export { default as SocialWallFeed, SocialWallFeedEditForm } from "./SocialWallFeed/index";
 export { default as FormEmbed, FormEmbedEditForm } from "./FormEmbed/index";
+export { default as TeamEmbed } from "./TeamEmbed/index";
 import HomeHeroEditForm from "./HomeHero/EditForm";
 import MarqueeEditForm from "./Marquee/EditForm";
 import SubscribeEditForm from "./Subscribe/EditForm";
