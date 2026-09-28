@@ -62,7 +62,7 @@ const ProfileOverlay = styled.div`
     opacity 0.25s ease;
 
   .fable-person:hover &,
-  .fable-person:focus-within & {
+  .fable-person:focus-within:has(:focus-visible) & {
     opacity: 1;
     pointer-events: auto;
     transform: scale(1);
@@ -89,7 +89,7 @@ const ViewProfileBtn = styled(Button)`
       color 0.25s ease;
 
     .fable-person:hover &,
-    .fable-person:focus-within & {
+    .fable-person:focus-within:has(:focus-visible) & {
       opacity: 1;
       transform: scale(1);
     }
@@ -516,7 +516,13 @@ export default function CommitteeMembers(props) {
                   {meta ? <p className="meta">{meta}</p> : null}
                 </CardBodyWrapper>
                 <ProfileOverlay>
-                  <ViewProfileBtn type="primary" onClick={openProfile}>
+                  <ViewProfileBtn
+                    type="primary"
+                    onClick={(e) => {
+                      e.currentTarget?.blur();
+                      openProfile();
+                    }}
+                  >
                     View Profile
                   </ViewProfileBtn>
                 </ProfileOverlay>
@@ -531,6 +537,9 @@ export default function CommitteeMembers(props) {
         className="committee-members-modal"
         open={profileModalOpen}
         onCancel={() => {
+          if (typeof document !== "undefined" && document.activeElement) {
+            document.activeElement.blur();
+          }
           setProfileModalOpen(false);
           setSelectedMember(null);
         }}

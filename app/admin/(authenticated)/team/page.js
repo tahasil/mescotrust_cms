@@ -207,19 +207,12 @@ export default function AdminTeamListPage() {
         dataIndex: "name",
         key: "name",
         render: (name, record) => (
-          <Space direction="vertical" size={2}>
-            <Link
-              href={`/admin/team/${encodeURIComponent(record._id)}/edit`}
-              style={{ fontWeight: 600, color: "#1677ff" }}
-            >
-              {name}
-            </Link>
-            {record.subTitle ? (
-              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                {record.subTitle}
-              </Typography.Text>
-            ) : null}
-          </Space>
+          <Link
+            href={`/admin/team/${encodeURIComponent(record._id)}/edit`}
+            style={{ fontWeight: 600, color: "#1677ff" }}
+          >
+            {name}
+          </Link>
         ),
       },
       {
