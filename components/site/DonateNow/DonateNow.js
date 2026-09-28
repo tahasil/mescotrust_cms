@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Col, Row, Select, notification } from "antd";
@@ -236,6 +236,7 @@ export default function DonateNow(props = {}) {
   const gatewayFormRef = useRef(null);
   const paymentResultHandledRef = useRef(false);
   const lookupTimerRef = useRef(null);
+  const lastLookedUpRef = useRef("");
   const previousPurposeIdRef = useRef("");
 
   const normalizedConfig = useMemo(
@@ -419,7 +420,9 @@ export default function DonateNow(props = {}) {
   const isExistingDonor = donorType === "existing";
   const isNewDonor = donorType === "new";
   const isDonorTypeSelected = isExistingDonor || isNewDonor;
-  const canUseMainFormFields =
+  const canUseDonationFields =
+    isDonorTypeSelected && (!isExistingDonor || lookupState.found);
+  const canEditProfileFields =
     isDonorTypeSelected &&
     (!isExistingDonor || (lookupState.found && lookupState.verified));
   const lookupAutofillFields = useMemo(
@@ -440,13 +443,16 @@ export default function DonateNow(props = {}) {
     setVerificationValues(getInitialVerificationState());
     setVerifyingDonor(false);
     setErrors({});
+    lastLookedUpRef.current = "";
     previousPurposeIdRef.current = "";
   }, [defaultPurposeId, selectablePurposes, fieldConfig]);
 
   useEffect(() => {
     if (lookupTimerRef.current) {
       window.clearTimeout(lookupTimerRef.current);
+      lookupTimerRef.current = null;
     }
+    lastLookedUpRef.current = "";
     setLookupState(getInitialLookupState());
     setVerificationValues(getInitialVerificationState());
     setVerifyingDonor(false);
@@ -694,6 +700,7 @@ export default function DonateNow(props = {}) {
   };
 
   const handleDonorTypeChange = (nextDonorType) => {
+    lastLookedUpRef.current = "";
     setDonorType(nextDonorType || "");
     setErrors((previous) => {
       const next = { ...previous };
@@ -709,6 +716,7 @@ export default function DonateNow(props = {}) {
 
   const handleFieldValue = (fieldKey, nextValue) => {
     if (fieldKey === "lookup") {
+      lastLookedUpRef.current = "";
       setLookupState(getInitialLookupState());
       setVerificationValues(getInitialVerificationState());
       setVerifyingDonor(false);
@@ -774,9 +782,15 @@ export default function DonateNow(props = {}) {
 
   const performLookup = async (lookupValue, options = {}) => {
     const { showValidationError = false } = options;
+    if (lookupTimerRef.current) {
+      window.clearTimeout(lookupTimerRef.current);
+      lookupTimerRef.current = null;
+    }
+
     const trimmedLookup = normalizeText(lookupValue);
     if (!isExistingDonor || !lookupSettings.enabled) return;
     if (!trimmedLookup) {
+      lastLookedUpRef.current = "";
       setLookupState(getInitialLookupState());
       if (showValidationError) {
         setErrors((previous) => ({
@@ -791,6 +805,7 @@ export default function DonateNow(props = {}) {
 
     const lookupValidationError = getLookupValidationError(trimmedLookup);
     if (lookupValidationError) {
+      lastLookedUpRef.current = "";
       setLookupState(getInitialLookupState());
       if (showValidationError) {
         setErrors((previous) => ({ ...previous, lookup: lookupValidationError }));
@@ -798,6 +813,14 @@ export default function DonateNow(props = {}) {
       return;
     }
     if (!lookupAllowed(trimmedLookup)) return;
+
+    if (
+      lastLookedUpRef.current === trimmedLookup &&
+      (lookupState.found || lookupState.loading)
+    ) {
+      return;
+    }
+    lastLookedUpRef.current = trimmedLookup;
 
     setLookupState((previous) => ({ ...previous, loading: true }));
     setErrors((previous) => {
@@ -835,6 +858,7 @@ export default function DonateNow(props = {}) {
       });
 
       if (!res.ok) {
+        lastLookedUpRef.current = "";
         setLookupState(getInitialLookupState());
         setErrors((previous) => ({
           ...previous,
@@ -851,6 +875,7 @@ export default function DonateNow(props = {}) {
         return;
       }
       if (!data?.found || !data?.donorMasked) {
+        lastLookedUpRef.current = "";
         setLookupState(getInitialLookupState());
         setVerificationValues(getInitialVerificationState());
         setErrors((previous) => ({
@@ -896,13 +921,15 @@ export default function DonateNow(props = {}) {
 
       if (copy.donorFoundMessage) {
         notification.success({
+          key: "returning-donor-lookup-notice",
           message: "Returning donor found",
           description:
-            "Donor identified. Verify your identity to unlock full details.",
+            "Donor identified. You can proceed with your donation or verify identity to update personal details.",
           placement: "bottomRight",
         });
       }
     } catch (error) {
+      lastLookedUpRef.current = "";
       logDonorLookupClientDebug("request-failed", {
         lookupValue: trimmedLookup,
         message: error?.message || "",
@@ -1073,13 +1100,10 @@ export default function DonateNow(props = {}) {
         nextErrors.lookup =
           copy.donorNotFoundMessage ||
           "Please identify the existing donor using email / mobile.";
-      } else if (!lookupState.verified) {
-        nextErrors.donorVerification =
-          "Please complete donor verification to unlock and edit full details.";
       }
     }
 
-    if (isExistingDonor && !lookupState.verified) {
+    if (isExistingDonor && !lookupState.found) {
       setErrors(nextErrors);
       return false;
     }
@@ -1091,6 +1115,15 @@ export default function DonateNow(props = {}) {
       if (!isBaseFieldVisible(key)) return;
       if (key === "purpose") return;
       if (key === "lookup") return;
+
+      // When existing donor is unverified, profile fields are masked and loaded securely from DB on backend
+      if (
+        isExistingDonor &&
+        !lookupState.verified &&
+        DONOR_PROFILE_FIELD_KEYS.includes(key)
+      ) {
+        return;
+      }
 
       const required = requiredFields.has(key);
       const validationError = getFieldValidationError(
@@ -1106,7 +1139,7 @@ export default function DonateNow(props = {}) {
       nextErrors.purpose = "Please select a purpose";
     }
 
-    if (canUseMainFormFields) {
+    if (canUseDonationFields) {
       additionalFields.forEach((extraField) => {
         const currentValue = additionalFieldValues[extraField.key];
         const normalized = normalizeText(currentValue);
@@ -1267,8 +1300,14 @@ export default function DonateNow(props = {}) {
     const config = fieldConfig[key] || baseField;
     if (!isBaseFieldVisible(key)) return null;
 
+    const isProfileKey = DONOR_PROFILE_FIELD_KEYS.includes(key);
     const required = key === "lookup" ? true : requiredFields.has(key);
-    const disabled = disabledFields.has(key) || !canUseMainFormFields;
+    const disabled =
+      key === "lookup"
+        ? lookupState.loading
+        : isProfileKey
+          ? disabledFields.has(key) || !canEditProfileFields
+          : disabledFields.has(key) || !canUseDonationFields;
     const value = fieldValues[key] ?? "";
     const placeholder = config.placeholder || "";
     const error = errors[key];
@@ -1541,10 +1580,10 @@ export default function DonateNow(props = {}) {
                   {isExistingDonor && lookupState.found && !lookupState.verified ? (
                     <Col {...FORM_GRID_FULL_COL_PROPS}>
                       <VerificationPanel>
-                        <h4>Verify Identity to Unlock Full Details</h4>
+                        <h4>Verify Identity to Edit Personal Details</h4>
                         <p>
-                          For security, donor details are masked. Verify with
-                          registered contact details to reveal and edit.
+                          For security, donor details are masked. If you want to
+                          update your personal or contact details, verify below.
                         </p>
                         <Row gutter={[12, 8]}>
                           <Col xs={24} md={12}>
@@ -1626,7 +1665,7 @@ export default function DonateNow(props = {}) {
                     </Col>
                   ) : null}
 
-                  {canUseMainFormFields
+                  {canUseDonationFields
                     ? additionalFields.map((extraField) => {
                         const errorKey = `additional:${extraField.key}`;
                         const error = errors[errorKey];
@@ -1726,8 +1765,7 @@ export default function DonateNow(props = {}) {
                     disabled={
                       submitting ||
                       !isDonorTypeSelected ||
-                      (isExistingDonor &&
-                        (!lookupState.found || !lookupState.verified))
+                      (isExistingDonor && !lookupState.found)
                     }
                     onClick={handleSubmit}
                   >

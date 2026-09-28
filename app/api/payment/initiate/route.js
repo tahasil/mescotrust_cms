@@ -62,9 +62,9 @@ export async function POST(req) {
     const { amount, purpose, purposeId, zakat, note, donor } = body;
 
     // Validate required fields
-    if (!amount || !donor?.name || !donor?.email || !donor?.mobile || !purpose) {
+    if (!amount || !purpose) {
       return NextResponse.json(
-        { error: "Amount, purpose, name, email, and mobile are required" },
+        { error: "Amount and purpose are required" },
         { status: 400 }
       );
     }
@@ -75,15 +75,6 @@ export async function POST(req) {
         { error: "Amount must be greater than 0" },
         { status: 400 }
       );
-    }
-
-    const normalizedEmail = toSafeString(donor.email, 254).toLowerCase();
-    const normalizedMobile = toDigits(donor.mobile);
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-      return NextResponse.json({ error: "A valid email is required" }, { status: 400 });
-    }
-    if (normalizedMobile.length < 10 || normalizedMobile.length > 15) {
-      return NextResponse.json({ error: "A valid mobile number is required" }, { status: 400 });
     }
 
     // PAYMENT_GATEWAY decides which provider collects this donation.
@@ -122,22 +113,11 @@ export async function POST(req) {
 
     await connectDB();
 
-    const orderId = generateOrderId();
-    const normalizedDonor = {
-      name: toSafeString(donor.name),
-      email: normalizedEmail,
-      mobile: normalizedMobile,
-      pan: toSafeString(donor.pan).toUpperCase(),
-      address: toSafeString(donor.address),
-      city: toSafeString(donor.city),
-      state: toSafeString(donor.state),
-      country: toSafeString(donor.country || "India"),
-      pincode: toSafeString(donor.pincode),
-    };
-    const normalizedAdditionalFields =
-      body?.additionalFields && typeof body.additionalFields === "object"
-        ? body.additionalFields
-        : {};
+    const donorType =
+      toSafeString(body?.donorType).toLowerCase() === "existing"
+        ? "existing"
+        : "new";
+
     const lookupMeta =
       body?.lookup && typeof body.lookup === "object"
         ? {
@@ -154,49 +134,157 @@ export async function POST(req) {
             matched: false,
             matchedSubmissionId: "",
           };
-    const studentsCount = toSafeString(body?.studentsCount);
-    const interestMoney = toSafeString(body?.interestMoney || "No");
-    const pagePath = toSafeString(body?.pagePath);
-    const donorType =
-      toSafeString(body?.donorType).toLowerCase() === "existing"
-        ? "existing"
-        : "new";
+
+    let normalizedDonor = null;
 
     if (donorType === "existing") {
       const linkedId = lookupMeta.matchedSubmissionId;
-      const donorProof = verifyDonorProof(body?.lookup?.verificationProof);
-      if (
-        !mongoose.Types.ObjectId.isValid(linkedId) ||
-        donorProof?.sid !== linkedId ||
-        donorProof?.email !== normalizedEmail ||
-        donorProof?.mobile !== normalizedMobile.slice(-10)
-      ) {
+      if (!mongoose.Types.ObjectId.isValid(linkedId)) {
         return NextResponse.json(
-          { error: "Existing donor verification is required" },
+          { error: "Valid existing donor reference is required" },
           { status: 400 },
         );
       }
-      const linkedDonation = await DonateNowSubmission.findById(linkedId)
-        .select("donor.email donor.mobile")
-        .lean();
+
+      const linkedDonation = await DonateNowSubmission.findById(linkedId).lean();
+      if (!linkedDonation) {
+        return NextResponse.json(
+          { error: "Existing donor record not found" },
+          { status: 404 },
+        );
+      }
+
       const lookupQuery = lookupMeta.query.toLowerCase();
       const linkedEmail = toSafeString(linkedDonation?.donor?.email).toLowerCase();
       const lookupMobile = toDigits(lookupMeta.query).slice(-10);
       const linkedMobile = toDigits(linkedDonation?.donor?.mobile).slice(-10);
-      const linkMatches =
-        lookupMeta.method === "email"
-          ? Boolean(lookupQuery && lookupQuery === linkedEmail)
-          : Boolean(lookupMobile && lookupMobile === linkedMobile);
-      if (!linkedDonation || !lookupMeta.matched || !linkMatches) {
+
+      const emailMatches = Boolean(lookupQuery && lookupQuery === linkedEmail);
+      const mobileMatches = Boolean(lookupMobile && lookupMobile === linkedMobile);
+      const linkMatches = lookupMeta.method === "email" ? emailMatches : mobileMatches;
+
+      if (!linkedDonation || !lookupMeta.matched || (!linkMatches && !emailMatches && !mobileMatches)) {
         return NextResponse.json(
           { error: "Existing donor verification could not be confirmed" },
           { status: 400 },
         );
       }
+
+      const donorProof = verifyDonorProof(body?.lookup?.verificationProof);
+      const isVerified = Boolean(
+        donorProof &&
+        donorProof.sid === linkedId &&
+        donorProof.verified,
+      );
+
+      if (isVerified) {
+        const normEmail = toSafeString(donor?.email, 254).toLowerCase();
+        const normMobile = toDigits(donor?.mobile);
+        const normName = toSafeString(donor?.name);
+
+        if (!normName || !normEmail || !normMobile) {
+          return NextResponse.json(
+            { error: "Name, email, and mobile are required" },
+            { status: 400 },
+          );
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normEmail)) {
+          return NextResponse.json(
+            { error: "A valid email is required" },
+            { status: 400 },
+          );
+        }
+        if (normMobile.length < 10 || normMobile.length > 15) {
+          return NextResponse.json(
+            { error: "A valid mobile number is required" },
+            { status: 400 },
+          );
+        }
+
+        normalizedDonor = {
+          name: normName,
+          email: normEmail,
+          mobile: normMobile,
+          pan: toSafeString(donor?.pan).toUpperCase(),
+          address: toSafeString(donor?.address),
+          city: toSafeString(donor?.city),
+          state: toSafeString(donor?.state),
+          country: toSafeString(donor?.country || "India"),
+          pincode: toSafeString(donor?.pincode),
+        };
+      } else {
+        const linkedProfile = linkedDonation?.donor || {};
+        const normEmail = toSafeString(linkedProfile.email, 254).toLowerCase();
+        const normMobile = toDigits(linkedProfile.mobile);
+        const normName = toSafeString(linkedProfile.name);
+
+        if (!normName || !normEmail || !normMobile) {
+          return NextResponse.json(
+            { error: "Linked donor record is missing name, email, or mobile" },
+            { status: 400 },
+          );
+        }
+
+        normalizedDonor = {
+          name: normName,
+          email: normEmail,
+          mobile: normMobile,
+          pan: toSafeString(linkedProfile.pan).toUpperCase(),
+          address: toSafeString(linkedProfile.address),
+          city: toSafeString(linkedProfile.city),
+          state: toSafeString(linkedProfile.state),
+          country: toSafeString(linkedProfile.country || "India"),
+          pincode: toSafeString(linkedProfile.pincode),
+        };
+      }
     } else {
+      const normEmail = toSafeString(donor?.email, 254).toLowerCase();
+      const normMobile = toDigits(donor?.mobile);
+      const normName = toSafeString(donor?.name);
+
+      if (!normName || !normEmail || !normMobile) {
+        return NextResponse.json(
+          { error: "Name, email, and mobile are required" },
+          { status: 400 },
+        );
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normEmail)) {
+        return NextResponse.json(
+          { error: "A valid email is required" },
+          { status: 400 },
+        );
+      }
+      if (normMobile.length < 10 || normMobile.length > 15) {
+        return NextResponse.json(
+          { error: "A valid mobile number is required" },
+          { status: 400 },
+        );
+      }
+
+      normalizedDonor = {
+        name: normName,
+        email: normEmail,
+        mobile: normMobile,
+        pan: toSafeString(donor?.pan).toUpperCase(),
+        address: toSafeString(donor?.address),
+        city: toSafeString(donor?.city),
+        state: toSafeString(donor?.state),
+        country: toSafeString(donor?.country || "India"),
+        pincode: toSafeString(donor?.pincode),
+      };
+
       lookupMeta.matched = false;
       lookupMeta.matchedSubmissionId = "";
     }
+
+    const orderId = generateOrderId();
+    const normalizedAdditionalFields =
+      body?.additionalFields && typeof body.additionalFields === "object"
+        ? body.additionalFields
+        : {};
+    const studentsCount = toSafeString(body?.studentsCount);
+    const interestMoney = toSafeString(body?.interestMoney || "No");
+    const pagePath = toSafeString(body?.pagePath);
 
     const redirectUrl = `${siteUrl}/api/payment/callback`;
     const cancelUrl = `${siteUrl}/api/payment/callback`;
