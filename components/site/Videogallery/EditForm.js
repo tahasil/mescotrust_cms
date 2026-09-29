@@ -63,6 +63,7 @@ function VideogalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
   const [reorderMovedIndex, setReorderMovedIndex] = useState(-1);
   const [reorderDirection, setReorderDirection] = useState(null);
   const watchedTabs = Form.useWatch("videogalleryTabs", form);
+  const watchedVideos = Form.useWatch("videogalleryItems", form);
   const categoryOptions = useMemo(() => {
     const rawTabs =
       Array.isArray(watchedTabs) && watchedTabs.length > 0
@@ -244,6 +245,7 @@ function VideogalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                     remove={remove}
                     move={move}
                     itemLabel="Video"
+                    resolveItemTitle={(name) => watchedVideos?.[name]?.title?.trim() || `Video ${name + 1}`}
                     addButtonText="Add video"
                     defaultAddPayload={normalizeItem({})}
                     reorderMovedIndex={reorderMovedIndex}

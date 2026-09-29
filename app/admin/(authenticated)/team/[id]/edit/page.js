@@ -390,24 +390,6 @@ export default function AdminTeamEditPage() {
         </div>
 
         <div className="right-section">
-          <ShortcodeBadge>
-            <span>{shortcodeString}</span>
-            <Button
-              type="text"
-              size="small"
-              icon={<CopyOutlined />}
-              title="Copy Shortcode"
-              onClick={async () => {
-                try {
-                  await navigator.clipboard.writeText(shortcodeString);
-                  message.success("Shortcode copied to clipboard");
-                } catch {
-                  message.error("Failed to copy shortcode");
-                }
-              }}
-            />
-          </ShortcodeBadge>
-
           <Button
             type="default"
             icon={<EditOutlined />}

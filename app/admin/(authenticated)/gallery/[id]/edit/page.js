@@ -102,18 +102,6 @@ const PreviewWrapper = styled.div`
   position: relative;
 `;
 
-const PreviewBanner = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 20px;
-  background: #fafafa;
-  border-bottom: 1px solid #f0f0f0;
-  font-size: 13px;
-  color: #6b7280;
-  font-weight: 500;
-`;
-
 function slugify(text) {
   return String(text || "")
     .toLowerCase()
@@ -290,55 +278,11 @@ export default function AdminGalleryEditPage() {
         <div className="left-section">
           <Link href="/admin/gallery" className="back-btn">
             <ArrowLeftOutlined />
-            <span>Galleries</span>
+            <span>{gallery?.name || "Gallery"}</span>
           </Link>
-          <span style={{ color: "#d1d5db" }}>|</span>
-          <Input
-            value={galleryName}
-            onChange={(e) => setGalleryName(e.target.value)}
-            placeholder="Gallery Name"
-            style={{ fontWeight: 600, fontSize: "15px", width: 260 }}
-          />
-          {galleryType === "video" ? (
-            <Tag color="purple" icon={<VideoCameraOutlined />}>
-              Video Gallery
-            </Tag>
-          ) : (
-            <Tag color="blue" icon={<PictureOutlined />}>
-              Image Gallery
-            </Tag>
-          )}
         </div>
 
         <div className="right-section">
-          <ShortcodeBadge>
-            <span>{shortcodeSnippet}</span>
-            <Button
-              type="text"
-              size="small"
-              icon={<CopyOutlined />}
-              title="Copy Shortcode"
-              onClick={async () => {
-                try {
-                  await navigator.clipboard.writeText(shortcodeSnippet);
-                  message.success("Shortcode copied to clipboard!");
-                } catch {
-                  message.error("Copy failed");
-                }
-              }}
-            />
-            <Button
-              type="text"
-              size="small"
-              icon={<UnlockOutlined style={{ color: "#fa8c16" }} />}
-              title="Change Shortcode"
-              onClick={() => {
-                setTempShortcode(shortcode);
-                setEditShortcodeOpen(true);
-              }}
-            />
-          </ShortcodeBadge>
-
           <Select
             value={status}
             onChange={setStatus}
@@ -356,7 +300,7 @@ export default function AdminGalleryEditPage() {
             onClick={() => setDrawerOpen(true)}
             size="middle"
           >
-            Edit Gallery
+            Edit
           </Button>
 
           <Button
@@ -366,37 +310,18 @@ export default function AdminGalleryEditPage() {
             onClick={onTriggerSave}
             size="middle"
           >
-            Save Changes
+            Save
           </Button>
         </div>
       </TopActionBar>
 
-      {/* Main Live Preview Canvas */}
+      {/* Main Preview Canvas */}
       <PreviewWrapper>
-        <PreviewBanner>
-          <Space>
-            <span>Live Preview</span>
-            <Tag color={galleryType === "video" ? "purple" : "blue"}>
-              {galleryType === "video" ? "Videogallery" : "PhotoGallery"}
-            </Tag>
-          </Space>
-          <Button
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => setDrawerOpen(true)}
-          >
-            Open Settings Drawer
-          </Button>
-        </PreviewBanner>
-
-        <div style={{ padding: "8px 0" }}>
-          {galleryType === "image" ? (
-            <PhotoGalleryPreview {...adaptedData} />
-          ) : (
-            <VideoGalleryPreview {...adaptedData} />
-          )}
-        </div>
+        {galleryType === "image" ? (
+          <PhotoGalleryPreview {...adaptedData} />
+        ) : (
+          <VideoGalleryPreview {...adaptedData} />
+        )}
       </PreviewWrapper>
 
       {/* Right Settings Drawer */}

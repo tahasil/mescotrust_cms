@@ -5,11 +5,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Button,
-  Card,
   Input,
   Modal,
   Popconfirm,
-  Radio,
   Select,
   Space,
   Switch,
@@ -135,9 +133,7 @@ export default function AdminGalleryListPage() {
   }, [search, typeFilter, fetchGalleries]);
 
   const handleCreateNameChange = (e) => {
-    const val = e.target.value;
-    setCreateName(val);
-    setCreateShortcode(slugify(val));
+    setCreateName(e.target.value);
   };
 
   const onCreate = async () => {
@@ -155,8 +151,8 @@ export default function AdminGalleryListPage() {
         body: JSON.stringify({
           name: trimmedName,
           type: createType,
-          shortcode: createShortcode.trim() || slugify(trimmedName),
-          description: createDescription.trim(),
+          shortcode: slugify(trimmedName),
+          description: "",
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -234,7 +230,7 @@ export default function AdminGalleryListPage() {
           <div>
             <Link
               href={`/admin/gallery/${encodeURIComponent(record._id)}/edit`}
-              style={{ fontWeight: 600, color: "#1677ff", fontSize: "14.5px" }}
+              style={{ fontWeight: 600, color: "#2A283E", fontSize: "14.5px" }}
             >
               {name}
             </Link>
@@ -342,15 +338,15 @@ export default function AdminGalleryListPage() {
         render: (_, record) => (
           <Space size={4}>
             <Link href={`/admin/gallery/${encodeURIComponent(record._id)}/edit`}>
-              <Button type="link" size="small" icon={<EditOutlined />}>
+              <Button type="link" size="small" icon={<EditOutlined />} style={{ color: "#2A283E" }}>
                 Edit
               </Button>
             </Link>
             <Popconfirm
               title="Delete Gallery"
               description={`Are you sure you want to delete "${record.name}"?`}
-              okText="Yes, Delete"
-              cancelText="Cancel"
+              okText="Yes"
+              cancelText="No"
               okButtonProps={{ danger: true }}
               onConfirm={() => onDelete(record._id)}
             >
@@ -439,60 +435,37 @@ export default function AdminGalleryListPage() {
         destroyOnClose
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 18, marginTop: 16 }}>
-          {/* Step 1: Type selection */}
+          {/* Type selection */}
           <div>
-            <div style={{ fontWeight: 600, marginBottom: 8, fontSize: "14px" }}>
+            <div style={{ fontWeight: 500, marginBottom: 6 }}>
               Select Gallery Type <span style={{ color: "#ff4d4f" }}>*</span>
             </div>
-            <Radio.Group
+            <Select
+              size="large"
               value={createType}
-              onChange={(e) => setCreateType(e.target.value)}
+              onChange={setCreateType}
               style={{ width: "100%" }}
-            >
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <Card
-                  hoverable
-                  size="small"
-                  onClick={() => setCreateType("image")}
-                  style={{
-                    borderColor: createType === "image" ? "#1677ff" : undefined,
-                    background: createType === "image" ? "#f0f7ff" : undefined,
-                    cursor: "pointer",
-                  }}
-                >
-                  <Radio value="image" style={{ width: "100%" }}>
-                    <div style={{ fontWeight: 600 }}>
-                      <PictureOutlined style={{ marginRight: 6, color: "#1677ff" }} />
-                      Image Gallery
-                    </div>
-                    <div style={{ fontSize: "12px", color: "rgba(0,0,0,0.55)", marginTop: 4 }}>
-                      Albums with cover photos & LightGallery popup.
-                    </div>
-                  </Radio>
-                </Card>
-
-                <Card
-                  hoverable
-                  size="small"
-                  onClick={() => setCreateType("video")}
-                  style={{
-                    borderColor: createType === "video" ? "#722ed1" : undefined,
-                    background: createType === "video" ? "#f9f0ff" : undefined,
-                    cursor: "pointer",
-                  }}
-                >
-                  <Radio value="video" style={{ width: "100%" }}>
-                    <div style={{ fontWeight: 600 }}>
-                      <VideoCameraOutlined style={{ marginRight: 6, color: "#722ed1" }} />
-                      Video Gallery
-                    </div>
-                    <div style={{ fontSize: "12px", color: "rgba(0,0,0,0.55)", marginTop: 4 }}>
-                      Videos with category tabs & modal player.
-                    </div>
-                  </Radio>
-                </Card>
-              </div>
-            </Radio.Group>
+              options={[
+                {
+                  value: "image",
+                  label: (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                      <PictureOutlined style={{ color: "var(--primary-color, #E03C33)" }} />
+                      <span>Image Gallery</span>
+                    </span>
+                  ),
+                },
+                {
+                  value: "video",
+                  label: (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                      <VideoCameraOutlined style={{ color: "#722ed1" }} />
+                      <span>Video Gallery</span>
+                    </span>
+                  ),
+                },
+              ]}
+            />
           </div>
 
           <div>
@@ -500,36 +473,11 @@ export default function AdminGalleryListPage() {
               Gallery Name <span style={{ color: "#ff4d4f" }}>*</span>
             </div>
             <Input
+              size="large"
               placeholder="e.g. Annual Sports Meet 2025"
               value={createName}
               onChange={handleCreateNameChange}
               autoFocus
-            />
-          </div>
-
-          <div>
-            <div style={{ fontWeight: 500, marginBottom: 6 }}>
-              Shortcode <span style={{ color: "#ff4d4f" }}>*</span>
-            </div>
-            <Input
-              placeholder="e.g. annual-sports-meet-2025"
-              value={createShortcode}
-              onChange={(e) => setCreateShortcode(slugify(e.target.value))}
-              prefix={<span style={{ color: "rgba(0,0,0,0.45)" }}>[shortcode="</span>}
-              suffix={<span style={{ color: "rgba(0,0,0,0.45)" }}>"]</span>}
-            />
-            <div style={{ fontSize: "12px", color: "rgba(0,0,0,0.45)", marginTop: 4 }}>
-              Unique identifier used in Page Builder to embed this gallery.
-            </div>
-          </div>
-
-          <div>
-            <div style={{ fontWeight: 500, marginBottom: 6 }}>Description (Optional)</div>
-            <Input.TextArea
-              rows={2}
-              placeholder="Brief summary of this gallery"
-              value={createDescription}
-              onChange={(e) => setCreateDescription(e.target.value)}
             />
           </div>
         </div>

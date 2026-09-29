@@ -90,12 +90,12 @@ test.describe("Gallery Management E2E", () => {
 
     // 3. Navigate to Edit Page
     await page.goto(`/admin/gallery/${testGalleryId}/edit`, { waitUntil: "networkidle" });
-    await expect(page.locator("text=Live Preview")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole("button", { name: "Edit" }).first()).toBeVisible({ timeout: 30000 });
 
     await page.screenshot({ path: testInfo.outputPath("01-edit-page-loaded.png"), fullPage: true });
 
     // 4. Open Settings Drawer
-    await page.getByRole("button", { name: "Edit Gallery" }).first().click();
+    await page.getByRole("button", { name: "Edit" }).first().click();
     await expect(page.locator(".ant-drawer-title")).toBeVisible({ timeout: 10000 });
 
     await page.screenshot({ path: testInfo.outputPath("02-drawer-opened.png"), fullPage: true });
@@ -105,6 +105,9 @@ test.describe("Gallery Management E2E", () => {
     const titleInput = page.locator('input[placeholder="e.g. Annual Function 2024"]').first();
     await expect(titleInput).toBeVisible({ timeout: 5000 });
     await titleInput.fill("Annual Convocation 2026");
+
+    // Verify accordion header displays Item Title instead of generic "Gallery item 1"
+    await expect(page.locator('.sortable-form-list strong:has-text("Annual Convocation 2026")')).toBeVisible({ timeout: 5000 });
 
     // Category Select: Click category dropdown and select "Education"
     const catSelect = page.locator('.ant-select:has(.ant-select-selection-placeholder)').first();
@@ -120,20 +123,23 @@ test.describe("Gallery Management E2E", () => {
     await expect(coverInput).toBeVisible({ timeout: 5000 });
     await coverInput.fill("https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800");
 
-    // Add Album Images
-    // Click "Plus" icon to add an image inside Album Images list
-    const addImgBtn = page.locator('.ant-form-item:has-text("Album Images") button:has(.anticon-plus)').first();
-    await addImgBtn.click();
+    // Add Album Images via Single Multiple Upload
+    const fileInput = page.locator('input[type="file"][multiple]').first();
+    await fileInput.setInputFiles([
+      {
+        name: "convocation-1.png",
+        mimeType: "image/png",
+        buffer: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==", "base64"),
+      },
+      {
+        name: "convocation-2.png",
+        mimeType: "image/png",
+        buffer: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==", "base64"),
+      },
+    ]);
 
-    const albumImgInput = page.locator('input[placeholder="/uploads/photo.webp"]').first();
-    await expect(albumImgInput).toBeVisible({ timeout: 5000 });
-    await albumImgInput.fill("https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=800");
-
-    // Add second album image
-    await addImgBtn.click();
-    const albumImgInput2 = page.locator('input[placeholder="/uploads/photo.webp"]').nth(1);
-    await expect(albumImgInput2).toBeVisible({ timeout: 5000 });
-    await albumImgInput2.fill("https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800");
+    // Verify 2 thumbnails appear in the drawer 3-column grid
+    await expect(page.getByText("2 images", { exact: true })).toBeVisible({ timeout: 30000 });
 
     await page.screenshot({ path: testInfo.outputPath("03-drawer-filled.png"), fullPage: true });
 
@@ -162,8 +168,6 @@ test.describe("Gallery Management E2E", () => {
     expect(savedItem.title).toBe("Annual Convocation 2026");
     expect(savedItem.imageDesktop).toBe("https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800");
     expect(savedItem.images.length, "MongoDB item must have 2 images").toBe(2);
-    expect(savedItem.images[0].urlDesktop).toBe("https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=800");
-    expect(savedItem.images[1].urlDesktop).toBe("https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800");
 
     // 9. Verify Live Preview on the Canvas
     await page.screenshot({ path: testInfo.outputPath("04-live-preview-updated.png"), fullPage: true });
@@ -211,11 +215,10 @@ test.describe("Gallery Management E2E", () => {
     try {
       // 3. Navigate to Edit Page
       await page.goto(`/admin/gallery/${videoGalleryId}/edit`, { waitUntil: "networkidle" });
-      await expect(page.locator("text=Live Preview")).toBeVisible({ timeout: 15000 });
-      await expect(page.locator("text=Video Gallery").first()).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole("button", { name: "Edit" }).first()).toBeVisible({ timeout: 15000 });
 
       // 4. Open Settings Drawer
-      await page.getByRole("button", { name: "Edit Gallery" }).first().click();
+      await page.getByRole("button", { name: "Edit" }).first().click();
       await expect(page.locator(".ant-drawer-title")).toBeVisible({ timeout: 10000 });
 
       // 5. Fill Video Item Details

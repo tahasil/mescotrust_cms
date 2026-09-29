@@ -8,6 +8,7 @@ import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import SortableFormList from "@/components/admin/SortableFormList";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
+import AlbumImagesUploader from "@/components/admin/media/AlbumImagesUploader";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -172,6 +173,7 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
   const [reorderMovedIndex, setReorderMovedIndex] = useState(-1);
   const [reorderDirection, setReorderDirection] = useState(null);
   const watchedTabs = Form.useWatch("photoGalleryTabs", form);
+  const watchedItems = Form.useWatch("photoGalleryItems", form);
   const categoryOptions = useMemo(() => {
     const rawTabs =
       Array.isArray(watchedTabs) && watchedTabs.length > 0
@@ -442,6 +444,7 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                     remove={remove}
                     move={move}
                     itemLabel="Gallery item"
+                    resolveItemTitle={(name) => watchedItems?.[name]?.title?.trim() || `Album ${name + 1}`}
                     addButtonText="Add gallery item"
                     defaultAddPayload={normalizeItem({})}
                     reorderMovedIndex={reorderMovedIndex}
@@ -515,45 +518,12 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                               </>
                             ) : (
                               <Col span={24}>
-                                <Form.Item label="Album Images" extra="Add all images for this album. First image is used if no cover is set.">
-                                  <Form.List name={[name, "images"]}>
-                                    {(imgFields, { add: addImg, remove: removeImg }) => (
-                                      <>
-                                        {imgFields.map(({ key, name: imgName, ...imgRest }) => (
-                                          <div key={key} style={{ marginBottom: 12, padding: 12, border: "1px solid #f0f0f0", borderRadius: 10 }}>
-                                            <Form.Item
-                                              {...imgRest}
-                                              name={[imgName, "urlDesktop"]}
-                                              label={`Image ${Number(imgName) + 1}`}
-                                              style={{ marginBottom: 0 }}
-                                            >
-                                              <MediaPickerInput
-                                                placeholder="/uploads/photo.webp"
-                                                uiVariant="stacked"
-                                              />
-                                            </Form.Item>
-                                            <Form.Item {...imgRest} name={[imgName, "alt"]} label="Alt text" style={{ marginTop: 10, marginBottom: 0 }}><Input /></Form.Item>
-                                            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
-                                              <Button
-                                                type="text"
-                                                danger
-                                                icon={<DeleteOutlined />}
-                                                onClick={() => removeImg(imgName)}
-                                              />
-                                            </div>
-                                          </div>
-                                        ))}
-                                        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 4 }}>
-                                          <Button
-                                            type="primary"
-                                            shape="circle"
-                                            icon={<PlusOutlined />}
-                                            onClick={() => addImg({ urlDesktop: "", url: "", alt: "" })}
-                                          />
-                                        </div>
-                                      </>
-                                    )}
-                                  </Form.List>
+                                <Form.Item
+                                  {...restField}
+                                  name={[name, "images"]}
+                                  label="Album Images"
+                                >
+                                  <AlbumImagesUploader />
                                 </Form.Item>
                               </Col>
                             )

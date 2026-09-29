@@ -209,7 +209,7 @@ export default function AdminTeamListPage() {
         render: (name, record) => (
           <Link
             href={`/admin/team/${encodeURIComponent(record._id)}/edit`}
-            style={{ fontWeight: 600, color: "#1677ff" }}
+            style={{ fontWeight: 600, color: "#2A283E", fontSize: "14.5px" }}
           >
             {name}
           </Link>
@@ -277,7 +277,7 @@ export default function AdminTeamListPage() {
         render: (_, record) => (
           <Space size={6}>
             <Link href={`/admin/team/${encodeURIComponent(record._id)}/edit`}>
-              <Button type="link" size="small" icon={<EditOutlined />}>
+              <Button type="link" size="small" icon={<EditOutlined />} style={{ color: "#2A283E" }}>
                 Edit Team
               </Button>
             </Link>
