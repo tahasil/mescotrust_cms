@@ -278,6 +278,7 @@ export default function ShortCode(props) {
   const [moduleLoading, setModuleLoading] = useState(false);
   const [moduleError, setModuleError] = useState("");
   const [loadedComponentId, setLoadedComponentId] = useState("");
+  const [galleryData, setGalleryData] = useState(null);
   const [teamData, setTeamData] = useState(null);
 
   useEffect(() => {
@@ -290,27 +291,52 @@ export default function ShortCode(props) {
         setModuleProps({});
         setLoadedComponentId("");
 
-        // Check if shortcode resolves to a team
         if (shortcodeValue) {
+          // 1. Check if shortcode resolves to a dynamic Gallery (Image or Video)
           try {
-            const res = await fetch(`/api/public/teams/${encodeURIComponent(shortcodeValue)}`, {
-              cache: "no-store",
-            });
+            const galleryRes = await fetch(
+              `/api/public/galleries/${encodeURIComponent(shortcodeValue)}`,
+              { cache: "no-store" },
+            );
+            if (galleryRes.ok && !cancelled) {
+              const gData = await galleryRes.json();
+              setGalleryData(gData);
+              setTeamData(null);
+              return;
+            }
+          } catch {
+            // continue to team / form fallback
+          }
+
+          if (cancelled) return;
+          setGalleryData(null);
+
+          // 2. Check if shortcode resolves to a team
+          try {
+            const res = await fetch(
+              `/api/public/teams/${encodeURIComponent(shortcodeValue)}`,
+              { cache: "no-store" },
+            );
             if (res.ok && !cancelled) {
               const data = await res.json();
               setTeamData(data);
-            } else if (!cancelled) {
-              setTeamData(null);
+              return;
             }
           } catch {
-            if (!cancelled) setTeamData(null);
+            // continue to form fallback
+          }
+
+          if (!cancelled) {
+            setTeamData(null);
           }
         } else {
+          setGalleryData(null);
           setTeamData(null);
         }
         return;
       }
 
+      setGalleryData(null);
       setTeamData(null);
       setModuleLoading(true);
       setModuleError("");
@@ -336,6 +362,7 @@ export default function ShortCode(props) {
     };
   }, [resolvedComponentId, shortcodeValue]);
 
+  const isGalleryShortcode = Boolean(galleryData);
   const isTeamShortcode = Boolean(teamData);
 
   const renderShortcodeContent = () => {
@@ -391,6 +418,13 @@ export default function ShortCode(props) {
       );
     }
 
+    if (galleryData) {
+      if (galleryData.type === "video") {
+        return <PublicSiteComponents.Videogallery {...props} {...galleryData} />;
+      }
+      return <PublicSiteComponents.PhotoGallery {...props} {...galleryData} />;
+    }
+
     if (teamData) {
       return <TeamEmbed initialTeam={teamData} {...props} />;
     }
@@ -403,6 +437,10 @@ export default function ShortCode(props) {
   }
 
   if (isPassthroughShortcode) {
+    return renderShortcodeContent();
+  }
+
+  if (isGalleryShortcode) {
     return renderShortcodeContent();
   }
 

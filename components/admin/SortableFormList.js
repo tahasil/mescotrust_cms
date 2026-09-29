@@ -111,6 +111,7 @@ function SortableRow({
     <div ref={setNodeRef} style={style} className={reorderClassName}>
       <Collapse
         size="small"
+        defaultActiveKey={[String(id)]}
         items={[
           {
             key: String(id),

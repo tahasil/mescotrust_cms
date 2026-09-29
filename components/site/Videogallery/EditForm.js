@@ -64,18 +64,31 @@ function VideogalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
   const [reorderDirection, setReorderDirection] = useState(null);
   const watchedTabs = Form.useWatch("videogalleryTabs", form);
   const categoryOptions = useMemo(() => {
-    const tabs = Array.isArray(watchedTabs) ? watchedTabs : [];
-    return tabs.filter((t) => t !== "All").map((t) => ({ label: t, value: t }));
-  }, [watchedTabs]);
+    const rawTabs =
+      Array.isArray(watchedTabs) && watchedTabs.length > 0
+        ? watchedTabs
+        : Array.isArray(initialDataProp?.videogalleryTabs) && initialDataProp.videogalleryTabs.length > 0
+          ? initialDataProp.videogalleryTabs
+          : ["Education", "Medical", "Events", "Community"];
+    return rawTabs
+      .map((t) => (typeof t === "string" ? t.trim() : (t?.label || "")))
+      .filter((t) => t && t !== "All")
+      .map((t) => ({ label: t, value: t }));
+  }, [watchedTabs, initialDataProp]);
 
   useEffect(() => {
     if (themeColorOptionsProp?.length > 0) setThemeColorOptions(themeColorOptionsProp);
   }, [themeColorOptionsProp]);
 
+  const initialAppliedRef = useRef(false);
+
   useEffect(() => {
     setLoading(true);
     if (isPageBlock) {
-      applyFormValues(form, initialDataProp ?? {});
+      if (!initialAppliedRef.current) {
+        initialAppliedRef.current = true;
+        applyFormValues(form, initialDataProp ?? {});
+      }
       if (!themeFetchedForColorsRef.current) {
         themeFetchedForColorsRef.current = true;
         fetch("/api/theme", { cache: "no-store" })
@@ -162,13 +175,8 @@ function VideogalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
   return (
     <Form form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={["manage-section", "title-colors", "tabs", "items"]}
+        defaultActiveKey={["title-colors", "tabs", "items"]}
         items={[
-          {
-            key: "manage-section",
-            label: "Manage Section",
-            children: <ManageSectionFields prefix={PREFIX} form={form} themeColorOptions={themeColorOptions} />,
-          },
           {
             key: "title-colors",
             label: "Title & Colors",

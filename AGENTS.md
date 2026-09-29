@@ -89,6 +89,8 @@ Models in `models/`:
 - `SocialWallPost`
 - `SocialWallFetchLog`
 - `SocialWallConfigAudit`
+- `Team`
+- `Gallery`
 - `AdminRole`
 - `Permission`
 - `RolePermission`

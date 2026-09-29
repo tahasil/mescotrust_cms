@@ -23,8 +23,6 @@ const PHOTO_GALLERY_COLOR_FIELDS = [
   "photoGalleryCardBorderColorKey",
   "photoGalleryCardShadowColorKey",
   "photoGalleryCardTitleColorKey",
-  "photoGalleryCardDescriptionColorKey",
-  "photoGalleryDateColorKey",
   "photoGalleryButtonBgColorKey",
   "photoGalleryButtonTextColorKey",
   "photoGalleryButtonBorderColorKey",
@@ -175,18 +173,31 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
   const [reorderDirection, setReorderDirection] = useState(null);
   const watchedTabs = Form.useWatch("photoGalleryTabs", form);
   const categoryOptions = useMemo(() => {
-    const tabs = Array.isArray(watchedTabs) ? watchedTabs : [];
-    return tabs.filter((t) => t !== "All").map((t) => ({ label: t, value: t }));
-  }, [watchedTabs]);
+    const rawTabs =
+      Array.isArray(watchedTabs) && watchedTabs.length > 0
+        ? watchedTabs
+        : Array.isArray(initialDataProp?.photoGalleryTabs) && initialDataProp.photoGalleryTabs.length > 0
+          ? initialDataProp.photoGalleryTabs
+          : ["Education", "Medical", "Events", "Community"];
+    return rawTabs
+      .map((t) => (typeof t === "string" ? t.trim() : (t?.label || "")))
+      .filter((t) => t && t !== "All")
+      .map((t) => ({ label: t, value: t }));
+  }, [watchedTabs, initialDataProp]);
 
   useEffect(() => {
     if (themeColorOptionsProp?.length > 0) setThemeColorOptions(themeColorOptionsProp);
   }, [themeColorOptionsProp]);
 
+  const initialAppliedRef = useRef(false);
+
   useEffect(() => {
     setLoading(true);
     if (isPageBlock) {
-      applyFormValues(form, initialDataProp ?? {});
+      if (!initialAppliedRef.current) {
+        initialAppliedRef.current = true;
+        applyFormValues(form, initialDataProp ?? {});
+      }
       if (!themeFetchedForColorsRef.current) {
         themeFetchedForColorsRef.current = true;
         fetch("/api/theme", { cache: "no-store" })
@@ -308,13 +319,8 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
   return (
     <Form form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={["manage-section", "title-colors", "display", "items"]}
+        defaultActiveKey={["title-colors", "display", "items"]}
         items={[
-          {
-            key: "manage-section",
-            label: "Manage Section",
-            children: <ManageSectionFields prefix={PREFIX} form={form} themeColorOptions={themeColorOptions} />,
-          },
           {
             key: "title-colors",
             label: "Title & Colors",
@@ -464,16 +470,6 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "description"]} label="Description">
-                            <Input.TextArea placeholder="Optional album description" rows={3} />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "date"]} label="Date">
-                            <Input placeholder="e.g. January 2026" size="large" />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
                           <Form.Item {...restField} name={[name, "categories"]} label="Categories">
                             <Select mode="multiple" options={categoryOptions} placeholder="Select filter categories" />
                           </Form.Item>
@@ -484,9 +480,6 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                             name={[name, "imageDesktop"]}
                             label="Cover Image"
                             validateTrigger={["onChange", "onBlur"]}
-                            rules={[
-                              { required: true, message: "Cover image is required" },
-                            ]}
                           >
                             <MediaPickerInput
                               placeholder="/uploads/album-cover.webp"
@@ -515,7 +508,6 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                                     {...restField}
                                     name={[name, "linkUrl"]}
                                     label="URL / Route"
-                                    rules={[{ required: true, message: "Please provide a URL or route" }]}
                                   >
                                     <Input placeholder="/about or https://example.com" size="large" />
                                   </Form.Item>
@@ -534,7 +526,6 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                                               name={[imgName, "urlDesktop"]}
                                               label={`Image ${Number(imgName) + 1}`}
                                               style={{ marginBottom: 0 }}
-                                              rules={[{ required: true, message: "Desktop image is required" }]}
                                             >
                                               <MediaPickerInput
                                                 placeholder="/uploads/photo.webp"

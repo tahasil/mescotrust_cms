@@ -234,20 +234,6 @@ const CardTitle = styled.span`
   line-height: var(--gallery-card-title-line-height);
 
   .gallery-card-title { display: inline; color: var(--gallery-card-title); }
-  .gallery-card-description {
-    display: block;
-    margin-top: 5px;
-    color: var(--gallery-card-description);
-    font-size: 0.82em;
-    font-weight: 400;
-  }
-  .gallery-card-date {
-    display: block;
-    margin-top: 5px;
-    color: var(--gallery-date);
-    font-size: 0.76em;
-    font-weight: 500;
-  }
 
   @media (max-width: 620px) {
     padding-top: 6px;
@@ -487,12 +473,19 @@ export default function PhotoGallery(props) {
 
   const items = useMemo(
     () =>
-      (Array.isArray(props?.photoGalleryItems) ? props.photoGalleryItems : [])
+      (Array.isArray(props?.photoGalleryItems)
+        ? props.photoGalleryItems
+        : Array.isArray(props?.items)
+          ? props.items
+          : [])
         .map(normalizeItem)
-        .filter((item) => item.cover),
-    [props?.photoGalleryItems],
+        .filter((item) => item.cover || (Array.isArray(item.images) && item.images.length > 0)),
+    [props?.photoGalleryItems, props?.items],
   );
-  const tabs = useMemo(() => normalizeTabs(props?.photoGalleryTabs), [props?.photoGalleryTabs]);
+  const tabs = useMemo(
+    () => normalizeTabs(props?.photoGalleryTabs || props?.tabs),
+    [props?.photoGalleryTabs, props?.tabs],
+  );
   const filtersVisible = props?.photoGalleryFiltersVisible !== false && tabs.length > 1;
   const tabAlignment = ["left", "center", "right"].includes(props?.photoGalleryTabAlignment)
     ? props.photoGalleryTabAlignment
@@ -614,8 +607,6 @@ export default function PhotoGallery(props) {
     "--gallery-tab-hover-text": color(props?.photoGalleryTabHoverTextColorKey, getColor("primary")),
     "--gallery-card-bg": color(props?.photoGalleryCardBgColorKey, "#e8e6df"),
     "--gallery-card-title": color(props?.photoGalleryCardTitleColorKey, getColor("blackLight")),
-    "--gallery-card-description": color(props?.photoGalleryCardDescriptionColorKey, getColor("blackLight")),
-    "--gallery-date": color(props?.photoGalleryDateColorKey, getColor("blackLight")),
     "--gallery-card-border": color(props?.photoGalleryCardBorderColorKey, "transparent"),
     "--gallery-card-shadow-color": color(props?.photoGalleryCardShadowColorKey, getColor("black")),
     "--gallery-overlay": color(props?.photoGalleryOverlayColorKey, "#050505"),
@@ -738,10 +729,6 @@ export default function PhotoGallery(props) {
                     {showPhotoCount && item.type === "album" ? (
                       <PhotoCount>{"\u00b7"} {item.images.length} {item.images.length === 1 ? "photo" : "photos"}</PhotoCount>
                     ) : null}
-                    {item.description ? (
-                      <span className="gallery-card-description">{item.description}</span>
-                    ) : null}
-                    {item.date ? <span className="gallery-card-date">{item.date}</span> : null}
                   </CardTitle>
                 </GalleryCard>
               ))}

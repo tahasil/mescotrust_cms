@@ -207,6 +207,15 @@ const baseMenuItems = [
     ),
   },
   {
+    key: "/admin/gallery",
+    icon: <PictureOutlined />,
+    label: (
+      <Link href="/admin/gallery" style={linkStyle}>
+        Gallery
+      </Link>
+    ),
+  },
+  {
     key: "group:admin:blogs",
     icon: <BookOutlined />,
     label: "Blogs",
