@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Row, Col } from "antd";
 import {
   CaretRightOutlined,
   LeftOutlined,
   RightOutlined,
+  CloseOutlined,
 } from "@ant-design/icons";
 import styled from "styled-components";
 import Link from "next/link";
@@ -14,7 +15,6 @@ import {
   getColor,
   PageContainer,
   ThemeButton,
-  ThemeModal,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 
@@ -132,59 +132,168 @@ const GalleryCardArrow = styled.span`
   }
 `;
 
-const ModalNavButton = styled.button`
+const VideoLightboxOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(10, 9, 15, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: hidden;
+  animation: videoFadeIn 0.25s ease-out;
+
+  @keyframes videoFadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+`;
+
+const LightboxTopBar = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 100;
+  pointer-events: none;
+
+  @media (max-width: 768px) {
+    padding: 12px 16px;
+  }
+`;
+
+const LightboxCounter = styled.div`
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  font-family: inherit;
+  pointer-events: auto;
+`;
+
+const LightboxCloseButton = styled.button`
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  pointer-events: auto;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: scale(1.06);
+  }
+
+  @media (max-width: 768px) {
+    width: 38px;
+    height: 38px;
+    font-size: 16px;
+  }
+`;
+
+const LightboxNavButton = styled.button`
   position: absolute;
   top: 50%;
-  ${(p) => (p.$position === "left" ? "left: -50px;" : "right: -50px;")}
+  ${(p) => (p.$position === "left" ? "left: 24px;" : "right: 24px;")}
   transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  border: none;
-  background: ${(p) => p.$color || getColor("primary")};
-  color: #fff;
-  font-size: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-size: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 10;
-  transition: opacity 0.2s ease;
+  z-index: 100;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 
   &:hover {
-    opacity: 0.85;
+    background: ${(p) => p.$accentColor || getColor("primary")};
+    border-color: transparent;
+    transform: translateY(-50%) scale(1.1);
+    color: #ffffff;
   }
 
-  @media (max-width: 992px) {
-    ${(p) => (p.$position === "left" ? "left: 10px;" : "right: 10px;")}
-    background: rgba(0, 0, 0, 0.6);
+  @media (max-width: 991px) {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+    ${(p) => (p.$position === "left" ? "left: 12px;" : "right: 12px;")}
+  }
+
+  @media (max-width: 576px) {
+    width: 38px;
+    height: 38px;
+    font-size: 16px;
+    ${(p) => (p.$position === "left" ? "left: 8px;" : "right: 8px;")}
   }
 `;
 
-const VideoLightbox = styled(ThemeModal)`
-  .ant-modal-content {
-    aspect-ratio: unset !important;
-    filter: none !important;
-    overflow: visible !important;
-    padding: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-  }
-  .ant-modal-body {
-    position: relative;
-  }
-  .ant-modal-close {
-    display: none !important;
-  }
-`;
-
-const ModalVideoWrapper = styled.div`
+const LightboxDialog = styled.div`
+  position: relative;
   width: 100%;
+  max-width: 960px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: auto;
+  z-index: 10;
   border-radius: 16px;
   overflow: hidden;
-  position: relative;
-  background: #000;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+  animation: videoScaleIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @keyframes videoScaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.96) translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  @media (max-width: 1100px) {
+    max-width: 82vw;
+  }
+
+  @media (max-width: 768px) {
+    max-width: 94vw;
+  }
+`;
+
+const LightboxVideoFrame = styled.div`
+  width: 100%;
   aspect-ratio: 16 / 9;
+  background: #000000;
+  position: relative;
+  overflow: hidden;
 
   iframe {
     width: 100%;
@@ -194,19 +303,48 @@ const ModalVideoWrapper = styled.div`
   }
 `;
 
-const ModalVideoTitle = styled.div`
-  padding: 16px 20px;
-  color: #fff;
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1.3;
-  background: rgba(0, 0, 0, 0.85);
-  border-radius: 0 0 16px 16px;
-  margin-top: -8px;
+const LightboxTitleBar = styled.div`
+  width: 100%;
+  padding: 16px 22px;
+  background: rgba(18, 16, 24, 0.96);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-sizing: border-box;
+
+  .title-text {
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .cat-tag {
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 12px;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
 
   @media (max-width: 768px) {
-    font-size: 14px;
-    padding: 12px 14px;
+    padding: 12px 16px;
+    .title-text {
+      font-size: 14px;
+      white-space: normal;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
   }
 `;
 
@@ -327,6 +465,28 @@ export default function Videogallery(props) {
   };
 
   const currentItem = filteredItems[currentIndex];
+
+  useEffect(() => {
+    if (!modalOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setModalOpen(false);
+      } else if (e.key === "ArrowLeft") {
+        setCurrentIndex((prev) => (prev === 0 ? filteredItems.length - 1 : prev - 1));
+      } else if (e.key === "ArrowRight") {
+        setCurrentIndex((prev) => (prev === filteredItems.length - 1 ? 0 : prev + 1));
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [modalOpen, filteredItems.length]);
 
   const PREFIX = "videogallery";
 
@@ -532,49 +692,66 @@ export default function Videogallery(props) {
         </div>
       </PageContainer>
 
-      <VideoLightbox
-        open={modalOpen}
-        onCancel={closeModal}
-        footer={null}
-        centered
-        width={900}
-        destroyOnClose
-        closable={false}
-        styles={{
-          mask: {
-            backdropFilter: "blur(3px)",
-            background: "rgba(0, 0, 0, 0.5)",
-          },
-        }}
-      >
-        {currentItem && (
-          <>
-            <ModalNavButton
-              $position="left"
-              $color={accentColor}
-              onClick={goToPrev}
-            >
-              <LeftOutlined />
-            </ModalNavButton>
-            <ModalVideoWrapper>
+      {modalOpen && currentItem && (
+        <VideoLightboxOverlay onClick={closeModal}>
+          <LightboxTopBar>
+            <LightboxCounter>
+              {currentIndex + 1} / {filteredItems.length}
+            </LightboxCounter>
+            <LightboxCloseButton onClick={closeModal} title="Close (Esc)">
+              <CloseOutlined />
+            </LightboxCloseButton>
+          </LightboxTopBar>
+
+          {filteredItems.length > 1 && (
+            <>
+              <LightboxNavButton
+                $position="left"
+                $accentColor={accentColor}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToPrev();
+                }}
+                title="Previous video"
+              >
+                <LeftOutlined />
+              </LightboxNavButton>
+              <LightboxNavButton
+                $position="right"
+                $accentColor={accentColor}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToNext();
+                }}
+                title="Next video"
+              >
+                <RightOutlined />
+              </LightboxNavButton>
+            </>
+          )}
+
+          <LightboxDialog onClick={(e) => e.stopPropagation()}>
+            <LightboxVideoFrame>
               <iframe
-                src={`https://www.youtube.com/embed/${currentItem.videoId}?autoplay=1`}
+                src={`https://www.youtube.com/embed/${currentItem.videoId}?autoplay=1&rel=0`}
                 title={currentItem.title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
               />
-            </ModalVideoWrapper>
-            <ModalVideoTitle>{currentItem.title}</ModalVideoTitle>
-            <ModalNavButton
-              $position="right"
-              $color={accentColor}
-              onClick={goToNext}
-            >
-              <RightOutlined />
-            </ModalNavButton>
-          </>
-        )}
-      </VideoLightbox>
+            </LightboxVideoFrame>
+            <LightboxTitleBar>
+              <div className="title-text" title={currentItem.title}>
+                {currentItem.title}
+              </div>
+              {Array.isArray(currentItem.categories) && currentItem.categories.length > 0 && (
+                <div className="cat-tag">
+                  {currentItem.categories.join(", ")}
+                </div>
+              )}
+            </LightboxTitleBar>
+          </LightboxDialog>
+        </VideoLightboxOverlay>
+      )}
     </FullWidthBackground>
   );
 }
