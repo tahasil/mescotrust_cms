@@ -232,6 +232,8 @@ export default function AdminBlogNewPage() {
                             placeholder="/media/..."
                             uiVariant="stacked"
                             showVariants={false}
+                            cropWidth={DESKTOP_REQUIRED_WIDTH}
+                            cropHeight={DESKTOP_REQUIRED_HEIGHT}
                             hintText={`Required size: ${DESKTOP_REQUIRED_TEXT}`}
                           />
                         </Form.Item>

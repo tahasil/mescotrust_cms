@@ -272,7 +272,9 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                               <MediaPickerInput
                                 placeholder="/uploads/report-cover.webp"
                                 uiVariant="stacked"
-                                hintText="Optional. Any aspect ratio/resolution supported in Fit Full Image mode."
+                                cropWidth={348}
+                                cropHeight={200}
+                                hintText="Recommended: 348 × 200 px"
                               />
                             </Form.Item>
                           </Col>

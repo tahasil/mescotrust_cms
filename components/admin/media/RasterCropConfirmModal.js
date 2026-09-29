@@ -110,6 +110,15 @@ export default function RasterCropConfirmModal({
   confirmText = "Confirm crop",
   onCancel,
   onConfirm,
+  targetWidth = null,
+  targetHeight = null,
+  defaultWidth = null,
+  defaultHeight = null,
+  aspectRatio = null,
+  lockAspectRatio = false,
+  minWidth = null,
+  minHeight = null,
+  allowedSizes = null,
 }) {
   const cropperRef = useRef(null);
   const [imageUrl, setImageUrl] = useState("");
@@ -127,6 +136,9 @@ export default function RasterCropConfirmModal({
   const [confirming, setConfirming] = useState(false);
   const [interactionTick, setInteractionTick] = useState(0);
 
+  const resolvedInitialWidth = parsePositiveIntOrNull(targetWidth ?? defaultWidth);
+  const resolvedInitialHeight = parsePositiveIntOrNull(targetHeight ?? defaultHeight);
+
   useEffect(() => {
     if (!open || !file) return;
     const nextUrl = createObjectUrl(file);
@@ -137,9 +149,17 @@ export default function RasterCropConfirmModal({
     setZoom(1);
     setRotation(0);
     setCropBoxPixels(null);
-    setWidthInput(null);
-    setHeightInput(null);
-    setManualSizeMode(false);
+
+    if (resolvedInitialWidth && resolvedInitialHeight) {
+      setWidthInput(resolvedInitialWidth);
+      setHeightInput(resolvedInitialHeight);
+      setManualSizeMode(true);
+    } else {
+      setWidthInput(null);
+      setHeightInput(null);
+      setManualSizeMode(false);
+    }
+
     setPreviewUrl("");
     setPreviewError("");
     setInteractionTick(0);
@@ -156,7 +176,7 @@ export default function RasterCropConfirmModal({
     return () => {
       if (nextUrl) URL.revokeObjectURL(nextUrl);
     };
-  }, [open, file]);
+  }, [open, file, resolvedInitialWidth, resolvedInitialHeight]);
 
   const normalizedRotation = useMemo(() => normalizeRotationDegrees(rotation), [rotation]);
   const parsedWidth = useMemo(() => parsePositiveIntOrNull(widthInput), [widthInput]);
@@ -236,11 +256,13 @@ export default function RasterCropConfirmModal({
     if (!cropper || !cropperReady) return;
     if (isManualSizeComplete) {
       cropper.setAspectRatio(parsedWidth / parsedHeight);
+    } else if (Number.isFinite(aspectRatio) && aspectRatio > 0) {
+      cropper.setAspectRatio(aspectRatio);
     } else {
       cropper.setAspectRatio(NaN);
     }
     syncCropData();
-  }, [cropperReady, isManualSizeComplete, parsedWidth, parsedHeight, syncCropData]);
+  }, [cropperReady, isManualSizeComplete, parsedWidth, parsedHeight, aspectRatio, syncCropData]);
 
   useEffect(() => {
     const cropper = cropperRef.current;
@@ -484,11 +506,48 @@ export default function RasterCropConfirmModal({
               Drag or resize the crop box directly. Leave width and height empty to use crop area
               size.
             </Typography.Text>
-            {manualSizeMode ? (
-              <Button type="link" size="small" style={{ padding: 0 }} onClick={resetManualSize}>
-                Use crop area size
-              </Button>
+            {Array.isArray(allowedSizes) && allowedSizes.length > 0 ? (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 4 }}>
+                {allowedSizes.map((sz, idx) => (
+                  <Button
+                    key={idx}
+                    size="small"
+                    type={
+                      parsedWidth === sz.width && parsedHeight === sz.height
+                        ? "primary"
+                        : "default"
+                    }
+                    onClick={() => {
+                      setManualSizeMode(true);
+                      setWidthInput(sz.width);
+                      setHeightInput(sz.height);
+                    }}
+                  >
+                    {sz.width} × {sz.height}
+                  </Button>
+                ))}
+              </div>
             ) : null}
+            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+              {manualSizeMode ? (
+                <Button type="link" size="small" style={{ padding: 0 }} onClick={resetManualSize}>
+                  Use crop area size
+                </Button>
+              ) : resolvedInitialWidth && resolvedInitialHeight ? (
+                <Button
+                  type="link"
+                  size="small"
+                  style={{ padding: 0 }}
+                  onClick={() => {
+                    setManualSizeMode(true);
+                    setWidthInput(resolvedInitialWidth);
+                    setHeightInput(resolvedInitialHeight);
+                  }}
+                >
+                  Reset to required ({resolvedInitialWidth} × {resolvedInitialHeight})
+                </Button>
+              ) : null}
+            </div>
 
             <div className={styles.cropMetaBlock}>
               <div>

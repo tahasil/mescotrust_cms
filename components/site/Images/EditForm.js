@@ -209,6 +209,8 @@ function ImagesEditForm({ source, initialData: initialDataProp, onSaveToPage, on
                   <MediaPickerInput
                     placeholder="e.g. /images/clinics-dispensaries.png"
                     uiVariant="stacked"
+                    cropWidth={1240}
+                    cropHeight={480}
                     hintText={`Required size: ${IMAGES_DESKTOP_REQUIRED_TEXT}`}
                   />
                 </Form.Item>

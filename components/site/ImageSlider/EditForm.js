@@ -251,6 +251,8 @@ function ImageSliderEditForm({ source, initialData: initialDataProp, onSaveToPag
                               <MediaPickerInput
                                 placeholder="/images/slider-desktop.png"
                                 uiVariant="stacked"
+                                cropWidth={REQUIRED_DESKTOP_IMAGE_WIDTH}
+                                cropHeight={REQUIRED_DESKTOP_IMAGE_HEIGHT}
                                 hintText={`Required size: ${REQUIRED_DESKTOP_IMAGE_TEXT}`}
                               />
                             </Form.Item>

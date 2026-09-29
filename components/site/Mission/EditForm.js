@@ -195,6 +195,8 @@ function MissionEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                   <MediaPickerInput
                     placeholder="/images/mission.png"
                     uiVariant="stacked"
+                    cropWidth={REQUIRED_DESKTOP_IMAGE_WIDTH}
+                    cropHeight={REQUIRED_DESKTOP_IMAGE_HEIGHT}
                     hintText={`Required size: ${REQUIRED_DESKTOP_IMAGE_TEXT}`}
                   />
                 </Form.Item>

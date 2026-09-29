@@ -56,6 +56,8 @@ export default function ManageSectionFields({
   themeColorOptions = [],
   sectionBgImageFieldLabel = "Background",
   sectionBgImageHintText = `Required size: ${REQUIRED_SECTION_BG_TEXT}`,
+  sectionBgImageCropWidth = REQUIRED_SECTION_BG_WIDTH,
+  sectionBgImageCropHeight = REQUIRED_SECTION_BG_HEIGHT,
   sectionBgImageRules,
   sectionBgImageValidateTrigger,
   showPageContainerSpacing = true,
@@ -151,6 +153,9 @@ export default function ManageSectionFields({
                 >
                   <MediaPickerInput
                     placeholder="e.g. /media/..."
+                    cropWidth={sectionBgImageCropWidth}
+                    cropHeight={sectionBgImageCropHeight}
+                    hintText={sectionBgImageHintText}
                   />
                 </Form.Item>
               )}

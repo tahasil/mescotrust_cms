@@ -304,6 +304,8 @@ export default function AdminEventNewPage() {
                           <MediaPickerInput
                             placeholder="/media/..."
                             uiVariant="stacked"
+                            cropWidth={DESKTOP_REQUIRED_WIDTH}
+                            cropHeight={DESKTOP_REQUIRED_HEIGHT}
                             hintText={`Required size: ${DESKTOP_REQUIRED_TEXT}`}
                           />
                         </Form.Item>

@@ -325,6 +325,10 @@ function CardsEditForm(
                             <MediaPickerInput
                               placeholder="/images/logo.svg"
                               uiVariant="stacked"
+                              cropWidth={MIN_IMAGE_WIDTH}
+                              cropHeight={MIN_IMAGE_HEIGHT}
+                              minWidth={MIN_IMAGE_WIDTH}
+                              minHeight={MIN_IMAGE_HEIGHT}
                               hintText={`Required size: ${MIN_IMAGE_HINT_TEXT}`}
                             />
                           </Form.Item>
@@ -338,6 +342,10 @@ function CardsEditForm(
                             <MediaPickerInput
                               placeholder="/images/logo-mobile.svg"
                               uiVariant="stacked"
+                              cropWidth={MIN_IMAGE_WIDTH}
+                              cropHeight={MIN_IMAGE_HEIGHT}
+                              minWidth={MIN_IMAGE_WIDTH}
+                              minHeight={MIN_IMAGE_HEIGHT}
                               hintText="Optional. Desktop image will be used if empty."
                             />
                           </Form.Item>

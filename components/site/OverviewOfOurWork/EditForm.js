@@ -541,6 +541,12 @@ function OverviewOfOurWorkEditForm(
                               <MediaPickerInput
                                 placeholder="https://... or /images/..."
                                 uiVariant="stacked"
+                                cropWidth={REQUIRED_BG_IMAGE_WIDTH}
+                                cropHeight={REQUIRED_BG_IMAGE_HEIGHT}
+                                allowedSizes={[
+                                  { width: REQUIRED_BG_IMAGE_WIDTH, height: REQUIRED_BG_IMAGE_HEIGHT },
+                                  { width: LEGACY_BG_IMAGE_WIDTH, height: LEGACY_BG_IMAGE_HEIGHT },
+                                ]}
                                 hintText={`Required size: ${BG_IMAGE_SIZE_TEXT}`}
                               />
                             </Form.Item>
@@ -556,6 +562,10 @@ function OverviewOfOurWorkEditForm(
                             >
                               <MediaPickerInput
                                 placeholder="/images/icon.svg or https://..."
+                                cropWidth={48}
+                                cropHeight={48}
+                                minWidth={MIN_ICON_IMAGE_WIDTH}
+                                minHeight={MIN_ICON_IMAGE_HEIGHT}
                                 hintText={`Recommended: ${ICON_IMAGE_SIZE_TEXT}`}
                               />
                             </Form.Item>

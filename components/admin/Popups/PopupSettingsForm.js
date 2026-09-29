@@ -541,6 +541,9 @@ function PopupSettingsForm({ componentId, onSuccess, onLivePreviewChange }, ref)
                     showVariants
                     allowManual
                     mediaLibraryType="image"
+                    cropWidth={REQUIRED_POPUP_IMAGE_WIDTH}
+                    cropHeight={REQUIRED_POPUP_IMAGE_HEIGHT}
+                    hintText={POPUP_IMAGE_REQUIRED_TEXT}
                   />
                 </Form.Item>
                 <Form.Item

@@ -395,6 +395,8 @@ function AccordionEditForm(
                               mediaType="image"
                               uiVariant="stacked"
                               placeholder="Optional panel image"
+                              cropWidth={PANEL_IMAGE_WIDTH}
+                              cropHeight={PANEL_IMAGE_HEIGHT}
                               hintText={IMAGE_HINT}
                             />
                           </Form.Item>
@@ -413,6 +415,8 @@ function AccordionEditForm(
                               mediaType="image"
                               uiVariant="stacked"
                               placeholder="Uses desktop image when empty"
+                              cropWidth={PANEL_IMAGE_WIDTH}
+                              cropHeight={PANEL_IMAGE_HEIGHT}
                               hintText={IMAGE_HINT}
                             />
                           </Form.Item>

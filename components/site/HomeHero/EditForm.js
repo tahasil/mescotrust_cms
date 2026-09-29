@@ -384,6 +384,8 @@ function HomeHeroEditForm({ source, initialData: initialDataProp, onSaveToPage, 
                                     <MediaPickerInput
                                       placeholder="e.g. /images/slider-desktop.png"
                                       uiVariant="stacked"
+                                      cropWidth={REQUIRED_HOME_HERO_IMAGE_WIDTH}
+                                      cropHeight={REQUIRED_HOME_HERO_IMAGE_HEIGHT}
                                       hintText={`Required size: ${REQUIRED_HOME_HERO_IMAGE_DIMENSIONS_TEXT}`}
                                     />
                                   </Form.Item>

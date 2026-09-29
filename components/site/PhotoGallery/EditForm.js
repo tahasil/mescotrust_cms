@@ -487,7 +487,9 @@ function PhotoGalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
                             <MediaPickerInput
                               placeholder="/uploads/album-cover.webp"
                               uiVariant="stacked"
-                              hintText="Recommended: landscape, 4:3 ratio"
+                              cropWidth={446}
+                              cropHeight={334}
+                              hintText="Required size: 446 × 334 px (4:3 ratio)"
                             />
                           </Form.Item>
                         </Col>

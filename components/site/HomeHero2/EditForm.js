@@ -381,6 +381,8 @@ function HomeHero2EditForm(
                 prefix={PREFIX}
                 form={form}
                 themeColorOptions={themeColorOptions}
+                sectionBgImageCropWidth={MIN_SECTION_BACKGROUND_WIDTH}
+                sectionBgImageCropHeight={MIN_SECTION_BACKGROUND_HEIGHT}
                 sectionBgImageHintText={`Required size: minimum ${MIN_SECTION_BACKGROUND_TEXT}`}
                 sectionBgImageRules={[
                   { validator: validateHomeHero2SectionBackgroundImage },
@@ -463,6 +465,8 @@ function HomeHero2EditForm(
                               <MediaPickerInput
                                 placeholder="/images/slider-desktop.png"
                                 uiVariant="stacked"
+                                cropWidth={REQUIRED_SLIDER_DESKTOP_WIDTH}
+                                cropHeight={REQUIRED_SLIDER_DESKTOP_HEIGHT}
                                 hintText={`Required size: ${REQUIRED_SLIDER_DESKTOP_TEXT}`}
                               />
                             </Form.Item>

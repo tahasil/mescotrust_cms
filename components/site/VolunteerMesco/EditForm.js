@@ -251,7 +251,12 @@ function VolunteerMescoEditForm({ source, initialData: initialDataProp, onSaveTo
                 { validator: validateImageDimensions },
               ]}
             >
-              <MediaPickerInput uiVariant="stacked" hintText={`Required size: ${VOLUNTEER_MESCO_REQUIRED_IMAGE_TEXT}`} />
+              <MediaPickerInput
+                uiVariant="stacked"
+                cropWidth={VOLUNTEER_MESCO_REQUIRED_IMAGE_WIDTH}
+                cropHeight={VOLUNTEER_MESCO_REQUIRED_IMAGE_HEIGHT}
+                hintText={`Required size: ${VOLUNTEER_MESCO_REQUIRED_IMAGE_TEXT}`}
+              />
             </Form.Item>
             <Form.Item name="volunteerMescoImageAlt" label="Image alt text"><Input /></Form.Item>
           </>,

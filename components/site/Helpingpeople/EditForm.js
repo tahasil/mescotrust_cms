@@ -279,6 +279,9 @@ function HelpingpeopleEditForm({ source, initialData: initialDataProp, onSaveToP
                   <MediaPickerInput
                     placeholder="/images/about-mesco-3.png"
                     uiVariant="stacked"
+                    cropWidth={600}
+                    cropHeight={400}
+                    allowedSizes={HELPINGPEOPLE_DESKTOP_ALLOWED_SIZES}
                     hintText={`Required size: ${HELPINGPEOPLE_DESKTOP_REQUIRED_TEXT}`}
                   />
                 </Form.Item>

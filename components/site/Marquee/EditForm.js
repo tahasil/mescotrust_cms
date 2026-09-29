@@ -292,6 +292,8 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                             <MediaPickerInput
                               placeholder="/images/partner-1.png"
                               uiVariant="stacked"
+                              cropWidth={RECOMMENDED_MARQUEE_IMAGE_WIDTH}
+                              cropHeight={RECOMMENDED_MARQUEE_IMAGE_HEIGHT}
                               hintText={`Required size: ${RECOMMENDED_MARQUEE_IMAGE_DIMENSIONS_TEXT}`}
                             />
                           </Form.Item>

@@ -68,6 +68,28 @@ function appendCropContractToFormData(formData, cropContract) {
   }
 }
 
+function extractDimensionsFromHintText(hint) {
+  if (!hint || typeof hint !== "string") return { width: null, height: null };
+  const text = hint.replace(/\u00D7/g, "x").replace(/[\s\t\n]+/g, " ").trim();
+  const match = text.match(/(\d{2,5})\s*(?:[xX*×]|by)\s*(\d{2,5})/);
+  if (match) {
+    const width = parseInt(match[1], 10);
+    const height = parseInt(match[2], 10);
+    if (width > 0 && height > 0) {
+      return { width, height };
+    }
+  }
+  const minMatch = text.match(/width\s*(\d{2,5}).*?height\s*(\d{2,5})/i);
+  if (minMatch) {
+    const width = parseInt(minMatch[1], 10);
+    const height = parseInt(minMatch[2], 10);
+    if (width > 0 && height > 0) {
+      return { width, height };
+    }
+  }
+  return { width: null, height: null };
+}
+
 export default function MediaPickerInput({
   value,
   onChange,
@@ -77,6 +99,15 @@ export default function MediaPickerInput({
   uiVariant = "default",
   hintText = "",
   mediaType = "image",
+  cropWidth = null,
+  cropHeight = null,
+  targetWidth = null,
+  targetHeight = null,
+  aspectRatio = null,
+  lockAspectRatio = false,
+  minWidth = null,
+  minHeight = null,
+  allowedSizes = null,
 }) {
   const normalizedMediaType =
     mediaType === "document" || mediaType === "video" || mediaType === "all"
@@ -96,6 +127,17 @@ export default function MediaPickerInput({
   const [activeMedia, setActiveMedia] = useState(null);
   const [format, setFormat] = useState(parsed.format || "auto");
   const [cropRequest, setCropRequest] = useState(null);
+
+  const hintDimensions = useMemo(() => extractDimensionsFromHintText(hintText), [hintText]);
+  const effectiveCropWidth = cropWidth ?? targetWidth ?? hintDimensions.width ?? null;
+  const effectiveCropHeight = cropHeight ?? targetHeight ?? hintDimensions.height ?? null;
+  const effectiveMinWidth = minWidth ?? null;
+  const effectiveMinHeight = minHeight ?? null;
+  const effectiveAspectRatio =
+    aspectRatio ??
+    (effectiveCropWidth && effectiveCropHeight
+      ? effectiveCropWidth / effectiveCropHeight
+      : null);
 
   const cropQueueRef = useRef([]);
   const activeCropRequestRef = useRef(null);
@@ -120,12 +162,34 @@ export default function MediaPickerInput({
     const next = cropQueueRef.current.shift();
     if (!next) return;
     activeCropRequestRef.current = next;
-    setCropRequest({ file: next.file, title: next.title });
+    setCropRequest({
+      file: next.file,
+      title: next.title,
+      targetWidth: next.targetWidth,
+      targetHeight: next.targetHeight,
+      aspectRatio: next.aspectRatio,
+      lockAspectRatio: next.lockAspectRatio,
+      minWidth: next.minWidth,
+      minHeight: next.minHeight,
+      allowedSizes: next.allowedSizes,
+    });
   };
 
-  const requestRasterCrop = (file, title) =>
+  const requestRasterCrop = (file, title, extraOptions = {}) =>
     new Promise((resolve, reject) => {
-      cropQueueRef.current.push({ file, title, resolve, reject });
+      cropQueueRef.current.push({
+        file,
+        title,
+        targetWidth: extraOptions.targetWidth ?? effectiveCropWidth,
+        targetHeight: extraOptions.targetHeight ?? effectiveCropHeight,
+        aspectRatio: extraOptions.aspectRatio ?? effectiveAspectRatio,
+        lockAspectRatio: extraOptions.lockAspectRatio ?? lockAspectRatio,
+        minWidth: extraOptions.minWidth ?? effectiveMinWidth,
+        minHeight: extraOptions.minHeight ?? effectiveMinHeight,
+        allowedSizes: extraOptions.allowedSizes ?? allowedSizes,
+        resolve,
+        reject,
+      });
       pumpCropQueue();
     });
 
@@ -690,6 +754,13 @@ export default function MediaPickerInput({
         file={cropRequest?.file || null}
         title={cropRequest?.title || "Crop image before upload"}
         confirmText="Confirm crop"
+        targetWidth={cropRequest?.targetWidth}
+        targetHeight={cropRequest?.targetHeight}
+        aspectRatio={cropRequest?.aspectRatio}
+        lockAspectRatio={cropRequest?.lockAspectRatio}
+        minWidth={cropRequest?.minWidth}
+        minHeight={cropRequest?.minHeight}
+        allowedSizes={cropRequest?.allowedSizes}
         onCancel={handleCropCancel}
         onConfirm={handleCropConfirm}
       />

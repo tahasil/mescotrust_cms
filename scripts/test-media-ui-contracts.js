@@ -32,4 +32,15 @@ test("RasterCropConfirmModal exposes final dimensions and blocks invalid confirm
   assert.match(source, /rotationDegrees/);
   assert.match(source, /disabled=\{Boolean\(validationError\)\}/);
   assert.match(source, /Preview will appear after crop selection\./);
+  assert.match(source, /resolvedInitialWidth/);
+  assert.match(source, /resolvedInitialHeight/);
+});
+
+test("MediaPickerInput supports dynamic crop dimensions and hintText parser", () => {
+  const source = readFile("components/admin/media/MediaPickerInput.js");
+  assert.match(source, /extractDimensionsFromHintText/);
+  assert.match(source, /cropWidth/);
+  assert.match(source, /cropHeight/);
+  assert.match(source, /targetWidth=\{cropRequest\?\.targetWidth\}/);
+  assert.match(source, /targetHeight=\{cropRequest\?\.targetHeight\}/);
 });

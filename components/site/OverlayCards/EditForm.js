@@ -280,6 +280,8 @@ function OverlayCardsEditForm({ source, initialData: initialDataProp, onSaveToPa
                             <MediaPickerInput
                               placeholder="/images/newspaper-card-bg-1.png"
                               uiVariant="stacked"
+                              cropWidth={395}
+                              cropHeight={220}
                               hintText={`Required size: ${OVERLAY_CARDS_DESKTOP_REQUIRED_TEXT}`}
                             />
                           </Form.Item>

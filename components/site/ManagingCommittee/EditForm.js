@@ -244,6 +244,12 @@ function ManagingCommitteeEditForm({ source, initialData: initialDataProp, onSav
                   <MediaPickerInput
                     placeholder="/images/good-governance-2.png"
                     uiVariant="stacked"
+                    cropWidth={600}
+                    cropHeight={400}
+                    allowedSizes={[
+                      { width: 600, height: 400 },
+                      { width: 600, height: 650 },
+                    ]}
                     hintText={`Required size: ${MANAGING_COMMITTEE_DESKTOP_REQUIRED_TEXT}`}
                     validateSelection={validateDesktopImageSelection}
                   />

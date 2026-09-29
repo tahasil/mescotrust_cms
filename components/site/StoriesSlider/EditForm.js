@@ -377,6 +377,8 @@ function StoriesSliderEditForm({ source, initialData: initialDataProp, onSaveToP
                               <MediaPickerInput
                                 placeholder="/uploads/story-desktop.webp"
                                 uiVariant="stacked"
+                                cropWidth={REQUIRED_DESKTOP_IMAGE_WIDTH}
+                                cropHeight={REQUIRED_DESKTOP_IMAGE_HEIGHT}
                                 hintText={`Required size: ${REQUIRED_DESKTOP_IMAGE_TEXT}`}
                               />
                             </Form.Item>

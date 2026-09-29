@@ -145,6 +145,9 @@ function ImpactShowcaseEditForm({ source, initialData: initialDataProp, onSaveTo
           >
             <MediaPickerInput
               uiVariant="stacked"
+              cropWidth={1200}
+              cropHeight={1400}
+              allowedSizes={IMPACT_SHOWCASE_DESKTOP_ALLOWED_SIZES}
               hintText={`Required size: ${IMPACT_SHOWCASE_DESKTOP_REQUIRED_TEXT}`}
             />
           </Form.Item>

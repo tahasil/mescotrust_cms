@@ -266,6 +266,8 @@ function CommitteeMembersEditForm({ source, initialData: initialDataProp, onSave
                             <MediaPickerInput
                               placeholder="/images/members-1.png"
                               uiVariant="stacked"
+                              cropWidth={REQUIRED_DESKTOP_IMAGE_WIDTH}
+                              cropHeight={REQUIRED_DESKTOP_IMAGE_HEIGHT}
                               hintText={`Required size: ${REQUIRED_DESKTOP_IMAGE_TEXT}`}
                             />
                           </Form.Item>
