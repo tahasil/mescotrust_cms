@@ -14,7 +14,7 @@ import {
   ConfigProvider,
 } from "antd";
 import { InboxOutlined, CheckCircleFilled } from "@ant-design/icons";
-import styled from "styled-components";
+import styled, { createGlobalStyle } from "styled-components";
 import {
   FullWidthBackground,
   getColor,
@@ -24,6 +24,31 @@ import {
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 import { isValidEmail, isValidPhone, normalizeText } from "@/lib/formValidation";
+
+const CareersSelectDropdownStyles = createGlobalStyle`
+  .careers-upload-dropdown.ant-select-dropdown {
+    padding: 6px !important;
+    border-radius: 8px !important;
+  }
+
+  .careers-upload-dropdown.ant-select-dropdown .ant-select-item-option {
+    border-radius: 6px !important;
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+    color: rgba(0, 0, 0, 0.85) !important;
+  }
+
+  .careers-upload-dropdown.ant-select-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+    background-color: #f5f5f5 !important;
+    color: rgba(0, 0, 0, 0.88) !important;
+  }
+
+  .careers-upload-dropdown.ant-select-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+    background-color: #f0f2f5 !important;
+    color: rgba(0, 0, 0, 0.88) !important;
+    font-weight: 600 !important;
+  }
+`;
 
 const { TextArea } = Input;
 const { Dragger } = Upload;
@@ -100,7 +125,7 @@ const FormCard = styled.div`
     outline: none !important;
   }
 
-  .ant-btn {
+  .ant-btn-primary:not(.ant-upload-list-item-action):not(.ant-upload-list-item-card-actions-btn) {
     border-radius: 8px;
     font-weight: 600;
     height: 48px;
@@ -115,6 +140,33 @@ const FormCard = styled.div`
       background: ${(p) => p.$buttonBg || "var(--secondary-color, #2A283E)"} !important;
       border-color: ${(p) => p.$buttonBg || "var(--secondary-color, #2A283E)"} !important;
       opacity: 0.92;
+    }
+  }
+
+  /* Reset Upload file list action buttons (delete / trash icon) */
+  .ant-upload-list-item-action,
+  .ant-upload-list-item-card-actions-btn,
+  .ant-upload-list-item .ant-btn {
+    height: auto !important;
+    min-height: auto !important;
+    width: auto !important;
+    padding: 4px 6px !important;
+    background: transparent !important;
+    border: none !important;
+    color: rgba(0, 0, 0, 0.45) !important;
+    box-shadow: none !important;
+    border-radius: 4px !important;
+
+    &:hover,
+    &:focus {
+      background: rgba(224, 60, 51, 0.1) !important;
+      color: #e03c33 !important;
+      border-color: transparent !important;
+    }
+
+    .anticon {
+      font-size: 14px;
+      color: inherit;
     }
   }
 
@@ -152,7 +204,7 @@ const FormCard = styled.div`
     padding: 22px 18px;
     border-radius: 10px;
 
-    .ant-btn {
+    .ant-btn-primary:not(.ant-upload-list-item-action) {
       width: 100%;
       height: 48px;
       font-size: 16px;
@@ -557,14 +609,25 @@ export default function CareersUpload(props = {}) {
                   <>
                     {intro && <Intro>{intro}</Intro>}
 
+                    <CareersSelectDropdownStyles />
                     <ConfigProvider
                       theme={{
                         token: {
-                          colorPrimary: buttonBgColor || "#2A283E",
+                          colorPrimary: "#e03c33",
                           borderRadius: 8,
                           controlHeightLG: 48,
                           fontSize: 15,
                           fontSizeLG: 15,
+                          controlItemBgActive: "#f0f2f5",
+                          controlItemBgHover: "#f5f5f7",
+                        },
+                        components: {
+                          Select: {
+                            controlItemBgActive: "#f0f2f5",
+                            controlItemBgHover: "#f5f5f7",
+                            optionSelectedColor: "rgba(0, 0, 0, 0.88)",
+                            optionSelectedFontWeight: 600,
+                          },
                         },
                       }}
                     >
@@ -663,6 +726,7 @@ export default function CareersUpload(props = {}) {
                                 size="large"
                                 placeholder="Select position / role..."
                                 allowClear
+                                popupClassName="careers-upload-dropdown"
                                 options={positionOptions}
                               />
                             </Form.Item>
@@ -686,6 +750,7 @@ export default function CareersUpload(props = {}) {
                                     size="large"
                                     placeholder="Select total experience..."
                                     allowClear
+                                    popupClassName="careers-upload-dropdown"
                                     options={EXPERIENCE_OPTIONS}
                                   />
                                 </Form.Item>
