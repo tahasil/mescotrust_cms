@@ -769,9 +769,35 @@ export default function DonateNow(props = {}) {
       setVerificationValues(getInitialVerificationState());
       setVerifyingDonor(false);
     }
+    if (fieldKey === quantityFieldKey || fieldKey === "studentsCount") {
+      setAmountTouched(false);
+    }
     setFieldValues((previous) => ({ ...previous, [fieldKey]: nextValue }));
     if (errors[fieldKey]) {
       setErrors((previous) => ({ ...previous, [fieldKey]: "" }));
+    }
+  };
+
+  const handleQuickAddAmount = (increment) => {
+    setAmountTouched(true);
+    setFieldValues((previous) => {
+      const parsedCurrent = Number(previous.amount);
+      const current =
+        Number.isFinite(parsedCurrent) && parsedCurrent > 0
+          ? parsedCurrent
+          : Number(
+              selectedPurpose?.fixedAmount ||
+                selectedPurpose?.defaultAmount ||
+                0,
+            ) || 0;
+      const nextAmount = current + increment;
+      return {
+        ...previous,
+        amount: String(nextAmount),
+      };
+    });
+    if (errors.amount) {
+      setErrors((previous) => ({ ...previous, amount: "" }));
     }
   };
 
@@ -1313,12 +1339,16 @@ export default function DonateNow(props = {}) {
       }, {}),
     [fieldConfig],
   );
+  const amountBaseField = useMemo(
+    () => DONATE_NOW_BASE_FIELDS.find((item) => item.key === "amount"),
+    [],
+  );
   const lookupBaseField = useMemo(
     () => DONATE_NOW_BASE_FIELDS.find((item) => item.key === "lookup"),
     [],
   );
   const orderedMainBaseFields = useMemo(() => {
-    const excludedKeys = new Set(["lookup", "address", "note"]);
+    const excludedKeys = new Set(["lookup", "amount", "address", "note"]);
     return DONATE_NOW_BASE_FIELDS.filter(
       (field) => !excludedKeys.has(field.key),
     );
@@ -1587,6 +1617,7 @@ export default function DonateNow(props = {}) {
                   </LookupInfo>
                 ) : null}
 
+                {/* Donor Type & Top Row */}
                 <Row gutter={[20, 10]}>
                   <Col {...FORM_GRID_COL_PROPS}>
                     <FieldWrap>
@@ -1607,12 +1638,89 @@ export default function DonateNow(props = {}) {
                       ) : null}
                     </FieldWrap>
                   </Col>
+
+                  {/* Existing Donor Lookup */}
                   {isExistingDonor && lookupBaseField
                     ? renderBaseField(lookupBaseField, {
                         colPropsOverride: FORM_GRID_COL_PROPS,
                       })
                     : null}
+
+                  {/* New Donor: Amount & Quick Add on same row */}
+                  {!isExistingDonor && amountBaseField
+                    ? renderBaseField(amountBaseField, {
+                        colPropsOverride: FORM_GRID_COL_PROPS,
+                      })
+                    : null}
+
+                  {!isExistingDonor && isBaseFieldVisible("amount") ? (
+                    <Col {...FORM_GRID_COL_PROPS}>
+                      <QuickAddWrap>
+                        <FieldLabel className="quick-add-label" style={{ opacity: 0, userSelect: "none" }}>
+                          Quick Add
+                        </FieldLabel>
+                        <QuickAddRow>
+                          <QuickAddButton
+                            type="button"
+                            onClick={() => handleQuickAddAmount(500)}
+                          >
+                            +₹500
+                          </QuickAddButton>
+                          <QuickAddButton
+                            type="button"
+                            onClick={() => handleQuickAddAmount(1000)}
+                          >
+                            +₹1,000
+                          </QuickAddButton>
+                          <QuickAddButton
+                            type="button"
+                            onClick={() => handleQuickAddAmount(5000)}
+                          >
+                            +₹5,000
+                          </QuickAddButton>
+                        </QuickAddRow>
+                      </QuickAddWrap>
+                    </Col>
+                  ) : null}
                 </Row>
+
+                {/* Existing Donor: Amount & Quick Add in their own row below Email / Mobile No. */}
+                {isExistingDonor && isBaseFieldVisible("amount") ? (
+                  <Row gutter={[20, 10]}>
+                    {amountBaseField
+                      ? renderBaseField(amountBaseField, {
+                          colPropsOverride: FORM_GRID_COL_PROPS,
+                        })
+                      : null}
+                    <Col {...FORM_GRID_COL_PROPS}>
+                      <QuickAddWrap>
+                        <FieldLabel className="quick-add-label" style={{ opacity: 0, userSelect: "none" }}>
+                          Quick Add
+                        </FieldLabel>
+                        <QuickAddRow>
+                          <QuickAddButton
+                            type="button"
+                            onClick={() => handleQuickAddAmount(500)}
+                          >
+                            +₹500
+                          </QuickAddButton>
+                          <QuickAddButton
+                            type="button"
+                            onClick={() => handleQuickAddAmount(1000)}
+                          >
+                            +₹1,000
+                          </QuickAddButton>
+                          <QuickAddButton
+                            type="button"
+                            onClick={() => handleQuickAddAmount(5000)}
+                          >
+                            +₹5,000
+                          </QuickAddButton>
+                        </QuickAddRow>
+                      </QuickAddWrap>
+                    </Col>
+                  </Row>
+                ) : null}
 
                 <Row gutter={[20, 10]}>
                   {orderedMainBaseFields.map((fieldDef) =>
@@ -1963,6 +2071,64 @@ const VerifyButton = styled.button`
 const FieldWrap = styled.div`
   margin-bottom: 16px;
   ${(props) => (props.$sectionStart ? "margin-top: 16px;" : "")}
+`;
+
+const QuickAddWrap = styled(FieldWrap)`
+  @media (max-width: 767px) {
+    margin-top: -6px;
+    .quick-add-label {
+      display: none;
+    }
+  }
+`;
+
+const QuickAddRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  width: 100%;
+`;
+
+const QuickAddButton = styled.button`
+  flex: 1;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid rgba(42, 40, 62, 0.15);
+  background: #ffffff;
+  color: #1d1f21;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  user-select: none;
+  -webkit-appearance: none;
+  appearance: none;
+
+  &:hover {
+    background: #fff6f5;
+    border-color: ${getColor("primary") || "#e03c33"};
+    color: ${getColor("primary") || "#e03c33"};
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(224, 60, 51, 0.08);
+  }
+
+  &:active {
+    transform: translateY(0);
+    background: #fbebeb;
+    border-color: ${getColor("primary") || "#e03c33"};
+    color: ${getColor("primary") || "#e03c33"};
+  }
+
+  @media (max-width: 640px) {
+    font-size: 13px;
+    padding: 0 4px;
+  }
 `;
 
 const FieldLabel = styled.label`
