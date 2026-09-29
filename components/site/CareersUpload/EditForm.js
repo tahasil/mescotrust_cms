@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, InputNumber, Switch, message, Spin, Collapse } from "antd";
+import { Form, Input, InputNumber, message, Spin, Collapse, Select, Switch } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import SettingsCardList from "@/components/admin/SettingsCardList";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
@@ -66,6 +67,7 @@ function CareersUploadEditForm(
       careersUploadTitleEnabled: data?.careersUploadTitleEnabled !== false,
       subTitle: data?.subTitle ?? data?.careersUploadSubTitle ?? "WHO WE ARE",
       careersUploadSubTitleEnabled: data?.careersUploadSubTitleEnabled !== false,
+      careersUploadTitleAlign: data?.careersUploadTitleAlign ?? data?.titleAlign ?? "left",
       titleColorKey: data?.titleColorKey ?? data?.careersUploadTitleColorKey ?? "",
       careersUploadSubTitleColorKey: data?.careersUploadSubTitleColorKey ?? "",
       careersUploadCardBgColorKey: data?.careersUploadCardBgColorKey ?? "white",
@@ -85,6 +87,7 @@ function CareersUploadEditForm(
       careersUploadShowExperience: data?.careersUploadShowExperience !== false,
       careersUploadShowCity: data?.careersUploadShowCity !== false,
       careersUploadShowCoverLetter: data?.careersUploadShowCoverLetter !== false,
+      careersUploadSubmitBtnAlign: data?.careersUploadSubmitBtnAlign ?? data?.submitBtnAlign ?? "left",
       careersUploadMaxFileSizeMB: Number(data?.careersUploadMaxFileSizeMB) || 5,
       careersUploadSubmitBtnText: data?.careersUploadSubmitBtnText ?? "Submit Application",
       careersUploadSuccessTitle: data?.careersUploadSuccessTitle ?? "Application Submitted Successfully!",
@@ -129,8 +132,10 @@ function CareersUploadEditForm(
           ...values,
           mainTitle: values.mainTitle || "",
           subTitle: values.subTitle || "",
+          careersUploadTitleAlign: values.careersUploadTitleAlign || "left",
           titleColorKey: values.titleColorKey || "",
           careersUploadPositions: positionsList,
+          careersUploadSubmitBtnAlign: values.careersUploadSubmitBtnAlign || "left",
           ...getManageSectionPayload(PREFIX, values),
         };
 
@@ -197,8 +202,8 @@ function CareersUploadEditForm(
             key: "form-config",
             label: "Form Fields & Upload Settings",
             children: (
-              <>
-                <Form.Item name="careersUploadIntroText" label="Intro Paragraph">
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <Form.Item name="careersUploadIntroText" label="Intro Paragraph" style={{ marginBottom: 0 }}>
                   <Input.TextArea
                     rows={2}
                     placeholder="Please fill in your details below to submit your application..."
@@ -209,58 +214,92 @@ function CareersUploadEditForm(
                   name="careersUploadPositionsText"
                   label="Available Positions (One per line)"
                   extra="Populates the position dropdown in the candidate application form"
+                  style={{ marginBottom: 0 }}
                 >
                   <Input.TextArea rows={5} placeholder="Enter one position title per line" />
                 </Form.Item>
 
-                <Form.Item
-                  name="careersUploadShowQualification"
-                  label="Show Qualification Field"
-                  valuePropName="checked"
-                >
-                  <Switch />
-                </Form.Item>
+                <SettingsCardList
+                  title="Form Fields"
+                  items={[
+                    {
+                      type: "switch",
+                      name: "careersUploadShowQualification",
+                      label: "Show Qualification Field",
+                      tooltip: "Display qualification input in application form",
+                    },
+                    {
+                      type: "switch",
+                      name: "careersUploadShowExperience",
+                      label: "Show Experience Field",
+                      tooltip: "Display total experience select dropdown in application form",
+                    },
+                    {
+                      type: "switch",
+                      name: "careersUploadShowCity",
+                      label: "Show City / Location Field",
+                      tooltip: "Display current city / location input in application form",
+                    },
+                    {
+                      type: "switch",
+                      name: "careersUploadShowCoverLetter",
+                      label: "Show Message Field",
+                      tooltip: "Display message / cover letter textarea in application form",
+                    },
+                    {
+                      type: "select",
+                      name: "careersUploadSubmitBtnAlign",
+                      label: "Submit Button Align",
+                      tooltip: "Alignment of the submit application button",
+                      options: [
+                        { label: "Left", value: "left" },
+                        { label: "Center", value: "center" },
+                        { label: "Right", value: "right" },
+                        { label: "Full Width", value: "full" },
+                      ],
+                    },
+                  ]}
+                  renderAction={(item) => {
+                    if (item.type === "select") {
+                      return (
+                        <Form.Item key={item.name} name={item.name} noStyle>
+                          <Select
+                            size="small"
+                            style={{ width: 120 }}
+                            options={item.options}
+                          />
+                        </Form.Item>
+                      );
+                    }
+                    return (
+                      <Form.Item
+                        key={`switch-${String(item.name)}`}
+                        name={item.name}
+                        valuePropName="checked"
+                        noStyle
+                      >
+                        <Switch />
+                      </Form.Item>
+                    );
+                  }}
+                />
 
-                <Form.Item
-                  name="careersUploadShowExperience"
-                  label="Show Experience Field"
-                  valuePropName="checked"
-                >
-                  <Switch />
-                </Form.Item>
-
-                <Form.Item
-                  name="careersUploadShowCity"
-                  label="Show City / Location Field"
-                  valuePropName="checked"
-                >
-                  <Switch />
-                </Form.Item>
-
-                <Form.Item
-                  name="careersUploadShowCoverLetter"
-                  label="Show Cover Letter / Message Field"
-                  valuePropName="checked"
-                >
-                  <Switch />
-                </Form.Item>
-
-                <Form.Item name="careersUploadMaxFileSizeMB" label="Max Resume File Size (MB)">
+                <Form.Item name="careersUploadMaxFileSizeMB" label="Max Resume File Size (MB)" style={{ marginBottom: 0 }}>
                   <InputNumber min={1} max={25} style={{ width: "100%" }} />
                 </Form.Item>
 
-                <Form.Item name="careersUploadSubmitBtnText" label="Submit Button Text">
+                <Form.Item name="careersUploadSubmitBtnText" label="Submit Button Text" style={{ marginBottom: 0 }}>
                   <Input placeholder="Submit Application" />
                 </Form.Item>
 
-                <Form.Item name="careersUploadSuccessTitle" label="Success Heading">
+                <Form.Item name="careersUploadSuccessTitle" label="Success Heading" style={{ marginBottom: 0 }}>
                   <Input placeholder="Application Submitted Successfully!" />
                 </Form.Item>
 
-                <Form.Item name="careersUploadSuccessMessage" label="Success Confirmation Message">
+                <Form.Item name="careersUploadSuccessMessage" label="Success Confirmation Message" style={{ marginBottom: 0 }}>
                   <Input.TextArea rows={3} placeholder="Message displayed to candidates after submitting" />
                 </Form.Item>
-              </>
+              </div>
             ),
           },
         ]}
