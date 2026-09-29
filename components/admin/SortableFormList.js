@@ -17,6 +17,35 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import styled from "styled-components";
+
+const StyledCollapse = styled(Collapse)`
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+
+  .ant-collapse-item {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .ant-collapse-header {
+    display: flex !important;
+    align-items: center !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  .ant-collapse-header-text {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+`;
 
 /**
  * A single sortable row: drag handle + collapse panel (header + content).
@@ -50,17 +79,26 @@ function SortableRow({
   };
 
   const label = (
-    <span
+    <div
       style={{
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
         width: "100%",
-        paddingRight: 8,
-        gap: 4,
+        minWidth: 0,
+        gap: 8,
       }}
     >
-      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          minWidth: 0,
+          flex: "1 1 0%",
+          overflow: "hidden",
+        }}
+      >
         <span
           {...attributes}
           {...listeners}
@@ -70,20 +108,47 @@ function SortableRow({
             display: "flex",
             alignItems: "center",
             touchAction: "none",
+            flexShrink: 0,
           }}
           title="Drag to reorder"
         >
           <HolderOutlined />
         </span>
-        <strong>{itemTitle}</strong>
-      </span>
-      <span onClick={(e) => e.stopPropagation()} style={{ display: "flex", alignItems: "center", gap: 0 }}>
+        <strong
+          style={{
+            fontWeight: 600,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            minWidth: 0,
+            width: "100%",
+            display: "block",
+            color: "#1f2937",
+          }}
+          title={typeof itemTitle === "string" ? itemTitle : undefined}
+        >
+          {itemTitle}
+        </strong>
+      </div>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 0,
+          flexShrink: 0,
+          marginLeft: 4,
+        }}
+      >
         <Button
           type="text"
           size="small"
           icon={<ArrowUpOutlined />}
           disabled={itemIndex === 0}
-          onClick={(e) => { e.stopPropagation(); onMoveUp?.(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onMoveUp?.();
+          }}
           title="Move up"
         />
         <Button
@@ -91,7 +156,10 @@ function SortableRow({
           size="small"
           icon={<ArrowDownOutlined />}
           disabled={itemIndex === totalItems - 1}
-          onClick={(e) => { e.stopPropagation(); onMoveDown?.(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onMoveDown?.();
+          }}
           title="Move down"
         />
         {!hideRemove && totalItems > 1 && (
@@ -100,16 +168,19 @@ function SortableRow({
             danger
             size="small"
             icon={<DeleteOutlined />}
-            onClick={(e) => { e.stopPropagation(); onRemove?.(); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove?.();
+            }}
           />
         )}
-      </span>
-    </span>
+      </div>
+    </div>
   );
 
   return (
-    <div ref={setNodeRef} style={style} className={reorderClassName}>
-      <Collapse
+    <div ref={setNodeRef} style={{ ...style, minWidth: 0, width: "100%", maxWidth: "100%" }} className={reorderClassName}>
+      <StyledCollapse
         size="small"
         defaultActiveKey={[String(id)]}
         items={[

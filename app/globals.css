@@ -650,12 +650,49 @@ a {
   }
 }
 
-/* Sortable form list: spacing between drag-and-drop rows */
+/* Sortable form list: spacing and strict width/truncation bounds */
+.sortable-form-list {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
 .sortable-form-list > div {
   margin-bottom: 4px;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
 }
 .sortable-form-list > div:last-child {
   margin-bottom: 0;
+}
+.sortable-form-list .ant-collapse {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+.sortable-form-list .ant-collapse-item {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+.sortable-form-list .ant-collapse-header {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+.sortable-form-list .ant-collapse-header-text {
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+  width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+.sortable-form-list .ant-collapse-expand-icon {
+  flex-shrink: 0 !important;
 }
 
 /* --- Content pages --- */
