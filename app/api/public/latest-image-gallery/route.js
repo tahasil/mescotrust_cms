@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
+import Gallery from "@/models/Gallery";
 import Component from "@/models/Component";
 import Media from "@/models/Media";
 
@@ -42,29 +43,63 @@ function mediaDates(media, fallback) {
 export async function GET() {
   try {
     await connectDB();
-    const gallery = await Component.findOne({ baseComponent: "PhotoGallery" })
+
+    // 1. Primary source: Dedicated Gallery module (/admin/gallery -> models/Gallery)
+    let galleryDoc = await Gallery.findOne({
+      type: "image",
+      status: { $in: ["published", "draft"] },
+    })
       .sort({ updatedAt: -1 })
       .lean();
-    const items = Array.isArray(gallery?.defaultProps?.photoGalleryItems)
-      ? gallery.defaultProps.photoGalleryItems
+
+    let items = Array.isArray(galleryDoc?.items) && galleryDoc.items.length > 0
+      ? galleryDoc.items
       : [];
 
-    const seen = new Set();
-    const covers = items
-      .map((item, sourceIndex) => ({
-        url: getCover(item),
-        alt: text(item?.title || item?.description || "Gallery image"),
-        sourceIndex,
-      }))
-      .filter((item) => {
-        if (!item.url || seen.has(item.url)) return false;
-        seen.add(item.url);
-        return true;
-      });
+    // 2. Fallback source: PhotoGallery site component
+    if (items.length === 0) {
+      const fallbackComponent = await Component.findOne({ baseComponent: "PhotoGallery" })
+        .sort({ updatedAt: -1 })
+        .lean();
+      if (Array.isArray(fallbackComponent?.defaultProps?.photoGalleryItems)) {
+        items = fallbackComponent.defaultProps.photoGalleryItems;
+      }
+    }
 
-    const ids = covers.map((item) => getMediaId(item.url)).filter(Boolean);
-    const urls = covers.map((item) => item.url);
-    const media = covers.length
+    const seen = new Set();
+    const collected = [];
+
+    items.forEach((item, sourceIndex) => {
+      const coverUrl = getCover(item);
+      if (coverUrl && !seen.has(coverUrl)) {
+        seen.add(coverUrl);
+        collected.push({
+          url: coverUrl,
+          alt: text(item?.title || item?.description || "Gallery image"),
+          sourceIndex,
+        });
+      }
+
+      // Also collect photos within each album for a rich photo feed
+      if (Array.isArray(item?.images)) {
+        item.images.forEach((img) => {
+          const imgUrl = text(img?.urlDesktop || img?.url || img?.src || img?.urlMobile);
+          if (imgUrl && !seen.has(imgUrl)) {
+            seen.add(imgUrl);
+            collected.push({
+              url: imgUrl,
+              alt: text(img?.alt || item?.title || "Gallery image"),
+              sourceIndex,
+            });
+          }
+        });
+      }
+    });
+
+    const ids = collected.map((item) => getMediaId(item.url)).filter(Boolean);
+    const urls = collected.map((item) => item.url);
+
+    const media = collected.length
       ? await Media.find({
           $or: [
             ...(ids.length > 0 ? [{ _id: { $in: ids } }] : []),
@@ -94,7 +129,7 @@ export async function GET() {
         .forEach((key) => mediaByKey.set(key, item));
     });
 
-    const images = covers
+    const images = collected
       .map((item) => {
         const mediaItem = mediaByKey.get(getMediaId(item.url)) || mediaByKey.get(item.url);
         const legacyTimestamp = getLegacyTimestamp(item.url);

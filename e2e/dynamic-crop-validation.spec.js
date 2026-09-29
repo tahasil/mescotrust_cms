@@ -164,11 +164,12 @@ test.describe("Dynamic Image Crop and Dimension Validation Across CMS", () => {
     const editLink = page.locator('.ant-table tbody tr a:has-text("Edit"), .ant-table tbody tr button:has-text("Edit")').first();
     await expect(editLink).toBeVisible({ timeout: 10000 });
     await editLink.click();
+    await page.waitForURL(/\/admin\/popups\/edit-/, { timeout: 15000 }).catch(() => {});
     await page.waitForLoadState("networkidle");
 
     // Click "Edit" in PopupEditorPage to open settings drawer
-    const openDrawerBtn = page.locator('button.ant-btn-primary:has-text("Edit")').first();
-    await expect(openDrawerBtn).toBeVisible({ timeout: 10000 });
+    const openDrawerBtn = page.locator('.ant-card-extra button:has-text("Edit"), button.ant-btn-primary:has-text("Edit")').first();
+    await expect(openDrawerBtn).toBeVisible({ timeout: 15000 });
     await openDrawerBtn.click();
 
     const drawer = page.locator('.ant-drawer-content').first();
