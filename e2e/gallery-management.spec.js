@@ -1,11 +1,13 @@
 const { test, expect } = require("@playwright/test");
 const { encode } = require("next-auth/jwt");
 const mongoose = require("mongoose");
+const fs = require("fs");
 const path = require("path");
 require("dotenv").config({ path: ".env" });
 
 const User = require("../models/User");
 const Gallery = require("../models/Gallery");
+const Media = require("../models/Media");
 
 async function authenticateAdmin(context) {
   const admin = await User.findOne({
@@ -59,6 +61,15 @@ test.describe("Gallery Management E2E", () => {
     if (testGalleryId) {
       await Gallery.deleteOne({ _id: testGalleryId }).catch(() => {});
     }
+    // Cleanup any test media created during the test
+    const testMediaDocs = await Media.find({ originalName: /convocation/i }).lean();
+    for (const doc of testMediaDocs) {
+      const mediaDir = path.join(process.cwd(), "public", "uploads", "media", "2026", "09", String(doc._id));
+      if (fs.existsSync(mediaDir)) {
+        fs.rmSync(mediaDir, { recursive: true, force: true });
+      }
+    }
+    await Media.deleteMany({ originalName: /convocation/i }).catch(() => {});
     await mongoose.disconnect().catch(() => {});
   });
 
