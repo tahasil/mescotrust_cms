@@ -58,6 +58,7 @@ import {
   DollarOutlined,
   CloseOutlined,
   SafetyCertificateOutlined,
+  SolutionOutlined,
 } from "@ant-design/icons";
 import { signOut } from "next-auth/react";
 import { roleLabelFromKey } from "@/lib/rbac/constants";
@@ -373,6 +374,15 @@ const baseMenuItems = [
         label: (
           <Link href="/admin/contacts" style={linkStyle}>
             Contact Us
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/career-submissions",
+        icon: <SolutionOutlined />,
+        label: (
+          <Link href="/admin/career-submissions" style={linkStyle}>
+            Career Submissions
           </Link>
         ),
       },

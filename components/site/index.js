@@ -187,4 +187,5 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   SocialWallFeed: SocialWallFeedEditForm,
   FormEmbed: FormEmbedEditForm,
   ShortCode: ShortCodeEditForm,
+  CareersUpload: CareersUploadEditForm,
 };
