@@ -60,3 +60,4 @@ export { default as SocialWallFeed } from "./SocialWallFeed/SocialWallFeed";
 export { default as FormEmbed } from "./FormEmbed/FormEmbed";
 export { default as TeamEmbed } from "./TeamEmbed/TeamEmbed";
 export { default as ShortCode } from "./ShortCode/ShortCode";
+export { default as CareersUpload } from "./CareersUpload/CareersUpload";
