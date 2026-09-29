@@ -17,3 +17,9 @@ backup/uploads-snapshots/*.zip
 .DS_Store
 *.log
 npm-debug.log*
+
+# Playwright Test Artifacts & Reports
+playwright-report/
+playwright-artifacts/
+test-results/
+
