@@ -65,15 +65,6 @@ const Section = styled.div`
   min-width: 0;
 `;
 
-const Heading = styled.header`
-  max-width: 780px;
-  margin: 0 auto clamp(32px, 4vw, 56px);
-  text-align: ${({ $align }) => ($align === "left" ? "left" : "center")};
-
-  @media (max-width: 900px) {
-    text-align: left;
-  }
-`;
 
 const Intro = styled.p`
   margin: 14px 0 0;
@@ -428,20 +419,51 @@ export default function TimelineTrack(props) {
       $managedStyle={managedStyle(data, PREFIX, "section")}
     >
       <PageContainer $managedStyle={managedStyle(data, PREFIX, "container")}>
-        <Section aria-label={mainTitle ? text(mainTitle).replace(/\*/g, "") : "Timeline"}>
-          <Heading $align={titleAlign}>
-            {subTitle ? (
-              <p className="fable-eyebrow" style={{ color: subTitleColor }}>
-                {subTitle}
-              </p>
-            ) : null}
-            {mainTitle ? (
-              <h2 className="fable-heading" style={{ color: headingColor }}>
-                {renderHighlightedTitle(mainTitle, data)}
-              </h2>
-            ) : null}
-            {intro ? <Intro style={{ color: introColor }}>{intro}</Intro> : null}
-          </Heading>
+        <Section
+          className="fable-section"
+          aria-label={mainTitle ? text(mainTitle).replace(/\*/g, "") : "Timeline"}
+        >
+          {subTitle || mainTitle || intro ? (
+            <header
+              className="fable-section-heading"
+              style={{ marginBottom: 32, textAlign: titleAlign }}
+            >
+              {subTitle ? (
+                <p
+                  className="fable-eyebrow"
+                  style={{ color: subTitleColor, textAlign: titleAlign }}
+                >
+                  {subTitle}
+                </p>
+              ) : null}
+              {mainTitle ? (
+                <h2
+                  className="fable-heading"
+                  style={{
+                    color: headingColor,
+                    textAlign: titleAlign,
+                    maxWidth: "none",
+                    marginLeft: titleAlign === "left" ? "0" : "auto",
+                    marginRight: titleAlign === "left" ? "auto" : titleAlign === "right" ? "0" : "auto",
+                  }}
+                >
+                  {renderHighlightedTitle(mainTitle, data)}
+                </h2>
+              ) : null}
+              {intro ? (
+                <Intro
+                  style={{
+                    color: introColor,
+                    textAlign: titleAlign,
+                    marginLeft: titleAlign === "left" ? "0" : "auto",
+                    marginRight: titleAlign === "left" ? "auto" : titleAlign === "right" ? "0" : "auto",
+                  }}
+                >
+                  {intro}
+                </Intro>
+              ) : null}
+            </header>
+          ) : null}
 
           {items.length === 0 ? (
             <EmptyState>
