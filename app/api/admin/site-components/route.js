@@ -84,6 +84,9 @@ export async function GET(req) {
       if (id === "SocialWallFeed" && (!displayName || displayName === "SocialWallFeed")) {
         displayName = "Social Wall";
       }
+      if (id === "TimelineTrack" && (!displayName || displayName === "TimelineTrack")) {
+        displayName = "Timeline Track";
+      }
       if (
         id === "LatestImageGallery" &&
         (!displayName || displayName === "LatestImageGallery")

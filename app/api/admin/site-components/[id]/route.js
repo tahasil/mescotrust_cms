@@ -11,6 +11,7 @@ const COMPONENT_ID_RE = /^[A-Za-z][A-Za-z0-9]*$/;
 const APPEARANCE_ONLY_IDS = new Set(["Header", "Footer"]);
 const LATEST_NEWS_ID = "LatestNews";
 const LEGACY_LATEST_NEWS_ID = "LatestEvents1";
+const TIMELINE_TRACK_ID = "TimelineTrack";
 
 function canonicalComponentId(id) {
   return id === LEGACY_LATEST_NEWS_ID ? LATEST_NEWS_ID : id;
@@ -88,6 +89,8 @@ export async function GET(req, { params }) {
         ? "Our Impact"
         : id === "VolunteerMesco"
           ? "Volunteer MESCO"
+        : id === TIMELINE_TRACK_ID
+          ? "Timeline Track"
         : id === LATEST_NEWS_ID
           ? "Latest News"
           : id;
@@ -99,7 +102,10 @@ export async function GET(req, { params }) {
           doc.displayName === LEGACY_LATEST_NEWS_ID ||
           doc.displayName === "Latest Events")
           ? "Latest News"
-          : doc?.displayName || fallbackDisplayName,
+          : id === TIMELINE_TRACK_ID &&
+              (!doc?.displayName || doc.displayName === TIMELINE_TRACK_ID)
+            ? "Timeline Track"
+            : doc?.displayName || fallbackDisplayName,
       global: doc?.global ?? false,
       order: doc?.order ?? defaultOrder,
       position: doc?.position || defaultPosition,

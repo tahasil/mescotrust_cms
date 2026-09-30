@@ -69,6 +69,7 @@ Section IDs may contain letters, numbers, hyphens, and underscores. Keep every S
 | Show a list of important notices (PDFs) | **Notices** |
 | Show alert / achievement cards | **Alerts** |
 | Show an FAQ with collapsible panels | **Accordion** |
+| Show a milestone / journey timeline with dated entries | **TimelineTrack** |
 | Show paragraphs that change colour as you scroll | **AnimationsText** |
 
 ---
@@ -347,6 +348,14 @@ For each component below: **what it shows**, **what items you can add to its lis
 **Shows:** Collapsible FAQ panels with title and rich-text content. Custom expand icon supported.
 **List items:** `label`, `content` (rich HTML)
 **Section settings:** expand icon URL, colour keys.
+**Storage:** global
+
+#### TimelineTrack
+**Shows:** A vertical timeline of dated milestones. Each entry sits on a centre rail with a dot indicator and connector line; entries alternate left/right on desktop and collapse to a single left rail on tablet and mobile.
+**List items:** `date` (date or year, required), `title` (required), `badge` (optional location/category shown next to the title), `description`, `image`, `imageAlt`, `linkText`, `linkUrl`.
+**Section settings:** subtitle, main title (accent text in *asterisks*), intro paragraph, title alignment, timeline layout (alternating / single side), entry style (card / plain), show connector line, and colour keys for subtitle, title, intro, date pill, badge, entry title, description and link. Plus the standard Manage Section background, padding and margin controls.
+**Empty state:** when no entries are saved the section shows a short placeholder message instead of blank space.
+**Note:** the component ID is `TimelineTrack` so it does not collide with the built-in page-builder `Timeline` block.
 **Storage:** global
 
 ---
