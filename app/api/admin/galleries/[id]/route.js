@@ -24,6 +24,14 @@ function extractYouTubeVideoId(input) {
   return match ? match[1] : trimmed;
 }
 
+function normalizeFeatureFlag(value) {
+  if (value === true) return 1;
+  const num = Number(value);
+  if (value === 1 || value === "1" || num === 1) return 1;
+  if (value === true || value === "true") return 1;
+  return 0;
+}
+
 function normalizeGalleryImage(img) {
   if (typeof img === "string") {
     const desktop = img.trim();
@@ -31,6 +39,7 @@ function normalizeGalleryImage(img) {
       urlDesktop: desktop,
       url: desktop,
       alt: "",
+      feature: 0,
     };
   }
   const desktop =
@@ -47,6 +56,7 @@ function normalizeGalleryImage(img) {
     urlDesktop: desktop,
     url: desktop,
     alt: img?.alt != null ? String(img.alt).trim() : "",
+    feature: normalizeFeatureFlag(img?.feature),
   };
 }
 

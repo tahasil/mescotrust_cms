@@ -6,6 +6,9 @@ const galleryImageSchema = new mongoose.Schema(
     urlMobile: { type: String, default: "", trim: true },
     url: { type: String, default: "", trim: true },
     alt: { type: String, default: "", trim: true },
+
+    // Featured flag. 1 = shown in LatestImageGallery, 0 = hidden.
+    feature: { type: Number, enum: [0, 1], default: 0 },
   },
   { _id: false },
 );

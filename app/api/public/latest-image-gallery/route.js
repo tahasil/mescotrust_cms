@@ -12,11 +12,10 @@ function text(value) {
   return value == null ? "" : String(value).trim();
 }
 
-function getCover(item) {
-  const direct = text(item?.imageDesktop || item?.image || item?.imageMobile);
-  if (direct) return direct;
-  const first = Array.isArray(item?.images) ? item.images[0] : null;
-  return text(first?.urlDesktop || first?.url || first?.src || first?.urlMobile);
+// Featured flag stored on each gallery image: 1 = featured, 0 = not featured.
+function isFeatured(value) {
+  if (value === true || value === "true" || value === 1 || value === "1") return true;
+  return Number(value) === 1;
 }
 
 function getMediaId(url) {
@@ -70,19 +69,11 @@ export async function GET() {
     const collected = [];
 
     items.forEach((item, sourceIndex) => {
-      const coverUrl = getCover(item);
-      if (coverUrl && !seen.has(coverUrl)) {
-        seen.add(coverUrl);
-        collected.push({
-          url: coverUrl,
-          alt: text(item?.title || item?.description || "Gallery image"),
-          sourceIndex,
-        });
-      }
-
-      // Also collect photos within each album for a rich photo feed
+      // The Gallery is the single source of truth: only images explicitly
+      // marked as Featured (feature = 1) are published to this feed.
       if (Array.isArray(item?.images)) {
         item.images.forEach((img) => {
+          if (!isFeatured(img?.feature)) return;
           const imgUrl = text(img?.urlDesktop || img?.url || img?.src || img?.urlMobile);
           if (imgUrl && !seen.has(imgUrl)) {
             seen.add(imgUrl);

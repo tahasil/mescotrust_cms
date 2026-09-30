@@ -92,7 +92,7 @@ Following a deep audit of the rendering engine, styled-components layout wrapper
 | **Admin Edit Reference** | `http://localhost:3000/admin/pages/69c3676fae84be222402e2f6` | `http://localhost:3000/admin/pages/69c368aeae84be222402e496` |
 | **Component Core** | `components/site/PhotoGallery/PhotoGallery.js` | `components/site/Videogallery/Videogallery.js` |
 | **Edit Form Core** | `components/site/PhotoGallery/EditForm.js` | `components/site/Videogallery/EditForm.js` |
-| **Item Structure** | Album Cards containing **Cover Image**, Title, Date, Description, and an array of inner photos (`urlDesktop`, `urlMobile`, `alt`). | Video Cards containing Video Title, Category tags, and **Video ID** (YouTube / Embed URL). |
+| **Item Structure** | Album Cards containing **Cover Image**, Title, Date, Description, and an array of inner photos (`urlDesktop`, `urlMobile`, `alt`, `feature`). | Video Cards containing Video Title, Category tags, and **Video ID** (YouTube / Embed URL). |
 | **Category Representation** | Category tabs with albums having designated cover images. | Category tabs with direct video cards (no separate album cover needed). |
 | **Interaction / Viewer** | Clicking an album opens **LightGallery** lightbox (zoom, thumbnails, fullscreen, navigation). | Clicking a video opens the **ThemeModal Video Player** with autoplaying embed. |
 | **Shortcode Example** | `[shortcode="alumni-meet-photos"]` | `[shortcode="chairperson-interviews"]` |
@@ -109,6 +109,9 @@ const GalleryImageSchema = new mongoose.Schema({
   urlMobile: { type: String, default: "" },
   url: { type: String, default: "" },
   alt: { type: String, default: "" },
+
+  // Featured flag. 1 = shown in LatestImageGallery, 0 = hidden.
+  feature: { type: Number, enum: [0, 1], default: 0 },
 }, { _id: false });
 
 const GalleryItemSchema = new mongoose.Schema({
@@ -292,6 +295,12 @@ When opened, the modal displays:
   - Clicking **"Edit Gallery"** or **"Open Settings Drawer"** opens a slide-out drawer on the right.
   - Mounts the full configuration form (`PhotoGallery/EditForm.js` for Image Gallery, `Videogallery/EditForm.js` for Video Gallery).
   - Drawer footer includes Cancel and Save buttons.
+  - **Album Images thumbnails (Image Gallery only)** expose a **Feature** toggle:
+    - Hovering a thumbnail reveals a `★ Feature` pill at the top-left of the tile.
+    - Clicking it sets `feature = 1`; clicking it again on a featured image resets `feature = 0`.
+    - Featured tiles are permanently highlighted (amber border, filled star, `Featured` pill) so the state stays clear without hover.
+    - On touch devices (`hover: none`) the pill is always visible, so it works as a plain tap target.
+    - The toggle is rendered by `components/admin/media/AlbumImagesUploader.js` and is reused by every consumer of that uploader.
 - **Top Action Bar**:
   - Back to Galleries button, Gallery Name input, Type Tag, Shortcode badge with 1-click copy & unlock warning button, Status select (`published`/`draft`), and Save Changes CTA.
 - Saves directly to `PUT /api/admin/galleries/[id]` and instantly refreshes the live preview.
@@ -309,6 +318,26 @@ When opened, the modal displays:
 
 ### Public Endpoint
 - `GET /api/public/galleries/[slugOrShortcode]` — Public endpoint consumed by `ShortCode.js` to render galleries on live pages (only returns `published` status).
+- `GET /api/public/latest-image-gallery` — Feeds the `LatestImageGallery` home page section. Returns **only** images whose `feature` flag is `1`, so the Gallery remains the single source of truth for what appears there.
+
+---
+
+## 9.1 Featured Images → `LatestImageGallery` Flow
+
+```
+Gallery (type: "image")
+   ↓  /admin/gallery/[id]/edit  →  Edit drawer  →  Album Images thumbnails
+   ↓  hover/tap "★ Feature" pill
+feature = 1  /  feature = 0          (persisted on Gallery.items[].images[])
+   ↓
+GET /api/public/latest-image-gallery  →  filters feature === 1
+   ↓
+LatestImageGallery (home page)
+```
+
+- The flag lives on the existing gallery image document; no separate collection or list is created.
+- Toggling in the drawer and saving updates the homepage section immediately (the public API is `force-dynamic` with `no-store`).
+- Images with `feature = 0`, and album cover images, are never published to `LatestImageGallery`.
 
 ---
 

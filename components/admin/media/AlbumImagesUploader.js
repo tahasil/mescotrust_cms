@@ -8,14 +8,22 @@ import {
   DeleteOutlined,
   PlusOutlined,
   SearchOutlined,
+  StarFilled,
+  StarOutlined,
 } from "@ant-design/icons";
+import styled from "styled-components";
 import { buildMediaVariantUrl } from "@/lib/media/url";
 import { readJson } from "./mediaUtils";
+
+function normalizeFeatureFlag(value) {
+  if (value === true || value === "true" || value === 1 || value === "1") return 1;
+  return Number(value) === 1 ? 1 : 0;
+}
 
 function normalizeImg(img) {
   if (typeof img === "string") {
     const url = img.trim();
-    return { urlDesktop: url, url, alt: "" };
+    return { urlDesktop: url, url, alt: "", feature: 0 };
   }
   const url =
     img?.urlDesktop != null
@@ -29,11 +37,84 @@ function normalizeImg(img) {
     urlDesktop: url,
     url,
     alt: img?.alt != null ? String(img.alt).trim() : "",
+    feature: normalizeFeatureFlag(img?.feature),
   };
 }
 
+const ThumbTile = styled.div`
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &[data-featured="true"] {
+    border: 2px solid #faad14;
+    box-shadow: 0 0 0 3px rgba(250, 173, 20, 0.2);
+  }
+
+  .album-thumb__feature {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: calc(100% - 42px);
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    background: rgba(0, 0, 0, 0.62);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.6;
+    white-space: nowrap;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(-3px);
+    transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+
+    &:hover {
+      background: rgba(250, 173, 20, 0.95);
+      color: #1f2937;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #1677ff;
+      outline-offset: 1px;
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  &:hover .album-thumb__feature,
+  .album-thumb__feature[aria-checked="true"] {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .album-thumb__feature[aria-checked="true"] {
+    background: #faad14;
+    border-color: #d48806;
+    color: #1f2937;
+  }
+
+  /* Touch devices have no hover state, so keep the control permanently visible. */
+  @media (hover: none) {
+    .album-thumb__feature {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+`;
+
 export default function AlbumImagesUploader({ value = [], onChange }) {
   const images = Array.isArray(value) ? value.map(normalizeImg) : [];
+  const featuredCount = images.filter((img) => img.feature === 1).length;
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
@@ -168,6 +249,14 @@ function getImageDimensions(file) {
     onChange?.(updated);
   };
 
+  // Toggle the Featured flag (feature = 1 / 0) on a single album thumbnail
+  const handleToggleFeature = (indexToToggle) => {
+    const updated = images.map((img, idx) =>
+      idx === indexToToggle ? { ...img, feature: img.feature === 1 ? 0 : 1 } : img,
+    );
+    onChange?.(updated);
+  };
+
   // Toggle selection in library modal
   const toggleLibSelect = (item) => {
     const id = String(item._id);
@@ -236,6 +325,9 @@ function getImageDimensions(file) {
         </Button>
         <span style={{ fontSize: 13, color: "#6b7280", marginLeft: "auto" }}>
           {images.length} {images.length === 1 ? "image" : "images"}
+          {featuredCount > 0 ? (
+            <span style={{ color: "#d48806", fontWeight: 600 }}> · {featuredCount} featured</span>
+          ) : null}
         </span>
       </div>
 
@@ -248,18 +340,12 @@ function getImageDimensions(file) {
             gap: 10,
           }}
         >
-          {images.map((img, idx) => (
-            <div
+          {images.map((img, idx) => {
+            const isFeatured = img.feature === 1;
+            return (
+            <ThumbTile
               key={`${img.urlDesktop || img.url}-${idx}`}
-              style={{
-                position: "relative",
-                aspectRatio: "1 / 1",
-                borderRadius: 8,
-                overflow: "hidden",
-                border: "1px solid #e5e7eb",
-                backgroundColor: "#f9fafb",
-                boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-              }}
+              data-featured={isFeatured ? "true" : "false"}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -272,6 +358,26 @@ function getImageDimensions(file) {
                   display: "block",
                 }}
               />
+              {/* Feature toggle: revealed on hover, always visible once marked featured */}
+              <button
+                type="button"
+                className="album-thumb__feature"
+                role="switch"
+                aria-checked={isFeatured}
+                aria-label={
+                  isFeatured
+                    ? `Remove Feature mark from image ${idx + 1}`
+                    : `Mark image ${idx + 1} as Feature`
+                }
+                title={isFeatured ? "Featured \u2014 tap to unmark" : "Mark as Feature"}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleToggleFeature(idx);
+                }}
+              >
+                {isFeatured ? <StarFilled /> : <StarOutlined />}
+                <span>{isFeatured ? "Featured" : "Feature"}</span>
+              </button>
               {/* Image Number Badge */}
               <div
                 style={{
@@ -325,8 +431,9 @@ function getImageDimensions(file) {
               >
                 <DeleteOutlined />
               </button>
-            </div>
-          ))}
+            </ThumbTile>
+            );
+          })}
 
           {/* Quick Add More Tile */}
           <div
