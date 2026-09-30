@@ -6,6 +6,7 @@ import { DeleteOutlined, SearchOutlined, MailOutlined, ReloadOutlined } from "@a
 import { formatDate } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
 import AdminExportDropdown from "@/components/admin/AdminExportDropdown";
+import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
 
 const SUBSCRIBERS_SEARCH_STORAGE_KEY = "admin-subscribers-search-query-v1";
 const SUBSCRIBERS_STATUS_STORAGE_KEY = "admin-subscribers-status-filter-v1";
@@ -26,12 +27,12 @@ export default function AdminSubscribersPage() {
   const [statusFilter, setStatusFilter] = useState(() => {
     if (typeof window === "undefined") return "";
     const params = new URLSearchParams(window.location.search);
-    return params.get("status") || sessionStorage.getItem(SUBSCRIBERS_STATUS_STORAGE_KEY) || "";
+    return resolveAdminStoredFilter(SUBSCRIBERS_STATUS_STORAGE_KEY, params.get("status"));
   });
   const [search, setSearch] = useState(() => {
     if (typeof window === "undefined") return "";
     const params = new URLSearchParams(window.location.search);
-    return params.get("search") || sessionStorage.getItem(SUBSCRIBERS_SEARCH_STORAGE_KEY) || "";
+    return resolveAdminStoredFilter(SUBSCRIBERS_SEARCH_STORAGE_KEY, params.get("search"));
   });
 
   useEffect(() => {

@@ -16,6 +16,7 @@ import {
 import { PlusOutlined, EditOutlined, DeleteOutlined, FolderOutlined, SearchOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { ThemeAdminCard } from "@/styles/Theme";
+import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
 
 const PAGES_LIST_CACHE_KEY = "admin-pages-list-cache-v1";
 const PAGES_LIST_CACHE_TTL_MS = 20_000;
@@ -36,15 +37,13 @@ export default function AdminPagesPage() {
     if (typeof window === "undefined") return;
     const urlParams = new URLSearchParams(window.location.search);
     const urlSearch = urlParams.get("search") || urlParams.get("q");
-    const storedSearch = sessionStorage.getItem(PAGES_SEARCH_STORAGE_KEY);
-    const resolvedSearch = urlSearch ?? storedSearch ?? "";
+    const resolvedSearch = resolveAdminStoredFilter(PAGES_SEARCH_STORAGE_KEY, urlSearch);
     if (resolvedSearch) {
       setSearchQuery(resolvedSearch);
     }
 
     const urlFolder = urlParams.get("folder");
-    const storedFolder = sessionStorage.getItem(PAGES_FOLDER_STORAGE_KEY);
-    const resolvedFolder = urlFolder ?? storedFolder ?? "all";
+    const resolvedFolder = resolveAdminStoredFilter(PAGES_FOLDER_STORAGE_KEY, urlFolder) || "all";
     if (resolvedFolder && resolvedFolder !== "all") {
       setFolderFilter(resolvedFolder);
     }

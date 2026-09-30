@@ -5,6 +5,7 @@ import { Table, Button, Space, Tag, Select, Modal, Descriptions, message, Switch
 import { CheckOutlined, CloseOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { formatDateTime } from "@/lib/formatDate";
+import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
 
 const BLOG_COMMENTS_STATUS_STORAGE_KEY = "admin-blog-comments-status-filter-v1";
 
@@ -15,7 +16,7 @@ export default function AdminBlogCommentsPage() {
   const [statusFilter, setStatusFilter] = useState(() => {
     if (typeof window === "undefined") return "";
     const params = new URLSearchParams(window.location.search);
-    return params.get("status") || sessionStorage.getItem(BLOG_COMMENTS_STATUS_STORAGE_KEY) || "";
+    return resolveAdminStoredFilter(BLOG_COMMENTS_STATUS_STORAGE_KEY, params.get("status"));
   });
   const [viewItem, setViewItem] = useState(null);
   const [commentsEnabled, setCommentsEnabled] = useState(true);

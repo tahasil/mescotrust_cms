@@ -22,6 +22,7 @@ import {
 import { formatDateTime } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
 import AdminExportDropdown from "@/components/admin/AdminExportDropdown";
+import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
 
 const STATUS_OPTIONS = [
   { value: "new", label: "New" },
@@ -64,17 +65,17 @@ export default function AdminEventRegistrationsPage() {
   const [statusFilter, setStatusFilter] = useState(() => {
     if (typeof window === "undefined") return null;
     const params = new URLSearchParams(window.location.search);
-    return params.get("status") || sessionStorage.getItem(EVENT_REG_STATUS_STORAGE_KEY) || null;
+    return resolveAdminStoredFilter(EVENT_REG_STATUS_STORAGE_KEY, params.get("status")) || null;
   });
   const [eventFilter, setEventFilter] = useState(() => {
     if (typeof window === "undefined") return null;
     const params = new URLSearchParams(window.location.search);
-    return params.get("event") || sessionStorage.getItem(EVENT_REG_EVENT_STORAGE_KEY) || null;
+    return resolveAdminStoredFilter(EVENT_REG_EVENT_STORAGE_KEY, params.get("event")) || null;
   });
   const [searchText, setSearchText] = useState(() => {
     if (typeof window === "undefined") return "";
     const params = new URLSearchParams(window.location.search);
-    return params.get("search") || sessionStorage.getItem(EVENT_REG_SEARCH_STORAGE_KEY) || "";
+    return resolveAdminStoredFilter(EVENT_REG_SEARCH_STORAGE_KEY, params.get("search"));
   });
 
   useEffect(() => {

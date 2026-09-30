@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button, Form, Input, Modal, Select, Space, Table, Tag, message } from "antd";
 import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
+import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
 
 async function fetchJson(url, options) {
   const response = await fetch(url, { cache: "no-store", ...options });
@@ -31,17 +32,17 @@ export default function AdminUsersPage() {
   const [filterRole, setFilterRole] = useState(() => {
     if (typeof window === "undefined") return undefined;
     const params = new URLSearchParams(window.location.search);
-    return params.get("role") || sessionStorage.getItem(USERS_ROLE_STORAGE_KEY) || undefined;
+    return resolveAdminStoredFilter(USERS_ROLE_STORAGE_KEY, params.get("role")) || undefined;
   });
   const [filterStatus, setFilterStatus] = useState(() => {
     if (typeof window === "undefined") return undefined;
     const params = new URLSearchParams(window.location.search);
-    return params.get("status") || sessionStorage.getItem(USERS_STATUS_STORAGE_KEY) || undefined;
+    return resolveAdminStoredFilter(USERS_STATUS_STORAGE_KEY, params.get("status")) || undefined;
   });
   const [searchText, setSearchText] = useState(() => {
     if (typeof window === "undefined") return "";
     const params = new URLSearchParams(window.location.search);
-    return params.get("search") || sessionStorage.getItem(USERS_SEARCH_STORAGE_KEY) || "";
+    return resolveAdminStoredFilter(USERS_SEARCH_STORAGE_KEY, params.get("search"));
   });
   const [form] = Form.useForm();
 

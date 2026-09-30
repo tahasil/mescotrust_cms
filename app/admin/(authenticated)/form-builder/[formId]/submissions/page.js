@@ -29,6 +29,7 @@ import {
 } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { formatDateTime } from "@/lib/formatDate";
+import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
 
 const READ_FILTER_OPTIONS = [
   { value: "all", label: "All" },
@@ -145,32 +146,32 @@ export default function FormSubmissionsPage() {
   const [searchInput, setSearchInput] = useState(() => {
     if (typeof window === "undefined") return "";
     const p = new URLSearchParams(window.location.search);
-    return p.get("search") || (formId ? sessionStorage.getItem(`admin-form-submissions-${formId}-search-v1`) : "") || "";
+    return resolveAdminStoredFilter(getStorageKey("search"), p.get("search"));
   });
   const [search, setSearch] = useState(() => {
     if (typeof window === "undefined") return "";
     const p = new URLSearchParams(window.location.search);
-    return p.get("search") || (formId ? sessionStorage.getItem(`admin-form-submissions-${formId}-search-v1`) : "") || "";
+    return resolveAdminStoredFilter(getStorageKey("search"), p.get("search"));
   });
   const [isRead, setIsRead] = useState(() => {
     if (typeof window === "undefined") return "all";
     const p = new URLSearchParams(window.location.search);
-    return p.get("isRead") || (formId ? sessionStorage.getItem(`admin-form-submissions-${formId}-isRead-v1`) : "") || "all";
+    return resolveAdminStoredFilter(getStorageKey("isRead"), p.get("isRead")) || "all";
   });
   const [sort, setSort] = useState(() => {
     if (typeof window === "undefined") return "createdAt_desc";
     const p = new URLSearchParams(window.location.search);
-    return p.get("sort") || (formId ? sessionStorage.getItem(`admin-form-submissions-${formId}-sort-v1`) : "") || "createdAt_desc";
+    return resolveAdminStoredFilter(getStorageKey("sort"), p.get("sort")) || "createdAt_desc";
   });
   const [dateFrom, setDateFrom] = useState(() => {
     if (typeof window === "undefined") return "";
     const p = new URLSearchParams(window.location.search);
-    return p.get("dateFrom") || (formId ? sessionStorage.getItem(`admin-form-submissions-${formId}-dateFrom-v1`) : "") || "";
+    return resolveAdminStoredFilter(getStorageKey("dateFrom"), p.get("dateFrom"));
   });
   const [dateTo, setDateTo] = useState(() => {
     if (typeof window === "undefined") return "";
     const p = new URLSearchParams(window.location.search);
-    return p.get("dateTo") || (formId ? sessionStorage.getItem(`admin-form-submissions-${formId}-dateTo-v1`) : "") || "";
+    return resolveAdminStoredFilter(getStorageKey("dateTo"), p.get("dateTo"));
   });
 
   useEffect(() => {

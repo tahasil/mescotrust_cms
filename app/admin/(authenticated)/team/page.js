@@ -24,6 +24,7 @@ import {
 } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { formatDateTime } from "@/lib/formatDate";
+import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
 
 const STATUS_COLORS = {
   draft: "default",
@@ -66,8 +67,7 @@ export default function AdminTeamListPage() {
     if (typeof window === "undefined") return;
     const urlParams = new URLSearchParams(window.location.search);
     const urlSearch = urlParams.get("search") || urlParams.get("q");
-    const storedSearch = sessionStorage.getItem(TEAM_SEARCH_STORAGE_KEY);
-    const resolvedSearch = urlSearch ?? storedSearch ?? "";
+    const resolvedSearch = resolveAdminStoredFilter(TEAM_SEARCH_STORAGE_KEY, urlSearch);
     if (resolvedSearch) {
       setSearch(resolvedSearch);
     }

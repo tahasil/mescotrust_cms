@@ -7,6 +7,7 @@ import { CopyOutlined, EditOutlined, PlusOutlined, SaveOutlined, SearchOutlined 
 import Link from "next/link";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { useAdminPermission } from "@/components/admin/AdminAuthContext";
+import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
 
 const EXCLUDED_COMPONENT_IDS = new Set([
   "ImageSlider",
@@ -48,8 +49,7 @@ export default function AdminComponentsPage() {
     if (typeof window === "undefined") return;
     const urlParams = new URLSearchParams(window.location.search);
     const urlSearch = urlParams.get("search") || urlParams.get("q");
-    const storedSearch = sessionStorage.getItem(COMPONENTS_SEARCH_STORAGE_KEY);
-    const resolvedSearch = urlSearch ?? storedSearch ?? "";
+    const resolvedSearch = resolveAdminStoredFilter(COMPONENTS_SEARCH_STORAGE_KEY, urlSearch);
     if (resolvedSearch) {
       setSearchQuery(resolvedSearch);
     }

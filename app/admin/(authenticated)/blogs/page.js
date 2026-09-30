@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Table, Button, Space, message, Modal, Input, Select, Tag } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
+import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
 
 const BLOGS_SEARCH_STORAGE_KEY = "admin-blogs-search-query-v1";
 const BLOGS_STATUS_STORAGE_KEY = "admin-blogs-status-filter-v1";
@@ -23,22 +24,19 @@ export default function AdminBlogsPage() {
     if (typeof window === "undefined") return;
     const urlParams = new URLSearchParams(window.location.search);
     const urlSearch = urlParams.get("search") || urlParams.get("q");
-    const storedSearch = sessionStorage.getItem(BLOGS_SEARCH_STORAGE_KEY);
-    const resolvedSearch = urlSearch ?? storedSearch ?? "";
+    const resolvedSearch = resolveAdminStoredFilter(BLOGS_SEARCH_STORAGE_KEY, urlSearch);
     if (resolvedSearch) {
       setSearchText(resolvedSearch);
     }
 
     const urlStatus = urlParams.get("status");
-    const storedStatus = sessionStorage.getItem(BLOGS_STATUS_STORAGE_KEY);
-    const resolvedStatus = urlStatus ?? storedStatus ?? null;
+    const resolvedStatus = resolveAdminStoredFilter(BLOGS_STATUS_STORAGE_KEY, urlStatus);
     if (resolvedStatus) {
       setFilterStatus(resolvedStatus);
     }
 
     const urlCat = urlParams.get("category");
-    const storedCat = sessionStorage.getItem(BLOGS_CATEGORY_STORAGE_KEY);
-    const resolvedCat = urlCat ?? storedCat ?? null;
+    const resolvedCat = resolveAdminStoredFilter(BLOGS_CATEGORY_STORAGE_KEY, urlCat);
     if (resolvedCat) {
       setFilterCategory(resolvedCat);
     }

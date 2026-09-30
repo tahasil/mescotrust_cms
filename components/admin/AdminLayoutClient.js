@@ -64,6 +64,10 @@ import { signOut } from "next-auth/react";
 import { roleLabelFromKey } from "@/lib/rbac/constants";
 import { canAccessMenu } from "@/lib/rbac/clientPermissions";
 import { AdminAuthProvider } from "@/components/admin/AdminAuthContext";
+import {
+  clearStoredAdminFilters,
+  markAdminHistoryNavigation,
+} from "@/lib/adminSearchState";
 
 const { Header, Content } = Layout;
 
@@ -609,6 +613,13 @@ export default function AdminLayoutClient({ children, userName, userRole, userRo
     return () =>
       window.removeEventListener("admin-theme-updated", handleAdminThemeUpdated);
   }, [applyAdminTheme]);
+
+  // Flag browser back/forward so list pages only restore their search box then.
+  useEffect(() => {
+    const handlePopState = () => markAdminHistoryNavigation();
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   // Responsive detection
   useEffect(() => {
@@ -1546,6 +1557,9 @@ export default function AdminLayoutClient({ children, userName, userRole, userRo
             selectedKeys={[selectedMenuKey]}
             defaultOpenKeys={defaultOpenMenuKeys}
             items={menuItems}
+            // Sidebar navigation starts a fresh section: drop any stored
+            // search/filter so every list opens clean.
+            onClick={() => clearStoredAdminFilters()}
             style={{
               borderRight: 0,
               color: at.adminSidebarText,

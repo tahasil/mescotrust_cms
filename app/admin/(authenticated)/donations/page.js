@@ -23,6 +23,7 @@ import {
 } from "@ant-design/icons";
 import { formatDateTime } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
+import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
 import AdminExportDropdown from "@/components/admin/AdminExportDropdown";
 
 const STATUS_COLORS = {
@@ -117,12 +118,12 @@ export default function AdminDonationsPage() {
   const [statusFilter, setStatusFilter] = useState(() => {
     if (typeof window === "undefined") return "";
     const params = new URLSearchParams(window.location.search);
-    return params.get("status") || sessionStorage.getItem(DONATIONS_STATUS_STORAGE_KEY) || "";
+    return resolveAdminStoredFilter(DONATIONS_STATUS_STORAGE_KEY, params.get("status"));
   });
   const [search, setSearch] = useState(() => {
     if (typeof window === "undefined") return "";
     const params = new URLSearchParams(window.location.search);
-    return params.get("search") || sessionStorage.getItem(DONATIONS_SEARCH_STORAGE_KEY) || "";
+    return resolveAdminStoredFilter(DONATIONS_SEARCH_STORAGE_KEY, params.get("search"));
   });
   const [dateRange, setDateRange] = useState(null);
   const [viewItem, setViewItem] = useState(null);

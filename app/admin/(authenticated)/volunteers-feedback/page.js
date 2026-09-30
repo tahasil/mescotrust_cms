@@ -6,6 +6,7 @@ import { CheckOutlined, DeleteOutlined, EyeOutlined, ReloadOutlined, SearchOutli
 import { formatDateTime } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
 import AdminExportDropdown from "@/components/admin/AdminExportDropdown";
+import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
 
 const VOLUNTEERS_FEEDBACK_SEARCH_STORAGE_KEY = "admin-volunteers-feedback-search-query-v1";
 const VOLUNTEERS_FEEDBACK_STATUS_STORAGE_KEY = "admin-volunteers-feedback-status-filter-v1";
@@ -30,17 +31,17 @@ export default function AdminVolunteersFeedbackPage() {
   const [search, setSearch] = useState(() => {
     if (typeof window === "undefined") return "";
     const params = new URLSearchParams(window.location.search);
-    return params.get("search") || sessionStorage.getItem(VOLUNTEERS_FEEDBACK_SEARCH_STORAGE_KEY) || "";
+    return resolveAdminStoredFilter(VOLUNTEERS_FEEDBACK_SEARCH_STORAGE_KEY, params.get("search"));
   });
   const [statusFilter, setStatusFilter] = useState(() => {
     if (typeof window === "undefined") return "";
     const params = new URLSearchParams(window.location.search);
-    return params.get("status") || sessionStorage.getItem(VOLUNTEERS_FEEDBACK_STATUS_STORAGE_KEY) || "";
+    return resolveAdminStoredFilter(VOLUNTEERS_FEEDBACK_STATUS_STORAGE_KEY, params.get("status"));
   });
   const [sourceFilter, setSourceFilter] = useState(() => {
     if (typeof window === "undefined") return "";
     const params = new URLSearchParams(window.location.search);
-    return params.get("source") || sessionStorage.getItem(VOLUNTEERS_FEEDBACK_SOURCE_STORAGE_KEY) || "";
+    return resolveAdminStoredFilter(VOLUNTEERS_FEEDBACK_SOURCE_STORAGE_KEY, params.get("source"));
   });
   const [sourceOptions, setSourceOptions] = useState([]);
   const [viewItem, setViewItem] = useState(null);

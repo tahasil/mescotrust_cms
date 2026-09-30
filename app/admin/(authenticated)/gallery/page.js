@@ -27,6 +27,7 @@ import {
 } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { formatDateTime } from "@/lib/formatDate";
+import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
 
 const GALLERY_SEARCH_STORAGE_KEY = "admin-gallery-search-query-v1";
 
@@ -66,8 +67,7 @@ export default function AdminGalleryListPage() {
     if (typeof window === "undefined") return;
     const urlParams = new URLSearchParams(window.location.search);
     const urlSearch = urlParams.get("search") || urlParams.get("q");
-    const storedSearch = sessionStorage.getItem(GALLERY_SEARCH_STORAGE_KEY);
-    const resolvedSearch = urlSearch ?? storedSearch ?? "";
+    const resolvedSearch = resolveAdminStoredFilter(GALLERY_SEARCH_STORAGE_KEY, urlSearch);
     if (resolvedSearch) {
       setSearch(resolvedSearch);
     }

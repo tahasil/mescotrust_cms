@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Table, Button, Space, message, Modal, Input, Select, Tag } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
+import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
 
 const EVENTS_SEARCH_STORAGE_KEY = "admin-events-search-query-v1";
 const EVENTS_STATUS_STORAGE_KEY = "admin-events-status-filter-v1";
@@ -20,15 +21,13 @@ export default function AdminEventsPage() {
     if (typeof window === "undefined") return;
     const urlParams = new URLSearchParams(window.location.search);
     const urlSearch = urlParams.get("search") || urlParams.get("q");
-    const storedSearch = sessionStorage.getItem(EVENTS_SEARCH_STORAGE_KEY);
-    const resolvedSearch = urlSearch ?? storedSearch ?? "";
+    const resolvedSearch = resolveAdminStoredFilter(EVENTS_SEARCH_STORAGE_KEY, urlSearch);
     if (resolvedSearch) {
       setSearchText(resolvedSearch);
     }
 
     const urlStatus = urlParams.get("status");
-    const storedStatus = sessionStorage.getItem(EVENTS_STATUS_STORAGE_KEY);
-    const resolvedStatus = urlStatus ?? storedStatus ?? null;
+    const resolvedStatus = resolveAdminStoredFilter(EVENTS_STATUS_STORAGE_KEY, urlStatus);
     if (resolvedStatus) {
       setFilterStatus(resolvedStatus);
     }
