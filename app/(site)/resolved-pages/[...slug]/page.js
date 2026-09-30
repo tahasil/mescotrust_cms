@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import Page from "@/models/Page";
 import Component from "@/models/Component";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
+import { attachShortcodeModuleProps } from "@/lib/shortcodeServerProps";
 
 export const dynamic = "force-dynamic";
 
@@ -60,7 +61,8 @@ async function PageContent({ slug }) {
     return { ...block, baseComponent: base, props: { ...defaultProps, ...(block.props || {}) } };
   });
 
-  return <ComponentRenderer layout={layout} />;
+  const layoutWithShortcodeProps = await attachShortcodeModuleProps(layout);
+  return <ComponentRenderer layout={layoutWithShortcodeProps} />;
 }
 
 export default function ResolvedSlugPage({ params }) {

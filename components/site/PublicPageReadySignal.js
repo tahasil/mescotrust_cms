@@ -52,6 +52,26 @@ function waitForBackgrounds() {
   );
 }
 
+/**
+ * Upper bound for how long the page loader waits on media/fonts.
+ * Slow connections must not keep the loader (and the page) blocked, so the
+ * loader releases once this elapses and late media simply paints in.
+ */
+const MEDIA_WAIT_BUDGET_MS = 2500;
+
+function withTimeout(promise, ms) {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+    const timer = window.setTimeout(finish, ms);
+    Promise.resolve(promise).then(finish).catch(finish);
+  });
+}
+
 function nextPaint() {
   return new Promise((resolve) => {
     requestAnimationFrame(() => requestAnimationFrame(resolve));
@@ -138,12 +158,15 @@ export default function PublicPageReadySignal() {
       );
       const videos = Array.from(document.querySelectorAll("video")).filter(isVisibleMedia);
 
-      await Promise.all([
-        fontsReady,
-        ...images.map(waitForImage),
-        ...videos.map(waitForVideo),
-        ...waitForBackgrounds(),
-      ]);
+      await withTimeout(
+        Promise.all([
+          fontsReady,
+          ...images.map(waitForImage),
+          ...videos.map(waitForVideo),
+          ...waitForBackgrounds(),
+        ]),
+        MEDIA_WAIT_BUDGET_MS,
+      );
       await nextPaint();
 
       if (!cancelled) window.__mescoPageReady?.markHydrated?.(routeKey);

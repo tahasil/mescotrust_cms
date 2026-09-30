@@ -9,6 +9,8 @@ import { SITE_COMPONENT_IDS } from "@/lib/siteComponentRegistry";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 import {
   buildShortcodeFromSelection,
+  findComponentIdByShortcodeValue,
+  getShortcodeTextFromProps,
   normalizeShortcodeText,
   parseShortcodeInput,
 } from "@/lib/shortcode";
@@ -48,17 +50,6 @@ function getThemeApiPath(componentId) {
   );
 }
 
-function findComponentIdByShortcodeValue(rawValue) {
-  const value = normalizeShortcodeText(rawValue);
-  if (!value) return "";
-  return (
-    SITE_COMPONENT_IDS.find(
-      (componentId) =>
-        componentId.toLowerCase() === value.toLowerCase(),
-    ) || ""
-  );
-}
-
 async function fetchComponentProps(componentId) {
   const response = await fetch(getThemeApiPath(componentId), {
     cache: "no-store",
@@ -68,28 +59,6 @@ async function fetchComponentProps(componentId) {
     throw new Error(data?.error || `Failed to load ${componentId} settings`);
   }
   return sanitizePayload(data);
-}
-
-function getShortcodeTextFromProps(props) {
-  const direct = normalizeShortcodeText(
-    props?.shortcode || props?.shortCode || props?.shortCodeRaw,
-  );
-  if (direct) return direct;
-
-  // Legacy fallback to avoid breaking already-configured page blocks.
-  const sourceType = normalizeShortcodeText(props?.shortCodeSourceType).toLowerCase();
-  const selectedValue =
-    sourceType === "form"
-      ? normalizeShortcodeText(props?.shortCodeSelectedForm).toLowerCase()
-      : sourceType === "slider"
-        ? normalizeShortcodeText(props?.shortCodeSelectedSlider)
-        : sourceType === "popup"
-          ? normalizeShortcodeText(props?.shortCodeSelectedPopup)
-          : sourceType === "component"
-            ? normalizeShortcodeText(props?.shortCodeSelectedComponent)
-            : "";
-
-  return buildShortcodeFromSelection("shortcode", selectedValue);
 }
 
 /**
@@ -265,19 +234,30 @@ export default function ShortCode(props) {
     [shortcodeText],
   );
   const shortcodeValue = normalizeShortcodeText(parsedShortcode?.targetKey);
+  // Server-rendered targets (see lib/shortcodeServerProps.js) let this component
+  // render in the SSR HTML instead of waiting for a client-side fetch.
+  const serverTargetComponentId = normalizeShortcodeText(
+    props?._shortcodeTargetComponentId,
+  );
+  const serverModuleProps =
+    props?._shortcodeModuleProps && typeof props._shortcodeModuleProps === "object"
+      ? props._shortcodeModuleProps
+      : null;
   const resolvedComponentId = useMemo(
-    () => findComponentIdByShortcodeValue(shortcodeValue),
-    [shortcodeValue],
+    () =>
+      serverTargetComponentId ||
+      findComponentIdByShortcodeValue(shortcodeValue, SITE_COMPONENT_IDS),
+    [serverTargetComponentId, shortcodeValue],
   );
   const isSubscribeShortcode = resolvedComponentId === "Subscribe";
   const isPassthroughShortcode = PASSTHROUGH_COMPONENT_SHORTCODES.has(
     resolvedComponentId,
   );
 
-  const [moduleProps, setModuleProps] = useState({});
+  const [moduleProps, setModuleProps] = useState(serverModuleProps || {});
   const [moduleLoading, setModuleLoading] = useState(false);
   const [moduleError, setModuleError] = useState("");
-  const [loadedComponentId, setLoadedComponentId] = useState("");
+  const [loadedComponentId, setLoadedComponentId] = useState(serverTargetComponentId || "");
   const [galleryData, setGalleryData] = useState(null);
   const [teamData, setTeamData] = useState(null);
   // True while probing dynamic targets (gallery / team) for this shortcode.
@@ -351,6 +331,16 @@ export default function ShortCode(props) {
       setResolvingDynamic(false);
       setGalleryData(null);
       setTeamData(null);
+
+      // Props resolved on the server: render immediately, no client fetch needed.
+      if (serverModuleProps && serverTargetComponentId === resolvedComponentId) {
+        setModuleProps(serverModuleProps);
+        setLoadedComponentId(resolvedComponentId);
+        setModuleLoading(false);
+        setModuleError("");
+        return;
+      }
+
       setModuleLoading(true);
       setModuleError("");
       try {
@@ -373,7 +363,7 @@ export default function ShortCode(props) {
     return () => {
       cancelled = true;
     };
-  }, [resolvedComponentId, shortcodeValue]);
+  }, [resolvedComponentId, shortcodeValue, serverModuleProps, serverTargetComponentId]);
 
   const isGalleryShortcode = Boolean(galleryData);
   const isTeamShortcode = Boolean(teamData);

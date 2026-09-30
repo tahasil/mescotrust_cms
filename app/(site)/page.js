@@ -4,6 +4,7 @@ import Page from "@/models/Page";
 import Component from "@/models/Component";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import { getPageSeoMetadata } from "@/lib/seo";
+import { attachShortcodeModuleProps } from "@/lib/shortcodeServerProps";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +48,8 @@ async function HomeContent() {
       const mergedProps = { ...defaultProps, ...(block.props || {}) };
       return { ...block, baseComponent: base, props: mergedProps };
     });
-    return <ComponentRenderer layout={layout} />;
+    const layoutWithShortcodeProps = await attachShortcodeModuleProps(layout);
+    return <ComponentRenderer layout={layoutWithShortcodeProps} />;
   }
 
   return (

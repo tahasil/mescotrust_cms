@@ -8,6 +8,7 @@ import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import { filterLayoutBlocksForPath } from "@/lib/routeComponentRules";
 import { getPageSeoMetadata } from "@/lib/seo";
 import { normalizeAboutPageDesign } from "@/lib/aboutPageDesign";
+import { attachShortcodeModuleProps } from "@/lib/shortcodeServerProps";
 
 const RESERVED = ["admin", "blog", "contact", "search", "api", "preview"];
 
@@ -65,7 +66,8 @@ async function PageContent({ slug }) {
     return { ...block, baseComponent: base, props: mergedProps };
   });
 
-  return <ComponentRenderer layout={layout} />;
+  const layoutWithShortcodeProps = await attachShortcodeModuleProps(layout);
+  return <ComponentRenderer layout={layoutWithShortcodeProps} />;
 }
 
 export default function DynamicPage({ params }) {

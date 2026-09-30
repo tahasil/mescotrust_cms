@@ -271,6 +271,9 @@ export default function HomeSlider(props) {
           {(activeSlide.headingLine1 || activeSlide.headingLine2 || activeSlide.headingHighlight) ? (
             <h1 className="home-slider-title home-slider-intro">
               {activeSlide.headingLine1 ? <span>{activeSlide.headingLine2 || activeSlide.headingHighlight ? activeSlide.headingLine1 : renderHighlightedTitle(activeSlide.headingLine1, { titleHighlightColorKey: activeSlide.highlightColorKey })}</span> : null}
+              {/* Keeps the heading readable for crawlers/screen readers. The spans are
+                  display:block, so this space adds no visual line break. */}
+              {activeSlide.headingLine1 && (activeSlide.headingLine2 || activeSlide.headingHighlight) ? " " : null}
               {(activeSlide.headingLine2 || activeSlide.headingHighlight) ? (
                 <span>{renderHighlightedTitle(activeSlide.headingHighlight ? `${activeSlide.headingLine2}${activeSlide.headingLine2 ? " " : ""}*${activeSlide.headingHighlight}*` : activeSlide.headingLine2, { titleHighlightColorKey: activeSlide.highlightColorKey })}</span>
               ) : null}

@@ -10,6 +10,7 @@ import Blog from "@/models/Blog";
 import Event from "@/models/Event";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import SafeHtml from "@/components/cms/SafeHtml";
+import { attachShortcodeModuleProps } from "@/lib/shortcodeServerProps";
 
 export async function generateMetadata({ params }) {
   return { title: "Preview", robots: { index: false, follow: false } };
@@ -92,7 +93,7 @@ export default async function PreviewPage({ params, searchParams }) {
           Draft preview — this content is not published.
         </div>
         <h1>{page.title}</h1>
-        <ComponentRenderer layout={layout} />
+        <ComponentRenderer layout={await attachShortcodeModuleProps(layout)} />
       </main>
     );
   } catch {
