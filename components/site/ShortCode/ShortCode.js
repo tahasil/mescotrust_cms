@@ -280,6 +280,13 @@ export default function ShortCode(props) {
   const [loadedComponentId, setLoadedComponentId] = useState("");
   const [galleryData, setGalleryData] = useState(null);
   const [teamData, setTeamData] = useState(null);
+  // True while probing dynamic targets (gallery / team) for this shortcode.
+  // Starts as true when there is a shortcode to probe, so the very first
+  // render cannot fall through to the form fallback and flash a
+  // "Form not found or not published" warning before the real target loads.
+  const [resolvingDynamic, setResolvingDynamic] = useState(
+    !resolvedComponentId && Boolean(shortcodeValue),
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -292,6 +299,7 @@ export default function ShortCode(props) {
         setLoadedComponentId("");
 
         if (shortcodeValue) {
+          setResolvingDynamic(true);
           // 1. Check if shortcode resolves to a dynamic Gallery (Image or Video)
           try {
             const galleryRes = await fetch(
@@ -302,6 +310,7 @@ export default function ShortCode(props) {
               const gData = await galleryRes.json();
               setGalleryData(gData);
               setTeamData(null);
+              setResolvingDynamic(false);
               return;
             }
           } catch {
@@ -320,6 +329,7 @@ export default function ShortCode(props) {
             if (res.ok && !cancelled) {
               const data = await res.json();
               setTeamData(data);
+              setResolvingDynamic(false);
               return;
             }
           } catch {
@@ -328,14 +338,17 @@ export default function ShortCode(props) {
 
           if (!cancelled) {
             setTeamData(null);
+            setResolvingDynamic(false);
           }
         } else {
           setGalleryData(null);
           setTeamData(null);
+          setResolvingDynamic(false);
         }
         return;
       }
 
+      setResolvingDynamic(false);
       setGalleryData(null);
       setTeamData(null);
       setModuleLoading(true);
@@ -364,6 +377,10 @@ export default function ShortCode(props) {
 
   const isGalleryShortcode = Boolean(galleryData);
   const isTeamShortcode = Boolean(teamData);
+
+  // Stay blank while the gallery / team probe is in flight, otherwise the
+  // render falls through to the FormEmbed fallback and flashes a warning.
+  if (resolvingDynamic) return null;
 
   const renderShortcodeContent = () => {
     if (!shortcodeText) {
