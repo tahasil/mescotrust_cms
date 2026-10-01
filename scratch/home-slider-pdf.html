@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>13. Homepage Slider (Editing)</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI","Calibri",Arial,sans-serif; font-size: 11.2pt; line-height: 1.6; color: #1f2328; margin: 0; }
+  .doc-header { border-bottom: 3px solid #e03c33; padding-bottom: 10px; margin-bottom: 18px; }
+  .doc-brand { font-size: 9pt; letter-spacing: 1.4px; text-transform: uppercase; color: #e03c33; font-weight: 700; margin: 0 0 4px; }
+  h1 { font-size: 21pt; margin: 0; color: #10161c; font-weight: 700; }
+  .doc-subtitle { font-size: 10pt; color: #57606a; margin: 5px 0 0; }
+  h2 { font-size: 14pt; margin: 24px 0 10px; padding-bottom: 6px; border-bottom: 1px solid #d8dee4; color: #10161c; }
+  h3 { font-size: 12pt; margin: 18px 0 8px; color: #10161c; }
+  p { margin: 0 0 10px; }
+  ol, ul { margin: 0 0 12px; padding-left: 22px; }
+  li { margin-bottom: 6px; }
+  blockquote { margin: 0 0 20px; padding: 11px 14px; background: #fff8f7; border-left: 4px solid #e03c33; border-radius: 0 4px 4px 0; color: #4a2020; font-size: 10pt; }
+  blockquote p { margin: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0 0 18px; font-size: 10.4pt; }
+  thead th { background: #f2f4f6; text-align: left; font-weight: 600; padding: 9px 12px; border: 1px solid #d8dee4; color: #10161c; }
+  tbody td { padding: 9px 12px; border: 1px solid #d8dee4; vertical-align: top; }
+  tbody tr:nth-child(even) { background: #fafbfc; }
+  code { font-family: Consolas,"Courier New",monospace; font-size: 9.6pt; background: #eff1f3; padding: 1px 5px; border-radius: 3px; color: #24292f; }
+  strong { color: #10161c; }
+  .check { color: #1a7f37; font-weight: 700; }
+  .warn { display: block; padding: 9px 12px; background: #fff8c5; border-left: 4px solid #d4a72c; border-radius: 0 4px 4px 0; font-size: 10pt; }
+  .reminders { margin-top: 22px; padding: 14px 18px; background: #f6f8fa; border: 1px solid #d8dee4; border-radius: 6px; }
+  .reminders h2 { margin: 0 0 10px; padding: 0; border: none; font-size: 12.5pt; }
+  .reminders li { margin-bottom: 7px; }
+  .doc-footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #d8dee4; font-size: 8.6pt; color: #6e7781; display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+
+  <div class="doc-header">
+    <p class="doc-brand">MESCO Trust &mdash; CMS Admin Guide</p>
+    <h1>13. Homepage Slider (Editing)</h1>
+    <p class="doc-subtitle">Editing slider content, enabling or disabling sliders, and using shortcodes</p>
+  </div>
+
+  <blockquote>
+    <p><strong>Audit reference:</strong> Item 7 &mdash; <em>Homepage Slider (Process Note): &ldquo;Slider was previously edited via a shortcode.&rdquo;</em></p>
+  </blockquote>
+
+  <h2>Where the slider lives</h2>
+  <p>Sidebar &rarr; <strong>Sliders</strong></p>
+  <p>You will see a table with four sliders:</p>
+
+  <table>
+    <thead><tr><th style="width:50%">Slider</th><th>Component ID</th></tr></thead>
+    <tbody>
+      <tr><td>Home Slider</td><td><code>HomeSlider</code></td></tr>
+      <tr><td>Circular Slider</td><td><code>ImageSlider</code></td></tr>
+      <tr><td>Stories Slider</td><td><code>StoriesSlider</code></td></tr>
+      <tr><td>Events Slider</td><td><code>EventsSlider</code></td></tr>
+    </tbody>
+  </table>
+
+  <p>Each row has a <strong>Status</strong> switch (Enabled / Disabled) and an <strong>Edit</strong> button.</p>
+
+  <h2>1. Editing the slider content (correct way)</h2>
+  <ol>
+    <li>Go to <strong>Sliders</strong></li>
+    <li>Find the slider you want &mdash; for the homepage this is <strong>Home Slider</strong></li>
+    <li>Click <strong>Edit</strong> next to it</li>
+    <li>Make your changes (slides, images, text, links)</li>
+    <li>Click <strong>Save</strong></li>
+  </ol>
+  <p><span class="check">&#10003;</span> Changes appear on the website immediately.</p>
+
+  <h2>2. Turning a slider on or off</h2>
+  <ol>
+    <li>Go to <strong>Sliders</strong></li>
+    <li>Use the <strong>Status</strong> switch next to the slider</li>
+    <li><strong>Enabled</strong> = slider shows on the website</li>
+    <li><strong>Disabled</strong> = slider is hidden</li>
+  </ol>
+
+  <h2>3. About shortcodes</h2>
+  <p>A <strong>shortcode</strong> is a small text code (for example <code>[shortcode="homeslider"]</code>) that you place inside a <strong>ShortCode</strong> block on a page. The block then pulls the content from the source and displays it.</p>
+
+  <h3>Important</h3>
+  <ul>
+    <li>A shortcode is only a <strong>placeholder</strong>. It does not hold the content &mdash; the content stays in its own module.</li>
+    <li><strong>Always edit the content from its original module</strong> (Sliders, Gallery, Forms, etc.). Do not try to build the content inside the shortcode block.</li>
+    <li>If you replace a real block with a shortcode, that block will <strong>no longer be visible on the page</strong>, because the page is now showing the shortcode source instead. The original block can still be found and edited from its own module or from the <strong>Components</strong> list.</li>
+  </ul>
+
+  <h3>When to use a shortcode</h3>
+  <p>Use one when the <strong>same content must appear on more than one page</strong>. If it is only needed on one page, use a normal block instead.</p>
+
+  <div class="reminders">
+    <h2>Quick reminders</h2>
+    <ul>
+      <li>To change slider slides, images or text &rarr; <strong>Sliders &rarr; Edit &rarr; Save</strong>.</li>
+      <li>To hide a slider &rarr; turn off its <strong>Status</strong> switch.</li>
+      <li>Shortcodes only reference content. They never store it.</li>
+      <li>A shortcode and a normal block must <strong>not</strong> be used for the same content on the same page, otherwise the content will appear twice.</li>
+    </ul>
+  </div>
+
+  <div class="doc-footer">
+    <span>MESCO Trust CMS &mdash; Admin User Guide</span>
+    <span>Section 13 &nbsp;|&nbsp; Homepage Slider</span>
+  </div>
+
+</body>
+</html>

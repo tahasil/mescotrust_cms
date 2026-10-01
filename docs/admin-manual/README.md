@@ -27,7 +27,9 @@ Welcome! This guide explains how to operate the MESCO Trust CMS from the admin p
 | 9 | [Reusable Page Builder Components Reference](09-reusable-components.md) | Look up which block to use for testimonials, awards, team, events, reports, gallery, etc. |
 | 10 | [Event Registrations](10-event-registrations.md) | Set up the visitor registration form, wire it to your event listings, and manage the submission inbox |
 | 11 | [Social Media Wall](11-social-media-wall.md) | Embed Instagram, Facebook, YouTube, X feeds and display Follow Us links on any page |
-| 12 | [Page Publishing (Draft / Publish)](12-page-publishing.md) &nbsp;([PDF](12-page-publishing.pdf)) | Add a page, publish it, take it back to draft, or delete it |
+| 12 | [Page Publishing (Draft / Publish)](12-page-publishing.md) &nbsp;([PDF](../../README/12-page-publishing.pdf)) | Add a page, publish it, take it back to draft, or delete it |
+| 13 | [Homepage Slider (Editing)](13-home-slider.md) &nbsp;([PDF](../../README/13-home-slider.pdf)) | Edit slider slides, turn a slider on or off, and understand shortcodes |
+| 14 | [Navigation Menu (Navbar)](14-navigation-menu.md) &nbsp;([PDF](../../README/14-navigation-menu.pdf)) | Add, reorder, and remove navbar items and dropdown sub-menus |
 
 ---
 

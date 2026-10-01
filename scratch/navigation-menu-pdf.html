@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>14. Navigation Menu (Navbar)</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI","Calibri",Arial,sans-serif; font-size: 11.2pt; line-height: 1.6; color: #1f2328; margin: 0; }
+  .doc-header { border-bottom: 3px solid #e03c33; padding-bottom: 10px; margin-bottom: 18px; }
+  .doc-brand { font-size: 9pt; letter-spacing: 1.4px; text-transform: uppercase; color: #e03c33; font-weight: 700; margin: 0 0 4px; }
+  h1 { font-size: 21pt; margin: 0; color: #10161c; font-weight: 700; }
+  .doc-subtitle { font-size: 10pt; color: #57606a; margin: 5px 0 0; }
+  h2 { font-size: 14pt; margin: 24px 0 10px; padding-bottom: 6px; border-bottom: 1px solid #d8dee4; color: #10161c; }
+  p { margin: 0 0 10px; }
+  ol, ul { margin: 0 0 12px; padding-left: 22px; }
+  li { margin-bottom: 6px; }
+  blockquote { margin: 0 0 20px; padding: 11px 14px; background: #fff8f7; border-left: 4px solid #e03c33; border-radius: 0 4px 4px 0; color: #4a2020; font-size: 10pt; }
+  blockquote p { margin: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0 0 18px; font-size: 10.4pt; }
+  thead th { background: #f2f4f6; text-align: left; font-weight: 600; padding: 9px 12px; border: 1px solid #d8dee4; color: #10161c; }
+  tbody td { padding: 9px 12px; border: 1px solid #d8dee4; vertical-align: top; }
+  tbody tr:nth-child(even) { background: #fafbfc; }
+  code { font-family: Consolas,"Courier New",monospace; font-size: 9.6pt; background: #eff1f3; padding: 1px 5px; border-radius: 3px; color: #24292f; }
+  strong { color: #10161c; }
+  .check { color: #1a7f37; font-weight: 700; }
+  .warn { display: block; padding: 9px 12px; background: #fff8c5; border-left: 4px solid #d4a72c; border-radius: 0 4px 4px 0; font-size: 10pt; }
+  .reminders { margin-top: 22px; padding: 14px 18px; background: #f6f8fa; border: 1px solid #d8dee4; border-radius: 6px; }
+  .reminders h2 { margin: 0 0 10px; padding: 0; border: none; font-size: 12.5pt; }
+  .reminders li { margin-bottom: 7px; }
+  .doc-footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #d8dee4; font-size: 8.6pt; color: #6e7781; display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+
+  <div class="doc-header">
+    <p class="doc-brand">MESCO Trust &mdash; CMS Admin Guide</p>
+    <h1>14. Navigation Menu (Navbar)</h1>
+    <p class="doc-subtitle">Adding, reordering and removing navbar items and dropdown sub-menus</p>
+  </div>
+
+  <blockquote>
+    <p><strong>Audit reference:</strong> Item 9 &mdash; <em>Navigation (Process Note): &ldquo;Navbar state before adding a new item from the admin panel.&rdquo;</em></p>
+  </blockquote>
+
+  <h2>Where the navigation lives</h2>
+  <p>Sidebar &rarr; <strong>Menus</strong></p>
+  <p>This screen has two levels:</p>
+  <ul>
+    <li><strong>Menus list</strong> &mdash; shows every menu (for example <em>Primary menu</em>, <em>Footer menu</em>) with its item count, plus <strong>Add menu</strong>.</li>
+    <li><strong>Menu structure</strong> &mdash; opens when you click a menu, and is where you add and arrange items.</li>
+  </ul>
+
+  <h2>1. Opening a menu</h2>
+  <ol>
+    <li>Go to <strong>Menus</strong></li>
+    <li>Click the menu name you want to edit (for example <strong>Primary menu</strong>)</li>
+    <li>The <strong>Menu structure</strong> screen opens</li>
+  </ol>
+
+  <h2>2. Adding a menu item</h2>
+  <ol>
+    <li>In <strong>Menu structure</strong>, click <strong>Add Menu</strong> (the dashed button at the bottom)</li>
+    <li>A new item called <strong>&ldquo;New item&rdquo;</strong> is added</li>
+    <li>Click the <strong>arrow (&rsaquo;)</strong> on the left of the item to expand it</li>
+    <li>Fill in the details as per the table below</li>
+    <li>Click <strong>Save menu</strong></li>
+  </ol>
+
+  <table>
+    <thead><tr><th style="width:34%">Field</th><th>What to enter</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Navigation Label</strong></td><td>The text visitors will see (for example &ldquo;About Us&rdquo;)</td></tr>
+      <tr><td><strong>Type</strong></td><td><code>Page</code>, <code>Custom Link</code>, or <code>Modal</code></td></tr>
+      <tr><td><strong>Page</strong></td><td>(If Type = Page) Choose the page from the dropdown &mdash; the URL fills in automatically</td></tr>
+      <tr><td><strong>URL</strong></td><td>(If Type = Custom Link) Type the full web address</td></tr>
+      <tr><td><strong>PDF Link / Document</strong></td><td>(If Type = Modal) Pick a PDF from the Media Library</td></tr>
+      <tr><td><strong>Target</strong></td><td>Open in the same tab, or open in a new tab</td></tr>
+    </tbody>
+  </table>
+
+  <p><span class="check">&#10003;</span> The item now appears in the navigation bar.</p>
+
+  <h2>3. Reordering items</h2>
+  <ul>
+    <li><strong>Drag and drop</strong> an item to move it up or down.</li>
+    <li>Dragging an item <strong>below</strong> another item makes it a <strong>sub-item</strong> (dropdown) of that item.</li>
+    <li>To move an item one level to the left (out of a dropdown), use the <strong>left arrow</strong> button on the item.</li>
+    <li>To move an item one level to the right (into a dropdown), use the <strong>right arrow</strong> button.</li>
+    <li>Click <strong>Save menu</strong> to apply the new order.</li>
+  </ul>
+
+  <h2>4. Removing an item</h2>
+  <ol>
+    <li>Expand the item</li>
+    <li>Click the <strong>trash icon</strong></li>
+    <li>Click <strong>Save menu</strong></li>
+  </ol>
+  <p>To delete several items at once, tick the checkboxes on the left and click <strong>Remove selected</strong>.</p>
+
+  <h2>5. Managing whole menus</h2>
+  <p>On the <strong>Menus list</strong> screen you can also <strong>Copy</strong> a menu (to create a duplicate) and <strong>Delete</strong> an entire menu.</p>
+
+  <div class="reminders">
+    <h2>Quick reminders</h2>
+    <ul>
+      <li>Publishing a page does <strong>not</strong> add it to the navigation bar. You must add it here under <strong>Menus</strong>.</li>
+      <li>Choose <strong>Type = Page</strong> whenever the link points to a page on this website &mdash; the URL then stays correct even if the page slug changes later.</li>
+      <li>Use <strong>Type = Custom Link</strong> for external websites (for example a WhatsApp link or another domain).</li>
+      <li>Changes take effect only after clicking <strong>Save menu</strong>.</li>
+    </ul>
+  </div>
+
+  <div class="doc-footer">
+    <span>MESCO Trust CMS &mdash; Admin User Guide</span>
+    <span>Section 14 &nbsp;|&nbsp; Navigation Menu</span>
+  </div>
+
+</body>
+</html>
