@@ -64,28 +64,57 @@ import { isPdfDocumentUrl } from "@/components/site/shared/PdfViewerModal";
 
 const SCROLL_THRESHOLD_PX = 10;
 
+/**
+ * A menu item is only navigable when it has a real destination.
+ * Dropdown parents saved as `javascript:void(0)` / `#` only exist to open the
+ * dropdown; emitting that as an href creates links crawlers cannot follow.
+ */
+function isNavigableMenuUrl(url) {
+  const value = typeof url === "string" ? url.trim() : "";
+  if (!value) return false;
+  if (value === "#") return false;
+  if (/^javascript:/i.test(value)) return false;
+  return true;
+}
+
 /** Convert CMS menu items { label, url, openInNewTab?, children? } to header shape { label, href, target?, submenu? } */
 function cmsMenuToHeaderItems(items) {
   if (!Array.isArray(items)) return [];
   return items.map((it) => {
     const item = it && typeof it === "object" ? it : {};
-    const url = typeof item.url === "string" && item.url ? item.url : "#";
+    const rawUrl = typeof item.url === "string" ? item.url : "";
     const children = Array.isArray(item.children) ? item.children : [];
     const submenu = children.length
       ? cmsMenuToHeaderItems(children)
       : undefined;
-    const configuredTarget =
+
+    let url = rawUrl;
+    let configuredTarget =
       item.target === "modal"
         ? "modal"
         : item.target === "_blank" || item.openInNewTab
           ? "_blank"
           : "_self";
+
+    // Dropdown parent without a real destination: fall back to the first
+    // navigable descendant so the link is crawlable.
+    if (!isNavigableMenuUrl(url) && Array.isArray(submenu)) {
+      const firstChild = submenu.find((child) => isNavigableMenuUrl(child.href));
+      if (firstChild) {
+        url = firstChild.href;
+        configuredTarget = firstChild.target === "_blank" ? "_blank" : "_self";
+      } else {
+        url = "#";
+      }
+    }
+    if (!isNavigableMenuUrl(url)) url = "#";
+
     return {
       label: String(item.label ?? ""),
       href: url,
       target: configuredTarget === "_blank" ? "_blank" : undefined,
       opensPdfModal:
-        configuredTarget === "modal" && isPdfDocumentUrl(url),
+        configuredTarget === "modal" && isPdfDocumentUrl(rawUrl),
       submenu,
     };
   });

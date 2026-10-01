@@ -318,7 +318,18 @@ export default function BlogListing(props) {
                     <div className="blog-list-body">
                       {showCategories && post.category?.name ? <div className="blog-list-category">{post.category.name}</div> : null}
                       <Link className="blog-list-title-link" href={`/blog/${post.slug}`}>
-                        <MainTitle className="blog-list-title mb-3" fontSize={24} fontWeight={600} style={{ lineHeight: "30px" }}>
+                        {/*
+                          Card titles are not the page heading — the listing page
+                          already has one <h1>. MainTitle renders an <h1> by
+                          default, which produced four <h1> tags here.
+                        */}
+                        <MainTitle
+                          as="h2"
+                          className="blog-list-title mb-3"
+                          fontSize={24}
+                          fontWeight={600}
+                          style={{ lineHeight: "30px" }}
+                        >
                           {post.title}
                         </MainTitle>
                       </Link>

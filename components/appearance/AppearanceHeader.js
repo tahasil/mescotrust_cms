@@ -21,16 +21,48 @@ const CloseIcon = () => (
   </svg>
 );
 
+/**
+ * A menu item is only navigable when it has a real destination.
+ * CMS dropdown parents are often saved as `javascript:void(0)` (or `#`) purely
+ * to open the dropdown. Emitting that as an <a href> produces links that
+ * crawlers cannot follow and that React warns about (and will block in a
+ * future major version).
+ */
+function isNavigableUrl(url) {
+  const value = String(url || "").trim();
+  if (!value) return false;
+  if (value === "#") return false;
+  if (/^javascript:/i.test(value)) return false;
+  return true;
+}
+
 function normalizeMenuItems(items) {
   if (!Array.isArray(items)) return [];
   return items.map((item) => {
-    const url = String(item?.url || item?.href || "#");
+    const rawUrl = String(item?.url || item?.href || "");
+    const children = normalizeMenuItems(item?.children || item?.submenu);
+
+    let url = rawUrl;
+    let openInNewTab = item?.openInNewTab === true || item?.target === "_blank";
+
+    // Dropdown parent without a real destination: point it at the first
+    // navigable descendant so the top-level nav stays a crawlable link.
+    if (!isNavigableUrl(url)) {
+      const firstChild = children.find((child) => isNavigableUrl(child.url));
+      if (firstChild) {
+        url = firstChild.url;
+        openInNewTab = firstChild.openInNewTab;
+      } else {
+        url = "#";
+      }
+    }
+
     return {
       label: String(item?.label || ""),
       url,
-      openInNewTab: item?.openInNewTab === true || item?.target === "_blank",
-      opensPdfModal: item?.target === "modal" && isPdfDocumentUrl(url),
-      children: normalizeMenuItems(item?.children || item?.submenu),
+      openInNewTab,
+      opensPdfModal: item?.target === "modal" && isPdfDocumentUrl(rawUrl),
+      children,
     };
   });
 }

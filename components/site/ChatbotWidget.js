@@ -1796,6 +1796,11 @@ export default function ChatbotWidget() {
                   ? "Write your message..."
                   : "Search disabled"
               }
+              aria-label={
+                settings.enableSearch
+                  ? "Ask the MESCO Trust assistant"
+                  : "Assistant search is disabled"
+              }
               disabled={!settings.enableSearch}
               $textColor={botBubbleText}
               $placeholderColor={botBubbleText}
