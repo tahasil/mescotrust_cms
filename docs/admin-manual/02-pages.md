@@ -60,6 +60,8 @@ Click **Save** at the bottom of the edit panel to apply.
 
 Hover over a block, then drag the **drag handle** (the dotted icon) up or down. The order is saved automatically when you click **Save Page**.
 
+> Reordering is **not** applied until you click **Save Page** — this is the most common reason a change "doesn't show up".
+
 ### Deleting a block
 
 Click the block, then click the **trash icon** in its toolbar. Confirm.
@@ -67,6 +69,10 @@ Click the block, then click the **trash icon** in its toolbar. Confirm.
 ### Saving the page
 
 Click **Save Page** (top right). You will see a green "Saved" confirmation.
+
+> The button is labelled **Save Page** on this screen; on some screens it simply reads **Save**. Both do the same thing — they save the page and its `Status`.
+>
+> **How do I publish it?** Changing `Status` from `Draft` to `Published` and clicking Save *is* the publish action. Full walkthrough: [Page Publishing (Draft to Live)](12-page-publishing.md)
 
 ---
 

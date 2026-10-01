@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>12. Page Publishing (Draft / Publish)</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: "Segoe UI", "Calibri", Arial, sans-serif;
+    font-size: 11.2pt;
+    line-height: 1.6;
+    color: #1f2328;
+    margin: 0;
+  }
+
+  .doc-header {
+    border-bottom: 3px solid #e03c33;
+    padding-bottom: 10px;
+    margin-bottom: 18px;
+  }
+
+  .doc-brand {
+    font-size: 9pt;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: #e03c33;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+
+  h1 {
+    font-size: 21pt;
+    margin: 0;
+    color: #10161c;
+    font-weight: 700;
+  }
+
+  .doc-subtitle {
+    font-size: 10pt;
+    color: #57606a;
+    margin: 5px 0 0;
+  }
+
+  h2 {
+    font-size: 14pt;
+    margin: 24px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #d8dee4;
+    color: #10161c;
+  }
+
+  h2:first-of-type { margin-top: 20px; }
+
+  p { margin: 0 0 10px; }
+
+  ol, ul { margin: 0 0 12px; padding-left: 22px; }
+  li { margin-bottom: 6px; }
+
+  blockquote {
+    margin: 0 0 20px;
+    padding: 11px 14px;
+    background: #fff8f7;
+    border-left: 4px solid #e03c33;
+    border-radius: 0 4px 4px 0;
+    color: #4a2020;
+    font-size: 10pt;
+  }
+
+  blockquote p { margin: 0; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 18px;
+    font-size: 10.4pt;
+  }
+
+  thead th {
+    background: #f2f4f6;
+    text-align: left;
+    font-weight: 600;
+    padding: 9px 12px;
+    border: 1px solid #d8dee4;
+    color: #10161c;
+  }
+
+  tbody td {
+    padding: 9px 12px;
+    border: 1px solid #d8dee4;
+    vertical-align: top;
+  }
+
+  tbody tr:nth-child(even) { background: #fafbfc; }
+
+  code {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 9.6pt;
+    background: #eff1f3;
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: #24292f;
+  }
+
+  strong { color: #10161c; }
+
+  .check {
+    color: #1a7f37;
+    font-weight: 700;
+  }
+
+  .warn {
+    display: block;
+    padding: 9px 12px;
+    background: #fff8c5;
+    border-left: 4px solid #d4a72c;
+    border-radius: 0 4px 4px 0;
+    font-size: 10pt;
+  }
+
+  .reminders {
+    margin-top: 22px;
+    padding: 14px 18px;
+    background: #f6f8fa;
+    border: 1px solid #d8dee4;
+    border-radius: 6px;
+  }
+
+  .reminders h2 {
+    margin: 0 0 10px;
+    padding: 0;
+    border: none;
+    font-size: 12.5pt;
+  }
+
+  .reminders li { margin-bottom: 7px; }
+
+  .doc-footer {
+    margin-top: 26px;
+    padding-top: 10px;
+    border-top: 1px solid #d8dee4;
+    font-size: 8.6pt;
+    color: #6e7781;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+  <div class="doc-header">
+    <p class="doc-brand">MESCO Trust &mdash; CMS Admin Guide</p>
+    <h1>12. Page Publishing (Draft / Publish)</h1>
+    <p class="doc-subtitle">How to add, publish, un-publish and delete a page</p>
+  </div>
+
+  <blockquote>
+    <p><strong>Audit reference:</strong> Item 21 &mdash; <em>CMS / Documentation (Question): &ldquo;How to publish a page (needs documentation/clarification).&rdquo;</em></p>
+  </blockquote>
+
+  <h2>The two Status options</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 26%">Status</th>
+        <th>What it means</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>Draft</code></td>
+        <td>The page is saved but is <strong>not visible</strong> on the website.</td>
+      </tr>
+      <tr>
+        <td><code>Published</code></td>
+        <td>The page goes <strong>live</strong> the moment you save it &mdash; there is no separate &ldquo;Publish&rdquo; button.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>1. Add a new page</h2>
+  <ol>
+    <li>Go to <strong>Pages</strong> &rarr; <strong>+ New Page</strong></li>
+    <li>Enter the <strong>Title</strong> (for example, &ldquo;About Us&rdquo;)</li>
+    <li>Enter the <strong>Slug</strong> &mdash; this becomes the page URL. Use a slash for sub-folders: <code>about/our-team</code></li>
+    <li>Keep <strong>Status</strong> as <code>Draft</code></li>
+    <li>Click <strong>Save</strong> &mdash; the page is created and you are taken to the Page Builder</li>
+    <li>Add your content using <strong>+ Add Block</strong>, then click <strong>Save</strong></li>
+  </ol>
+
+  <h2>2. Edit an existing page</h2>
+  <ol>
+    <li>Go to <strong>Pages</strong> &rarr; click the page title</li>
+    <li>Make your changes</li>
+    <li>Click <strong>Save</strong></li>
+  </ol>
+
+  <h2>3. Publish a page (Draft &rarr; Live)</h2>
+  <ol>
+    <li>Go to <strong>Pages</strong> &rarr; open the page</li>
+    <li>Click the <strong>Settings (gear)</strong> icon</li>
+    <li>In the <strong>Status</strong> dropdown, change <code>Draft</code> to <code>Published</code></li>
+    <li>Click <strong>Update</strong> / <strong>Save</strong></li>
+  </ol>
+  <p><span class="check">&#10003;</span> The page is now live and visible to visitors.</p>
+
+  <h2>4. Set a page back to Draft (Live &rarr; Hidden)</h2>
+  <ol>
+    <li>Go to <strong>Pages</strong> &rarr; open the page</li>
+    <li>Click <strong>Settings (gear)</strong> &rarr; change <strong>Status</strong> from <code>Published</code> to <code>Draft</code></li>
+    <li>Click <strong>Update</strong> / <strong>Save</strong></li>
+  </ol>
+  <p><span class="check">&#10003;</span> The page is removed from the website, but all of its content is preserved. You can make it live again at any time by switching the status back to <code>Published</code>.</p>
+
+  <h2>5. Delete a page</h2>
+  <ol>
+    <li>Go to <strong>Pages</strong> &rarr; click the <strong>trash icon</strong> next to the page</li>
+    <li>Confirm the deletion</li>
+  </ol>
+  <p><span class="warn"><strong>Warning:</strong> A deleted page cannot be restored. If you only want to hide a page temporarily, use <strong>Draft</strong> instead of deleting it.</span></p>
+
+  <div class="reminders">
+    <h2>Quick reminders</h2>
+    <ul>
+      <li>To publish a page, set <strong>Status = Published</strong> and click <strong>Save</strong>. That is the entire publish action.</li>
+      <li>Publishing a page does <strong>not</strong> automatically add it to the navigation menu. To show it in the header or footer, add it under <strong>Menus</strong>.</li>
+      <li>Every change takes effect only after you click <strong>Save</strong>.</li>
+    </ul>
+  </div>
+
+  <div class="doc-footer">
+    <span>MESCO Trust CMS &mdash; Admin User Guide</span>
+    <span>Section 12 &nbsp;|&nbsp; Page Publishing</span>
+  </div>
+
+</body>
+</html>
