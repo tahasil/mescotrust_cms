@@ -2,118 +2,138 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>14. Navigation Menu (Navbar)</title>
+<title>Navigation Menu - MESCO Trust Admin Guide</title>
 <style>
-  @page { size: A4; margin: 18mm 16mm; }
+  @page { size: A4; margin: 20mm 18mm 18mm; }
   * { box-sizing: border-box; }
-  body { font-family: "Segoe UI","Calibri",Arial,sans-serif; font-size: 11.2pt; line-height: 1.6; color: #1f2328; margin: 0; }
-  .doc-header { border-bottom: 3px solid #e03c33; padding-bottom: 10px; margin-bottom: 18px; }
-  .doc-brand { font-size: 9pt; letter-spacing: 1.4px; text-transform: uppercase; color: #e03c33; font-weight: 700; margin: 0 0 4px; }
-  h1 { font-size: 21pt; margin: 0; color: #10161c; font-weight: 700; }
-  .doc-subtitle { font-size: 10pt; color: #57606a; margin: 5px 0 0; }
-  h2 { font-size: 14pt; margin: 24px 0 10px; padding-bottom: 6px; border-bottom: 1px solid #d8dee4; color: #10161c; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    font-family: Calibri, "Segoe UI", Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.55;
+    color: #22262b;
+    margin: 0;
+    max-width: 172mm;
+  }
+  .masthead { border-bottom: 1px solid #22262b; padding-bottom: 10px; margin-bottom: 22px; }
+  .masthead img { height: 26px; display: block; margin-bottom: 10px; }
+  h1 { font-size: 17pt; font-weight: 400; line-height: 1.25; margin: 0 0 4px; color: #111417; }
+  .subtitle { font-size: 10pt; color: #6b7076; margin: 0; }
+  .ref { font-size: 9pt; color: #8b9096; margin: 3px 0 0; }
+  h2 { font-size: 12.5pt; font-weight: 700; margin: 22px 0 8px; color: #111417; }
+  h2:first-of-type { margin-top: 18px; }
+  h3 { font-size: 11pt; font-weight: 700; margin: 16px 0 6px; }
   p { margin: 0 0 10px; }
-  ol, ul { margin: 0 0 12px; padding-left: 22px; }
-  li { margin-bottom: 6px; }
-  blockquote { margin: 0 0 20px; padding: 11px 14px; background: #fff8f7; border-left: 4px solid #e03c33; border-radius: 0 4px 4px 0; color: #4a2020; font-size: 10pt; }
-  blockquote p { margin: 0; }
-  table { width: 100%; border-collapse: collapse; margin: 0 0 18px; font-size: 10.4pt; }
-  thead th { background: #f2f4f6; text-align: left; font-weight: 600; padding: 9px 12px; border: 1px solid #d8dee4; color: #10161c; }
-  tbody td { padding: 9px 12px; border: 1px solid #d8dee4; vertical-align: top; }
-  tbody tr:nth-child(even) { background: #fafbfc; }
-  code { font-family: Consolas,"Courier New",monospace; font-size: 9.6pt; background: #eff1f3; padding: 1px 5px; border-radius: 3px; color: #24292f; }
-  strong { color: #10161c; }
-  .check { color: #1a7f37; font-weight: 700; }
-  .warn { display: block; padding: 9px 12px; background: #fff8c5; border-left: 4px solid #d4a72c; border-radius: 0 4px 4px 0; font-size: 10pt; }
-  .reminders { margin-top: 22px; padding: 14px 18px; background: #f6f8fa; border: 1px solid #d8dee4; border-radius: 6px; }
-  .reminders h2 { margin: 0 0 10px; padding: 0; border: none; font-size: 12.5pt; }
-  .reminders li { margin-bottom: 7px; }
-  .doc-footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #d8dee4; font-size: 8.6pt; color: #6e7781; display: flex; justify-content: space-between; }
+  ol, ul { margin: 0 0 12px; padding-left: 20px; }
+  li { margin-bottom: 5px; }
+  code, .ui { font-family: Consolas, "Courier New", monospace; font-size: 9.5pt; background: #f1f2f3; padding: 1px 4px; border-radius: 2px; color: #1c1f23; }
+  strong { font-weight: 700; }
+  .note { font-size: 10pt; color: #4a5057; border-left: 2px solid #c9ccd0; padding: 2px 0 2px 12px; margin: 0 0 14px; }
+  table { width: 100%; border-collapse: collapse; margin: 0 0 14px; font-size: 10.5pt; }
+  th, td { border: 1px solid #d3d6da; padding: 7px 10px; text-align: left; vertical-align: top; }
+  th { background: #f4f5f6; font-weight: 700; }
+  .steps { counter-reset: step; list-style: none; padding: 0; margin: 0 0 14px; }
+  .steps > li { counter-increment: step; position: relative; padding-left: 26px; margin-bottom: 7px; }
+  .steps > li::before { content: counter(step) "."; position: absolute; left: 0; top: 0; width: 20px; text-align: right; color: #6b7076; }
+  .docfoot { margin-top: 26px; padding-top: 8px; border-top: 1px solid #d3d6da; font-size: 8.5pt; color: #8b9096; display: flex; justify-content: space-between; }
 </style>
 </head>
 <body>
 
-  <div class="doc-header">
-    <p class="doc-brand">MESCO Trust &mdash; CMS Admin Guide</p>
-    <h1>14. Navigation Menu (Navbar)</h1>
-    <p class="doc-subtitle">Adding, reordering and removing navbar items and dropdown sub-menus</p>
+  <div class="masthead">
+    <img src="../public/uploads/1772597551416_logo.webp" alt="MESCO Trust" />
+    <h1>Navigation Menu</h1>
+    <p class="subtitle">Admin panel guide &middot; MESCO Trust</p>
+    <p class="ref">QA audit item 9 &middot; September 2026</p>
   </div>
 
-  <blockquote>
-    <p><strong>Audit reference:</strong> Item 9 &mdash; <em>Navigation (Process Note): &ldquo;Navbar state before adding a new item from the admin panel.&rdquo;</em></p>
-  </blockquote>
+  <h2>Where the navigation is managed</h2>
 
-  <h2>Where the navigation lives</h2>
-  <p>Sidebar &rarr; <strong>Menus</strong></p>
-  <p>This screen has two levels:</p>
-  <ul>
-    <li><strong>Menus list</strong> &mdash; shows every menu (for example <em>Primary menu</em>, <em>Footer menu</em>) with its item count, plus <strong>Add menu</strong>.</li>
-    <li><strong>Menu structure</strong> &mdash; opens when you click a menu, and is where you add and arrange items.</li>
-  </ul>
+  <p>
+    The header and footer navigation are maintained under <strong>Menus</strong>. The
+    screen has two levels. The first lists every menu, such as Primary Menu and Footer
+    Menu, together with how many items each one holds. Opening a menu takes you to its
+    structure, where items are added and arranged.
+  </p>
 
-  <h2>1. Opening a menu</h2>
-  <ol>
-    <li>Go to <strong>Menus</strong></li>
-    <li>Click the menu name you want to edit (for example <strong>Primary menu</strong>)</li>
-    <li>The <strong>Menu structure</strong> screen opens</li>
-  </ol>
+  <h2>Adding an item</h2>
 
-  <h2>2. Adding a menu item</h2>
-  <ol>
-    <li>In <strong>Menu structure</strong>, click <strong>Add Menu</strong> (the dashed button at the bottom)</li>
-    <li>A new item called <strong>&ldquo;New item&rdquo;</strong> is added</li>
-    <li>Click the <strong>arrow (&rsaquo;)</strong> on the left of the item to expand it</li>
-    <li>Fill in the details as per the table below</li>
-    <li>Click <strong>Save menu</strong></li>
+  <ol class="steps">
+    <li>Open <strong>Menus</strong> and click the menu you want to change.</li>
+    <li>Press <strong>Add Menu</strong>, the dashed button near the bottom of the list.</li>
+    <li>An item called <em>New item</em> is added. Click the small arrow on its left to expand it.</li>
+    <li>Fill in the fields listed below.</li>
+    <li>Press <strong>Save menu</strong>.</li>
   </ol>
 
   <table>
-    <thead><tr><th style="width:34%">Field</th><th>What to enter</th></tr></thead>
+    <thead>
+      <tr><th style="width: 30%">Field</th><th>What to enter</th></tr>
+    </thead>
     <tbody>
-      <tr><td><strong>Navigation Label</strong></td><td>The text visitors will see (for example &ldquo;About Us&rdquo;)</td></tr>
-      <tr><td><strong>Type</strong></td><td><code>Page</code>, <code>Custom Link</code>, or <code>Modal</code></td></tr>
-      <tr><td><strong>Page</strong></td><td>(If Type = Page) Choose the page from the dropdown &mdash; the URL fills in automatically</td></tr>
-      <tr><td><strong>URL</strong></td><td>(If Type = Custom Link) Type the full web address</td></tr>
-      <tr><td><strong>PDF Link / Document</strong></td><td>(If Type = Modal) Pick a PDF from the Media Library</td></tr>
-      <tr><td><strong>Target</strong></td><td>Open in the same tab, or open in a new tab</td></tr>
+      <tr>
+        <td>Navigation Label</td>
+        <td>The text visitors will see, for example <em>About Us</em>.</td>
+      </tr>
+      <tr>
+        <td>Type</td>
+        <td><code>Page</code>, <code>Custom Link</code> or <code>Modal</code>. See the notes below.</td>
+      </tr>
+      <tr>
+        <td>Page</td>
+        <td>Shown when the type is <code>Page</code>. Pick the page from the list and the address fills in by itself.</td>
+      </tr>
+      <tr>
+        <td>URL</td>
+        <td>Shown when the type is <code>Custom Link</code>. Type the full web address.</td>
+      </tr>
+      <tr>
+        <td>PDF Link / Document</td>
+        <td>Shown when the type is <code>Modal</code>. Pick a PDF from the media library; it opens in a popup rather than leaving the page.</td>
+      </tr>
+      <tr>
+        <td>Target</td>
+        <td>Whether the link opens in the same tab or a new one.</td>
+      </tr>
     </tbody>
   </table>
 
-  <p><span class="check">&#10003;</span> The item now appears in the navigation bar.</p>
+  <h2>Changing the order</h2>
 
-  <h2>3. Reordering items</h2>
   <ul>
-    <li><strong>Drag and drop</strong> an item to move it up or down.</li>
-    <li>Dragging an item <strong>below</strong> another item makes it a <strong>sub-item</strong> (dropdown) of that item.</li>
-    <li>To move an item one level to the left (out of a dropdown), use the <strong>left arrow</strong> button on the item.</li>
-    <li>To move an item one level to the right (into a dropdown), use the <strong>right arrow</strong> button.</li>
-    <li>Click <strong>Save menu</strong> to apply the new order.</li>
+    <li>Drag an item up or down to move it.</li>
+    <li>Dragging an item below another one turns it into a sub-item, so it shows as a dropdown when the menu is opened.</li>
+    <li>The right arrow moves an item into the dropdown to its left. The left arrow brings it back out.</li>
+    <li>Press <strong>Save menu</strong> once the order is right. Until you do, the new order is not applied.</li>
   </ul>
 
-  <h2>4. Removing an item</h2>
-  <ol>
-    <li>Expand the item</li>
-    <li>Click the <strong>trash icon</strong></li>
-    <li>Click <strong>Save menu</strong></li>
-  </ol>
-  <p>To delete several items at once, tick the checkboxes on the left and click <strong>Remove selected</strong>.</p>
+  <h2>Removing an item</h2>
 
-  <h2>5. Managing whole menus</h2>
-  <p>On the <strong>Menus list</strong> screen you can also <strong>Copy</strong> a menu (to create a duplicate) and <strong>Delete</strong> an entire menu.</p>
+  <p>
+    Expand the item, press the bin icon, then press <strong>Save menu</strong>. To remove
+    several at once, tick the boxes on the left and choose <strong>Remove selected</strong>.
+  </p>
 
-  <div class="reminders">
-    <h2>Quick reminders</h2>
-    <ul>
-      <li>Publishing a page does <strong>not</strong> add it to the navigation bar. You must add it here under <strong>Menus</strong>.</li>
-      <li>Choose <strong>Type = Page</strong> whenever the link points to a page on this website &mdash; the URL then stays correct even if the page slug changes later.</li>
-      <li>Use <strong>Type = Custom Link</strong> for external websites (for example a WhatsApp link or another domain).</li>
-      <li>Changes take effect only after clicking <strong>Save menu</strong>.</li>
-    </ul>
-  </div>
+  <h2>Working with whole menus</h2>
 
-  <div class="doc-footer">
-    <span>MESCO Trust CMS &mdash; Admin User Guide</span>
-    <span>Section 14 &nbsp;|&nbsp; Navigation Menu</span>
+  <p>
+    Back on the first screen a menu can be copied, which is the quickest way to build a
+    similar set of links, or deleted completely.
+  </p>
+
+  <h2>A few things to keep in mind</h2>
+
+  <ul>
+    <li>Publishing a page does not put it in the navigation. That has to be done here.</li>
+    <li>Use the type <code>Page</code> for anything on this website. The link then keeps working even if the page address is changed later.</li>
+    <li>Use <code>Custom Link</code> only for outside addresses such as WhatsApp or another domain.</li>
+    <li>If an item has been added but is not showing, the usual reason is that <strong>Save menu</strong> was not pressed.</li>
+    <li>The header and the footer are separate menus, so an item added to one does not appear in the other.</li>
+  </ul>
+
+  <div class="docfoot">
+    <span>MESCO Trust CMS &middot; Admin panel guide</span>
+    <span>Navigation Menu &middot; October 2026</span>
   </div>
 
 </body>

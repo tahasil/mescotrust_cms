@@ -2,240 +2,254 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>12. Page Publishing (Draft / Publish)</title>
+<title>Page Publishing - MESCO Trust Admin Guide</title>
 <style>
-  @page { size: A4; margin: 18mm 16mm; }
+  @page { size: A4; margin: 20mm 18mm 18mm; }
 
   * { box-sizing: border-box; }
 
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
   body {
-    font-family: "Segoe UI", "Calibri", Arial, sans-serif;
-    font-size: 11.2pt;
-    line-height: 1.6;
-    color: #1f2328;
+    font-family: Calibri, "Segoe UI", Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.55;
+    color: #22262b;
     margin: 0;
+    max-width: 172mm;
   }
 
-  .doc-header {
-    border-bottom: 3px solid #e03c33;
+  /* ---------- masthead ---------- */
+  .masthead {
+    border-bottom: 1px solid #22262b;
     padding-bottom: 10px;
-    margin-bottom: 18px;
+    margin-bottom: 22px;
   }
 
-  .doc-brand {
-    font-size: 9pt;
-    letter-spacing: 1.4px;
-    text-transform: uppercase;
-    color: #e03c33;
-    font-weight: 700;
-    margin: 0 0 4px;
+  .masthead img {
+    height: 26px;
+    display: block;
+    margin-bottom: 10px;
   }
 
   h1 {
-    font-size: 21pt;
-    margin: 0;
-    color: #10161c;
-    font-weight: 700;
+    font-size: 17pt;
+    font-weight: 400;
+    line-height: 1.25;
+    margin: 0 0 4px;
+    color: #111417;
   }
 
-  .doc-subtitle {
+  .subtitle {
     font-size: 10pt;
-    color: #57606a;
-    margin: 5px 0 0;
+    color: #6b7076;
+    margin: 0;
   }
 
+  .ref {
+    font-size: 9pt;
+    color: #8b9096;
+    margin: 3px 0 0;
+  }
+
+  /* ---------- headings ---------- */
   h2 {
-    font-size: 14pt;
-    margin: 24px 0 10px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid #d8dee4;
-    color: #10161c;
+    font-size: 12.5pt;
+    font-weight: 700;
+    margin: 22px 0 8px;
+    color: #111417;
   }
 
-  h2:first-of-type { margin-top: 20px; }
+  h2:first-of-type { margin-top: 18px; }
+
+  h3 {
+    font-size: 11pt;
+    font-weight: 700;
+    margin: 16px 0 6px;
+  }
 
   p { margin: 0 0 10px; }
 
-  ol, ul { margin: 0 0 12px; padding-left: 22px; }
-  li { margin-bottom: 6px; }
+  /* ---------- lists ---------- */
+  ol, ul { margin: 0 0 12px; padding-left: 20px; }
+  li { margin-bottom: 5px; }
 
-  blockquote {
-    margin: 0 0 20px;
-    padding: 11px 14px;
-    background: #fff8f7;
-    border-left: 4px solid #e03c33;
-    border-radius: 0 4px 4px 0;
-    color: #4a2020;
-    font-size: 10pt;
+  .tight li { margin-bottom: 2px; }
+
+  /* ---------- inline ---------- */
+  code, .ui {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 9.5pt;
+    background: #f1f2f3;
+    padding: 1px 4px;
+    border-radius: 2px;
+    color: #1c1f23;
   }
 
-  blockquote p { margin: 0; }
+  strong { font-weight: 700; }
 
+  /* ---------- note ---------- */
+  .note {
+    font-size: 10pt;
+    color: #4a5057;
+    border-left: 2px solid #c9ccd0;
+    padding: 2px 0 2px 12px;
+    margin: 0 0 14px;
+  }
+
+  /* ---------- table ---------- */
   table {
     width: 100%;
     border-collapse: collapse;
-    margin: 0 0 18px;
-    font-size: 10.4pt;
+    margin: 0 0 14px;
+    font-size: 10.5pt;
   }
 
-  thead th {
-    background: #f2f4f6;
+  th, td {
+    border: 1px solid #d3d6da;
+    padding: 7px 10px;
     text-align: left;
-    font-weight: 600;
-    padding: 9px 12px;
-    border: 1px solid #d8dee4;
-    color: #10161c;
-  }
-
-  tbody td {
-    padding: 9px 12px;
-    border: 1px solid #d8dee4;
     vertical-align: top;
   }
 
-  tbody tr:nth-child(even) { background: #fafbfc; }
-
-  code {
-    font-family: Consolas, "Courier New", monospace;
-    font-size: 9.6pt;
-    background: #eff1f3;
-    padding: 1px 5px;
-    border-radius: 3px;
-    color: #24292f;
-  }
-
-  strong { color: #10161c; }
-
-  .check {
-    color: #1a7f37;
+  th {
+    background: #f4f5f6;
     font-weight: 700;
   }
 
-  .warn {
-    display: block;
-    padding: 9px 12px;
-    background: #fff8c5;
-    border-left: 4px solid #d4a72c;
-    border-radius: 0 4px 4px 0;
-    font-size: 10pt;
-  }
-
-  .reminders {
-    margin-top: 22px;
-    padding: 14px 18px;
-    background: #f6f8fa;
-    border: 1px solid #d8dee4;
-    border-radius: 6px;
-  }
-
-  .reminders h2 {
-    margin: 0 0 10px;
+  /* ---------- steps ---------- */
+  .steps {
+    counter-reset: step;
+    list-style: none;
     padding: 0;
-    border: none;
-    font-size: 12.5pt;
+    margin: 0 0 14px;
   }
 
-  .reminders li { margin-bottom: 7px; }
+  .steps > li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 26px;
+    margin-bottom: 7px;
+  }
 
-  .doc-footer {
+  .steps > li::before {
+    content: counter(step) ".";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 20px;
+    text-align: right;
+    color: #6b7076;
+  }
+
+  /* ---------- footer ---------- */
+  .docfoot {
     margin-top: 26px;
-    padding-top: 10px;
-    border-top: 1px solid #d8dee4;
-    font-size: 8.6pt;
-    color: #6e7781;
+    padding-top: 8px;
+    border-top: 1px solid #d3d6da;
+    font-size: 8.5pt;
+    color: #8b9096;
     display: flex;
     justify-content: space-between;
   }
-
-  .page-break { page-break-before: always; }
 </style>
 </head>
 <body>
 
-  <div class="doc-header">
-    <p class="doc-brand">MESCO Trust &mdash; CMS Admin Guide</p>
-    <h1>12. Page Publishing (Draft / Publish)</h1>
-    <p class="doc-subtitle">How to add, publish, un-publish and delete a page</p>
+  <div class="masthead">
+    <img src="../public/uploads/1772597551416_logo.webp" alt="MESCO Trust" />
+    <h1>Page Publishing</h1>
+    <p class="subtitle">Admin panel guide &middot; MESCO Trust</p>
+    <p class="ref">QA audit item 21 &middot; September 2026</p>
   </div>
 
-  <blockquote>
-    <p><strong>Audit reference:</strong> Item 21 &mdash; <em>CMS / Documentation (Question): &ldquo;How to publish a page (needs documentation/clarification).&rdquo;</em></p>
-  </blockquote>
+  <h2>Draft and Published</h2>
 
-  <h2>The two Status options</h2>
+  <p>Every page sits in one of two states, set from the Status dropdown in the page settings:</p>
 
   <table>
     <thead>
-      <tr>
-        <th style="width: 26%">Status</th>
-        <th>What it means</th>
-      </tr>
+      <tr><th style="width: 24%">Status</th><th>What it means</th></tr>
     </thead>
     <tbody>
       <tr>
         <td><code>Draft</code></td>
-        <td>The page is saved but is <strong>not visible</strong> on the website.</td>
+        <td>The page is stored in the system but is not shown on the website. Visitors get a not-found page if they type its address.</td>
       </tr>
       <tr>
         <td><code>Published</code></td>
-        <td>The page goes <strong>live</strong> the moment you save it &mdash; there is no separate &ldquo;Publish&rdquo; button.</td>
+        <td>The page is live and anybody can reach it. Saving the page while the status is set to Published is what puts it online.</td>
       </tr>
     </tbody>
   </table>
 
-  <h2>1. Add a new page</h2>
-  <ol>
-    <li>Go to <strong>Pages</strong> &rarr; <strong>+ New Page</strong></li>
-    <li>Enter the <strong>Title</strong> (for example, &ldquo;About Us&rdquo;)</li>
-    <li>Enter the <strong>Slug</strong> &mdash; this becomes the page URL. Use a slash for sub-folders: <code>about/our-team</code></li>
-    <li>Keep <strong>Status</strong> as <code>Draft</code></li>
-    <li>Click <strong>Save</strong> &mdash; the page is created and you are taken to the Page Builder</li>
-    <li>Add your content using <strong>+ Add Block</strong>, then click <strong>Save</strong></li>
+  <h2>Creating a new page</h2>
+
+  <ol class="steps">
+    <li>Go to <strong>Pages</strong> in the left menu, then <strong>New Page</strong>.</li>
+    <li>Type the <strong>title</strong> as it should appear on the site, for example <em>Annual Report 2025</em>.</li>
+    <li>Type the <strong>slug</strong>. This is the address of the page. For a page inside a folder, use a slash, for example <code>media/annual-report-2025</code>.</li>
+    <li>Leave the status as <code>Draft</code> for now.</li>
+    <li>Press <strong>Save</strong>. The page is created and you land in the page builder.</li>
+    <li>Build the page with <strong>Add block</strong>, then press <strong>Save</strong> again when you are done.</li>
   </ol>
 
-  <h2>2. Edit an existing page</h2>
-  <ol>
-    <li>Go to <strong>Pages</strong> &rarr; click the page title</li>
-    <li>Make your changes</li>
-    <li>Click <strong>Save</strong></li>
+  <h2>Editing a page that already exists</h2>
+
+  <ol class="steps">
+    <li>Go to <strong>Pages</strong> and click the title of the page.</li>
+    <li>Make the changes you need.</li>
+    <li>Press <strong>Save</strong>.</li>
   </ol>
 
-  <h2>3. Publish a page (Draft &rarr; Live)</h2>
-  <ol>
-    <li>Go to <strong>Pages</strong> &rarr; open the page</li>
-    <li>Click the <strong>Settings (gear)</strong> icon</li>
-    <li>In the <strong>Status</strong> dropdown, change <code>Draft</code> to <code>Published</code></li>
-    <li>Click <strong>Update</strong> / <strong>Save</strong></li>
+  <h2>Publishing a page</h2>
+
+  <ol class="steps">
+    <li>Open the page from <strong>Pages</strong>.</li>
+    <li>Open the settings panel using the gear icon at the top of the screen.</li>
+    <li>Change <strong>Status</strong> from <code>Draft</code> to <code>Published</code>.</li>
+    <li>Press <strong>Update</strong>, or close the panel and press <strong>Save</strong>.</li>
   </ol>
-  <p><span class="check">&#10003;</span> The page is now live and visible to visitors.</p>
 
-  <h2>4. Set a page back to Draft (Live &rarr; Hidden)</h2>
-  <ol>
-    <li>Go to <strong>Pages</strong> &rarr; open the page</li>
-    <li>Click <strong>Settings (gear)</strong> &rarr; change <strong>Status</strong> from <code>Published</code> to <code>Draft</code></li>
-    <li>Click <strong>Update</strong> / <strong>Save</strong></li>
+  <p>The page goes online the moment you save. There is nothing else to press.</p>
+
+  <h2>Taking a page offline again</h2>
+
+  <ol class="steps">
+    <li>Open the page from <strong>Pages</strong>.</li>
+    <li>In the settings panel, change <strong>Status</strong> back to <code>Draft</code>.</li>
+    <li>Press <strong>Update</strong> or <strong>Save</strong>.</li>
   </ol>
-  <p><span class="check">&#10003;</span> The page is removed from the website, but all of its content is preserved. You can make it live again at any time by switching the status back to <code>Published</code>.</p>
 
-  <h2>5. Delete a page</h2>
-  <ol>
-    <li>Go to <strong>Pages</strong> &rarr; click the <strong>trash icon</strong> next to the page</li>
-    <li>Confirm the deletion</li>
+  <p>
+    The page disappears from the website but nothing is lost. Put it back at any time by
+    setting the status to <code>Published</code> again.
+  </p>
+
+  <h2>Deleting a page</h2>
+
+  <ol class="steps">
+    <li>From the <strong>Pages</strong> list, click the bin icon beside the page.</li>
+    <li>Confirm the deletion.</li>
   </ol>
-  <p><span class="warn"><strong>Warning:</strong> A deleted page cannot be restored. If you only want to hide a page temporarily, use <strong>Draft</strong> instead of deleting it.</span></p>
 
-  <div class="reminders">
-    <h2>Quick reminders</h2>
-    <ul>
-      <li>To publish a page, set <strong>Status = Published</strong> and click <strong>Save</strong>. That is the entire publish action.</li>
-      <li>Publishing a page does <strong>not</strong> automatically add it to the navigation menu. To show it in the header or footer, add it under <strong>Menus</strong>.</li>
-      <li>Every change takes effect only after you click <strong>Save</strong>.</li>
-    </ul>
-  </div>
+  <p class="note">
+    A deleted page cannot be brought back from the admin panel. If you only want a page
+    out of the way for a while, switch it to <code>Draft</code> instead of deleting it.
+  </p>
 
-  <div class="doc-footer">
-    <span>MESCO Trust CMS &mdash; Admin User Guide</span>
-    <span>Section 12 &nbsp;|&nbsp; Page Publishing</span>
+  <h2>A few things to keep in mind</h2>
+
+  <ul>
+    <li>Publishing a page does not put it in the navigation bar. That is done separately under <strong>Menus</strong>.</li>
+    <li>Nothing shows on the website until <strong>Save</strong> is pressed.</li>
+    <li>If a page is missing from the site, check the status first. A draft is saved but stays hidden.</li>
+    <li>If the <strong>Save</strong> button is not showing, the account cannot edit pages. Please ask an administrator.</li>
+  </ul>
+
+  <div class="docfoot">
+    <span>MESCO Trust CMS &middot; Admin panel guide</span>
+    <span>Page Publishing &middot; October 2026</span>
   </div>
 
 </body>

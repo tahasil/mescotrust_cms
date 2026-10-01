@@ -2,54 +2,59 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>13. Homepage Slider (Editing)</title>
+<title>Homepage Slider - MESCO Trust Admin Guide</title>
 <style>
-  @page { size: A4; margin: 18mm 16mm; }
+  @page { size: A4; margin: 20mm 18mm 18mm; }
   * { box-sizing: border-box; }
-  body { font-family: "Segoe UI","Calibri",Arial,sans-serif; font-size: 11.2pt; line-height: 1.6; color: #1f2328; margin: 0; }
-  .doc-header { border-bottom: 3px solid #e03c33; padding-bottom: 10px; margin-bottom: 18px; }
-  .doc-brand { font-size: 9pt; letter-spacing: 1.4px; text-transform: uppercase; color: #e03c33; font-weight: 700; margin: 0 0 4px; }
-  h1 { font-size: 21pt; margin: 0; color: #10161c; font-weight: 700; }
-  .doc-subtitle { font-size: 10pt; color: #57606a; margin: 5px 0 0; }
-  h2 { font-size: 14pt; margin: 24px 0 10px; padding-bottom: 6px; border-bottom: 1px solid #d8dee4; color: #10161c; }
-  h3 { font-size: 12pt; margin: 18px 0 8px; color: #10161c; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    font-family: Calibri, "Segoe UI", Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.55;
+    color: #22262b;
+    margin: 0;
+    max-width: 172mm;
+  }
+  .masthead { border-bottom: 1px solid #22262b; padding-bottom: 10px; margin-bottom: 22px; }
+  .masthead img { height: 26px; display: block; margin-bottom: 10px; }
+  h1 { font-size: 17pt; font-weight: 400; line-height: 1.25; margin: 0 0 4px; color: #111417; }
+  .subtitle { font-size: 10pt; color: #6b7076; margin: 0; }
+  .ref { font-size: 9pt; color: #8b9096; margin: 3px 0 0; }
+  h2 { font-size: 12.5pt; font-weight: 700; margin: 22px 0 8px; color: #111417; }
+  h2:first-of-type { margin-top: 18px; }
+  h3 { font-size: 11pt; font-weight: 700; margin: 16px 0 6px; }
   p { margin: 0 0 10px; }
-  ol, ul { margin: 0 0 12px; padding-left: 22px; }
-  li { margin-bottom: 6px; }
-  blockquote { margin: 0 0 20px; padding: 11px 14px; background: #fff8f7; border-left: 4px solid #e03c33; border-radius: 0 4px 4px 0; color: #4a2020; font-size: 10pt; }
-  blockquote p { margin: 0; }
-  table { width: 100%; border-collapse: collapse; margin: 0 0 18px; font-size: 10.4pt; }
-  thead th { background: #f2f4f6; text-align: left; font-weight: 600; padding: 9px 12px; border: 1px solid #d8dee4; color: #10161c; }
-  tbody td { padding: 9px 12px; border: 1px solid #d8dee4; vertical-align: top; }
-  tbody tr:nth-child(even) { background: #fafbfc; }
-  code { font-family: Consolas,"Courier New",monospace; font-size: 9.6pt; background: #eff1f3; padding: 1px 5px; border-radius: 3px; color: #24292f; }
-  strong { color: #10161c; }
-  .check { color: #1a7f37; font-weight: 700; }
-  .warn { display: block; padding: 9px 12px; background: #fff8c5; border-left: 4px solid #d4a72c; border-radius: 0 4px 4px 0; font-size: 10pt; }
-  .reminders { margin-top: 22px; padding: 14px 18px; background: #f6f8fa; border: 1px solid #d8dee4; border-radius: 6px; }
-  .reminders h2 { margin: 0 0 10px; padding: 0; border: none; font-size: 12.5pt; }
-  .reminders li { margin-bottom: 7px; }
-  .doc-footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #d8dee4; font-size: 8.6pt; color: #6e7781; display: flex; justify-content: space-between; }
+  ol, ul { margin: 0 0 12px; padding-left: 20px; }
+  li { margin-bottom: 5px; }
+  code, .ui { font-family: Consolas, "Courier New", monospace; font-size: 9.5pt; background: #f1f2f3; padding: 1px 4px; border-radius: 2px; color: #1c1f23; }
+  strong { font-weight: 700; }
+  .note { font-size: 10pt; color: #4a5057; border-left: 2px solid #c9ccd0; padding: 2px 0 2px 12px; margin: 0 0 14px; }
+  table { width: 100%; border-collapse: collapse; margin: 0 0 14px; font-size: 10.5pt; }
+  th, td { border: 1px solid #d3d6da; padding: 7px 10px; text-align: left; vertical-align: top; }
+  th { background: #f4f5f6; font-weight: 700; }
+  .steps { counter-reset: step; list-style: none; padding: 0; margin: 0 0 14px; }
+  .steps > li { counter-increment: step; position: relative; padding-left: 26px; margin-bottom: 7px; }
+  .steps > li::before { content: counter(step) "."; position: absolute; left: 0; top: 0; width: 20px; text-align: right; color: #6b7076; }
+  .docfoot { margin-top: 26px; padding-top: 8px; border-top: 1px solid #d3d6da; font-size: 8.5pt; color: #8b9096; display: flex; justify-content: space-between; }
 </style>
 </head>
 <body>
 
-  <div class="doc-header">
-    <p class="doc-brand">MESCO Trust &mdash; CMS Admin Guide</p>
-    <h1>13. Homepage Slider (Editing)</h1>
-    <p class="doc-subtitle">Editing slider content, enabling or disabling sliders, and using shortcodes</p>
+  <div class="masthead">
+    <img src="../public/uploads/1772597551416_logo.webp" alt="MESCO Trust" />
+    <h1>Homepage Slider</h1>
+    <p class="subtitle">Admin panel guide &middot; MESCO Trust</p>
+    <p class="ref">QA audit item 7 &middot; September 2026</p>
   </div>
 
-  <blockquote>
-    <p><strong>Audit reference:</strong> Item 7 &mdash; <em>Homepage Slider (Process Note): &ldquo;Slider was previously edited via a shortcode.&rdquo;</em></p>
-  </blockquote>
+  <h2>The sliders available in the panel</h2>
 
-  <h2>Where the slider lives</h2>
-  <p>Sidebar &rarr; <strong>Sliders</strong></p>
-  <p>You will see a table with four sliders:</p>
+  <p>Four sliders are managed from one screen, <strong>Sliders</strong>:</p>
 
   <table>
-    <thead><tr><th style="width:50%">Slider</th><th>Component ID</th></tr></thead>
+    <thead>
+      <tr><th style="width: 34%">Slider</th><th>Component ID</th></tr>
+    </thead>
     <tbody>
       <tr><td>Home Slider</td><td><code>HomeSlider</code></td></tr>
       <tr><td>Circular Slider</td><td><code>ImageSlider</code></td></tr>
@@ -58,52 +63,70 @@
     </tbody>
   </table>
 
-  <p>Each row has a <strong>Status</strong> switch (Enabled / Disabled) and an <strong>Edit</strong> button.</p>
+  <p>The slider at the top of the homepage is the Home Slider.</p>
 
-  <h2>1. Editing the slider content (correct way)</h2>
-  <ol>
-    <li>Go to <strong>Sliders</strong></li>
-    <li>Find the slider you want &mdash; for the homepage this is <strong>Home Slider</strong></li>
-    <li>Click <strong>Edit</strong> next to it</li>
-    <li>Make your changes (slides, images, text, links)</li>
-    <li>Click <strong>Save</strong></li>
-  </ol>
-  <p><span class="check">&#10003;</span> Changes appear on the website immediately.</p>
+  <h2>Changing the slides</h2>
 
-  <h2>2. Turning a slider on or off</h2>
-  <ol>
-    <li>Go to <strong>Sliders</strong></li>
-    <li>Use the <strong>Status</strong> switch next to the slider</li>
-    <li><strong>Enabled</strong> = slider shows on the website</li>
-    <li><strong>Disabled</strong> = slider is hidden</li>
+  <ol class="steps">
+    <li>Open <strong>Sliders</strong> in the left menu.</li>
+    <li>Find the row for the slider you want and press <strong>Edit</strong>.</li>
+    <li>Change the images, captions or links.</li>
+    <li>Press <strong>Save</strong>. The change is on the website straight away.</li>
   </ol>
 
-  <h2>3. About shortcodes</h2>
-  <p>A <strong>shortcode</strong> is a small text code (for example <code>[shortcode="homeslider"]</code>) that you place inside a <strong>ShortCode</strong> block on a page. The block then pulls the content from the source and displays it.</p>
+  <h2>Hiding a slider</h2>
 
-  <h3>Important</h3>
+  <p>
+    Each row has a switch under <strong>Status</strong>. Turn it off and the slider is
+    removed from the page without deleting anything. Turn it back on to restore it.
+  </p>
+
+  <h2>When a shortcode is used instead</h2>
+
+  <p>
+    A shortcode is a short piece of text, for example <code>[shortcode="HomeSlider"]</code>,
+    placed inside a <strong>ShortCode</strong> block on a page. The block then shows whatever
+    content that shortcode points at.
+  </p>
+
+  <h3>A shortcode only points at something</h3>
+
+  <p>
+    A shortcode does not hold any content of its own. It simply says which module to show.
+    The content stays where it was created, and that is the only place it can be edited
+    from. You cannot edit a slide inside a shortcode block on a page, and if you try, the
+    change will not save.
+  </p>
+
+  <h3>Why a component can seem to disappear</h3>
+
+  <p>
+    When a normal block is swapped for a shortcode, the page no longer holds the original
+    block, so the component is not listed there any more. Nothing has been deleted. It
+    can still be found on its own screen, which in this case is <strong>Sliders</strong>,
+    or in the <strong>Components</strong> list.
+  </p>
+
+  <h3>When a shortcode is the right choice</h3>
+
+  <p>
+    Use one only when the same content needs to appear on more than one page. If it is
+    needed on a single page, add the component to that page directly. Putting a shortcode
+    and a normal block for the same content on one page will show it twice.
+  </p>
+
+  <h2>A few things to keep in mind</h2>
+
   <ul>
-    <li>A shortcode is only a <strong>placeholder</strong>. It does not hold the content &mdash; the content stays in its own module.</li>
-    <li><strong>Always edit the content from its original module</strong> (Sliders, Gallery, Forms, etc.). Do not try to build the content inside the shortcode block.</li>
-    <li>If you replace a real block with a shortcode, that block will <strong>no longer be visible on the page</strong>, because the page is now showing the shortcode source instead. The original block can still be found and edited from its own module or from the <strong>Components</strong> list.</li>
+    <li>Change slider content from the <strong>Sliders</strong> screen, never from a page.</li>
+    <li>Galleries, teams and forms each have a shortcode too. The same rule applies to all of them.</li>
+    <li>If a slide you changed earlier is not showing, check that the slider is still switched on.</li>
+    <li>Shortcodes have to be unique. Two galleries cannot share one.</li>
   </ul>
 
-  <h3>When to use a shortcode</h3>
-  <p>Use one when the <strong>same content must appear on more than one page</strong>. If it is only needed on one page, use a normal block instead.</p>
-
-  <div class="reminders">
-    <h2>Quick reminders</h2>
-    <ul>
-      <li>To change slider slides, images or text &rarr; <strong>Sliders &rarr; Edit &rarr; Save</strong>.</li>
-      <li>To hide a slider &rarr; turn off its <strong>Status</strong> switch.</li>
-      <li>Shortcodes only reference content. They never store it.</li>
-      <li>A shortcode and a normal block must <strong>not</strong> be used for the same content on the same page, otherwise the content will appear twice.</li>
-    </ul>
-  </div>
-
-  <div class="doc-footer">
-    <span>MESCO Trust CMS &mdash; Admin User Guide</span>
-    <span>Section 13 &nbsp;|&nbsp; Homepage Slider</span>
+  <div class="docfoot">
+    <span>MESCO Trust CMS &middot; Admin panel guide</span>
+    <span>Homepage Slider &middot; October 2026</span>
   </div>
 
 </body>
