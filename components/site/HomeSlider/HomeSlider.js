@@ -387,27 +387,28 @@ export default function HomeSlider(props) {
         @media (max-width: 767px) {
           .public-site .home-cinematic-slider { --home-slider-viewport-offset: var(--appearance-ribbon-height, 36px); }
           .home-cinematic-slider, .home-slider-stage { min-height: max(520px, calc(100svh - var(--home-slider-viewport-offset, 36px))); min-height: max(520px, calc(100dvh - var(--home-slider-viewport-offset, 36px))); }
-          .home-slider-content { width: 100%; padding-left: 16px; padding-right: 16px; min-height: max(520px, calc(100svh - var(--home-slider-viewport-offset, 36px))); min-height: max(520px, calc(100dvh - var(--home-slider-viewport-offset, 36px))); justify-content: flex-start !important; padding-top: max(var(--home-slider-container-padding-top, 0px), calc(var(--appearance-header-offset, 112px) + 22px), calc(var(--appearance-header-height, 76px) + 26px)); padding-bottom: max(var(--home-slider-container-padding-bottom, 0px), 64px); }
-          .home-slider-title { max-width: 14ch; margin-bottom: 12px; font-size: clamp(26px, 7.2vw, 36px) !important; line-height: 1.08 !important; letter-spacing: -.02em !important; }
-          .home-slider-pill { max-width: 100%; margin-bottom: 14px; padding: 7px 13px; font-size: 12px; }
-          .home-slider-description { margin-bottom: 16px; font-size: 13.5px; line-height: 1.45; max-width: 32ch; }
-          .home-slider-actions { display: flex; flex-direction: row; gap: 10px; width: 100%; max-width: 380px; }
-          .home-slider-button { flex: 1 1 auto; width: auto; min-height: 44px; padding: 11px 16px; font-size: 13.5px; text-align: center; }
-          .home-slider-rail { right: 12px; }
+          .home-slider-content { width: 100%; padding-left: 20px; padding-right: 20px; min-height: max(520px, calc(100svh - var(--home-slider-viewport-offset, 36px))); min-height: max(520px, calc(100dvh - var(--home-slider-viewport-offset, 36px))); justify-content: center !important; gap: clamp(16px, 3.2vh, 24px); padding-top: max(var(--home-slider-container-padding-top, 0px), calc(var(--appearance-header-height, 76px) + 16px)); padding-bottom: max(var(--home-slider-container-padding-bottom, 0px), 18px); }
+          .public-site:has(.appearance-header.is-preview) .home-slider-content { padding-top: max(var(--home-slider-container-padding-top, 0px), 18px); }
+          .home-slider-pill { max-width: 100%; margin-bottom: 0; padding: 8px 14px; font-size: 12px; line-height: 1.25; }
+          .home-slider-title { max-width: 100%; margin-bottom: 0; font-size: clamp(28px, 7.6vw, 40px) !important; line-height: 1.12 !important; letter-spacing: -.02em !important; text-wrap: balance; }
+          .home-slider-description { max-width: 38ch; margin-bottom: 0; font-size: 14px; line-height: 1.6; opacity: .86; text-wrap: pretty; }
+          .home-slider-actions { display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; width: 100%; max-width: 100%; margin-top: 2px; }
+          .home-slider-button { flex: 1 1 0; min-width: 0; width: auto; min-height: 48px; padding: 12px 14px; font-size: 14px; line-height: 1.25; text-align: center; }
+          .home-slider-rail { right: 10px; }
           .home-slider-caption { display: none; }
           .home-slider-badge { display: none; }
         }
         @media (max-width: 480px) {
-          .home-slider-content { padding-top: max(var(--home-slider-container-padding-top, 0px), calc(var(--appearance-header-offset, 102px) + 18px), calc(var(--appearance-header-height, 66px) + 22px)); padding-bottom: max(var(--home-slider-container-padding-bottom, 0px), 52px); }
-          .home-slider-title { font-size: clamp(24px, 6.8vw, 32px) !important; margin-bottom: 10px; }
-          .home-slider-pill { margin-bottom: 12px; padding: 6px 12px; font-size: 11.5px; }
-          .home-slider-description { font-size: 13px; line-height: 1.4; margin-bottom: 14px; }
-          .home-slider-actions { gap: 8px; }
-          .home-slider-button { min-height: 42px; padding: 10px 12px; font-size: 13px; }
+          .home-slider-content { padding-top: max(var(--home-slider-container-padding-top, 0px), calc(var(--appearance-header-height, 66px) + 14px)); padding-bottom: max(var(--home-slider-container-padding-bottom, 0px), 14px); gap: clamp(14px, 2.8vh, 20px); }
+          .home-slider-pill { padding: 7px 13px; font-size: 11.5px; }
+          .home-slider-title { font-size: clamp(26px, 7.4vw, 34px) !important; }
+          .home-slider-description { font-size: 13.5px; line-height: 1.55; max-width: 34ch; }
+          .home-slider-actions { gap: 10px; }
+          .home-slider-button { min-height: 46px; padding: 12px 10px; font-size: 13.5px; }
         }
         @media (max-width: 350px) {
-          .home-slider-actions { flex-direction: column; max-width: 100%; }
-          .home-slider-button { width: 100%; }
+          .home-slider-actions { flex-direction: column; gap: 8px; max-width: 100%; }
+          .home-slider-button { flex: 0 0 auto; width: 100%; min-height: 46px; }
         }
         @media (prefers-reduced-motion: reduce) {
           .home-slider-slide.is-active, .home-slider-slide.is-active .home-slider-media, .home-slider-slide.is-active .home-slider-caption p, .home-slider-slide.is-active .home-slider-caption a, .home-slider-rail button.is-active::after, .home-slider-badge > svg:first-child { animation: none !important; transition: none !important; }
