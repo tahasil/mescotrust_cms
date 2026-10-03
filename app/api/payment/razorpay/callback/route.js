@@ -139,16 +139,13 @@ export async function POST(req) {
           ...existingPayment(donation),
           gateway: "Razorpay",
           gatewayOrderId: razorpayOrderId,
-          paymentId,
           transactionId: paymentId,
-          orderStatus: "failed",
           statusCode: checkoutError.code,
           statusMsg: checkoutError.description,
           failureMessage: [checkoutError.reason, checkoutError.source, checkoutError.step]
             .filter(Boolean)
             .join(" / "),
           responseCode: checkoutError.code,
-          verificationStatus: "invalid",
           verificationMessage:
             checkoutError.description || "Razorpay checkout reported a failure",
           callbackReceivedAt,
@@ -172,9 +169,7 @@ export async function POST(req) {
           ...existingPayment(donation),
           gateway: "Razorpay",
           gatewayOrderId: razorpayOrderId,
-          paymentId,
           transactionId: paymentId,
-          verificationStatus: "invalid",
           verificationMessage: "Razorpay callback signature verification failed",
           callbackReceivedAt,
         };
@@ -220,23 +215,21 @@ export async function POST(req) {
     if (!wasSuccessful) {
       donation.status = nextStatus;
       donation.completedAt = nextStatus === "pending" ? null : callbackReceivedAt;
+      // Razorpay's payment id is kept only as the transaction reference;
+      // trackingId / paymentId / orderStatus / verificationStatus are not stored.
       donation.payment = {
         gateway: "Razorpay",
         gatewayOrderId: razorpayOrderId,
-        trackingId: toText(payment?.id),
         transactionId: toText(payment?.id),
-        paymentId: toText(payment?.id),
         bankRefNo: toText(payment?.acquirer_data?.bank_transaction_id || payment?.acquirer_data?.rrn),
         paymentMode: toText(payment?.method),
         cardName: describeCardOrBank(payment),
-        orderStatus: toText(payment?.status),
         amount: Number.isFinite(Number(payment?.amount)) ? Number(payment.amount) / 100 : null,
         currency: toText(payment?.currency),
         statusCode: toText(payment?.error_code),
         statusMsg: toText(payment?.status),
         failureMessage: toText(payment?.error_description),
         responseCode: toText(payment?.error_reason),
-        verificationStatus: verified ? "verified" : "mismatch",
         verificationMessage: verified
           ? captured
             ? "Razorpay signature verified and payment captured"

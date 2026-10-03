@@ -32,6 +32,19 @@ function getGatewayUrl(configuredUrl) {
   return url.toString();
 }
 
+/**
+ * The purpose rule snapshot is persisted for audit, but the purpose's own `id`
+ * (Purpose ID) must never be stored. Rebuild the object without `id` while
+ * keeping the rest of the rule definition intact.
+ */
+function sanitizePurposeRuleSnapshot(snapshot) {
+  if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) return {};
+  const { purpose, ...rest } = snapshot;
+  if (!purpose || typeof purpose !== "object" || Array.isArray(purpose)) return rest;
+  const { id: _omittedPurposeId, ...purposeWithoutId } = purpose;
+  return { ...rest, purpose: purposeWithoutId };
+}
+
 function verifyDonorProof(token) {
   const [payloadEncoded, signature, ...extra] = String(token || "").split(".");
   if (!payloadEncoded || !signature || extra.length) return null;
@@ -295,7 +308,6 @@ export async function POST(req) {
       amount: normalizedAmount,
       currency: "INR",
       purpose: toSafeString(purpose),
-      purposeId: toSafeString(purposeId),
       zakat: zakat || "No",
       interestMoney,
       studentsCount,
@@ -303,10 +315,7 @@ export async function POST(req) {
       donor: normalizedDonor,
       additionalFields: normalizedAdditionalFields,
       termsAccepted: Boolean(body?.termsAccepted),
-      purposeRuleSnapshot:
-        body?.purposeRuleSnapshot && typeof body.purposeRuleSnapshot === "object"
-          ? body.purposeRuleSnapshot
-          : {},
+      purposeRuleSnapshot: sanitizePurposeRuleSnapshot(body?.purposeRuleSnapshot),
       paymentSettingsSnapshot:
         body?.paymentSettingsSnapshot &&
         typeof body.paymentSettingsSnapshot === "object"
@@ -322,7 +331,6 @@ export async function POST(req) {
         gateway: getGatewayLabel(activeGateway),
         amount: normalizedAmount,
         currency: "INR",
-        verificationStatus: "pending",
       },
     });
 
@@ -346,7 +354,6 @@ export async function POST(req) {
         console.error("Razorpay order creation failed:", orderErr?.message || orderErr);
         donation.status = "failed";
         donation.completedAt = new Date();
-        donation.payment.verificationStatus = "invalid";
         donation.payment.verificationMessage = `Razorpay order creation failed: ${
           orderErr?.message || "unknown error"
         }`;

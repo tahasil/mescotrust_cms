@@ -45,7 +45,6 @@ const DONATION_COLUMNS = [
   { key: "country", label: "Country", accessor: (r) => String(r?.donor?.country ?? "").trim() },
   { key: "pincode", label: "Pincode", accessor: (r) => String(r?.donor?.pincode ?? "").trim() },
   { key: "purpose", label: "Donation Purpose", accessor: (r) => String(r?.purpose ?? "").trim() },
-  { key: "purposeId", label: "Purpose ID", accessor: (r) => String(r?.purposeId ?? "").trim() },
   { key: "amount", label: "Donation Amount", accessor: (r) => Number(r?.amount) || 0 },
   { key: "currency", label: "Currency", accessor: (r) => String(r?.currency || "INR").trim() },
   {
@@ -62,12 +61,8 @@ const DONATION_COLUMNS = [
   { key: "donorType", label: "Donor Type", accessor: (r) => String(r?.donorType ?? "").trim() },
   { key: "orderId", label: "Order ID", accessor: (r) => String(r?.orderId ?? "").trim() },
   { key: "transactionId", label: "Transaction ID", accessor: (r) => String(r?.payment?.transactionId ?? "").trim() },
-  { key: "paymentId", label: "Payment ID", accessor: (r) => String(r?.payment?.paymentId ?? "").trim() },
-  { key: "trackingId", label: "Tracking ID", accessor: (r) => String(r?.payment?.trackingId ?? "").trim() },
   { key: "bankRefNo", label: "Bank Reference", accessor: (r) => String(r?.payment?.bankRefNo ?? "").trim() },
   { key: "paymentMode", label: "Payment Mode", accessor: (r) => String(r?.payment?.paymentMode ?? "").trim() },
-  { key: "orderStatus", label: "Gateway Status", accessor: (r) => String(r?.payment?.orderStatus ?? "").trim() },
-  { key: "verificationStatus", label: "Verification Status", accessor: (r) => String(r?.payment?.verificationStatus ?? "").trim() },
   { key: "completedAt", label: "Completed Date & Time", accessor: (r) => (r?.completedAt ? formatDateTime(r.completedAt) : "") },
   { key: "note", label: "Note", accessor: (r) => String(r?.note ?? "").trim() },
 ];

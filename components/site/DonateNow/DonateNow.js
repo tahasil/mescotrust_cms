@@ -121,6 +121,16 @@ function getFieldValidationError(fieldKey, value, fieldConfig, required) {
   return "";
 }
 
+/**
+ * The purpose rule snapshot is stored for audit, but the purpose's own `id`
+ * (Purpose ID) must never be persisted. Rebuild the object without it.
+ */
+function stripPurposeId(purpose) {
+  if (!purpose || typeof purpose !== "object" || Array.isArray(purpose)) return {};
+  const { id: _omittedPurposeId, ...rest } = purpose;
+  return rest;
+}
+
 function normalizeAdditionalFieldValue(fieldType, value) {
   if (fieldType === "number") {
     const parsed = Number(String(value ?? "").replace(/[^0-9.]/g, ""));
@@ -1254,11 +1264,11 @@ export default function DonateNow(props = {}) {
     });
 
     const amount = Number(fieldValues.amount);
+    // Purpose ID is deliberately not sent: it must never be persisted.
     const payload = {
       amount,
       currency: paymentSettings.currency || "INR",
       purpose: selectedPurpose?.name || "",
-      purposeId: selectedPurpose?.id || "",
       zakat: normalizeText(fieldValues.zakat) || "No",
       interestMoney: normalizeText(fieldValues.interestMoney) || "No",
       studentsCount: normalizeText(fieldValues.studentsCount),
@@ -1280,7 +1290,7 @@ export default function DonateNow(props = {}) {
         verificationProof: lookupState.verificationProof || "",
       },
       purposeRuleSnapshot: {
-        purpose: selectedPurpose || {},
+        purpose: stripPurposeId(selectedPurpose),
         hiddenFields: Array.from(hiddenFields),
         disabledFields: Array.from(disabledFields),
         requiredFields: Array.from(requiredFields),

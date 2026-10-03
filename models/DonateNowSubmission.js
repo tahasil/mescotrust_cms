@@ -15,30 +15,33 @@ const donorSchema = new mongoose.Schema(
   { _id: false },
 );
 
+/**
+ * Persisted gateway reconciliation data.
+ *
+ * Deliberately NOT stored (removed 2026-10): trackingId, paymentId,
+ * orderStatus (Gateway Status) and verificationStatus. These were gateway
+ * echoes that duplicated information already captured by transactionId,
+ * statusCode/statusMsg/failureMessage and the donation `status` itself, and
+ * they carried raw gateway identifiers that must not be retained.
+ * `verificationMessage` is kept as the audit trail of *why* verification
+ * failed, without the coarse status enum.
+ */
 const paymentSchema = new mongoose.Schema(
   {
     gateway: { type: String, default: "CCAvenue" },
     // Gateway-side order reference (CCAvenue reuses our orderId; Razorpay
     // issues its own order id that callbacks are matched on).
     gatewayOrderId: { type: String, default: "", trim: true },
-    trackingId: { type: String, default: "" },
     transactionId: { type: String, default: "" },
-    paymentId: { type: String, default: "" },
     bankRefNo: { type: String, default: "" },
     paymentMode: { type: String, default: "" },
     cardName: { type: String, default: "" },
-    orderStatus: { type: String, default: "" },
     amount: { type: Number, default: null },
     currency: { type: String, default: "" },
     statusCode: { type: String, default: "" },
     statusMsg: { type: String, default: "" },
     failureMessage: { type: String, default: "" },
     responseCode: { type: String, default: "" },
-    verificationStatus: {
-      type: String,
-      enum: ["pending", "verified", "mismatch", "invalid"],
-      default: "pending",
-    },
     verificationMessage: { type: String, default: "" },
     responseHash: { type: String, default: "" },
     callbackReceivedAt: { type: Date, default: null },
@@ -66,7 +69,6 @@ const donateNowSubmissionSchema = new mongoose.Schema(
     amount: { type: Number, required: true },
     currency: { type: String, default: "INR", trim: true },
     purpose: { type: String, default: "", trim: true },
-    purposeId: { type: String, default: "", trim: true, index: true },
     zakat: { type: String, default: "No", trim: true },
     interestMoney: { type: String, default: "No", trim: true },
     studentsCount: { type: String, default: "", trim: true },
@@ -74,6 +76,11 @@ const donateNowSubmissionSchema = new mongoose.Schema(
     donor: { type: donorSchema, required: true },
     additionalFields: { type: Object, default: {} },
     termsAccepted: { type: Boolean, default: false },
+    /**
+     * Snapshot of the purpose rule set active at submit time. The purpose
+     * object is sanitized server-side to drop its `id` (Purpose ID) before
+     * persistence — see sanitizePurposeRuleSnapshot in app/api/payment/initiate.
+     */
     purposeRuleSnapshot: { type: Object, default: {} },
     paymentSettingsSnapshot: { type: Object, default: {} },
     lookup: { type: lookupSchema, default: () => ({}) },
@@ -108,7 +115,6 @@ donateNowSubmissionSchema.index({ status: 1, createdAt: -1 });
 donateNowSubmissionSchema.index({ isDeleted: 1, createdAt: -1 });
 donateNowSubmissionSchema.index({ "donor.email": 1 });
 donateNowSubmissionSchema.index({ "donor.mobile": 1 });
-donateNowSubmissionSchema.index({ purposeId: 1, createdAt: -1 });
 donateNowSubmissionSchema.index({ "payment.gatewayOrderId": 1 });
 
 module.exports =

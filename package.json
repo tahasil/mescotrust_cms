@@ -12,6 +12,7 @@
     "seed-subscribe": "node scripts/seed-subscribe-from-mescotrust.js",
     "backup-db": "node scripts/backup-db.js",
     "sync-missing-media": "node scripts/sync-missing-media.js",
+    "migrate:strip-donation-gateway-fields": "node scripts/migrate-strip-donation-gateway-fields.js",
     "form-upload-cleanup": "node scripts/form-upload-cleanup.js",
     "form-builder-qa": "node scripts/form-builder-qa.js",
     "test:media-delivery": "node --test scripts/test-media-delivery.js",

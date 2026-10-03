@@ -95,23 +95,22 @@ export async function POST(req) {
     if (!wasSuccessful) {
       donation.status = nextStatus;
       donation.completedAt = nextStatus === "pending" ? null : callbackReceivedAt;
+      // tracking_id / payment_id / order_status are intentionally not persisted
+      // — only transactionId keeps the gateway reference (falling back to the
+      // tracking id) so reconciliation stays possible.
       donation.payment = {
         gateway: "CCAvenue",
         gatewayOrderId: toText(donation.orderId),
-        trackingId,
         transactionId: toText(data.transaction_id) || trackingId,
-        paymentId: toText(data.payment_id) || trackingId,
         bankRefNo: toText(data.bank_ref_no),
         paymentMode: toText(data.payment_mode),
         cardName: toText(data.card_name),
-        orderStatus: toText(data.order_status),
         amount: Number.isFinite(Number(data.amount)) ? Number(data.amount) : null,
         currency: toText(data.currency),
         statusCode: toText(data.status_code),
         statusMsg: toText(data.status_message),
         failureMessage: toText(data.failure_message),
         responseCode: toText(data.response_code),
-        verificationStatus: verified ? "verified" : "mismatch",
         verificationMessage: verified
           ? "Encrypted callback verified and matched to the donation order"
           : verificationErrors.join("; "),

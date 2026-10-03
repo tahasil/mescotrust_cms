@@ -46,7 +46,6 @@ const DONATION_EXPORT_COLUMNS = [
   { key: "country", label: "Country" },
   { key: "pincode", label: "Pincode" },
   { key: "purpose", label: "Donation Purpose" },
-  { key: "purposeId", label: "Purpose ID" },
   { key: "amount", label: "Donation Amount" },
   { key: "currency", label: "Currency" },
   { key: "status", label: "Payment Status" },
@@ -56,12 +55,8 @@ const DONATION_EXPORT_COLUMNS = [
   { key: "donorType", label: "Donor Type" },
   { key: "orderId", label: "Order ID" },
   { key: "transactionId", label: "Transaction ID" },
-  { key: "paymentId", label: "Payment ID" },
-  { key: "trackingId", label: "Tracking ID" },
   { key: "bankRefNo", label: "Bank Reference" },
   { key: "paymentMode", label: "Payment Mode" },
-  { key: "orderStatus", label: "Gateway Status" },
-  { key: "verificationStatus", label: "Verification Status" },
   { key: "completedAt", label: "Completed Date & Time" },
   { key: "note", label: "Note" },
 ];
@@ -229,14 +224,7 @@ export default function AdminDonationsPage() {
       title: "Donation Purpose",
       key: "purpose",
       width: 220,
-      render: (_, row) => (
-        <div>
-          <div>{renderMaybeText(row?.purpose)}</div>
-          {row?.purposeId ? (
-            <div style={{ fontSize: 11, color: "#888" }}>ID: {row.purposeId}</div>
-          ) : null}
-        </div>
-      ),
+      render: (_, row) => <div>{renderMaybeText(row?.purpose)}</div>,
     },
     {
       title: "Donation Amount",
@@ -264,7 +252,6 @@ export default function AdminDonationsPage() {
         <div style={{ fontSize: 12 }}>
           <div>Order: {renderMaybeText(row?.orderId)}</div>
           <div>Transaction: {renderMaybeText(row?.payment?.transactionId)}</div>
-          <div>Tracking: {renderMaybeText(row?.payment?.trackingId)}</div>
           <div>Bank Ref: {renderMaybeText(row?.payment?.bankRefNo)}</div>
         </div>
       ),
@@ -407,7 +394,6 @@ export default function AdminDonationsPage() {
             <Descriptions.Item label="Country">{renderMaybeText(viewItem.donor?.country)}</Descriptions.Item>
             <Descriptions.Item label="Pincode">{renderMaybeText(viewItem.donor?.pincode)}</Descriptions.Item>
             <Descriptions.Item label="Purpose">{renderMaybeText(viewItem.purpose)}</Descriptions.Item>
-            <Descriptions.Item label="Purpose ID">{renderMaybeText(viewItem.purposeId)}</Descriptions.Item>
             <Descriptions.Item label="Amount">{formatInr(viewItem.amount)}</Descriptions.Item>
             <Descriptions.Item label="Payment Status">
               <Tag color={STATUS_COLORS[viewItem.status] || "default"}>
@@ -420,12 +406,8 @@ export default function AdminDonationsPage() {
             <Descriptions.Item label="Donor Type">{renderMaybeText(viewItem.donorType)}</Descriptions.Item>
             <Descriptions.Item label="Order ID">{renderMaybeText(viewItem.orderId)}</Descriptions.Item>
             <Descriptions.Item label="Transaction ID">{renderMaybeText(viewItem.payment?.transactionId)}</Descriptions.Item>
-            <Descriptions.Item label="Payment ID">{renderMaybeText(viewItem.payment?.paymentId)}</Descriptions.Item>
-            <Descriptions.Item label="Tracking ID">{renderMaybeText(viewItem.payment?.trackingId)}</Descriptions.Item>
             <Descriptions.Item label="Bank Reference">{renderMaybeText(viewItem.payment?.bankRefNo)}</Descriptions.Item>
             <Descriptions.Item label="Payment Mode">{renderMaybeText(viewItem.payment?.paymentMode)}</Descriptions.Item>
-            <Descriptions.Item label="Gateway Status">{renderMaybeText(viewItem.payment?.orderStatus)}</Descriptions.Item>
-            <Descriptions.Item label="Verification Status">{renderMaybeText(viewItem.payment?.verificationStatus)}</Descriptions.Item>
             <Descriptions.Item label="Completed At" span={2}>
               {viewItem.completedAt ? formatDateTime(viewItem.completedAt) : "—"}
             </Descriptions.Item>

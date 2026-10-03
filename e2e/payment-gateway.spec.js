@@ -113,7 +113,6 @@ async function createPendingDonation(scenario, amount = 125) {
       gateway: "CCAvenue",
       amount,
       currency: "INR",
-      verificationStatus: "pending",
     },
   });
   return donation.toObject();
@@ -297,15 +296,16 @@ test.describe("CCAvenue Donate Now payment flow", () => {
       expect(saved.amount).toBe(pending.amount);
       expect(saved.payment).toMatchObject({
         gateway: "CCAvenue",
-        trackingId: gateway.trackingId,
         transactionId: `TXN_${gateway.trackingId}`,
-        paymentId: `PAY_${gateway.trackingId}`,
         bankRefNo: `BANK_${gateway.trackingId}`,
-        orderStatus: scenario.gatewayStatus,
         amount: pending.amount,
         currency: "INR",
-        verificationStatus: "verified",
       });
+      // Gateway identifiers that must never be persisted.
+      expect(saved.payment.trackingId).toBeUndefined();
+      expect(saved.payment.paymentId).toBeUndefined();
+      expect(saved.payment.orderStatus).toBeUndefined();
+      expect(saved.payment.verificationStatus).toBeUndefined();
       expect(saved.payment.callbackReceivedAt).toBeTruthy();
       expect(saved.completedAt).toBeTruthy();
       expect(saved.createdAt).toBeTruthy();
@@ -344,9 +344,17 @@ test.describe("CCAvenue Donate Now payment flow", () => {
       await expect(row).toContainText(saved.payment.transactionId);
       await row.getByRole("button").click();
       const modal = page.getByRole("dialog", { name: "Donation Details" });
-      await expect(modal).toContainText(saved.payment.paymentId);
       await expect(modal).toContainText(saved.payment.bankRefNo);
-      await expect(modal).toContainText("verified");
+      // Removed fields must not appear anywhere in the details modal.
+      for (const removedLabel of [
+        "Purpose ID",
+        "Payment ID",
+        "Tracking ID",
+        "Gateway Status",
+        "Verification Status",
+      ]) {
+        await expect(modal).not.toContainText(removedLabel);
+      }
       await page.screenshot({ path: testInfo.outputPath("admin-success-record.png"), fullPage: true });
     });
   }
