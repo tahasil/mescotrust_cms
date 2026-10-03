@@ -7,7 +7,11 @@
 node_modules
 
 # Environment
+# `.env` holds live credentials (Mongo, NextAuth, SMTP, gateway keys) and must
+# never be committed. `.env.example` is the tracked template.
+.env
 .env*.local
+!.env.example
 
 # Uploads
 # public/uploads/

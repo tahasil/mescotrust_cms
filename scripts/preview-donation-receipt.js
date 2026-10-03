@@ -29,9 +29,6 @@ const SAMPLE = {
   purpose: "Lorem Ipsum Dolor Sit Amet",
   note: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.",
   orgName: "MESCO Trust",
-  // Pass a logo URL to preview the real logo. Left empty here so the MESCO
-  // TRUST wordmark fallback renders; set LOGO_URL to test an image.
-  logoUrl: process.env.LOGO_URL || "",
 };
 
 async function main() {

@@ -46,7 +46,6 @@ const SAMPLE = {
   purpose: "Lorem Ipsum Dolor Sit Amet",
   note: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
   orgName: "MESCO Trust",
-  logoUrl: env("LOGO_URL"),
 };
 
 async function main() {
@@ -56,8 +55,11 @@ async function main() {
   const smtpUser = env("SMTP_USER");
   const smtpPass = env("SMTP_PASS");
   const resendKey = env("RESEND_API_KEY");
-  const from = env("EMAIL_FROM");
-  const adminTo = env("EMAIL_TO");
+  // Mirror lib/mailTransport.js resolution exactly: SMTP_FROM wins, EMAIL_FROM
+  // is the fallback. Reporting EMAIL_FROM here would hide the address the app
+  // actually sends from.
+  const from = env("SMTP_FROM") || env("EMAIL_FROM");
+  const adminTo = env("ADMIN_NOTIFICATION_EMAIL") || env("EMAIL_TO") || env("ADMIN_EMAIL");
 
   const smtpReady = Boolean(smtpHost && smtpUser);
   const resendReady = Boolean(resendKey);
@@ -75,8 +77,12 @@ async function main() {
   console.log("  RESEND_API_KEY : " + mask(resendKey));
   console.log("  status         : " + (resendReady ? "CONFIGURED" : "not configured"));
   console.log("\n[Addresses]");
-  console.log("  EMAIL_FROM : " + (from || "*** MISSING ***"));
-  console.log("  EMAIL_TO   : " + (adminTo || "(not set — admin copy disabled)"));
+  console.log("  SMTP_FROM  : " + (env("SMTP_FROM") || "(not set)"));
+  console.log("  EMAIL_FROM : " + (env("EMAIL_FROM") || "*** MISSING ***"));
+  console.log("  >>> FROM   : " + (from || "*** MISSING ***"));
+  console.log("  ADMIN_NOTIFICATION_EMAIL : " + (env("ADMIN_NOTIFICATION_EMAIL") || "(not set)"));
+  console.log("  EMAIL_TO   : " + (env("EMAIL_TO") || "(not set)"));
+  console.log("  >>> ADMIN TO : " + (adminTo || "(not set — admin copy disabled)"));
   console.log("\n>>> ACTIVE PROVIDER: " + (active || "NONE — emails will be skipped"));
 
   if (!active) {
@@ -87,7 +93,7 @@ async function main() {
   }
 
   if (!from) {
-    console.log("\nCannot send: EMAIL_FROM is empty — every provider requires a 'from' address.");
+    console.log("\nCannot send: neither SMTP_FROM nor EMAIL_FROM is set — every provider requires a 'from' address.");
     return;
   }
 

@@ -179,9 +179,9 @@ const ViewBtn = styled.button`
   font-size: 14px;
   font-weight: 500;
   border-radius: 30px;
-  border: 2px solid var(--primary-color, #1677ff);
-  background: var(--primary-color, #1677ff);
-  color: #fff;
+  border: 2px solid var(--inmedia-button-border, var(--primary-color, #1677ff));
+  background: var(--inmedia-button-bg, var(--primary-color, #1677ff));
+  color: var(--inmedia-button-text, #fff);
   cursor: pointer;
   opacity: 0;
   transform: scale(0.9);
@@ -195,9 +195,11 @@ const ViewBtn = styled.button`
     opacity: 1;
     transform: scale(1);
   }
-  &:hover {
-    background: #fff;
-    color: var(--primary-color, #1677ff);
+  &:hover,
+  &:focus-visible {
+    border-color: var(--inmedia-button-hover-border, var(--primary-color, #1677ff));
+    background: var(--inmedia-button-hover-bg, #fff);
+    color: var(--inmedia-button-hover-text, var(--primary-color, #1677ff));
   }
 `;
 
@@ -213,9 +215,9 @@ const CardViewBtn = styled.button`
   font-size: 14px;
   font-weight: 500;
   border-radius: 28px;
-  border: 2px solid var(--primary-color, #1677ff);
-  background: var(--primary-color, #1677ff);
-  color: #fff;
+  border: 2px solid var(--inmedia-button-border, var(--primary-color, #1677ff));
+  background: var(--inmedia-button-bg, var(--primary-color, #1677ff));
+  color: var(--inmedia-button-text, #fff);
   cursor: pointer;
   transition:
     background 0.25s ease,
@@ -224,8 +226,9 @@ const CardViewBtn = styled.button`
 
   &:hover,
   &:focus-visible {
-    background: #fff;
-    color: var(--primary-color, #1677ff);
+    border-color: var(--inmedia-button-hover-border, var(--primary-color, #1677ff));
+    background: var(--inmedia-button-hover-bg, #fff);
+    color: var(--inmedia-button-hover-text, var(--primary-color, #1677ff));
   }
 
   /* Hover-capable pointers use the overlay button instead. */
@@ -233,6 +236,11 @@ const CardViewBtn = styled.button`
     display: none;
   }
 `;
+
+function color(value, fallback) {
+  const key = value == null ? "" : String(value).trim();
+  return key ? getColor(key) : fallback;
+}
 
 /**
  * Site component: InMedia.
@@ -267,6 +275,16 @@ export default function InMedia(props) {
   const nameColor = nameColorKey ? getColor(nameColorKey) : undefined;
   const dateColorKey = (props?.inMediaDateColorKey ?? "").toString().trim();
   const dateColor = dateColorKey ? getColor(dateColorKey) : undefined;
+
+  /* ── Button colors (admin configurable) ── */
+  const designStyle = {
+    "--inmedia-button-bg": color(props?.inMediaButtonBgColorKey, getColor("primary")),
+    "--inmedia-button-text": color(props?.inMediaButtonTextColorKey, "#fff"),
+    "--inmedia-button-border": color(props?.inMediaButtonBorderColorKey, getColor("primary")),
+    "--inmedia-button-hover-bg": color(props?.inMediaButtonHoverBgColorKey, "#fff"),
+    "--inmedia-button-hover-text": color(props?.inMediaButtonHoverTextColorKey, getColor("primary")),
+    "--inmedia-button-hover-border": color(props?.inMediaButtonHoverBorderColorKey, getColor("primary")),
+  };
 
   /* ── Section bg ── */
   const sectionBgType = (props?.inMediaSectionBgType ?? "default").toString();
@@ -414,7 +432,7 @@ export default function InMedia(props) {
         $managedStyle={sectionBgStyle}
       >
         <PageContainer $managedStyle={pageContainerBgStyle}>
-          <div className="fable-section">
+          <div className="fable-section" style={designStyle}>
           {(titleEnabled || subTitleEnabled) && (
             <Row gutter={[16, 16]}>
               <Col span={24} className="mb-4">

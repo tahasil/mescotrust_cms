@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle, useCallback } from "react";
 import { Form, Input, Row, Col, Collapse, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
@@ -11,6 +11,14 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
 const API_PATH = "/api/theme/InMedia";
 const PREFIX = "inMedia";
+const INMEDIA_BUTTON_COLOR_FIELDS = [
+  "inMediaButtonBgColorKey",
+  "inMediaButtonTextColorKey",
+  "inMediaButtonBorderColorKey",
+  "inMediaButtonHoverBgColorKey",
+  "inMediaButtonHoverTextColorKey",
+  "inMediaButtonHoverBorderColorKey",
+];
 
 const DEFAULT_ITEMS = [
   {
@@ -82,6 +90,9 @@ function InMediaEditForm({ source, initialData: initialDataProp, onSaveToPage, o
         inMediaSubTitleColorKey: data?.inMediaSubTitleColorKey != null ? String(data.inMediaSubTitleColorKey).trim() : "",
         inMediaNameColorKey: data?.inMediaNameColorKey != null ? String(data.inMediaNameColorKey).trim() : "",
         inMediaDateColorKey: data?.inMediaDateColorKey != null ? String(data.inMediaDateColorKey).trim() : "",
+        ...Object.fromEntries(
+          INMEDIA_BUTTON_COLOR_FIELDS.map((key) => [key, String(data?.[key] ?? "").trim()]),
+        ),
         inMediaItems: items.length > 0 ? items : DEFAULT_ITEMS.map(normalizeItem),
       });
       if (theme) {
@@ -116,7 +127,7 @@ function InMediaEditForm({ source, initialData: initialDataProp, onSaveToPage, o
       .finally(() => setLoading(false));
   }, [form, isPageBlock, initialDataProp]);
 
-  const handleUpdate = () => {
+  const handleUpdate = useCallback(() => {
     form.validateFields().then(() => {
       const values = form.getFieldsValue(true);
       const rawItems = values.inMediaItems ?? [];
@@ -131,6 +142,9 @@ function InMediaEditForm({ source, initialData: initialDataProp, onSaveToPage, o
         inMediaSubTitleColorKey: values.inMediaSubTitleColorKey != null ? String(values.inMediaSubTitleColorKey).trim() : "",
         inMediaNameColorKey: values.inMediaNameColorKey != null ? String(values.inMediaNameColorKey).trim() : "",
         inMediaDateColorKey: values.inMediaDateColorKey != null ? String(values.inMediaDateColorKey).trim() : "",
+        ...Object.fromEntries(
+          INMEDIA_BUTTON_COLOR_FIELDS.map((key) => [key, String(values?.[key] ?? "").trim()]),
+        ),
         inMediaItems: items,
       };
       if (isPageBlock && onSaveToPage) {
@@ -150,9 +164,9 @@ function InMediaEditForm({ source, initialData: initialDataProp, onSaveToPage, o
         .catch((err) => message.error(err?.error || "Failed to save"))
         .finally(() => setSaving(false));
     }).catch(() => {});
-  };
+  }, [form, isPageBlock, onSaveToPage, onSuccess]);
 
-  useImperativeHandle(ref, () => ({ update: handleUpdate }), []);
+  useImperativeHandle(ref, () => ({ update: handleUpdate }), [handleUpdate]);
 
   if (loading) {
     return <div style={{ padding: 48, textAlign: "center" }}><Spin /></div>;

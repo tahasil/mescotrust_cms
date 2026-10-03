@@ -128,11 +128,22 @@ Required env vars:
 
 Common optional env vars:
 - `ADMIN_EMAIL`, `ADMIN_PASSWORD` (seed)
-- Email settings (`EMAIL_FROM`, `EMAIL_TO`, `RESEND_API_KEY` or SMTP vars)
+- Email settings (`SMTP_FROM`, `ADMIN_NOTIFICATION_EMAIL`, `EMAIL_FROM`, `EMAIL_TO`, `RESEND_API_KEY` or SMTP vars)
 - `NEXT_PUBLIC_SITE_URL`
 - Social media wall provider credentials
 
-The project uses one environment file: `.env`.
+The project uses one environment file: `.env`. It is git-ignored (only
+`.env.example` is tracked) because it holds live credentials — never commit
+real values.
+
+Sender/recipient resolution lives in `lib/mailTransport.js` and is the single
+source of truth used by every email call site in `lib/email.js`:
+- From address: `SMTP_FROM` -> `EMAIL_FROM` -> caller fallback
+- Admin copy: `ADMIN_NOTIFICATION_EMAIL` -> `EMAIL_TO` -> `ADMIN_EMAIL`
+
+The sender domain must be verified with the active provider (SES identity /
+Resend domain), or every send fails. Check config and deliver a real test
+receipt with `npm run test:email-config -- --send <email>`.
 
 NPM scripts:
 - `npm run dev` -> start development server
