@@ -1,0 +1,13 @@
+Thank you for your donation to MESCO Trust!
+Donor Name:       Lorem Ipsum
+Transaction ID:   TXN_LOREMIPSUM00000
+Payment Mode:     Lorem Ipsum
+Amount:           ₹50,000
+Transaction Date: 01 Jan 2026, 04:00 pm
+Purpose:          Lorem Ipsum Dolor Sit Amet
+
+YOUR NOTE
+---------  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.
+          Your contribution will be applied to the programme you have chosen and will go directly towards the people MESCO Trust serves.
+This is a system-generated receipt for your records.
+— MESCO Trust
