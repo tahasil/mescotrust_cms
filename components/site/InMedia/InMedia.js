@@ -145,11 +145,12 @@ const CardBody = styled.div`
 `;
 
 const ProfileOverlay = styled.div`
+  /* Touch / no-hover devices get the always-visible card action button instead. */
+  display: none;
   position: absolute;
   inset: 0;
   border-radius: 24px;
   background: rgba(0, 0, 0, 0.1);
-  display: flex;
   align-items: center;
   justify-content: center;
   transform: scale(0);
@@ -160,10 +161,16 @@ const ProfileOverlay = styled.div`
     transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
     opacity 0.25s ease;
   z-index: 2;
-  .card-wrapper:hover & {
-    transform: scale(1);
-    opacity: 1;
-    pointer-events: auto;
+
+  /* Hover-capable pointers (desktop) keep the reveal-on-hover behaviour. */
+  @media (hover: hover) and (pointer: fine) {
+    display: flex;
+
+    .card-wrapper:hover & {
+      transform: scale(1);
+      opacity: 1;
+      pointer-events: auto;
+    }
   }
 `;
 
@@ -191,6 +198,39 @@ const ViewBtn = styled.button`
   &:hover {
     background: #fff;
     color: var(--primary-color, #1677ff);
+  }
+`;
+
+/** Always-visible card action for touch / no-hover devices (mobile + tablet). */
+const CardViewBtn = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 46px;
+  margin-top: 14px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 28px;
+  border: 2px solid var(--primary-color, #1677ff);
+  background: var(--primary-color, #1677ff);
+  color: #fff;
+  cursor: pointer;
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: #fff;
+    color: var(--primary-color, #1677ff);
+  }
+
+  /* Hover-capable pointers use the overlay button instead. */
+  @media (hover: hover) and (pointer: fine) {
+    display: none;
   }
 `;
 
@@ -452,6 +492,16 @@ export default function InMedia(props) {
                             {source && <div className="source">{source}</div>}
                           </Space>
                         </div>
+                        {image && (
+                          <CardViewBtn
+                            onClick={() => {
+                              setSelectedItem(item);
+                              setModalOpen(true);
+                            }}
+                          >
+                            View
+                          </CardViewBtn>
+                        )}
                       </CardBody>
                     </MediaCard>
                     {image && (

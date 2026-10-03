@@ -44,10 +44,11 @@ const CardWrapper = styled.article`
 `;
 
 const ProfileOverlay = styled.div`
+  /* Touch / no-hover devices get the always-visible card action button instead. */
+  display: none;
   position: absolute;
   inset: 0;
   z-index: 2;
-  display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
@@ -61,11 +62,16 @@ const ProfileOverlay = styled.div`
     transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
     opacity 0.25s ease;
 
-  .fable-person:hover &,
-  .fable-person:focus-within:has(:focus-visible) & {
-    opacity: 1;
-    pointer-events: auto;
-    transform: scale(1);
+  /* Hover-capable pointers (desktop) keep the reveal-on-hover behaviour. */
+  @media (hover: hover) and (pointer: fine) {
+    display: flex;
+
+    .fable-person:hover &,
+    .fable-person:focus-within:has(:focus-visible) & {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+    }
   }
 `;
 
@@ -99,6 +105,39 @@ const ViewProfileBtn = styled(Button)`
       color: var(--committee-button-hover-text) !important;
       background: var(--committee-button-hover-bg) !important;
       border-color: var(--committee-button-hover-border) !important;
+    }
+  }
+`;
+
+/** Always-visible card action for touch / no-hover devices (mobile + tablet). */
+const TouchActionBtn = styled(Button)`
+  && {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 46px;
+    margin-top: 14px;
+    padding: 0 24px;
+    color: var(--committee-button-text);
+    background: var(--committee-button-bg);
+    border-color: var(--committee-button-border);
+    border-radius: 28px;
+    font-size: 14px;
+    font-weight: 600;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--committee-button-hover-text) !important;
+      background: var(--committee-button-hover-bg) !important;
+      border-color: var(--committee-button-hover-border) !important;
+    }
+  }
+
+  /* Hover-capable pointers use the overlay button instead. */
+  @media (hover: hover) and (pointer: fine) {
+    && {
+      display: none;
     }
   }
 `;
@@ -514,6 +553,15 @@ export default function CommitteeMembers(props) {
                 <CardBodyWrapper>
                   <h3 className="name">{member.name}</h3>
                   {meta ? <p className="meta">{meta}</p> : null}
+                  <TouchActionBtn
+                    type="primary"
+                    onClick={(e) => {
+                      e.currentTarget?.blur();
+                      openProfile();
+                    }}
+                  >
+                    View Profile
+                  </TouchActionBtn>
                 </CardBodyWrapper>
                 <ProfileOverlay>
                   <ViewProfileBtn

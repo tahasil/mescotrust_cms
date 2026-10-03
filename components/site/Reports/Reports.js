@@ -129,11 +129,12 @@ const CardBody = styled.div`
 `;
 
 const ProfileOverlay = styled.div`
+  /* Touch / no-hover devices get the always-visible card action button instead. */
+  display: none;
   position: absolute;
   inset: 0;
   border-radius: 24px;
   background: var(--reports-overlay);
-  display: flex;
   align-items: center;
   justify-content: center;
   transform: scale(0);
@@ -144,10 +145,16 @@ const ProfileOverlay = styled.div`
     transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
     opacity 0.25s ease;
   z-index: 2;
-  .card-wrapper:hover & {
-    transform: scale(1);
-    opacity: 1;
-    pointer-events: auto;
+
+  /* Hover-capable pointers (desktop) keep the reveal-on-hover behaviour. */
+  @media (hover: hover) and (pointer: fine) {
+    display: flex;
+
+    .card-wrapper:hover & {
+      transform: scale(1);
+      opacity: 1;
+      pointer-events: auto;
+    }
   }
 `;
 
@@ -179,6 +186,42 @@ const ViewBtn = styled.a`
     border-color: var(--reports-button-hover-border);
     background: var(--reports-button-hover-bg);
     color: var(--reports-button-hover-text);
+  }
+`;
+
+/** Always-visible card action for touch / no-hover devices (mobile + tablet). */
+const CardViewBtn = styled.a`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 46px;
+  margin-top: 14px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 28px;
+  border: 2px solid var(--reports-button-border);
+  background: var(--reports-button-bg);
+  color: var(--reports-button-text);
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--reports-button-hover-border);
+    background: var(--reports-button-hover-bg);
+    color: var(--reports-button-hover-text);
+  }
+
+  /* Hover-capable pointers use the overlay button instead. */
+  @media (hover: hover) and (pointer: fine) {
+    display: none;
   }
 `;
 
@@ -455,6 +498,31 @@ export default function Reports(props) {
                       {name && <div className="name">{name}</div>}
                       {description ? <p className="description">{description}</p> : null}
                       {tag && <span className="tag">{tag}</span>}
+                      {pdfUrl &&
+                        (opensPdfModal ? (
+                          <CardViewBtn
+                            as="button"
+                            type="button"
+                            aria-haspopup="dialog"
+                            onClick={(event) =>
+                              openPdf({
+                                url: pdfUrl,
+                                title: name || "PDF document",
+                                trigger: event.currentTarget,
+                              })
+                            }
+                          >
+                            View
+                          </CardViewBtn>
+                        ) : (
+                          <CardViewBtn
+                            href={pdfUrl}
+                            target={target}
+                            rel={target === "_blank" ? "noopener noreferrer" : undefined}
+                          >
+                            View
+                          </CardViewBtn>
+                        ))}
                     </CardBody>
                   </ReportCard>
                   {pdfUrl && (
