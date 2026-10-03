@@ -16,6 +16,7 @@ import {
   isValidName,
   isValidPan,
   isValidPhone,
+  isValidPincode,
   normalizeText,
   toDigits,
 } from "@/lib/formValidation";
@@ -32,6 +33,25 @@ import {
 function resolveColor(key, fallback) {
   const colorKey = String(key ?? "").trim();
   return colorKey ? getColor(colorKey) : fallback;
+}
+
+/**
+ * Restricts what can be typed into the fields whose format is fixed.
+ *
+ * A PAN accepts letters and digits only and is upper-cased, because the PAN
+ * format check is case-sensitive and a donor typing lowercase would otherwise
+ * see "valid PAN" while their own eyes read something else. Mobile and pincode
+ * keep digits only.
+ */
+function sanitizeFieldInput(key, rawValue) {
+  const value = String(rawValue ?? "");
+  if (key === "pan") {
+    return value.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 10);
+  }
+  if (key === "mobile" || key === "pincode") {
+    return value.replace(/\D/g, "").slice(0, key === "pincode" ? 6 : 10);
+  }
+  return value;
 }
 
 function getFieldDefaultValue(fieldConfig) {
@@ -88,11 +108,14 @@ function getFieldValidationError(fieldKey, value, fieldConfig, required) {
   if (validation === "email" && !isValidEmail(normalized)) {
     return "Please enter a valid email address";
   }
-  if (validation === "phone" && !isValidPhone(normalized)) {
-    return "Please enter a valid mobile number";
+  if (validation === "phone" && !isValidPhone(normalized, 10, 10)) {
+    return "Please enter a valid 10-digit mobile number";
   }
   if (validation === "pan" && !isValidPan(normalized)) {
-    return "Please enter a valid PAN";
+    return "Please enter a valid PAN (e.g. ABCDE1234F)";
+  }
+  if (validation === "pincode" && !isValidPincode(normalized)) {
+    return "Please enter a valid 6-digit pincode";
   }
   if (validation === "name" && !isValidName(normalized)) {
     return "Name should contain alphabets only";
@@ -1042,8 +1065,8 @@ export default function DonateNow(props = {}) {
     if (!isValidEmail(verifyEmail)) {
       nextErrors.verifyEmail = "Please enter a valid email";
     }
-    if (!isValidPhone(verifyMobile)) {
-      nextErrors.verifyMobile = "Please enter a valid mobile number";
+    if (!isValidPhone(verifyMobile, 10, 10)) {
+      nextErrors.verifyMobile = "Please enter a valid 10-digit mobile number";
     }
 
     if (Object.keys(nextErrors).length > 0) {
@@ -1244,13 +1267,17 @@ export default function DonateNow(props = {}) {
     const donor = {
       name: normalizeText(fieldValues.name),
       email: normalizeText(fieldValues.email),
-      mobile: toDigits(fieldValues.mobile) || normalizeText(fieldValues.mobile),
-      pan: normalizeText(fieldValues.pan).toUpperCase(),
+      // Re-sanitize on submit as well: autofill and donor-lookup populate
+      // these fields without going through the input's onChange filter.
+      mobile:
+        toDigits(sanitizeFieldInput("mobile", fieldValues.mobile)) ||
+        normalizeText(fieldValues.mobile),
+      pan: sanitizeFieldInput("pan", fieldValues.pan),
       address: normalizeText(fieldValues.address),
       city: normalizeText(fieldValues.city),
       state: normalizeText(fieldValues.state),
       country: normalizeText(fieldValues.country || "India"),
-      pincode: normalizeText(fieldValues.pincode),
+      pincode: sanitizeFieldInput("pincode", fieldValues.pincode),
     };
 
     const lookupRaw = isExistingDonor ? normalizeText(fieldValues.lookup) : "";
@@ -1490,11 +1517,15 @@ export default function DonateNow(props = {}) {
             }
             min={key === "amount" ? "0.01" : undefined}
             step={key === "amount" ? "0.01" : undefined}
+            // Characters a mobile / pincode can never contain are dropped as
+            // they are typed, so a "phone" keypad plus this filter makes an
+            // invalid value unrepresentable rather than merely rejected.
+            maxLength={config.maxLength || undefined}
             value={value}
             placeholder={placeholder}
             disabled={key === "lookup" ? lookupState.loading : disabled}
             onChange={(event) => {
-              handleFieldValue(key, event.target.value);
+              handleFieldValue(key, sanitizeFieldInput(key, event.target.value));
               if (key === "amount") {
                 setAmountTouched(true);
               }
@@ -1784,6 +1815,7 @@ export default function DonateNow(props = {}) {
                             <FieldInput
                               type="text"
                               inputMode="numeric"
+                              maxLength={10}
                               value={verificationValues.mobile}
                               placeholder="Enter registered mobile"
                               onChange={(event) =>

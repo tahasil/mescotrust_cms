@@ -6,6 +6,7 @@ import DonateNowSubmission from "@/models/DonateNowSubmission";
 import ThemeConfig from "@/models/ThemeConfig";
 import { encrypt } from "@/lib/ccavenue";
 import * as razorpay from "@/lib/razorpay";
+import { isValidPan, isValidPincode } from "@/lib/formValidation";
 import {
   CCAVENUE,
   RAZORPAY,
@@ -267,9 +268,33 @@ export async function POST(req) {
           { status: 400 },
         );
       }
-      if (normMobile.length < 10 || normMobile.length > 15) {
+      if (normMobile.length !== 10) {
         return NextResponse.json(
-          { error: "A valid mobile number is required" },
+          { error: "A valid 10-digit mobile number is required" },
+          { status: 400 },
+        );
+      }
+
+      // Enforced server-side too: the client checks are bypassable, and a PAN
+      // drives 80B tax exemption, so a malformed one must never be stored.
+      const normPan = toSafeString(donor?.pan).toUpperCase();
+      if (!normPan) {
+        return NextResponse.json(
+          { error: "PAN number is required" },
+          { status: 400 },
+        );
+      }
+      if (!isValidPan(normPan)) {
+        return NextResponse.json(
+          { error: "A valid PAN (e.g. ABCDE1234F) is required" },
+          { status: 400 },
+        );
+      }
+
+      const normPincode = toDigits(donor?.pincode);
+      if (normPincode && !isValidPincode(normPincode)) {
+        return NextResponse.json(
+          { error: "A valid 6-digit pincode is required" },
           { status: 400 },
         );
       }
@@ -278,12 +303,12 @@ export async function POST(req) {
         name: normName,
         email: normEmail,
         mobile: normMobile,
-        pan: toSafeString(donor?.pan).toUpperCase(),
+        pan: normPan,
         address: toSafeString(donor?.address),
         city: toSafeString(donor?.city),
         state: toSafeString(donor?.state),
         country: toSafeString(donor?.country || "India"),
-        pincode: toSafeString(donor?.pincode),
+        pincode: normPincode,
       };
 
       lookupMeta.matched = false;
