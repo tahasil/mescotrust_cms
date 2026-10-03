@@ -95,10 +95,20 @@ const Chapter = styled.div`
   }
   @media (max-width: 767px) {
     width: 100%;
-    padding-top: 24px;
-    padding-bottom: 24px;
-    padding-inline: ${(p) => Math.min(p.$paddingX, 20)}px;
-    .chapterPlay { width: min(${(p) => p.$playSize}px, 72px); height: min(${(p) => p.$playSize}px, 72px); }
+    border-radius: ${(p) => Math.min(p.$radius, 24)}px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+    padding-inline: 14px;
+    .chapterHead { margin-bottom: 32px; }
+    .chapterVideo { width: 100%; border-radius: ${(p) => Math.min(p.$videoRadius, 14)}px; }
+    .chapterCover { aspect-ratio: 16 / 9; }
+    .chapterVideo iframe { width: 100%; aspect-ratio: 16 / 9; }
+    .chapterPlay { width: min(${(p) => p.$playSize}px, 64px); height: min(${(p) => p.$playSize}px, 64px); }
+    .chapterPlay svg { width: 40%; height: 40%; margin-left: 6%; }
+    .chapterQuote { margin-top: 40px; }
+    .chapterQuote p { max-width: ${(p) => Math.min(p.$quoteWidth, 22)}ch; }
+    .chapterAttribution { margin-top: 18px; }
+    .chapterMore { margin-top: 18px; }
   }
   @media (prefers-reduced-motion: reduce) {
     .chapterVideo { transform: none !important; }
@@ -111,6 +121,11 @@ const VideoPageContainer = styled(PageContainer)`
   @media (min-width: 1024px) {
     padding-top: var(--video-playing-container-padding-top, 48px);
     padding-bottom: var(--video-playing-container-padding-bottom, 48px);
+  }
+  /* Mobile: drop the container gutter so the chapter card aligns with the section edges */
+  @media (max-width: 767px) {
+    padding-left: 0;
+    padding-right: 0;
   }
 `;
 
@@ -182,19 +197,24 @@ export default function VideoPlaying(props) {
       quoteRef.current?.querySelectorAll(".chapterQuoteWord").forEach((word) => { word.style.opacity = "1"; });
       return;
     }
+    const matchMedia = gsap.matchMedia();
     const context = gsap.context(() => {
-      if (props?.videoPlayingScaleAnimationEnabled !== false && videoRef.current) {
-        gsap.fromTo(videoRef.current, { scale: number(props?.videoPlayingScaleFrom, 0.9) }, {
-          scale: 1,
-          ease: "none",
-          scrollTrigger: {
-            trigger: videoRef.current,
-            start: text(props?.videoPlayingScaleStart) || "top 92%",
-            end: text(props?.videoPlayingScaleEnd) || "top 35%",
-            scrub: true,
-          },
-        });
-      }
+      /* Scale-in is a desktop/tablet effect only; on mobile it shrinks the video below the
+         chapter padding and breaks the container/video edge alignment. */
+      matchMedia.add("(min-width: 768px)", () => {
+        if (props?.videoPlayingScaleAnimationEnabled !== false && videoRef.current) {
+          gsap.fromTo(videoRef.current, { scale: number(props?.videoPlayingScaleFrom, 0.9) }, {
+            scale: 1,
+            ease: "none",
+            scrollTrigger: {
+              trigger: videoRef.current,
+              start: text(props?.videoPlayingScaleStart) || "top 92%",
+              end: text(props?.videoPlayingScaleEnd) || "top 35%",
+              scrub: true,
+            },
+          });
+        }
+      });
       if (props?.videoPlayingQuoteAnimationEnabled !== false && quoteRef.current) {
         gsap.to(quoteRef.current.querySelectorAll(".chapterQuoteWord"), {
           opacity: 1,
@@ -209,7 +229,10 @@ export default function VideoPlaying(props) {
         });
       }
     }, rootRef);
-    return () => context.revert();
+    return () => {
+      context.revert();
+      matchMedia.revert();
+    };
   }, [isEditorPreview, props, quote]);
 
   const sectionBgType = text(props?.videoPlayingSectionBgType || "default");
