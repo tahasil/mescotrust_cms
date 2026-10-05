@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import AdminLayoutClient from "@/components/admin/AdminLayoutClient";
 import { authorizeAdminPageAccess } from "@/lib/rbac/accessControl";
+import { getAdminThemeSettings } from "@/lib/adminTheme";
 
 export default async function AuthenticatedAdminLayout({ children }) {
   const session = await getServerSession(authOptions);
@@ -34,6 +35,10 @@ export default async function AuthenticatedAdminLayout({ children }) {
     );
   }
 
+  // Resolved on the server so the configured Admin Loader colours are painted
+  // with the very first frame instead of flashing the hardcoded defaults.
+  const adminTheme = await getAdminThemeSettings();
+
   const userName = session.user?.name || session.user?.email || "Admin";
   const userRole = authorization.access?.role || session.user?.role || "";
   const userRoleKey = authorization.access?.roleKey || session.user?.roleKey || session.user?.role || "";
@@ -45,6 +50,7 @@ export default async function AuthenticatedAdminLayout({ children }) {
       userRole={userRole}
       userRoleKey={userRoleKey}
       permissionKeys={permissionKeys}
+      initialAdminTheme={adminTheme}
     >
       {children}
     </AdminLayoutClient>

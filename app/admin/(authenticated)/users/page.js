@@ -5,6 +5,7 @@ import { Button, Form, Input, Modal, Select, Space, Table, Tag, message } from "
 import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
+import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
 
 async function fetchJson(url, options) {
   const response = await fetch(url, { cache: "no-store", ...options });
@@ -202,7 +203,8 @@ export default function AdminUsersPage() {
       </Space>
       <Table
         rowKey="_id"
-        loading={loading}
+        loading={adminTableLoading(loading)}
+        locale={adminTableLocale(loading)}
         dataSource={filteredUsers}
         scroll={{ x: 760 }}
         columns={[

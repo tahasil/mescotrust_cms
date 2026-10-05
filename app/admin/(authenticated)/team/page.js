@@ -24,6 +24,7 @@ import {
 } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { formatDateTime } from "@/lib/formatDate";
+import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
 import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
 
 const STATUS_COLORS = {
@@ -344,7 +345,8 @@ export default function AdminTeamListPage() {
     >
       <Table
         rowKey="_id"
-        loading={loading}
+        loading={adminTableLoading(loading)}
+        locale={adminTableLocale(loading)}
         columns={columns}
         dataSource={items}
         pagination={{

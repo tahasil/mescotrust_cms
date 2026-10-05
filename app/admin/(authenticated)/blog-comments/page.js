@@ -5,6 +5,7 @@ import { Table, Button, Space, Tag, Select, Modal, Descriptions, message, Switch
 import { CheckOutlined, CloseOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { formatDateTime } from "@/lib/formatDate";
+import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
 import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
 
 const BLOG_COMMENTS_STATUS_STORAGE_KEY = "admin-blog-comments-status-filter-v1";
@@ -13,6 +14,7 @@ export default function AdminBlogCommentsPage() {
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState(() => {
     if (typeof window === "undefined") return "";
     const params = new URLSearchParams(window.location.search);
@@ -38,10 +40,12 @@ export default function AdminBlogCommentsPage() {
   const fetchComments = (p = page, st = statusFilter) => {
     const params = new URLSearchParams({ page: p, limit: 20 });
     if (st) params.set("status", st);
+    setLoading(true);
     fetch(`/api/admin/blog-comments?${params}`)
       .then((r) => (r.ok ? r.json() : { items: [] }))
       .then((data) => { setItems(data.items || []); setTotal(data.total || 0); })
-      .catch(() => message.error("Failed to load"));
+      .catch(() => message.error("Failed to load"))
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => { fetchComments(1, statusFilter); setPage(1); }, [statusFilter]);
@@ -145,6 +149,8 @@ export default function AdminBlogCommentsPage() {
       <Table
         rowKey="_id"
         dataSource={items}
+        loading={adminTableLoading(loading)}
+        locale={adminTableLocale(loading)}
         pagination={{
           current: page, total, pageSize: 20,
           onChange: (p) => { setPage(p); fetchComments(p, statusFilter); },

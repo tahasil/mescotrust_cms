@@ -402,9 +402,9 @@ export default function AdminThemeSettings() {
       layout="vertical"
       onFinish={onFinish}
       initialValues={initialFormValues}
-      loading={loading}
     >
       <ThemeAdminCard
+        loading={loading}
         title={
           <span style={{ fontSize: 16, fontWeight: 600 }}>
             <SettingOutlined style={{ marginRight: 8 }} />

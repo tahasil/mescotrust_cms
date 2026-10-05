@@ -6,6 +6,7 @@ import { CheckOutlined, DeleteOutlined, EyeOutlined, ReloadOutlined } from "@ant
 import { formatDateTime } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
 import AdminExportDropdown from "@/components/admin/AdminExportDropdown";
+import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
 
 const CONTACT_EXPORT_COLUMNS = [
   { key: "submitted_at", label: "Submitted At" },
@@ -89,7 +90,8 @@ export default function AdminContactsPage() {
     >
       <Table
         rowKey="_id"
-        loading={loading}
+        loading={adminTableLoading(loading)}
+        locale={adminTableLocale(loading)}
         dataSource={list}
         columns={[
           { title: "Name", dataIndex: ["payload", "name"], key: "name" },

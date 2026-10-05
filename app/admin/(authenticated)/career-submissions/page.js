@@ -5,6 +5,7 @@ import { Button, Descriptions, Input, Modal, Select, Space, Table, Tag, message 
 import { CheckOutlined, DeleteOutlined, DownloadOutlined, EyeOutlined, ReloadOutlined, SearchOutlined } from "@ant-design/icons";
 import { formatDateTime } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
+import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
 
 const STATUS_OPTIONS = [
   { label: "All Statuses", value: "all" },
@@ -282,7 +283,8 @@ export default function AdminCareerSubmissionsPage() {
           rowKey="_id"
           columns={columns}
           dataSource={items}
-          loading={loading}
+          loading={adminTableLoading(loading)}
+          locale={adminTableLocale(loading)}
           pagination={{
             current: page,
             pageSize,

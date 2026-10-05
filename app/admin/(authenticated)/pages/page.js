@@ -17,6 +17,7 @@ import { PlusOutlined, EditOutlined, DeleteOutlined, FolderOutlined, SearchOutli
 import Link from "next/link";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
+import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
 
 const PAGES_LIST_CACHE_KEY = "admin-pages-list-cache-v1";
 const PAGES_LIST_CACHE_TTL_MS = 20_000;
@@ -309,7 +310,8 @@ export default function AdminPagesPage() {
         rowKey="_id"
         columns={columns}
         dataSource={filteredList}
-        loading={loading}
+        loading={adminTableLoading(loading)}
+        locale={adminTableLocale(loading)}
         pagination={{ pageSize: 20 }}
       />
 

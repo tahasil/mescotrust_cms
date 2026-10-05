@@ -1,33 +1,14 @@
+import AdminPageSkeleton from "@/components/admin/loading/AdminLoading";
+
+/**
+ * Single admin route loader.
+ *
+ * Previously this rendered a bare full-screen ring spinner, which looked
+ * different from the skeleton used by Social Wall / Chatbot and from the
+ * antd spin indicators inside admin tables. It now renders the shared
+ * skeleton from `components/admin/loading/AdminLoading.js`, so every admin
+ * page shows the same loader and it follows Admin Settings → Admin Loader.
+ */
 export default function AdminLoading() {
-  return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1200,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        pointerEvents: "none",
-        background: "transparent",
-      }}
-    >
-      <div
-        style={{
-          width: 44,
-          height: 44,
-          borderRadius: "50%",
-          border: "3px solid rgba(0,0,0,0.12)",
-          borderTopColor: "var(--admin-loader-color, #1677ff)",
-          animation: "adminLoadingSpin 0.8s linear infinite",
-        }}
-      />
-      <style>{`
-        @keyframes adminLoadingSpin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
-    </div>
-  );
+  return <AdminPageSkeleton />;
 }

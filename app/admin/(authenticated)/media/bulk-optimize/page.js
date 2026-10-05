@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button, message, Progress, Space, Table, Tag, Typography } from "antd";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { formatDateTime } from "@/lib/formatDate";
+import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
 
 const JOB_LABELS = {
   bulk_optimize: "Bulk Optimize",
@@ -139,7 +140,8 @@ export default function AdminMediaBulkOptimizePage() {
 
       <Table
         rowKey="_id"
-        loading={loading}
+        loading={adminTableLoading(loading)}
+        locale={adminTableLocale(loading)}
         dataSource={jobs}
         pagination={{ pageSize: 10 }}
         columns={[

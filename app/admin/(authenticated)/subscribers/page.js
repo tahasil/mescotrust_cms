@@ -6,6 +6,7 @@ import { DeleteOutlined, SearchOutlined, MailOutlined, ReloadOutlined } from "@a
 import { formatDate } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
 import AdminExportDropdown from "@/components/admin/AdminExportDropdown";
+import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
 import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
 
 const SUBSCRIBERS_SEARCH_STORAGE_KEY = "admin-subscribers-search-query-v1";
@@ -131,7 +132,8 @@ export default function AdminSubscribersPage() {
     >
       <Table
         rowKey="_id"
-        loading={loading}
+        loading={adminTableLoading(loading)}
+        locale={adminTableLocale(loading)}
         dataSource={items}
         pagination={{
           current: page,

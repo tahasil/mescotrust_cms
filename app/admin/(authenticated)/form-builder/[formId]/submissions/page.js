@@ -31,6 +31,7 @@ import {
 } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { formatDateTime } from "@/lib/formatDate";
+import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
 import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
 import { useAdminPermission } from "@/components/admin/AdminAuthContext";
 
@@ -588,7 +589,8 @@ export default function FormSubmissionsPage() {
       ) : (
         <Table
           rowKey="_id"
-          loading={loading}
+          loading={adminTableLoading(loading)}
+          locale={adminTableLocale(loading)}
           dataSource={items}
           columns={columns}
           pagination={{

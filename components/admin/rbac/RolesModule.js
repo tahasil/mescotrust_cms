@@ -19,6 +19,7 @@ import {
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
+import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
 
 function slugifyRoleKey(value) {
   return String(value || "")
@@ -179,7 +180,8 @@ export default function RolesModule() {
       ) : null}
       <Table
         rowKey="key"
-        loading={loading}
+        loading={adminTableLoading(loading)}
+        locale={adminTableLocale(loading)}
         dataSource={roles}
         scroll={{ x: 850 }}
         pagination={{ pageSize: 10, hideOnSinglePage: true }}

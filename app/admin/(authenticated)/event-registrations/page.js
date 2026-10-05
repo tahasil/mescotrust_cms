@@ -22,6 +22,7 @@ import {
 import { formatDateTime } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
 import AdminExportDropdown from "@/components/admin/AdminExportDropdown";
+import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
 import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
 
 const STATUS_OPTIONS = [
@@ -238,7 +239,8 @@ export default function AdminEventRegistrationsPage() {
     >
       <Table
         rowKey="_id"
-        loading={loading}
+        loading={adminTableLoading(loading)}
+        locale={adminTableLocale(loading)}
         dataSource={filtered}
         pagination={{ pageSize: 20 }}
         columns={[

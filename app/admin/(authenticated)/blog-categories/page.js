@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Table, Button, Space, message, Modal, Form, Input, InputNumber, Tag } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
+import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
 
 export default function AdminBlogCategoriesPage() {
   const [list, setList] = useState([]);
@@ -111,7 +112,14 @@ export default function AdminBlogCategoriesPage() {
         </Button>
       }
     >
-      <Table rowKey="_id" columns={columns} dataSource={list} loading={loading} pagination={false} />
+      <Table
+        rowKey="_id"
+        columns={columns}
+        dataSource={list}
+        loading={adminTableLoading(loading)}
+        locale={adminTableLocale(loading)}
+        pagination={false}
+      />
 
       <Modal
         title={editingId ? "Edit category" : "New category"}

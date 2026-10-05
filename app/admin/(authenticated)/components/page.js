@@ -7,6 +7,7 @@ import { CopyOutlined, EditOutlined, PlusOutlined, SaveOutlined, SearchOutlined 
 import Link from "next/link";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { useAdminPermission } from "@/components/admin/AdminAuthContext";
+import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
 import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
 
 const EXCLUDED_COMPONENT_IDS = new Set([
@@ -276,7 +277,8 @@ export default function AdminComponentsPage() {
           rowKey="componentId"
           columns={columns}
           dataSource={filteredList}
-          loading={loading}
+          loading={adminTableLoading(loading)}
+          locale={adminTableLocale(loading)}
           pagination={{ pageSize: 10, showSizeChanger: true, pageSizeOptions: [10, 15, 25, 50], showTotal: (total) => `Total ${total} components` }}
           size="middle"
         />

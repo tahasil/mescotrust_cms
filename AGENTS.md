@@ -263,6 +263,7 @@ Core docs:
 - `docs/I18N.md`
 
 Key implementation files:
+- `components/admin/loading/AdminLoading.js` (single source of truth for every admin loader/skeleton; colours come from Admin Settings → Admin Loader via `--admin-loader-color`)
 - `middleware.js`
 - `lib/auth.js`
 - `lib/apiAuth.js`

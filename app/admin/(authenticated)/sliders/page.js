@@ -5,6 +5,7 @@ import { Button, Switch, Table, Tag, message } from "antd";
 import { EditOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { ThemeAdminCard } from "@/styles/Theme";
+import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
 
 const SLIDER_COMPONENT_IDS = ["HomeSlider", "ImageSlider", "StoriesSlider", "EventsSlider"];
 
@@ -127,7 +128,8 @@ export default function AdminSlidersPage() {
         rowKey="componentId"
         columns={columns}
         dataSource={sliderRows}
-        loading={loading}
+        loading={adminTableLoading(loading)}
+        locale={adminTableLocale(loading)}
         pagination={false}
       />
     </ThemeAdminCard>

@@ -45,6 +45,7 @@ import {
   normalizePdfTarget,
 } from "@/components/site/shared/PdfViewerModal";
 import { ThemeAdminCard } from "@/styles/Theme";
+import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
 
 function generateId() {
   return "mi_" + Math.random().toString(36).slice(2, 11);
@@ -840,7 +841,8 @@ export default function AdminMenusPage() {
       </p>
       <Table
         rowKey="name"
-        loading={loading}
+        loading={adminTableLoading(loading)}
+        locale={adminTableLocale(loading)}
         dataSource={menus}
         columns={[
           { title: "Name", dataIndex: "name", key: "name" },

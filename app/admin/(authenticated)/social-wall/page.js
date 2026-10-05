@@ -32,6 +32,7 @@ import {
 } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { useAdminPermission } from "@/components/admin/AdminAuthContext";
+import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
 
 function safeString(value) {
   return value == null ? "" : String(value).trim();
@@ -1164,7 +1165,8 @@ export default function SocialWallAdminPage() {
           </Row>
           <Table
             rowKey="id"
-            loading={postsLoading}
+            loading={adminTableLoading(postsLoading)}
+            locale={adminTableLocale(postsLoading)}
             columns={postColumns}
             dataSource={Array.isArray(postsData.items) ? postsData.items : []}
             pagination={{
@@ -1192,7 +1194,8 @@ export default function SocialWallAdminPage() {
         >
           <Table
             rowKey="id"
-            loading={moderationLoading}
+            loading={adminTableLoading(moderationLoading)}
+            locale={adminTableLocale(moderationLoading)}
             columns={moderationColumns}
             dataSource={Array.isArray(moderationData.items) ? moderationData.items : []}
             pagination={{
@@ -1255,7 +1258,8 @@ export default function SocialWallAdminPage() {
           </div>
           <Table
             rowKey="id"
-            loading={logsLoading}
+            loading={adminTableLoading(logsLoading)}
+            locale={adminTableLocale(logsLoading)}
             columns={logsColumns}
             dataSource={Array.isArray(logsData.items) ? logsData.items : []}
             pagination={{

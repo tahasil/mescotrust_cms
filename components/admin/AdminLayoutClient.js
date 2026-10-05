@@ -65,6 +65,10 @@ import { roleLabelFromKey } from "@/lib/rbac/constants";
 import { canAccessMenu } from "@/lib/rbac/clientPermissions";
 import { AdminAuthProvider } from "@/components/admin/AdminAuthContext";
 import {
+  ADMIN_LOADING_STYLE,
+  AdminLoadingSpinner,
+} from "@/components/admin/loading/AdminLoading";
+import {
   clearStoredAdminFilters,
   markAdminHistoryNavigation,
 } from "@/lib/adminSearchState";
@@ -500,7 +504,14 @@ const DEFAULT_ADMIN_THEME = {
   adminLoaderBgColor: "rgba(255,255,255,0.5)",
 };
 
-export default function AdminLayoutClient({ children, userName, userRole, userRoleKey, permissionKeys = [] }) {
+export default function AdminLayoutClient({
+  children,
+  userName,
+  userRole,
+  userRoleKey,
+  permissionKeys = [],
+  initialAdminTheme = null,
+}) {
   const router = useRouter();
   const normalizedRoleKey = String(userRoleKey || userRole || "").trim().toLowerCase();
   const roleLabel = userRole || roleLabelFromKey(normalizedRoleKey);
@@ -509,7 +520,16 @@ export default function AdminLayoutClient({ children, userName, userRole, userRo
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 
-  const [adminTheme, setAdminTheme] = useState(DEFAULT_ADMIN_THEME);
+  const [adminTheme, setAdminTheme] = useState(() => {
+    if (!initialAdminTheme || typeof initialAdminTheme !== "object") return DEFAULT_ADMIN_THEME;
+    const next = { ...DEFAULT_ADMIN_THEME };
+    for (const key of Object.keys(DEFAULT_ADMIN_THEME)) {
+      if (initialAdminTheme[key] !== undefined && initialAdminTheme[key] !== "") {
+        next[key] = initialAdminTheme[key];
+      }
+    }
+    return next;
+  });
   const [notifications, setNotifications] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
   const [bellShake, setBellShake] = useState(false);
@@ -817,6 +837,15 @@ export default function AdminLayoutClient({ children, userName, userRole, userRo
       clearRouteLoaderTimers();
     };
   }, [clearRouteLoaderTimers, pathname, startRouteLoader, stopRouteLoader]);
+
+  // Marks the document as the admin shell. All admin loader CSS is scoped to
+  // `.admin-shell` so portalled modals/drawers/dropdowns are covered too and
+  // the public website is never affected.
+  useEffect(() => {
+    if (typeof document === "undefined") return undefined;
+    document.body.classList.add("admin-shell");
+    return () => document.body.classList.remove("admin-shell");
+  }, []);
 
   const toggleSidebar = () => {
     if (isMobile) {
@@ -1128,8 +1157,9 @@ export default function AdminLayoutClient({ children, userName, userRole, userRo
   );
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Layout className="admin-shell" style={{ minHeight: "100vh" }}>
       <style>{`
+        ${ADMIN_LOADING_STYLE}
         @keyframes bellShake {
           0% { transform: rotate(0); }
           10% { transform: rotate(14deg); }
@@ -1193,23 +1223,6 @@ export default function AdminLayoutClient({ children, userName, userRole, userRo
           justify-content: center !important;
           pointer-events: none !important;
           z-index: 1100 !important;
-        }
-        .admin-route-loader-spinner {
-          width: 44px;
-          height: 44px;
-          border-radius: 50%;
-          border: 3px solid rgba(0, 0, 0, 0.12);
-          border-top-color: ${at.adminLoaderColor};
-          animation: adminRouteSpin 0.8s linear infinite;
-          background: transparent;
-        }
-        @keyframes adminRouteSpin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
         }
 
         /* Admin sidebar overlay drawer */
@@ -1681,7 +1694,7 @@ export default function AdminLayoutClient({ children, userName, userRole, userRo
             </AdminAuthProvider>
           </Content>
           <div className={`admin-route-loader ${routeLoading ? "visible" : ""}`}>
-            <div className="admin-route-loader-spinner" />
+            <AdminLoadingSpinner />
           </div>
         </div>
       </Layout>

@@ -9,6 +9,7 @@ import {
   EyeOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
+import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
 
 export default function PopupsTable({
   rows,
@@ -151,7 +152,8 @@ export default function PopupsTable({
       rowKey="componentId"
       columns={columns}
       dataSource={rows}
-      loading={loading}
+      loading={adminTableLoading(loading)}
+      locale={adminTableLocale(loading)}
       pagination={false}
     />
   );

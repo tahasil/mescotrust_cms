@@ -533,9 +533,9 @@ export default function FrontendThemeSettings() {
       layout="vertical"
       onFinish={onFinish}
       initialValues={initialFormValues}
-      loading={loading}
     >
       <ThemeAdminCard
+        loading={loading}
         title={
           <span style={{ fontSize: 16, fontWeight: 600 }}>
             <BgColorsOutlined style={{ marginRight: 8 }} />

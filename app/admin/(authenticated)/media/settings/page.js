@@ -98,6 +98,7 @@ export default function AdminMediaSettingsPage() {
 
   return (
     <ThemeAdminCard
+      loading={loading}
       title="Media Settings"
       extra={
         <Space>

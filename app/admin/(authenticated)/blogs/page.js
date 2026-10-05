@@ -6,6 +6,7 @@ import { Table, Button, Space, message, Modal, Input, Select, Tag } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
+import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
 
 const BLOGS_SEARCH_STORAGE_KEY = "admin-blogs-search-query-v1";
 const BLOGS_STATUS_STORAGE_KEY = "admin-blogs-status-filter-v1";
@@ -226,7 +227,8 @@ export default function AdminBlogsPage() {
         rowKey="_id"
         columns={columns}
         dataSource={filtered}
-        loading={loading}
+        loading={adminTableLoading(loading)}
+        locale={adminTableLocale(loading)}
         pagination={{ pageSize: 20 }}
       />
     </ThemeAdminCard>

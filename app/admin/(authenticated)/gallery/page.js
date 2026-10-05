@@ -27,6 +27,7 @@ import {
 } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { formatDateTime } from "@/lib/formatDate";
+import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
 import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
 
 const GALLERY_SEARCH_STORAGE_KEY = "admin-gallery-search-query-v1";
@@ -406,7 +407,8 @@ export default function AdminGalleryListPage() {
         rowKey="_id"
         columns={columns}
         dataSource={items}
-        loading={loading}
+        loading={adminTableLoading(loading)}
+        locale={adminTableLocale(loading)}
         pagination={{
           current: page,
           pageSize: 20,

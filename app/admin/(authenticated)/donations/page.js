@@ -24,6 +24,7 @@ import {
 import { formatDateTime } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
+import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
 import AdminExportDropdown from "@/components/admin/AdminExportDropdown";
 
 const STATUS_COLORS = {
@@ -352,7 +353,8 @@ export default function AdminDonationsPage() {
     >
       <Table
         rowKey="_id"
-        loading={loading}
+        loading={adminTableLoading(loading)}
+        locale={adminTableLocale(loading)}
         dataSource={items}
         size="middle"
         scroll={{ x: 1320 }}

@@ -6,6 +6,7 @@ import { CheckOutlined, DeleteOutlined, EyeOutlined, ReloadOutlined, SearchOutli
 import { formatDateTime } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
 import AdminExportDropdown from "@/components/admin/AdminExportDropdown";
+import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
 import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
 
 const VOLUNTEERS_FEEDBACK_SEARCH_STORAGE_KEY = "admin-volunteers-feedback-search-query-v1";
@@ -204,7 +205,8 @@ export default function AdminVolunteersFeedbackPage() {
     >
       <Table
         rowKey="_id"
-        loading={loading}
+        loading={adminTableLoading(loading)}
+        locale={adminTableLocale(loading)}
         dataSource={items}
         pagination={{
           current: page,
