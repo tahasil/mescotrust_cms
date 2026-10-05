@@ -507,6 +507,26 @@ export default function AdminMenusPage() {
     );
   };
 
+  /**
+   * Surface what the server-side sync did: which pages changed address (and
+   * therefore where their header/footer links now point), plus anything the
+   * user needs to fix. Nothing here is fatal — links always resolve.
+   */
+  const reportSync = (data) => {
+    if (!data) return;
+    if (Array.isArray(data._movedPages) && data._movedPages.length) {
+      data._movedPages.forEach((m) =>
+        message.success(`/${m.from} → /${m.to}`, 6),
+      );
+    }
+    if (Array.isArray(data._slugWarnings) && data._slugWarnings.length) {
+      data._slugWarnings.forEach((w) => message.warning(w, 8));
+    }
+    if (Array.isArray(data._slugConflicts) && data._slugConflicts.length) {
+      data._slugConflicts.forEach((c) => message.warning(c, 8));
+    }
+  };
+
   const addTopLevelItem = () => {
     const newItem = {
       id: generateId(),
@@ -564,9 +584,7 @@ export default function AdminMenusPage() {
           message.error("Renamed but could not remove old menu");
         }
         message.success(`Menu saved as "${name}"`);
-        if (Array.isArray(createData._slugConflicts)) {
-          createData._slugConflicts.forEach((c) => message.warning(c, 6));
-        }
+        reportSync(createData);
       } else {
         const url = editingName
           ? `/api/admin/menus/${encodeURIComponent(editingName)}`
@@ -586,13 +604,13 @@ export default function AdminMenusPage() {
         }
         const data = await res.json().catch(() => ({}));
         message.success("Menu saved");
-        if (Array.isArray(data._slugConflicts)) {
-          data._slugConflicts.forEach((c) => message.warning(c, 6));
-        }
+        reportSync(data);
       }
       setStructureView(false);
       setEditingName(null);
       fetchMenus();
+      // Page addresses may have changed while saving — refresh the picker.
+      fetchPages();
     } catch (e) {
       message.error(e.message || "Error");
     } finally {

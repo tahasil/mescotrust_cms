@@ -1,10 +1,11 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { connectDB } from "@/lib/db";
 import Page from "@/models/Page";
 import Component from "@/models/Component";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import { getPageSeoMetadata } from "@/lib/seo";
 import { attachShortcodeModuleProps } from "@/lib/shortcodeServerProps";
+import { resolveRedirect } from "@/lib/menuPageSync";
 
 export const dynamic = "force-dynamic";
 
@@ -33,16 +34,40 @@ async function loadPublishedPage(slug) {
     const page = await Page.findOne({ slug, status: "published" })
       .populate("layout.componentId")
       .lean();
-    return { page, unavailable: false };
+    if (page) return { page, unavailable: false, redirectTo: null };
+
+    // Moved between menus (or had its Parent Menu changed): answer with a
+    // permanent redirect instead of a 404.
+    const target = await resolveRedirect(slug);
+    if (target) {
+      const redirected = await Page.findOne({ slug: target, status: "published" })
+        .populate("layout.componentId")
+        .lean();
+      if (redirected) {
+        return { page: null, unavailable: false, redirectTo: target };
+      }
+    }
+    return { page: null, unavailable: false, redirectTo: null };
   } catch (error) {
     console.error("[cms-media-page] page lookup failed:", error);
-    return { page: null, unavailable: true };
+    return { page: null, unavailable: true, redirectTo: null };
   }
 }
 
 export async function generateMetadata({ params }) {
   const slug = Array.isArray(params.slug) ? params.slug.join("/") : params.slug;
-  const { page, unavailable } = await loadPublishedPage(slug);
+  const { page, unavailable, redirectTo } = await loadPublishedPage(slug);
+
+  if (redirectTo) {
+    // Canonicalise the new address — never index the stale URL.
+    return getPageSeoMetadata({
+      slug: redirectTo,
+      fallbackTitle: titleizeSlug(redirectTo),
+      fallbackDescription: "",
+      fallbackCanonical: `/${redirectTo}`,
+      fallbackOpenGraphUrl: `/${redirectTo}`,
+    });
+  }
 
   if (!page && !unavailable) {
     return { title: "Page not found", robots: { index: false, follow: false } };
@@ -108,7 +133,10 @@ async function buildLayout(page, slug) {
 
 export default async function ResolvedSlugPage({ params }) {
   const slug = Array.isArray(params.slug) ? params.slug.join("/") : params.slug;
-  const { page, unavailable } = await loadPublishedPage(slug);
+  const { page, unavailable, redirectTo } = await loadPublishedPage(slug);
+
+  // Moved page — permanent redirect instead of a 404.
+  if (redirectTo) permanentRedirect(`/${redirectTo}`);
 
   if (unavailable) {
     return (

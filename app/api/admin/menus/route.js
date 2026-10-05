@@ -2,40 +2,24 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Menu from "@/models/Menu";
-import Page from "@/models/Page";
+import {
+  cloneMenuItems,
+  syncAfterMenuSave,
+  castMenuItemsForSave,
+} from "@/lib/menuPageSync";
 
-/** Walk the menu tree and sync page slugs based on their parent position. */
-async function syncPageSlugsFromMenu(items, parentFolder = "", conflicts = []) {
-  for (const item of items) {
-    if (item.type === "page" && item.pageSlug) {
-      const basename = item.pageSlug.includes("/")
-        ? item.pageSlug.substring(item.pageSlug.lastIndexOf("/") + 1)
-        : item.pageSlug;
-      const expectedSlug = parentFolder ? `${parentFolder}/${basename}` : basename;
-      if (expectedSlug !== item.pageSlug) {
-        try {
-          const page = await Page.findOne({ slug: item.pageSlug });
-          if (page) {
-            const conflict = await Page.findOne({ slug: expectedSlug, _id: { $ne: page._id } });
-            if (!conflict) {
-              page.slug = expectedSlug;
-              await page.save();
-              item.pageSlug = expectedSlug;
-              item.url = "/" + expectedSlug;
-            } else {
-              conflicts.push(`"${item.label}" could not be moved — slug "/${expectedSlug}" is already used by another page`);
-            }
-          }
-        } catch (_) { /* best-effort */ }
-      }
-    }
-    if (Array.isArray(item.children) && item.children.length > 0) {
-      const folder = (item.label || "").trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-      const childFolder = parentFolder ? `${parentFolder}/${folder}` : folder;
-      await syncPageSlugsFromMenu(item.children, childFolder, conflicts);
-    }
-  }
-  return conflicts;
+/**
+ * Shape the sync result into the response contract the Menu admin UI reads.
+ */
+function withSyncMeta(menuDoc, sync) {
+  const result = menuDoc && menuDoc.toObject ? menuDoc.toObject() : menuDoc;
+  return NextResponse.json({
+    ...result,
+    _slugConflicts: sync.conflicts,
+    _slugWarnings: sync.warnings,
+    _movedPages: sync.movedPages,
+    _syncedMenus: sync.changedMenus,
+  });
 }
 
 export async function GET(req) {
@@ -59,21 +43,23 @@ export async function POST(req) {
     const body = await req.json();
     const { name, items } = body;
     await connectDB();
-    const itemsToSave = Array.isArray(items) ? items : [];
-    const conflicts = await syncPageSlugsFromMenu(itemsToSave);
+    const itemsToSave = cloneMenuItems(items);
 
-    let menu = await Menu.findOne({ name: name?.trim() });
-    if (menu) {
-      menu.items = itemsToSave;
-      await menu.save();
+    // A menu's saved structure is authoritative for where page links sit, so
+    // run the shared sync first: it moves the pages (subtrees included),
+    // repairs every other menu, and records redirects.
+    const sync = await syncAfterMenuSave({ menuName: name, items: itemsToSave });
+    const finalItems = castMenuItemsForSave(sync.items || itemsToSave);
+
+    const existing = await Menu.findOne({ name: name?.trim() });
+    if (existing) {
+      existing.items = finalItems;
+      await existing.save();
     } else {
-      menu = await Menu.create({ name: name?.trim() || "main", items: itemsToSave });
+      await Menu.create({ name: name?.trim() || "main", items: finalItems });
     }
-    const result = menu.toObject ? menu.toObject() : menu;
-    if (conflicts.length > 0) {
-      return NextResponse.json({ ...result, _slugConflicts: conflicts });
-    }
-    return NextResponse.json(result);
+    const menu = await Menu.findOne({ name: name?.trim() || "main" }).lean();
+    return withSyncMeta(menu, sync);
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

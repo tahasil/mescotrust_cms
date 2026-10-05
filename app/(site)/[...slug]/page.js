@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { connectDB } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +9,7 @@ import { filterLayoutBlocksForPath } from "@/lib/routeComponentRules";
 import { getPageSeoMetadata } from "@/lib/seo";
 import { normalizeAboutPageDesign } from "@/lib/aboutPageDesign";
 import { attachShortcodeModuleProps } from "@/lib/shortcodeServerProps";
+import { resolveRedirect } from "@/lib/menuPageSync";
 
 const RESERVED = ["admin", "blog", "contact", "search", "api", "preview"];
 
@@ -28,6 +29,11 @@ function titleizeSlug(slug) {
  * Load the published page document for a slug.
  * Returns `{ page: null, unavailable: false }` when the page does not exist,
  * and `{ page: null, unavailable: true }` when the database itself failed.
+ *
+ * When the slug no longer resolves but has a recorded redirect (it was moved
+ * in the Menu editor or its Parent Menu changed in the Page Builder), the
+ * destination slug is returned so the request can be answered with a 308
+ * instead of a 404.
  */
 async function loadPublishedPage(slug) {
   try {
@@ -35,10 +41,21 @@ async function loadPublishedPage(slug) {
     const page = await Page.findOne({ slug, status: "published" })
       .populate("layout.componentId")
       .lean();
-    return { page, unavailable: false };
+    if (page) return { page, unavailable: false, redirectTo: null };
+
+    const target = await resolveRedirect(slug);
+    if (target) {
+      const redirected = await Page.findOne({ slug: target, status: "published" })
+        .populate("layout.componentId")
+        .lean();
+      if (redirected) {
+        return { page: null, unavailable: false, redirectTo: target };
+      }
+    }
+    return { page: null, unavailable: false, redirectTo: null };
   } catch (error) {
     console.error("[cms-page] page lookup failed:", error);
-    return { page: null, unavailable: true };
+    return { page: null, unavailable: true, redirectTo: null };
   }
 }
 
@@ -48,7 +65,17 @@ export async function generateMetadata({ params }) {
 
   // Unknown slugs must not produce an indexable title or canonical URL —
   // otherwise every junk URL becomes a self-referencing indexable page.
-  const { page, unavailable } = await loadPublishedPage(slug);
+  const { page, unavailable, redirectTo } = await loadPublishedPage(slug);
+  if (redirectTo) {
+    // Canonicalise the new address — never index the stale URL.
+    return getPageSeoMetadata({
+      slug: redirectTo,
+      fallbackTitle: titleizeSlug(redirectTo),
+      fallbackDescription: "",
+      fallbackCanonical: `/${redirectTo}`,
+      fallbackOpenGraphUrl: `/${redirectTo}`,
+    });
+  }
   if (!page && !unavailable) {
     return { title: "Page not found", robots: { index: false, follow: false } };
   }
@@ -117,7 +144,11 @@ export default async function DynamicPage({ params }) {
   const slug = Array.isArray(params.slug) ? params.slug.join("/") : params.slug;
   if (isReservedSlug(slug)) notFound();
 
-  const { page, unavailable } = await loadPublishedPage(slug);
+  const { page, unavailable, redirectTo } = await loadPublishedPage(slug);
+
+  // A moved page answers with a permanent redirect instead of a 404, so old
+  // bookmarks, search results and external links keep working.
+  if (redirectTo) permanentRedirect(`/${redirectTo}`);
 
   if (unavailable) {
     return (

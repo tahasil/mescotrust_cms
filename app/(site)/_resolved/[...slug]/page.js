@@ -1,19 +1,31 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { connectDB } from "@/lib/db";
 import Page from "@/models/Page";
 import Component from "@/models/Component";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import { attachShortcodeModuleProps } from "@/lib/shortcodeServerProps";
+import { resolveRedirect } from "@/lib/menuPageSync";
 
 export const dynamic = "force-dynamic";
 
 async function PageContent({ slug }) {
   let page;
+  let redirectTo = null;
   try {
     await connectDB();
     page = await Page.findOne({ slug, status: "published" })
       .populate("layout.componentId")
       .lean();
+    if (!page) {
+      // Moved between menus — follow the recorded redirect rather than 404.
+      const target = await resolveRedirect(slug);
+      if (target) {
+        page = await Page.findOne({ slug: target, status: "published" })
+          .populate("layout.componentId")
+          .lean();
+        if (page) redirectTo = target;
+      }
+    }
   } catch {
     return (
       <div style={{ textAlign: "center", padding: "2rem 0" }}>
@@ -23,6 +35,7 @@ async function PageContent({ slug }) {
     );
   }
 
+  if (redirectTo) permanentRedirect(`/${redirectTo}`);
   if (!page) notFound();
 
   const layoutBlocks = page.layout || [];

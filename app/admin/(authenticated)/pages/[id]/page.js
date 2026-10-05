@@ -85,36 +85,45 @@ export default function AdminPageEditPage() {
     })();
   }, [id, form, router]);
 
-  useEffect(() => {
-    Promise.all([
-      fetch("/api/admin/pages?limit=200&fields=slug&includeTotal=0").then((res) =>
-        res.ok ? res.json() : { items: [] },
-      ),
-      fetch("/api/admin/menus").then((res) => (res.ok ? res.json() : [])),
-    ])
-      .then(([pages, menus]) => {
-        const folders = new Set();
-        const pageItems = Array.isArray(pages?.items) ? pages.items : [];
-        // From existing page slugs
-        pageItems.forEach((p) => {
-          if (p.slug && p.slug.includes("/")) {
-            folders.add(p.slug.substring(0, p.slug.lastIndexOf("/")));
+  /**
+   * Build the "Parent Menu" options from the pages and menus currently on
+   * disk. Re-run after a save so a Parent Menu change is reflected here too.
+   */
+  const loadParentFolders = useCallback(async () => {
+    try {
+      const [pagesRes, menusRes] = await Promise.all([
+        fetch("/api/admin/pages?limit=500&fields=slug&includeTotal=0"),
+        fetch("/api/admin/menus"),
+      ]);
+      const pages = pagesRes.ok ? await pagesRes.json() : { items: [] };
+      const menus = menusRes.ok ? await menusRes.json() : [];
+
+      const folders = new Set();
+      const pageItems = Array.isArray(pages?.items) ? pages.items : [];
+      // From existing page slugs
+      pageItems.forEach((p) => {
+        if (p.slug && p.slug.includes("/")) {
+          folders.add(p.slug.substring(0, p.slug.lastIndexOf("/")));
+        }
+      });
+      // From menu items that have children (act as parent groups)
+      (Array.isArray(menus) ? menus : []).forEach((menu) => {
+        (Array.isArray(menu.items) ? menu.items : []).forEach((item) => {
+          if (Array.isArray(item.children) && item.children.length > 0) {
+            const slug = (item.label || "").trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+            if (slug) folders.add(slug);
           }
         });
-        // From menu items that have children (act as parent groups)
-        (Array.isArray(menus) ? menus : []).forEach((menu) => {
-          (Array.isArray(menu.items) ? menu.items : []).forEach((item) => {
-            if (Array.isArray(item.children) && item.children.length > 0) {
-              const slug = (item.label || "").trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-              if (slug) folders.add(slug);
-            }
-          });
-        });
-        // Also include the current page's parent so it appears in the dropdown
-        setParentFolders([...folders].sort());
-      })
-      .catch(() => {});
+      });
+      setParentFolders([...folders].sort());
+    } catch {
+      /* keep the previous options */
+    }
   }, []);
+
+  useEffect(() => {
+    loadParentFolders();
+  }, [loadParentFolders]);
 
   useEffect(() => {
     if (!selectedParent) return;
@@ -153,12 +162,13 @@ export default function AdminPageEditPage() {
         message.error(data.error || "Save failed");
         return;
       }
+      const saved = await res.json().catch(() => ({}));
       setPage((prev) =>
         prev
           ? {
               ...prev,
               title: values.title,
-              slug: fullSlug,
+              slug: saved.slug || fullSlug,
               status: values.status,
               layout: layoutToSave,
               meta: {
@@ -170,6 +180,23 @@ export default function AdminPageEditPage() {
           : prev,
       );
       message.success("Page updated successfully");
+
+      // Menus are synced server-side on every address change. Surface what
+      // moved so the admin knows the header/footer has been updated too.
+      const sync = saved.menuSync;
+      if (sync) {
+        if (Array.isArray(sync.movedPages) && sync.movedPages.length) {
+          sync.movedPages.forEach((m) =>
+            message.success(`/${m.from} → /${m.to}`, 5),
+          );
+        }
+        if (Array.isArray(sync.warnings)) {
+          sync.warnings.forEach((w) => message.warning(w, 8));
+        }
+      }
+
+      // Keep the Parent Menu dropdown in step with the menus on disk.
+      loadParentFolders();
     } catch (e) {
       if (e.errorFields) {
         setSettingsOpen(true);

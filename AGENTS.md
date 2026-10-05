@@ -67,6 +67,7 @@ Models in `models/`:
 - `Appearance` (collection: `appearance`; independent Header Ribbon/Header/Footer shell configuration)
 - `ThemeConfig`
 - `Menu`
+- `PageSlugRedirect` (slug history so moved/renamed pages redirect instead of 404)
 - `User`
 - `Media`
 - `SiteFileSetting`
@@ -154,6 +155,9 @@ NPM scripts:
 - `npm run check-db` -> DB connectivity check script
 - `npm run seed-subscribe` -> seed subscribers from source data
 - `npm run backup-db` -> complete Extended JSON database backup outside the repository
+- `npm run audit:menu-links` -> report every nav link that would 404 (read-only)
+- `npm run fix:menu-links` -> re-point menu items at the slug that actually resolves
+- `npm run test:menu-page-sync` -> end-to-end tests for page/menu sync and move behaviour
 
 ## 7. Standard Workflows
 
@@ -242,12 +246,61 @@ wrappers. Preserve each component as an independent, self-contained component;
 do not couple or merge its logic, styles, data, or animations with another
 component.
 
-## 9. Operational Notes
+## 9. Page <-> Menu Sync Invariant
+
+A page's URL is derived from where it sits in the menu tree: a `page` item
+nested under `Media` lives at `/media/<basename>`. Two admin surfaces mutate
+that structure — the Page Builder "Parent Menu" select and the Menu editor
+(drag / Indent / Move up level). Both must stay in sync, and neither may
+leave a navigation link pointing at a dead slug.
+
+**All of this lives in `lib/menuPageSync.js`.** Never re-implement slug
+rewalking inside a route handler. The entry points are:
+
+| Caller | Function |
+| --- | --- |
+| `PUT /api/admin/pages/[id]` | `syncAfterPageChange({ oldSlug, newSlug, title })` |
+| `PUT|POST /api/admin/menus` and `PUT /api/admin/menus/[name]` | `syncAfterMenuSave({ menuName, items })` |
+| `DELETE /api/admin/pages/[id]` | `removePageItems(items, slug)` |
+| Public page routes | `resolveRedirect(slug)` |
+
+Guarantees the module provides:
+
+1. **Menu position decides the folder; the basename only changes when the
+   page is explicitly renamed.**
+2. **Moves are subtree moves** — moving `a/b` to `c/b` also moves `a/b/...`.
+   Descendant pages are never orphaned.
+3. **Every menu is repaired after any change**, so footer / secondary menus
+   never keep a stale `pageSlug` or `url` for a page that moved.
+4. **Healed items are re-nested** under the parent they now belong to,
+   otherwise the other menu would pull the page back on its next save.
+5. **Every rename writes a `PageSlugRedirect` row**, and the public routes
+   answer with a `permanentRedirect` instead of a 404.
+6. **`order` is re-indexed per sibling group** after every mutation, so the
+   header renders in the order shown in the editor.
+7. **Moves are atomic** — a slug collision aborts the whole batch and the menu
+   keeps linking to the slug that actually exists, so a conflict degrades into
+   a warning rather than a broken link.
+8. **Page labels are only auto-updated** when the menu label still matches the
+   page's previous title; custom navigation labels are never clobbered.
+
+Verify with:
+
+```
+npm run test:menu-page-sync   # round-trip tests (creates + removes its own data)
+npm run audit:menu-links      # read-only report of links that would 404
+npm run fix:menu-links        # re-point menu items at the slug that resolves
+```
+
+`lib/menuPageSync.js` is CommonJS on purpose so operational scripts can
+`require` it directly; route handlers still use named ESM imports.
+
+## 10. Operational Notes
 
 - Working tree may contain unrelated changes; do not revert unless explicitly requested.
 - There is no formal automated test suite wired in `package.json`; validation is currently lint + build + manual smoke tests + targeted scripts.
 
-## 10. Reference Index
+## 11. Reference Index
 
 Core docs:
 - `README.md`
@@ -271,6 +324,8 @@ Key implementation files:
 - `lib/rbac/bootstrap.js`
 - `lib/rbac/resolver.js`
 - `lib/layoutData.js`
+- `lib/menuPageSync.js` (single source of truth for Page <-> Menu sync: subtree moves, cross-menu repair, slug redirects)
+- `models/PageSlugRedirect.js`
 - `components/cms/ComponentRenderer.js`
 - `components/layout/PublicShell.js`
 - `components/admin/AppearanceEditor.js`

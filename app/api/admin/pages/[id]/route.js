@@ -3,8 +3,14 @@ import mongoose from "mongoose";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Page from "@/models/Page";
-import Menu from "@/models/Menu";
 import { normalizeSlug } from "@/lib/slug";
+import {
+  syncAfterPageChange,
+  removePageItems,
+  cloneMenuItems,
+  normalizeMenuItems,
+} from "@/lib/menuPageSync";
+import Menu from "@/models/Menu";
 import {
   filterLayoutValidationErrors,
   validateLayoutProps,
@@ -13,89 +19,6 @@ import { clearUsageForRef, syncMediaUsageForPage } from "@/lib/media/usageTracke
 import { sanitizeVideoPlayingLayout } from "@/lib/videoPlayingImageValidation";
 import { sanitizePhotoGalleryLayout } from "@/lib/photoGalleryImageValidation";
 import { normalizeAboutPageDesign } from "@/lib/aboutPageDesign";
-
-/**
- * Recursively find and remove a menu item by pageSlug.
- * Returns the removed item or null.
- */
-function findAndRemoveBySlug(items, slug) {
-  for (let i = 0; i < items.length; i++) {
-    if (items[i].type === "page" && items[i].pageSlug === slug) {
-      return items.splice(i, 1)[0];
-    }
-    if (Array.isArray(items[i].children) && items[i].children.length > 0) {
-      const found = findAndRemoveBySlug(items[i].children, slug);
-      if (found) return found;
-    }
-  }
-  return null;
-}
-
-/**
- * Recursively find a parent menu item whose slugified label matches the given folder.
- * Returns the item (so we can push into its children) or null.
- */
-function findParentByFolder(items, folder) {
-  for (const item of items) {
-    const slugified = (item.label || "").trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-    if (slugified === folder) return item;
-    if (Array.isArray(item.children) && item.children.length > 0) {
-      const found = findParentByFolder(item.children, folder);
-      if (found) return found;
-    }
-  }
-  return null;
-}
-
-/**
- * Sync menu items when a page slug changes:
- * 1. Update pageSlug and url on the matching menu item
- * 2. If parent folder changed, move the item to the correct parent in the menu tree
- */
-function syncMenuForSlugChange(menuItems, oldSlug, newSlug) {
-  const oldFolder = oldSlug.includes("/") ? oldSlug.substring(0, oldSlug.lastIndexOf("/")) : "";
-  const newFolder = newSlug.includes("/") ? newSlug.substring(0, newSlug.lastIndexOf("/")) : "";
-
-  // If parent folder didn't change, just update slug and url in place
-  if (oldFolder === newFolder) {
-    let changed = false;
-    const updateInPlace = (items) => {
-      for (const item of items) {
-        if (item.type === "page" && item.pageSlug === oldSlug) {
-          item.pageSlug = newSlug;
-          item.url = "/" + newSlug;
-          changed = true;
-        }
-        if (Array.isArray(item.children)) updateInPlace(item.children);
-      }
-    };
-    updateInPlace(menuItems);
-    return changed;
-  }
-
-  // Parent folder changed — remove item from old position and insert under new parent
-  const removed = findAndRemoveBySlug(menuItems, oldSlug);
-  if (!removed) return false;
-
-  // Update the slug on the removed item
-  removed.pageSlug = newSlug;
-  removed.url = "/" + newSlug;
-
-  if (!newFolder) {
-    // Moved to root level
-    menuItems.push(removed);
-  } else {
-    const newParent = findParentByFolder(menuItems, newFolder);
-    if (newParent) {
-      if (!Array.isArray(newParent.children)) newParent.children = [];
-      newParent.children.push(removed);
-    } else {
-      // New parent not found in menu — place at root
-      menuItems.push(removed);
-    }
-  }
-  return true;
-}
 
 export async function GET(req, { params }) {
   const session = await requireAuth(req);
@@ -172,22 +95,39 @@ export async function PUT(req, { params }) {
     await page.save();
     await syncMediaUsageForPage(page);
 
-    // Auto-sync menus: update slug and move item if parent folder changed
+    // Auto-sync menus whenever the address changes (including a "Parent Menu"
+    // change). This re-nests the page's menu item under the new parent, drags
+    // every descendant page along, repairs every other menu so no nav link is
+    // left pointing at a dead slug, and records redirects so previously
+    // published URLs answer with a redirect instead of a 404.
+    let sync = { warnings: [], changedMenus: [], movedPages: [], conflicts: [] };
     if (oldSlug && page.slug !== oldSlug) {
       try {
-        const menus = await Menu.find().lean();
-        for (const menu of menus) {
-          const plainItems = JSON.parse(JSON.stringify(menu.items));
-          if (syncMenuForSlugChange(plainItems, oldSlug, page.slug)) {
-            await Menu.updateOne({ _id: menu._id }, { $set: { items: plainItems } });
-          }
-        }
+        sync = await syncAfterPageChange({
+          oldSlug,
+          newSlug: page.slug,
+          title: page.title || "",
+        });
       } catch (e) {
         console.error("Menu sync after slug change failed:", e);
+        sync = {
+          ...sync,
+          warnings: [
+            "The page was saved, but menus could not be updated automatically. Please re-check the Menu screen.",
+          ],
+        };
       }
     }
 
-    return NextResponse.json(page);
+    return NextResponse.json({
+      ...page.toObject(),
+      menuSync: {
+        movedPages: sync.movedPages,
+        changedMenus: sync.changedMenus,
+        conflicts: sync.conflicts,
+        warnings: sync.warnings,
+      },
+    });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
@@ -206,6 +146,22 @@ export async function DELETE(req, { params }) {
     const page = await Page.findByIdAndDelete(id);
     if (!page) return NextResponse.json({ error: "Not found" }, { status: 404 });
     await clearUsageForRef("page", id);
+
+    // Drop the page from every menu so the header/footer never render a link
+    // that would 404 after the page is gone.
+    try {
+      const menus = await Menu.find().lean();
+      for (const menu of menus) {
+        const items = cloneMenuItems(menu.items);
+        if (removePageItems(items, page.slug)) {
+          normalizeMenuItems(items);
+          await Menu.updateOne({ _id: menu._id }, { $set: { items } });
+        }
+      }
+    } catch (e) {
+      console.error("Menu cleanup after page delete failed:", e);
+    }
+
     return NextResponse.json({ deleted: true });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
