@@ -17,6 +17,7 @@ import {
   Space,
   Table,
   Tag,
+  Tooltip,
   Typography,
   message,
 } from "antd";
@@ -25,11 +26,13 @@ import {
   DeleteOutlined,
   DownloadOutlined,
   EyeOutlined,
+  LockOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { formatDateTime } from "@/lib/formatDate";
 import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
+import { useAdminPermission } from "@/components/admin/AdminAuthContext";
 
 const READ_FILTER_OPTIONS = [
   { value: "all", label: "All" },
@@ -127,6 +130,7 @@ function triggerUrlDownload(url, fileName) {
 
 export default function FormSubmissionsPage() {
   const params = useParams();
+  const canExportSubmissions = useAdminPermission("form_builder.export_data");
   const formId = normalizeText(params?.formId);
 
   const [loading, setLoading] = useState(true);
@@ -548,23 +552,31 @@ export default function FormSubmissionsPage() {
               return Boolean(from && current && current.startOf("day").isBefore(from.startOf("day")));
             }}
           />
-          <Dropdown
-            menu={{
-              items: EXPORT_MENU_ITEMS,
-              onClick: ({ key }) => {
-                if (key === "custom") {
-                  setCustomExportOpen(true);
-                  return;
-                }
-                runExport({ type: key });
-              },
-            }}
-            trigger={["click"]}
-          >
-            <Button icon={<DownloadOutlined />} loading={Boolean(exportingType)}>
-              Export
-            </Button>
-          </Dropdown>
+          {canExportSubmissions ? (
+            <Dropdown
+              menu={{
+                items: EXPORT_MENU_ITEMS,
+                onClick: ({ key }) => {
+                  if (key === "custom") {
+                    setCustomExportOpen(true);
+                    return;
+                  }
+                  runExport({ type: key });
+                },
+              }}
+              trigger={["click"]}
+            >
+              <Button icon={<DownloadOutlined />} loading={Boolean(exportingType)}>
+                Export
+              </Button>
+            </Dropdown>
+          ) : (
+            <Tooltip title="Your role does not have export permission. An Admin can grant it from Roles & Permissions.">
+              <Button icon={<LockOutlined />} disabled>
+                Export
+              </Button>
+            </Tooltip>
+          )}
           <Button icon={<ReloadOutlined />} onClick={() => fetchList(page)}>
             Refresh
           </Button>

@@ -17,7 +17,17 @@ Custom roles can be created at `/admin/rbac/roles` and assigned from `/admin/use
 
 The catalog covers Dashboard, Pages, Components, Appearance, Social Wall, Form Builder, Sliders, Popups, Team, Blogs, Events, Media, Menus, Chatbot, Theme, Submissions, Users, and Roles & Permissions.
 
-Supported actions are generated per module from: `view`, `create`, `edit`, `delete`, `manage`, `publish`, `settings_access`, `user_management`, and `role_management`.
+Supported actions are generated per module from: `view`, `create`, `edit`, `delete`, `manage`, `publish`, `export_data`, `settings_access`, `user_management`, and `role_management`.
+
+## Export permission
+
+`export_data` is a dedicated action available on the **Submissions** module (`submissions.export_data`) and the **Form Builder** module (`form_builder.export_data`).
+
+- It is required by every admin export endpoint: `/api/admin/subscribers/export`, `/api/admin/contacts/export`, `/api/admin/event-registrations/export`, `/api/admin/volunteers-feedback/export`, `/api/admin/donations/export`, and `/api/admin/forms/[formId]/submissions/export`.
+- It also requires the matching module `view` permission, so export can never be wider than read access.
+- An Admin grants or revokes it per role at `/admin/rbac/roles` → Edit role → module → **Export Data**.
+- Roles without the permission see a locked, disabled **Export** button instead of the export menu, and the API returns `403 Forbidden: insufficient permission`.
+- Defaults: Super Admin and Admin include it; Editor excludes it by default and must be granted explicitly; Author has no Submissions/Form Builder export scope.
 
 ## Enforcement
 

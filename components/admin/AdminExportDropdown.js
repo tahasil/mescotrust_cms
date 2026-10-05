@@ -9,10 +9,12 @@ import {
   Modal,
   Select,
   Space,
+  Tooltip,
   Typography,
   message,
 } from "antd";
-import { DownloadOutlined } from "@ant-design/icons";
+import { DownloadOutlined, LockOutlined } from "@ant-design/icons";
+import { useAdminPermission } from "@/components/admin/AdminAuthContext";
 
 const DATE_API_FORMAT = "YYYY-MM-DD";
 const DATE_DISPLAY_FORMAT = "DD-MM-YYYY";
@@ -70,7 +72,9 @@ export default function AdminExportDropdown({
   availableColumns = [],
   defaultFilename = "export",
   disabled = false,
+  requiredPermission = "submissions.export_data",
 }) {
+  const canExport = useAdminPermission(requiredPermission);
   const [exportingType, setExportingType] = useState("");
   const [customExportOpen, setCustomExportOpen] = useState(false);
   const [customColumns, setCustomColumns] = useState(() =>
@@ -149,6 +153,22 @@ export default function AdminExportDropdown({
     [defaultFilename, exportUrl, filters],
   );
 
+  const exportButton = (
+    <Button icon={<DownloadOutlined />} loading={Boolean(exportingType)} disabled={disabled}>
+      Export
+    </Button>
+  );
+
+  if (!canExport) {
+    return (
+      <Tooltip title="Your role does not have export permission. An Admin can grant it from Roles & Permissions.">
+        <Button icon={<LockOutlined />} disabled>
+          Export
+        </Button>
+      </Tooltip>
+    );
+  }
+
   return (
     <>
       <Dropdown
@@ -165,9 +185,7 @@ export default function AdminExportDropdown({
         trigger={["click"]}
         disabled={disabled}
       >
-        <Button icon={<DownloadOutlined />} loading={Boolean(exportingType)}>
-          Export
-        </Button>
+        {exportButton}
       </Dropdown>
 
       <Modal

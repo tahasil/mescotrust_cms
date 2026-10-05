@@ -68,8 +68,14 @@ All admin APIs require authentication via JWT and the operation-specific permiss
 | GET | `/api/admin/forms/[formId]/submissions` | Admin, Editor | List form submissions with filters (`page`, `limit`, `search`, `isRead`, `dateFrom`, `dateTo`, `sort`) |
 | GET/PATCH/DELETE | `/api/admin/forms/[formId]/submissions/[submissionId]` | Admin, Editor | Read submission detail, mark `isRead`, or delete submission |
 | GET | `/api/admin/forms/submissions/unread?limit=10` | Admin, Editor | Latest unread Form Builder submissions across forms |
+| POST | `/api/admin/forms/[formId]/submissions/export` | Roles with `form_builder.export_data` | Export form submissions (`csv_filtered`, `xlsx_all`, `custom`) |
 | GET | `/api/admin/contacts` | Admin, Editor | List contact submissions |
 | DELETE | `/api/admin/contacts/[id]` | Admin, Editor | Delete contact submission |
+| POST | `/api/admin/contacts/export` | Roles with `submissions.export_data` | Export contact/volunteer submissions |
+| POST | `/api/admin/subscribers/export` | Roles with `submissions.export_data` | Export subscribers |
+| POST | `/api/admin/event-registrations/export` | Roles with `submissions.export_data` | Export event registrations |
+| POST | `/api/admin/volunteers-feedback/export` | Roles with `submissions.export_data` | Export volunteers feedback submissions |
+| GET/POST | `/api/admin/donations/export` | Roles with `submissions.export_data` | Export donations/donate-now submissions |
 | GET/POST | `/api/admin/users` | Admin only | List/create users |
 | GET/PUT/DELETE | `/api/admin/users/[id]` | Admin only | Read/update/delete user |
 | GET | `/api/admin/rbac/permissions` | Role Manager | List the active, current-project permission catalog |
