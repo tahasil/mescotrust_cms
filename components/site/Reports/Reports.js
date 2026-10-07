@@ -69,12 +69,14 @@ const ReportCard = styled.div`
 
   &.mode-fit .imageWrapper {
     width: 100%;
-    aspect-ratio: 16 / 10;
+    height: var(--reports-image-max-height, 260px);
+    max-height: var(--reports-image-max-height, 260px);
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
     background: var(--reports-card-bg);
+    padding: 10px 10px 0;
 
     picture {
       width: 100%;
@@ -247,7 +249,7 @@ export default function Reports(props) {
     : getColor("primary");
   const subTitleColor = color(props?.reportsSubTitleColorKey, undefined);
 
-  /* ── Image Display Mode ── */
+  /* ── Image Display Mode & Max Height ── */
   const sectionDisplayMode = (
     props?.reportsImageDisplayMode ??
     props?.imageDisplayMode ??
@@ -257,12 +259,30 @@ export default function Reports(props) {
     .trim()
     .toLowerCase();
 
+  const rawMaxHeight = (
+    props?.reportsImageMaxHeight ??
+    props?.imageMaxHeight ??
+    ""
+  )
+    .toString()
+    .trim();
+
+  function formatMaxHeight(val) {
+    if (!val) return "260px";
+    const str = String(val).trim();
+    if (/^\d+(\.\d+)?$/.test(str)) return `${str}px`;
+    return str;
+  }
+
+  const resolvedMaxHeight = formatMaxHeight(rawMaxHeight);
+
   /* ── Items ── */
   const items = Array.isArray(props?.reportsItems) ? props.reportsItems : [];
 
   /* ── Colors ── */
   const overlayText = color(props?.reportsOverlayTextColorKey, "#fff");
   const designStyle = {
+    "--reports-image-max-height": resolvedMaxHeight,
     "--reports-card-bg": color(props?.reportsCardBgColorKey, "#fff"),
     "--reports-card-border": color(props?.reportsCardBorderColorKey, "rgba(0,0,0,0.1)"),
     "--reports-card-shadow": color(props?.reportsCardShadowColorKey, getColor("dark")),

@@ -98,6 +98,12 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
         reportsSubTitleEnabled: data?.reportsSubTitleEnabled !== false,
         reportsImageDisplayMode:
           data?.reportsImageDisplayMode || data?.imageDisplayMode || "compress",
+        reportsImageMaxHeight:
+          data?.reportsImageMaxHeight != null
+            ? String(data.reportsImageMaxHeight).trim()
+            : data?.imageMaxHeight != null
+              ? String(data.imageMaxHeight).trim()
+              : "260px",
         ...Object.fromEntries(
           REPORTS_COLOR_FIELDS.map((key) => [key, String(data?.[key] ?? "").trim()]),
         ),
@@ -135,6 +141,9 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
       .finally(() => setLoading(false));
   }, [form, isPageBlock, initialDataProp]);
 
+  const watchedDisplayMode = Form.useWatch("reportsImageDisplayMode", form);
+  const isFitFullImage = watchedDisplayMode === "fit";
+
   const handleUpdate = useCallback(() => {
     form.validateFields().then(() => {
       const values = form.getFieldsValue(true);
@@ -147,6 +156,10 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
         reportsTitleEnabled: values.reportsTitleEnabled !== false,
         reportsSubTitleEnabled: values.reportsSubTitleEnabled !== false,
         reportsImageDisplayMode: values.reportsImageDisplayMode || "compress",
+        reportsImageMaxHeight:
+          values.reportsImageMaxHeight != null
+            ? String(values.reportsImageMaxHeight).trim()
+            : "",
         ...Object.fromEntries(
           REPORTS_COLOR_FIELDS.map((key) => [key, String(values?.[key] ?? "").trim()]),
         ),
@@ -214,6 +227,17 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                       />
                     </Form.Item>
                   </Col>
+                  {isFitFullImage && (
+                    <Col span={24}>
+                      <Form.Item
+                        name="reportsImageMaxHeight"
+                        label="Max height"
+                        tooltip="Define maximum height for images in px or % (e.g. 260px, 300px, 100%)"
+                      >
+                        <Input placeholder="e.g. 260px or 100%" size="large" />
+                      </Form.Item>
+                    </Col>
+                  )}
                 </Row>
                 <Form.List name="reportsItems">
                   {(fields, { add, remove, move }) => (
@@ -272,9 +296,9 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                               <MediaPickerInput
                                 placeholder="/uploads/report-cover.webp"
                                 uiVariant="stacked"
-                                cropWidth={348}
-                                cropHeight={200}
-                                hintText="Recommended: 348 × 200 px"
+                                cropWidth={isFitFullImage ? null : 348}
+                                cropHeight={isFitFullImage ? null : 200}
+                                hintText={isFitFullImage ? "" : "Recommended: 348 × 200 px"}
                               />
                             </Form.Item>
                           </Col>
