@@ -79,16 +79,16 @@ const PartnersSection = styled.section`
     display: flex;
     align-items: center;
     justify-content: center;
-    max-width: var(--marquee-image-max-width, 190px);
     width: auto;
+    max-width: 100%;
   }
 
   .marquee-item img {
     display: block;
     width: auto;
-    max-width: var(--marquee-image-max-width, 190px);
     height: auto;
-    max-height: 84px;
+    max-height: var(--marquee-image-max-height, 84px);
+    max-width: 100%;
     object-fit: contain;
     // filter: grayscale(1);
     // opacity: 0.72;
@@ -109,13 +109,8 @@ const PartnersSection = styled.section`
       margin-right: clamp(24px, 4vw, 44px);
     }
 
-    .marquee-item picture {
-      max-width: min(var(--marquee-image-max-width, 190px), clamp(90px, 32vw, 150px));
-    }
-
     .marquee-item img {
-      max-width: min(var(--marquee-image-max-width, 190px), clamp(90px, 32vw, 150px));
-      max-height: 60px;
+      max-height: min(var(--marquee-image-max-height, 84px), 60px);
     }
   }
 
@@ -124,13 +119,8 @@ const PartnersSection = styled.section`
       margin-right: clamp(16px, 3.5vw, 30px);
     }
 
-    .marquee-item picture {
-      max-width: min(var(--marquee-image-max-width, 190px), clamp(75px, 28vw, 120px));
-    }
-
     .marquee-item img {
-      max-width: min(var(--marquee-image-max-width, 190px), clamp(75px, 28vw, 120px));
-      max-height: 48px;
+      max-height: min(var(--marquee-image-max-height, 84px), 48px);
     }
   }
 
@@ -335,7 +325,7 @@ export default function Marquee(props) {
     ),
   };
 
-  const formatMaxWidth = (val, fallback = "190px") => {
+  const formatDimension = (val, fallback) => {
     if (!val) return fallback;
     const s = String(val).trim();
     if (!s) return fallback;
@@ -343,9 +333,13 @@ export default function Marquee(props) {
     return s;
   };
 
-  const imageMaxWidth = formatMaxWidth(
+  const imageMaxWidth = formatDimension(
     settings?.marqueeImageMaxWidth ?? settings?.imageMaxWidth,
     "190px",
+  );
+  const imageMaxHeight = formatDimension(
+    settings?.marqueeImageMaxHeight ?? settings?.imageMaxHeight,
+    "84px",
   );
 
   return (
@@ -355,7 +349,10 @@ export default function Marquee(props) {
           className="site-component-marquee"
           data-component="Marquee"
           $showGradient={showGradient}
-          style={{ "--marquee-image-max-width": imageMaxWidth }}
+          style={{
+            "--marquee-image-max-width": imageMaxWidth,
+            "--marquee-image-max-height": imageMaxHeight,
+          }}
           aria-label={
             [partnersTitle, awardsTitle].filter(Boolean).join(" | ") ||
             undefined

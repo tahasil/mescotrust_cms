@@ -133,6 +133,12 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
             : data?.imageMaxWidth != null
               ? String(data.imageMaxWidth).trim()
               : "190px",
+        marqueeImageMaxHeight:
+          data?.marqueeImageMaxHeight != null
+            ? String(data.marqueeImageMaxHeight).trim()
+            : data?.imageMaxHeight != null
+              ? String(data.imageMaxHeight).trim()
+              : "84px",
         marqueeTitleColorKey: data?.marqueeTitleColorKey != null ? String(data.marqueeTitleColorKey).trim() : "",
         ...getHeadingValues(data),
         ...getManageSectionInitialValues("marquee", data),
@@ -173,6 +179,12 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
               : data?.imageMaxWidth != null
                 ? String(data.imageMaxWidth).trim()
                 : "190px",
+          marqueeImageMaxHeight:
+            data?.marqueeImageMaxHeight != null
+              ? String(data.marqueeImageMaxHeight).trim()
+              : data?.imageMaxHeight != null
+                ? String(data.imageMaxHeight).trim()
+                : "84px",
           marqueeTitleColorKey: data?.marqueeTitleColorKey != null ? String(data.marqueeTitleColorKey).trim() : "",
           ...getHeadingValues(data, true),
           ...getManageSectionInitialValues("marquee", data),
@@ -212,6 +224,10 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
           values.marqueeImageMaxWidth != null
             ? String(values.marqueeImageMaxWidth).trim()
             : "190px",
+        marqueeImageMaxHeight:
+          values.marqueeImageMaxHeight != null
+            ? String(values.marqueeImageMaxHeight).trim()
+            : "84px",
         marqueeTitleColorKey:
           values.marqueePartnersTitleColorKey != null
             ? String(values.marqueePartnersTitleColorKey).trim()
@@ -279,11 +295,11 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                 <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
                   <Col span={24}>
                     <Form.Item
-                      name="marqueeImageMaxWidth"
-                      label="Image Max Width"
-                      tooltip="Define maximum width for logo images in px, % or rem (e.g. 190px, 220px, 150px). Automatically scales responsively on mobile."
+                      name="marqueeImageMaxHeight"
+                      label="Image Max Height"
+                      tooltip="Define maximum height for logo images in px, % or rem (e.g. 84px, 100px, 120px). Automatically scales responsively on mobile."
                     >
-                      <Input placeholder="e.g. 190px" size="large" />
+                      <Input placeholder="e.g. 84px" size="large" />
                     </Form.Item>
                   </Col>
                 </Row>
