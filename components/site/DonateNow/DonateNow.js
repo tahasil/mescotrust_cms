@@ -27,6 +27,7 @@ import {
   DONATE_NOW_FIGMA_PURPOSE_ORDER,
   getDefaultPurposeValue,
   getPurposeRuleState,
+  getQuantityFieldLabel,
   normalizeDonateNowConfig,
 } from "@/lib/donateNowConfig";
 
@@ -97,10 +98,14 @@ function isSelectField(fieldConfig) {
   );
 }
 
-function getFieldValidationError(fieldKey, value, fieldConfig, required) {
+function getFieldValidationError(fieldKey, value, fieldConfig, required, selectedPurpose) {
   const normalized = normalizeText(value);
+  const effectiveLabel =
+    fieldKey === "studentsCount"
+      ? getQuantityFieldLabel(selectedPurpose)
+      : fieldConfig?.label || fieldKey;
   if (required && !normalized) {
-    return `${fieldConfig?.label || fieldKey} is required`;
+    return `${effectiveLabel} is required`;
   }
   if (!normalized) return "";
 
@@ -1206,6 +1211,7 @@ export default function DonateNow(props = {}) {
         fieldValues[key],
         config,
         required,
+        selectedPurpose,
       );
       if (validationError) nextErrors[key] = validationError;
     });
@@ -1398,13 +1404,17 @@ export default function DonateNow(props = {}) {
     const colProps =
       colPropsOverride ||
       (isFullWidth ? FORM_GRID_FULL_COL_PROPS : FORM_GRID_COL_PROPS);
+    const fieldLabel =
+      key === "studentsCount"
+        ? getQuantityFieldLabel(selectedPurpose)
+        : config.label;
 
     if (key === "purpose") {
       return (
         <Col key={key} {...colProps}>
           <FieldWrap>
             <FieldLabel>
-              {config.label}
+              {fieldLabel}
               {required ? <span className="req">*</span> : null}
             </FieldLabel>
             <FieldSelect
@@ -1430,7 +1440,7 @@ export default function DonateNow(props = {}) {
         <Col key={key} {...colProps}>
           <FieldWrap>
             <FieldLabel>
-              {config.label}
+              {fieldLabel}
               {required ? <span className="req">*</span> : null}
             </FieldLabel>
             <FieldSelect
@@ -1458,7 +1468,7 @@ export default function DonateNow(props = {}) {
         <Col key={key} {...(colPropsOverride || FORM_TEXTAREA_COL_PROPS)}>
           <FieldWrap>
             <FieldLabel>
-              {config.label}
+              {fieldLabel}
               {required ? <span className="req">*</span> : null}
             </FieldLabel>
             <AddressTextArea
@@ -1477,7 +1487,7 @@ export default function DonateNow(props = {}) {
       <Col key={key} {...colProps}>
         <FieldWrap>
           <FieldLabel>
-            {config.label}
+            {fieldLabel}
             {required ? <span className="req">*</span> : null}
           </FieldLabel>
           <FieldInput
