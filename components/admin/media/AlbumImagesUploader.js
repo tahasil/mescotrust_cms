@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Button, Modal, Spin, message, Typography, Pagination, Input, Checkbox, Empty } from "antd";
 import {
   UploadOutlined,
@@ -10,7 +10,27 @@ import {
   SearchOutlined,
   StarFilled,
   StarOutlined,
+  HolderOutlined,
+  LeftOutlined,
+  RightOutlined,
 } from "@ant-design/icons";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  arrayMove,
+  rectSortingStrategy,
+  sortableKeyboardCoordinates,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import styled from "styled-components";
 import { buildMediaVariantUrl } from "@/lib/media/url";
 import { readJson } from "./mediaUtils";
@@ -50,10 +70,17 @@ const ThumbTile = styled.div`
   background-color: #f9fafb;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  user-select: none;
 
   &[data-featured="true"] {
     border: 2px solid #faad14;
     box-shadow: 0 0 0 3px rgba(250, 173, 20, 0.2);
+  }
+
+  &[data-dragging="true"] {
+    opacity: 0.35;
+    border: 2px dashed #1677ff;
+    box-shadow: none;
   }
 
   .album-thumb__feature {
@@ -63,7 +90,7 @@ const ThumbTile = styled.div`
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    max-width: calc(100% - 42px);
+    max-width: calc(100% - 68px);
     padding: 2px 8px;
     border-radius: 999px;
     border: 1px solid rgba(255, 255, 255, 0.6);
@@ -74,6 +101,7 @@ const ThumbTile = styled.div`
     line-height: 1.6;
     white-space: nowrap;
     cursor: pointer;
+    z-index: 3;
     opacity: 0;
     transform: translateY(-3px);
     transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease, color 0.2s ease;
@@ -103,18 +131,345 @@ const ThumbTile = styled.div`
     color: #1f2937;
   }
 
-  /* Touch devices have no hover state, so keep the control permanently visible. */
+  /* Drag handle in top area */
+  .album-thumb__drag-handle {
+    position: absolute;
+    top: 5px;
+    right: 33px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.65);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    z-index: 3;
+    opacity: 0;
+    transform: translateY(-3px);
+    transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease;
+    touch-action: none;
+
+    &:hover {
+      background: #1677ff;
+      transform: scale(1.1);
+    }
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+
+  &:hover .album-thumb__drag-handle {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Reorder Nav Bar (Move Left & Move Right) at bottom right */
+  .album-thumb__nav {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    display: inline-flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.65);
+    border-radius: 5px;
+    overflow: hidden;
+    z-index: 3;
+    opacity: 0;
+    transform: translateY(3px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+
+    button {
+      background: transparent;
+      border: none;
+      color: #ffffff;
+      padding: 3px 6px;
+      font-size: 10px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s ease;
+
+      &:hover:not(:disabled) {
+        background: #1677ff;
+      }
+
+      &:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+    }
+
+    .nav-divider {
+      width: 1px;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.25);
+    }
+  }
+
+  &:hover .album-thumb__nav {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Touch devices have no hover state, so keep the controls permanently visible. */
   @media (hover: none) {
-    .album-thumb__feature {
+    .album-thumb__feature,
+    .album-thumb__drag-handle,
+    .album-thumb__nav {
       opacity: 1;
       transform: translateY(0);
     }
   }
 `;
 
+function SortableImageTile({
+  id,
+  img,
+  index,
+  total,
+  onToggleFeature,
+  onRemove,
+  onMove,
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const isFeatured = img.feature === 1;
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 40 : "auto",
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <ThumbTile
+        data-featured={isFeatured ? "true" : "false"}
+        data-dragging={isDragging ? "true" : "false"}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={img.urlDesktop || img.url}
+          alt={img.alt || `Album image ${index + 1}`}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+            pointerEvents: "none",
+          }}
+        />
+
+        {/* Feature toggle: revealed on hover, always visible once marked featured */}
+        <button
+          type="button"
+          className="album-thumb__feature"
+          role="switch"
+          aria-checked={isFeatured}
+          aria-label={
+            isFeatured
+              ? `Remove Feature mark from image ${index + 1}`
+              : `Mark image ${index + 1} as Feature`
+          }
+          title={isFeatured ? "Featured \u2014 tap to unmark" : "Mark as Feature"}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFeature(index);
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          {isFeatured ? <StarFilled /> : <StarOutlined />}
+          <span>{isFeatured ? "Featured" : "Feature"}</span>
+        </button>
+
+        {/* Drag handle */}
+        <div
+          {...attributes}
+          {...listeners}
+          className="album-thumb__drag-handle"
+          title="Drag to reorder"
+          onPointerDown={(e) => {
+            listeners?.onPointerDown?.(e);
+          }}
+        >
+          <HolderOutlined />
+        </div>
+
+        {/* Delete Button on top right */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove(index);
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          title="Remove image"
+          style={{
+            position: "absolute",
+            top: 5,
+            right: 5,
+            width: 24,
+            height: 24,
+            borderRadius: "50%",
+            backgroundColor: "rgba(0, 0, 0, 0.65)",
+            color: "#fff",
+            border: "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            transition: "background 0.2s ease, transform 0.15s ease",
+            fontSize: 12,
+            zIndex: 3,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "#ef4444";
+            e.currentTarget.style.transform = "scale(1.1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "rgba(0, 0, 0, 0.65)";
+            e.currentTarget.style.transform = "scale(1)";
+          }}
+        >
+          <DeleteOutlined />
+        </button>
+
+        {/* Image Number Badge */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: 4,
+            left: 4,
+            background: "rgba(0, 0, 0, 0.65)",
+            color: "#fff",
+            fontSize: 11,
+            fontWeight: 600,
+            padding: "1px 6px",
+            borderRadius: 4,
+            pointerEvents: "none",
+            zIndex: 2,
+          }}
+        >
+          #{index + 1}
+        </div>
+
+        {/* Move controls: Move Left & Move Right buttons */}
+        {total > 1 && (
+          <div
+            className="album-thumb__nav"
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              disabled={index === 0}
+              onClick={(e) => {
+                e.stopPropagation();
+                onMove(index, index - 1);
+              }}
+              title="Move backward (Left)"
+            >
+              <LeftOutlined />
+            </button>
+            <div className="nav-divider" />
+            <button
+              type="button"
+              disabled={index === total - 1}
+              onClick={(e) => {
+                e.stopPropagation();
+                onMove(index, index + 1);
+              }}
+              title="Move forward (Right)"
+            >
+              <RightOutlined />
+            </button>
+          </div>
+        )}
+      </ThumbTile>
+    </div>
+  );
+}
+
 export default function AlbumImagesUploader({ value = [], onChange }) {
-  const images = Array.isArray(value) ? value.map(normalizeImg) : [];
-  const featuredCount = images.filter((img) => img.feature === 1).length;
+  const images = useMemo(() => {
+    return Array.isArray(value) ? value.map(normalizeImg) : [];
+  }, [value]);
+
+  const featuredCount = useMemo(() => {
+    return images.filter((img) => img.feature === 1).length;
+  }, [images]);
+
+  // Assign stable DND keys for each item in the array
+  const itemsWithIds = useMemo(() => {
+    return images.map((img, idx) => ({
+      ...img,
+      _dndKey: img._id ? String(img._id) : `img-${idx}-${img.urlDesktop || img.url || "item"}`,
+    }));
+  }, [images]);
+
+  const itemIds = useMemo(() => itemsWithIds.map((item) => item._dndKey), [itemsWithIds]);
+
+  const [activeId, setActiveId] = useState(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 6 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragStart = useCallback((event) => {
+    setActiveId(event.active.id);
+  }, []);
+
+  const handleDragEnd = useCallback(
+    (event) => {
+      const { active, over } = event;
+      setActiveId(null);
+      if (over && active.id !== over.id) {
+        const oldIndex = itemsWithIds.findIndex((item) => item._dndKey === active.id);
+        const newIndex = itemsWithIds.findIndex((item) => item._dndKey === over.id);
+        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+          const updated = arrayMove(images, oldIndex, newIndex);
+          onChange?.(updated);
+        }
+      }
+    },
+    [itemsWithIds, images, onChange]
+  );
+
+  const handleDragCancel = useCallback(() => {
+    setActiveId(null);
+  }, []);
+
+  const handleMoveImage = useCallback(
+    (from, to) => {
+      if (from < 0 || to < 0 || from >= images.length || to >= images.length || from === to) return;
+      const updated = arrayMove(images, from, to);
+      onChange?.(updated);
+    },
+    [images, onChange]
+  );
+
+  const activeItem = useMemo(() => {
+    if (!activeId) return null;
+    return itemsWithIds.find((item) => item._dndKey === activeId) || null;
+  }, [activeId, itemsWithIds]);
+
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
@@ -164,25 +519,25 @@ export default function AlbumImagesUploader({ value = [], onChange }) {
     fetchLibrary(libPage);
   }, [libraryOpen, libPage, libQuery, fetchLibrary]);
 
-function getImageDimensions(file) {
-  return new Promise((resolve) => {
-    if (typeof window === "undefined" || !file || typeof file.type !== "string" || !file.type.startsWith("image/")) {
-      resolve({ width: 800, height: 600 });
-      return;
-    }
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve({ width: img.naturalWidth || 800, height: img.naturalHeight || 600 });
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      resolve({ width: 800, height: 600 });
-    };
-    img.src = url;
-  });
-}
+  function getImageDimensions(file) {
+    return new Promise((resolve) => {
+      if (typeof window === "undefined" || !file || typeof file.type !== "string" || !file.type.startsWith("image/")) {
+        resolve({ width: 800, height: 600 });
+        return;
+      }
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        resolve({ width: img.naturalWidth || 800, height: img.naturalHeight || 600 });
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve({ width: 800, height: 600 });
+      };
+      img.src = url;
+    });
+  }
 
   // Handle direct multiple file upload
   const handleFilesSelected = async (e) => {
@@ -223,6 +578,7 @@ function getImageDimensions(file) {
             urlDesktop: url,
             url,
             alt: item.altText || item.alt || file.name.replace(/\.[^/.]+$/, ""),
+            feature: 0,
           });
         }
       } catch {
@@ -278,6 +634,7 @@ function getImageDimensions(file) {
         urlDesktop: url,
         url,
         alt: it.altText || it.alt || it.title || "",
+        feature: 0,
       };
     });
 
@@ -331,142 +688,101 @@ function getImageDimensions(file) {
         </span>
       </div>
 
-      {/* Uploaded Images Thumbnails: 3 images per row */}
+      {/* Uploaded Images Thumbnails with Drag & Drop and Move buttons: 3 images per row */}
       {images.length > 0 ? (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-            gap: 10,
-          }}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
         >
-          {images.map((img, idx) => {
-            const isFeatured = img.feature === 1;
-            return (
-            <ThumbTile
-              key={`${img.urlDesktop || img.url}-${idx}`}
-              data-featured={isFeatured ? "true" : "false"}
+          <SortableContext items={itemIds} strategy={rectSortingStrategy}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                gap: 10,
+              }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={img.urlDesktop || img.url}
-                alt={img.alt || `Album image ${idx + 1}`}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  display: "block",
-                }}
-              />
-              {/* Feature toggle: revealed on hover, always visible once marked featured */}
-              <button
-                type="button"
-                className="album-thumb__feature"
-                role="switch"
-                aria-checked={isFeatured}
-                aria-label={
-                  isFeatured
-                    ? `Remove Feature mark from image ${idx + 1}`
-                    : `Mark image ${idx + 1} as Feature`
-                }
-                title={isFeatured ? "Featured \u2014 tap to unmark" : "Mark as Feature"}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleToggleFeature(idx);
-                }}
-              >
-                {isFeatured ? <StarFilled /> : <StarOutlined />}
-                <span>{isFeatured ? "Featured" : "Feature"}</span>
-              </button>
-              {/* Image Number Badge */}
+              {itemsWithIds.map((img, idx) => (
+                <SortableImageTile
+                  key={img._dndKey}
+                  id={img._dndKey}
+                  img={img}
+                  index={idx}
+                  total={images.length}
+                  onToggleFeature={handleToggleFeature}
+                  onRemove={handleRemoveImage}
+                  onMove={handleMoveImage}
+                />
+              ))}
+
+              {/* Quick Add More Tile */}
               <div
+                onClick={() => fileInputRef.current?.click()}
                 style={{
-                  position: "absolute",
-                  bottom: 4,
-                  left: 4,
-                  background: "rgba(0, 0, 0, 0.6)",
-                  color: "#fff",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  padding: "1px 6px",
-                  borderRadius: 4,
-                  pointerEvents: "none",
-                }}
-              >
-                #{idx + 1}
-              </div>
-              {/* Delete Button on top right */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRemoveImage(idx);
-                }}
-                title="Remove image"
-                style={{
-                  position: "absolute",
-                  top: 5,
-                  right: 5,
-                  width: 24,
-                  height: 24,
-                  borderRadius: "50%",
-                  backgroundColor: "rgba(0, 0, 0, 0.65)",
-                  color: "#fff",
-                  border: "none",
+                  aspectRatio: "1 / 1",
+                  borderRadius: 8,
+                  border: "2px dashed #d1d5db",
                   display: "flex",
+                  flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
                   cursor: "pointer",
-                  transition: "background 0.2s ease, transform 0.15s ease",
-                  fontSize: 12,
+                  backgroundColor: "#fafafa",
+                  color: "#6b7280",
+                  transition: "all 0.2s ease",
+                  gap: 4,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#ef4444";
-                  e.currentTarget.style.transform = "scale(1.1)";
+                  e.currentTarget.style.borderColor = "#1677ff";
+                  e.currentTarget.style.color = "#1677ff";
+                  e.currentTarget.style.backgroundColor = "#f0f7ff";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "rgba(0, 0, 0, 0.65)";
-                  e.currentTarget.style.transform = "scale(1)";
+                  e.currentTarget.style.borderColor = "#d1d5db";
+                  e.currentTarget.style.color = "#6b7280";
+                  e.currentTarget.style.backgroundColor = "#fafafa";
                 }}
               >
-                <DeleteOutlined />
-              </button>
-            </ThumbTile>
-            );
-          })}
+                <PlusOutlined style={{ fontSize: 18 }} />
+                <span style={{ fontSize: 12, fontWeight: 500 }}>Add More</span>
+              </div>
+            </div>
+          </SortableContext>
 
-          {/* Quick Add More Tile */}
-          <div
-            onClick={() => fileInputRef.current?.click()}
-            style={{
-              aspectRatio: "1 / 1",
-              borderRadius: 8,
-              border: "2px dashed #d1d5db",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              backgroundColor: "#fafafa",
-              color: "#6b7280",
-              transition: "all 0.2s ease",
-              gap: 4,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = "#1677ff";
-              e.currentTarget.style.color = "#1677ff";
-              e.currentTarget.style.backgroundColor = "#f0f7ff";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = "#d1d5db";
-              e.currentTarget.style.color = "#6b7280";
-              e.currentTarget.style.backgroundColor = "#fafafa";
-            }}
-          >
-            <PlusOutlined style={{ fontSize: 18 }} />
-            <span style={{ fontSize: 12, fontWeight: 500 }}>Add More</span>
-          </div>
-        </div>
+          <DragOverlay>
+            {activeItem ? (
+              <div
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  aspectRatio: "1 / 1",
+                  borderRadius: 8,
+                  overflow: "hidden",
+                  border: "2px solid #1677ff",
+                  boxShadow: "0 12px 28px rgba(0, 0, 0, 0.28)",
+                  transform: "scale(1.04)",
+                  backgroundColor: "#f9fafb",
+                  pointerEvents: "none",
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={activeItem.urlDesktop || activeItem.url}
+                  alt={activeItem.alt || "Dragging image"}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    display: "block",
+                  }}
+                />
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       ) : (
         <div
           onClick={() => fileInputRef.current?.click()}
