@@ -10,10 +10,10 @@ import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
 import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 
-const RECOMMENDED_MARQUEE_IMAGE_WIDTH = 190;
-const RECOMMENDED_MARQUEE_IMAGE_HEIGHT = 154;
-const RECOMMENDED_MARQUEE_IMAGE_DIMENSIONS_TEXT =
-  `${RECOMMENDED_MARQUEE_IMAGE_WIDTH} \u00D7 ${RECOMMENDED_MARQUEE_IMAGE_HEIGHT} px`;
+const REQUIRED_MARQUEE_IMAGE_WIDTH = 400;
+const REQUIRED_MARQUEE_IMAGE_HEIGHT = 400;
+const REQUIRED_MARQUEE_IMAGE_DIMENSIONS_TEXT =
+  `${REQUIRED_MARQUEE_IMAGE_WIDTH} \u00D7 ${REQUIRED_MARQUEE_IMAGE_HEIGHT} px`;
 
 function getImageDimensions(imageUrl) {
   return new Promise((resolve, reject) => {
@@ -35,20 +35,20 @@ async function validateMarqueeImageDimensions(_, value) {
   try {
     const { width, height } = await getImageDimensions(imageUrl);
     if (
-      width === RECOMMENDED_MARQUEE_IMAGE_WIDTH &&
-      height === RECOMMENDED_MARQUEE_IMAGE_HEIGHT
+      width === REQUIRED_MARQUEE_IMAGE_WIDTH &&
+      height === REQUIRED_MARQUEE_IMAGE_HEIGHT
     ) {
       return Promise.resolve();
     }
     return Promise.reject(
       new Error(
-        `Image must be ${RECOMMENDED_MARQUEE_IMAGE_DIMENSIONS_TEXT}. Selected image is ${width} \u00D7 ${height} px.`,
+        `Image must be ${REQUIRED_MARQUEE_IMAGE_DIMENSIONS_TEXT}. Selected image is ${width} \u00D7 ${height} px.`,
       ),
     );
   } catch {
     return Promise.reject(
       new Error(
-        `Unable to validate image size. Please select an image of ${RECOMMENDED_MARQUEE_IMAGE_DIMENSIONS_TEXT}.`,
+        `Unable to validate image size. Please select an image of ${REQUIRED_MARQUEE_IMAGE_DIMENSIONS_TEXT}.`,
       ),
     );
   }
@@ -127,6 +127,12 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
       setInitialData({
         marqueeTitle: title,
         marqueeItems: items,
+        marqueeImageMaxWidth:
+          data?.marqueeImageMaxWidth != null
+            ? String(data.marqueeImageMaxWidth).trim()
+            : data?.imageMaxWidth != null
+              ? String(data.imageMaxWidth).trim()
+              : "190px",
         marqueeTitleColorKey: data?.marqueeTitleColorKey != null ? String(data.marqueeTitleColorKey).trim() : "",
         ...getHeadingValues(data),
         ...getManageSectionInitialValues("marquee", data),
@@ -161,6 +167,12 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
         setInitialData({
           marqueeTitle: title,
           marqueeItems: items,
+          marqueeImageMaxWidth:
+            data?.marqueeImageMaxWidth != null
+              ? String(data.marqueeImageMaxWidth).trim()
+              : data?.imageMaxWidth != null
+                ? String(data.imageMaxWidth).trim()
+                : "190px",
           marqueeTitleColorKey: data?.marqueeTitleColorKey != null ? String(data.marqueeTitleColorKey).trim() : "",
           ...getHeadingValues(data, true),
           ...getManageSectionInitialValues("marquee", data),
@@ -196,6 +208,10 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
         marqueePartnersTitle: partnersTitle,
         marqueeAwardsTitle: awardsTitle,
         marqueeItems: items,
+        marqueeImageMaxWidth:
+          values.marqueeImageMaxWidth != null
+            ? String(values.marqueeImageMaxWidth).trim()
+            : "190px",
         marqueeTitleColorKey:
           values.marqueePartnersTitleColorKey != null
             ? String(values.marqueePartnersTitleColorKey).trim()
@@ -259,55 +275,68 @@ function MarqueeEditForm({ source, initialData: initialDataProp, onSaveToPage, o
             key: "items",
             label: "Manage Items",
             children: (
-              <Form.List name="marqueeItems">
-                {(fields, { add, remove, move }) => (
-                  <SortableFormList
-                    fields={fields}
-                    add={add}
-                    remove={remove}
-                    move={move}
-                    itemLabel="Item"
-                    addButtonText="Add item"
-                    defaultAddPayload={{ urlDesktop: "", url: "", alt: "" }}
-                    reorderMovedIndex={reorderMovedIndex}
-                    reorderDirection={reorderDirection}
-                    onMoveWithTransition={(from, to) => {
-                      setReorderDirection(to < from ? "up" : "down");
-                      setReorderMovedIndex(to);
-                      setTimeout(() => setReorderMovedIndex(-1), 400);
-                    }}
-                    renderItemContent={(name, restField) => (
-                      <Row gutter={[16, 16]}>
-                        <Col span={24}>
-                          <Form.Item
-                            {...restField}
-                            name={[name, "urlDesktop"]}
-                            label="Image"
-                            validateTrigger={["onChange", "onBlur"]}
-                            rules={[
-                              { required: true, message: "Required" },
-                              { validator: validateMarqueeImageDimensions },
-                            ]}
-                          >
-                            <MediaPickerInput
-                              placeholder="/images/partner-1.png"
-                              uiVariant="stacked"
-                              cropWidth={RECOMMENDED_MARQUEE_IMAGE_WIDTH}
-                              cropHeight={RECOMMENDED_MARQUEE_IMAGE_HEIGHT}
-                              hintText={`Required size: ${RECOMMENDED_MARQUEE_IMAGE_DIMENSIONS_TEXT}`}
-                            />
-                          </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                          <Form.Item {...restField} name={[name, "alt"]} label="Alt text">
-                            <Input placeholder="Partner" size="large" />
-                          </Form.Item>
-                        </Col>
-                      </Row>
-                    )}
-                  />
-                )}
-              </Form.List>
+              <>
+                <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+                  <Col span={24}>
+                    <Form.Item
+                      name="marqueeImageMaxWidth"
+                      label="Image Max Width"
+                      tooltip="Define maximum width for logo images in px, % or rem (e.g. 190px, 220px, 150px). Automatically scales responsively on mobile."
+                    >
+                      <Input placeholder="e.g. 190px" size="large" />
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Form.List name="marqueeItems">
+                  {(fields, { add, remove, move }) => (
+                    <SortableFormList
+                      fields={fields}
+                      add={add}
+                      remove={remove}
+                      move={move}
+                      itemLabel="Item"
+                      addButtonText="Add item"
+                      defaultAddPayload={{ urlDesktop: "", url: "", alt: "" }}
+                      reorderMovedIndex={reorderMovedIndex}
+                      reorderDirection={reorderDirection}
+                      onMoveWithTransition={(from, to) => {
+                        setReorderDirection(to < from ? "up" : "down");
+                        setReorderMovedIndex(to);
+                        setTimeout(() => setReorderMovedIndex(-1), 400);
+                      }}
+                      renderItemContent={(name, restField) => (
+                        <Row gutter={[16, 16]}>
+                          <Col span={24}>
+                            <Form.Item
+                              {...restField}
+                              name={[name, "urlDesktop"]}
+                              label="Image"
+                              validateTrigger={["onChange", "onBlur"]}
+                              rules={[
+                                { required: true, message: "Required" },
+                                { validator: validateMarqueeImageDimensions },
+                              ]}
+                            >
+                              <MediaPickerInput
+                                placeholder="/images/partner-1.png"
+                                uiVariant="stacked"
+                                cropWidth={REQUIRED_MARQUEE_IMAGE_WIDTH}
+                                cropHeight={REQUIRED_MARQUEE_IMAGE_HEIGHT}
+                                hintText={`Required size: ${REQUIRED_MARQUEE_IMAGE_DIMENSIONS_TEXT}`}
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}>
+                            <Form.Item {...restField} name={[name, "alt"]} label="Alt text">
+                              <Input placeholder="Partner" size="large" />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+                      )}
+                    />
+                  )}
+                </Form.List>
+              </>
             ),
           },
         ]} />
