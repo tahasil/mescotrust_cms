@@ -62,6 +62,7 @@ function SortableRow({
   onMoveDown,
   onRemove,
   hideRemove,
+  defaultExpanded = true,
 }) {
   const {
     attributes,
@@ -182,7 +183,7 @@ function SortableRow({
     <div ref={setNodeRef} style={{ ...style, minWidth: 0, width: "100%", maxWidth: "100%" }} className={reorderClassName}>
       <StyledCollapse
         size="small"
-        defaultActiveKey={[String(id)]}
+        defaultActiveKey={defaultExpanded ? [String(id)] : []}
         items={[
           {
             key: String(id),
@@ -209,6 +210,9 @@ function SortableRow({
  * @param {number} props.reorderMovedIndex - For transition class (-1 when none)
  * @param {string} props.reorderDirection - "up" | "down"
  * @param {string} [props.addButtonText] - e.g. "Add item", "Add slide"
+ * @param {boolean} [props.hideRemove=false]
+ * @param {boolean} [props.hideAdd=false]
+ * @param {boolean} [props.defaultExpanded=true]
  */
 export default function SortableFormList({
   fields,
@@ -224,6 +228,8 @@ export default function SortableFormList({
   onMoveWithTransition,
   resolveItemTitle,
   hideRemove = false,
+  hideAdd = false,
+  defaultExpanded = true,
 }) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -282,6 +288,7 @@ export default function SortableFormList({
                 onMoveDown={() => handleMove(name, name + 1)}
                 onRemove={() => remove(name)}
                 hideRemove={hideRemove}
+                defaultExpanded={defaultExpanded}
               >
                 {renderItemContent ? renderItemContent(name, restField) : null}
               </SortableRow>
@@ -289,16 +296,18 @@ export default function SortableFormList({
           </div>
         </SortableContext>
       </DndContext>
-      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
-        <Button
-          type="primary"
-          shape="circle"
-          size="large"
-          icon={<PlusOutlined />}
-          onClick={() => add(defaultAddPayload)}
-          title="Add New"
-        />
-      </div>
+      {!hideAdd && (
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+          <Button
+            type="primary"
+            shape="circle"
+            size="large"
+            icon={<PlusOutlined />}
+            onClick={() => add(defaultAddPayload)}
+            title="Add New"
+          />
+        </div>
+      )}
     </>
   );
 }

@@ -87,19 +87,45 @@ function getPurposeSelectOptions(values = []) {
   });
 }
 
-function normalizeFieldConfigForForm(fieldConfigMap) {
-  const normalized = {};
+function normalizeFieldConfigForForm(fieldConfigMap, orderedFields = []) {
+  const baseByKey = new Map(
+    DONATE_NOW_BASE_FIELDS.map((baseField) => [baseField.key, baseField]),
+  );
+  const normalizedMap = {};
   DONATE_NOW_BASE_FIELDS.forEach((baseField) => {
-    normalized[baseField.key] = {
+    normalizedMap[baseField.key] = {
       ...baseField,
       ...(fieldConfigMap?.[baseField.key] || {}),
       label: toTrimmedString(fieldConfigMap?.[baseField.key]?.label || baseField.label),
       placeholder: toTrimmedString(
-        fieldConfigMap?.[baseField.key]?.placeholder || baseField.placeholder || "",
+        fieldConfigMap?.[baseField.key]?.placeholder !== undefined
+          ? fieldConfigMap?.[baseField.key]?.placeholder
+          : baseField.placeholder || "",
       ),
     };
   });
-  return normalized;
+
+  const fieldsList =
+    Array.isArray(orderedFields) && orderedFields.length > 0
+      ? orderedFields.map((item, idx) => ({
+          ...(baseByKey.get(item.key) || {}),
+          ...item,
+          key: item.key,
+          label: toTrimmedString(item.label || normalizedMap[item.key]?.label || item.key),
+          placeholder: toTrimmedString(
+            item.placeholder !== undefined
+              ? item.placeholder
+              : normalizedMap[item.key]?.placeholder || "",
+          ),
+          displayOrder: idx + 1,
+        }))
+      : DONATE_NOW_BASE_FIELDS.map((baseField, idx) => ({
+          ...baseField,
+          ...(normalizedMap[baseField.key] || {}),
+          displayOrder: idx + 1,
+        }));
+
+  return { normalizedMap, fieldsList };
 }
 
 function normalizePurposeForSave(purpose = {}, index = 0) {
@@ -181,6 +207,8 @@ function DonateNowEditForm(
   const [themeColorOptions, setThemeColorOptions] = useState(themeColorOptionsProp);
   const [reorderMovedIndex, setReorderMovedIndex] = useState(-1);
   const [reorderDirection, setReorderDirection] = useState("up");
+  const [fieldReorderMovedIndex, setFieldReorderMovedIndex] = useState(-1);
+  const [fieldReorderDirection, setFieldReorderDirection] = useState("up");
   const themeFetchedForColorsRef = useRef(false);
   const isPageBlock = source === "page";
 
@@ -195,7 +223,8 @@ function DonateNowEditForm(
 
     const setFormValues = (data, theme) => {
       const normalized = normalizeDonateNowConfig(data || {});
-      const normalizedFieldConfig = normalizeFieldConfigForForm(normalized.fieldConfig);
+      const { normalizedMap: normalizedFieldConfig, fieldsList: normalizedFieldsList } =
+        normalizeFieldConfigForForm(normalized.fieldConfig, normalized.fields);
       const reusableFields = Object.entries(normalizedFieldConfig)
         .filter(([, config]) => config.reusable)
         .map(([fieldKey]) => fieldKey);
@@ -233,6 +262,7 @@ function DonateNowEditForm(
         donateNowQrImageMobile: toTrimmedString(data?.donateNowQrImageMobile),
         donateNowCopy: normalized.copy,
         donateNowFieldConfig: normalizedFieldConfig,
+        donateNowFields: normalizedFieldsList,
         donateNowLookupSettings: {
           ...normalized.lookupSettings,
           reusableFields:
@@ -288,27 +318,65 @@ function DonateNowEditForm(
       .validateFields()
       .then(() => {
         const values = form.getFieldsValue(true);
+        const rawFieldsList = values?.donateNowFields;
         const rawFieldConfig = values?.donateNowFieldConfig || {};
         const fieldConfig = {};
-        DONATE_NOW_BASE_FIELDS.forEach((baseField) => {
-          const item = rawFieldConfig[baseField.key] || {};
-          fieldConfig[baseField.key] = {
-            ...baseField,
-            label: toTrimmedString(item.label || baseField.label),
-            placeholder: toTrimmedString(
-              item.placeholder !== undefined ? item.placeholder : baseField.placeholder,
-            ),
-            required: Boolean(item.required),
-            active: item.active !== false,
-            disabled: Boolean(item.disabled),
-            width: item.width === "full" ? "full" : "half",
-            reusable: Boolean(item.reusable),
-            sensitive: Boolean(item.sensitive || baseField.sensitive),
-            validation: toTrimmedString(item.validation || baseField.validation || "none"),
-            defaultValue: toTrimmedString(item.defaultValue || ""),
-            options: Array.isArray(item.options) ? item.options : baseField.options || [],
-            inputType: toTrimmedString(item.inputType || baseField.inputType || ""),
-          };
+        const orderedFields = [];
+
+        if (Array.isArray(rawFieldsList) && rawFieldsList.length > 0) {
+          rawFieldsList.forEach((item, index) => {
+            const key = item?.key;
+            if (!key) return;
+            const baseDef = DONATE_NOW_BASE_FIELDS.find((b) => b.key === key) || {};
+            const normalizedItem = {
+              ...baseDef,
+              ...item,
+              key,
+              label: toTrimmedString(item.label || baseDef.label),
+              placeholder: toTrimmedString(
+                item.placeholder !== undefined ? item.placeholder : baseDef.placeholder,
+              ),
+              required: Boolean(item.required),
+              active: item.active !== false,
+              disabled: Boolean(item.disabled),
+              width: item.width === "full" ? "full" : "half",
+              reusable: Boolean(item.reusable),
+              sensitive: Boolean(item.sensitive || baseDef.sensitive),
+              validation: toTrimmedString(item.validation || baseDef.validation || "none"),
+              defaultValue: toTrimmedString(item.defaultValue || ""),
+              options: Array.isArray(item.options) ? item.options : baseDef.options || [],
+              inputType: toTrimmedString(item.inputType || baseDef.inputType || ""),
+              displayOrder: index + 1,
+            };
+            fieldConfig[key] = normalizedItem;
+            orderedFields.push(normalizedItem);
+          });
+        }
+
+        DONATE_NOW_BASE_FIELDS.forEach((baseDef) => {
+          if (!fieldConfig[baseDef.key]) {
+            const item = rawFieldConfig[baseDef.key] || {};
+            const normalizedItem = {
+              ...baseDef,
+              label: toTrimmedString(item.label || baseDef.label),
+              placeholder: toTrimmedString(
+                item.placeholder !== undefined ? item.placeholder : baseDef.placeholder,
+              ),
+              required: Boolean(item.required),
+              active: item.active !== false,
+              disabled: Boolean(item.disabled),
+              width: item.width === "full" ? "full" : "half",
+              reusable: Boolean(item.reusable),
+              sensitive: Boolean(item.sensitive || baseDef.sensitive),
+              validation: toTrimmedString(item.validation || baseDef.validation || "none"),
+              defaultValue: toTrimmedString(item.defaultValue || ""),
+              options: Array.isArray(item.options) ? item.options : baseDef.options || [],
+              inputType: toTrimmedString(item.inputType || baseDef.inputType || ""),
+              displayOrder: orderedFields.length + 1,
+            };
+            fieldConfig[baseDef.key] = normalizedItem;
+            orderedFields.push(normalizedItem);
+          }
         });
 
         const purposes = ensureUniquePurposeIds(
@@ -377,6 +445,7 @@ function DonateNowEditForm(
             footerBannerBgColor: toTrimmedString(values?.donateNowCopy?.footerBannerBgColor),
           },
           donateNowFieldConfig: fieldConfig,
+          donateNowFields: orderedFields,
           donateNowLookupSettings: {
             enabled: values?.donateNowLookupSettings?.enabled !== false,
             minimumCharacters: Number(values?.donateNowLookupSettings?.minimumCharacters) || 5,
@@ -563,72 +632,119 @@ function DonateNowEditForm(
             key: "fields",
             label: "Form Field Labels, Placeholders & Validation",
             children: (
-              <Space direction="vertical" style={{ width: "100%" }} size={12}>
-                {DONATE_NOW_BASE_FIELDS.map((field) => (
-                  <div
-                    key={field.key}
-                    style={{
-                      border: "1px solid #f0f0f0",
-                      borderRadius: 10,
-                      padding: 12,
-                      background: "#fff",
+              <Form.List name="donateNowFields">
+                {(fields, { add, remove, move }) => (
+                  <SortableFormList
+                    fields={fields}
+                    add={add}
+                    remove={remove}
+                    move={move}
+                    itemLabel="Field"
+                    hideRemove={true}
+                    hideAdd={true}
+                    defaultExpanded={false}
+                    reorderMovedIndex={fieldReorderMovedIndex}
+                    reorderDirection={fieldReorderDirection}
+                    onMoveWithTransition={(from, to) => {
+                      setFieldReorderDirection(to < from ? "up" : "down");
+                      setFieldReorderMovedIndex(to);
+                      setTimeout(() => setFieldReorderMovedIndex(-1), 400);
                     }}
-                  >
-                    <Row gutter={[12, 12]}>
-                      <Col span={24}>
-                        <strong>{field.label}</strong> <span style={{ color: "#888" }}>({field.key})</span>
-                      </Col>
-                      <Col xs={24} md={12}>
-                        <Form.Item name={["donateNowFieldConfig", field.key, "label"]} label="Label">
-                          <Input placeholder={field.label} />
-                        </Form.Item>
-                      </Col>
-                      <Col xs={24} md={12}>
-                        <Form.Item
-                          name={["donateNowFieldConfig", field.key, "placeholder"]}
-                          label="Placeholder"
-                        >
-                          <Input placeholder={field.placeholder || "Enter value"} />
-                        </Form.Item>
-                      </Col>
-                      <Col xs={24} md={8}>
-                        <Form.Item
-                          name={["donateNowFieldConfig", field.key, "validation"]}
-                          label="Validation"
-                        >
-                          <Select options={VALIDATION_OPTIONS} />
-                        </Form.Item>
-                      </Col>
-                      <Col xs={24} md={8}>
-                        <Form.Item name={["donateNowFieldConfig", field.key, "width"]} label="Width">
-                          <Select
-                            options={[
-                              { label: "Half", value: "half" },
-                              { label: "Full", value: "full" },
-                            ]}
-                          />
-                        </Form.Item>
-                      </Col>
-                      <Col xs={24} md={8}>
-                        <Form.Item
-                          name={["donateNowFieldConfig", field.key, "defaultValue"]}
-                          label="Default Value"
-                        >
-                          <Input placeholder="Optional default value" />
-                        </Form.Item>
-                      </Col>
-                      <Col span={24}>
-                        <SwitchSettingsCard items={[
-                          { name: ["donateNowFieldConfig", field.key, "active"], label: "Visible", tooltip: "Show this donor field." },
-                          { name: ["donateNowFieldConfig", field.key, "required"], label: "Required", tooltip: "Require this donor field." },
-                          { name: ["donateNowFieldConfig", field.key, "disabled"], label: "Disabled", tooltip: "Display this field as disabled." },
-                          { name: ["donateNowFieldConfig", field.key, "reusable"], label: "Reusable", tooltip: "Use this field for returning donor autofill." },
-                        ]} />
-                      </Col>
-                    </Row>
-                  </div>
-                ))}
-              </Space>
+                    resolveItemTitle={(name) => {
+                      const item = form.getFieldValue(["donateNowFields", name]) || {};
+                      const label = item.label || item.key || `Field ${name + 1}`;
+                      const key = item.key ? ` (${item.key})` : "";
+                      return `${label}${key}`;
+                    }}
+                    renderItemContent={(name, restField) => {
+                      const item = form.getFieldValue(["donateNowFields", name]) || {};
+                      return (
+                        <Row gutter={[12, 12]}>
+                          <Form.Item {...restField} name={[name, "key"]} hidden>
+                            <Input />
+                          </Form.Item>
+                          <Col xs={24} md={12}>
+                            <Form.Item
+                              {...restField}
+                              name={[name, "label"]}
+                              label="Label"
+                            >
+                              <Input placeholder={item.label || "Label"} />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={12}>
+                            <Form.Item
+                              {...restField}
+                              name={[name, "placeholder"]}
+                              label="Placeholder"
+                            >
+                              <Input placeholder={item.placeholder || "Enter placeholder"} />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <Form.Item
+                              {...restField}
+                              name={[name, "validation"]}
+                              label="Validation"
+                            >
+                              <Select options={VALIDATION_OPTIONS} />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <Form.Item
+                              {...restField}
+                              name={[name, "width"]}
+                              label="Width"
+                            >
+                              <Select
+                                options={[
+                                  { label: "Half", value: "half" },
+                                  { label: "Full", value: "full" },
+                                ]}
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <Form.Item
+                              {...restField}
+                              name={[name, "defaultValue"]}
+                              label="Default Value"
+                            >
+                              <Input placeholder="Optional default value" />
+                            </Form.Item>
+                          </Col>
+                          <Col span={24}>
+                            <SwitchSettingsCard
+                              items={[
+                                {
+                                  name: [name, "active"],
+                                  label: "Visible",
+                                  tooltip: "Show this donor field.",
+                                },
+                                {
+                                  name: [name, "required"],
+                                  label: "Required",
+                                  tooltip: "Require this donor field.",
+                                },
+                                {
+                                  name: [name, "disabled"],
+                                  label: "Disabled",
+                                  tooltip: "Display this field as disabled.",
+                                },
+                                {
+                                  name: [name, "reusable"],
+                                  label: "Reusable",
+                                  tooltip: "Use this field for returning donor autofill.",
+                                },
+                              ]}
+                            />
+                          </Col>
+                        </Row>
+                      );
+                    }}
+                  />
+                )}
+              </Form.List>
             ),
           },
           {

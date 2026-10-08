@@ -1360,28 +1360,22 @@ export default function DonateNow(props = {}) {
       }, {}),
     [fieldConfig],
   );
-  const amountBaseField = useMemo(
-    () => DONATE_NOW_BASE_FIELDS.find((item) => item.key === "amount"),
-    [],
-  );
-  const lookupBaseField = useMemo(
-    () => DONATE_NOW_BASE_FIELDS.find((item) => item.key === "lookup"),
-    [],
-  );
-  const orderedMainBaseFields = useMemo(() => {
-    const excludedKeys = new Set(["lookup", "amount", "address", "note"]);
-    return DONATE_NOW_BASE_FIELDS.filter(
-      (field) => !excludedKeys.has(field.key),
-    );
-  }, []);
-  const addressAndNoteFields = useMemo(() => {
-    const baseByKey = new Map(
-      DONATE_NOW_BASE_FIELDS.map((field) => [field.key, field]),
-    );
-    return ["address", "note"]
-      .map((key) => baseByKey.get(key))
-      .filter(Boolean);
-  }, []);
+  const orderedAllFields = useMemo(() => {
+    if (Array.isArray(normalizedConfig.fields) && normalizedConfig.fields.length > 0) {
+      return normalizedConfig.fields;
+    }
+    return DONATE_NOW_BASE_FIELDS;
+  }, [normalizedConfig.fields]);
+
+  const orderedMainFields = useMemo(() => {
+    const textareaKeys = new Set(["address", "note"]);
+    return orderedAllFields.filter((field) => !textareaKeys.has(field.key));
+  }, [orderedAllFields]);
+
+  const orderedTextareaFields = useMemo(() => {
+    const textareaKeys = new Set(["address", "note"]);
+    return orderedAllFields.filter((field) => textareaKeys.has(field.key));
+  }, [orderedAllFields]);
 
   const renderBaseField = (baseField, options = {}) => {
     const { colPropsOverride } = options;
@@ -1400,7 +1394,7 @@ export default function DonateNow(props = {}) {
     const value = fieldValues[key] ?? "";
     const placeholder = config.placeholder || "";
     const error = errors[key];
-    const isFullWidth = config.width === "full" || key === "lookup";
+    const isFullWidth = key === "lookup" ? false : config.width === "full";
     const colProps =
       colPropsOverride ||
       (isFullWidth ? FORM_GRID_FULL_COL_PROPS : FORM_GRID_COL_PROPS);
@@ -1668,27 +1662,13 @@ export default function DonateNow(props = {}) {
                     </FieldWrap>
                   </Col>
 
-                  {/* Existing Donor Lookup */}
-                  {isExistingDonor && lookupBaseField
-                    ? renderBaseField(lookupBaseField, {
-                        colPropsOverride: FORM_GRID_COL_PROPS,
-                      })
-                    : null}
-
-                  {/* Amount Field */}
-                  {isBaseFieldVisible("amount") && amountBaseField
-                    ? renderBaseField(amountBaseField, {
-                        colPropsOverride: FORM_GRID_COL_PROPS,
-                      })
-                    : null}
-
-                  {orderedMainBaseFields.map((fieldDef) =>
+                  {orderedMainFields.map((fieldDef) =>
                     renderBaseField(fieldDef),
                   )}
                 </Row>
 
                 <Row gutter={[20, 10]}>
-                  {addressAndNoteFields.map((fieldDef) =>
+                  {orderedTextareaFields.map((fieldDef) =>
                     renderBaseField(fieldDef, {
                       colPropsOverride: FORM_TEXTAREA_COL_PROPS,
                     }),
