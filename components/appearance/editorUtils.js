@@ -38,7 +38,7 @@ export function menuItemsToNavItems(items) {
         openInNewTab:
           item?.openInNewTab === true || item?.target === "_blank",
         target:
-          item?.target === "modal"
+          item?.target === "modal" || item?.type === "modal"
             ? "modal"
             : item?.openInNewTab === true || item?.target === "_blank"
               ? "_blank"

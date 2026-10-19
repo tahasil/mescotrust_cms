@@ -723,6 +723,16 @@ export function usePdfViewerModal({ accentColor } = {}) {
       const sourceUrl = String(url || "").trim();
       if (!sourceUrl) return;
 
+      if (typeof window !== "undefined") {
+        const loaderEl = document.getElementById("page-loader");
+        if (loaderEl && !loaderEl.classList.contains("page-loader-hidden")) {
+          loaderEl.classList.add("page-loader-hidden");
+          loaderEl.setAttribute("aria-hidden", "true");
+          document.documentElement.classList.remove("page-loading");
+          document.body.classList.remove("page-loading");
+        }
+      }
+
       sequenceRef.current += 1;
       triggerRef.current = trigger;
       setActiveDocument({
@@ -737,6 +747,15 @@ export function usePdfViewerModal({ accentColor } = {}) {
 
   const closePdf = useCallback(() => {
     setActiveDocument(null);
+    if (typeof window !== "undefined") {
+      const loaderEl = document.getElementById("page-loader");
+      if (loaderEl && !loaderEl.classList.contains("page-loader-hidden")) {
+        loaderEl.classList.add("page-loader-hidden");
+        loaderEl.setAttribute("aria-hidden", "true");
+        document.documentElement.classList.remove("page-loading");
+        document.body.classList.remove("page-loading");
+      }
+    }
     window.requestAnimationFrame(() => triggerRef.current?.focus());
   }, []);
 

@@ -57,11 +57,14 @@ function normalizeMenuItems(items) {
       }
     }
 
+    const isModal = item?.target === "modal" || item?.type === "modal";
+
     return {
       label: String(item?.label || ""),
       url,
       openInNewTab,
-      opensPdfModal: item?.target === "modal" && isPdfDocumentUrl(rawUrl),
+      target: isModal ? "modal" : openInNewTab ? "_blank" : undefined,
+      opensPdfModal: isModal && isPdfDocumentUrl(rawUrl),
       children,
     };
   });
@@ -97,8 +100,8 @@ function resolveScrolledNavBackground(value, fallback = "#ffffff") {
 
 function DesktopMenuItem({ item, openPdf }) {
   const hasChildren = item.children.length > 0;
-  const target = item.openInNewTab ? "_blank" : undefined;
-  const rel = target ? "noopener noreferrer" : undefined;
+  const target = item.opensPdfModal ? "modal" : item.openInNewTab ? "_blank" : undefined;
+  const rel = target === "_blank" ? "noopener noreferrer" : undefined;
 
   return (
     <div className={`appearance-nav-item${hasChildren ? " has-dropdown" : ""}`}>
@@ -106,6 +109,8 @@ function DesktopMenuItem({ item, openPdf }) {
         href={item.url}
         target={target}
         rel={rel}
+        data-opens-pdf-modal={item.opensPdfModal ? "true" : undefined}
+        aria-haspopup={item.opensPdfModal ? "dialog" : undefined}
         onClick={(event) => openMenuPdf(event, item, openPdf)}
       >
         {item.label}
@@ -132,13 +137,15 @@ function DesktopMenuItem({ item, openPdf }) {
 
 function DesktopDropdownItem({ item, openPdf }) {
   const hasChildren = item.children.length > 0;
-  const target = item.openInNewTab ? "_blank" : undefined;
+  const target = item.opensPdfModal ? "modal" : item.openInNewTab ? "_blank" : undefined;
   return (
     <div className={`appearance-dropdown-item${hasChildren ? " has-children" : ""}`}>
       <a
         href={item.url}
         target={target}
-        rel={target ? "noopener noreferrer" : undefined}
+        rel={target === "_blank" ? "noopener noreferrer" : undefined}
+        data-opens-pdf-modal={item.opensPdfModal ? "true" : undefined}
+        aria-haspopup={item.opensPdfModal ? "dialog" : undefined}
         onClick={(event) => openMenuPdf(event, item, openPdf)}
       >
         {item.label}

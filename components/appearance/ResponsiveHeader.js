@@ -90,7 +90,7 @@ function cmsMenuToHeaderItems(items) {
 
     let url = rawUrl;
     let configuredTarget =
-      item.target === "modal"
+      item.target === "modal" || item.type === "modal"
         ? "modal"
         : item.target === "_blank" || item.openInNewTab
           ? "_blank"
@@ -112,7 +112,12 @@ function cmsMenuToHeaderItems(items) {
     return {
       label: String(item.label ?? ""),
       href: url,
-      target: configuredTarget === "_blank" ? "_blank" : undefined,
+      target:
+        configuredTarget === "_blank"
+          ? "_blank"
+          : configuredTarget === "modal"
+            ? "modal"
+            : undefined,
       opensPdfModal:
         configuredTarget === "modal" && isPdfDocumentUrl(rawUrl),
       submenu,
@@ -726,6 +731,12 @@ export default function Header({
                                         ? "noopener noreferrer"
                                         : undefined
                                     }
+                                    data-opens-pdf-modal={
+                                      child.opensPdfModal ? "true" : undefined
+                                    }
+                                    aria-haspopup={
+                                      child.opensPdfModal ? "dialog" : undefined
+                                    }
                                     onClick={(event) =>
                                       handleMenuLinkClick(event, child)
                                     }
@@ -749,6 +760,12 @@ export default function Header({
                                   ? "noopener noreferrer"
                                   : undefined
                               }
+                              data-opens-pdf-modal={
+                                sub.opensPdfModal ? "true" : undefined
+                              }
+                              aria-haspopup={
+                                sub.opensPdfModal ? "dialog" : undefined
+                              }
                               onClick={(event) =>
                                 handleMenuLinkClick(event, sub)
                               }
@@ -767,6 +784,12 @@ export default function Header({
                         item.target === "_blank"
                           ? "noopener noreferrer"
                           : undefined
+                      }
+                      data-opens-pdf-modal={
+                        item.opensPdfModal ? "true" : undefined
+                      }
+                      aria-haspopup={
+                        item.opensPdfModal ? "dialog" : undefined
                       }
                       onClick={(event) => handleMenuLinkClick(event, item)}
                     >
@@ -963,6 +986,12 @@ export default function Header({
                                 ? "noopener noreferrer"
                                 : undefined
                             }
+                            data-opens-pdf-modal={
+                              child.opensPdfModal ? "true" : undefined
+                            }
+                            aria-haspopup={
+                              child.opensPdfModal ? "dialog" : undefined
+                            }
                             onClick={(event) =>
                               handleMenuLinkClick(event, child, true)
                             }
@@ -981,6 +1010,12 @@ export default function Header({
                             ? "noopener noreferrer"
                             : undefined
                         }
+                        data-opens-pdf-modal={
+                          sub.opensPdfModal ? "true" : undefined
+                        }
+                        aria-haspopup={
+                          sub.opensPdfModal ? "dialog" : undefined
+                        }
                         onClick={(event) =>
                           handleMenuLinkClick(event, sub, true)
                         }
@@ -998,6 +1033,12 @@ export default function Header({
                 target={item.target}
                 rel={
                   item.target === "_blank" ? "noopener noreferrer" : undefined
+                }
+                data-opens-pdf-modal={
+                  item.opensPdfModal ? "true" : undefined
+                }
+                aria-haspopup={
+                  item.opensPdfModal ? "dialog" : undefined
                 }
                 onClick={(event) => handleMenuLinkClick(event, item, true)}
               >

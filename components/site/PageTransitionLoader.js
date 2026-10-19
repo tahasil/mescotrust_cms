@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
+const NON_NAVIGABLE_EXTENSIONS =
+  /\.(pdf|docx?|xlsx?|pptx?|csv|txt|rtf|odt|ods|odp|zip|tar|gz|rar|7z|mp4|webm|mp3|wav|ogg|png|jpe?g|webp|gif|svg|ico)(?:$|\?)/i;
+
 function isInternalNavigableAnchor(anchor) {
   if (!anchor) return false;
   const href = anchor.getAttribute("href") || "";
@@ -10,8 +13,17 @@ function isInternalNavigableAnchor(anchor) {
   if (href.startsWith("#")) return false;
   if (href.startsWith("mailto:") || href.startsWith("tel:") || href.startsWith("javascript:")) return false;
   if (anchor.hasAttribute("download")) return false;
-  if ((anchor.getAttribute("target") || "").toLowerCase() === "_blank") return false;
+  const target = (anchor.getAttribute("target") || "").toLowerCase();
+  if (target === "_blank" || target === "modal") return false;
   if (anchor.getAttribute("rel")?.includes("external")) return false;
+  if (
+    anchor.getAttribute("data-opens-pdf-modal") === "true" ||
+    anchor.getAttribute("data-modal") === "true" ||
+    anchor.getAttribute("aria-haspopup") === "dialog" ||
+    anchor.closest?.("[data-opens-pdf-modal='true'], [data-modal='true']")
+  ) {
+    return false;
+  }
 
   let url;
   try {
@@ -20,6 +32,16 @@ function isInternalNavigableAnchor(anchor) {
     return false;
   }
   if (url.origin !== window.location.origin) return false;
+
+  const pathname = url.pathname.toLowerCase();
+  if (
+    pathname.startsWith("/api/") ||
+    pathname.startsWith("/media/") ||
+    pathname.startsWith("/uploads/") ||
+    NON_NAVIGABLE_EXTENSIONS.test(url.pathname)
+  ) {
+    return false;
+  }
 
   // Hash-only updates do not require route-data loading.
   const nextPath = `${url.pathname}${url.search}`;
@@ -149,6 +171,21 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
       startNavigationLoader();
     };
 
+    const onClickBubble = (event) => {
+      if (event.defaultPrevented) {
+        if (showDelayTimerRef.current) {
+          window.clearTimeout(showDelayTimerRef.current);
+          showDelayTimerRef.current = null;
+        }
+        if (!activeRef.current) {
+          routeReadyRef.current = true;
+        } else {
+          hideNow();
+          clearTimers();
+        }
+      }
+    };
+
     window.history.pushState = function patchedPushState(...args) {
       if (args[2] != null) {
         try {
@@ -194,6 +231,7 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
     };
 
     document.addEventListener("click", onClickCapture, true);
+    document.addEventListener("click", onClickBubble, false);
     window.addEventListener("popstate", onPopState);
     window.addEventListener("pageshow", onPageShow);
     document.addEventListener("visibilitychange", onVisibility);
@@ -202,6 +240,7 @@ export default function PageTransitionLoader({ enabled = true, minDuration = 400
 
     return () => {
       document.removeEventListener("click", onClickCapture, true);
+      document.removeEventListener("click", onClickBubble, false);
       window.removeEventListener("popstate", onPopState);
       window.removeEventListener("pageshow", onPageShow);
       document.removeEventListener("visibilitychange", onVisibility);
