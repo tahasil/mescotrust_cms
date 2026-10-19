@@ -159,6 +159,7 @@ const NO_FADE_COMPONENTS = [
   "OverviewOfOurWork",
   "WelcometoMESCO",
   "OurImpact",
+  "VideoPlaying",
 ];
 
 function extractSectionProps(props) {

@@ -180,8 +180,8 @@ export default function VideoPlaying(props) {
         }
       },
       {
-        threshold: 0.15,
-        rootMargin: "0px 0px -20px 0px",
+        threshold: 0.2,
+        rootMargin: "0px",
       },
     );
 
@@ -314,10 +314,11 @@ export default function VideoPlaying(props) {
           <div ref={videoRef} className="chapterVideo">
             {videoPlaying && resolvedYoutubeId ? (
               <iframe
-                src={`https://www.youtube.com/embed/${resolvedYoutubeId}?autoplay=1&mute=1&playsinline=1&rel=0&enablejsapi=1`}
+                src={`https://www.youtube.com/embed/${resolvedYoutubeId}?autoplay=1&mute=1&playsinline=1&rel=0`}
                 title={text(props?.videoPlayingVideoTitle) || coverAlt || "Video player"}
                 allow="autoplay; encrypted-media; picture-in-picture"
                 allowFullScreen
+                loading="lazy"
               />
             ) : (
               <div

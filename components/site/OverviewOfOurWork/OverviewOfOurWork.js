@@ -42,7 +42,7 @@ const WorksWrapper = styled.div`
     max-width: none;
     margin-inline: 0;
     padding-inline: 0;
-    padding-top: 0;
+    padding-top: max(0px, calc(var(--appearance-header-offset, 92px) - 60px));
     padding-bottom: 0;
     margin-bottom: clamp(36px, 5vh, 56px);
     box-sizing: border-box;
@@ -194,13 +194,15 @@ const WorksWrapper = styled.div`
 
   @media (max-width: 767px) {
     .worksHead {
-      padding-top: max(0px, calc(var(--appearance-header-offset, 85px) - 30px));
       margin-bottom: clamp(20px, 3vh, 32px);
+      padding-top: max(0px, calc(var(--appearance-header-offset, 85px) - 20px));
     }
 
     .workCard {
-      width: 84vw;
+      width: 82vw;
+      max-width: 340px;
       aspect-ratio: 4 / 4.4;
+      flex: 0 0 auto;
     }
   }
 
@@ -316,16 +318,22 @@ export default function OverviewOfOurWork(props) {
 
     const refreshIfLayoutShifted = () => {
       if (!initialized) return;
+      const isPinned = pinRef.current?.style?.position === "fixed";
+      if (isPinned) return;
+
       const metrics = getLayoutMetrics();
       if (!metrics) return;
-      const hasChanged =
+
+      const hasLayoutChanged =
         !lastLayoutMetrics ||
-        Object.keys(metrics).some(
-          (key) => Math.abs(metrics[key] - lastLayoutMetrics[key]) >= 1,
-        );
-      if (!hasChanged) {
+        Math.abs(metrics.anchorTop - lastLayoutMetrics.anchorTop) >= 2 ||
+        Math.abs(metrics.trackWidth - lastLayoutMetrics.trackWidth) >= 4 ||
+        Math.abs(metrics.viewportWidth - lastLayoutMetrics.viewportWidth) >= 4;
+
+      if (!hasLayoutChanged) {
         return;
       }
+
       lastLayoutMetrics = metrics;
       ScrollTrigger.refresh();
       lastLayoutMetrics = getLayoutMetrics();
@@ -367,7 +375,8 @@ export default function OverviewOfOurWork(props) {
               start: "top top",
               end: () => `+=${Math.max(1, distance())}`,
               pin: true,
-              scrub: 1,
+              pinSpacing: true,
+              scrub: true,
               invalidateOnRefresh: true,
             },
           });
@@ -400,14 +409,18 @@ export default function OverviewOfOurWork(props) {
       refreshAfterPaint();
     };
 
-    const layoutRoot =
-      wrapperRef.current.closest(".public-site") || document.body;
-    const resizeObserver = new ResizeObserver(refreshAfterPaint);
-    resizeObserver.observe(document.body);
-    if (layoutRoot !== document.body) resizeObserver.observe(layoutRoot);
+    let resizeObserver;
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(refreshAfterPaint);
+      if (trackRef.current) resizeObserver.observe(trackRef.current);
+      if (typeof document !== "undefined" && document.body) {
+        resizeObserver.observe(document.body);
+      }
+    }
 
-    const mutationObserver = new MutationObserver(refreshAfterPaint);
-    mutationObserver.observe(layoutRoot, { childList: true, subtree: true });
+    if (typeof document !== "undefined" && document.fonts?.ready) {
+      document.fonts.ready.then(refreshAfterPaint);
+    }
 
     window.addEventListener("site-page-readiness-change", handlePageReadiness);
     window.addEventListener("load", handleWindowLoad, { once: true });
@@ -420,8 +433,7 @@ export default function OverviewOfOurWork(props) {
         handlePageReadiness,
       );
       window.removeEventListener("load", handleWindowLoad);
-      resizeObserver.disconnect();
-      mutationObserver.disconnect();
+      resizeObserver?.disconnect();
       window.cancelAnimationFrame(layoutFrame);
       window.cancelAnimationFrame(paintFrame);
       window.cancelAnimationFrame(refreshFrame);

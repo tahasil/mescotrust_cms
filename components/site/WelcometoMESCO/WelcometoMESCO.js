@@ -170,6 +170,10 @@ const Statement = styled.div`
       width: 100%;
       margin-left: 0;
     }
+
+    .statementWord {
+      opacity: 1;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -293,7 +297,9 @@ export default function WelcometoMESCO(props) {
       return;
     }
 
-    const context = gsap.context(() => {
+    const media = gsap.matchMedia();
+
+    media.add("(min-width: 768px)", () => {
       gsap.to(wordElements, {
         opacity: 1,
         stagger: 0.04,
@@ -326,10 +332,31 @@ export default function WelcometoMESCO(props) {
           },
         },
       );
-    }, root);
+    });
+
+    media.add("(max-width: 767px)", () => {
+      gsap.set(wordElements, { opacity: 1 });
+      gsap.fromTo(
+        revealElements,
+        { autoAlpha: 0, y: 14 },
+        {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.55,
+          stagger: 0.06,
+          ease: "power2.out",
+          overwrite: true,
+          scrollTrigger: {
+            trigger: root,
+            start: "top 90%",
+            once: true,
+          },
+        },
+      );
+    });
 
     requestAnimationFrame(() => ScrollTrigger.refresh());
-    return () => context.revert();
+    return () => media.revert();
   }, [
     isEditorPreview,
     statementNodes,
