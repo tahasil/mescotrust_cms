@@ -200,7 +200,7 @@ const CompactMenuIcon = () => (
     strokeLinecap="round"
     aria-hidden="true"
   >
-    <path d="M1 5h24M1 13h24" />
+    <path d="M1 3h24M1 9h24M1 15h24" />
   </svg>
 );
 
