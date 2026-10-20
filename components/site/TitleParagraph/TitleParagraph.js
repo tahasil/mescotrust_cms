@@ -11,6 +11,7 @@ import {
 } from "@/styles/Theme";
 import SafeHtml from "@/components/cms/SafeHtml";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 const ContentWrapper = styled.div`
   font-size: 16px;
@@ -34,6 +35,7 @@ const ContentWrapper = styled.div`
  */
 export default function TitleParagraph(props) {
   const mainTitle = (props?.titleParagraphMainTitle ?? "").toString().trim();
+  const titleAlign = getTitleAlign(props, "left", "titleParagraph");
   const subTitle = (props?.titleParagraphSubTitle ?? "").toString().trim();
   const titleEnabled =
     props?.titleParagraphTitleEnabled !== false &&
@@ -210,11 +212,11 @@ export default function TitleParagraph(props) {
       <PageContainer $managedStyle={pageContainerBgStyle}>
         <div className="fable-section">
         <Row justify="center">
-          <Col xs={24}>
+          <Col xs={24} style={getHeaderAlignStyles(titleAlign)}>
             {subTitleEnabled && subTitle && (
               <SubTitle
                 className="fable-eyebrow"
-                style={subTitleColor ? { color: subTitleColor } : undefined}
+                style={{ ...(subTitleColor ? { color: subTitleColor } : {}), ...getSubtitleAlignStyles(titleAlign) }}
               >
                 {subTitle}
               </SubTitle>
@@ -222,7 +224,7 @@ export default function TitleParagraph(props) {
             {titleEnabled && mainTitle && (
               <MainTitle
                 className="fable-heading"
-                style={titleColor ? { color: titleColor } : undefined}
+                style={{ ...(titleColor ? { color: titleColor } : {}), ...getTitleAlignStyles(titleAlign) }}
               >
                 {renderHighlightedTitle(mainTitle, props)}
               </MainTitle>

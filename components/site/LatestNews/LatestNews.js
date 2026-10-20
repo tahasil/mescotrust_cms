@@ -9,6 +9,7 @@ import { usePathname } from "next/navigation";
 import styled from "styled-components";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 import {
   isPdfDocumentUrl,
   normalizePdfTarget,
@@ -44,6 +45,7 @@ const isExternalOrAsset = (href) => /^(https?:)?\/\//i.test(href) || href.starts
 const isLocalDownload = (href) => href.startsWith("/media/") || href.startsWith("/uploads/") || (href.startsWith("/") && DOWNLOADABLE_FILE_RE.test(href));
 
 export default function LatestNews(props) {
+  const titleAlign = getTitleAlign(props, "left", "latestNews");
   const pathname = usePathname(); const rootRef = useRef(null); const isEditorPreview = pathname?.startsWith("/admin") === true;
   const items = useMemo(
     () =>
@@ -131,7 +133,7 @@ export default function LatestNews(props) {
       <PageContainer $managedStyle={pageContainerBgStyle}>
         <NewsSection ref={rootRef} style={{ "--news-sub-title": color(props?.latestEvents1SubTitleColorKey, getColor("primary")), "--news-heading": color(props?.latestEvents1MainTitleColorKey, getColor("black")), "--news-border": color(props?.latestEvents1BorderColorKey, getColor("border")), "--news-tag": color(props?.latestEvents1TagColorKey, getColor("primary")), "--news-tag-border": color(props?.latestEvents1TagBorderColorKey, "rgba(224,60,51,.35)"), "--news-title": color(props?.latestEvents1ItemTitleColorKey, getColor("black")), "--news-arrow": color(props?.latestEvents1ArrowColorKey, getColor("blackMuted")), "--news-arrow-hover": modalAccent }}>
           <div className="newsGrid">
-            <div className="newsIntro"><p className="newsSubTitle">{text(props?.latestEvents1SubTitle)}</p><h2 className="newsHeading">{renderHighlightedTitle(text(props?.latestEvents1MainTitle), props)}</h2></div>
+            <div className="newsIntro" style={getHeaderAlignStyles(titleAlign)}><p className="newsSubTitle" style={getSubtitleAlignStyles(titleAlign)}>{text(props?.latestEvents1SubTitle)}</p><h2 className="newsHeading" style={getTitleAlignStyles(titleAlign)}>{renderHighlightedTitle(text(props?.latestEvents1MainTitle), props)}</h2></div>
             <div className="newsList">{items.map(renderNewsItem)}</div>
           </div>
         </NewsSection>

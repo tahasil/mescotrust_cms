@@ -10,6 +10,7 @@ import "lightgallery/css/lg-zoom.css";
 import "lightgallery/css/lg-fullscreen.css";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 const DEFAULT_TABS = ["All", "Education", "Medical", "Events", "Community"];
 let lightGalleryModulesPromise;
@@ -564,6 +565,7 @@ export default function PhotoGallery(props) {
   const titleVisible = props?.photoGalleryTitleVisible !== false;
   const subtitleVisible = props?.photoGallerySubTitleVisible !== false;
   const showHeading = (titleVisible && (title || accentTitle)) || (subtitleVisible && subtitle);
+  const titleAlign = getTitleAlign(props, "left", "photoGallery");
   const showPhotoCount = props?.photoGalleryPhotoCountVisible !== false;
   const showHoverArrow = props?.photoGalleryHoverArrowVisible !== false;
   const target = props?.photoGalleryViewAllTarget === "_blank" ? "_blank" : "_self";
@@ -652,7 +654,7 @@ export default function PhotoGallery(props) {
             $titleColor={modalTitleColor}
           />
           {showHeading ? (
-            <header className="gallery-heading">
+            <header className="gallery-heading" style={getHeaderAlignStyles(titleAlign)}>
               <div>
                 {subtitleVisible && subtitle ? <p className="gallery-subtitle">{subtitle}</p> : null}
                 {titleVisible && (title || accentTitle) ? (

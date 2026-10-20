@@ -8,6 +8,7 @@ import {
 import SafeHtml from "@/components/cms/SafeHtml";
 import styled from "styled-components";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles, getParagraphAlign } from "@/components/site/titleUtils";
 
 const CsrScheme = styled.div`
   .fable-eyebrow {
@@ -17,13 +18,14 @@ const CsrScheme = styled.div`
     border-radius: 0;
   }
   .fable-heading {
-    max-width: 16ch;
+    max-width: 100%;
     margin-bottom: 20px;
     font-size: clamp(36px, 4.6vw, 64px);
     line-height: 1.08;
     letter-spacing: -.02em;
   }
   .fable-prose { max-width: 50ch; }
+  .fable-prose, .fable-prose * { text-align: inherit; }
   @media (max-width: 767px) {
     .fable-heading { font-size: clamp(32px, 10vw, 48px); }
   }
@@ -36,6 +38,8 @@ const CsrScheme = styled.div`
 export default function ManagingCommittee(props) {
   const subTitle = (props?.managingCommitteeSubTitle ?? "").toString().trim();
   const mainTitle = (props?.managingCommitteeMainTitle ?? "Managing Committee").toString().trim();
+  const titleAlign = getTitleAlign(props, "center", "managingCommittee");
+  const paragraphAlign = getParagraphAlign(props, "left", "managingCommittee");
   const paragraph = (props?.managingCommitteeParagraph ?? "").toString().trim();
   const imageDesktop = (
     props?.managingCommitteeImageDesktop ??
@@ -114,17 +118,20 @@ export default function ManagingCommittee(props) {
       <PageContainer $managedStyle={pageContainerBgStyle}>
         <CsrScheme className="fable-section fable-split">
           <div>
-            {subTitle ? <p className="fable-eyebrow" style={{ color: subTitleColor }}>{subTitle}</p> : null}
+            {subTitle ? <p className="fable-eyebrow" style={{ color: subTitleColor, ...getSubtitleAlignStyles(titleAlign) }}>{subTitle}</p> : null}
             <h2
               className="fable-heading"
-              style={titleColor ? { color: titleColor } : undefined}
+              style={{ ...(titleColor ? { color: titleColor } : {}), ...getTitleAlignStyles(titleAlign) }}
             >
               {renderHighlightedTitle(mainTitle, props)}
             </h2>
             {paragraph && (
               <div
                 className="fable-prose"
-                style={textColor ? { color: textColor } : undefined}
+                style={{
+                  ...(textColor ? { color: textColor } : {}),
+                  textAlign: paragraphAlign,
+                }}
               >
                 <SafeHtml html={paragraph} />
               </div>

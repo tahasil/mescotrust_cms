@@ -180,12 +180,7 @@ function MissionEditForm({ source, initialData: initialDataProp, onSaveToPage, o
             label: "Content",
             children: (
               <>
-                <Form.Item name="missionSubTitle" label="Subtitle" rules={[{ required: true }]}>
-                  <Input placeholder="Mission" size="large" />
-                </Form.Item>
-                <Form.Item name="missionTitle" label="Main title" rules={[{ required: true }]}>
-                  <Input.TextArea placeholder="Mission description" rows={3} size="large" />
-                </Form.Item>
+                
                 <Form.Item
                   name="missionImageDesktop"
                   label="Desktop Image"

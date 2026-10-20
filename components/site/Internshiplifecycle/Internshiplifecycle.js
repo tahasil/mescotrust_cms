@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { FullWidthBackground, PageContainer, getColor } from "@/styles/Theme";
 import { getInternshipLifecycleDefaults } from "./constants";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 const TimelineSection = styled.div`
   width: 100%;
@@ -255,6 +256,7 @@ function getContainerStyles(props) {
  * Figma timeline layout rendered from drawer-controlled props only.
  */
 export default function Internshiplifecycle(props) {
+  const titleAlign = getTitleAlign(props, "left", "internshiplifecycle");
   const data = getInternshipLifecycleDefaults(props);
   const descriptionColor = getColor(
     data.internshiplifecycleDescriptionColorKey,
@@ -274,7 +276,7 @@ export default function Internshiplifecycle(props) {
           $connectorColor={connectorColor}
           $titleFontFamily={data.internshiplifecycleTitleFontFamily}
         >
-          <h2 className="internshipLifecycleTitle">{renderHighlightedTitle(data.mainTitle, props)}</h2>
+          <h2 className="internshipLifecycleTitle" style={getTitleAlignStyles(titleAlign)}>{renderHighlightedTitle(data.mainTitle, props)}</h2>
 
           <div className="internshipLifecycleTrack">
             <div className="internshipLifecycleGrid">

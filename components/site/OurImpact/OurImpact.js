@@ -14,6 +14,7 @@ import {
   PageContainer,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -441,6 +442,7 @@ export default function OurImpact(props) {
     ),
   };
 
+  const titleAlign = getTitleAlign(props, "left", "ourImpact");
   const heading = text(props?.ourImpactHeading ?? DEFAULT_CONTENT.heading);
   const headingAccent = text(
     props?.ourImpactHeadingAccent ?? DEFAULT_CONTENT.headingAccent,
@@ -578,9 +580,9 @@ export default function OurImpact(props) {
             ),
           }}
         >
-          <div className="impactHead">
+          <div className="impactHead" style={getHeaderAlignStyles(titleAlign)}>
             {heading || headingAccent ? (
-              <h2 className="impactHeading impactReveal">
+              <h2 className="impactHeading impactReveal" style={getTitleAlignStyles(titleAlign)}>
                 {renderHighlightedTitle(
                   headingAccent
                     ? `${heading}${heading ? " " : ""}*${headingAccent}*`
@@ -590,7 +592,7 @@ export default function OurImpact(props) {
                 )}
               </h2>
             ) : null}
-            {note ? <p className="impactNote impactReveal">{note}</p> : null}
+            {note ? <p className="impactNote impactReveal" style={getSubtitleAlignStyles(titleAlign)}>{note}</p> : null}
           </div>
           <div className="impactGrid">
             {items.map((item, index) => (

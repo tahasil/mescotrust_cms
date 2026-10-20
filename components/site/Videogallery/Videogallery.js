@@ -17,6 +17,7 @@ import {
   ThemeButton,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 const GalleryTabs = styled.div`
   display: flex;
@@ -365,6 +366,7 @@ const DEFAULT_TABS = ["All", "Education", "Medical", "Events", "Community"];
 
 export default function Videogallery(props) {
   const subTitle = (props?.videogallerySubTitle ?? "").toString().trim();
+  const titleAlign = getTitleAlign(props, "left", "videogallery");
   const mainTitle = (props?.videogalleryMainTitle ?? "").toString().trim();
   const subTitleColorKey = (props?.videogallerySubTitleColorKey ?? "").toString().trim();
   const titleColorKey = (props?.videogalleryTitleColorKey ?? "").toString().trim();
@@ -639,9 +641,9 @@ export default function Videogallery(props) {
       <PageContainer $managedStyle={pageContainerBgStyle}>
         <div className="fable-section">
         {(subTitle || mainTitle) ? (
-          <header className="fable-section-heading">
-            {subTitle ? <p className="fable-eyebrow" style={{ color: subTitleColor }}>{subTitle}</p> : null}
-            {mainTitle ? <h2 className="fable-heading" style={{ color: titleColor }}>{renderHighlightedTitle(mainTitle, props, { legacyColorKey: props?.videogalleryAccentColorKey })}</h2> : null}
+          <header className="fable-section-heading" style={getHeaderAlignStyles(titleAlign)}>
+            {subTitle ? <p className="fable-eyebrow" style={{ color: subTitleColor, ...getSubtitleAlignStyles(titleAlign) }}>{subTitle}</p> : null}
+            {mainTitle ? <h2 className="fable-heading" style={{ color: titleColor, ...getTitleAlignStyles(titleAlign) }}>{renderHighlightedTitle(mainTitle, props, { legacyColorKey: props?.videogalleryAccentColorKey })}</h2> : null}
           </header>
         ) : null}
         <GalleryTabs className="fable-filters" $alignment={tabAlignment}>

@@ -10,6 +10,7 @@ import {
   SubTitle,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 import {
   isPdfDocumentUrl,
   normalizePdfTarget,
@@ -124,6 +125,7 @@ const ViewLink = styled.a`
  * Vertical list of PDF newsletter rows with icon, title, date, tag, and View link.
  */
 export default function Newsletters(props) {
+  const titleAlign = getTitleAlign(props, "left", "newsletters");
   const resolveThemeColor = (value) => {
     const raw = value != null ? String(value).trim() : "";
     if (!raw) return undefined;
@@ -349,16 +351,16 @@ export default function Newsletters(props) {
         <div className="fable-section">
         {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) && (
           <Row gutter={[16, 16]}>
-            <Col span={24} className="mb-4">
+            <Col span={24} className="mb-4" style={getHeaderAlignStyles(titleAlign)}>
               {subTitleEnabled && subTitle && (
                 <SubTitle className="fable-eyebrow"
-                  style={subTitleColor ? { color: subTitleColor } : undefined}
+                  style={{ ...(subTitleColor ? { color: subTitleColor } : {}), ...getSubtitleAlignStyles(titleAlign) }}
                 >
                   {subTitle}
                 </SubTitle>
               )}
               {titleEnabled && mainTitle && (
-                <MainTitle className="fable-heading" color={titleColor}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
+                <MainTitle className="fable-heading" color={titleColor} style={getTitleAlignStyles(titleAlign)}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
               )}
             </Col>
           </Row>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, InputNumber, Row, Col, Collapse, Card, message, Spin } from "antd";
+import { Form, Input, InputNumber, Row, Col, Collapse, Card, Select, message, Spin } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
@@ -60,6 +60,11 @@ function DonorTestimonialsEditForm({ source, initialData: initialDataProp, onSav
       form.setFieldsValue({
         ...getManageSectionInitialValues(PREFIX, data),
         mainTitle: data?.mainTitle != null ? String(data.mainTitle).trim() : "",
+        donorTestimonialsTitleAlign: data?.donorTestimonialsTitleAlign || data?.titleAlign || "center",
+        titleAlign: data?.donorTestimonialsTitleAlign || data?.titleAlign || "center",
+        titleHighlightColorKey: data?.titleHighlightColorKey || "",
+        donorTestimonialsParagraphAlign: data?.donorTestimonialsParagraphAlign || data?.paragraphAlign || "left",
+        paragraphAlign: data?.donorTestimonialsParagraphAlign || data?.paragraphAlign || "left",
         subTitle: data?.subTitle != null ? String(data.subTitle).trim() : "",
         titleColorKey: data?.titleColorKey != null ? String(data.titleColorKey).trim() : "",
         donorTestimonialsTitleEnabled: data?.donorTestimonialsTitleEnabled !== false,
@@ -115,6 +120,11 @@ function DonorTestimonialsEditForm({ source, initialData: initialDataProp, onSav
       const payload = {
         ...getManageSectionPayload(PREFIX, values),
         mainTitle: values.mainTitle != null ? String(values.mainTitle).trim() : "",
+        donorTestimonialsTitleAlign: values.donorTestimonialsTitleAlign || values.titleAlign || "center",
+        titleAlign: values.donorTestimonialsTitleAlign || values.titleAlign || "center",
+        titleHighlightColorKey: values.titleHighlightColorKey || "",
+        donorTestimonialsParagraphAlign: values.donorTestimonialsParagraphAlign || values.paragraphAlign || "left",
+        paragraphAlign: values.donorTestimonialsParagraphAlign || values.paragraphAlign || "left",
         subTitle: values.subTitle != null ? String(values.subTitle).trim() : "",
         titleColorKey: values.titleColorKey != null ? String(values.titleColorKey).trim() : "",
         donorTestimonialsTitleEnabled: values.donorTestimonialsTitleEnabled !== false,

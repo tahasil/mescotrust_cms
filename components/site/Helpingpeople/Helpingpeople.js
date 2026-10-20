@@ -7,6 +7,7 @@ import {
 } from "@/styles/Theme";
 import SafeHtml from "@/components/cms/SafeHtml";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles, getParagraphAlign } from "@/components/site/titleUtils";
 
 function normalizeDescriptionHtml(value) {
   if (value == null) return "";
@@ -22,13 +23,17 @@ function normalizeDescriptionHtml(value) {
  * Uses "aboutUs" className on FullWidthBackground for dark bg.
  */
 export default function Helpingpeople(props) {
-  const subTitle = (props?.helpingpeopleSubTitle ?? "").toString().trim();
+  const titleAlign = getTitleAlign(props, "left", "helpingpeople");
+  const paragraphAlign = getParagraphAlign(props, "left", "helpingpeople");
+  const subTitle = (props?.helpingpeopleSubTitle ?? props?.subTitle ?? "").toString().trim();
   const mainTitle = (
-    props?.helpingpeopleMainTitle ?? "Helping people live better tomorrow"
+    props?.helpingpeopleMainTitle ??
+    props?.mainTitle ??
+    "Helping people live better tomorrow"
   )
     .toString()
     .trim();
-  const paragraph = normalizeDescriptionHtml(props?.helpingpeopleParagraph);
+  const paragraph = normalizeDescriptionHtml(props?.helpingpeopleParagraph ?? props?.paragraph);
   const imageDesktop = (
     props?.helpingpeopleImageDesktop ??
     props?.helpingpeopleImageUrl ??
@@ -212,17 +217,23 @@ export default function Helpingpeople(props) {
       <PageContainer $managedStyle={pageContainerBgStyle}>
         <div className={`fable-section fable-scheme fable-about-people fable-helping-people is-image-${imagePosition}`}>
           <div>
-            {subTitle ? <p className="fable-eyebrow" style={{ color: subTitleColor }}>{subTitle}</p> : null}
+            {subTitle ? <p className="fable-eyebrow" style={{ color: subTitleColor, ...getSubtitleAlignStyles(titleAlign) }}>{subTitle}</p> : null}
             <h2
               className="fable-heading"
-              style={titleColor ? { color: titleColor } : undefined}
+              style={{
+                ...(titleColor ? { color: titleColor } : {}),
+                ...getTitleAlignStyles(titleAlign),
+              }}
             >
               {renderHighlightedTitle(mainTitle, props)}
             </h2>
             {paragraph && (
               <div
                 className="fable-prose"
-                style={textColor ? { color: textColor } : undefined}
+                style={{
+                  ...(textColor ? { color: textColor } : {}),
+                  textAlign: paragraphAlign,
+                }}
               >
                 <SafeHtml html={paragraph} />
               </div>

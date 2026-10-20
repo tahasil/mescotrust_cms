@@ -23,6 +23,7 @@ import {
   SubTitle,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 import { isValidEmail, isValidPhone, normalizeText } from "@/lib/formValidation";
 
 const CareersSelectDropdownStyles = createGlobalStyle`
@@ -562,7 +563,8 @@ export default function CareersUpload(props = {}) {
                   className="fable-eyebrow"
                   style={{
                     ...(subTitleColor ? { color: subTitleColor } : {}),
-                    textAlign: textAlignValue,
+                    textAlign: titleAlign,
+                    ...getSubtitleAlignStyles(titleAlign),
                   }}
                 >
                   {subTitle}
@@ -573,10 +575,8 @@ export default function CareersUpload(props = {}) {
                   className="fable-heading"
                   style={{
                     ...(titleColor ? { color: titleColor } : {}),
-                    textAlign: textAlignValue,
                     maxWidth: "none",
-                    marginLeft: textAlignValue === "center" ? "auto" : textAlignValue === "right" ? "auto" : "0",
-                    marginRight: textAlignValue === "center" ? "auto" : textAlignValue === "right" ? "0" : "auto",
+                    ...getTitleAlignStyles(titleAlign),
                   }}
                 >
                   {renderHighlightedTitle(mainTitle, props)}

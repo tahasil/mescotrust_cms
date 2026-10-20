@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 import styled from "styled-components";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 import {
   isPdfDocumentUrl,
   normalizePdfTarget,
@@ -37,7 +38,7 @@ const NoticeBoard = styled.div`
   }
 
   .noticeHeading {
-    max-width: 16ch;
+    max-width: 100%;
     margin: 0;
     color: var(--notice-heading);
     font-family: "Bricolage Grotesque", system-ui, sans-serif;
@@ -249,7 +250,7 @@ const NoticeBoard = styled.div`
     }
 
     &.noticeBoard--style2 .noticeHeading {
-      max-width: 16ch;
+      max-width: 100%;
     }
 
     &.noticeBoard--style2 .noticeIntro {
@@ -426,6 +427,7 @@ function NoticeRow({ item, index, onOpenPdf }) {
 }
 
 export default function Notices(props) {
+  const titleAlign = getTitleAlign(props, "left", "notices");
   const rootRef = useRef(null);
   const pathname = usePathname();
   const isEditor = pathname?.startsWith("/admin") === true;
@@ -542,14 +544,14 @@ export default function Notices(props) {
         }}
       >
         {showHeader ? (
-          <header className="noticeHeader noticeReveal">
+          <header className="noticeHeader noticeReveal" style={getHeaderAlignStyles(titleAlign)}>
             {text(props?.noticesSubTitle || props?.mainTitle) ? (
-              <p className="noticeSubTitle">
+              <p className="noticeSubTitle" style={getSubtitleAlignStyles(titleAlign)}>
                 {text(props?.noticesSubTitle || props?.mainTitle)}
               </p>
             ) : null}
             {text(props?.noticesHeading) || text(props?.noticesHeadingAccent) ? (
-              <h2 className="noticeHeading">
+              <h2 className="noticeHeading" style={getTitleAlignStyles(titleAlign)}>
                 {renderHighlightedTitle(
                   text(props?.noticesHeadingAccent)
                     ? `${text(props?.noticesHeading)}${text(props?.noticesHeading) ? " " : ""}*${text(props?.noticesHeadingAccent)}*`

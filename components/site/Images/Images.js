@@ -9,6 +9,7 @@ import {
   SubTitle,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 /**
  * Site component: Images (Images).
@@ -16,6 +17,7 @@ import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
  * Manage Section (background/padding) and Title & Colors come from EditForm.
  */
 export default function Images(props) {
+  const titleAlign = getTitleAlign(props, "left", "images");
   const mainTitle = (props?.mainTitle ?? "Section Title").toString().trim();
   const subTitle = (props?.subTitle ?? "Subtitle").toString().trim();
   const titleEnabled = props?.imagesTitleEnabled !== false;
@@ -186,16 +188,16 @@ export default function Images(props) {
         <div className="fable-section">
         {(titleEnabled || subTitleEnabled) && (
           <Row gutter={[16, 16]}>
-            <Col span={24} className="mb-4">
+            <Col span={24} className="mb-4" style={getHeaderAlignStyles(titleAlign)}>
               {subTitleEnabled && (
                 <SubTitle className="fable-eyebrow"
-                  style={subTitleColor ? { color: subTitleColor } : undefined}
+                  style={{ ...(subTitleColor ? { color: subTitleColor } : {}), ...getSubtitleAlignStyles(titleAlign) }}
                 >
                   {subTitle}
                 </SubTitle>
               )}
               {titleEnabled && (
-                <MainTitle className="fable-heading" color={titleColor}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
+                <MainTitle className="fable-heading" color={titleColor} style={getTitleAlignStyles(titleAlign)}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
               )}
             </Col>
           </Row>

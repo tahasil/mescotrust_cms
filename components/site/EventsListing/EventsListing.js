@@ -16,6 +16,7 @@ import {
 } from "@/styles/Theme";
 import MediaImage from "@/components/shared/MediaImage";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 import {
   formatEventDateRange,
   formatLocationLine,
@@ -663,6 +664,7 @@ export default function EventsListing(props) {
     "--events-radius": `${radius}px`,
   };
   const isPast = query.view === "past";
+  const titleAlign = getTitleAlign(props, "left", "eventsListing");
 
   return (
     <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
@@ -692,10 +694,10 @@ export default function EventsListing(props) {
             </div>
           ) : null}
 
-          <div className="events-heading-row">
-            <div>
-              <p className="events-subtitle">{isPast ? labels.pastSubtitle : labels.subtitle}</p>
-              <h2 className="events-title">{renderHighlightedTitle(isPast ? labels.pastTitle : labels.title, props, { legacyColorKey: props?.eventsListingAccentColorKey })}</h2>
+          <div className="events-heading-row" style={getHeaderAlignStyles(titleAlign)}>
+            <div style={getHeaderAlignStyles(titleAlign)}>
+              <p className="events-subtitle" style={getSubtitleAlignStyles(titleAlign)}>{isPast ? labels.pastSubtitle : labels.subtitle}</p>
+              <h2 className="events-title" style={getTitleAlignStyles(titleAlign)}>{renderHighlightedTitle(isPast ? labels.pastTitle : labels.title, props, { legacyColorKey: props?.eventsListingAccentColorKey })}</h2>
             </div>
             {!loading ? <span className="events-count">{data.total} events</span> : null}
           </div>

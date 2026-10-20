@@ -10,6 +10,7 @@ import {
   SubTitle,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 /* ── Styled Components ── */
 const CardsWrapper = styled.div`
@@ -101,6 +102,7 @@ const CardsWrapper = styled.div`
 export default function OverlayCards(props) {
   /* ── Title fields ── */
   const mainTitle = (props?.mainTitle ?? "").toString().trim();
+  const titleAlign = getTitleAlign(props, "left", "overlayCards");
   const subTitle = (props?.subTitle ?? "").toString().trim();
   const titleEnabled = props?.overlayCardsTitleEnabled !== false;
   const subTitleEnabled = props?.overlayCardsSubTitleEnabled !== false;
@@ -299,16 +301,16 @@ export default function OverlayCards(props) {
         <div className="fable-section">
         {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) && (
           <Row gutter={[16, 16]}>
-            <Col span={24} className="mb-4">
+            <Col span={24} className="mb-4" style={getHeaderAlignStyles(titleAlign)}>
               {subTitleEnabled && subTitle && (
                 <SubTitle className="fable-eyebrow"
-                  style={subTitleColor ? { color: subTitleColor } : undefined}
+                  style={{ ...(subTitleColor ? { color: subTitleColor } : {}), ...getSubtitleAlignStyles(titleAlign) }}
                 >
                   {subTitle}
                 </SubTitle>
               )}
               {titleEnabled && mainTitle && (
-                <MainTitle className="fable-heading" color={titleColor}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
+                <MainTitle className="fable-heading" color={titleColor} style={getTitleAlignStyles(titleAlign)}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
               )}
             </Col>
           </Row>

@@ -10,6 +10,7 @@ import {
   SubTitle,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 const CARD_VARIANTS = new Set(["style1", "style2", "style3"]);
 
@@ -285,6 +286,7 @@ const VARIANT_RENDERERS = {
  * Multi-style, DB-driven cards with admin-selectable variant support.
  */
 export default function Cards1(props) {
+  const titleAlign = getTitleAlign(props, "left", "cards1");
   const mainTitle = cleanText(props?.mainTitle);
   const subTitle = cleanText(props?.subTitle);
 
@@ -547,12 +549,12 @@ export default function Cards1(props) {
       <PageContainer $managedStyle={pageContainerBgStyle}>
         <div className="fable-section">
         {(subTitleEnabled && subTitle) || (titleEnabled && mainTitle) ? (
-          <div style={{ marginBottom: 28 }}>
+          <div style={{ marginBottom: 28, ...getHeaderAlignStyles(titleAlign) }}>
             {subTitleEnabled && subTitle ? (
-              <SubTitle color={subTitleColor}>{subTitle}</SubTitle>
+              <SubTitle color={subTitleColor} style={getSubtitleAlignStyles(titleAlign)}>{subTitle}</SubTitle>
             ) : null}
             {titleEnabled && mainTitle ? (
-              <MainTitle color={mainTitleColor}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
+              <MainTitle color={mainTitleColor} style={getTitleAlignStyles(titleAlign)}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
             ) : null}
           </div>
         ) : null}

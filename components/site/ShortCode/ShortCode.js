@@ -7,6 +7,7 @@ import TeamEmbed from "@/components/site/TeamEmbed/TeamEmbed";
 import * as PublicSiteComponents from "@/components/site/publicComponents";
 import { SITE_COMPONENT_IDS } from "@/lib/siteComponentRegistry";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 import {
   buildShortcodeFromSelection,
   findComponentIdByShortcodeValue,
@@ -68,6 +69,7 @@ async function fetchComponentProps(componentId) {
  */
 export default function ShortCode(props) {
   const mainTitle = (props?.mainTitle ?? "Section Title").toString().trim();
+  const titleAlign = getTitleAlign(props, "left", "shortCode");
   const subTitle = (props?.subTitle ?? "Subtitle").toString().trim();
 
   const titleEnabled = props?.shortCodeTitleEnabled !== false;
@@ -460,12 +462,12 @@ export default function ShortCode(props) {
       <PageContainer $managedStyle={pageContainerBgStyle}>
         {(subTitleEnabled && subTitle) || (titleEnabled && mainTitle) ? (
           <Row gutter={[16, 16]}>
-            <Col span={24} className="mb-4">
+            <Col span={24} className="mb-4" style={getHeaderAlignStyles(titleAlign)}>
               {subTitleEnabled && subTitle ? (
-                <SubTitle color={subTitleColor}>{subTitle}</SubTitle>
+                <SubTitle color={subTitleColor} style={getSubtitleAlignStyles(titleAlign)}>{subTitle}</SubTitle>
               ) : null}
               {titleEnabled && mainTitle ? (
-                <MainTitle color={mainTitleColor}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
+                <MainTitle color={mainTitleColor} style={getTitleAlignStyles(titleAlign)}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
               ) : null}
             </Col>
           </Row>

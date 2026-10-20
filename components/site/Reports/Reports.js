@@ -9,6 +9,7 @@ import {
   SubTitle,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 import {
   isPdfDocumentUrl,
   normalizePdfTarget,
@@ -240,6 +241,7 @@ function color(value, fallback) {
 export default function Reports(props) {
   /* ── Title fields ── */
   const mainTitle = (props?.mainTitle ?? "Reports").toString().trim();
+  const titleAlign = getTitleAlign(props, "left", "reports");
   const subTitle = (props?.subTitle ?? "").toString().trim();
   const titleEnabled = props?.reportsTitleEnabled !== false;
   const subTitleEnabled = props?.reportsSubTitleEnabled !== false;

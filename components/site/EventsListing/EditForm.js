@@ -17,6 +17,8 @@ import {
   message,
 } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 import {
   ColorSettingsCard,
   SwitchSettingsCard,
@@ -213,7 +215,7 @@ function EventsListingEditForm(
   return (
     <Form form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={["manage-section", "content"]}
+        defaultActiveKey={["manage-section", "title-colors", "content"]}
         items={[
           {
             key: "manage-section",
@@ -238,15 +240,6 @@ function EventsListingEditForm(
                   {textField("eventsListingUpcomingFilterLabel", "Live filter label")}
                   {textField("eventsListingPastFilterLabel", "Past filter label")}
                 </Card>
-                <Card size="small" title="Section titles">
-                  {textField("eventsListingUpcomingEyebrow", "Sub Title")}
-                  {textField("eventsListingUpcomingTitle", "Title")}
-                  {textField("eventsListingPastEyebrow", "Past Sub Title")}
-                  {textField("eventsListingPastTitle", "Past Title")}
-                  <div style={{ marginTop: -12, marginBottom: 16, color: "rgba(0,0,0,0.45)", fontSize: 12 }}>
-                    Wrap one title segment in *asterisks* to use the accent color.
-                  </div>
-                </Card>
                 <Card size="small" title="Buttons & messages">
                   {textField("eventsListingButtonLabel", "Card button label")}
                   {textField("eventsListingEmptyLabel", "Empty state")}
@@ -270,10 +263,14 @@ function EventsListingEditForm(
             ),
           },
           {
-            key: "colors",
-            label: "Colors",
+            key: "title-colors",
+            label: "Title & Colors",
             children: (
-              <ColorSettingsCard items={COLOR_FIELDS} options={themeColorOptions} />
+              <TitleAndColorsSection
+                form={form}
+                themeColorOptions={themeColorOptions}
+                {...getTitleAndColorsConfig("EventsListing")}
+              />
             ),
           },
           {

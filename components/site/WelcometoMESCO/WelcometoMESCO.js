@@ -9,6 +9,7 @@ import { usePathname } from "next/navigation";
 import styled from "styled-components";
 import { normalizeTarget } from "@/components/appearance/editorUtils";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles } from "@/components/site/titleUtils";
 import {
   FullWidthBackground,
   getColor,
@@ -266,6 +267,7 @@ export default function WelcometoMESCO(props) {
   const statementRef = useRef(null);
   const isEditorPreview = pathname?.startsWith("/admin") === true;
 
+  const titleAlign = getTitleAlign(props, "center", "welcometoMESCO");
   const subTitle = textValue(
     props?.welcometoMESCOSubTitle ?? props?.welcomeLabel ?? DEFAULT_CONTENT.subTitle,
   );
@@ -524,9 +526,9 @@ export default function WelcometoMESCO(props) {
             ),
           }}
         >
-          {subTitle ? <p className="statementSubTitle">{renderHighlightedTitle(subTitle, props)}</p> : null}
+          {subTitle ? <p className="statementSubTitle" style={getSubtitleAlignStyles(titleAlign)}>{renderHighlightedTitle(subTitle, props)}</p> : null}
           {statementText ? (
-            <p className="statementText">{statementNodes}</p>
+            <p className="statementText" style={getTitleAlignStyles(titleAlign)}>{statementNodes}</p>
           ) : null}
           <div className="statementRow">
             {primaryText && primaryLink ? (

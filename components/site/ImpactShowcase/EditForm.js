@@ -1,7 +1,7 @@
 "use client";
 
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { Collapse, Form, Input, InputNumber, Spin, message } from "antd";
+import { Collapse, Form, Input, InputNumber, Select, Spin, message } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import RichTextEditor from "@/components/admin/RichTextEditor";
@@ -20,6 +20,8 @@ const PREFIX = "impactShowcase";
 const FALLBACK = {
   impactShowcaseSubTitle: "Who We Are",
   impactShowcaseMainTitle: "Education first, *then everything else.*",
+  impactShowcaseTitleAlign: "left",
+  impactShowcaseParagraphAlign: "left",
   impactShowcaseBody1: "‘Education’ was identified as the core theme for human development, and the work later expanded to medical assistance and poverty relief. Well strategised schemes, programmes and institutions carry the mission.",
   impactShowcaseBody2: "The approach has always been to uphold ethical values in delivering, and to be a channel from those who want to give to those who need it most. MESCO is trusted by individuals, families, foundations, charities and corporates in India and abroad.",
   impactShowcaseStatValue: "15,000+",
@@ -53,9 +55,21 @@ function ImpactShowcaseEditForm({ source, initialData: initialDataProp, onSaveTo
 
   const applyValues = (data = {}) => {
     const legacyImage = data.impactShowcaseLeftImageDesktop ?? data.impactShowcaseLeftImage;
+    const titleAlign = data.impactShowcaseTitleAlign || data.titleAlign || "left";
+    const paragraphAlign = data.impactShowcaseParagraphAlign || data.paragraphAlign || "left";
+    const mainTitle = data.impactShowcaseMainTitle != null ? clean(data.impactShowcaseMainTitle) : (data.mainTitle != null ? clean(data.mainTitle) : FALLBACK.impactShowcaseMainTitle);
+    const subTitle = data.impactShowcaseSubTitle != null ? clean(data.impactShowcaseSubTitle) : (data.subTitle != null ? clean(data.subTitle) : FALLBACK.impactShowcaseSubTitle);
     form.setFieldsValue({
       ...FALLBACK,
       ...Object.fromEntries(CONTENT_FIELDS.map((field) => [field, data[field] != null ? clean(data[field]) : FALLBACK[field]])),
+      impactShowcaseMainTitle: mainTitle,
+      mainTitle,
+      impactShowcaseSubTitle: subTitle,
+      subTitle,
+      impactShowcaseTitleAlign: titleAlign,
+      titleAlign,
+      impactShowcaseParagraphAlign: paragraphAlign,
+      paragraphAlign,
       impactShowcaseImageDesktop: clean(data.impactShowcaseImageDesktop ?? legacyImage ?? "/images/about-mesco-1.png"),
       impactShowcaseImageMobile: clean(data.impactShowcaseImageMobile ?? data.impactShowcaseLeftImageMobile),
       ...Object.fromEntries(COLOR_FIELDS.map((field) => [field, clean(data[field])])),
@@ -97,16 +111,30 @@ function ImpactShowcaseEditForm({ source, initialData: initialDataProp, onSaveTo
       .finally(() => setLoading(false));
   }, [form, initialDataProp, isPageBlock]);
 
-  const payloadFrom = (values) => ({
-    ...Object.fromEntries([...CONTENT_FIELDS, ...COLOR_FIELDS, "impactShowcaseImageDesktop", "impactShowcaseImageMobile"].map((field) => [field, clean(values[field])])),
-    impactShowcaseBodyFontSize: numberInRange(
-      values.impactShowcaseBodyFontSize,
-      DESCRIPTION_FONT_SIZE_DEFAULT,
-      10,
-      32,
-    ),
-    ...getManageSectionPayload(PREFIX, values),
-  });
+  const payloadFrom = (values) => {
+    const titleAlign = values.impactShowcaseTitleAlign || values.titleAlign || "left";
+    const paragraphAlign = values.impactShowcaseParagraphAlign || values.paragraphAlign || "left";
+    const mainTitle = (values.impactShowcaseMainTitle ?? values.mainTitle ?? "").toString().trim();
+    const subTitle = (values.impactShowcaseSubTitle ?? values.subTitle ?? "").toString().trim();
+    return {
+      ...Object.fromEntries([...CONTENT_FIELDS, ...COLOR_FIELDS, "impactShowcaseImageDesktop", "impactShowcaseImageMobile"].map((field) => [field, clean(values[field])])),
+      impactShowcaseMainTitle: mainTitle,
+      mainTitle,
+      impactShowcaseSubTitle: subTitle,
+      subTitle,
+      impactShowcaseTitleAlign: titleAlign,
+      titleAlign,
+      impactShowcaseParagraphAlign: paragraphAlign,
+      paragraphAlign,
+      impactShowcaseBodyFontSize: numberInRange(
+        values.impactShowcaseBodyFontSize,
+        DESCRIPTION_FONT_SIZE_DEFAULT,
+        10,
+        32,
+      ),
+      ...getManageSectionPayload(PREFIX, values),
+    };
+  };
   const handleUpdate = () => form.validateFields().then(() => {
     const payload = payloadFrom(form.getFieldsValue(true));
     if (isPageBlock && onSaveToPage) {

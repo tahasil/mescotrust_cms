@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Row, Col } from "antd";
 import styled from "styled-components";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 import {
   FullWidthBackground,
   getColor,
@@ -834,6 +835,7 @@ export default function SocialMediaWall(props) {
 
   const titleEnabled = props?.socialMediaWallTitleEnabled !== false;
   const subTitleEnabled = props?.socialMediaWallSubTitleEnabled !== false;
+  const titleAlign = getTitleAlign(props, "center", "socialMediaWall");
   const mainTitle = safeString(props?.mainTitle || "Social Media Wall");
   const subTitle = safeString(props?.subTitle);
   const titleColorKey = safeString(props?.titleColorKey);
@@ -1336,13 +1338,13 @@ export default function SocialMediaWall(props) {
         <PageContainer $managedStyle={pageContainerBgStyle}>
           {(titleEnabled || subTitleEnabled) && (
             <Row gutter={[16, 16]}>
-              <Col span={24} className="mb-4">
+              <Col span={24} className="mb-4" style={getHeaderAlignStyles(titleAlign)}>
                 {subTitleEnabled && subTitle && (
-                  <SubTitle style={subTitleColor ? { color: subTitleColor } : undefined}>
+                  <SubTitle style={{ ...(subTitleColor ? { color: subTitleColor } : {}), ...getSubtitleAlignStyles(titleAlign) }}>
                     {subTitle}
                   </SubTitle>
                 )}
-                {titleEnabled && <MainTitle color={titleColor}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>}
+                {titleEnabled && <MainTitle color={titleColor} style={getTitleAlignStyles(titleAlign)}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>}
               </Col>
             </Row>
           )}

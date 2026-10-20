@@ -9,6 +9,7 @@ import {
   PageContainer,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 function fetchMarquee() {
   return fetch("/api/theme/marquee", {
@@ -175,6 +176,7 @@ function normalizeImageItem(item) {
  * Data source: page block props (marqueeTitle, marqueeItems from pages collection) first, else theme API (components collection).
  */
 export default function Marquee(props) {
+  const titleAlign = getTitleAlign(props, "left", "marquee");
   const [data, setData] = useState(null);
   const fromPage =
     props?.marqueeTitle != null ||
@@ -359,11 +361,11 @@ export default function Marquee(props) {
           }
         >
           {partnersTitle || awardsTitle ? (
-            <div className="partners-head">
+            <div className="partners-head" style={getHeaderAlignStyles(titleAlign)}>
               {partnersTitle ? (
                 <h2
                   className="partners-sub-title"
-                  style={{ color: partnersTitleColor }}
+                  style={{ color: partnersTitleColor, ...getTitleAlignStyles(titleAlign) }}
                 >
                   {renderHighlightedTitle(partnersTitle, settings)}
                 </h2>
@@ -371,7 +373,7 @@ export default function Marquee(props) {
               {awardsTitle ? (
                 <p
                   className="partners-note"
-                  style={{ color: awardsTitleColor }}
+                  style={{ color: awardsTitleColor, ...getSubtitleAlignStyles(titleAlign) }}
                 >
                   {renderHighlightedTitle(awardsTitle, settings)}
                 </p>

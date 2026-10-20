@@ -12,6 +12,7 @@ import {
 } from "@/styles/Theme";
 import { isValidEmail, isValidName, isValidPhone, normalizeText } from "@/lib/formValidation";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 /**
  * Site component: EventRegistrationForm.
@@ -156,6 +157,7 @@ export default function EventRegistrationForm(props = {}) {
 
   /* -- Title & subtitle -- */
   const mainTitle = (props?.mainTitle ?? "Event Registration").toString().trim();
+  const titleAlign = getTitleAlign(props, "center", "eventRegistrationForm");
   const subTitle = (props?.subTitle ?? "").toString().trim();
   const titleEnabled = props?.eventRegistrationFormTitleEnabled !== false;
   const subTitleEnabled = props?.eventRegistrationFormSubTitleEnabled !== false;
@@ -306,14 +308,14 @@ export default function EventRegistrationForm(props = {}) {
         <div className="fable-section">
         {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) && (
           <Row gutter={[16, 16]}>
-            <Col span={24} className="text-center mb-4">
+            <Col span={24} className="mb-4" style={getHeaderAlignStyles(titleAlign)}>
               {subTitleEnabled && subTitle && (
-                <SubTitle className="fable-eyebrow" style={subTitleColor ? { color: subTitleColor } : undefined}>
+                <SubTitle className="fable-eyebrow" style={{ ...(subTitleColor ? { color: subTitleColor } : {}), ...getSubtitleAlignStyles(titleAlign) }}>
                   {subTitle}
                 </SubTitle>
               )}
               {titleEnabled && mainTitle && (
-                <MainTitle className="fable-heading" color={titleColor}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
+                <MainTitle className="fable-heading" color={titleColor} style={getTitleAlignStyles(titleAlign)}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
               )}
             </Col>
           </Row>

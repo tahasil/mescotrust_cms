@@ -344,7 +344,7 @@ function OurImpactEditForm(
   return (
     <Form form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={["content"]}
+        defaultActiveKey={["title-colors", "content"]}
         items={[
           {
             key: "section",
@@ -447,13 +447,13 @@ function OurImpactEditForm(
             ),
           },
           {
-            key: "colors",
-            label: "Colors",
+            key: "title-colors",
+            label: "Title & Colors",
             children: (
               <TitleAndColorsSection
                 form={form}
                 themeColorOptions={colors}
-                colorListItems={COLOR_ITEMS}
+                {...getTitleAndColorsConfig("OurImpact")}
               />
             ),
           },

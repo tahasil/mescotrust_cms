@@ -1,6 +1,8 @@
 "use client";
 
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from "react";
+import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 import {
   Alert,
   Form,
@@ -26,10 +28,11 @@ function buildPayload(values) {
   const shortcode = normalizeText(values.shortcode).toLowerCase();
 
   return {
+    ...values,
     mode,
     formId: mode === "formId" ? formId : "",
     shortcode: mode === "shortcode" ? shortcode : "",
-    heading: normalizeText(values.heading),
+    heading: normalizeText(values.formEmbedTitle || values.heading),
     description: normalizeText(values.description),
     submitLabel: normalizeText(values.submitLabel),
     successMessage: normalizeText(values.successMessage),
@@ -38,10 +41,12 @@ function buildPayload(values) {
 
 function normalizeInitial(data) {
   return {
+    ...data,
     mode: normalizeText(data?.mode || "formId"),
     formId: normalizeText(data?.formId),
     shortcode: normalizeText(data?.shortcode).toLowerCase(),
-    heading: normalizeText(data?.heading),
+    heading: normalizeText(data?.formEmbedTitle || data?.heading),
+    formEmbedTitle: normalizeText(data?.formEmbedTitle || data?.heading),
     description: normalizeText(data?.description),
     submitLabel: normalizeText(data?.submitLabel),
     successMessage: normalizeText(data?.successMessage),
@@ -80,6 +85,18 @@ function FormEmbedEditForm(
   const [formsError, setFormsError] = useState("");
 
   const isPageBlock = source === "page";
+  const [themeColorOptions, setThemeColorOptions] = useState([]);
+  useEffect(() => {
+    fetch("/api/theme", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : {}))
+      .then((theme) => {
+        const palette = theme?.themePalette || {};
+        const custom = Array.isArray(theme?.colors) ? theme.colors : [];
+        const names = [...new Set([...Object.keys(palette), ...custom.map((col) => col?.name).filter(Boolean)])].sort();
+        setThemeColorOptions(names.map((name) => ({ label: name, value: name })));
+      })
+      .catch(() => {});
+  }, []);
   const mode = Form.useWatch("mode", form) || "formId";
 
   useEffect(() => {
@@ -197,6 +214,10 @@ function FormEmbedEditForm(
 
   return (
     <Form form={form} layout="vertical" initialValues={normalizeInitial(initialDataProp || {})}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("FormEmbed")} />
+      </div>
+      <div style={{ marginTop: 16 }}>
       {formsError ? (
         <Alert type="warning" showIcon message={formsError} style={{ marginBottom: 12 }} />
       ) : null}
@@ -255,6 +276,7 @@ function FormEmbedEditForm(
         <Input.TextArea rows={2} placeholder="Leave empty to use form default" />
       </Form.Item>
 
+      </div>
       {!isPageBlock ? (
         <Alert
           type="warning"

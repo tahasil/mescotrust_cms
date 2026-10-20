@@ -23,6 +23,8 @@ import {
 import { UploadOutlined } from "@ant-design/icons";
 import { FORM_DEFAULTS } from "@/lib/forms/constants";
 import { getColor } from "@/styles/Theme";
+import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 const { Paragraph, Text, Title } = Typography;
 const DATE_FORMAT = "YYYY-MM-DD";
@@ -625,7 +627,11 @@ export default function FormEmbed(props = {}) {
   const mode = normalizeText(props.mode || "formId");
   const configuredFormId = normalizeText(props.formId);
   const configuredShortcode = normalizeText(props.shortcode).toLowerCase();
-  const heading = normalizeText(props.heading);
+  const heading = normalizeText(props.formEmbedTitle || props.heading || props.mainTitle);
+  const subtitle = normalizeText(props.formEmbedSubTitle || props.subTitle);
+  const titleAlign = getTitleAlign(props, "left", "formEmbed");
+  const titleColor = props.formEmbedTitleColorKey ? getColor(props.formEmbedTitleColorKey) : undefined;
+  const subtitleColor = props.formEmbedSubTitleColorKey ? getColor(props.formEmbedSubTitleColorKey) : undefined;
   const description = normalizeText(props.description);
   const submitLabelOverride = normalizeText(props.submitLabel);
   const successMessageOverride = normalizeText(props.successMessage);
@@ -1487,10 +1493,19 @@ export default function FormEmbed(props = {}) {
         "--form-error-message-color": resolvedStyleSettings.errorMessageColor,
       }}
     >
-      {heading ? (
-        <Title level={4} style={{ marginTop: 0 }}>
-          {heading}
-        </Title>
+      {(subtitle || heading) ? (
+        <div style={{ marginBottom: 16, ...getHeaderAlignStyles(titleAlign) }}>
+          {subtitle ? (
+            <p className="fable-eyebrow" style={{ ...(subtitleColor ? { color: subtitleColor } : {}), ...getSubtitleAlignStyles(titleAlign) }}>
+              {subtitle}
+            </p>
+          ) : null}
+          {heading ? (
+            <h2 className="fable-heading" style={{ ...(titleColor ? { color: titleColor } : {}), ...getTitleAlignStyles(titleAlign) }}>
+              {renderHighlightedTitle(heading, props)}
+            </h2>
+          ) : null}
+        </div>
       ) : null}
       {description ? <Paragraph>{description}</Paragraph> : null}
 

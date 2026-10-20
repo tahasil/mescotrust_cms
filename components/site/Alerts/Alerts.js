@@ -7,11 +7,12 @@ import {
   PageContainer,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 /* ── Styled Components ── */
 const Recognition = styled.div`
   .recognition-heading {
-    max-width: 16ch;
+    max-width: 100%;
     margin: 0 0 clamp(32px, 4vw, 56px);
     font-family: var(--fable-display);
     font-size: clamp(36px, 4.6vw, 64px);
@@ -79,6 +80,7 @@ function legacyAwardMeta(item) {
  * Site component: Alerts, presented as the CSR recognition timeline.
  */
 export default function Alerts(props) {
+  const titleAlign = getTitleAlign(props, "center", "alerts");
   /* ── Title fields ── */
   const mainTitle = (props?.mainTitle ?? "").toString().trim();
   const subTitle = (props?.subTitle ?? "").toString().trim();
@@ -267,12 +269,12 @@ export default function Alerts(props) {
       <PageContainer $managedStyle={pageContainerBgStyle}>
         <Recognition className="fable-section" style={{ "--recognition-accent": iconColor }}>
           {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) ? (
-            <header>
+            <header style={getHeaderAlignStyles(titleAlign)}>
               {subTitleEnabled && subTitle ? (
-                <p className="fable-eyebrow" style={subTitleColor ? { color: subTitleColor } : undefined}>{subTitle}</p>
+                <p className="fable-eyebrow" style={{ ...(subTitleColor ? { color: subTitleColor } : {}), ...getSubtitleAlignStyles(titleAlign) }}>{subTitle}</p>
               ) : null}
               {titleEnabled && mainTitle ? (
-                <h2 className="recognition-heading" style={{ color: titleColor }}>{renderHighlightedTitle(mainTitle, props)}</h2>
+                <h2 className="recognition-heading" style={{ color: titleColor, ...getTitleAlignStyles(titleAlign) }}>{renderHighlightedTitle(mainTitle, props)}</h2>
               ) : null}
             </header>
           ) : null}

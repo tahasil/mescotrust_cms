@@ -20,6 +20,8 @@ import {
   Spin,
 } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
+import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 import { ColorSettingsCard, SwitchSettingsCard } from "@/components/admin/SettingsCardList";
 import {
   getManageSectionInitialValues,
@@ -152,7 +154,7 @@ function LatestImageGalleryEditForm(
   return (
     <Form form={form} layout="vertical" disabled={saving}>
       <Collapse
-        defaultActiveKey={["manage-section", "content", "layout"]}
+        defaultActiveKey={["manage-section", "title-colors", "content", "layout"]}
         items={[
           {
             key: "manage-section",
@@ -201,17 +203,6 @@ function LatestImageGalleryEditForm(
                     { name: "latestImageGalleryViewAllVisible", label: "Show gallery link" },
                   ]}
                 />
-                <Card size="small" title="Heading content">
-                  <Form.Item name="latestImageGallerySubTitle" label="Subtitle">
-                    <Input placeholder="Image Gallery" />
-                  </Form.Item>
-                  <Form.Item name="latestImageGalleryTitle" label="Title">
-                    <Input placeholder="Moments from" />
-                  </Form.Item>
-                  <Form.Item name="latestImageGalleryHeadingAccent" label="Title accent">
-                    <Input placeholder="the field." />
-                  </Form.Item>
-                </Card>
                 <Card size="small" title="Gallery link">
                   <Form.Item name="latestImageGalleryViewAllText" label="Link text">
                     <Input placeholder="View full gallery" />
@@ -272,17 +263,13 @@ function LatestImageGalleryEditForm(
             ),
           },
           {
-            key: "colors",
-            label: "Colors",
+            key: "title-colors",
+            label: "Title & Colors",
             children: (
-              <ColorSettingsCard
-                options={themeColorOptions}
-                items={[
-                  { name: "latestImageGallerySubTitleColorKey", label: "Subtitle" },
-                  { name: "latestImageGalleryTitleColorKey", label: "Title" },
-                  { name: "latestImageGalleryAccentColorKey", label: "Highlighted/Accent Text" },
-                  { name: "latestImageGalleryLinkColorKey", label: "Gallery link" },
-                ]}
+              <TitleAndColorsSection
+                form={form}
+                themeColorOptions={themeColorOptions}
+                {...getTitleAndColorsConfig("LatestImageGallery")}
               />
             ),
           },

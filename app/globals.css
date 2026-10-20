@@ -1126,8 +1126,7 @@ a {
 .fable-about-intro__copy .fable-prose p { margin: 0; }
 .fable-about-people { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: clamp(36px,5vw,90px); align-items: center; }
 .fable-helping-people.is-image-left > .fable-media { order: -1; }
-.fable-helping-people .fable-prose,
-.fable-helping-people .fable-prose * { text-align: start !important; }
+.fable-helping-people .fable-prose { text-align: start; }
 .fable-about-people .fable-heading { margin-bottom: 20px; }
 .fable-section-heading { margin-bottom: clamp(32px,4vw,56px); }
 .fable-section-heading .fable-heading { margin-bottom: 0; }

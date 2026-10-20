@@ -4,6 +4,12 @@ import styled from "styled-components";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 import SafeHtml from "@/components/cms/SafeHtml";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import {
+  getTitleAlign,
+  getTitleAlignStyles,
+  getSubtitleAlignStyles,
+  getParagraphAlign,
+} from "@/components/site/titleUtils";
 
 function text(value, fallback = "") {
   return value == null ? fallback : String(value).trim();
@@ -35,9 +41,9 @@ export default function ImpactShowcase(props) {
     props.impactShowcaseImageAlt,
     "MESCO: helping people live a better tomorrow",
   );
-  const subTitle = text(props.impactShowcaseSubTitle, "Who We Are");
+  const subTitle = text(props.impactShowcaseSubTitle ?? props.subTitle, "Who We Are");
   const mainTitle = text(
-    props.impactShowcaseMainTitle,
+    props.impactShowcaseMainTitle ?? props.mainTitle,
     "Education first, *then everything else.*",
   );
   const body1 = text(
@@ -57,11 +63,13 @@ export default function ImpactShowcase(props) {
 
   const color = (key, fallback) =>
     text(props[key]) ? getColor(props[key]) : fallback;
-  const subtitleColor = color("impactShowcaseSubTitleColorKey", getColor("primary"));
-  const titleColor = color("impactShowcaseTitleColorKey", getColor("black"));
+  const subtitleColor = color("impactShowcaseSubTitleColorKey", color("subTitleColorKey", getColor("primary")));
+  const titleColor = color("impactShowcaseTitleColorKey", color("titleColorKey", getColor("black")));
   const bodyColor = color("impactShowcaseBodyColorKey", getColor("blackLight"));
   const statValueColor = color("impactShowcaseStatValueColorKey", getColor("black"));
   const statLabelColor = color("impactShowcaseStatLabelColorKey", getColor("blackMuted"));
+  const titleAlign = getTitleAlign(props, "left", prefix);
+  const paragraphAlign = getParagraphAlign(props, "left", prefix);
 
   const sectionBgType = text(props[`${prefix}SectionBgType`], "default");
   const sectionBgImage = text(props[`${prefix}SectionBgImage`]);
@@ -115,10 +123,30 @@ export default function ImpactShowcase(props) {
             ) : null}
           </ImpactMedia>
           <div className="fable-about-intro__copy">
-            {subTitle ? <p className="fable-eyebrow" style={{ color: subtitleColor }}>{subTitle}</p> : null}
-            {mainTitle ? <h2 className="fable-heading" style={{ color: titleColor }}>{renderHighlightedTitle(mainTitle, props)}</h2> : null}
-            {body1 ? <div className="fable-prose" style={{ color: bodyColor, fontSize: `${bodyFontSize}px` }}><SafeHtml html={body1} /></div> : null}
-            {body2 ? <div className="fable-prose" style={{ color: bodyColor, fontSize: `${bodyFontSize}px` }}><SafeHtml html={body2} /></div> : null}
+            {subTitle ? (
+              <p
+                className="fable-eyebrow"
+                style={{
+                  color: subtitleColor,
+                  ...getSubtitleAlignStyles(titleAlign),
+                }}
+              >
+                {subTitle}
+              </p>
+            ) : null}
+            {mainTitle ? (
+              <h2
+                className="fable-heading"
+                style={{
+                  color: titleColor,
+                  ...getTitleAlignStyles(titleAlign),
+                }}
+              >
+                {renderHighlightedTitle(mainTitle, props)}
+              </h2>
+            ) : null}
+            {body1 ? <div className="fable-prose" style={{ color: bodyColor, fontSize: `${bodyFontSize}px`, textAlign: paragraphAlign }}><SafeHtml html={body1} /></div> : null}
+            {body2 ? <div className="fable-prose" style={{ color: bodyColor, fontSize: `${bodyFontSize}px`, textAlign: paragraphAlign }}><SafeHtml html={body2} /></div> : null}
           </div>
         </div>
       </PageContainer>

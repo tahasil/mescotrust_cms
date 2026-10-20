@@ -4,6 +4,7 @@ import styled from "styled-components";
 import Image from "next/image";
 import SafeHtml from "@/components/cms/SafeHtml";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles } from "@/components/site/titleUtils";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 import { VOLUNTEER_MESCO_DEFAULT_PROPS } from "./defaults";
 
@@ -38,7 +39,7 @@ const VolunteerMescoSection = styled.div`
   }
 
   .volunteer-mesco__title {
-    max-width: 16ch;
+    max-width: 100%;
     margin: 0;
     color: var(--volunteer-mesco-title);
     font-family: var(--volunteer-mesco-display);
@@ -221,6 +222,7 @@ function wrapperProps(settings) {
 
 export default function VolunteerMesco(props) {
   const settings = { ...VOLUNTEER_MESCO_DEFAULT_PROPS, ...(props || {}) };
+  const titleAlign = getTitleAlign(settings, "center", "volunteerMesco");
   const { sectionBgClassName, sectionBgStyle, pageContainerBgStyle } = wrapperProps(settings);
   const chips = Array.isArray(settings.volunteerMescoChips)
     ? settings.volunteerMescoChips.map(clean).filter(Boolean)
@@ -254,10 +256,10 @@ export default function VolunteerMesco(props) {
             <div className="volunteer-mesco__grid">
               <div className="volunteer-mesco__content">
                 {settings.volunteerMescoSubTitleVisible !== false && clean(settings.volunteerMescoSubTitle) ? (
-                  <p className="volunteer-mesco__eyebrow">{clean(settings.volunteerMescoSubTitle)}</p>
+                  <p className="volunteer-mesco__eyebrow" style={getSubtitleAlignStyles(titleAlign)}>{clean(settings.volunteerMescoSubTitle)}</p>
                 ) : null}
                 {settings.volunteerMescoTitleVisible !== false && clean(settings.volunteerMescoTitle) ? (
-                  <h2 className="volunteer-mesco__title">{renderHighlightedTitle(clean(settings.volunteerMescoTitle), settings)}</h2>
+                  <h2 className="volunteer-mesco__title" style={getTitleAlignStyles(titleAlign)}>{renderHighlightedTitle(clean(settings.volunteerMescoTitle), settings)}</h2>
                 ) : null}
                 {settings.volunteerMescoDescriptionVisible !== false && clean(settings.volunteerMescoDescription) ? (
                   <div className="volunteer-mesco__description"><SafeHtml html={settings.volunteerMescoDescription} /></div>

@@ -9,6 +9,11 @@ import {
   PageContainer,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import {
+  getTitleAlign,
+  getTitleAlignStyles,
+  getSubtitleAlignStyles,
+} from "@/components/site/titleUtils";
 
 /* ── Styled Components (Identical to CommitteeMembers) ── */
 const CardWrapper = styled.article`
@@ -382,6 +387,7 @@ export default function TeamEmbed(props) {
     .toString()
     .trim();
   const titleColor = titleColorKey ? getColor(titleColorKey) : undefined;
+  const titleAlign = getTitleAlign(effectiveData, "left", "teamEmbed");
 
   const componentColor = (keys, fallback) => {
     const list = Array.isArray(keys) ? keys : [keys];
@@ -642,7 +648,13 @@ export default function TeamEmbed(props) {
       <PageContainer $managedStyle={pageContainerBgStyle}>
         <div className="fable-section" style={componentColorVars}>
           {subTitle ? (
-            <p className="fable-eyebrow" style={{ color: subTitleColor }}>
+            <p
+              className="fable-eyebrow"
+              style={{
+                color: subTitleColor,
+                ...getSubtitleAlignStyles(titleAlign),
+              }}
+            >
               {subTitle}
             </p>
           ) : null}
@@ -650,6 +662,7 @@ export default function TeamEmbed(props) {
             className="fable-heading"
             style={{
               ...(titleColor ? { color: titleColor } : {}),
+              ...getTitleAlignStyles(titleAlign),
             }}
           >
             {renderHighlightedTitle(mainTitle, effectiveData)}

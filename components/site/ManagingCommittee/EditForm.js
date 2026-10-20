@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, Collapse, message, Spin } from "antd";
+import { Form, Input, Select, Collapse, message, Spin } from "antd";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
@@ -103,7 +103,12 @@ function applyFormValues(form, data) {
   form.setFieldsValue({
     managingCommitteeSubTitle: data?.managingCommitteeSubTitle ?? "",
     managingCommitteeMainTitle: data?.managingCommitteeMainTitle ?? "Managing Committee",
+    managingCommitteeTitleAlign: data?.managingCommitteeTitleAlign || data?.titleAlign || "center",
+    titleAlign: data?.managingCommitteeTitleAlign || data?.titleAlign || "center",
+    titleHighlightColorKey: data?.titleHighlightColorKey || "",
     managingCommitteeParagraph: data?.managingCommitteeParagraph ?? "",
+    managingCommitteeParagraphAlign: data?.managingCommitteeParagraphAlign || data?.paragraphAlign || "left",
+    paragraphAlign: data?.managingCommitteeParagraphAlign || data?.paragraphAlign || "left",
     managingCommitteeImageDesktop:
       data?.managingCommitteeImageDesktop ??
       data?.managingCommitteeImageUrl ??
@@ -175,7 +180,12 @@ function ManagingCommitteeEditForm({ source, initialData: initialDataProp, onSav
       const payload = {
         managingCommitteeSubTitle: values.managingCommitteeSubTitle ?? "",
         managingCommitteeMainTitle: values.managingCommitteeMainTitle ?? "",
+        managingCommitteeTitleAlign: values.managingCommitteeTitleAlign || values.titleAlign || "center",
+        titleAlign: values.managingCommitteeTitleAlign || values.titleAlign || "center",
+        titleHighlightColorKey: values.titleHighlightColorKey || "",
         managingCommitteeParagraph: values.managingCommitteeParagraph ?? "",
+        managingCommitteeParagraphAlign: values.managingCommitteeParagraphAlign || values.paragraphAlign || "left",
+        paragraphAlign: values.managingCommitteeParagraphAlign || values.paragraphAlign || "left",
         managingCommitteeImageDesktop:
           values.managingCommitteeImageDesktop ?? values.managingCommitteeImageUrl ?? "",
         managingCommitteeImageMobile: values.managingCommitteeImageMobile ?? "",

@@ -10,6 +10,7 @@ import {
   SubTitle,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 /* ── Styled Components ── */
 const JobCard = styled.div`
@@ -104,6 +105,7 @@ const ApplyBtn = styled.a`
  * Vertical list of job cards with title, department, location, type, and Apply button.
  */
 export default function Careers(props) {
+  const titleAlign = getTitleAlign(props, "left", "careers");
   /* ── Title fields ── */
   const mainTitle = (props?.mainTitle ?? "").toString().trim();
   const subTitle = (props?.subTitle ?? "").toString().trim();
@@ -301,16 +303,16 @@ export default function Careers(props) {
         <div className="fable-section">
         {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) && (
           <Row gutter={[16, 16]}>
-            <Col span={24} className="mb-4">
+            <Col span={24} className="mb-4" style={getHeaderAlignStyles(titleAlign)}>
               {subTitleEnabled && subTitle && (
                 <SubTitle className="fable-eyebrow"
-                  style={subTitleColor ? { color: subTitleColor } : undefined}
+                  style={{ ...(subTitleColor ? { color: subTitleColor } : {}), ...getSubtitleAlignStyles(titleAlign) }}
                 >
                   {subTitle}
                 </SubTitle>
               )}
               {titleEnabled && mainTitle && (
-                <MainTitle className="fable-heading" color={titleColor}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
+                <MainTitle className="fable-heading" color={titleColor} style={getTitleAlignStyles(titleAlign)}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
               )}
             </Col>
           </Row>

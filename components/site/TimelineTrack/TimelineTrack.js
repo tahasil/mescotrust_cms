@@ -3,6 +3,7 @@
 import styled, { css } from "styled-components";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 /**
  * Site component: TimelineTrack (display name "Timeline Track").
@@ -380,7 +381,7 @@ export default function TimelineTrack(props) {
     "Milestones that *shaped* us.",
   );
   const intro = text(data.timelineTrackIntro);
-  const titleAlign = text(data.timelineTrackTitleAlign, "center");
+  const titleAlign = getTitleAlign(data, "center", "timelineTrack");
 
   const rawItems = data.timelineTrackItems;
   const hasSavedItems = Array.isArray(rawItems);
@@ -426,12 +427,12 @@ export default function TimelineTrack(props) {
           {subTitle || mainTitle || intro ? (
             <header
               className="fable-section-heading"
-              style={{ marginBottom: 32, textAlign: titleAlign }}
+              style={{ marginBottom: 32, ...getHeaderAlignStyles(titleAlign) }}
             >
               {subTitle ? (
                 <p
                   className="fable-eyebrow"
-                  style={{ color: subTitleColor, textAlign: titleAlign }}
+                  style={{ ...(subTitleColor ? { color: subTitleColor } : {}), ...getSubtitleAlignStyles(titleAlign) }}
                 >
                   {subTitle}
                 </p>
@@ -441,10 +442,7 @@ export default function TimelineTrack(props) {
                   className="fable-heading"
                   style={{
                     color: headingColor,
-                    textAlign: titleAlign,
-                    maxWidth: "none",
-                    marginLeft: titleAlign === "left" ? "0" : "auto",
-                    marginRight: titleAlign === "left" ? "auto" : titleAlign === "right" ? "0" : "auto",
+                    ...getTitleAlignStyles(titleAlign),
                   }}
                 >
                   {renderHighlightedTitle(mainTitle, data)}
@@ -454,9 +452,7 @@ export default function TimelineTrack(props) {
                 <Intro
                   style={{
                     color: introColor,
-                    textAlign: titleAlign,
-                    marginLeft: titleAlign === "left" ? "0" : "auto",
-                    marginRight: titleAlign === "left" ? "auto" : titleAlign === "right" ? "0" : "auto",
+                    ...getSubtitleAlignStyles(titleAlign),
                   }}
                 >
                   {intro}

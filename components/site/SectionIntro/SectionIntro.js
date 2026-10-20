@@ -11,6 +11,7 @@ import {
 } from "@/styles/Theme";
 import SafeHtml from "@/components/cms/SafeHtml";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 const DescriptionWrapper = styled.div`
   width: 100%;
@@ -99,6 +100,7 @@ export default function SectionIntro(props) {
   const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
   const mainTitle = (props?.mainTitle ?? "Section Title").toString().trim();
+  const titleAlign = getTitleAlign(props, "left", "sectionIntro");
   const subTitle = (props?.subTitle ?? "Subtitle").toString().trim();
   const sectionIntroParagraph = normalizeDescriptionHtml(
     props?.sectionIntroParagraph,
@@ -290,7 +292,7 @@ export default function SectionIntro(props) {
       <PageContainer $managedStyle={pageContainerBgStyle}>
         <div className="fable-section">
         <Row gutter={[16, 16]}>
-          <Col span={24} className="mb-4">
+          <Col span={24} className="mb-4" style={getHeaderAlignStyles(titleAlign)}>
             {subTitleEnabled && subTitle ? (
               <SubTitle className="fable-eyebrow"
                 style={subTitleColor ? { color: subTitleColor } : undefined}
@@ -299,7 +301,7 @@ export default function SectionIntro(props) {
               </SubTitle>
             ) : null}
             {titleEnabled && mainTitle ? (
-              <MainTitle className="fable-heading" color={titleColor}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
+              <MainTitle className="fable-heading" color={titleColor} style={getTitleAlignStyles(titleAlign)}>{renderHighlightedTitle(mainTitle, props)}</MainTitle>
             ) : null}
             {sectionIntroParagraph && (
               <DescriptionWrapper className="fable-lead"

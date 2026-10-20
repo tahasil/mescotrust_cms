@@ -332,16 +332,6 @@ function WelcometoMESCOEditForm(
             label: "Statement Content",
             children: (
               <>
-                <Form.Item name="welcometoMESCOSubTitle" label="Sub Title">
-                  <Input placeholder="Welcome to MESCO" />
-                </Form.Item>
-                <Form.Item
-                  name="welcometoMESCOStatementText"
-                  label="Statement"
-                  rules={[{ required: true, message: "Statement is required" }]}
-                >
-                  <Input.TextArea rows={7} />
-                </Form.Item>
                 <Form.Item
                   name="welcometoMESCOEstablishmentLabel"
                   label="Establishment label"
@@ -457,13 +447,13 @@ function WelcometoMESCOEditForm(
             ),
           },
           {
-            key: "colors",
-            label: "Colors",
+            key: "title-colors",
+            label: "Title & Colors",
             children: (
               <TitleAndColorsSection
                 form={form}
                 themeColorOptions={colors}
-                colorListItems={COLOR_ITEMS}
+                {...getTitleAndColorsConfig("WelcometoMESCO")}
               />
             ),
           },

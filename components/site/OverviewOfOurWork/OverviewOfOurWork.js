@@ -13,6 +13,7 @@ import {
   PageContainer,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -59,7 +60,7 @@ const WorksWrapper = styled.div`
   }
 
   .worksHeading {
-    max-width: 16ch;
+    max-width: 100%;
     margin: 0;
     color: var(--heading-color, ${getColor("black")});
     font-family: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
@@ -138,7 +139,7 @@ const WorksWrapper = styled.div`
   }
 
   .workCard h3 {
-    max-width: 16ch;
+    max-width: 100%;
     margin: 0 0 10px;
     font-family: ${(p) =>
       p.$titleFontFamily ||
@@ -535,6 +536,7 @@ export default function OverviewOfOurWork(props) {
   const heading = textValue(props?.overviewOfOurWorkHeading);
   const headingAccent = textValue(props?.overviewOfOurWorkHeadingAccent);
   const showHeading = Boolean(subTitle || heading || headingAccent);
+  const titleAlign = getTitleAlign(props, "left", "overviewOfOurWork");
   const titleColorKeyDefault = textValue(
     props?.overviewOfOurWorkCardTitleColorKey,
   );
@@ -625,9 +627,9 @@ export default function OverviewOfOurWork(props) {
             <div  className="worksPin">
               {showHeading ? (
                 <div className="worksHead">
-                  {subTitle ? <p className="worksSubTitle">{subTitle}</p> : null}
+                  {subTitle ? <p className="worksSubTitle" style={getSubtitleAlignStyles(titleAlign)}>{subTitle}</p> : null}
                   {heading || headingAccent ? (
-                    <h2 className="worksHeading">
+                    <h2 className="worksHeading" style={getTitleAlignStyles(titleAlign)}>
                       {renderHighlightedTitle(
                         headingAccent
                           ? `${heading}${heading ? " " : ""}*${headingAccent}*`

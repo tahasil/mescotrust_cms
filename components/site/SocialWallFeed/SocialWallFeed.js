@@ -21,6 +21,7 @@ import {
   getColor,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 import { SOCIAL_WALL_FEED_DEFAULTS as DEFAULTS } from "./constants";
 
 function toSafeString(value) {
@@ -1162,6 +1163,7 @@ export default function SocialWallFeed(props) {
   if (initialLoading) return null;
 
   const title = toSafeString(props?.mainTitle || "Social Media Wall");
+  const titleAlign = getTitleAlign(props, "left", "socialWallFeed");
   const subtitle = toSafeString(props?.subTitle || "");
 
   return (
@@ -1169,9 +1171,9 @@ export default function SocialWallFeed(props) {
       <PageContainer $managedStyle={pageStyle}>
         <WallBody className="fable-section" style={designStyle}>
           {(subTitleEnabled && subtitle) || (titleEnabled && title) ? (
-            <header className="social-wall-heading">
-              {subTitleEnabled && subtitle ? <p className="social-wall-subtitle">{subtitle}</p> : null}
-              {titleEnabled && title ? <h2 className="social-wall-title">{renderHighlightedTitle(title, props)}</h2> : null}
+            <header className="social-wall-heading" style={getHeaderAlignStyles(titleAlign)}>
+              {subTitleEnabled && subtitle ? <p className="social-wall-subtitle" style={getSubtitleAlignStyles(titleAlign)}>{subtitle}</p> : null}
+              {titleEnabled && title ? <h2 className="social-wall-title" style={getTitleAlignStyles(titleAlign)}>{renderHighlightedTitle(title, props)}</h2> : null}
             </header>
           ) : null}
 

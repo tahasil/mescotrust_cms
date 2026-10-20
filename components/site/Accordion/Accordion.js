@@ -5,6 +5,7 @@ import { PlusOutlined } from "@ant-design/icons";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 import SafeHtml from "@/components/cms/SafeHtml";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 function clean(value) {
   return value == null ? "" : String(value).trim();
@@ -58,6 +59,7 @@ export default function Accordion(props) {
   const items = rawItems.map(normalizeItem).filter((item) => item.label);
   const subTitle = clean(props?.accordionSubTitle);
   const mainTitle = clean(props?.accordionMainTitle);
+  const titleAlign = getTitleAlign(props, "left", "accordion");
   const customIconUrl = clean(props?.accordionExpandIconUrl);
   const defaultOpenIndex = Math.max(
     -1,
@@ -210,10 +212,10 @@ export default function Accordion(props) {
       <PageContainer>
         <div className="fable-section fable-accordion-section" style={colorVars}>
           {subTitle || mainTitle ? (
-            <header className="fable-section-heading">
-              {subTitle ? <p className="fable-eyebrow">{subTitle}</p> : null}
+            <header className="fable-section-heading" style={getHeaderAlignStyles(titleAlign)}>
+              {subTitle ? <p className="fable-eyebrow" style={{ color: "var(--accordion-subtitle)", ...getSubtitleAlignStyles(titleAlign) }}>{subTitle}</p> : null}
               {mainTitle ? (
-                <h2 className="fable-heading">{renderHighlightedTitle(mainTitle, props, { legacyColorKey: props?.accordionTitleAccentColorKey })}</h2>
+                <h2 className="fable-heading" style={{ color: "var(--accordion-title)", ...getTitleAlignStyles(titleAlign) }}>{renderHighlightedTitle(mainTitle, props, { legacyColorKey: props?.accordionTitleAccentColorKey })}</h2>
               ) : null}
             </header>
           ) : null}

@@ -64,7 +64,8 @@ export { default as SocialMediaWall, SocialMediaWallEditForm } from "./SocialMed
 export { default as SocialWallFeed, SocialWallFeedEditForm } from "./SocialWallFeed/index";
 export { default as FormEmbed, FormEmbedEditForm } from "./FormEmbed/index";
 export { default as TimelineTrack, TimelineTrackEditForm } from "./TimelineTrack/index";
-export { default as TeamEmbed } from "./TeamEmbed/index";
+export { default as TeamEmbed, TeamEmbedEditForm } from "./TeamEmbed/index";
+export { default as LeaveusamessageModal, LeaveusamessageModalEditForm } from "./LeaveusamessageModal/index";
 import HomeHeroEditForm from "./HomeHero/EditForm";
 import MarqueeEditForm from "./Marquee/EditForm";
 import SubscribeEditForm from "./Subscribe/EditForm";
@@ -126,6 +127,8 @@ import SocialMediaWallEditForm from "./SocialMediaWall/EditForm";
 import SocialWallFeedEditForm from "./SocialWallFeed/EditForm";
 import FormEmbedEditForm from "./FormEmbed/EditForm";
 import TimelineTrackEditForm from "./TimelineTrack/EditForm";
+import TeamEmbedEditForm from "./TeamEmbed/EditForm";
+import LeaveusamessageModalEditForm from "./LeaveusamessageModal/EditForm";
 /** componentId -> EditForm for drawer (Admin → Components and Page Builder use same form). Add new editable site components here. */
 export const EDITABLE_SITE_EDIT_FORMS = {
   HomeHero: HomeHeroEditForm,
@@ -191,4 +194,6 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   TimelineTrack: TimelineTrackEditForm,
   ShortCode: ShortCodeEditForm,
   CareersUpload: CareersUploadEditForm,
+  TeamEmbed: TeamEmbedEditForm,
+  LeaveusamessageModal: LeaveusamessageModalEditForm,
 };

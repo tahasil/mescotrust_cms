@@ -6,6 +6,7 @@ import { ArrowRightOutlined } from "@ant-design/icons";
 import styled, { keyframes } from "styled-components";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 import { LATEST_IMAGE_GALLERY_DEFAULT_PROPS } from "./defaults";
 
 const moveRightToLeft = keyframes`
@@ -47,7 +48,7 @@ const GallerySection = styled.section`
   }
 
   .latest-gallery__title {
-    max-width: 20ch;
+    max-width: 100%;
     margin: 0;
     color: var(--latest-gallery-title);
     font-family: var(--fable-display, "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif);
@@ -313,6 +314,7 @@ export default function LatestImageGallery(inputProps) {
     [images],
   );
   const { sectionBgClassName, sectionBgStyle, pageContainerBgStyle } = getBackgroundStyles(props);
+  const titleAlign = getTitleAlign(props, "left", "latestImageGallery");
   const subtitle = text(props.latestImageGallerySubTitle);
   const title = text(props.latestImageGalleryTitle);
   const accent = text(props.latestImageGalleryHeadingAccent);
@@ -349,13 +351,13 @@ export default function LatestImageGallery(inputProps) {
       <PageContainer style={pageContainerBgStyle}>
         <GallerySection id={text(props.latestImageGallerySectionId) || undefined} style={designStyle}>
           {showHeading || (props.latestImageGalleryViewAllVisible !== false && viewAllText && viewAllLink) ? (
-            <div className="latest-gallery__head">
-              <div>
+            <div className="latest-gallery__head" style={getHeaderAlignStyles(titleAlign)}>
+              <div style={getHeaderAlignStyles(titleAlign)}>
                 {props.latestImageGallerySubTitleVisible !== false && subtitle ? (
-                  <p className="latest-gallery__eyebrow">{subtitle}</p>
+                  <p className="latest-gallery__eyebrow" style={getSubtitleAlignStyles(titleAlign)}>{subtitle}</p>
                 ) : null}
                 {props.latestImageGalleryTitleVisible !== false && (title || accent) ? (
-                  <h2 className="latest-gallery__title">
+                  <h2 className="latest-gallery__title" style={getTitleAlignStyles(titleAlign)}>
                     {renderHighlightedTitle(
                       accent ? `${title}${title ? " " : ""}*${accent}*` : title,
                       props,

@@ -8,6 +8,7 @@ import {
   SubTitle,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 const DEFAULT_ITEMS = [
   {
@@ -64,6 +65,7 @@ function normalizeItem(it) {
  * Fully controlled via drawer (EditForm): cards list, colors, spacing, columns, image/text sizes.
  */
 export default function Cards(props) {
+  const titleAlign = getTitleAlign(props, "left", "cards");
   const mainTitle = (props?.mainTitle ?? "Section Title").toString().trim();
   const subTitle = (props?.subTitle ?? "Subtitle").toString().trim();
 
@@ -281,12 +283,12 @@ export default function Cards(props) {
       <PageContainer $managedStyle={pageContainerBgStyle}>
         <div className="fable-section">
           {(subTitleEnabled && subTitle) || (titleEnabled && mainTitle) ? (
-          <header>
+          <header style={getHeaderAlignStyles(titleAlign)}>
             {subTitleEnabled && subTitle ? (
-              <p className="fable-eyebrow" style={subTitleColor ? { color: subTitleColor } : undefined}>{subTitle}</p>
+              <p className="fable-eyebrow" style={{ ...(subTitleColor ? { color: subTitleColor } : {}), ...getSubtitleAlignStyles(titleAlign) }}>{subTitle}</p>
             ) : null}
             {titleEnabled && mainTitle ? (
-              <h2 className="fable-heading" style={mainTitleColor ? { color: mainTitleColor } : undefined}>{renderHighlightedTitle(mainTitle, props)}</h2>
+              <h2 className="fable-heading" style={{ ...(mainTitleColor ? { color: mainTitleColor } : {}), ...getTitleAlignStyles(titleAlign) }}>{renderHighlightedTitle(mainTitle, props)}</h2>
             ) : null}
           </header>
         ) : null}

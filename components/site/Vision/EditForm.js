@@ -180,12 +180,6 @@ function VisionEditForm({ source, initialData: initialDataProp, onSaveToPage, on
             label: "Content",
             children: (
               <>
-                <Form.Item name="visionSubTitle" label="Subtitle" rules={[{ required: true }]}>
-                  <Input placeholder="Vision" size="large" />
-                </Form.Item>
-                <Form.Item name="visionTitle" label="Main title" rules={[{ required: true }]}>
-                  <Input.TextArea placeholder="Vision description" rows={3} size="large" />
-                </Form.Item>
                 <Form.Item
                   name="visionImageDesktop"
                   label="Desktop Image"

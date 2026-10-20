@@ -91,9 +91,19 @@ function HelpingpeopleEditForm({ source, initialData: initialDataProp, onSaveToP
   }, [themeColorOptionsProp]);
 
   function applyFormValues(data) {
+    const subTitle = data?.helpingpeopleSubTitle != null ? String(data.helpingpeopleSubTitle).trim() : (data?.subTitle != null ? String(data.subTitle).trim() : "The People");
+    const mainTitle = data?.helpingpeopleMainTitle != null ? String(data.helpingpeopleMainTitle).trim() : (data?.mainTitle != null ? String(data.mainTitle).trim() : "Helping people live better tomorrow");
+    const titleAlign = data?.helpingpeopleTitleAlign || data?.titleAlign || "left";
+    const paragraphAlign = data?.helpingpeopleParagraphAlign || data?.paragraphAlign || "left";
     form.setFieldsValue({
-      helpingpeopleSubTitle: data?.helpingpeopleSubTitle != null ? String(data.helpingpeopleSubTitle).trim() : "The People",
-      helpingpeopleMainTitle: data?.helpingpeopleMainTitle != null ? String(data.helpingpeopleMainTitle).trim() : "Helping people live better tomorrow",
+      helpingpeopleSubTitle: subTitle,
+      subTitle,
+      helpingpeopleMainTitle: mainTitle,
+      mainTitle,
+      helpingpeopleTitleAlign: titleAlign,
+      titleAlign,
+      helpingpeopleParagraphAlign: paragraphAlign,
+      paragraphAlign,
       helpingpeopleParagraph: normalizeDescriptionHtml(data?.helpingpeopleParagraph),
       helpingpeopleImageDesktop:
         data?.helpingpeopleImageDesktop != null
@@ -163,9 +173,19 @@ function HelpingpeopleEditForm({ source, initialData: initialDataProp, onSaveToP
   const handleUpdate = () => {
     form.validateFields().then(() => {
       const values = form.getFieldsValue(true);
+      const subTitleVal = (values.helpingpeopleSubTitle ?? values.subTitle ?? "").toString().trim();
+      const mainTitleVal = (values.helpingpeopleMainTitle ?? values.mainTitle ?? "").toString().trim();
+      const titleAlignVal = values.helpingpeopleTitleAlign || values.titleAlign || "left";
+      const paragraphAlignVal = values.helpingpeopleParagraphAlign || values.paragraphAlign || "left";
       const payload = {
-        helpingpeopleSubTitle: values.helpingpeopleSubTitle != null ? String(values.helpingpeopleSubTitle).trim() : "",
-        helpingpeopleMainTitle: values.helpingpeopleMainTitle != null ? String(values.helpingpeopleMainTitle).trim() : "",
+        helpingpeopleSubTitle: subTitleVal,
+        subTitle: subTitleVal,
+        helpingpeopleMainTitle: mainTitleVal,
+        mainTitle: mainTitleVal,
+        helpingpeopleTitleAlign: titleAlignVal,
+        titleAlign: titleAlignVal,
+        helpingpeopleParagraphAlign: paragraphAlignVal,
+        paragraphAlign: paragraphAlignVal,
         helpingpeopleParagraph: normalizeDescriptionHtml(values.helpingpeopleParagraph),
         helpingpeopleImageDesktop:
           values.helpingpeopleImageDesktop != null
@@ -188,9 +208,11 @@ function HelpingpeopleEditForm({ source, initialData: initialDataProp, onSaveToP
           String(values.helpingpeopleImagePosition || "right").toLowerCase() === "left"
             ? "left"
             : "right",
-        helpingpeopleTitleColorKey: values.helpingpeopleTitleColorKey != null ? String(values.helpingpeopleTitleColorKey).trim() : "",
-        helpingpeopleSubTitleColorKey: values.helpingpeopleSubTitleColorKey != null ? String(values.helpingpeopleSubTitleColorKey).trim() : "",
+        helpingpeopleTitleColorKey: values.helpingpeopleTitleColorKey != null ? String(values.helpingpeopleTitleColorKey).trim() : (values.titleColorKey != null ? String(values.titleColorKey).trim() : ""),
+        helpingpeopleSubTitleColorKey: values.helpingpeopleSubTitleColorKey != null ? String(values.helpingpeopleSubTitleColorKey).trim() : (values.subTitleColorKey != null ? String(values.subTitleColorKey).trim() : ""),
         helpingpeopleTextColorKey: values.helpingpeopleTextColorKey != null ? String(values.helpingpeopleTextColorKey).trim() : "",
+        titleColorKey: values.helpingpeopleTitleColorKey != null ? String(values.helpingpeopleTitleColorKey).trim() : (values.titleColorKey != null ? String(values.titleColorKey).trim() : ""),
+        subTitleColorKey: values.helpingpeopleSubTitleColorKey != null ? String(values.helpingpeopleSubTitleColorKey).trim() : (values.subTitleColorKey != null ? String(values.subTitleColorKey).trim() : ""),
         ...getManageSectionPayload(PREFIX, values),
       };
       if (isPageBlock && onSaveToPage) {

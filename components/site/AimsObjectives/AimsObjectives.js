@@ -6,6 +6,7 @@ import {
   PageContainer,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 function normalizeItem(it) {
   return { text: it?.text != null ? String(it.text).trim() : "" };
@@ -24,6 +25,7 @@ const DEFAULT_ITEMS = [
  * Centered title + stacked dark cards with white left border.
  */
 export default function AimsObjectives(props) {
+  const titleAlign = getTitleAlign(props, "center", "aimsObjectives");
   const subTitle = (props?.aimsObjectivesSubTitle ?? props?.aimsObjectivesMainTitle ?? "Aims & Objectives").toString().trim();
   const mainTitle = (props?.aimsObjectivesHeading ?? "What we *work toward.*").toString().trim();
   const subTitleColorKey = (props?.aimsObjectivesSubTitleColorKey ?? "").toString().trim();
@@ -104,9 +106,9 @@ export default function AimsObjectives(props) {
     <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
       <PageContainer $managedStyle={pageContainerBgStyle}>
         <div className="fable-section">
-          <header className="fable-section-heading">
-            {subTitle ? <p className="fable-eyebrow" style={{ color: subTitleColor }}>{subTitle}</p> : null}
-            {mainTitle ? <h2 className="fable-heading" style={{ color: titleColor }}>{renderHighlightedTitle(mainTitle, props)}</h2> : null}
+          <header className="fable-section-heading" style={getHeaderAlignStyles(titleAlign)}>
+            {subTitle ? <p className="fable-eyebrow" style={{ color: subTitleColor, ...getSubtitleAlignStyles(titleAlign) }}>{subTitle}</p> : null}
+            {mainTitle ? <h2 className="fable-heading" style={{ color: titleColor, ...getTitleAlignStyles(titleAlign) }}>{renderHighlightedTitle(mainTitle, props)}</h2> : null}
           </header>
           <div className="fable-aims">
             {items.map((item, index) => (

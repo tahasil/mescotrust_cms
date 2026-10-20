@@ -12,6 +12,7 @@ import {
 } from "@ant-design/icons";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 import {
   CelebrationsMilestonesIcon,
   CharitablePhysiotherapyIcon,
@@ -64,6 +65,7 @@ function normalizeCard(item, index) {
 
 export default function MissionVision(props) {
   const prefix = "missionVision";
+  const titleAlign = getTitleAlign(props, "left", "missionVision");
   const mainTitle = clean(props.mainTitle);
   const subTitle = clean(props.subTitle);
   const titleEnabled = props.missionVisionTitleEnabled !== false;
@@ -147,12 +149,12 @@ export default function MissionVision(props) {
       <PageContainer $managedStyle={pageContainerBgStyle}>
         <div className="fable-section fable-mission-vision" style={colorVars}>
           {(subTitleEnabled && subTitle) || (titleEnabled && mainTitle) ? (
-            <header className="fable-section-heading">
+            <header className="fable-section-heading" style={getHeaderAlignStyles(titleAlign)}>
               {subTitleEnabled && subTitle ? (
-                <p className="fable-eyebrow" style={{ color: subTitleColor }}>{subTitle}</p>
+                <p className="fable-eyebrow" style={{ color: subTitleColor, ...getSubtitleAlignStyles(titleAlign) }}>{subTitle}</p>
               ) : null}
               {titleEnabled && mainTitle ? (
-                <h2 className="fable-heading" style={{ color: mainTitleColor }}>{renderHighlightedTitle(mainTitle, props)}</h2>
+                <h2 className="fable-heading" style={{ color: mainTitleColor, ...getTitleAlignStyles(titleAlign) }}>{renderHighlightedTitle(mainTitle, props)}</h2>
               ) : null}
             </header>
           ) : null}

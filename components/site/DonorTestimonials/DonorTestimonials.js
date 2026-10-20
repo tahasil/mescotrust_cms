@@ -5,9 +5,9 @@ import {
   FullWidthBackground,
   getColor,
   PageContainer,
-  SubTitle,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles, getParagraphAlign } from "@/components/site/titleUtils";
 
 /* ── Styled Components ── */
 const TestimonialsGrid = styled.div`
@@ -24,6 +24,7 @@ const TestimonialsGrid = styled.div`
 `;
 
 const TestimonialsHeading = styled.header`
+  width: 100%;
   margin-bottom: clamp(28px, 4vw, 54px);
 
   .fable-eyebrow {
@@ -109,6 +110,8 @@ const PersonRole = styled.span`
  * Vertical list of testimonial cards with quote icon, text, name, and role.
  */
 export default function DonorTestimonials(props) {
+  const titleAlign = getTitleAlign(props, "center", "donorTestimonials");
+  const paragraphAlign = getParagraphAlign(props, "left", "donorTestimonials");
   /* ── Title fields ── */
   const mainTitle = (props?.mainTitle ?? "").toString().trim();
   const subTitle = (props?.subTitle ?? "").toString().trim();
@@ -324,18 +327,18 @@ export default function DonorTestimonials(props) {
       <PageContainer $managedStyle={pageContainerBgStyle}>
         <div className="fable-section" style={designStyle}>
         {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) && (
-          <TestimonialsHeading>
+          <TestimonialsHeading style={getHeaderAlignStyles(titleAlign)}>
               {subTitleEnabled && subTitle && (
-                <SubTitle className="fable-eyebrow"
-                  style={subTitleColor ? { color: subTitleColor } : undefined}
+                <p className="fable-eyebrow"
+                  style={{ ...(subTitleColor ? { color: subTitleColor } : {}), ...getSubtitleAlignStyles(titleAlign) }}
                 >
                   {subTitle}
-                </SubTitle>
+                </p>
               )}
               {titleEnabled && mainTitle && (
                 <h2
                   className="fable-heading"
-                  style={titleColor ? { color: titleColor } : undefined}
+                  style={{ ...(titleColor ? { color: titleColor } : {}), ...getTitleAlignStyles(titleAlign) }}
                 >
                   {renderHighlightedTitle(mainTitle, props)}
                 </h2>
@@ -348,17 +351,24 @@ export default function DonorTestimonials(props) {
           const name = (item?.name ?? "").toString().trim();
           const role = (item?.role ?? "").toString().trim();
           return (
-            <TestimonialCard key={idx}>
-              <QuoteIcon aria-hidden="true">
+            <TestimonialCard key={idx} style={{ textAlign: paragraphAlign }}>
+              <QuoteIcon
+                aria-hidden="true"
+                style={{
+                  textAlign: paragraphAlign,
+                  marginLeft: paragraphAlign === "center" ? "auto" : paragraphAlign === "right" ? "auto" : "0",
+                  marginRight: paragraphAlign === "center" ? "auto" : paragraphAlign === "left" ? "auto" : "0",
+                }}
+              >
                 &ldquo;
               </QuoteIcon>
               {quote && (
-                <QuoteText>{quote}</QuoteText>
+                <QuoteText style={{ textAlign: paragraphAlign }}>{quote}</QuoteText>
               )}
               {name || role ? (
-                <PersonDetails>
-                  {name ? <PersonName>{name}</PersonName> : null}
-                  {role ? <PersonRole>{role}</PersonRole> : null}
+                <PersonDetails style={{ textAlign: paragraphAlign }}>
+                  {name ? <PersonName style={{ textAlign: paragraphAlign }}>{name}</PersonName> : null}
+                  {role ? <PersonRole style={{ textAlign: paragraphAlign }}>{role}</PersonRole> : null}
                 </PersonDetails>
               ) : null}
             </TestimonialCard>

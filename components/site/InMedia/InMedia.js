@@ -11,6 +11,7 @@ import {
 } from "@/styles/Theme";
 import { ThemeModal } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 /* ── Styled Components ── */
 const ThemeScrollModal = styled(ThemeModal)`
@@ -248,6 +249,7 @@ function color(value, fallback) {
  * Click "View" opens full media image in a modal.
  */
 export default function InMedia(props) {
+  const titleAlign = getTitleAlign(props, "left", "inMedia");
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
 
@@ -438,7 +440,7 @@ export default function InMedia(props) {
               <Col span={24} className="mb-4">
                 {subTitleEnabled && subTitle && (
                   <SubTitle className="fable-eyebrow"
-                    style={subTitleColor ? { color: subTitleColor } : undefined}
+                    style={{ ...(subTitleColor ? { color: subTitleColor } : {}), ...getSubtitleAlignStyles(titleAlign) }}
                   >
                     {subTitle}
                   </SubTitle>
@@ -446,7 +448,7 @@ export default function InMedia(props) {
                 {titleEnabled && (
                   <h2
                     className="fable-heading"
-                    style={titleColor ? { color: titleColor } : undefined}
+                    style={{ ...(titleColor ? { color: titleColor } : {}), ...getTitleAlignStyles(titleAlign) }}
                   >
                     {renderHighlightedTitle(mainTitle, props)}
                   </h2>

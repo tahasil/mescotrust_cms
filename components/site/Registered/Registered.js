@@ -6,6 +6,7 @@ import {
   PageContainer,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 function normalizeItem(it) {
   return {
@@ -49,6 +50,7 @@ export default function Registered(props) {
   const subTitleColor = subTitleColorKey ? getColor(subTitleColorKey) : getColor("primary");
   const titleColorKey = (props?.registeredHeadingColorKey ?? props?.registeredTitleColorKey ?? "").toString().trim();
   const titleColor = titleColorKey ? getColor(titleColorKey) : undefined;
+  const titleAlign = getTitleAlign(props, "center", "registered");
   const cardBgKey = (props?.registeredCardBgColorKey ?? "").toString().trim();
   const cardBg = cardBgKey ? getColor(cardBgKey) : undefined;
   const cardTextKey = (props?.registeredCardTextColorKey ?? "").toString().trim();
@@ -123,9 +125,9 @@ export default function Registered(props) {
     <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
       <PageContainer $managedStyle={pageContainerBgStyle}>
         <div className="fable-section">
-          <header className="fable-section-heading">
-            {subTitle ? <p className="fable-eyebrow" style={{ color: subTitleColor }}>{subTitle}</p> : null}
-            <h2 className="fable-heading" style={titleColor ? { color: titleColor } : undefined}>{renderHighlightedTitle(mainTitle, props)}</h2>
+          <header className="fable-section-heading" style={getHeaderAlignStyles(titleAlign)}>
+            {subTitle ? <p className="fable-eyebrow" style={{ color: subTitleColor, ...getSubtitleAlignStyles(titleAlign) }}>{subTitle}</p> : null}
+            <h2 className="fable-heading" style={{ ...(titleColor ? { color: titleColor } : {}), ...getTitleAlignStyles(titleAlign) }}>{renderHighlightedTitle(mainTitle, props)}</h2>
           </header>
           <div className="fable-badges">
           {items.map((item, index) => (

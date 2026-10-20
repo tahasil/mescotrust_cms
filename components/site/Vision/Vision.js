@@ -6,6 +6,7 @@ import {
   PageContainer,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 /**
  * Site component: Vision.
@@ -15,6 +16,7 @@ import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 export default function Vision(props) {
   /* ── Vision card fields ── */
   const visionSubTitle = (props?.visionSubTitle ?? "Vision").toString().trim();
+  const titleAlign = getTitleAlign(props, "left", "vision");
   const visionTitle = (
     props?.visionTitle ??
     "To help the underprivileged and marginalized live a better tomorrow through various interventions."
@@ -201,12 +203,18 @@ export default function Vision(props) {
           }}
           >
               <p className="fable-eyebrow"
-                style={subTitleColor ? { color: subTitleColor } : undefined}
+                style={{
+                  ...(subTitleColor ? { color: subTitleColor } : {}),
+                  ...getSubtitleAlignStyles(titleAlign),
+                }}
               >
                 {visionSubTitle}
               </p>
               <h3
-                style={mainTitleColor ? { color: mainTitleColor } : undefined}
+                style={{
+                  ...(mainTitleColor ? { color: mainTitleColor } : {}),
+                  ...getTitleAlignStyles(titleAlign),
+                }}
               >
                 {renderHighlightedTitle(visionTitle, props)}
               </h3>

@@ -9,6 +9,7 @@ import { usePathname } from "next/navigation";
 import styled from "styled-components";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -151,6 +152,7 @@ export default function VideoPlaying(props) {
   const pathname = usePathname();
   const rootRef = useRef(null);
   const videoRef = useRef(null);
+  const titleAlign = getTitleAlign(props, "left", "videoPlaying");
   const quoteRef = useRef(null);
   const isEditorPreview = pathname?.startsWith("/admin") === true;
 
@@ -307,9 +309,9 @@ export default function VideoPlaying(props) {
             "--chapter-link": color(props?.videoPlayingLinkColorKey, getColor("cream")),
           }}
         >
-          {text(props?.videoPlayingSubTitle ?? previousSubTitleField(props)) || text(props?.videoPlayingTitle) || text(props?.videoPlayingTitleAccent) ? <div className="chapterHead">
-            {text(props?.videoPlayingSubTitle ?? previousSubTitleField(props)) ? <p className="chapterSubTitle">{text(props?.videoPlayingSubTitle ?? previousSubTitleField(props))}</p> : null}
-            {text(props?.videoPlayingTitle) || text(props?.videoPlayingTitleAccent) ? <h2 className="chapterTitle">{renderHighlightedTitle(text(props?.videoPlayingTitleAccent) ? `${text(props?.videoPlayingTitle)}${text(props?.videoPlayingTitle) ? " " : ""}*${text(props?.videoPlayingTitleAccent)}*` : text(props?.videoPlayingTitle), props, { legacyColorKey: props?.videoPlayingTitleAccentColorKey })}</h2> : null}
+          {text(props?.videoPlayingSubTitle ?? previousSubTitleField(props)) || text(props?.videoPlayingTitle) || text(props?.videoPlayingTitleAccent) ? <div className="chapterHead" style={getHeaderAlignStyles(titleAlign)}>
+            {text(props?.videoPlayingSubTitle ?? previousSubTitleField(props)) ? <p className="chapterSubTitle" style={getSubtitleAlignStyles(titleAlign)}>{text(props?.videoPlayingSubTitle ?? previousSubTitleField(props))}</p> : null}
+            {text(props?.videoPlayingTitle) || text(props?.videoPlayingTitleAccent) ? <h2 className="chapterTitle" style={getTitleAlignStyles(titleAlign)}>{renderHighlightedTitle(text(props?.videoPlayingTitleAccent) ? `${text(props?.videoPlayingTitle)}${text(props?.videoPlayingTitle) ? " " : ""}*${text(props?.videoPlayingTitleAccent)}*` : text(props?.videoPlayingTitle), props, { legacyColorKey: props?.videoPlayingTitleAccentColorKey })}</h2> : null}
           </div> : null}
           <div ref={videoRef} className="chapterVideo">
             {videoPlaying && resolvedYoutubeId ? (

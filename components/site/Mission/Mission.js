@@ -6,6 +6,7 @@ import {
   PageContainer,
 } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
 /**
  * Site component: Mission.
@@ -13,6 +14,7 @@ import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
  * Font size/weight/lineHeight for subtitle & main title are editable.
  */
 export default function Mission(props) {
+  const titleAlign = getTitleAlign(props, "left", "mission");
   /* ── Content fields ── */
   const missionSubTitle = (props?.missionSubTitle ?? "Mission").toString().trim();
   const missionTitle = (
@@ -213,12 +215,12 @@ export default function Mission(props) {
             style={{ borderRadius: cardRadius, padding: cardPadding }}
           >
               <p className="fable-eyebrow"
-                style={subTitleColor ? { color: subTitleColor } : undefined}
+                style={{ ...(subTitleColor ? { color: subTitleColor } : {}), ...getSubtitleAlignStyles(titleAlign) }}
               >
                 {missionSubTitle}
               </p>
               <h3
-                style={mainTitleColor ? { color: mainTitleColor } : undefined}
+                style={{ ...(mainTitleColor ? { color: mainTitleColor } : {}), ...getTitleAlignStyles(titleAlign) }}
               >
                 {renderHighlightedTitle(missionTitle, props)}
               </h3>
