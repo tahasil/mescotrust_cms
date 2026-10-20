@@ -429,15 +429,10 @@ function Cards1EditForm(
   }
 
   return (
-    <Form form={form} layout="vertical">
+    <Form preserve={true} form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={[
-          "manage-section",
-          "title-colors",
-          "cards-items",
-          "card-layout",
-          "card-typography",
-        ]}
+        destroyInactivePanel={false}
+        defaultActiveKey={[]}
         items={[
           {
             key: "manage-section",

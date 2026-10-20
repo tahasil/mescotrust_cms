@@ -141,9 +141,10 @@ function CareersEditForm({ source, initialData: initialDataProp, onSaveToPage, o
   }
 
   return (
-    <Form form={form} layout="vertical">
+    <Form preserve={true} form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={["items"]}
+        destroyInactivePanel={false}
+        defaultActiveKey={[]}
         items={[
           {
             key: "manage-section",

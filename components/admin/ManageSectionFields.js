@@ -106,11 +106,13 @@ export default function ManageSectionFields({
       </div>
     <Collapse
       defaultActiveKey={[]}
+      destroyInactivePanel={false}
       size="small"
       items={[
         {
           key: "fullWidth",
           label: "Fluid Container",
+          forceRender: true,
           children: (
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <Form.Item
@@ -199,6 +201,7 @@ export default function ManageSectionFields({
         ...(showPageContainer ? [{
           key: "pageContainer",
           label: "Box Container",
+          forceRender: true,
           children: (
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <Form.Item

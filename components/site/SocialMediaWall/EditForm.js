@@ -341,9 +341,10 @@ function SocialMediaWallEditForm(
   }
 
   return (
-    <Form form={form} layout="vertical">
+    <Form preserve={true} form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={["platform-configurations"]}
+        destroyInactivePanel={false}
+        defaultActiveKey={[]}
         items={[
           {
             key: "manage-section",

@@ -152,9 +152,10 @@ function LatestImageGalleryEditForm(
   }
 
   return (
-    <Form form={form} layout="vertical" disabled={saving}>
+    <Form preserve={true} form={form} layout="vertical" disabled={saving}>
       <Collapse
-        defaultActiveKey={["manage-section", "title-colors", "content", "layout"]}
+        destroyInactivePanel={false}
+        defaultActiveKey={[]}
         items={[
           {
             key: "manage-section",

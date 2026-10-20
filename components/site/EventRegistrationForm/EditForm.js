@@ -329,13 +329,15 @@ function EventRegistrationFormEditForm(
 
   return (
     <Form
+      preserve={true}
       form={form}
       layout="vertical"
       initialValues={initialData}
       key="event-registration-form-edit"
     >
       <Collapse
-        defaultActiveKey={["section", "title", "content"]}
+        destroyInactivePanel={false}
+        defaultActiveKey={[]}
         items={[
           {
             key: "section",

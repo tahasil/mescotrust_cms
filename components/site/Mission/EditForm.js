@@ -161,9 +161,10 @@ function MissionEditForm({ source, initialData: initialDataProp, onSaveToPage, o
   }
 
   return (
-    <Form form={form} layout="vertical">
+    <Form preserve={true} form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={["manage-section", "title-colors", "content", "card-settings"]}
+        destroyInactivePanel={false}
+        defaultActiveKey={[]}
         items={[
           {
             key: "manage-section",

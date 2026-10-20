@@ -379,9 +379,10 @@ function SocialWallFeedEditForm(
   }
 
   return (
-    <Form form={form} layout="vertical">
+    <Form preserve={true} form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={["manage-section", "title-colors", "feed-config", "display-config"]}
+        destroyInactivePanel={false}
+        defaultActiveKey={[]}
         items={[
           {
             key: "manage-section",

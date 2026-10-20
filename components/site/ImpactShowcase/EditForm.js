@@ -151,8 +151,8 @@ function ImpactShowcaseEditForm({ source, initialData: initialDataProp, onSaveTo
 
   if (loading || saving) return <div style={{ padding: 48, textAlign: "center" }}><Spin /></div>;
   return (
-    <Form form={form} layout="vertical">
-      <Collapse defaultActiveKey={["content"]} items={[
+    <Form preserve={true} form={form} layout="vertical">
+      <Collapse destroyInactivePanel={false} defaultActiveKey={[]} items={[
         { key: "section", label: "Manage Section", children: <ManageSectionFields prefix={PREFIX} form={form} themeColorOptions={themeColorOptions} /> },
         { key: "titles", label: "Titles & Colors", children: <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("ImpactShowcase")} /> },
         { key: "typography", label: "Typography", children: (

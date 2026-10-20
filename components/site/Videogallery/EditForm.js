@@ -174,9 +174,10 @@ function VideogalleryEditForm({ source, initialData: initialDataProp, onSaveToPa
   }
 
   return (
-    <Form form={form} layout="vertical">
+    <Form preserve={true} form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={["title-colors", "tabs", "items"]}
+        destroyInactivePanel={false}
+        defaultActiveKey={[]}
         items={[
           {
             key: "title-colors",

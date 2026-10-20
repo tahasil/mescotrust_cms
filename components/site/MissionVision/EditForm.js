@@ -202,8 +202,8 @@ function MissionVisionEditForm({ source, initialData: initialDataProp, onSaveToP
   useImperativeHandle(ref, () => ({ update: handleUpdate }));
   if (loading || saving) return <div style={{ padding: 48, textAlign: "center" }}><Spin /></div>;
   return (
-    <Form form={form} layout="vertical">
-      <Collapse defaultActiveKey={["content"]} items={[
+    <Form preserve={true} form={form} layout="vertical">
+      <Collapse destroyInactivePanel={false} defaultActiveKey={[]} items={[
         { key: "section", label: "Manage Section", children: <ManageSectionFields prefix={PREFIX} form={form} themeColorOptions={themeColorOptions} /> },
         { key: "content", label: "Content", children: (
           <>

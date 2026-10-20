@@ -62,7 +62,7 @@ function SortableRow({
   onMoveDown,
   onRemove,
   hideRemove,
-  defaultExpanded = true,
+  defaultExpanded = false,
 }) {
   const {
     attributes,
@@ -183,12 +183,14 @@ function SortableRow({
     <div ref={setNodeRef} style={{ ...style, minWidth: 0, width: "100%", maxWidth: "100%" }} className={reorderClassName}>
       <StyledCollapse
         size="small"
+        destroyInactivePanel={false}
         defaultActiveKey={defaultExpanded ? [String(id)] : []}
         items={[
           {
             key: String(id),
             label,
             children,
+            forceRender: true,
           },
         ]}
       />
@@ -229,7 +231,7 @@ export default function SortableFormList({
   resolveItemTitle,
   hideRemove = false,
   hideAdd = false,
-  defaultExpanded = true,
+  defaultExpanded = false,
 }) {
   const sensors = useSensors(
     useSensor(PointerSensor, {

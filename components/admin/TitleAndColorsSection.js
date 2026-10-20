@@ -58,6 +58,14 @@ export default function TitleAndColorsSection({
                       placeholder={item.placeholder || "Select"}
                       style={{ width: item.width || 120 }}
                       allowClear={item.allowClear === true}
+                      onChange={(val) => {
+                        if (item.key === "titleAlign") {
+                          form?.setFieldValue("titleAlign", val);
+                          if (item.name && item.name !== "titleAlign") {
+                            form?.setFieldValue(item.name, val);
+                          }
+                        }
+                      }}
                     />
                   </Form.Item>
                 ) : (

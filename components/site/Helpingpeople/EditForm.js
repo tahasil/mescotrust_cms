@@ -250,9 +250,10 @@ function HelpingpeopleEditForm({ source, initialData: initialDataProp, onSaveToP
   }
 
   return (
-    <Form form={form} layout="vertical">
+    <Form preserve={true} form={form} layout="vertical">
       <Collapse
-        defaultActiveKey={["manage-section", "title-colors", "content"]}
+        destroyInactivePanel={false}
+        defaultActiveKey={[]}
         items={[
           {
             key: "manage-section",

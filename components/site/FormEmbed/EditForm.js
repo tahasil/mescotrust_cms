@@ -213,7 +213,7 @@ function FormEmbedEditForm(
   }
 
   return (
-    <Form form={form} layout="vertical" initialValues={normalizeInitial(initialDataProp || {})}>
+    <Form preserve={true} form={form} layout="vertical" initialValues={normalizeInitial(initialDataProp || {})}>
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <TitleAndColorsSection form={form} themeColorOptions={themeColorOptions} {...getTitleAndColorsConfig("FormEmbed")} />
       </div>

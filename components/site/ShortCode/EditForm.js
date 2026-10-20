@@ -228,9 +228,10 @@ function ShortCodeEditForm(
   }
 
   return (
-    <Form form={form} layout="vertical" disabled={saving}>
+    <Form preserve={true} form={form} layout="vertical" disabled={saving}>
       <Collapse
-        defaultActiveKey={["manage-section", "title-colors", "content"]}
+        destroyInactivePanel={false}
+        defaultActiveKey={[]}
         items={[
           {
             key: "manage-section",

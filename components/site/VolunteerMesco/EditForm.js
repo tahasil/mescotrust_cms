@@ -185,8 +185,8 @@ function VolunteerMescoEditForm({ source, initialData: initialDataProp, onSaveTo
   if (loading || saving) return <div style={{ padding: 48, textAlign: "center" }}><Spin /></div>;
 
   return (
-    <Form form={form} layout="vertical">
-      <Collapse defaultActiveKey={["content"]} items={[
+    <Form preserve={true} form={form} layout="vertical">
+      <Collapse destroyInactivePanel={false} defaultActiveKey={[]} items={[
         {
           key: "section",
           label: "Manage Section",
