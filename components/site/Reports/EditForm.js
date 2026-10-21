@@ -96,6 +96,12 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
         subTitle: data?.subTitle != null ? String(data.subTitle).trim() : "",
         reportsTitleEnabled: data?.reportsTitleEnabled !== false,
         reportsSubTitleEnabled: data?.reportsSubTitleEnabled !== false,
+        reportsColumns:
+          data?.reportsColumns != null
+            ? Math.min(12, Math.max(1, Number(data.reportsColumns) || 3))
+            : data?.reportsColumnsDesktop != null
+              ? Math.min(12, Math.max(1, Number(data.reportsColumnsDesktop) || 3))
+              : 3,
         reportsImageDisplayMode:
           data?.reportsImageDisplayMode || data?.imageDisplayMode || "compress",
         reportsImageMaxHeight:
@@ -149,12 +155,17 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
       const values = form.getFieldsValue(true);
       const rawItems = values.reportsItems ?? [];
       const items = Array.isArray(rawItems) ? rawItems.map(normalizeItem) : [];
+      const rawCols = values.reportsColumns ?? values.reportsColumnsDesktop;
+      const parsedCols = Number(rawCols);
+      const cols = Number.isFinite(parsedCols) ? Math.min(12, Math.max(1, parsedCols)) : 3;
       const payload = {
         ...getManageSectionPayload(PREFIX, values),
         mainTitle: values.mainTitle != null ? String(values.mainTitle).trim() : "Reports",
         subTitle: values.subTitle != null ? String(values.subTitle).trim() : "",
         reportsTitleEnabled: values.reportsTitleEnabled !== false,
         reportsSubTitleEnabled: values.reportsSubTitleEnabled !== false,
+        reportsColumns: cols,
+        reportsColumnsDesktop: cols,
         reportsImageDisplayMode: values.reportsImageDisplayMode || "compress",
         reportsImageMaxHeight:
           values.reportsImageMaxHeight != null
@@ -212,6 +223,22 @@ function ReportsEditForm({ source, initialData: initialDataProp, onSaveToPage, o
             children: (
               <>
                 <Row gutter={[16, 16]} style={{ marginBottom: 12 }}>
+                  <Col span={24}>
+                    <Form.Item
+                      name="reportsColumns"
+                      label="Columns per row"
+                      initialValue={3}
+                      tooltip="Choose how many columns appear in a single row (1 to 12). Default is 3."
+                    >
+                      <Select
+                        size="large"
+                        options={Array.from({ length: 12 }, (_, i) => ({
+                          label: `${i + 1} ${i === 0 ? "Column" : "Columns"}${i + 1 === 3 ? " (Default)" : ""}`,
+                          value: i + 1,
+                        }))}
+                      />
+                    </Form.Item>
+                  </Col>
                   <Col span={24}>
                     <Form.Item
                       name="reportsImageDisplayMode"

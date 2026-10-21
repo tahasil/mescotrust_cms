@@ -17,6 +17,23 @@ import {
 } from "@/components/site/shared/PdfViewerModal";
 
 /* ── Styled Components (same hover effect as InMedia) ── */
+const ReportsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(var(--reports-cols-desktop, 3), minmax(0, 1fr));
+  gap: var(--reports-grid-gap, 24px);
+  width: 100%;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(var(--reports-cols-laptop, 3), minmax(0, 1fr));
+  }
+  @media (max-width: 992px) {
+    grid-template-columns: repeat(var(--reports-cols-tablet, 2), minmax(0, 1fr));
+  }
+  @media (max-width: 576px) {
+    grid-template-columns: repeat(var(--reports-cols-mobile, 1), minmax(0, 1fr));
+  }
+`;
+
 const CardWrapper = styled.div`
   position: relative;
   width: 100%;
@@ -101,14 +118,15 @@ const ReportCard = styled.div`
 `;
 
 const CardBody = styled.div`
-  padding: clamp(20px, 2.2vw, 30px);
+  padding: var(--reports-card-padding, clamp(20px, 2.2vw, 30px));
   text-align: start;
   .name {
     color: var(--reports-title);
-    font-size: 16px;
+    font-size: var(--reports-title-size, 16px);
     font-weight: 700;
     line-height: 1.4;
     margin-bottom: 8px;
+    word-break: break-word;
     @media (max-width: 768px) {
       font-size: 14px;
     }
@@ -163,8 +181,8 @@ const ProfileOverlay = styled.div`
 
 const ViewBtn = styled.a`
   display: inline-block;
-  padding: 8px 24px;
-  font-size: 14px;
+  padding: var(--reports-btn-padding, 8px 24px);
+  font-size: var(--reports-btn-font-size, 14px);
   font-weight: 500;
   border-radius: 30px;
   border: 2px solid var(--reports-button-border);
@@ -198,10 +216,10 @@ const CardViewBtn = styled.a`
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 46px;
+  min-height: 40px;
   margin-top: 14px;
-  padding: 10px 24px;
-  font-size: 14px;
+  padding: var(--reports-btn-padding, 10px 24px);
+  font-size: var(--reports-btn-font-size, 14px);
   font-weight: 500;
   border-radius: 28px;
   border: 2px solid var(--reports-button-border);
@@ -281,9 +299,49 @@ export default function Reports(props) {
   /* ── Items ── */
   const items = Array.isArray(props?.reportsItems) ? props.reportsItems : [];
 
+  /* ── Columns per row (1 to 12) ── */
+  const rawCols = props?.reportsColumns ?? props?.reportsColumnsDesktop ?? props?.columns;
+  const parsedCols = Number(rawCols);
+  const columnsDesktop = Number.isFinite(parsedCols)
+    ? Math.min(12, Math.max(1, parsedCols))
+    : 3;
+  const columnsLaptop = Math.min(columnsDesktop, 6);
+  const columnsTablet = Math.min(columnsDesktop, 3);
+  const columnsMobile = 1;
+
+  const gridGap =
+    columnsDesktop >= 8 ? "12px" : columnsDesktop >= 6 ? "16px" : "24px";
+  const cardPadding =
+    columnsDesktop >= 8
+      ? "10px 8px"
+      : columnsDesktop >= 6
+        ? "14px 10px"
+        : columnsDesktop >= 4
+          ? "16px 14px"
+          : "clamp(20px, 2.2vw, 30px)";
+  const titleSize =
+    columnsDesktop >= 8
+      ? "12px"
+      : columnsDesktop >= 6
+        ? "13px"
+        : columnsDesktop >= 4
+          ? "14px"
+          : "16px";
+  const btnPadding = columnsDesktop >= 6 ? "6px 12px" : "8px 24px";
+  const btnFontSize = columnsDesktop >= 6 ? "12px" : "14px";
+
   /* ── Colors ── */
   const overlayText = color(props?.reportsOverlayTextColorKey, "#fff");
   const designStyle = {
+    "--reports-cols-desktop": columnsDesktop,
+    "--reports-cols-laptop": columnsLaptop,
+    "--reports-cols-tablet": columnsTablet,
+    "--reports-cols-mobile": columnsMobile,
+    "--reports-grid-gap": gridGap,
+    "--reports-card-padding": cardPadding,
+    "--reports-title-size": titleSize,
+    "--reports-btn-padding": btnPadding,
+    "--reports-btn-font-size": btnFontSize,
     "--reports-image-max-height": resolvedMaxHeight,
     "--reports-card-bg": color(props?.reportsCardBgColorKey, "#fff"),
     "--reports-card-border": color(props?.reportsCardBorderColorKey, "rgba(0,0,0,0.1)"),
@@ -468,7 +526,7 @@ export default function Reports(props) {
             </Col>
           </Row>
         )}
-        <Row gutter={[24, 24]}>
+        <ReportsGrid>
           {items.map((item, idx) => {
             const name = (item?.name ?? "").toString().trim();
             const tag = (item?.tag ?? "").toString().trim();
@@ -495,62 +553,33 @@ export default function Reports(props) {
               itemDisplayMode === "fitfullimage" ||
               itemDisplayMode === "contain";
             return (
-              <Col key={idx} xs={24} sm={12} md={12} lg={8}>
-                <CardWrapper className="card-wrapper fable-card">
-                  <ReportCard className={`fable-card__inner ${isFitFullImage ? "mode-fit" : "mode-compress"}`}>
-                    {image ? (
-                      <div className="imageWrapper">
-                        <picture>
-                          {imageMobile ? (
-                            <source media="(max-width: 767px)" srcSet={imageMobile} />
-                          ) : null}
-                          <img
-                            loading="lazy"
-                            className="w-100"
-                            src={imageDesktop || imageMobile}
-                            alt={name}
-                            style={{ display: "block" }}
-                          />
-                        </picture>
-                      </div>
-                    ) : (
-                      <div className="imageWrapper" />
-                    )}
-                    <CardBody className="fable-card__body">
-                      {name && <div className="name">{name}</div>}
-                      {description ? <p className="description">{description}</p> : null}
-                      {tag && <span className="tag">{tag}</span>}
-                      {pdfUrl &&
-                        (opensPdfModal ? (
-                          <CardViewBtn
-                            as="button"
-                            type="button"
-                            aria-haspopup="dialog"
-                            onClick={(event) =>
-                              openPdf({
-                                url: pdfUrl,
-                                title: name || "PDF document",
-                                trigger: event.currentTarget,
-                              })
-                            }
-                          >
-                            View
-                          </CardViewBtn>
-                        ) : (
-                          <CardViewBtn
-                            href={pdfUrl}
-                            target={target}
-                            rel={target === "_blank" ? "noopener noreferrer" : undefined}
-                          >
-                            View
-                          </CardViewBtn>
-                        ))}
-                    </CardBody>
-                  </ReportCard>
-                  {pdfUrl && (
-                    <ProfileOverlay>
-                      {opensPdfModal ? (
-                        <ViewBtn
+              <CardWrapper key={idx} className="card-wrapper fable-card">
+                <ReportCard className={`fable-card__inner ${isFitFullImage ? "mode-fit" : "mode-compress"}`}>
+                  {image ? (
+                    <div className="imageWrapper">
+                      <picture>
+                        {imageMobile ? (
+                          <source media="(max-width: 767px)" srcSet={imageMobile} />
+                        ) : null}
+                        <img
+                          loading="lazy"
+                          className="w-100"
+                          src={imageDesktop || imageMobile}
+                          alt={name}
+                          style={{ display: "block" }}
+                        />
+                      </picture>
+                    </div>
+                  ) : (
+                    <div className="imageWrapper" />
+                  )}
+                  <CardBody className="fable-card__body">
+                    {name && <div className="name">{name}</div>}
+                    {description ? <p className="description">{description}</p> : null}
+                    {tag && <span className="tag">{tag}</span>}
+                    {pdfUrl &&
+                      (opensPdfModal ? (
+                        <CardViewBtn
                           as="button"
                           type="button"
                           aria-haspopup="dialog"
@@ -563,23 +592,50 @@ export default function Reports(props) {
                           }
                         >
                           View
-                        </ViewBtn>
+                        </CardViewBtn>
                       ) : (
-                        <ViewBtn
+                        <CardViewBtn
                           href={pdfUrl}
                           target={target}
                           rel={target === "_blank" ? "noopener noreferrer" : undefined}
                         >
                           View
-                        </ViewBtn>
-                      )}
-                    </ProfileOverlay>
-                  )}
-                </CardWrapper>
-              </Col>
+                        </CardViewBtn>
+                      ))}
+                  </CardBody>
+                </ReportCard>
+                {pdfUrl && (
+                  <ProfileOverlay>
+                    {opensPdfModal ? (
+                      <ViewBtn
+                        as="button"
+                        type="button"
+                        aria-haspopup="dialog"
+                        onClick={(event) =>
+                          openPdf({
+                            url: pdfUrl,
+                            title: name || "PDF document",
+                            trigger: event.currentTarget,
+                          })
+                        }
+                      >
+                        View
+                      </ViewBtn>
+                    ) : (
+                      <ViewBtn
+                        href={pdfUrl}
+                        target={target}
+                        rel={target === "_blank" ? "noopener noreferrer" : undefined}
+                      >
+                        View
+                      </ViewBtn>
+                    )}
+                  </ProfileOverlay>
+                )}
+              </CardWrapper>
             );
           })}
-        </Row>
+        </ReportsGrid>
         </div>
         {pdfViewerModal}
       </PageContainer>
