@@ -135,6 +135,7 @@ export default function HomeSlider(props) {
       const slideIndex = Number(video.dataset.slideIndex);
       if (slideIndex === current) {
         video.muted = true;
+        video.playsInline = true;
         video.play?.().catch(() => {});
       } else {
         video.pause?.();
@@ -205,24 +206,30 @@ export default function HomeSlider(props) {
           const isInitial = previous == null && isActive;
           const overlayOpacity = clamp(slide.overlayOpacity, 0, 100, 100) / 100;
           const mediaType = slide.mediaType === "video" ? "video" : "image";
+          const videoUrl = String(slide.videoUrl || "").trim();
           return (
             <article
-              key={`${slide.image || slide.videoUrl || "slide"}-${index}`}
+              key={`${slide.image || videoUrl || "slide"}-${index}`}
               className={`home-slider-slide${isActive ? " is-active" : ""}${wasActive ? " was-active" : ""}${isInitial ? " is-initial" : ""}`}
               aria-hidden={!isActive}
             >
-              {mediaType === "video" && slide.videoUrl ? (
+              {mediaType === "video" && videoUrl ? (
                 <video
                   data-home-slider-video
                   data-slide-index={index}
                   className="home-slider-media"
-                  src={slide.videoUrl}
+                  src={videoUrl}
                   poster={slide.videoPoster || slide.image || undefined}
                   autoPlay={isActive}
                   muted
                   loop
                   playsInline
                   preload={isActive ? "auto" : "metadata"}
+                  onLoadedData={(event) => {
+                    if (index !== currentRef.current) return;
+                    event.currentTarget.muted = true;
+                    event.currentTarget.play?.().catch(() => {});
+                  }}
                   onCanPlay={(event) => {
                     if (index !== currentRef.current) return;
                     event.currentTarget.muted = true;

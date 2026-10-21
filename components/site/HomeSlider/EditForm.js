@@ -48,6 +48,20 @@ const POSITION_OPTIONS = [
 const clean = (value) => String(value ?? "").trim();
 const target = (value) => (value === "_blank" ? "_blank" : "_self");
 
+function normalizeMediaInputUrl(val) {
+  const s = clean(val);
+  if (!s) return "";
+  if (typeof window !== "undefined" && (s.startsWith("http://") || s.startsWith("https://"))) {
+    try {
+      const u = new URL(s);
+      if (u.origin === window.location.origin && u.pathname.startsWith("/media/")) {
+        return `${u.pathname}${u.search || ""}`;
+      }
+    } catch {}
+  }
+  return s;
+}
+
 function normalizeSlide(item = {}, index = 0) {
   const fallback = HOME_SLIDER_DEFAULT_SLIDES[index % HOME_SLIDER_DEFAULT_SLIDES.length] || HOME_SLIDER_DEFAULT_SLIDES[0];
   return {
@@ -55,10 +69,10 @@ function normalizeSlide(item = {}, index = 0) {
     ...item,
     active: item?.active !== false,
     mediaType: item?.mediaType === "video" ? "video" : "image",
-    image: clean(item?.image ?? fallback.image),
-    mobileImage: clean(item?.mobileImage),
-    videoUrl: clean(item?.videoUrl),
-    videoPoster: clean(item?.videoPoster),
+    image: normalizeMediaInputUrl(item?.image ?? fallback.image),
+    mobileImage: normalizeMediaInputUrl(item?.mobileImage),
+    videoUrl: normalizeMediaInputUrl(item?.videoUrl),
+    videoPoster: normalizeMediaInputUrl(item?.videoPoster),
     alt: clean(item?.alt ?? fallback.alt),
     backgroundPosition: clean(item?.backgroundPosition || "center center"),
     smallTitle: clean(item?.smallTitle ?? fallback.smallTitle),

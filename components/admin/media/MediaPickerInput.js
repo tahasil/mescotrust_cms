@@ -41,6 +41,23 @@ function parseMediaValue(value) {
   const match = raw.match(/\/media\/([a-fA-F0-9]{24})(?:\?([^#]+))?/);
   if (!match) return { mediaId: "", format: "auto" };
 
+  // Only extract mediaId for root-relative paths or same-origin URLs.
+  // Cross-origin URLs (e.g. from an external server or CDN) should remain direct URLs.
+  if (raw.startsWith("http://") || raw.startsWith("https://")) {
+    if (typeof window !== "undefined") {
+      try {
+        const u = new URL(raw);
+        if (u.origin !== window.location.origin) {
+          return { mediaId: "", format: "auto" };
+        }
+      } catch {
+        return { mediaId: "", format: "auto" };
+      }
+    } else {
+      return { mediaId: "", format: "auto" };
+    }
+  }
+
   const mediaId = String(match[1] || "");
   const params = new URLSearchParams(match[2] || "");
   const format = normalizeMediaFormatParam(params.get("format") || "auto") || "auto";
@@ -351,6 +368,7 @@ export default function MediaPickerInput({
   const activeMediaIsImage = activeMediaMimeType.startsWith("image/");
   const activeMediaIsVideo = activeMediaMimeType.startsWith("video/");
   const previewLooksPdf = /\.pdf(?:[?#].*)?$/i.test(String(previewSrc || ""));
+  const previewLooksImage = /\.(jpg|jpeg|png|webp|avif|gif|svg)(?:[?#].*)?$/i.test(String(previewSrc || ""));
   const canShowImagePreview =
     Boolean(previewSrc) &&
     !isDocumentMode &&
@@ -359,7 +377,7 @@ export default function MediaPickerInput({
   const canShowVideoPreview =
     Boolean(previewSrc) &&
     isVideoMode &&
-    (activeMedia ? activeMediaIsVideo : /\.(mp4|webm)(?:[?#].*)?$/i.test(previewSrc));
+    (activeMedia ? activeMediaIsVideo : !previewLooksPdf && !previewLooksImage);
   const documentPreviewName =
     activeMedia?.originalName ||
     activeMedia?.title ||
