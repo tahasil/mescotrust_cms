@@ -442,12 +442,14 @@ export default function AdminTeamEditPage() {
           </Button>
         }
       >
-        <Form form={form} layout="vertical">
+        <Form preserve={true} form={form} layout="vertical">
           <Collapse
-            defaultActiveKey={["title-colors", "members"]}
+            destroyInactivePanel={false}
+            defaultActiveKey={[]}
             items={[
               {
                 key: "title-colors",
+                forceRender: true,
                 label: "Title & Colors",
                 children: (
                   <TitleAndColorsSection
@@ -459,6 +461,7 @@ export default function AdminTeamEditPage() {
               },
               {
                 key: "members",
+                forceRender: true,
                 label: "Manage Members",
                 children: (
                   <Form.List name="committeeMembersItems">

@@ -309,16 +309,19 @@ function AppearanceHeaderEditForm(
 
   return (
     <Form
+      preserve={true}
       form={form}
       layout="vertical"
       disabled={saving}
       onValuesChange={(_, allValues) => onValuesChange?.(allValues)}
     >
       <Collapse
-        defaultActiveKey={["brand"]}
+        destroyInactivePanel={false}
+        defaultActiveKey={[]}
         items={[
           {
             key: "brand",
+            forceRender: true,
             label: "Logo",
             children: (
               <>
@@ -342,6 +345,7 @@ function AppearanceHeaderEditForm(
           },
           {
             key: "navigation",
+            forceRender: true,
             label: "Navigation",
             children: (
               <Form.Item
@@ -355,6 +359,7 @@ function AppearanceHeaderEditForm(
           },
           {
             key: "search",
+            forceRender: true,
             label: "Search",
             children: (
               <>
@@ -374,8 +379,11 @@ function AppearanceHeaderEditForm(
                   <Select showSearch allowClear options={colorOptions} optionFilterProp="label" />
                 </Form.Item>
                 <Collapse
+                  destroyInactivePanel={false}
+                  defaultActiveKey={[]}
                   size="small"
                   items={[{
+                    forceRender: true,
                     key: "search-copy",
                     label: "Accessibility and result messages",
                     children: (
@@ -402,6 +410,7 @@ function AppearanceHeaderEditForm(
           },
           {
             key: "volunteer-button",
+            forceRender: true,
             label: "Volunteer Button",
             children: (
               <>
@@ -432,6 +441,7 @@ function AppearanceHeaderEditForm(
           },
           {
             key: "donate-button",
+            forceRender: true,
             label: "Donate Button",
             children: (
               <>
@@ -462,6 +472,7 @@ function AppearanceHeaderEditForm(
           },
           {
             key: "colors",
+            forceRender: true,
             label: "Colors",
             children: (
               <ColorSettingsCard
@@ -494,6 +505,7 @@ function AppearanceHeaderEditForm(
           },
           {
             key: "responsive-buttons",
+            forceRender: true,
             label: "Responsive Buttons",
             children: (
               <ColorSettingsCard

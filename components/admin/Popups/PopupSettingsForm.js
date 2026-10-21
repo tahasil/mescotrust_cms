@@ -492,12 +492,14 @@ function PopupSettingsForm({ componentId, onSuccess, onLivePreviewChange }, ref)
   }
 
   return (
-    <Form form={form} layout="vertical" disabled={saving}>
+    <Form preserve={true} form={form} layout="vertical" disabled={saving}>
       <Collapse
-        defaultActiveKey={["targets", "content", "link", "visibility", "behavior"]}
+        destroyInactivePanel={false}
+        defaultActiveKey={[]}
         items={[
           {
             key: "targets",
+            forceRender: true,
             label: "Target Pages",
             children: (
               <Form.Item
@@ -524,6 +526,7 @@ function PopupSettingsForm({ componentId, onSuccess, onLivePreviewChange }, ref)
           },
           {
             key: "content",
+            forceRender: true,
             label: "Popup Content",
             children: (
               <>
@@ -584,6 +587,7 @@ function PopupSettingsForm({ componentId, onSuccess, onLivePreviewChange }, ref)
           },
           {
             key: "visibility",
+            forceRender: true,
             label: "Visibility Settings",
             children: (
               <>
@@ -600,6 +604,7 @@ function PopupSettingsForm({ componentId, onSuccess, onLivePreviewChange }, ref)
           },
           {
             key: "link",
+            forceRender: true,
             label: "Redirect Link",
             children: (
               <>
@@ -669,6 +674,7 @@ function PopupSettingsForm({ componentId, onSuccess, onLivePreviewChange }, ref)
           },
           {
             key: "behavior",
+            forceRender: true,
             label: "Behavior",
             children: (
               <>

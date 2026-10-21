@@ -294,17 +294,20 @@ export default forwardRef(function AppearanceHeaderRibbonEditForm(
 
   return (
     <Form
+      preserve={true}
       form={form}
       layout="vertical"
       disabled={saving}
       onValuesChange={(_, allValues) => onValuesChange?.(allValues)}
     >
       <Collapse
-        defaultActiveKey={["settings", "content", "colors"]}
+        destroyInactivePanel={false}
+        defaultActiveKey={[]}
         items={[
           {
             key: "settings",
             label: "Ribbon Settings",
+            forceRender: true,
             children: (
               <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                 <SwitchSettingsCard items={SWITCH_ITEMS} />
@@ -343,6 +346,7 @@ export default forwardRef(function AppearanceHeaderRibbonEditForm(
           {
             key: "content",
             label: "Content",
+            forceRender: true,
             children: (
               <Form.List name="ribbonItems">
                 {(fields, { add, remove, move }) => (
@@ -430,6 +434,7 @@ export default forwardRef(function AppearanceHeaderRibbonEditForm(
           {
             key: "colors",
             label: "Colors",
+            forceRender: true,
             children: (
               <TitleAndColorsSection
                 form={form}

@@ -863,11 +863,13 @@ export default function AdminChatbotPage() {
       >
         <Form layout="vertical" form={settingsForm} size="middle" className="chatbot-settings-form">
           <Collapse
-            defaultActiveKey={["general", "appearance"]}
+            destroyInactivePanel={false}
+        defaultActiveKey={[]}
             style={SETTINGS_COLLAPSE_STYLE}
             items={[
               {
                 key: "general",
+            forceRender: true,
                 label: "General",
                 children: (
                   <div style={SETTINGS_SECTION_BOX_STYLE}>
@@ -905,6 +907,7 @@ export default function AdminChatbotPage() {
               },
               {
                 key: "appearance",
+            forceRender: true,
                 label: "Appearance",
                 children: (
                   <div style={SETTINGS_SECTION_BOX_STYLE}>

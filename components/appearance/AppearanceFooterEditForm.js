@@ -223,16 +223,19 @@ function AppearanceFooterEditForm(
 
   return (
     <Form
+      preserve={true}
       form={form}
       layout="vertical"
       disabled={saving}
       onValuesChange={(_, allValues) => onValuesChange?.(allValues)}
     >
       <Collapse
-        defaultActiveKey={["brand"]}
+        destroyInactivePanel={false}
+        defaultActiveKey={[]}
         items={[
           {
             key: "brand",
+            forceRender: true,
             label: "Brand",
             children: (
               <>
@@ -245,6 +248,7 @@ function AppearanceFooterEditForm(
           },
           {
             key: "contact",
+            forceRender: true,
             label: "Contact",
             children: (
               <>
@@ -259,16 +263,19 @@ function AppearanceFooterEditForm(
           },
           {
             key: "column-1",
+            forceRender: true,
             label: "Link Column 1",
             children: <><Form.Item name="footerCol1Title" label="Title"><Input /></Form.Item>{renderLinks("footerCol1Links")}</>,
           },
           {
             key: "column-2",
+            forceRender: true,
             label: "Link Column 2",
             children: <><Form.Item name="footerCol2Title" label="Title"><Input /></Form.Item>{renderLinks("footerCol2Links")}</>,
           },
           {
             key: "social",
+            forceRender: true,
             label: "Social Links",
             children: (
               <Form.List name="footerSocialLinks">
@@ -295,6 +302,7 @@ function AppearanceFooterEditForm(
           },
           {
             key: "legal",
+            forceRender: true,
             label: "Copyright & Legal Links",
             children: (
               <>
@@ -312,6 +320,7 @@ function AppearanceFooterEditForm(
           },
           {
             key: "colors",
+            forceRender: true,
             label: "Background & Colors",
             children: (
               <>

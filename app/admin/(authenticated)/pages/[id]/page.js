@@ -273,14 +273,16 @@ export default function AdminPageEditPage() {
           </Button>
         }
       >
-        <Form form={form} layout="vertical" size="large">
+        <Form form={form} layout="vertical" size="large" preserve={true}>
           <Collapse
             defaultActiveKey={[]}
+            destroyInactivePanel={false}
             style={{ border: "1px solid #e8e8e8", borderRadius: 8, overflow: "hidden" }}
             items={[
               {
                 key: "page-settings",
                 label: "Page settings",
+                forceRender: true,
                 children: (
                   <>
                     <Form.Item name="title" label="Title" rules={[{ required: true }]}>
@@ -339,6 +341,7 @@ export default function AdminPageEditPage() {
               {
                 key: "seo",
                 label: "SEO & Advanced",
+                forceRender: true,
                 children: (
                   <>
                     <Form.Item name="metaTitle" label="Meta title">

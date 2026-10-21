@@ -3260,6 +3260,7 @@ export default function PageBuilder({
                 <Collapse
                   accordion
                   defaultActiveKey={[]}
+                  destroyInactivePanel={false}
                   items={[
                     {
                       key: "section-settings",
@@ -3436,6 +3437,7 @@ export default function PageBuilder({
                     <Collapse
                       accordion
                       defaultActiveKey={[]}
+                      destroyInactivePanel={false}
                       items={headerItems}
                     />
                   );
@@ -3446,6 +3448,7 @@ export default function PageBuilder({
                   <Collapse
                     accordion
                     defaultActiveKey={[]}
+                    destroyInactivePanel={false}
                     items={[
                       {
                         key: "section-settings",

@@ -432,11 +432,13 @@ export default function FrontendThemeSettings() {
       children: (
         <div style={{ paddingBlock: 8 }}>
           <Collapse
-            defaultActiveKey={["global-seo-performance"]}
+            destroyInactivePanel={false}
+            defaultActiveKey={[]}
             size="small"
             items={[
               {
                 key: "global-seo-performance",
+                forceRender: true,
                 label: "Global SEO & Performance",
                 children: (
                   <Row gutter={[16, 0]}>
