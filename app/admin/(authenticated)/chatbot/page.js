@@ -106,6 +106,15 @@ const CONTACT_ACTION_TYPE_OPTIONS = [
   { label: "Donation Page", value: "donation" },
   { label: "Custom", value: "custom" },
 ];
+function cleanChatbotHtml(input) {
+  if (!input || typeof input !== "string") return "";
+  return input
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\u00A0/g, " ")
+    .replace(/\s*background-color:\s*(?:rgb\(\s*255,\s*255,\s*255\s*\)|#ffffff|#fff|white)\s*;?/gi, "")
+    .trim();
+}
+
 const ROOT_PARENT_VALUE = "__ROOT__";
 const SETTINGS_COLLAPSE_STYLE = {
   border: "1px solid #e8e8e8",
@@ -292,7 +301,7 @@ export default function AdminChatbotPage() {
     if (!selectedId) return;
     const node = faqById.get(String(selectedId));
     if (!node) return;
-    const nextAnswerHtml = String(node.answerHtml || "");
+    const nextAnswerHtml = cleanChatbotHtml(node.answerHtml || "");
     setMode("edit");
     faqForm.setFieldsValue({
       question: node.question || "",
@@ -347,8 +356,8 @@ export default function AdminChatbotPage() {
       const values = await faqForm.validateFields();
       const payload = {
         ...values,
-        question: String(values.question || "").trim(),
-        answerHtml: String(values.answerHtml ?? answerEditorValue ?? "").trim(),
+        question: String(values.question || "").replace(/&nbsp;/gi, " ").replace(/\u00A0/g, " ").trim(),
+        answerHtml: cleanChatbotHtml(values.answerHtml ?? answerEditorValue ?? ""),
         keywords: Array.isArray(values.keywords) ? values.keywords : [],
         tags: Array.isArray(values.tags) ? values.tags : [],
         synonyms: Array.isArray(values.synonyms) ? values.synonyms : [],
@@ -818,8 +827,9 @@ export default function AdminChatbotPage() {
                   <RichTextEditor
                     value={answerEditorValue}
                     onChange={(value) => {
-                      setAnswerEditorValue(String(value || ""));
-                      faqForm.setFieldValue("answerHtml", value);
+                      const cleaned = cleanChatbotHtml(value);
+                      setAnswerEditorValue(cleaned);
+                      faqForm.setFieldValue("answerHtml", cleaned);
                     }}
                     placeholder="Write predefined answer"
                     minHeight={220}

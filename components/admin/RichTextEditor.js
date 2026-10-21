@@ -34,6 +34,15 @@ export default function RichTextEditor({
     []
   );
 
+  const handleChange = (content, delta, source, editor) => {
+    if (!onChange) return;
+    const sanitized =
+      typeof content === "string"
+        ? content.replace(/&nbsp;/gi, " ").replace(/\u00A0/g, " ")
+        : content;
+    onChange(sanitized, delta, source, editor);
+  };
+
   return (
     <div style={{ marginBottom: 16 }}>
       <style>{`
@@ -60,7 +69,8 @@ export default function RichTextEditor({
       <ReactQuill
         theme="snow"
         value={value || ""}
-        onChange={onChange}
+        onChange={handleChange}
+        useSemanticHTML={false}
         modules={modules}
         placeholder={placeholder || "Write content..."}
         className={className}

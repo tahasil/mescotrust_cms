@@ -24,6 +24,17 @@ const chatbotTypingPulse = keyframes`
   }
 `;
 
+const botBubbleFadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
 const ChatbotWidgetRoot = styled.div`
   @media (max-width: 1024px) {
     [data-chatbot-window][data-chatbot-expanded="false"] {
@@ -43,9 +54,7 @@ const ChatbotWidgetRoot = styled.div`
 
   @media (max-width: 768px) {
     [data-chatbot-window][data-chatbot-expanded="false"] {
-      top: auto !important;
       right: 16px !important;
-      left: auto !important;
       bottom: 16px !important;
       width: calc(100vw - 32px) !important;
       height: min(72vh, calc(100vh - 96px)) !important;
@@ -59,14 +68,13 @@ const ChatbotWidgetRoot = styled.div`
     }
 
     [data-chatbot-window][data-chatbot-expanded="true"] {
-      top: 16px !important;
       right: 16px !important;
       bottom: 16px !important;
       left: 16px !important;
-      width: auto !important;
-      height: auto !important;
-      max-height: none !important;
-      border-radius: 12px !important;
+      width: calc(100vw - 32px) !important;
+      height: calc(100vh - 32px) !important;
+      max-height: calc(100vh - 32px) !important;
+      border-radius: 14px !important;
     }
 
     [data-chatbot-launcher] {
@@ -186,6 +194,8 @@ const HeaderActionButton = styled.button`
 const ChatBody = styled.div`
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
   padding: ${(p) =>
     `${p.$contentPadding || 14}px ${p.$contentPadding || 14}px ${
       p.$contentPaddingBottom || 8
@@ -230,20 +240,113 @@ const WelcomeBannerImage = styled.img`
 
 const BotMessageBubble = styled.div`
   display: inline-block;
+  box-sizing: border-box;
   background: ${(p) => p.$bg || "#f7f7f7"};
   color: ${(p) => p.$text || "#202020"};
+  font-family: inherit;
   border-radius: 16px;
   padding: ${(p) => p.$padding || "10px 13px"};
   border: 1px solid ${(p) => p.$borderColor || "#ededed"};
   box-shadow: ${(p) => p.$bubbleShadow || "none"};
   max-width: 95%;
   white-space: ${(p) => p.$whiteSpace || "normal"};
-  line-height: ${(p) => p.$lineHeight || "normal"};
+  line-height: ${(p) => p.$lineHeight || "1.5"};
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  word-wrap: break-word;
+  animation: ${botBubbleFadeIn} 180ms ease-out;
+
+  p {
+    margin: 0 0 8px 0;
+    line-height: inherit;
+    color: inherit !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  p:empty,
+  p > br:only-child {
+    display: none;
+  }
+
+  span,
+  div,
+  li,
+  strong,
+  em,
+  b,
+  i,
+  small {
+    color: inherit !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+    line-height: inherit;
+    background-color: transparent !important;
+  }
+
+  span {
+    background-color: transparent !important;
+  }
+
+  ul,
+  ol {
+    margin: 4px 0 8px 0;
+    padding-left: 20px;
+    color: inherit !important;
+    font-family: inherit !important;
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  li {
+    margin-bottom: 4px;
+    color: inherit !important;
+    font-family: inherit !important;
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 6px 0;
+    display: block;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0;
+  }
+
+  th,
+  td {
+    border: 1px solid ${(p) => p.$borderColor || "#ededed"};
+    padding: 4px 8px;
+    color: inherit !important;
+    font-family: inherit !important;
+  }
+
+  pre,
+  code {
+    white-space: pre-wrap;
+    word-break: break-all;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+    padding: 2px 4px;
+  }
 
   a {
-    color: ${(p) => p.$accentColor || "#1677ff"};
+    color: ${(p) => p.$accentColor || "#1677ff"} !important;
     text-decoration: underline;
     text-underline-offset: 2px;
+    font-weight: 500;
   }
 
   a:hover {
@@ -253,6 +356,11 @@ const BotMessageBubble = styled.div`
 
 const UserMessageBubble = styled.div`
   display: inline-block;
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  word-wrap: break-word;
+  font-family: inherit;
   background: ${(p) => p.$bg || "#1677ff"};
   color: ${(p) => p.$text || "#ffffff"};
   border: 1px solid ${(p) => p.$borderColor || "rgba(0,0,0,0.08)"};
@@ -261,6 +369,7 @@ const UserMessageBubble = styled.div`
   max-width: 92%;
   line-height: 1.4;
   box-shadow: ${(p) => p.$bubbleShadow || "0 3px 10px rgba(0, 0, 0, 0.08)"};
+  animation: ${botBubbleFadeIn} 180ms ease-out;
 `;
 
 const ChoiceChipButton = styled.button`
@@ -268,6 +377,9 @@ const ChoiceChipButton = styled.button`
   border-radius: 999px;
   padding: 7.5px 14px;
   max-width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  word-break: break-word;
   cursor: pointer;
   background: ${(p) => p.$bg || "#ffffff"};
   color: ${(p) => p.$text || p.$tone || "#3d5afe"};
@@ -369,10 +481,14 @@ const LauncherButton = styled.button`
   color: ${(p) => p.$iconColor || "#fff"};
   cursor: pointer;
   box-shadow: ${(p) => p.$launcherShadow || "0 10px 26px rgba(0, 0, 0, 0.25)"};
-  display: ${(p) => (p.$hidden ? "none" : "inline-flex")};
+  display: inline-flex;
+  opacity: ${(p) => (p.$hidden ? 0 : 1)};
+  transform: ${(p) => (p.$hidden ? "scale(0.65) rotate(-15deg)" : "scale(1) rotate(0deg)")};
+  pointer-events: ${(p) => (p.$hidden ? "none" : "auto")};
+  visibility: ${(p) => (p.$hidden ? "hidden" : "visible")};
   align-items: center;
   justify-content: center;
-  transition: filter 140ms ease, transform 120ms ease;
+  transition: opacity 220ms cubic-bezier(0.16, 1, 0.3, 1), transform 220ms cubic-bezier(0.16, 1, 0.3, 1), filter 140ms ease;
 
   &:hover {
     filter: brightness(0.94);
@@ -496,27 +612,50 @@ function buildMessage(role, content, extra = {}) {
   };
 }
 
+function cleanChatbotHtml(input) {
+  if (!input || typeof input !== "string") return "";
+  return input
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\u00A0/g, " ")
+    .replace(/\s*background-color:\s*(?:rgb\(\s*255,\s*255,\s*255\s*\)|#ffffff|#fff|white)\s*;?/gi, "")
+    .replace(/\s*font-family:\s*[^;"]+;?/gi, "")
+    .replace(/\s*color:\s*(?:rgb\(\s*(?:102|0|32|34|17),\s*(?:102|0|32|34|17),\s*(?:102|0|32|34|17)\s*\)|#666(?:666)?|#000(?:000)?|#202020|#222(?:222)?|#111(?:111)?|black)\s*;?/gi, "")
+    .trim();
+}
+
 function htmlToText(input) {
-  const raw = String(input || "").trim();
+  const raw = cleanChatbotHtml(input);
   if (!raw) return "";
+  const formattedHtml = raw
+    .replace(/<\/(?:p|div|li|h[1-6])>/gi, "\n\n")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/td>/gi, "\t")
+    .replace(/<\/tr>/gi, "\n")
+    .replace(/<a\b[^>]*>(.*?)<\/a>/gi, " $1 ");
+
   if (typeof window !== "undefined") {
     const node = document.createElement("div");
-    node.innerHTML = raw;
+    node.innerHTML = formattedHtml;
     return String(node.textContent || node.innerText || "")
-      .replace(/\s+\n/g, "\n")
+      .replace(/[ \t]+\n/g, "\n")
       .replace(/\n{3,}/g, "\n\n")
       .trim();
   }
-  return raw
+  return formattedHtml
     .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]{2,}/g, " ")
     .trim();
 }
 
 function hasRenderableHtml(input) {
-  const text = String(input || "")
+  const str = String(input || "").trim();
+  if (/<(img|iframe|video|audio|svg)/i.test(str)) return true;
+  const text = str
     .replace(/<[^>]*>/g, " ")
     .replace(/&nbsp;/gi, " ")
+    .replace(/\u00A0/g, " ")
     .replace(/\s+/g, " ")
     .trim();
   return text.length > 0;
@@ -565,6 +704,9 @@ export default function ChatbotWidget() {
   const activeStreamRef = useRef({ runId: 0, timer: null });
   const messagesRef = useRef([]);
   const historyLoadedRef = useRef(false);
+  const bootstrapLoadedRef = useRef(false);
+  const bootstrapLoadingRef = useRef(false);
+  const historyLoadingRef = useRef(false);
 
   const sendEvent = useCallback(
     async (eventType, payload = {}) => {
@@ -696,6 +838,8 @@ export default function ChatbotWidget() {
   );
 
   const loadConversationHistory = useCallback(async () => {
+    if (historyLoadedRef.current || historyLoadingRef.current) return;
+    historyLoadingRef.current = true;
     setHistoryLoading(true);
     setHistoryError("");
     try {
@@ -719,6 +863,7 @@ export default function ChatbotWidget() {
     } catch (err) {
       setHistoryError(err.message || "Failed to load conversation history");
     } finally {
+      historyLoadingRef.current = false;
       setHistoryLoading(false);
     }
   }, [restoreContextFromMessages, sessionId]);
@@ -829,8 +974,12 @@ export default function ChatbotWidget() {
     }
   }, []);
 
-  const loadBootstrap = useCallback(async () => {
-    setLoading(true);
+  const loadBootstrap = useCallback(async (showInitialLoading = false) => {
+    if (bootstrapLoadedRef.current || bootstrapLoadingRef.current) return;
+    bootstrapLoadingRef.current = true;
+    if (showInitialLoading) {
+      setLoading(true);
+    }
     try {
       const [settingsRes, rootsRes, featuredRes, popularRes] =
         await Promise.all([
@@ -873,12 +1022,14 @@ export default function ChatbotWidget() {
           ? popularData.data
           : [],
       );
+      bootstrapLoadedRef.current = true;
     } catch {
       setSettings(null);
       setRoots([]);
       setFeatured([]);
       setPopular([]);
     } finally {
+      bootstrapLoadingRef.current = false;
       setLoading(false);
     }
   }, []);
@@ -887,19 +1038,18 @@ export default function ChatbotWidget() {
     let timer = null;
     let idleId = null;
     const run = () => {
-      loadBootstrap();
-      loadConversationHistory();
+      if (!bootstrapLoadedRef.current) {
+        loadBootstrap(true);
+      }
+      if (!historyLoadedRef.current) {
+        loadConversationHistory();
+      }
     };
-
-    if (open) {
-      run();
-      return undefined;
-    }
 
     if (typeof window !== "undefined" && "requestIdleCallback" in window) {
       idleId = window.requestIdleCallback(run, { timeout: 2500 });
     } else if (typeof window !== "undefined") {
-      timer = window.setTimeout(run, 1200);
+      timer = window.setTimeout(run, 400);
     }
     return () => {
       if (idleId && typeof window !== "undefined" && "cancelIdleCallback" in window) {
@@ -909,7 +1059,7 @@ export default function ChatbotWidget() {
         window.clearTimeout(timer);
       }
     };
-  }, [loadBootstrap, loadConversationHistory, open]);
+  }, [loadBootstrap, loadConversationHistory]);
 
   useEffect(() => {
     if (!open) return;
@@ -1008,9 +1158,9 @@ export default function ChatbotWidget() {
           depth: Number(data?.data?.breadcrumb?.length || 0),
         });
 
-        const answerText = htmlToText(data?.data?.node?.answerHtml || "");
+        const answerHtml = cleanChatbotHtml(data?.data?.node?.answerHtml || "");
+        const answerText = htmlToText(answerHtml);
         const responseNodeId = String(data?.data?.node?._id || id || "");
-        const answerHtml = String(data?.data?.node?.answerHtml || "");
         streamText(answerText, "node", async () => {
           setNodeResponseReadyId(responseNodeId);
           const botMessage = buildMessage("bot", answerText, {
@@ -1179,26 +1329,46 @@ export default function ChatbotWidget() {
     setHistoryError("");
   };
 
-  const toggleOpen = () => {
-    if (!open) {
+  const toggleOpen = useCallback(
+    (e) => {
+      if (e && typeof e.stopPropagation === "function") {
+        e.stopPropagation();
+      }
+      if (!open) {
+        cancelActiveStream();
+        setOpen(true);
+        setOpenedAt(Date.now());
+        sendEvent("chat_open");
+        if (!bootstrapLoadedRef.current) {
+          loadBootstrap(false);
+        }
+        if (!historyLoadedRef.current) {
+          loadConversationHistory();
+        }
+        return;
+      }
       cancelActiveStream();
-      setOpen(true);
-      setOpenedAt(Date.now());
-      sendEvent("chat_open");
-      return;
-    }
-    cancelActiveStream();
-    setOpen(false);
-    setExpanded(false);
-    const durationSeconds =
-      openedAt > 0
-        ? Math.max(0, Math.round((Date.now() - openedAt) / 1000))
-        : 0;
-    sendEvent("chat_close", {
-      durationSeconds,
-      lastNodeId: String(current?.node?._id || ""),
-    });
-  };
+      setOpen(false);
+      setExpanded(false);
+      const durationSeconds =
+        openedAt > 0
+          ? Math.max(0, Math.round((Date.now() - openedAt) / 1000))
+          : 0;
+      sendEvent("chat_close", {
+        durationSeconds,
+        lastNodeId: String(current?.node?._id || ""),
+      });
+    },
+    [
+      cancelActiveStream,
+      current?.node?._id,
+      loadBootstrap,
+      loadConversationHistory,
+      open,
+      openedAt,
+      sendEvent,
+    ],
+  );
 
   const quickOptions = useMemo(() => {
     return dedupeQuestions([
@@ -1338,7 +1508,7 @@ export default function ChatbotWidget() {
       );
     }
 
-    const html = String(message.contentHtml || "").trim();
+    const html = cleanChatbotHtml(message.contentHtml || "");
     const hasHtml = hasRenderableHtml(html);
     return (
       <div
@@ -1367,25 +1537,27 @@ export default function ChatbotWidget() {
     );
   };
 
+  const isLeft = position === "left";
+  const baseMargin = 16;
   const collapsedWindowStyle = {
-    top: "auto",
-    left: position === "left" ? anchorGap : "auto",
-    right: position === "left" ? "auto" : anchorGap,
     bottom: anchorGap,
-    width: `min(${desiredWidth}px, calc(100vw - 32px))`,
+    right: isLeft ? "auto" : anchorGap,
+    left: isLeft ? anchorGap : "auto",
+    width: `min(${desiredWidth}px, calc(100vw - ${anchorGap * 2}px))`,
     height: `min(78vh, ${desiredHeight}px)`,
-    maxHeight: "calc(100vh - 32px)",
+    maxHeight: `calc(100vh - ${anchorGap * 2}px)`,
+    maxWidth: `calc(100vw - ${anchorGap * 2}px)`,
     borderRadius: Math.max(12, Number(settings.borderRadius || 22)),
   };
 
   const expandedWindowStyle = {
-    top: 12,
-    right: 12,
-    bottom: 12,
-    left: 12,
-    width: "auto",
-    height: "auto",
-    maxHeight: "none",
+    bottom: baseMargin,
+    right: isLeft ? "auto" : baseMargin,
+    left: isLeft ? baseMargin : "auto",
+    width: `calc(100vw - ${baseMargin * 2}px)`,
+    height: `calc(100vh - ${baseMargin * 2}px)`,
+    maxHeight: `calc(100vh - ${baseMargin * 2}px)`,
+    maxWidth: `calc(100vw - ${baseMargin * 2}px)`,
     borderRadius: 16,
   };
 
@@ -1477,26 +1649,34 @@ export default function ChatbotWidget() {
       <div
         style={{
           position: "fixed",
-          top: windowSizeStyle.top,
-          right: windowSizeStyle.right,
           bottom: windowSizeStyle.bottom,
+          right: windowSizeStyle.right,
           left: windowSizeStyle.left,
           zIndex: 3000,
           width: windowSizeStyle.width,
           height: windowSizeStyle.height,
           maxHeight: windowSizeStyle.maxHeight,
-          maxWidth: "calc(100vw - 32px)",
+          maxWidth: windowSizeStyle.maxWidth,
           background: chatBackgroundColor,
           border: `1px solid ${borderColor}`,
           borderRadius: windowSizeStyle.borderRadius,
           boxShadow: windowShadow,
-          display: open ? "flex" : "none",
+          display: "flex",
+          opacity: open ? 1 : 0,
+          visibility: open ? "visible" : "hidden",
+          pointerEvents: open ? "auto" : "none",
+          transform: open
+            ? "scale(1) translateY(0)"
+            : "scale(0.92) translateY(14px)",
+          transformOrigin: isLeft ? "bottom left" : "bottom right",
           flexDirection: "column",
           overflow: "hidden",
           overscrollBehavior: "contain",
           fontSize: Number(settings.fontSize || 14),
+          fontFamily:
+            'var(--font-family, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif)',
           transition:
-            "top 240ms ease, right 240ms ease, bottom 240ms ease, left 240ms ease, width 240ms ease, height 240ms ease, max-height 240ms ease, border-radius 220ms ease",
+            "opacity 220ms cubic-bezier(0.16, 1, 0.3, 1), transform 220ms cubic-bezier(0.16, 1, 0.3, 1), width 260ms cubic-bezier(0.16, 1, 0.3, 1), height 260ms cubic-bezier(0.16, 1, 0.3, 1), border-radius 220ms ease, box-shadow 220ms ease",
         }}
         data-chatbot-window
         data-chatbot-expanded={expanded ? "true" : "false"}
@@ -1561,7 +1741,10 @@ export default function ChatbotWidget() {
           <div style={{ display: "flex", alignItems: "center", gap: elementGap }}>
             <HeaderActionButton
               type="button"
-              onClick={() => setExpanded((prev) => !prev)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded((prev) => !prev);
+              }}
               $headerTextColor={headerTextColor}
               aria-label={expanded ? "Restore chat size" : "Expand chat"}
               title={expanded ? "Restore" : "Expand"}
@@ -1574,7 +1757,10 @@ export default function ChatbotWidget() {
             </HeaderActionButton>
             <HeaderActionButton
               type="button"
-              onClick={toggleOpen}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleOpen(e);
+              }}
               $headerTextColor={headerTextColor}
               aria-label="Close chat"
             >
