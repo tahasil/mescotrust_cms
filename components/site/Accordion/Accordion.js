@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PlusOutlined } from "@ant-design/icons";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 import SafeHtml from "@/components/cms/SafeHtml";
@@ -48,6 +48,160 @@ function resolveColor(props, key, fallback) {
   return getColor(colorKey || fallback);
 }
 
+function parseDefaultOpenIndexes(value, totalItems = Infinity) {
+  if (value == null) return new Set();
+  const str = String(value).trim();
+  if (!str) return new Set();
+
+  const tokens = str.split(/[,\s]+/).map((t) => t.trim()).filter(Boolean);
+  const indexes = new Set();
+
+  for (const token of tokens) {
+    const num = Number(token);
+    if (!Number.isFinite(num)) continue;
+    const panelNum = Math.floor(num);
+    // 0 or negative values mean no panel
+    if (panelNum <= 0) continue;
+    // 1-based panel index to 0-based array index
+    const index = panelNum - 1;
+    if (index >= 0 && index < totalItems) {
+      indexes.add(index);
+    }
+  }
+
+  return indexes;
+}
+
+function AccordionPanel({
+  item,
+  index,
+  isOpen,
+  onToggle,
+  customIconUrl,
+}) {
+  const [isDetailsOpen, setIsDetailsOpen] = useState(isOpen);
+  const [isContentOpen, setIsContentOpen] = useState(isOpen);
+  const [isClosing, setIsClosing] = useState(false);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      setIsDetailsOpen(true);
+      setIsClosing(false);
+      const raf = requestAnimationFrame(() => {
+        setIsContentOpen(true);
+      });
+      return () => cancelAnimationFrame(raf);
+    } else {
+      if (isDetailsOpen) {
+        setIsClosing(true);
+        setIsContentOpen(false);
+        timerRef.current = setTimeout(() => {
+          setIsDetailsOpen(false);
+          setIsClosing(false);
+        }, 360);
+      }
+    }
+  }, [isOpen, isDetailsOpen]);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  const handleToggleClick = (e) => {
+    e.preventDefault();
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+
+    if (isContentOpen) {
+      setIsClosing(true);
+      setIsContentOpen(false);
+      onToggle(index, false);
+      timerRef.current = setTimeout(() => {
+        setIsDetailsOpen(false);
+        setIsClosing(false);
+      }, 360);
+    } else {
+      setIsDetailsOpen(true);
+      setIsClosing(false);
+      onToggle(index, true);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setIsContentOpen(true);
+        });
+      });
+    }
+  };
+
+  const hasImage = Boolean(item.imageDesktop || item.imageMobile);
+
+  return (
+    <details
+      open={isDetailsOpen}
+      className={`${isContentOpen ? "is-panel-open" : ""} ${
+        isClosing ? "is-closing" : ""
+      }`}
+    >
+      <summary onClick={handleToggleClick}>
+        <span>{item.label}</span>
+        {customIconUrl ? (
+          <span
+            className="fable-accordion__custom-icon"
+            style={{
+              backgroundImage: `url(${JSON.stringify(customIconUrl)})`,
+            }}
+            aria-hidden="true"
+          />
+        ) : (
+          <PlusOutlined
+            className="fable-accordion__plus"
+            aria-hidden="true"
+          />
+        )}
+      </summary>
+      <div
+        className={`fable-accordion__collapse${
+          isContentOpen ? " is-open" : ""
+        }`}
+      >
+        <div className="fable-accordion__collapse-inner">
+          <div
+            className={`fable-accordion__body${
+              hasImage ? "" : " fable-accordion__body--no-image"
+            }`}
+          >
+            <div className="fable-accordion__content">
+              <SafeHtml html={item.content} />
+            </div>
+            {hasImage ? (
+              <div className="fable-accordion__media">
+                <picture>
+                  {item.imageMobile ? (
+                    <source
+                      media="(max-width: 767px)"
+                      srcSet={item.imageMobile}
+                    />
+                  ) : null}
+                  <img
+                    src={item.imageDesktop || item.imageMobile}
+                    alt={item.imageAlt}
+                    loading="lazy"
+                  />
+                </picture>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </details>
+  );
+}
+
 /**
  * Site component: Accordion.
  * Reference-style native details/summary panels with optional responsive images.
@@ -61,22 +215,23 @@ export default function Accordion(props) {
   const mainTitle = clean(props?.accordionMainTitle);
   const titleAlign = getTitleAlign(props, "left", "accordion");
   const customIconUrl = clean(props?.accordionExpandIconUrl);
-  const defaultOpenIndex = Math.max(
-    -1,
-    Math.min(
-      items.length - 1,
-      Number.isFinite(Number(props?.accordionDefaultOpenIndex))
-        ? Math.floor(Number(props.accordionDefaultOpenIndex))
-        : 0,
-    ),
-  );
-  const [openIndexes, setOpenIndexes] = useState(
-    () => new Set(defaultOpenIndex >= 0 ? [defaultOpenIndex] : []),
+  const defaultOpenProp = props?.accordionDefaultOpenIndex;
+  const [openIndexes, setOpenIndexes] = useState(() =>
+    parseDefaultOpenIndexes(defaultOpenProp, items.length),
   );
 
   useEffect(() => {
-    setOpenIndexes(new Set(defaultOpenIndex >= 0 ? [defaultOpenIndex] : []));
-  }, [defaultOpenIndex]);
+    setOpenIndexes(parseDefaultOpenIndexes(defaultOpenProp, items.length));
+  }, [defaultOpenProp, items.length]);
+
+  const handleToggle = (index, shouldOpen) => {
+    setOpenIndexes((current) => {
+      const next = new Set(current);
+      if (shouldOpen) next.add(index);
+      else next.delete(index);
+      return next;
+    });
+  };
 
   const colorVars = {
     "--accordion-subtitle": resolveColor(
@@ -221,68 +376,16 @@ export default function Accordion(props) {
           ) : null}
 
           <div className="fable-accordion">
-            {items.map((item, index) => {
-              const hasImage = Boolean(item.imageDesktop || item.imageMobile);
-              return (
-                <details
-                  key={item.key}
-                  open={openIndexes.has(index)}
-                  onToggle={(event) => {
-                    const shouldOpen = event.currentTarget.open;
-                    setOpenIndexes((current) => {
-                      const next = new Set(current);
-                      if (shouldOpen) next.add(index);
-                      else next.delete(index);
-                      return next;
-                    });
-                  }}
-                >
-                  <summary>
-                    <span>{item.label}</span>
-                    {customIconUrl ? (
-                      <span
-                        className="fable-accordion__custom-icon"
-                        style={{
-                          backgroundImage: `url(${JSON.stringify(customIconUrl)})`,
-                        }}
-                        aria-hidden="true"
-                      />
-                    ) : (
-                      <PlusOutlined
-                        className="fable-accordion__plus"
-                        aria-hidden="true"
-                      />
-                    )}
-                  </summary>
-                  <div
-                    className={`fable-accordion__body${
-                      hasImage ? "" : " fable-accordion__body--no-image"
-                    }`}
-                  >
-                    <div className="fable-accordion__content">
-                      <SafeHtml html={item.content} />
-                    </div>
-                    {hasImage ? (
-                      <div className="fable-accordion__media">
-                        <picture>
-                          {item.imageMobile ? (
-                            <source
-                              media="(max-width: 767px)"
-                              srcSet={item.imageMobile}
-                            />
-                          ) : null}
-                          <img
-                            src={item.imageDesktop || item.imageMobile}
-                            alt={item.imageAlt}
-                            loading="lazy"
-                          />
-                        </picture>
-                      </div>
-                    ) : null}
-                  </div>
-                </details>
-              );
-            })}
+            {items.map((item, index) => (
+              <AccordionPanel
+                key={item.key}
+                item={item}
+                index={index}
+                isOpen={openIndexes.has(index)}
+                onToggle={handleToggle}
+                customIconUrl={customIconUrl}
+              />
+            ))}
           </div>
         </div>
       </PageContainer>

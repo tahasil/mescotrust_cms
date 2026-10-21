@@ -124,11 +124,10 @@ function applyFormValues(form, data) {
   const values = {
     accordionSubTitle: data?.accordionSubTitle ?? "",
     accordionMainTitle: data?.accordionMainTitle ?? "",
-    accordionDefaultOpenIndex: Number.isFinite(
-      Number(data?.accordionDefaultOpenIndex),
-    )
-      ? Number(data.accordionDefaultOpenIndex)
-      : 0,
+    accordionDefaultOpenIndex:
+      data?.accordionDefaultOpenIndex != null
+        ? String(data.accordionDefaultOpenIndex)
+        : "0",
     accordionExpandIconUrl: data?.accordionExpandIconUrl ?? "",
     accordionItems: items,
     ...getManageSectionInitialValues(PREFIX, data),
@@ -221,11 +220,8 @@ function AccordionEditForm(
         const payload = {
           accordionSubTitle: text(values.accordionSubTitle),
           accordionMainTitle: text(values.accordionMainTitle),
-          accordionDefaultOpenIndex: Number.isFinite(
-            Number(values.accordionDefaultOpenIndex),
-          )
-            ? Math.floor(Number(values.accordionDefaultOpenIndex))
-            : 0,
+          accordionDefaultOpenIndex:
+            text(values.accordionDefaultOpenIndex) || "0",
           accordionExpandIconUrl: text(values.accordionExpandIconUrl),
           accordionItems: (values.accordionItems || []).map(normalizeItem),
           ...getManageSectionPayload(PREFIX, values),
@@ -316,9 +312,9 @@ function AccordionEditForm(
                 <Form.Item
                   name="accordionDefaultOpenIndex"
                   label="Initially open panel index"
-                  tooltip="Zero opens the first panel. Use -1 when every panel should initially be closed."
+                  tooltip="0 = all closed. Enter 1 for first panel, 2 for second, or comma-separated numbers like 1, 5, 7 to open multiple panels by default."
                 >
-                  <InputNumber min={-1} precision={0} style={{ width: "100%" }} />
+                  <Input placeholder="e.g. 0 (all closed), 1, 2 or 1, 5, 7" />
                 </Form.Item>
                 <Form.Item
                   name="accordionExpandIconUrl"
