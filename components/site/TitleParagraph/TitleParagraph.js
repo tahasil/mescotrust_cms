@@ -5,20 +5,45 @@ import styled from "styled-components";
 import {
   FullWidthBackground,
   getColor,
-  MainTitle,
-  SubTitle,
   PageContainer,
 } from "@/styles/Theme";
 import SafeHtml from "@/components/cms/SafeHtml";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
-import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
+import {
+  getTitleAlign,
+  getTitleAlignStyles,
+  getSubtitleAlignStyles,
+  getHeaderAlignStyles,
+  getParagraphAlign,
+} from "@/components/site/titleUtils";
+
+function normalizeDescriptionHtml(value) {
+  if (value == null) return "";
+  return String(value)
+    .replace(/&amp;nbsp;|&nbsp;|&#160;|&#x0*a0;/gi, " ")
+    .replace(/\u00a0/g, " ")
+    .trim();
+}
 
 const ContentWrapper = styled.div`
-  font-size: 16px;
-  line-height: 30px;
+  font-family: var(--fable-body, "Instrument Sans", system-ui, sans-serif);
+  font-size: 17px;
+  line-height: 1.6;
   font-weight: 400;
+  color: var(--fable-ink-soft, var(--theme-black-light, rgba(42, 40, 62, 0.76)));
   overflow-wrap: break-word;
   word-wrap: break-word;
+
+  p {
+    margin: 0 0 18px;
+    font-size: 17px;
+  }
+  p:last-child {
+    margin-bottom: 0;
+  }
+  > :last-child {
+    margin-bottom: 0;
+  }
   ${(p) =>
     p.$textColor
       ? `
@@ -36,6 +61,7 @@ const ContentWrapper = styled.div`
 export default function TitleParagraph(props) {
   const mainTitle = (props?.titleParagraphMainTitle ?? "").toString().trim();
   const titleAlign = getTitleAlign(props, "left", "titleParagraph");
+  const paragraphAlign = getParagraphAlign(props, "left", "titleParagraph");
   const subTitle = (props?.titleParagraphSubTitle ?? "").toString().trim();
   const titleEnabled =
     props?.titleParagraphTitleEnabled !== false &&
@@ -53,13 +79,13 @@ export default function TitleParagraph(props) {
     .trim();
   const subTitleColor = subTitleColorKey
     ? getColor(subTitleColorKey)
-    : undefined;
+    : getColor("primary");
   const textColorKey = (props?.titleParagraphTextColorKey ?? "")
     .toString()
     .trim();
   const textColor = textColorKey ? getColor(textColorKey) : undefined;
 
-  const content = (props?.titleParagraphContent ?? "").toString().trim();
+  const content = normalizeDescriptionHtml(props?.titleParagraphContent);
 
   const PREFIX = "titleParagraph";
 
@@ -210,27 +236,37 @@ export default function TitleParagraph(props) {
   return (
     <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
       <PageContainer $managedStyle={pageContainerBgStyle}>
-        <div className="fable-section">
+        <div className="fable-section fable-scheme fable-title-paragraph">
         <Row justify="center">
           <Col xs={24} style={getHeaderAlignStyles(titleAlign)}>
             {subTitleEnabled && subTitle && (
-              <SubTitle
+              <p
                 className="fable-eyebrow"
                 style={{ ...(subTitleColor ? { color: subTitleColor } : {}), ...getSubtitleAlignStyles(titleAlign) }}
               >
                 {subTitle}
-              </SubTitle>
+              </p>
             )}
             {titleEnabled && mainTitle && (
-              <MainTitle
+              <h2
                 className="fable-heading"
-                style={{ ...(titleColor ? { color: titleColor } : {}), ...getTitleAlignStyles(titleAlign) }}
+                style={{
+                  maxWidth: "100%",
+                  ...(titleColor ? { color: titleColor } : {}),
+                  ...getTitleAlignStyles(titleAlign),
+                }}
               >
                 {renderHighlightedTitle(mainTitle, props)}
-              </MainTitle>
+              </h2>
             )}
             {content && (
-              <ContentWrapper className="fable-prose" $textColor={textColor}>
+              <ContentWrapper
+                className="fable-prose"
+                $textColor={textColor}
+                style={{
+                  textAlign: paragraphAlign,
+                }}
+              >
                 <SafeHtml html={content} />
               </ContentWrapper>
             )}
