@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   Form,
   Input,
@@ -74,7 +74,12 @@ function normalizeHeaderAnnouncementItems(theme = {}) {
 export default function AdminComponentEditPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const id = params.id;
+  const from = searchParams?.get("from");
+  const isFromSliders = from === "sliders";
+  const backHref = isFromSliders ? "/admin/sliders" : "/admin/components";
+  const backLabel = isFromSliders ? "Back to sliders" : "Back to components";
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [record, setRecord] = useState(null);
@@ -124,7 +129,7 @@ export default function AdminComponentEditPage() {
       .then(async (res) => {
         if (res.status === 404) {
           message.error("Component not found");
-          router.push("/admin/components");
+          router.push(backHref);
           return null;
         }
         if (!res.ok) {
@@ -152,10 +157,10 @@ export default function AdminComponentEditPage() {
       })
       .catch((err) => {
         message.error(err?.message || "Failed to load component");
-        router.push("/admin/components");
+        router.push(backHref);
       })
       .finally(() => setLoading(false));
-  }, [id, form, router]);
+  }, [id, form, router, backHref]);
 
   useEffect(() => {
     if (!isHeader) return;
@@ -849,11 +854,11 @@ export default function AdminComponentEditPage() {
     <ThemeAdminCard
       title={
         <>
-          <Link href="/admin/components" style={{ marginRight: 8 }}>
+          <Link href={backHref} style={{ marginRight: 8 }}>
             <Button
               type="text"
               icon={<ArrowLeftOutlined />}
-              aria-label="Back to components"
+              aria-label={backLabel}
             />
           </Link>
           {editingDisplayName ? (

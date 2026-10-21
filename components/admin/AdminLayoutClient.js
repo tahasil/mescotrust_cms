@@ -863,12 +863,22 @@ export default function AdminLayoutClient({
     permissionKeys,
   };
   const menuItems = filterMenuItemsByPermission(baseMenuItems, authContext);
+  const isComponentsSubPath = String(pathname || "").startsWith("/admin/components/");
+  const isFromSliders =
+    isComponentsSubPath &&
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("from") === "sliders";
+
   const selectedMenuKey = String(pathname || "").startsWith("/admin/popups/")
     ? "/admin/popups"
     : String(pathname || "").startsWith("/admin/form-builder/")
       ? "/admin/form-builder"
     : String(pathname || "").startsWith("/admin/social-wall/")
       ? "/admin/social-wall"
+    : isComponentsSubPath
+      ? isFromSliders
+        ? "/admin/sliders"
+        : "/admin/components"
     : pathname;
   const defaultOpenMenuKeys =
     findOpenMenuKeys(menuItems, selectedMenuKey) || [];
