@@ -4,6 +4,9 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 import { HOME_SLIDER_DEFAULT_PROPS, HOME_SLIDER_DEFAULT_SLIDES } from "./defaults";
+import Style1Slide, { style1Css } from "./Style1";
+import Style2Slide, { style2Css } from "./Style2";
+import Style3Slide, { style3Css } from "./Style3";
 
 const clamp = (value, min, max, fallback) => {
   const number = Number(value);
@@ -79,7 +82,12 @@ const HeartIcon = () => (
 
 function normalizeSlide(slide, index) {
   const fallback = HOME_SLIDER_DEFAULT_SLIDES[index % HOME_SLIDER_DEFAULT_SLIDES.length] || HOME_SLIDER_DEFAULT_SLIDES[0];
-  return { ...fallback, ...(slide && typeof slide === "object" ? slide : {}) };
+  const merged = { ...fallback, ...(slide && typeof slide === "object" ? slide : {}) };
+  return {
+    ...merged,
+    videoStyle: ["style1", "style2", "style3"].includes(merged?.videoStyle) ? merged.videoStyle : "style3",
+    videoFit: merged?.videoFit === "cover" ? "cover" : "contain",
+  };
 }
 
 export default function HomeSlider(props) {
@@ -130,13 +138,20 @@ export default function HomeSlider(props) {
   }, [autoplaySpeed, goTo, paused, settings.homeSliderAutoplay, slides.length]);
 
   useEffect(() => {
-    const videos = rootRef.current?.querySelectorAll("video[data-home-slider-video]") || [];
+    const videos = rootRef.current?.querySelectorAll("video") || [];
     videos.forEach((video) => {
-      const slideIndex = Number(video.dataset.slideIndex);
-      if (slideIndex === current) {
+      const slideEl = video.closest(".home-slider-slide");
+      const isCurrent = slideEl?.classList.contains("is-active");
+      if (isCurrent) {
         video.muted = true;
         video.playsInline = true;
         video.play?.().catch(() => {});
+        if (video.videoWidth && video.videoHeight) {
+          rootRef.current?.style.setProperty(
+            "--home-slider-video-aspect",
+            `${video.videoWidth} / ${video.videoHeight}`
+          );
+        }
       } else {
         video.pause?.();
       }
@@ -155,6 +170,15 @@ export default function HomeSlider(props) {
 
   const activeSlide = slides[current] || slides[0];
   const align = ["center", "right"].includes(activeSlide.textAlignment) ? activeSlide.textAlignment : "left";
+  const hasSlideContent = Boolean(
+    activeSlide.smallTitle ||
+    activeSlide.headingLine1 ||
+    activeSlide.headingLine2 ||
+    activeSlide.headingHighlight ||
+    activeSlide.description ||
+    activeSlide.primaryButtonLabel ||
+    activeSlide.secondaryButtonLabel
+  );
   const headingColor = getColor(activeSlide.headingColorKey || "warmWhite") || "#FAF6EF";
   const highlightColor = getColor(activeSlide.highlightColorKey || "primarySoft") || "#F2867F";
   const descriptionColor = getColor(activeSlide.descriptionColorKey || "white") || "#FFFFFF";
@@ -164,16 +188,22 @@ export default function HomeSlider(props) {
   const background = getColor(settings.homeSliderBackgroundColorKey || "dark") || "#211E30";
   const railColor = getColor(settings.homeSliderRailColorKey || "primary") || "#E03C33";
   const badgeTarget = targetOf(settings.homeSliderBadgeTarget);
+  const sliderType = ["style1", "style2", "style3"].includes(settings.homeSliderType)
+    ? settings.homeSliderType
+    : (slides.find((s) => ["style1", "style2", "style3"].includes(s?.videoStyle))?.videoStyle || "style2");
+  const hasStyle2 = sliderType === "style2";
+  const isCurrentVideo = activeSlide?.mediaType === "video" && Boolean(activeSlide?.videoUrl);
 
   return (
     <FullWidthBackground className={`${sectionClassName || ""} home-slider-full-width`.trim()} $managedStyle={sectionStyle}>
       <PageContainer className="home-slider-structure-container" $managedStyle={containerStyle}>
       <section
       ref={rootRef}
-      className="home-cinematic-slider"
+      className={`home-cinematic-slider is-${sliderType}${hasStyle2 ? " has-style-2" : ""}${isCurrentVideo ? " is-video-active" : ""}`}
       aria-roledescription="carousel"
       aria-label="Home highlights"
       style={{
+        "--home-slider-video-aspect": "16 / 9",
         "--home-slider-min-height": `${minHeight}px`,
         "--home-slider-transition": `${transitionSpeed}ms`,
         "--home-slider-autoplay": `${autoplaySpeed}ms`,
@@ -204,68 +234,27 @@ export default function HomeSlider(props) {
           const isActive = index === current;
           const wasActive = index === previous;
           const isInitial = previous == null && isActive;
-          const overlayOpacity = clamp(slide.overlayOpacity, 0, 100, 100) / 100;
-          const mediaType = slide.mediaType === "video" ? "video" : "image";
-          const videoUrl = String(slide.videoUrl || "").trim();
-          return (
-            <article
-              key={`${slide.image || videoUrl || "slide"}-${index}`}
-              className={`home-slider-slide${isActive ? " is-active" : ""}${wasActive ? " was-active" : ""}${isInitial ? " is-initial" : ""}`}
-              aria-hidden={!isActive}
-            >
-              {mediaType === "video" && videoUrl ? (
-                <video
-                  data-home-slider-video
-                  data-slide-index={index}
-                  className="home-slider-media"
-                  src={videoUrl}
-                  poster={slide.videoPoster || slide.image || undefined}
-                  autoPlay={isActive}
-                  muted
-                  loop
-                  playsInline
-                  preload={isActive ? "auto" : "metadata"}
-                  onLoadedData={(event) => {
-                    if (index !== currentRef.current) return;
-                    event.currentTarget.muted = true;
-                    event.currentTarget.play?.().catch(() => {});
-                  }}
-                  onCanPlay={(event) => {
-                    if (index !== currentRef.current) return;
-                    event.currentTarget.muted = true;
-                    event.currentTarget.play?.().catch(() => {});
-                  }}
-                  aria-label={slide.alt || ""}
-                  style={{ objectPosition: slide.backgroundPosition || "center center" }}
-                />
-              ) : (
-                <picture>
-                  {slide.mobileImage ? <source media="(max-width: 767px)" srcSet={slide.mobileImage} /> : null}
-                  <img
-                    className="home-slider-media"
-                    src={slide.image || slide.videoPoster || ""}
-                    alt={slide.alt || ""}
-                    loading={index === 0 ? "eager" : "lazy"}
-                    fetchPriority={index === 0 ? "high" : "auto"}
-                    decoding={index === 0 ? "sync" : "async"}
-                    style={{ objectPosition: slide.backgroundPosition || "center center" }}
-                  />
-                </picture>
-              )}
-              <div className="home-slider-scrim" style={{ opacity: overlayOpacity }} />
-              <PageContainer className={`home-slider-caption align-${slide.textAlignment || "left"}`}>
-                {slide.captionTitle ? <p>{slide.captionTitle}</p> : null}
-                {slide.captionButtonLabel && slide.captionButtonUrl ? (
-                  <a href={slide.captionButtonUrl} target={targetOf(slide.captionButtonTarget)} rel={linkRel(targetOf(slide.captionButtonTarget))}>
-                    {slide.captionButtonLabel}<ArrowIcon />
-                  </a>
-                ) : null}
-              </PageContainer>
-            </article>
-          );
+          const commonProps = {
+            slide,
+            index,
+            isActive,
+            wasActive,
+            isInitial,
+            currentRef,
+            rootRef,
+          };
+          const slideKey = `${slide.image || slide.videoUrl || "slide"}-${index}`;
+
+          if (sliderType === "style1") {
+            return <Style1Slide key={slideKey} {...commonProps} />;
+          }
+          if (sliderType === "style2") {
+            return <Style2Slide key={slideKey} {...commonProps} />;
+          }
+          return <Style3Slide key={slideKey} {...commonProps} />;
         })}
 
-        <PageContainer className={`home-slider-content home-slider-page-container align-${align}`} $managedStyle={containerStyle}>
+        <PageContainer className={`home-slider-content home-slider-page-container align-${align}${hasSlideContent ? " has-content" : ""}`} $managedStyle={containerStyle}>
           {activeSlide.smallTitle ? (
             activeSlide.smallTitleUrl ? (
               <a className="home-slider-pill home-slider-intro" href={activeSlide.smallTitleUrl} target={targetOf(activeSlide.smallTitleTarget)} rel={linkRel(targetOf(activeSlide.smallTitleTarget))}>
@@ -327,16 +316,53 @@ export default function HomeSlider(props) {
       <style dangerouslySetInnerHTML={{ __html: `
         .home-cinematic-slider, .home-cinematic-slider * { box-sizing: border-box; }
         .home-slider-structure-container { display: contents; }
-        .home-cinematic-slider { --home-slider-body: "Instrument Sans", system-ui, sans-serif; --home-slider-display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif; position: relative; width: 100%; min-height: max(calc(100svh - var(--home-slider-viewport-offset, 40px)), var(--home-slider-min-height, 0px)); min-height: max(calc(100dvh - var(--home-slider-viewport-offset, 40px)), var(--home-slider-min-height, 0px)); overflow: hidden; color: #fbfaf7; background: var(--home-slider-background); font-family: var(--home-slider-body); font-synthesis: none; -webkit-font-smoothing: antialiased; touch-action: pan-y; }
-        .home-cinematic-slider::before { content: ""; position: absolute; inset: 0; z-index: 1; background: radial-gradient(52% 60% at 82% 10%,rgba(224,60,51,.16),transparent 70%),radial-gradient(40% 50% at 8% 92%,rgba(224,60,51,.1),transparent 70%); pointer-events: none; }
-        .home-slider-stage { position: relative; width: 100%; min-height: max(calc(100svh - var(--home-slider-viewport-offset, 40px)), var(--home-slider-min-height, 0px)); min-height: max(calc(100dvh - var(--home-slider-viewport-offset, 40px)), var(--home-slider-min-height, 0px)); }
+        .home-cinematic-slider {
+          --home-slider-body: "Instrument Sans", system-ui, sans-serif;
+          --home-slider-display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+          position: relative;
+          width: 100%;
+          height: max(calc(100svh - var(--home-slider-viewport-offset, 40px)), var(--home-slider-min-height, 0px));
+          height: max(calc(100dvh - var(--home-slider-viewport-offset, 40px)), var(--home-slider-min-height, 0px));
+          min-height: max(calc(100svh - var(--home-slider-viewport-offset, 40px)), var(--home-slider-min-height, 0px));
+          min-height: max(calc(100dvh - var(--home-slider-viewport-offset, 40px)), var(--home-slider-min-height, 0px));
+          overflow: hidden;
+          color: #fbfaf7;
+          background: var(--home-slider-background);
+          font-family: var(--home-slider-body);
+          font-synthesis: none;
+          -webkit-font-smoothing: antialiased;
+          touch-action: pan-y;
+        }
+        .home-cinematic-slider::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          z-index: 1;
+          background: radial-gradient(52% 60% at 82% 10%,rgba(224,60,51,.16),transparent 70%),radial-gradient(40% 50% at 8% 92%,rgba(224,60,51,.1),transparent 70%);
+          pointer-events: none;
+        }
+        .home-slider-stage {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          min-height: inherit;
+        }
+
         .home-slider-slide { position: absolute; inset: 0; z-index: 0; visibility: hidden; clip-path: inset(100% 0 0 0); }
         .home-slider-slide.is-initial { z-index: 1; visibility: visible; clip-path: inset(0) !important; transition: none !important; }
         .home-slider-slide.is-active { z-index: 1; visibility: visible; clip-path: inset(0); transition: clip-path var(--home-slider-transition) cubic-bezier(.77,0,.18,1); }
         .home-slider-slide.was-active { z-index: 0; visibility: visible; clip-path: inset(0); }
         .home-slider-slide picture { position: absolute; inset: 0; display: block; }
         .home-slider-media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: saturate(.85); }
-        .home-slider-slide.is-active .home-slider-media { animation: homeSliderSettle 8s ease-out forwards; }
+        .home-slider-slide.is-active .home-slider-media:not(.home-slider-video-media) { animation: homeSliderSettle 8s ease-out forwards; }
+        
+        .home-slider-slide.is-video-slide {
+          background: #171422;
+        }
+        ${style1Css}
+        ${style2Css}
+        ${style3Css}
+        .home-slider-slide.is-video-slide .home-slider-scrim { pointer-events: none; }
         .home-slider-scrim { position: absolute; inset: 0; background: linear-gradient(100deg,rgba(23,20,34,.94) 8%,rgba(23,20,34,.62) 48%,rgba(23,20,34,.28) 100%),linear-gradient(0deg,rgba(23,20,34,.85) 0%,transparent 36%),radial-gradient(46% 60% at 88% 8%,rgba(224,60,51,.22),transparent 70%); }
         .home-slider-caption { position: absolute; left: 0; right: 0; bottom: clamp(22px,4vh,44px); z-index: 2; width: 90%; max-width: var(--layout-width, 100%); margin: 0 auto; padding-top: 0; padding-bottom: 0; padding-left: 0; padding-right: 0; display: flex; align-items: baseline; gap: 20px; flex-wrap: wrap; }
         .home-slider-caption.align-center { justify-content: center; text-align: center; }
@@ -346,21 +372,38 @@ export default function HomeSlider(props) {
         .home-slider-slide.is-initial .home-slider-caption p, .home-slider-slide.is-initial .home-slider-caption a { animation: none !important; opacity: 1 !important; transform: none !important; }
         .home-slider-slide.is-active:not(.is-initial) .home-slider-caption p, .home-slider-slide.is-active:not(.is-initial) .home-slider-caption a { animation: homeSliderCaptionUp .8s cubic-bezier(.16,1,.3,1) .25s backwards; }
         .home-slider-slide.is-active:not(.is-initial) .home-slider-caption a { animation-delay: .4s; }
-        .home-slider-content { position: relative; z-index: 3; width: 90%; max-width: var(--layout-width, 100%); margin: 0 auto; min-height: max(calc(100svh - var(--home-slider-viewport-offset, 40px)), var(--home-slider-min-height, 0px)); min-height: max(calc(100dvh - var(--home-slider-viewport-offset, 40px)), var(--home-slider-min-height, 0px)); padding-top: max(var(--home-slider-container-padding-top, 0px), calc(var(--appearance-header-offset, 132px) + 36px), calc(var(--appearance-header-height, 92px) + 48px)); padding-bottom: max(var(--home-slider-container-padding-bottom, 0px), 110px); padding-left: 0; padding-right: 0; display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; pointer-events: none; }
+        .home-slider-content {
+          position: absolute;
+          inset: 0;
+          z-index: 3;
+          width: 90%;
+          max-width: var(--layout-width, 100%);
+          margin: 0 auto;
+          height: 100%;
+          padding-top: max(var(--home-slider-container-padding-top, 0px), calc(var(--appearance-header-offset, 132px) + 20px), calc(var(--appearance-header-height, 92px) + 28px));
+          padding-bottom: max(var(--home-slider-container-padding-bottom, 0px), 76px);
+          padding-left: 0;
+          padding-right: 0;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: flex-start;
+          pointer-events: none;
+        }
         .public-site .home-cinematic-slider { --home-slider-viewport-offset: var(--appearance-ribbon-height, 40px); }
         .home-slider-content > * { pointer-events: auto; }
         .home-slider-content.align-center { align-items: center; text-align: center; }
         .home-slider-content.align-right { align-items: flex-end; text-align: right; }
-        .home-slider-pill { display: inline-flex; align-items: center; gap: 10px; max-width: 100%; margin-bottom: clamp(20px,3vh,32px); padding: 9px 18px; color: #fbfaf7 !important; -webkit-text-fill-color: #fbfaf7 !important; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.22); border-radius: 999px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); font-size: 13.5px; font-weight: 600; text-decoration: none !important; transition: background .25s,border-color .25s; }
+        .home-slider-pill { display: inline-flex; align-items: center; gap: 10px; max-width: 100%; margin-bottom: clamp(14px, 2vh, 22px); padding: 8px 16px; color: #fbfaf7 !important; -webkit-text-fill-color: #fbfaf7 !important; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.22); border-radius: 999px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); font-size: 13px; font-weight: 600; text-decoration: none !important; transition: background .25s,border-color .25s; }
         .home-slider-pill:hover { background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.4); }
         .home-slider-pill > svg:first-child { flex: 0 0 auto; color: #f2867f; }
         .home-slider-pill span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .home-slider-title { max-width: 20ch; margin: 0 0 clamp(18px,2.6vh,28px); color: var(--home-slider-heading) !important; font-family: var(--home-slider-display) !important; font-size: clamp(40px,6.4vw,96px) !important; font-weight: 650 !important; line-height: 1.03 !important; letter-spacing: -.028em !important; }
+        .home-slider-title { max-width: 22ch; margin: 0 0 clamp(14px, 1.8vh, 22px); color: var(--home-slider-heading) !important; font-family: var(--home-slider-display) !important; font-size: clamp(34px, 4.8vw, 76px) !important; font-weight: 650 !important; line-height: 1.05 !important; letter-spacing: -.028em !important; }
         .home-slider-title > span { display: block; font-family: inherit !important; }
         .home-slider-title em { color: var(--home-slider-highlight); font-family: inherit !important; font-style: normal; }
-        .home-slider-description { max-width: 42ch; margin: 0 0 clamp(24px,3.4vh,36px); color: var(--home-slider-description); opacity: .82; font-size: clamp(15px,1.3vw,18px); line-height: 1.6; }
+        .home-slider-description { max-width: 44ch; margin: 0 0 clamp(16px, 2.2vh, 26px); color: var(--home-slider-description); opacity: .82; font-size: clamp(14px, 1.2vw, 17px); line-height: 1.55; }
         .home-slider-actions { display: flex; gap: 14px; flex-wrap: wrap; }
-        .home-slider-button { display: inline-flex; align-items: center; justify-content: center; padding: 17px 34px; border: 1px solid transparent; border-radius: 999px; font-size: 16px; font-weight: 600; line-height: 1.2; text-decoration: none !important; transition: transform .25s,background .25s,border-color .25s; }
+        .home-slider-button { display: inline-flex; align-items: center; justify-content: center; padding: 15px 32px; border: 1px solid transparent; border-radius: 999px; font-size: 15.5px; font-weight: 600; line-height: 1.2; text-decoration: none !important; transition: transform .25s,background .25s,border-color .25s; }
         .home-slider-button.primary { color: var(--home-slider-primary-text) !important; -webkit-text-fill-color: var(--home-slider-primary-text) !important; background: var(--home-slider-primary-bg); box-shadow: 0 14px 30px rgba(224,60,51,.28); }
         .home-slider-button.secondary { color: var(--home-slider-secondary-text) !important; -webkit-text-fill-color: var(--home-slider-secondary-text) !important; background: rgba(23, 20, 34, 0.45); border-color: rgba(255,255,255,.35); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
         .home-slider-button:hover { transform: translateY(-2px); }
@@ -381,27 +424,83 @@ export default function HomeSlider(props) {
         @keyframes homeSliderSpin { to { transform: rotate(360deg); } }
         @media (max-width: 1199px) {
           .home-cinematic-slider,
-          .home-slider-stage,
-          .home-slider-content {
+          .home-slider-stage {
+            height: max(calc(100svh - var(--home-slider-viewport-offset, 40px)), var(--home-slider-min-height, 0px));
+            height: max(calc(100dvh - var(--home-slider-viewport-offset, 40px)), var(--home-slider-min-height, 0px));
             min-height: max(calc(100svh - var(--home-slider-viewport-offset, 40px)), var(--home-slider-min-height, 0px));
             min-height: max(calc(100dvh - var(--home-slider-viewport-offset, 40px)), var(--home-slider-min-height, 0px));
           }
-          .home-slider-content { padding-top: max(var(--home-slider-container-padding-top, 0px), calc(var(--appearance-header-offset, 120px) + 28px), calc(var(--appearance-header-height, 80px) + 36px)); padding-bottom: max(var(--home-slider-container-padding-bottom, 0px), 80px); }
+          .home-slider-content {
+            padding-top: max(var(--home-slider-container-padding-top, 0px), calc(var(--appearance-header-offset, 120px) + 20px), calc(var(--appearance-header-height, 80px) + 28px));
+            padding-bottom: max(var(--home-slider-container-padding-bottom, 0px), 70px);
+          }
         }
         @media (max-width: 1023px) {
-          .home-slider-title { max-width: 16ch; font-size: clamp(36px, 6.4vw, 56px) !important; }
+          .home-slider-title { max-width: 18ch; font-size: clamp(32px, 5.2vw, 52px) !important; }
         }
         @media (max-width: 767px) {
           .public-site .home-cinematic-slider { --home-slider-viewport-offset: var(--appearance-ribbon-height, 36px); }
-          .home-cinematic-slider, .home-slider-stage { min-height: max(520px, calc(100svh - var(--home-slider-viewport-offset, 36px))); min-height: max(520px, calc(100dvh - var(--home-slider-viewport-offset, 36px))); }
-          .home-slider-content { width: 100%; padding-left: 20px; padding-right: 20px; min-height: max(520px, calc(100svh - var(--home-slider-viewport-offset, 36px))); min-height: max(520px, calc(100dvh - var(--home-slider-viewport-offset, 36px))); justify-content: center !important; gap: clamp(16px, 3.2vh, 24px); padding-top: max(var(--home-slider-container-padding-top, 0px), calc(var(--appearance-header-height, 76px) + 16px)); padding-bottom: max(var(--home-slider-container-padding-bottom, 0px), 18px); }
+          .home-cinematic-slider,
+          .home-cinematic-slider .home-slider-stage {
+            height: max(560px, calc(100svh - var(--home-slider-viewport-offset, 36px)));
+            height: max(560px, calc(100dvh - var(--home-slider-viewport-offset, 36px)));
+            min-height: max(560px, calc(100svh - var(--home-slider-viewport-offset, 36px)));
+            min-height: max(560px, calc(100dvh - var(--home-slider-viewport-offset, 36px)));
+          }
+          .home-slider-content {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            padding-left: 20px;
+            padding-right: 20px;
+            justify-content: center !important;
+            gap: clamp(14px, 2.6vh, 22px);
+            padding-top: max(var(--home-slider-container-padding-top, 0px), calc(var(--appearance-header-height, 76px) + 16px));
+            padding-bottom: max(var(--home-slider-container-padding-bottom, 0px), 24px);
+          }
           .public-site:has(.appearance-header.is-preview) .home-slider-content { padding-top: max(var(--home-slider-container-padding-top, 0px), 18px); }
           .home-slider-pill { max-width: 100%; margin-bottom: 0; padding: 8px 14px; font-size: 12px; line-height: 1.25; }
           .home-slider-title { max-width: 100%; margin-bottom: 0; font-size: clamp(28px, 7.6vw, 40px) !important; line-height: 1.12 !important; letter-spacing: -.02em !important; text-wrap: balance; }
           .home-slider-description { max-width: 38ch; margin-bottom: 0; font-size: 14px; line-height: 1.6; opacity: .86; text-wrap: pretty; }
           .home-slider-actions { display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; width: 100%; max-width: 100%; margin-top: 2px; }
           .home-slider-button { flex: 1 1 0; min-width: 0; width: auto; min-height: 48px; padding: 12px 14px; font-size: 14px; line-height: 1.25; text-align: center; }
-          .home-slider-rail { right: 10px; }
+          .home-slider-rail {
+            position: absolute !important;
+            right: 12px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            z-index: 10 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 7px !important;
+          }
+          .home-slider-rail button {
+            position: relative !important;
+            width: 5px !important;
+            height: 18px !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            background: rgba(255, 255, 255, 0.42) !important;
+            border: 0 !important;
+            border-radius: 999px !important;
+            cursor: pointer !important;
+            transition: height 0.25s, background 0.25s !important;
+          }
+          .home-slider-rail button.is-active {
+            background: rgba(255, 255, 255, 0.95) !important;
+            height: 26px !important;
+          }
+          .home-slider-rail button::after {
+            content: "" !important;
+            position: absolute !important;
+            inset: auto 0 0 !important;
+            height: 0 !important;
+            background: var(--home-slider-rail, #E03C33) !important;
+          }
+          .home-slider-rail button.is-active::after {
+            animation: homeSliderRailFill var(--home-slider-autoplay) linear forwards !important;
+          }
           .home-slider-caption { display: none; }
           .home-slider-badge { display: none; }
         }
@@ -412,6 +511,9 @@ export default function HomeSlider(props) {
           .home-slider-description { font-size: 13.5px; line-height: 1.55; max-width: 34ch; }
           .home-slider-actions { gap: 10px; }
           .home-slider-button { min-height: 46px; padding: 12px 10px; font-size: 13.5px; }
+          .home-slider-rail { right: 8px !important; gap: 5px !important; }
+          .home-slider-rail button { width: 4.5px !important; height: 15px !important; }
+          .home-slider-rail button.is-active { height: 22px !important; }
         }
         @media (max-width: 350px) {
           .home-slider-actions { flex-direction: column; gap: 8px; max-width: 100%; }

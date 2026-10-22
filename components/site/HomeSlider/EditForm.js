@@ -21,7 +21,11 @@ import {
   getManageSectionInitialValues,
   getManageSectionPayload,
 } from "@/lib/manageSectionFields";
-import { HOME_SLIDER_DEFAULT_PROPS, HOME_SLIDER_DEFAULT_SLIDES } from "./defaults";
+import {
+  HOME_SLIDER_DEFAULT_PROPS,
+  HOME_SLIDER_DEFAULT_SLIDES,
+  HOME_SLIDER_TYPE_OPTIONS,
+} from "./defaults";
 
 const API_PATH = "/api/theme/HomeSlider";
 const PREFIX = "homeSlider";
@@ -69,10 +73,14 @@ function normalizeSlide(item = {}, index = 0) {
     ...item,
     active: item?.active !== false,
     mediaType: item?.mediaType === "video" ? "video" : "image",
+    videoStyle: ["style1", "style2", "style3"].includes(item?.videoStyle)
+      ? item.videoStyle
+      : (fallback?.videoStyle || "style3"),
     image: normalizeMediaInputUrl(item?.image ?? fallback.image),
     mobileImage: normalizeMediaInputUrl(item?.mobileImage),
     videoUrl: normalizeMediaInputUrl(item?.videoUrl),
     videoPoster: normalizeMediaInputUrl(item?.videoPoster),
+    videoFit: item?.videoFit === "cover" ? "cover" : "contain",
     alt: clean(item?.alt ?? fallback.alt),
     backgroundPosition: clean(item?.backgroundPosition || "center center"),
     smallTitle: clean(item?.smallTitle ?? fallback.smallTitle),
@@ -108,7 +116,12 @@ function normalizeSettings(data = {}) {
   const slides = Array.isArray(source.homeSliderSlides) && source.homeSliderSlides.length
     ? source.homeSliderSlides
     : HOME_SLIDER_DEFAULT_SLIDES;
+  const legacyStyle = slides.find((s) => ["style1", "style2", "style3"].includes(s?.videoStyle))?.videoStyle;
+  const homeSliderType = ["style1", "style2", "style3"].includes(source.homeSliderType)
+    ? source.homeSliderType
+    : (legacyStyle || "style2");
   return {
+    homeSliderType,
     homeSliderSlides: slides.map(normalizeSlide),
     homeSliderAutoplay: source.homeSliderAutoplay !== false,
     homeSliderAutoplaySpeed: Number(source.homeSliderAutoplaySpeed) || 6000,
@@ -254,6 +267,13 @@ function HomeSliderEditForm(
             label: "Slider Settings",
             children: (
               <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                <Row gutter={16}>
+                  <Col span={24}>
+                    <Form.Item name="homeSliderType" label="Slider Type">
+                      <Select options={HOME_SLIDER_TYPE_OPTIONS} />
+                    </Form.Item>
+                  </Col>
+                </Row>
                 <SwitchSettingsCard items={[
                   { name: "homeSliderAutoplay", label: "Autoplay", tooltip: "Advance slides automatically" },
                   { name: "homeSliderShowRail", label: "Progress rail", tooltip: "Show the vertical slide progress controls" },
@@ -314,11 +334,64 @@ function HomeSliderEditForm(
                         <Card size="small" title="Status & Background">
                           <Row gutter={16}>
                             <Col span={24}><SwitchSettingsCard items={[{ name: [name, "active"], label: "Active", tooltip: "Enable this slide." }]} /></Col>
-                            <Col span={12}><Form.Item {...restField} name={[name, "mediaType"]} label="Media type"><Select options={[{ value: "image", label: "Image" }, { value: "video", label: "Video" }]} /></Form.Item></Col>
-                            <Col span={24}><Form.Item {...restField} name={[name, "image"]} label="Desktop image" rules={[({ getFieldValue }) => ({ validator: (_, value) => { const type = getFieldValue(["homeSliderSlides", name, "mediaType"]); return type === "image" && !clean(value) ? Promise.reject(new Error("Desktop image is required for an image slide")) : Promise.resolve(); } })]}><MediaPickerInput uiVariant="stacked" hintText="Required size min: 1440X900" /></Form.Item></Col>
-                            <Col span={24}><Form.Item {...restField} name={[name, "mobileImage"]} label="Mobile image"><MediaPickerInput uiVariant="stacked" hintText="Optional portrait crop for screens below 768px" /></Form.Item></Col>
-                            <Col span={24}><Form.Item {...restField} name={[name, "videoUrl"]} label="Background video" extra="Choose/upload MP4 or WebM. The video plays muted and loops."><MediaPickerInput mediaType="video" showVariants={false} uiVariant="stacked" placeholder="/uploads/home-slide.mp4" /></Form.Item></Col>
-                            <Col span={24}><Form.Item {...restField} name={[name, "videoPoster"]} label="Video poster"><MediaPickerInput uiVariant="stacked" /></Form.Item></Col>
+                            <Col span={24}><Form.Item {...restField} name={[name, "mediaType"]} label="Media type"><Select options={[{ value: "image", label: "Image" }, { value: "video", label: "Video" }]} /></Form.Item></Col>
+                            <Form.Item
+                              noStyle
+                              shouldUpdate={(prev, curr) =>
+                                prev?.homeSliderSlides?.[name]?.mediaType !== curr?.homeSliderSlides?.[name]?.mediaType
+                              }
+                            >
+                              {({ getFieldValue }) => {
+                                const currentMediaType = getFieldValue(["homeSliderSlides", name, "mediaType"]) || "image";
+                                const isVideo = currentMediaType === "video";
+                                if (isVideo) {
+                                  return (
+                                    <>
+                                      <Col span={24}>
+                                        <Form.Item
+                                          {...restField}
+                                          name={[name, "videoUrl"]}
+                                          label="Background video"
+                                          extra="Choose/upload MP4 or WebM. The video plays muted and loops."
+                                          rules={[{ required: true, message: "Background video is required for a video slide" }]}
+                                        >
+                                          <MediaPickerInput
+                                            mediaType="video"
+                                            showVariants={false}
+                                            uiVariant="stacked"
+                                            placeholder="/uploads/home-slide.mp4"
+                                          />
+                                        </Form.Item>
+                                      </Col>
+                                      <Col span={24}>
+                                        <Form.Item {...restField} name={[name, "videoPoster"]} label="Video poster">
+                                          <MediaPickerInput uiVariant="stacked" />
+                                        </Form.Item>
+                                      </Col>
+                                    </>
+                                  );
+                                }
+                                return (
+                                  <>
+                                    <Col span={24}>
+                                      <Form.Item
+                                        {...restField}
+                                        name={[name, "image"]}
+                                        label="Desktop image"
+                                        rules={[{ required: true, message: "Desktop image is required for an image slide" }]}
+                                      >
+                                        <MediaPickerInput uiVariant="stacked" hintText="Required size min: 1440X900" />
+                                      </Form.Item>
+                                    </Col>
+                                    <Col span={24}>
+                                      <Form.Item {...restField} name={[name, "mobileImage"]} label="Mobile image">
+                                        <MediaPickerInput uiVariant="stacked" hintText="Optional portrait crop for screens below 768px" />
+                                      </Form.Item>
+                                    </Col>
+                                  </>
+                                );
+                              }}
+                            </Form.Item>
                             <Col span={16}><Form.Item {...restField} name={[name, "alt"]} label="Alternative text"><Input /></Form.Item></Col>
                             <Col span={8}><Form.Item {...restField} name={[name, "backgroundPosition"]} label="Position"><Select options={POSITION_OPTIONS} /></Form.Item></Col>
                             <Col span={12}><Form.Item {...restField} name={[name, "overlayOpacity"]} label="Overlay strength (%)"><InputNumber min={0} max={100} style={{ width: "100%" }} /></Form.Item></Col>

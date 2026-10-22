@@ -26,6 +26,8 @@ export const HOME_SLIDER_DEFAULT_SLIDES = [
     captionButtonLabel: "Explore",
     captionButtonUrl: "/our-works/educational-support-programmes",
     captionButtonTarget: "_self",
+    videoFit: "contain",
+    videoStyle: "style3",
     textAlignment: "left",
     overlayOpacity: 100,
     headingColorKey: "warmWhite",
@@ -62,6 +64,8 @@ export const HOME_SLIDER_DEFAULT_SLIDES = [
     captionButtonLabel: "Explore",
     captionButtonUrl: "/our-works/medical-aid",
     captionButtonTarget: "_self",
+    videoFit: "contain",
+    videoStyle: "style3",
     textAlignment: "left",
     overlayOpacity: 100,
     headingColorKey: "warmWhite",
@@ -98,6 +102,8 @@ export const HOME_SLIDER_DEFAULT_SLIDES = [
     captionButtonLabel: "Explore",
     captionButtonUrl: "/our-works/clinics-dispensaries",
     captionButtonTarget: "_self",
+    videoFit: "contain",
+    videoStyle: "style3",
     textAlignment: "left",
     overlayOpacity: 100,
     headingColorKey: "warmWhite",
@@ -134,6 +140,8 @@ export const HOME_SLIDER_DEFAULT_SLIDES = [
     captionButtonLabel: "Explore",
     captionButtonUrl: "/our-works/relief-of-poverty",
     captionButtonTarget: "_self",
+    videoFit: "contain",
+    videoStyle: "style3",
     textAlignment: "left",
     overlayOpacity: 100,
     headingColorKey: "warmWhite",
@@ -145,7 +153,16 @@ export const HOME_SLIDER_DEFAULT_SLIDES = [
   },
 ];
 
+export const HOME_SLIDER_TYPE_OPTIONS = [
+  { value: "style1", label: "Style 1" },
+  { value: "style2", label: "Style 2" },
+  { value: "style3", label: "Style 3" },
+];
+
+export const HOME_SLIDER_VIDEO_STYLE_OPTIONS = HOME_SLIDER_TYPE_OPTIONS;
+
 export const HOME_SLIDER_DEFAULT_PROPS = {
+  homeSliderType: "style2",
   homeSliderSlides: HOME_SLIDER_DEFAULT_SLIDES,
   homeSliderAutoplay: true,
   homeSliderAutoplaySpeed: 6000,
