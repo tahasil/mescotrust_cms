@@ -520,9 +520,10 @@ function DonateNowEditForm(
   }));
 
   return (
-    <Form form={form} layout="vertical">
+    <Form form={form} layout="vertical" preserve={true}>
       <Collapse
-        defaultActiveKey={["manage", "title", "copy", "fields", "lookup", "purposes"]}
+        defaultActiveKey={[]}
+        destroyInactivePanel={false}
         items={[
           {
             key: "manage",
@@ -921,7 +922,7 @@ function DonateNowEditForm(
               </>
             ),
           },
-        ]}
+        ].map((item) => ({ ...item, forceRender: true }))}
       />
       {saving ? (
         <div style={{ marginTop: 12, color: "#888", fontSize: 12 }}>Saving...</div>

@@ -2283,42 +2283,49 @@ const PurposeCard = styled.button`
     height: 2px;
     background: #E03C33;
   }
-  &:hover {
-    border-color: ${(props) =>
-      props.$cardHoverBorder ||
-      (props.$active
-        ? props.$cardActiveBorder || props.$cardBorder || "rgba(224, 60, 51, 0.35)"
-        : "rgba(224, 60, 51, 0.35)")};
-    background: ${(props) =>
-      props.$cardHoverBg ||
-      (props.$active
-        ? props.$cardActiveBg || props.$pkgActiveColor || "#fbebeb"
-        : "#fff6f5")};
-    ${(props) =>
-      props.$cardHoverText
-        ? `
-      h4 {
-        color: ${props.$cardHoverText} !important;
-      }
-      p {
-        color: ${props.$cardHoverText} !important;
-      }
-    `
-        : ""}
-    ${(props) =>
-      props.$cardHoverAmount
-        ? `
-      .amount {
-        color: ${props.$cardHoverAmount} !important;
-      }
-    `
-        : props.$cardHoverText
+  &:focus {
+    outline: none;
+  }
+  &:focus-visible {
+    outline: 2px solid ${getColor("primary")};
+    outline-offset: 2px;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      border-color: ${(props) =>
+        props.$active
+          ? props.$cardActiveBorder || props.$cardBorder || "rgba(224, 60, 51, 0.35)"
+          : props.$cardHoverBorder || "rgba(224, 60, 51, 0.35)"};
+      background: ${(props) =>
+        props.$active
+          ? props.$cardActiveBg || props.$pkgActiveColor || "#fbebeb"
+          : props.$cardHoverBg || "#fff6f5"};
+      ${(props) =>
+        !props.$active && props.$cardHoverText
           ? `
-      .amount {
-        color: ${props.$cardHoverText} !important;
-      }
-    `
+        h4 {
+          color: ${props.$cardHoverText} !important;
+        }
+        p {
+          color: ${props.$cardHoverText} !important;
+        }
+      `
           : ""}
+      ${(props) =>
+        !props.$active && props.$cardHoverAmount
+          ? `
+        .amount {
+          color: ${props.$cardHoverAmount} !important;
+        }
+      `
+          : !props.$active && props.$cardHoverText
+            ? `
+        .amount {
+          color: ${props.$cardHoverText} !important;
+        }
+      `
+            : ""}
+    }
   }
   h4 {
     margin: 0;
