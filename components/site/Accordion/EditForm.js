@@ -51,17 +51,6 @@ const COLOR_FIELDS = [
   "accordionImageBgColorKey",
   "accordionImageBorderColorKey",
 ];
-const PAGE_CONTAINER_FIELDS = [
-  "accordionPageContainerBgType",
-  "accordionPageContainerBgImage",
-  "accordionPageContainerBgColorKey",
-  "accordionPageContainerPaddingTop",
-  "accordionPageContainerPaddingRight",
-  "accordionPageContainerPaddingBottom",
-  "accordionPageContainerPaddingLeft",
-  "accordionPageContainerMarginTop",
-  "accordionPageContainerMarginBottom",
-];
 
 function text(value) {
   return value == null ? "" : String(value).trim();
@@ -229,9 +218,6 @@ function AccordionEditForm(
         COLOR_FIELDS.forEach((field) => {
           payload[field] = values[field] ?? "";
         });
-        PAGE_CONTAINER_FIELDS.forEach((field) => {
-          delete payload[field];
-        });
 
         if (isPageBlock && onSaveToPage) {
           onSaveToPage(payload);
@@ -288,8 +274,6 @@ function AccordionEditForm(
                 prefix={PREFIX}
                 form={form}
                 themeColorOptions={themeColorOptions}
-                showPageContainerSpacing={false}
-                showPageContainer={false}
               />
             ),
           },

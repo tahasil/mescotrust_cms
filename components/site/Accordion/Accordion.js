@@ -346,25 +346,114 @@ export default function Accordion(props) {
     props?.accordionSectionMarginBottom != null
       ? Number(props.accordionSectionMarginBottom)
       : null;
-  const sectionBgStyle = {
-    ...(sectionBgStyleBase || {}),
-    ...(sectionPaddingTop != null && sectionPaddingTop >= 0
-      ? { paddingTop: `${sectionPaddingTop}px` }
-      : {}),
-    ...(sectionPaddingBottom != null && sectionPaddingBottom >= 0
-      ? { paddingBottom: `${sectionPaddingBottom}px` }
-      : {}),
-    ...(sectionMarginTop != null && sectionMarginTop >= 0
-      ? { marginTop: `${sectionMarginTop}px` }
-      : {}),
-    ...(sectionMarginBottom != null && sectionMarginBottom >= 0
-      ? { marginBottom: `${sectionMarginBottom}px` }
-      : {}),
-  };
+  const sectionBgStyle =
+    sectionBgStyleBase ||
+    sectionPaddingTop != null ||
+    sectionPaddingBottom != null ||
+    sectionMarginTop != null ||
+    sectionMarginBottom != null
+      ? {
+          ...(sectionBgStyleBase || {}),
+          ...(sectionPaddingTop != null && sectionPaddingTop >= 0
+            ? { paddingTop: `${sectionPaddingTop}px` }
+            : {}),
+          ...(sectionPaddingBottom != null && sectionPaddingBottom >= 0
+            ? { paddingBottom: `${sectionPaddingBottom}px` }
+            : {}),
+          ...(sectionMarginTop != null && sectionMarginTop >= 0
+            ? { marginTop: `${sectionMarginTop}px` }
+            : {}),
+          ...(sectionMarginBottom != null && sectionMarginBottom >= 0
+            ? { marginBottom: `${sectionMarginBottom}px` }
+            : {}),
+        }
+      : undefined;
+
+  const pageContainerBgType =
+    clean(props?.accordionPageContainerBgType) || "default";
+  const pageContainerBgImage = clean(props?.accordionPageContainerBgImage);
+  const pageContainerBgColorKey = clean(
+    props?.accordionPageContainerBgColorKey,
+  );
+  const pageContainerBgStyleBase =
+    pageContainerBgType === "image" && pageContainerBgImage
+      ? {
+          backgroundImage: `url(${pageContainerBgImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }
+      : pageContainerBgType === "color" && pageContainerBgColorKey
+        ? {
+            backgroundColor: getColor(pageContainerBgColorKey),
+            backgroundImage: "none",
+          }
+        : undefined;
+  const containerPaddingTop =
+    props?.accordionPageContainerPaddingTop != null
+      ? Number(props.accordionPageContainerPaddingTop)
+      : null;
+  const containerPaddingRight =
+    props?.accordionPageContainerPaddingRight != null
+      ? Number(props.accordionPageContainerPaddingRight)
+      : null;
+  const containerPaddingBottom =
+    props?.accordionPageContainerPaddingBottom != null
+      ? Number(props.accordionPageContainerPaddingBottom)
+      : null;
+  const containerPaddingLeft =
+    props?.accordionPageContainerPaddingLeft != null
+      ? Number(props.accordionPageContainerPaddingLeft)
+      : null;
+  const containerMarginTop =
+    props?.accordionPageContainerMarginTop != null
+      ? Number(props.accordionPageContainerMarginTop)
+      : null;
+  const containerMarginBottom =
+    props?.accordionPageContainerMarginBottom != null
+      ? Number(props.accordionPageContainerMarginBottom)
+      : null;
+  const pageContainerBgStyle =
+    pageContainerBgStyleBase ||
+    containerPaddingTop != null ||
+    containerPaddingRight != null ||
+    containerPaddingBottom != null ||
+    containerPaddingLeft != null ||
+    containerMarginTop != null ||
+    containerMarginBottom != null
+      ? {
+          ...(pageContainerBgStyleBase || {}),
+          ...(containerPaddingTop != null && containerPaddingTop >= 0
+            ? { paddingTop: `${containerPaddingTop}px` }
+            : {}),
+          ...(containerPaddingRight != null && containerPaddingRight >= 0
+            ? { paddingRight: `${containerPaddingRight}px` }
+            : {}),
+          ...(containerPaddingBottom != null && containerPaddingBottom >= 0
+            ? { paddingBottom: `${containerPaddingBottom}px` }
+            : {}),
+          ...(containerPaddingLeft != null && containerPaddingLeft >= 0
+            ? { paddingLeft: `${containerPaddingLeft}px` }
+            : {}),
+          ...(containerMarginTop != null && containerMarginTop >= 0
+            ? { marginTop: `${containerMarginTop}px` }
+            : {}),
+          ...(containerMarginBottom != null && containerMarginBottom >= 0
+            ? { marginBottom: `${containerMarginBottom}px` }
+            : {}),
+        }
+      : undefined;
 
   return (
-    <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
-      <PageContainer>
+    <FullWidthBackground
+      className={sectionBgClassName}
+      style={sectionBgStyle}
+      $managedStyle={sectionBgStyle}
+    >
+      <PageContainer
+        style={pageContainerBgStyle}
+        $managedStyle={pageContainerBgStyle}
+      >
         <div className="fable-section fable-accordion-section" style={colorVars}>
           {subTitle || mainTitle ? (
             <header className="fable-section-heading" style={getHeaderAlignStyles(titleAlign)}>
