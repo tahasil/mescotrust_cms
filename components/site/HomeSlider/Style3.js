@@ -92,7 +92,9 @@ export default function Style3Slide({
         </picture>
       )}
 
-      <div className="home-slider-scrim" style={{ opacity: overlayOpacity }} />
+      {!isVideo && (
+        <div className="home-slider-scrim" style={{ opacity: overlayOpacity }} />
+      )}
 
       <PageContainer className={`home-slider-caption align-${slide.textAlignment || "left"}`}>
         {slide.captionTitle ? <p>{slide.captionTitle}</p> : null}
@@ -123,7 +125,7 @@ export const style3Css = `
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #171422;
+    background: transparent;
   }
   .home-slider-video-backdrop {
     position: absolute;
@@ -155,5 +157,61 @@ export const style3Css = `
   }
   .home-slider-slide.is-style3 .home-slider-media {
     object-fit: cover;
+  }
+
+  /* Style 3: Remove all overlay colors, gradients, and scrim from video slides */
+  .home-slider-slide.is-style3.is-video-slide,
+  .home-slider-slide.is-style-3.is-video-slide {
+    background: transparent !important;
+  }
+  .home-slider-slide.is-style3.is-video-slide .home-slider-scrim,
+  .home-slider-slide.is-style-3.is-video-slide .home-slider-scrim,
+  .home-slider-slide.is-style3.is-video-slide::before,
+  .home-slider-slide.is-style-3.is-video-slide::after {
+    display: none !important;
+    opacity: 0 !important;
+    background: none !important;
+    pointer-events: none !important;
+  }
+
+  /* Style 3 Desktop View (>= 768px): Position slider cleanly below the fixed header so video is not hidden underneath */
+  @media (min-width: 768px) {
+    .public-site .home-cinematic-slider.is-style3,
+    .public-site .home-cinematic-slider.is-style-3 {
+      margin-top: var(--appearance-header-height, 92px);
+      --home-slider-viewport-offset: var(--appearance-header-offset, 132px);
+    }
+    .public-site:has(.appearance-header.is-preview) .home-cinematic-slider.is-style3,
+    .public-site:has(.appearance-header.is-preview) .home-cinematic-slider.is-style-3 {
+      margin-top: 0;
+      --home-slider-viewport-offset: var(--appearance-header-height, 92px);
+    }
+    .home-cinematic-slider.is-style3 .home-slider-content,
+    .home-cinematic-slider.is-style-3 .home-slider-content {
+      padding-top: max(var(--home-slider-container-padding-top, 0px), 28px) !important;
+      padding-bottom: max(var(--home-slider-container-padding-bottom, 0px), 36px) !important;
+    }
+  }
+
+  /* Style 3 Mobile View (< 768px) */
+  @media (max-width: 767px) {
+    .public-site .home-cinematic-slider.is-style3,
+    .public-site .home-cinematic-slider.is-style-3 {
+      margin-top: var(--appearance-header-height, 76px);
+    }
+    .public-site:has(.appearance-header.is-preview) .home-cinematic-slider.is-style3,
+    .public-site:has(.appearance-header.is-preview) .home-cinematic-slider.is-style-3 {
+      margin-top: 0;
+    }
+  }
+  @media (max-width: 480px) {
+    .public-site .home-cinematic-slider.is-style3,
+    .public-site .home-cinematic-slider.is-style-3 {
+      margin-top: var(--appearance-header-height, 66px);
+    }
+    .public-site:has(.appearance-header.is-preview) .home-cinematic-slider.is-style3,
+    .public-site:has(.appearance-header.is-preview) .home-cinematic-slider.is-style-3 {
+      margin-top: 0;
+    }
   }
 `;

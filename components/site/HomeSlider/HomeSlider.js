@@ -199,7 +199,7 @@ export default function HomeSlider(props) {
       <PageContainer className="home-slider-structure-container" $managedStyle={containerStyle}>
       <section
       ref={rootRef}
-      className={`home-cinematic-slider is-${sliderType}${hasStyle2 ? " has-style-2" : ""}${isCurrentVideo ? " is-video-active" : ""}`}
+      className={`home-cinematic-slider is-${sliderType} is-${sliderType.replace(/([0-9]+)/, "-$1")}${hasStyle2 ? " has-style-2" : ""}${isCurrentVideo ? " is-video-active" : ""}`}
       aria-roledescription="carousel"
       aria-label="Home highlights"
       style={{
@@ -341,6 +341,12 @@ export default function HomeSlider(props) {
           background: radial-gradient(52% 60% at 82% 10%,rgba(224,60,51,.16),transparent 70%),radial-gradient(40% 50% at 8% 92%,rgba(224,60,51,.1),transparent 70%);
           pointer-events: none;
         }
+        .home-cinematic-slider.is-video-active::before,
+        .home-cinematic-slider:has(.home-slider-slide.is-video-slide.is-active)::before {
+          display: none !important;
+          opacity: 0 !important;
+          background: none !important;
+        }
         .home-slider-stage {
           position: relative;
           width: 100%;
@@ -357,12 +363,17 @@ export default function HomeSlider(props) {
         .home-slider-slide.is-active .home-slider-media:not(.home-slider-video-media) { animation: homeSliderSettle 8s ease-out forwards; }
         
         .home-slider-slide.is-video-slide {
-          background: #171422;
+          background: transparent !important;
         }
         ${style1Css}
         ${style2Css}
         ${style3Css}
-        .home-slider-slide.is-video-slide .home-slider-scrim { pointer-events: none; }
+        .home-slider-slide.is-video-slide .home-slider-scrim {
+          display: none !important;
+          opacity: 0 !important;
+          background: none !important;
+          pointer-events: none !important;
+        }
         .home-slider-scrim { position: absolute; inset: 0; background: linear-gradient(100deg,rgba(23,20,34,.94) 8%,rgba(23,20,34,.62) 48%,rgba(23,20,34,.28) 100%),linear-gradient(0deg,rgba(23,20,34,.85) 0%,transparent 36%),radial-gradient(46% 60% at 88% 8%,rgba(224,60,51,.22),transparent 70%); }
         .home-slider-caption { position: absolute; left: 0; right: 0; bottom: clamp(22px,4vh,44px); z-index: 2; width: 90%; max-width: var(--layout-width, 100%); margin: 0 auto; padding-top: 0; padding-bottom: 0; padding-left: 0; padding-right: 0; display: flex; align-items: baseline; gap: 20px; flex-wrap: wrap; }
         .home-slider-caption.align-center { justify-content: center; text-align: center; }

@@ -80,7 +80,9 @@ export default function Style1Slide({
         </picture>
       )}
 
-      <div className="home-slider-scrim" style={{ opacity: overlayOpacity }} />
+      {!isVideo && (
+        <div className="home-slider-scrim" style={{ opacity: overlayOpacity }} />
+      )}
 
       <PageContainer className={`home-slider-caption align-${slide.textAlignment || "left"}`}>
         {slide.captionTitle ? <p>{slide.captionTitle}</p> : null}
@@ -109,7 +111,7 @@ export const style1Css = `
     height: 100%;
     overflow: hidden;
     display: block;
-    background: #171422;
+    background: transparent;
   }
   .home-slider-video-wrapper.is-style1 .home-slider-video-media,
   .home-slider-video-wrapper.is-style-1 .home-slider-video-media,
@@ -122,7 +124,7 @@ export const style1Css = `
     max-width: 100% !important;
     max-height: 100% !important;
     object-fit: cover !important;
-    filter: saturate(.85) !important;
+    filter: none !important;
     drop-shadow: none !important;
     box-shadow: none !important;
     z-index: 0;
@@ -131,5 +133,65 @@ export const style1Css = `
   }
   .home-slider-slide.is-style1 .home-slider-media {
     object-fit: cover;
+  }
+
+  /* Style 1: Remove all overlay colors, gradients, and scrim from video slides */
+  .home-slider-slide.is-style1.is-video-slide,
+  .home-slider-slide.is-style-1.is-video-slide {
+    background: transparent !important;
+  }
+  .home-slider-slide.is-style1.is-video-slide .home-slider-video-wrapper,
+  .home-slider-slide.is-style-1.is-video-slide .home-slider-video-wrapper {
+    background: transparent !important;
+  }
+  .home-slider-slide.is-style1.is-video-slide .home-slider-scrim,
+  .home-slider-slide.is-style-1.is-video-slide .home-slider-scrim,
+  .home-slider-slide.is-style1.is-video-slide::before,
+  .home-slider-slide.is-style-1.is-video-slide::after {
+    display: none !important;
+    opacity: 0 !important;
+    background: none !important;
+    pointer-events: none !important;
+  }
+
+  /* Style 1 Desktop View (>= 768px): Position slider cleanly below the fixed header so video is not hidden underneath */
+  @media (min-width: 768px) {
+    .public-site .home-cinematic-slider.is-style1,
+    .public-site .home-cinematic-slider.is-style-1 {
+      margin-top: var(--appearance-header-height, 92px);
+      --home-slider-viewport-offset: var(--appearance-header-offset, 132px);
+    }
+    .public-site:has(.appearance-header.is-preview) .home-cinematic-slider.is-style1,
+    .public-site:has(.appearance-header.is-preview) .home-cinematic-slider.is-style-1 {
+      margin-top: 0;
+      --home-slider-viewport-offset: var(--appearance-header-height, 92px);
+    }
+    .home-cinematic-slider.is-style1 .home-slider-content,
+    .home-cinematic-slider.is-style-1 .home-slider-content {
+      padding-top: max(var(--home-slider-container-padding-top, 0px), 28px) !important;
+      padding-bottom: max(var(--home-slider-container-padding-bottom, 0px), 36px) !important;
+    }
+  }
+
+  /* Style 1 Mobile View (< 768px) */
+  @media (max-width: 767px) {
+    .public-site .home-cinematic-slider.is-style1,
+    .public-site .home-cinematic-slider.is-style-1 {
+      margin-top: var(--appearance-header-height, 76px);
+    }
+    .public-site:has(.appearance-header.is-preview) .home-cinematic-slider.is-style1,
+    .public-site:has(.appearance-header.is-preview) .home-cinematic-slider.is-style-1 {
+      margin-top: 0;
+    }
+  }
+  @media (max-width: 480px) {
+    .public-site .home-cinematic-slider.is-style1,
+    .public-site .home-cinematic-slider.is-style-1 {
+      margin-top: var(--appearance-header-height, 66px);
+    }
+    .public-site:has(.appearance-header.is-preview) .home-cinematic-slider.is-style1,
+    .public-site:has(.appearance-header.is-preview) .home-cinematic-slider.is-style-1 {
+      margin-top: 0;
+    }
   }
 `;
