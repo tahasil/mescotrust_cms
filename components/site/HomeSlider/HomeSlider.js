@@ -192,7 +192,7 @@ export default function HomeSlider(props) {
     ? settings.homeSliderType
     : (slides.find((s) => ["style1", "style2", "style3"].includes(s?.videoStyle))?.videoStyle || "style2");
   const hasStyle2 = sliderType === "style2";
-  const isCurrentVideo = activeSlide?.mediaType === "video" && Boolean(activeSlide?.videoUrl);
+  const isCurrentVideo = activeSlide?.mediaType === "video" && Boolean(activeSlide?.videoUrl || activeSlide?.verticalVideoUrl);
 
   return (
     <FullWidthBackground className={`${sectionClassName || ""} home-slider-full-width`.trim()} $managedStyle={sectionStyle}>
@@ -243,7 +243,7 @@ export default function HomeSlider(props) {
             currentRef,
             rootRef,
           };
-          const slideKey = `${slide.image || slide.videoUrl || "slide"}-${index}`;
+          const slideKey = `${slide.image || slide.videoUrl || slide.verticalVideoUrl || "slide"}-${index}`;
 
           if (sliderType === "style1") {
             return <Style1Slide key={slideKey} {...commonProps} />;

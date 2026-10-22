@@ -79,6 +79,7 @@ function normalizeSlide(item = {}, index = 0) {
     image: normalizeMediaInputUrl(item?.image ?? fallback.image),
     mobileImage: normalizeMediaInputUrl(item?.mobileImage),
     videoUrl: normalizeMediaInputUrl(item?.videoUrl),
+    verticalVideoUrl: normalizeMediaInputUrl(item?.verticalVideoUrl),
     videoPoster: normalizeMediaInputUrl(item?.videoPoster),
     videoFit: item?.videoFit === "cover" ? "cover" : "contain",
     alt: clean(item?.alt ?? fallback.alt),
@@ -151,6 +152,7 @@ function HomeSliderEditForm(
   ref,
 ) {
   const [form] = Form.useForm();
+  const watchedSliderType = Form.useWatch("homeSliderType", form);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [themeColorOptions, setThemeColorOptions] = useState(themeColorOptionsProp);
@@ -338,12 +340,15 @@ function HomeSliderEditForm(
                             <Form.Item
                               noStyle
                               shouldUpdate={(prev, curr) =>
-                                prev?.homeSliderSlides?.[name]?.mediaType !== curr?.homeSliderSlides?.[name]?.mediaType
+                                prev?.homeSliderSlides?.[name]?.mediaType !== curr?.homeSliderSlides?.[name]?.mediaType ||
+                                prev?.homeSliderType !== curr?.homeSliderType
                               }
                             >
                               {({ getFieldValue }) => {
                                 const currentMediaType = getFieldValue(["homeSliderSlides", name, "mediaType"]) || "image";
+                                const currentSliderType = getFieldValue("homeSliderType") || watchedSliderType || "style2";
                                 const isVideo = currentMediaType === "video";
+                                const isStyle1 = currentSliderType === "style1";
                                 if (isVideo) {
                                   return (
                                     <>
@@ -363,6 +368,23 @@ function HomeSliderEditForm(
                                           />
                                         </Form.Item>
                                       </Col>
+                                      {isStyle1 && (
+                                        <Col span={24}>
+                                          <Form.Item
+                                            {...restField}
+                                            name={[name, "verticalVideoUrl"]}
+                                            label="Vertical Video"
+                                            extra="Optional vertical (9:16) video for mobile devices (< 768px). Plays in place of the background video on mobile."
+                                          >
+                                            <MediaPickerInput
+                                              mediaType="video"
+                                              showVariants={false}
+                                              uiVariant="stacked"
+                                              placeholder="/uploads/home-slide-vertical.mp4"
+                                            />
+                                          </Form.Item>
+                                        </Col>
+                                      )}
                                       <Col span={24}>
                                         <Form.Item {...restField} name={[name, "videoPoster"]} label="Video poster">
                                           <MediaPickerInput uiVariant="stacked" />

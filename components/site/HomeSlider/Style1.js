@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { PageContainer } from "@/styles/Theme";
 
 const ArrowIcon = () => (
@@ -16,6 +16,7 @@ const linkRel = (target) => (target === "_blank" ? "noopener noreferrer" : undef
  * Style 1: Full-cover background video & image (object-fit: cover)
  * As originally implemented on mesco-demo.aiolos.cloud.
  * Renders full slide (video or image) with cinematic cover presentation.
+ * On mobile (< 768px), if a vertical video is provided, it plays instead of the desktop background video.
  */
 export default function Style1Slide({
   slide,
@@ -24,10 +25,54 @@ export default function Style1Slide({
   wasActive,
   isInitial,
   currentRef,
+  rootRef,
 }) {
-  const isVideo = slide.mediaType === "video" && Boolean(slide.videoUrl);
+  const isVideo = slide.mediaType === "video" && Boolean(slide.videoUrl || slide.verticalVideoUrl);
   const videoUrl = String(slide.videoUrl || "").trim();
+  const verticalVideoUrl = String(slide.verticalVideoUrl || "").trim();
   const overlayOpacity = Math.min(100, Math.max(0, Number(slide.overlayOpacity) || 100)) / 100;
+  const videoRef = useRef(null);
+
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    if (mq.addEventListener) {
+      mq.addEventListener("change", update);
+      return () => mq.removeEventListener("change", update);
+    }
+    mq.addListener(update);
+    return () => mq.removeListener(update);
+  }, []);
+
+  const desktopVideoUrl = videoUrl || verticalVideoUrl;
+  const mobileVideoUrl = verticalVideoUrl || videoUrl;
+  const activeVideoUrl = isMobile && verticalVideoUrl ? mobileVideoUrl : desktopVideoUrl;
+
+  const handleVideoCanPlay = (v) => {
+    if (!v) return;
+    if (index === currentRef?.current) {
+      v.muted = true;
+      v.play?.().catch(() => {});
+    }
+    if (v.videoWidth && v.videoHeight && rootRef?.current) {
+      rootRef.current.style.setProperty(
+        "--home-slider-video-aspect",
+        `${v.videoWidth} / ${v.videoHeight}`
+      );
+    }
+  };
+
+  useEffect(() => {
+    if (isActive && videoRef.current) {
+      videoRef.current.muted = true;
+      videoRef.current.playsInline = true;
+      videoRef.current.play?.().catch(() => {});
+    }
+  }, [isActive, isMobile, activeVideoUrl]);
 
   return (
     <article
@@ -37,31 +82,28 @@ export default function Style1Slide({
       {isVideo ? (
         <div className="home-slider-video-wrapper is-style1 is-style-1">
           <video
+            ref={videoRef}
+            key={`style1-vid-${index}-${verticalVideoUrl ? (isMobile ? "m" : "d") : "s"}`}
             data-home-slider-video
             data-slide-index={index}
             className="home-slider-media home-slider-video-media is-style1 is-style-1"
-            src={videoUrl}
-            poster={slide.videoPoster || slide.image || undefined}
+            poster={isMobile && slide.mobileImage ? slide.mobileImage : (slide.videoPoster || slide.image || undefined)}
             autoPlay={isActive}
             muted
             loop
             playsInline
             preload={isActive ? "auto" : "metadata"}
-            onLoadedData={(event) => {
-              if (index !== currentRef?.current) return;
-              const v = event.currentTarget;
-              v.muted = true;
-              v.play?.().catch(() => {});
-            }}
-            onCanPlay={(event) => {
-              if (index !== currentRef?.current) return;
-              const v = event.currentTarget;
-              v.muted = true;
-              v.play?.().catch(() => {});
-            }}
+            onLoadedData={(event) => handleVideoCanPlay(event.currentTarget)}
+            onCanPlay={(event) => handleVideoCanPlay(event.currentTarget)}
             aria-label={slide.alt || ""}
             style={{ objectPosition: slide.backgroundPosition || "center center" }}
-          />
+          >
+            {verticalVideoUrl ? (
+              <source media="(max-width: 767px)" src={mobileVideoUrl} />
+            ) : null}
+            <source media="(min-width: 768px)" src={desktopVideoUrl} />
+            <source src={activeVideoUrl} />
+          </video>
         </div>
       ) : (
         <picture>
