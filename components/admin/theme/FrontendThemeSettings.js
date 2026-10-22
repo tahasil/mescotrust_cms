@@ -516,8 +516,26 @@ export default function FrontendThemeSettings() {
                         style={{ fontFamily: "monospace", fontSize: 12 }}
                       />
                     </Form.Item>
-                    <Form.Item name="googleAnalyticsId" label="Google Analytics ID">
-                      <Input placeholder="G-XXXXXXXXXX" />
+                    <Form.Item
+                      name="googleAnalyticsId"
+                      label="Google Analytics ID"
+                      tooltip="GA4 Measurement ID (e.g. G-XXXXXXXXXX) or legacy UA-XXXXX-Y. Tracking automatically activates when visitors accept cookies."
+                      rules={[
+                        {
+                          pattern: /^(G-[A-Za-z0-9]+|GT-[A-Za-z0-9]+|UA-\d+-\d+|\d{6,})$/i,
+                          message: "Enter a valid Google Analytics ID (e.g. G-XXXXXXXXXX)",
+                        },
+                      ]}
+                    >
+                      <Input
+                        placeholder="G-XXXXXXXXXX"
+                        onBlur={(e) => {
+                          const val = e.target.value?.trim();
+                          if (/^\d{6,}$/.test(val)) {
+                            form.setFieldsValue({ googleAnalyticsId: `G-${val}` });
+                          }
+                        }}
+                      />
                     </Form.Item>
                   </>
                 ),

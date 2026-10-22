@@ -224,9 +224,13 @@ function sanitizeFontUrl(value) {
 }
 
 function sanitizeGoogleAnalyticsId(value) {
-  const raw = String(value || "").trim();
+  let raw = String(value || "").trim();
   if (!raw) return "";
+  if (/^\d{6,}$/.test(raw)) {
+    raw = `G-${raw}`;
+  }
   if (/^G-[A-Z0-9]+$/i.test(raw)) return raw;
+  if (/^GT-[A-Z0-9]+$/i.test(raw)) return raw;
   if (/^UA-\d+-\d+$/i.test(raw)) return raw;
   return "";
 }
@@ -279,7 +283,9 @@ export default async function RootLayout({ children }) {
   const safeCustomCss = sanitizeInlineStyle(theme.customCss);
   const safeHeadScripts = sanitizeInlineScript(theme.headScripts);
   const safeCustomFontUrl = sanitizeFontUrl(theme.customFontUrl);
-  const safeGoogleAnalyticsId = sanitizeGoogleAnalyticsId(theme.googleAnalyticsId);
+  const safeGoogleAnalyticsId = !isAdmin
+    ? sanitizeGoogleAnalyticsId(theme.googleAnalyticsId)
+    : "";
 
   const siteName = theme.siteTitle;
   const orgJsonLd = !isAdmin
