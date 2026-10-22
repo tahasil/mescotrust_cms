@@ -41,13 +41,6 @@ const ALIGNMENT_OPTIONS = [
   { value: "right", label: "Right" },
 ];
 
-const POSITION_OPTIONS = [
-  "center center",
-  "center top",
-  "center bottom",
-  "left center",
-  "right center",
-].map((value) => ({ value, label: value.replace(/\b\w/g, (letter) => letter.toUpperCase()) }));
 
 const clean = (value) => String(value ?? "").trim();
 const target = (value) => (value === "_blank" ? "_blank" : "_self");
@@ -356,9 +349,9 @@ function HomeSliderEditForm(
                                         <Form.Item
                                           {...restField}
                                           name={[name, "videoUrl"]}
-                                          label="Background video"
-                                          extra="Choose/upload MP4 or WebM. The video plays muted and loops."
-                                          rules={[{ required: true, message: "Background video is required for a video slide" }]}
+                                          label="Horizontal background video"
+                                          extra="Horizontal video 16:9 dimension"
+                                          rules={[{ required: true, message: "Horizontal background video is required for a video slide" }]}
                                         >
                                           <MediaPickerInput
                                             mediaType="video"
@@ -373,8 +366,8 @@ function HomeSliderEditForm(
                                           <Form.Item
                                             {...restField}
                                             name={[name, "verticalVideoUrl"]}
-                                            label="Vertical Video"
-                                            extra="Optional vertical (9:16) video for mobile devices (< 768px). Plays in place of the background video on mobile."
+                                            label="Vertical background video"
+                                            extra="Vertical video 9:16 dimension"
                                           >
                                             <MediaPickerInput
                                               mediaType="video"
@@ -385,11 +378,6 @@ function HomeSliderEditForm(
                                           </Form.Item>
                                         </Col>
                                       )}
-                                      <Col span={24}>
-                                        <Form.Item {...restField} name={[name, "videoPoster"]} label="Video poster">
-                                          <MediaPickerInput uiVariant="stacked" />
-                                        </Form.Item>
-                                      </Col>
                                     </>
                                   );
                                 }
@@ -414,8 +402,6 @@ function HomeSliderEditForm(
                                 );
                               }}
                             </Form.Item>
-                            <Col span={16}><Form.Item {...restField} name={[name, "alt"]} label="Alternative text"><Input /></Form.Item></Col>
-                            <Col span={8}><Form.Item {...restField} name={[name, "backgroundPosition"]} label="Position"><Select options={POSITION_OPTIONS} /></Form.Item></Col>
                             <Col span={12}><Form.Item {...restField} name={[name, "overlayOpacity"]} label="Overlay strength (%)"><InputNumber min={0} max={100} style={{ width: "100%" }} /></Form.Item></Col>
                             <Col span={12}><Form.Item {...restField} name={[name, "textAlignment"]} label="Text alignment"><Select options={ALIGNMENT_OPTIONS} /></Form.Item></Col>
                           </Row>
