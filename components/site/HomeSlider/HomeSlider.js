@@ -471,7 +471,7 @@ export default function HomeSlider(props) {
             padding-bottom: max(var(--home-slider-container-padding-bottom, 0px), 24px);
           }
           .public-site:has(.appearance-header.is-preview) .home-slider-content { padding-top: max(var(--home-slider-container-padding-top, 0px), 18px); }
-          .home-slider-pill { max-width: 100%; margin-bottom: 0; padding: 8px 14px; font-size: 12px; line-height: 1.25; }
+          .home-slider-pill { max-width: 100%; margin-bottom: 10px !important; padding: 8px 14px; font-size: 12px; line-height: 1.25; }
           .home-slider-title { max-width: 100%; margin-bottom: 0; font-size: clamp(28px, 7.6vw, 40px) !important; line-height: 1.12 !important; letter-spacing: -.02em !important; text-wrap: balance; }
           .home-slider-description { max-width: 38ch; margin-bottom: 0; font-size: 14px; line-height: 1.6; opacity: .86; text-wrap: pretty; }
           .home-slider-actions { display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; width: 100%; max-width: 100%; margin-top: 2px; }
@@ -517,7 +517,7 @@ export default function HomeSlider(props) {
         }
         @media (max-width: 480px) {
           .home-slider-content { padding-top: max(var(--home-slider-container-padding-top, 0px), calc(var(--appearance-header-height, 66px) + 14px)); padding-bottom: max(var(--home-slider-container-padding-bottom, 0px), 14px); gap: clamp(14px, 2.8vh, 20px); }
-          .home-slider-pill { padding: 7px 13px; font-size: 11.5px; }
+          .home-slider-pill { margin-bottom: 8px !important; padding: 7px 13px; font-size: 11.5px; }
           .home-slider-title { font-size: clamp(26px, 7.4vw, 34px) !important; }
           .home-slider-description { font-size: 13.5px; line-height: 1.55; max-width: 34ch; }
           .home-slider-actions { gap: 10px; }

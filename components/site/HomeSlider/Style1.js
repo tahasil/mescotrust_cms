@@ -173,7 +173,7 @@ export const style1Css = `
     }
   }
 
-  /* Style 1 Mobile View (< 768px) */
+  /* Style 1 Mobile View (< 768px): Responsive spacing between Title, Description, and Buttons */
   @media (max-width: 767px) {
     .public-site .home-cinematic-slider.is-style1,
     .public-site .home-cinematic-slider.is-style-1 {
@@ -182,6 +182,26 @@ export const style1Css = `
     .public-site:has(.appearance-header.is-preview) .home-cinematic-slider.is-style1,
     .public-site:has(.appearance-header.is-preview) .home-cinematic-slider.is-style-1 {
       margin-top: 0;
+    }
+    .home-cinematic-slider.is-style1 .home-slider-content,
+    .home-cinematic-slider.is-style-1 .home-slider-content {
+      gap: 22px !important;
+    }
+    .home-cinematic-slider.is-style1 .home-slider-pill,
+    .home-cinematic-slider.is-style-1 .home-slider-pill {
+      margin-bottom: 12px !important;
+    }
+    .home-cinematic-slider.is-style1 .home-slider-title,
+    .home-cinematic-slider.is-style-1 .home-slider-title {
+      margin-bottom: 4px !important;
+    }
+    .home-cinematic-slider.is-style1 .home-slider-description,
+    .home-cinematic-slider.is-style-1 .home-slider-description {
+      margin-bottom: 6px !important;
+    }
+    .home-cinematic-slider.is-style1 .home-slider-actions,
+    .home-cinematic-slider.is-style-1 .home-slider-actions {
+      margin-top: 8px !important;
     }
   }
   @media (max-width: 480px) {
@@ -192,6 +212,26 @@ export const style1Css = `
     .public-site:has(.appearance-header.is-preview) .home-cinematic-slider.is-style1,
     .public-site:has(.appearance-header.is-preview) .home-cinematic-slider.is-style-1 {
       margin-top: 0;
+    }
+    .home-cinematic-slider.is-style1 .home-slider-content,
+    .home-cinematic-slider.is-style-1 .home-slider-content {
+      gap: 20px !important;
+    }
+    .home-cinematic-slider.is-style1 .home-slider-pill,
+    .home-cinematic-slider.is-style-1 .home-slider-pill {
+      margin-bottom: 10px !important;
+    }
+    .home-cinematic-slider.is-style1 .home-slider-title,
+    .home-cinematic-slider.is-style-1 .home-slider-title {
+      margin-bottom: 4px !important;
+    }
+    .home-cinematic-slider.is-style1 .home-slider-description,
+    .home-cinematic-slider.is-style-1 .home-slider-description {
+      margin-bottom: 6px !important;
+    }
+    .home-cinematic-slider.is-style1 .home-slider-actions,
+    .home-cinematic-slider.is-style-1 .home-slider-actions {
+      margin-top: 8px !important;
     }
   }
 `;
