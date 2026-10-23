@@ -12,6 +12,7 @@ import {
   Statistic,
   message,
   Typography,
+  Alert,
 } from "antd";
 import {
   PlusOutlined,
@@ -21,16 +22,29 @@ import {
   CheckCircleOutlined,
   SendOutlined,
   PercentageOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
 import PushNotificationsTable from "./PushNotificationsTable";
 import PushNotificationDrawer from "./PushNotificationDrawer";
 import PushNotificationDetailsModal from "./PushNotificationDetailsModal";
+import PushNotificationSettingsModal from "./PushNotificationSettingsModal";
 
 const PUSH_SEARCH_STORAGE_KEY = "admin-push-search-query-v1";
 const PUSH_STATUS_STORAGE_KEY = "admin-push-status-filter-v1";
 const PUSH_TYPE_STORAGE_KEY = "admin-push-type-filter-v1";
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
 
 export default function PushNotificationsModule() {
   const [items, setItems] = useState([]);
@@ -49,6 +63,7 @@ export default function PushNotificationsModule() {
 
   // Action states
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [sendingId, setSendingId] = useState("");
@@ -73,38 +88,6 @@ export default function PushNotificationsModule() {
     const params = new URLSearchParams(window.location.search);
     return resolveAdminStoredFilter(PUSH_TYPE_STORAGE_KEY, params.get("type"));
   });
-
-  // Sync filters with sessionStorage and URL
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const url = new URL(window.location.href);
-
-    if (search.trim()) {
-      sessionStorage.setItem(PUSH_SEARCH_STORAGE_KEY, search);
-      url.searchParams.set("search", search);
-    } else {
-      sessionStorage.removeItem(PUSH_SEARCH_STORAGE_KEY);
-      url.searchParams.delete("search");
-    }
-
-    if (statusFilter) {
-      sessionStorage.setItem(PUSH_STATUS_STORAGE_KEY, statusFilter);
-      url.searchParams.set("status", statusFilter);
-    } else {
-      sessionStorage.removeItem(PUSH_STATUS_STORAGE_KEY);
-      url.searchParams.delete("status");
-    }
-
-    if (typeFilter) {
-      sessionStorage.setItem(PUSH_TYPE_STORAGE_KEY, typeFilter);
-      url.searchParams.set("type", typeFilter);
-    } else {
-      sessionStorage.removeItem(PUSH_TYPE_STORAGE_KEY);
-      url.searchParams.delete("type");
-    }
-
-    window.history.replaceState(null, "", `${url.pathname}${url.search}`);
-  }, [search, statusFilter, typeFilter]);
 
   // Fetch metrics overview
   const fetchStats = useCallback(async () => {
@@ -147,11 +130,229 @@ export default function PushNotificationsModule() {
     [page, search, statusFilter, typeFilter, pageSize]
   );
 
+  // Sync filters with sessionStorage and URL
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+
+    if (search.trim()) {
+      sessionStorage.setItem(PUSH_SEARCH_STORAGE_KEY, search);
+      url.searchParams.set("search", search);
+    } else {
+      sessionStorage.removeItem(PUSH_SEARCH_STORAGE_KEY);
+      url.searchParams.delete("search");
+    }
+
+    if (statusFilter) {
+      sessionStorage.setItem(PUSH_STATUS_STORAGE_KEY, statusFilter);
+      url.searchParams.set("status", statusFilter);
+    } else {
+      sessionStorage.removeItem(PUSH_STATUS_STORAGE_KEY);
+      url.searchParams.delete("status");
+    }
+
+    if (typeFilter) {
+      sessionStorage.setItem(PUSH_TYPE_STORAGE_KEY, typeFilter);
+      url.searchParams.set("type", typeFilter);
+    } else {
+      sessionStorage.removeItem(PUSH_TYPE_STORAGE_KEY);
+      url.searchParams.delete("type");
+    }
+
+    window.history.replaceState(null, "", `${url.pathname}${url.search}`);
+  }, [search, statusFilter, typeFilter]);
+
+  // Initial and filter-change data load
   useEffect(() => {
     fetchNotifications(1, search, statusFilter, typeFilter);
     fetchStats();
     setPage(1);
   }, [search, statusFilter, typeFilter, fetchNotifications, fetchStats]);
+
+  // Browser subscription & live test state
+  const [browserSubscribed, setBrowserSubscribed] = useState(false);
+  const [browserPermission, setBrowserPermission] = useState("default");
+  const [subscribingBrowser, setSubscribingBrowser] = useState(false);
+  const [sendingTest, setSendingTest] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    setBrowserPermission(Notification.permission);
+    if (Notification.permission === "granted" && "serviceWorker" in navigator) {
+      navigator.serviceWorker.ready
+        .then((reg) => reg.pushManager.getSubscription())
+        .then(async (sub) => {
+          if (sub) {
+            setBrowserSubscribed(true);
+            try {
+              const rawJson = sub.toJSON();
+              await fetch("/api/public/push-subscription", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  endpoint: sub.endpoint,
+                  keys: rawJson.keys,
+                  userAgent: navigator.userAgent,
+                  deviceType: "desktop",
+                }),
+              });
+              fetchStats();
+            } catch {}
+          } else {
+            setBrowserSubscribed(false);
+          }
+        })
+        .catch(() => setBrowserSubscribed(false));
+    }
+  }, [fetchStats]);
+
+  const handleSubscribeThisBrowser = async () => {
+    if (
+      typeof window === "undefined" ||
+      !("Notification" in window) ||
+      !("serviceWorker" in navigator)
+    ) {
+      message.warning("Push notifications are not supported in this browser.");
+      return;
+    }
+    setSubscribingBrowser(true);
+    try {
+      const perm = await Notification.requestPermission();
+      setBrowserPermission(perm);
+      if (perm !== "granted") {
+        message.warning(
+          "Notification permission was not granted. Please click the tune/lock icon in your URL bar and set Notifications to Allow."
+        );
+        return;
+      }
+      const reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+      await navigator.serviceWorker.ready;
+
+      let key =
+        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
+        "BP2rup-CdHoYF0c6X6z4l490R8cx7cIDD1PDvqZ33Q1v7yuhvzyN9Sqpx34rAo1Z4Ls7LZllZdR-okBvuW1rWeg";
+      try {
+        const vRes = await fetch("/api/public/push-subscription/vapid-key");
+        if (vRes.ok) {
+          const vData = await vRes.json();
+          if (vData.publicKey) key = vData.publicKey;
+        }
+      } catch {}
+
+      const applicationServerKey = urlBase64ToUint8Array(key);
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey,
+        });
+      }
+      const rawJson = sub.toJSON();
+      const res = await fetch("/api/public/push-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          endpoint: sub.endpoint,
+          keys: rawJson.keys,
+          userAgent: navigator.userAgent,
+          deviceType: "desktop",
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to register subscription.");
+
+      setBrowserSubscribed(true);
+      message.success("This browser is now subscribed! When you send notifications, they will pop up on your computer.");
+      fetchStats();
+    } catch (err) {
+      message.error(err.message || "Failed to subscribe browser.");
+    } finally {
+      setSubscribingBrowser(false);
+    }
+  };
+
+  const handleSendTestToMyself = async () => {
+    setSendingTest(true);
+    try {
+      // Ensure current browser subscription exists in DB
+      if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+        const reg = await navigator.serviceWorker.ready;
+        try {
+          await reg.update();
+        } catch {}
+
+        let sub = await reg.pushManager.getSubscription();
+        if (!sub) {
+          let key =
+            process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
+            "BP2rup-CdHoYF0c6X6z4l490R8cx7cIDD1PDvqZ33Q1v7yuhvzyN9Sqpx34rAo1Z4Ls7LZllZdR-okBvuW1rWeg";
+          try {
+            const vRes = await fetch("/api/public/push-subscription/vapid-key");
+            if (vRes.ok) {
+              const vData = await vRes.json();
+              if (vData.publicKey) key = vData.publicKey;
+            }
+          } catch {}
+          const applicationServerKey = urlBase64ToUint8Array(key);
+          sub = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey,
+          });
+        }
+        if (sub) {
+          const rawJson = sub.toJSON();
+          await fetch("/api/public/push-subscription", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              endpoint: sub.endpoint,
+              keys: rawJson.keys,
+              userAgent: navigator.userAgent,
+              deviceType: "desktop",
+            }),
+          });
+        }
+
+        // Fire direct notification through registration
+        if (Notification.permission === "granted") {
+          try {
+            await reg.showNotification("MESCO Trust Live Alert", {
+              body: "Test notification delivered to your computer screen!",
+              icon: "/images/logo-192.png",
+              badge: "/images/logo-192.png",
+              tag: "mesco-test-" + Date.now(),
+              renotify: true,
+              data: {
+                url: "/",
+              },
+            });
+          } catch (notifErr) {
+            console.warn("Direct showNotification error:", notifErr);
+          }
+        }
+      }
+
+      const res = await fetch("/api/admin/push-notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: "MESCO Trust Live Alert",
+          message: "Success! Push notification delivered to your computer.",
+          type: "announcement",
+          clickUrl: "/",
+          sendImmediately: true,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to send test push.");
+      message.success("Test notification broadcast sent! Check the bottom-right corner of your screen.");
+      fetchNotifications(1, search, statusFilter, typeFilter);
+      fetchStats();
+    } catch (err) {
+      message.error(err.message || "Failed to send test push.");
+    } finally {
+      setSendingTest(false);
+    }
+  };
 
   // Handle open create
   const handleOpenCreate = () => {
@@ -257,6 +458,13 @@ export default function PushNotificationsModule() {
       extra={
         <Space wrap>
           <Button
+            icon={<SettingOutlined />}
+            onClick={() => setSettingsOpen(true)}
+            data-testid="card-settings-btn"
+          >
+            Card Settings
+          </Button>
+          <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={handleOpenCreate}
@@ -267,6 +475,61 @@ export default function PushNotificationsModule() {
         </Space>
       }
     >
+      {/* Live Device Status & Test Banner */}
+      <Alert
+        style={{ marginBottom: 16 }}
+        type={browserSubscribed ? "success" : "info"}
+        showIcon
+        message={
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+            }}
+          >
+            <span>
+              {browserSubscribed ? (
+                <>
+                  <strong>This Browser is Subscribed:</strong> Your computer is ready to receive live push alerts.
+                </>
+              ) : (
+                <>
+                  <strong>This browser is not subscribed:</strong> To test and receive live desktop notifications on this computer, enable notifications for this browser.
+                </>
+              )}
+            </span>
+            <Space size="small">
+              {browserSubscribed ? (
+                <Button
+                  type="primary"
+                  size="small"
+                  icon={<SendOutlined />}
+                  loading={sendingTest}
+                  onClick={handleSendTestToMyself}
+                  data-testid="send-test-push-btn"
+                >
+                  Send Test Alert to My Screen
+                </Button>
+              ) : (
+                <Button
+                  type="primary"
+                  size="small"
+                  icon={<BellOutlined />}
+                  loading={subscribingBrowser}
+                  onClick={handleSubscribeThisBrowser}
+                  data-testid="subscribe-browser-btn"
+                >
+                  Subscribe This Browser
+                </Button>
+              )}
+            </Space>
+          </div>
+        }
+      />
+
       {/* Metric Cards */}
       <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
         <Col xs={12} sm={6}>
@@ -399,6 +662,12 @@ export default function PushNotificationsModule() {
         open={Boolean(detailsItem)}
         onClose={() => setDetailsItem(null)}
         notification={detailsItem}
+      />
+
+      {/* Frontend Prompt Card Settings Modal */}
+      <PushNotificationSettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
       />
     </ThemeAdminCard>
   );

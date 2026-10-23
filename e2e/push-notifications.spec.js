@@ -81,24 +81,23 @@ test.describe.serial("Push Notifications Module Flow-Wise E2E", () => {
     }
   });
 
-  test("Step 1: Public Frontend - Notification Bell Widget and Popover", async ({ page }) => {
+  test("Step 1: Public Frontend - Direct Notification Card and Title Verification", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
-    // Locate the floating notification bell widget
+    // Verify the floating bell button is NOT shown
     const bellBtn = page.locator(".mesco-push-bell-btn");
-    await expect(bellBtn).toBeVisible({ timeout: 15_000 });
+    await expect(bellBtn).not.toBeVisible();
 
-    // Click the bell to open the settings popover card
-    await bellBtn.click({ force: true });
-    const popoverCard = page.locator(".mesco-push-card");
-    await expect(popoverCard).toBeVisible({ timeout: 10_000 });
+    // The Notifications card appears directly on the page
+    const card = page.locator(".mesco-push-card");
+    await expect(card).toBeVisible({ timeout: 15_000 });
 
-    // Verify title inside popover
-    await expect(popoverCard.locator(".mesco-push-card-title")).toHaveText("Browser Notifications");
+    // Verify title is "Notifications" (not "Browser Notifications")
+    await expect(card.locator(".mesco-push-card-title")).toHaveText("Notifications");
 
-    // Close the popover
-    await popoverCard.locator(".mesco-push-close-btn").click();
-    await expect(popoverCard).not.toBeVisible();
+    // Close the card
+    await card.locator(".mesco-push-close-btn").click();
+    await expect(card).not.toBeVisible();
   });
 
   test("Step 2: Admin Navigation and Module Load", async ({ context, page }) => {

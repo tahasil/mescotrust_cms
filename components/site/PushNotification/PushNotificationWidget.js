@@ -21,15 +21,30 @@ export default function PushNotificationWidget() {
   const [supported, setSupported] = useState(false);
   const [permission, setPermission] = useState("default");
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [cardOpen, setCardOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
-  const popoverRef = useRef(null);
+  const [settings, setSettings] = useState({
+    cardTitle: "Notifications",
+    cardDescription:
+      "Stay connected with MESCO Trust! Enable notifications to receive timely updates on emergency relief, education aid, and community events.",
+    enableButtonText: "Enable Alerts",
+    dismissButtonText: "Not Now",
+    enabled: true,
+  });
+  const cardRef = useRef(null);
 
   const showToast = (msg) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(""), 4000);
   };
+
+  const handleClose = useCallback(() => {
+    setCardOpen(false);
+    try {
+      sessionStorage.setItem("mesco_push_dismissed", "1");
+    } catch {}
+  }, []);
 
   // Check support and current subscription status
   useEffect(() => {
@@ -48,6 +63,8 @@ export default function PushNotificationWidget() {
     setSupported(true);
     setPermission(Notification.permission);
 
+    const isDismissed = sessionStorage.getItem("mesco_push_dismissed") === "1";
+
     // If permission is already granted, verify subscription with service worker
     if (Notification.permission === "granted") {
       navigator.serviceWorker.ready
@@ -55,30 +72,56 @@ export default function PushNotificationWidget() {
         .then((sub) => {
           if (sub) {
             setIsSubscribed(true);
+            setCardOpen(false);
+            try {
+              const rawJson = sub.toJSON();
+              fetch("/api/public/push-subscription", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  endpoint: sub.endpoint,
+                  keys: rawJson.keys,
+                  userAgent: navigator.userAgent,
+                  deviceType: /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)
+                    ? "mobile"
+                    : "desktop",
+                }),
+              }).catch(() => {});
+            } catch {}
           } else {
             setIsSubscribed(false);
+            if (!isDismissed) setCardOpen(true);
           }
         })
         .catch(() => {
           setIsSubscribed(false);
+          if (!isDismissed) setCardOpen(true);
         });
+    } else {
+      if (!isDismissed) {
+        setCardOpen(true);
+      }
     }
 
-    // Allow opening via global custom event (e.g., from footer links)
-    const handleOpen = () => setPopoverOpen(true);
-    window.addEventListener("mesco:open-push-settings", handleOpen);
+    // Fetch card settings from backend
+    fetch("/api/public/push-subscription/settings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.settings) {
+          setSettings(data.settings);
+          if (data.settings.enabled === false) {
+            setCardOpen(false);
+          }
+        }
+      })
+      .catch(() => {});
 
-    // Close popover when clicking outside
-    const handleClickOutside = (e) => {
-      if (popoverRef.current && !popoverRef.current.contains(e.target)) {
-        setPopoverOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
+    // Allow opening via global custom event (e.g., from footer links)
+    const handleOpen = () => setCardOpen(true);
+    window.addEventListener("mesco:open-push-settings", handleOpen);
 
     return () => {
       window.removeEventListener("mesco:open-push-settings", handleOpen);
-      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -148,7 +191,7 @@ export default function PushNotificationWidget() {
       }
 
       setIsSubscribed(true);
-      setPopoverOpen(false);
+      setCardOpen(false);
       showToast("Subscribed to MESCO Trust notifications!");
     } catch (err) {
       console.error("[PushNotificationWidget] Subscription failed:", err);
@@ -178,8 +221,8 @@ export default function PushNotificationWidget() {
       }
 
       setIsSubscribed(false);
-      setPopoverOpen(false);
-      showToast("Unsubscribed from browser notifications.");
+      setCardOpen(false);
+      showToast("Unsubscribed from notifications.");
     } catch (err) {
       console.error("[PushNotificationWidget] Unsubscribe failed:", err);
       showToast("Failed to unsubscribe. Please try again.");
@@ -191,31 +234,9 @@ export default function PushNotificationWidget() {
   if (!supported) return null;
 
   return (
-    <div className="mesco-push-root" ref={popoverRef}>
-      {/* Floating Bell Trigger Button */}
-      <button
-        type="button"
-        aria-label="Browser Notification Settings"
-        className={`mesco-push-bell-btn ${isSubscribed ? "is-active" : ""}`}
-        onClick={() => setPopoverOpen((prev) => !prev)}
-      >
-        <svg
-          className="mesco-push-bell-icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-        </svg>
-        {isSubscribed && <span className="mesco-push-active-dot" />}
-      </button>
-
-      {/* Popover Card */}
-      {popoverOpen && (
+    <div className="mesco-push-root" ref={cardRef}>
+      {/* Direct Notifications Prompt Card */}
+      {cardOpen && (
         <div className="mesco-push-card" role="dialog" aria-modal="false">
           <div className="mesco-push-card-header">
             <div className="mesco-push-card-title-group">
@@ -233,7 +254,7 @@ export default function PushNotificationWidget() {
                 </svg>
               </span>
               <div>
-                <h4 className="mesco-push-card-title">Browser Notifications</h4>
+                <h4 className="mesco-push-card-title">{settings.cardTitle || "Notifications"}</h4>
                 <p className="mesco-push-card-status">
                   {permission === "denied"
                     ? "Status: Blocked in browser"
@@ -246,7 +267,7 @@ export default function PushNotificationWidget() {
             <button
               type="button"
               className="mesco-push-close-btn"
-              onClick={() => setPopoverOpen(false)}
+              onClick={handleClose}
               aria-label="Close"
             >
               &times;
@@ -267,8 +288,8 @@ export default function PushNotificationWidget() {
               </p>
             ) : (
               <p className="mesco-push-desc">
-                Stay connected with MESCO Trust! Enable browser notifications to receive
-                timely updates on emergency relief, education aid, and community events.
+                {settings.cardDescription ||
+                  "Stay connected with MESCO Trust! Enable notifications to receive timely updates on emergency relief, education aid, and community events."}
               </p>
             )}
           </div>
@@ -278,7 +299,7 @@ export default function PushNotificationWidget() {
               <button
                 type="button"
                 className="mesco-push-btn mesco-push-btn-secondary"
-                onClick={() => setPopoverOpen(false)}
+                onClick={handleClose}
               >
                 Close
               </button>
@@ -295,7 +316,7 @@ export default function PushNotificationWidget() {
                 <button
                   type="button"
                   className="mesco-push-btn mesco-push-btn-secondary"
-                  onClick={() => setPopoverOpen(false)}
+                  onClick={handleClose}
                 >
                   Keep Active
                 </button>
@@ -305,10 +326,10 @@ export default function PushNotificationWidget() {
                 <button
                   type="button"
                   className="mesco-push-btn mesco-push-btn-secondary"
-                  onClick={() => setPopoverOpen(false)}
+                  onClick={handleClose}
                   disabled={loading}
                 >
-                  Not Now
+                  {settings.dismissButtonText || "Not Now"}
                 </button>
                 <button
                   type="button"
@@ -316,7 +337,7 @@ export default function PushNotificationWidget() {
                   onClick={handleSubscribe}
                   disabled={loading}
                 >
-                  {loading ? "Enabling..." : "Enable Alerts"}
+                  {loading ? "Enabling..." : (settings.enableButtonText || "Enable Alerts")}
                 </button>
               </>
             )}
@@ -338,54 +359,15 @@ export default function PushNotificationWidget() {
           left: 24px;
           z-index: 9995;
           font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+          transition: bottom 0.3s ease;
         }
 
-        .mesco-push-bell-btn {
-          width: 48px;
-          height: 48px;
-          border-radius: 50%;
-          background: var(--card-bg-color, #ffffff);
-          color: var(--text-color, #222222);
-          border: 1px solid var(--border-color, rgba(0, 0, 0, 0.12));
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-          transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-        }
-
-        .mesco-push-bell-btn:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-          background: #fbfbfb;
-        }
-
-        .mesco-push-bell-btn.is-active {
-          color: var(--primary-color, #e03c33);
-        }
-
-        .mesco-push-bell-icon {
-          width: 22px;
-          height: 22px;
-        }
-
-        .mesco-push-active-dot {
-          position: absolute;
-          top: 8px;
-          right: 9px;
-          width: 8px;
-          height: 8px;
-          background-color: #52c41a;
-          border: 2px solid #ffffff;
-          border-radius: 50%;
+        :global(body:has(.mesco-cookie-banner)) .mesco-push-root {
+          bottom: 110px;
         }
 
         .mesco-push-card {
-          position: absolute;
-          bottom: 60px;
-          left: 0;
+          position: relative;
           width: 320px;
           max-width: calc(100vw - 48px);
           background: var(--card-bg-color, #ffffff);
@@ -517,9 +499,8 @@ export default function PushNotificationWidget() {
         }
 
         .mesco-push-toast {
-          position: absolute;
-          bottom: 60px;
-          left: 0;
+          position: relative;
+          margin-top: 8px;
           width: max-content;
           max-width: 280px;
           background: #1f1f1f;
@@ -540,6 +521,18 @@ export default function PushNotificationWidget() {
           to {
             opacity: 1;
             transform: translateY(0);
+          }
+        }
+
+        @media (max-width: 576px) {
+          .mesco-push-root {
+            bottom: 16px;
+            left: 16px;
+            right: 16px;
+          }
+          .mesco-push-card {
+            width: 100%;
+            max-width: 100%;
           }
         }
       `}</style>

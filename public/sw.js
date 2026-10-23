@@ -29,8 +29,8 @@ self.addEventListener("push", (event) => {
   const title = payload.title || "MESCO Trust";
   const options = {
     body: payload.message || "",
-    icon: payload.icon || "/images/logo.svg",
-    badge: payload.badge || "/images/logo.svg",
+    icon: payload.icon || "/images/logo-192.png",
+    badge: payload.badge || "/images/logo-192.png",
     image: payload.image || payload.imageUrl || undefined,
     data: {
       url: payload.clickUrl || "/",
@@ -46,39 +46,36 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url || "/";
+  const rawUrl = event.notification.data?.url || "/";
 
   event.waitUntil(
-    self.clients
-      .matchAll({ type: "window", includeUncontrolled: true })
-      .then((windowClients) => {
-        // If an existing tab is open on the destination URL, focus it
-        for (const client of windowClients) {
-          try {
-            const clientUrl = new URL(client.url);
-            const destinationUrl = new URL(targetUrl, self.location.origin);
-            if (clientUrl.pathname === destinationUrl.pathname && "focus" in client) {
-              return client.focus();
-            }
-          } catch {
-            if (client.url === targetUrl && "focus" in client) {
-              return client.focus();
-            }
-          }
-        }
+    (async () => {
+      let destinationUrl;
+      try {
+        destinationUrl = new URL(rawUrl, self.location.origin).href;
+      } catch {
+        destinationUrl = self.location.origin + "/";
+      }
 
-        // If an existing window is on our origin, navigate and focus
-        for (const client of windowClients) {
-          if ("focus" in client && "navigate" in client) {
-            return client.navigate(targetUrl).then((c) => c?.focus());
-          }
-        }
+      const windowClients = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
 
-        // Otherwise open a new window
-        if (self.clients.openWindow) {
-          return self.clients.openWindow(targetUrl);
-        }
-        return null;
-      })
+      // 1. If an existing tab is open on the exact destination URL, focus it
+      for (const client of windowClients) {
+        try {
+          const clientUrl = new URL(client.url, self.location.origin).href;
+          if (clientUrl === destinationUrl && "focus" in client) {
+            return await client.focus();
+          }
+        } catch {}
+      }
+
+      // 2. Otherwise, open the destination URL in a new window/tab
+      if (self.clients.openWindow) {
+        return await self.clients.openWindow(destinationUrl);
+      }
+    })()
   );
 });
