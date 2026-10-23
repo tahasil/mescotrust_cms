@@ -11,6 +11,12 @@ import {
   resolveBreadcrumbsForPage,
   serializeJsonLd,
 } from "@/lib/breadcrumbSchema";
+import { connectDB } from "@/lib/db";
+import Page from "@/models/Page";
+import {
+  extractFaqSchemaFromLayout,
+  serializeFaqJsonLd,
+} from "@/lib/faqSchema";
 
 /** Always fetch fresh theme and menu from DB; no cache so menu changes show immediately. */
 export const dynamic = "force-dynamic";
@@ -248,9 +254,8 @@ export default async function RootLayout({ children }) {
   const host = headersList.get("x-forwarded-host") || headersList.get("host") || "";
   const forwardedProto = headersList.get("x-forwarded-proto") || "";
   const cleanHost = String(host || "").split(",")[0].trim();
-  const requestOrigin = cleanHost && !isLocalHostUrl(cleanHost)
-    ? `${forwardedProto || "https"}://${cleanHost}`
-    : "";
+  const defaultProto = cleanHost.includes("localhost") || cleanHost.startsWith("127.") ? "http" : "https";
+  const requestOrigin = cleanHost ? `${forwardedProto || defaultProto}://${cleanHost}` : "";
   const siteUrl = getBaseUrl(requestOrigin);
 
   const theme = await getTheme();
@@ -329,6 +334,19 @@ export default async function RootLayout({ children }) {
     });
   }
 
+  let faqJsonLd = null;
+  if (isPublicInnerPage && (cleanPath === "faq" || cleanPath.endsWith("/faq") || cleanPath.includes("faq"))) {
+    try {
+      await connectDB();
+      const faqPage = await Page.findOne({ slug: cleanPath, status: "published" }).lean();
+      if (faqPage?.layout) {
+        faqJsonLd = extractFaqSchemaFromLayout(faqPage.layout, cleanPath, faqPage.title);
+      }
+    } catch (e) {
+      console.error("[layout] failed to extract FAQ schema:", e);
+    }
+  }
+
   return (
     <html lang={theme.defaultLocale} dir={dir} style={cssVars} data-header-layout={theme.headerLayout} data-card-style={theme.cardStyle}>
       <head>
@@ -381,6 +399,12 @@ html.page-loading,body.page-loading{overflow:hidden;margin:0;padding:0}
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
+          />
+        )}
+        {faqJsonLd && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: serializeFaqJsonLd(faqJsonLd) }}
           />
         )}
       </head>
