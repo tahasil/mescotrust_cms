@@ -10,6 +10,10 @@ const SmoothScroll = dynamicImport(() => import("@/components/cms/SmoothScroll")
 const CookieConsent = dynamicImport(() => import("@/components/site/CookieConsent"), {
   ssr: false,
 });
+const PushNotificationWidget = dynamicImport(
+  () => import("@/components/site/PushNotification"),
+  { ssr: false }
+);
 const PageTransitionLoader = dynamicImport(
   () => import("@/components/site/PageTransitionLoader"),
   { ssr: false }
@@ -461,6 +465,7 @@ export default async function SiteLayout({ children }) {
         strategy="lazyOnload"
       />
       <CookieConsent />
+      <PushNotificationWidget />
     </>
   );
 }

@@ -23,6 +23,23 @@ const nextConfig = {
   async headers() {
     return [
       {
+        source: "/sw.js",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "application/javascript; charset=utf-8",
+          },
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
+          },
+          {
+            key: "Service-Worker-Allowed",
+            value: "/",
+          },
+        ],
+      },
+      {
         // The shared PDF viewer endpoint supplies its own same-origin-only
         // framing policy so PDFs can render inside the reusable modal.
         source: "/((?!api/public/pdf-viewer).*)",

@@ -96,6 +96,8 @@ Models in `models/`:
 - `Permission`
 - `RolePermission`
 - `PermissionAuditLog`
+- `PushSubscription`
+- `PushNotification`
 
 For field-level schema details, use `docs/TECHNICAL_DESIGN.md`.
 
@@ -339,6 +341,10 @@ Key implementation files:
 - `app/api/admin/site-components/route.js`
 - `app/api/admin/appearance/[module]/route.js`
 - `app/admin/(authenticated)/components/[id]/edit/page.js`
+- `lib/webPush.js` (Web Push VAPID signing and chunked broadcast engine)
+- `public/sw.js` (Service Worker handling push and notificationclick events)
+- `components/site/PushNotification/PushNotificationWidget.js` (Client-side opt-in notification bell widget)
+- `components/admin/push-notifications/PushNotificationsModule.js` (Push Notifications admin management module)
 
 ---
 

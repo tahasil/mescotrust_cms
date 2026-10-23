@@ -207,6 +207,15 @@ const baseMenuItems = [
     ),
   },
   {
+    key: "/admin/push-notifications",
+    icon: <BellOutlined />,
+    label: (
+      <Link href="/admin/push-notifications" style={linkStyle}>
+        Push Notifications
+      </Link>
+    ),
+  },
+  {
     key: "/admin/team",
     icon: <TeamOutlined />,
     label: (

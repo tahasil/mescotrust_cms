@@ -31,7 +31,9 @@
     "test:media-phase8": "npm run test:media-delivery && npm run test:media-crop-contract && npm run test:media-ui-contracts",
     "qa:media-phase8": "node scripts/media-phase8-qa.js",
     "test:e2e:payment": "playwright test e2e/payment-gateway.spec.js",
-    "test:e2e:payment:report": "playwright show-report playwright-report/payment-gateway"
+    "test:e2e:payment:report": "playwright show-report playwright-report/payment-gateway",
+    "generate:vapid": "node scripts/generate-vapid-keys.js",
+    "test:push-notifications": "node scripts/test-push-notifications.js"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.0",
@@ -62,6 +64,7 @@
     "sharp": "^0.34.5",
     "slugify": "^1.6.6",
     "styled-components": "^6.1.8",
+    "web-push": "^3.6.7",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
