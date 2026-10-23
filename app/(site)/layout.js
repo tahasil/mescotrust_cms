@@ -78,6 +78,7 @@ export default async function SiteLayout({ children }) {
   const pathname = headersList.get("x-pathname") || headersList.get("X-Pathname") || "/";
   const data = await getLayoutData(pathname);
   const theme = data?.theme || {};
+  const pushSettings = data?.pushSettings || null;
   const logoUrl = theme.logoLightUrl || theme.logoImageUrl || "";
   const appearanceHeaderRecord = data?.appearance?.header || null;
   const appearanceHeaderRibbonRecord = data?.appearance?.headerRibbon || null;
@@ -465,7 +466,7 @@ export default async function SiteLayout({ children }) {
         strategy="lazyOnload"
       />
       <CookieConsent />
-      <PushNotificationWidget />
+      <PushNotificationWidget initialSettings={pushSettings} />
     </>
   );
 }

@@ -4,13 +4,13 @@ import { requireAuth } from "@/lib/apiAuth";
 import PushNotificationSettings from "@/models/PushNotificationSettings";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 export async function GET(req) {
   try {
-    const auth = await requireAuth(req);
-    if (!auth.authenticated) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const session = await requireAuth(req);
+    if (session instanceof NextResponse) return session;
 
     await connectDB();
 
@@ -23,10 +23,25 @@ export async function GET(req) {
         enableButtonText: "Enable Alerts",
         dismissButtonText: "Not Now",
         enabled: true,
+        showBellIcon: true,
       };
     }
 
-    return NextResponse.json({ success: true, settings });
+    return NextResponse.json(
+      {
+        success: true,
+        settings: {
+          ...settings,
+          showBellIcon:
+            typeof settings.showBellIcon === "boolean" ? settings.showBellIcon : true,
+        },
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (err) {
     console.error("[GET /api/admin/push-notifications/settings] Error:", err);
     return NextResponse.json({ error: err.message || "Failed to load settings" }, { status: 500 });
@@ -35,10 +50,8 @@ export async function GET(req) {
 
 export async function PUT(req) {
   try {
-    const auth = await requireAuth(req);
-    if (!auth.authenticated) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const session = await requireAuth(req);
+    if (session instanceof NextResponse) return session;
 
     const body = await req.json();
     await connectDB();
@@ -48,14 +61,15 @@ export async function PUT(req) {
       cardDescription: (body.cardDescription || "").trim(),
       enableButtonText: (body.enableButtonText || "Enable Alerts").trim(),
       dismissButtonText: (body.dismissButtonText || "Not Now").trim(),
-      enabled: body.enabled !== false,
-      updatedBy: auth.user?.email || "admin",
+      enabled: true,
+      showBellIcon: body.showBellIcon === true,
+      updatedBy: session?.email || "admin",
     };
 
     const settings = await PushNotificationSettings.findOneAndUpdate(
       { moduleName: "push-settings" },
       { $set: updateData },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
+      { upsert: true, new: true, lean: true }
     );
 
     return NextResponse.json({ success: true, settings });

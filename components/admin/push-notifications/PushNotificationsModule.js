@@ -21,7 +21,7 @@ import {
   BellOutlined,
   CheckCircleOutlined,
   SendOutlined,
-  PercentageOutlined,
+  RiseOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
@@ -462,7 +462,7 @@ export default function PushNotificationsModule() {
             onClick={() => setSettingsOpen(true)}
             data-testid="card-settings-btn"
           >
-            Card Settings
+            Settings
           </Button>
           <Button
             type="primary"
@@ -475,61 +475,6 @@ export default function PushNotificationsModule() {
         </Space>
       }
     >
-      {/* Live Device Status & Test Banner */}
-      <Alert
-        style={{ marginBottom: 16 }}
-        type={browserSubscribed ? "success" : "info"}
-        showIcon
-        message={
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 12,
-            }}
-          >
-            <span>
-              {browserSubscribed ? (
-                <>
-                  <strong>This Browser is Subscribed:</strong> Your computer is ready to receive live push alerts.
-                </>
-              ) : (
-                <>
-                  <strong>This browser is not subscribed:</strong> To test and receive live desktop notifications on this computer, enable notifications for this browser.
-                </>
-              )}
-            </span>
-            <Space size="small">
-              {browserSubscribed ? (
-                <Button
-                  type="primary"
-                  size="small"
-                  icon={<SendOutlined />}
-                  loading={sendingTest}
-                  onClick={handleSendTestToMyself}
-                  data-testid="send-test-push-btn"
-                >
-                  Send Test Alert to My Screen
-                </Button>
-              ) : (
-                <Button
-                  type="primary"
-                  size="small"
-                  icon={<BellOutlined />}
-                  loading={subscribingBrowser}
-                  onClick={handleSubscribeThisBrowser}
-                  data-testid="subscribe-browser-btn"
-                >
-                  Subscribe This Browser
-                </Button>
-              )}
-            </Space>
-          </div>
-        }
-      />
-
       {/* Metric Cards */}
       <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
         <Col xs={12} sm={6}>
@@ -566,7 +511,7 @@ export default function PushNotificationsModule() {
               title="Delivery Rate"
               value={stats.deliveryRate || 100}
               suffix="%"
-              prefix={<PercentageOutlined style={{ color: "#fa8c16" }} />}
+              prefix={<RiseOutlined style={{ color: "#fa8c16" }} />}
             />
           </Card>
         </Col>

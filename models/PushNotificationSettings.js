@@ -32,11 +32,17 @@ const pushNotificationSettingsSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    showBellIcon: {
+      type: Boolean,
+      default: true,
+    },
     updatedBy: { type: String, default: "" },
   },
   { timestamps: true, collection: "push_notification_settings" }
 );
 
-module.exports =
-  (mongoose.models && mongoose.models.PushNotificationSettings) ||
-  mongoose.model("PushNotificationSettings", pushNotificationSettingsSchema);
+if (mongoose.models && mongoose.models.PushNotificationSettings) {
+  delete mongoose.models.PushNotificationSettings;
+}
+
+module.exports = mongoose.model("PushNotificationSettings", pushNotificationSettingsSchema);

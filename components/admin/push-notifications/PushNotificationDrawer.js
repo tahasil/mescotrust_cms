@@ -85,7 +85,7 @@ export default function PushNotificationDrawer({
 
   return (
     <Drawer
-      title={isEditing ? "Edit Draft Notification" : "Create Push Notification"}
+      title={isEditing ? "Edit" : "Create"}
       width={560}
       open={open}
       onClose={onClose}
@@ -93,9 +93,6 @@ export default function PushNotificationDrawer({
       rootClassName="push-notification-drawer"
       extra={
         <Space>
-          <Button onClick={onClose} disabled={loading} data-testid="cancel-drawer-btn">
-            Cancel
-          </Button>
           <Button
             icon={<SaveOutlined />}
             onClick={handleSaveDraft}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
-  Modal,
+  Drawer,
   Form,
   Input,
   Button,
@@ -26,23 +26,28 @@ export default function PushNotificationSettingsModal({ open, onClose }) {
   useEffect(() => {
     if (open) {
       setLoading(true);
-      fetch("/api/admin/push-notifications/settings")
+      fetch(`/api/admin/push-notifications/settings?t=${Date.now()}`, { cache: "no-store" })
         .then((res) => res.json())
         .then((data) => {
           if (data?.settings) {
-            form.setFieldsValue(data.settings);
-            setPreviewValues(data.settings);
+            const isBell = data.settings.showBellIcon === true;
+            const loaded = {
+              ...data.settings,
+              showBellIcon: isBell,
+            };
+            form.setFieldsValue(loaded);
+            setPreviewValues(loaded);
           }
         })
         .catch(() => {
-          message.error("Failed to load card settings.");
+          message.error("Failed to load notification settings.");
         })
         .finally(() => setLoading(false));
     }
   }, [open, form]);
 
   const handleValuesChange = (_, allValues) => {
-    setPreviewValues({ ...allValues });
+    setPreviewValues((prev) => ({ ...prev, ...allValues }));
   };
 
   const handleSave = async () => {
@@ -52,38 +57,33 @@ export default function PushNotificationSettingsModal({ open, onClose }) {
       const res = await fetch("/api/admin/push-notifications/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          ...values,
+          showBellIcon: values.showBellIcon === true,
+        }),
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save settings.");
 
-      message.success("Frontend notification card settings updated successfully!");
+      message.success("Notification settings updated successfully!");
       onClose();
     } catch (err) {
-      message.error(err.message || "Failed to save card settings.");
+      message.error(err.message || "Failed to save notification settings.");
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <Modal
-      title={
-        <Space>
-          <SettingOutlined style={{ color: "#E03C33" }} />
-          <span>Frontend Notification Card Settings</span>
-        </Space>
-      }
+    <Drawer
+      title="Notification Settings"
       open={open}
-      onCancel={onClose}
-      width={640}
-      footer={[
-        <Button key="cancel" onClick={onClose} disabled={saving}>
-          Cancel
-        </Button>,
+      onClose={onClose}
+      width={560}
+      destroyOnClose
+      extra={
         <Button
-          key="save"
           type="primary"
           icon={<SaveOutlined />}
           loading={saving}
@@ -91,8 +91,8 @@ export default function PushNotificationSettingsModal({ open, onClose }) {
           data-testid="save-card-settings-btn"
         >
           Save Settings
-        </Button>,
-      ]}
+        </Button>
+      }
     >
       <Form
         form={form}
@@ -104,9 +104,42 @@ export default function PushNotificationSettingsModal({ open, onClose }) {
             "Stay connected with MESCO Trust! Enable notifications to receive timely updates on emergency relief, education aid, and community events.",
           enableButtonText: "Enable Alerts",
           dismissButtonText: "Not Now",
-          enabled: true,
+          showBellIcon: true,
         }}
       >
+        {/* Show Bell Icon on Frontend toggle - text left, toggle right */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "12px 16px",
+            background: "#fafafa",
+            border: "1px solid #f0f0f0",
+            borderRadius: 8,
+            marginBottom: 20,
+          }}
+        >
+          <div>
+            <div style={{ fontWeight: 600, color: "#1f1f1f", fontSize: 14 }}>
+              Show Bell Icon on Frontend
+            </div>
+            <div style={{ color: "#8c8c8c", fontSize: 12, marginTop: 2 }}>
+              When enabled, a floating bell icon button will appear on the bottom-left, allowing visitors to open the notification prompt anytime. When disabled, only the notification card will be displayed.
+            </div>
+          </div>
+          <Form.Item name="showBellIcon" valuePropName="checked" noStyle>
+            <Switch
+              disabled={loading}
+              loading={loading}
+              onChange={(checked) => {
+                setPreviewValues((prev) => ({ ...prev, showBellIcon: checked }));
+              }}
+              data-testid="show-bell-icon-switch"
+            />
+          </Form.Item>
+        </div>
+
         <Form.Item
           label="Card Title"
           name="cardTitle"
@@ -146,15 +179,6 @@ export default function PushNotificationSettingsModal({ open, onClose }) {
           </Form.Item>
         </div>
 
-        <Form.Item
-          label="Show Card on Frontend"
-          name="enabled"
-          valuePropName="checked"
-          extra="When disabled, the notification opt-in prompt will not be shown to visitors on the frontend."
-        >
-          <Switch />
-        </Form.Item>
-
         <Divider style={{ margin: "16px 0 12px" }}>
           <Text type="secondary" style={{ fontSize: 12 }}>
             Live Frontend Preview
@@ -162,7 +186,15 @@ export default function PushNotificationSettingsModal({ open, onClose }) {
         </Divider>
 
         {/* Live Card Preview */}
-        <div style={{ display: "flex", justifyContent: "center", padding: "10px 0" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            padding: "10px 0",
+            gap: 12,
+          }}
+        >
           <div
             style={{
               width: 320,
@@ -234,8 +266,45 @@ export default function PushNotificationSettingsModal({ open, onClose }) {
               </button>
             </div>
           </div>
+
+          {previewValues.showBellIcon !== false && (
+            <div style={{ width: 320, display: "flex", alignItems: "center", gap: 10 }}>
+              <div
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: "50%",
+                  background: "#ffffff",
+                  border: "1px solid rgba(0, 0, 0, 0.12)",
+                  boxShadow: "0 4px 16px rgba(0, 0, 0, 0.14)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 18,
+                  position: "relative",
+                }}
+              >
+                🔔
+                <span
+                  style={{
+                    position: "absolute",
+                    top: 6,
+                    right: 6,
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    background: "#e03c33",
+                    border: "2px solid #ffffff",
+                  }}
+                />
+              </div>
+              <span style={{ fontSize: 11, color: "#8c8c8c" }}>
+                Floating Bell Button (Click toggles prompt card)
+              </span>
+            </div>
+          )}
         </div>
       </Form>
-    </Modal>
+    </Drawer>
   );
 }
