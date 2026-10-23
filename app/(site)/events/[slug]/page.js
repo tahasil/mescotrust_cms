@@ -149,6 +149,7 @@ export default async function EventDetailPage({ params }) {
         <PageBuilderPage
           pageId={EVENT_DETAILS_PAGE_ID}
           pathname={`/events/${params.slug}`}
+          emitBreadcrumbs={false}
         />
       </main>
     </>

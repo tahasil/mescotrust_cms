@@ -1,10 +1,13 @@
 import Link from "next/link";
+import BreadcrumbJsonLd from "@/components/common/BreadcrumbJsonLd";
 
 export default function BreadcrumbsBlock({ items = [], separator = "/" }) {
   if (!items || items.length === 0) return null;
 
   return (
-    <nav aria-label="Breadcrumb" style={{ marginBottom: "1em", fontSize: "0.9em" }}>
+    <>
+      <BreadcrumbJsonLd items={items} />
+      <nav aria-label="Breadcrumb" style={{ marginBottom: "1em", fontSize: "0.9em" }}>
       <ol style={{ display: "flex", flexWrap: "wrap", listStyle: "none", padding: 0, margin: 0, gap: "0.25em" }}>
         {items.map((item, i) => {
           const isLast = i === items.length - 1;
@@ -23,5 +26,6 @@ export default function BreadcrumbsBlock({ items = [], separator = "/" }) {
         })}
       </ol>
     </nav>
+    </>
   );
 }

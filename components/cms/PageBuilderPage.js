@@ -5,6 +5,8 @@ import Component from "@/models/Component";
 import ComponentRenderer from "@/components/cms/ComponentRenderer";
 import { normalizeAboutPageDesign } from "@/lib/aboutPageDesign";
 import { filterLayoutBlocksForPath } from "@/lib/routeComponentRules";
+import BreadcrumbJsonLd from "@/components/common/BreadcrumbJsonLd";
+import { resolveBreadcrumbsForPage } from "@/lib/breadcrumbSchema";
 
 function getBaseComponent(block) {
   return (
@@ -53,7 +55,7 @@ export async function loadPageBuilderDocument({ pageId, slug, pathname }) {
 }
 
 /** Shared renderer for dedicated routes backed by Page Builder templates. */
-export default async function PageBuilderPage({ pageId, slug, pathname }) {
+export default async function PageBuilderPage({ pageId, slug, pathname, emitBreadcrumbs = false }) {
   let document;
   try {
     document = await loadPageBuilderDocument({ pageId, slug, pathname });
@@ -66,5 +68,18 @@ export default async function PageBuilderPage({ pageId, slug, pathname }) {
     );
   }
   if (!document) notFound();
-  return <ComponentRenderer layout={document.layout} />;
+
+  const effectivePath = pathname || (document.page?.slug ? `/${document.page.slug}` : "");
+  const breadcrumbItems = emitBreadcrumbs && effectivePath
+    ? resolveBreadcrumbsForPage(effectivePath, document.page?.title)
+    : [];
+
+  return (
+    <>
+      {breadcrumbItems.length > 0 ? (
+        <BreadcrumbJsonLd items={breadcrumbItems} currentUrl={effectivePath} />
+      ) : null}
+      <ComponentRenderer layout={document.layout} />
+    </>
+  );
 }

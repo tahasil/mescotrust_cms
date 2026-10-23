@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { getColor, InnerBanner, PageContainer } from "@/styles/Theme";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
+import { resolveBreadcrumbsForPage } from "@/lib/breadcrumbSchema";
 
 /** Inner-page banner matching the current MESCO page-hero design. */
 export default function InnerPageHero(props) {
+  const pathname = usePathname();
   const title = String(props?.title ?? "Page Title").trim();
   const description = String(props?.description ?? "").trim();
   const titleColor = props?.titleColorKey ? getColor(props.titleColorKey) : undefined;
@@ -25,9 +28,7 @@ export default function InnerPageHero(props) {
     ? getColor(props.innerPageHeroBreadcrumbColor2Key)
     : undefined;
   const rawItems = Array.isArray(props?.breadcrumbItems) ? props.breadcrumbItems : [];
-  const items = rawItems.length
-    ? rawItems
-    : [{ label: "Home", href: "/" }, { label: title, href: "" }];
+  const items = resolveBreadcrumbsForPage(pathname, title, rawItems);
 
   return (
     <InnerBanner

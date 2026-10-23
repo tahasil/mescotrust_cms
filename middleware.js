@@ -146,7 +146,13 @@ export async function middleware(req) {
   if (pathname.startsWith("/media/") && !isMediaObjectIdPath(pathname)) {
     const url = req.nextUrl.clone();
     url.pathname = `/resolved-pages${pathname}`;
-    return NextResponse.rewrite(url);
+    const headers = new Headers(req.headers);
+    headers.set("x-pathname", pathname);
+    return NextResponse.rewrite(url, {
+      request: {
+        headers,
+      },
+    });
   }
 
   if (pathname.startsWith("/api/auth") && req.method === "POST") {

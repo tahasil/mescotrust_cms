@@ -128,6 +128,7 @@ export default async function BlogPostPage({ params }) {
         <PageBuilderPage
           pageId={BLOG_DETAILS_PAGE_ID}
           pathname={`/blog/${params.slug}`}
+          emitBreadcrumbs={false}
         />
       </main>
     </>

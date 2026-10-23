@@ -4,6 +4,13 @@ import { AntdRegistry } from "@ant-design/nextjs-registry";
 import StyledComponentsRegistry from "@/lib/StyledComponentsRegistry";
 import { getSiteUrl } from "@/lib/env";
 import { getTheme } from "@/lib/layoutData";
+import {
+  buildBreadcrumbSchema,
+  getBaseUrl,
+  isLocalHostUrl,
+  resolveBreadcrumbsForPage,
+  serializeJsonLd,
+} from "@/lib/breadcrumbSchema";
 
 /** Always fetch fresh theme and menu from DB; no cache so menu changes show immediately. */
 export const dynamic = "force-dynamic";
@@ -238,6 +245,14 @@ function sanitizeGoogleAnalyticsId(value) {
 export default async function RootLayout({ children }) {
   const headersList = headers();
   const pathname = headersList.get("x-pathname") || headersList.get("X-Pathname") || "";
+  const host = headersList.get("x-forwarded-host") || headersList.get("host") || "";
+  const forwardedProto = headersList.get("x-forwarded-proto") || "";
+  const cleanHost = String(host || "").split(",")[0].trim();
+  const requestOrigin = cleanHost && !isLocalHostUrl(cleanHost)
+    ? `${forwardedProto || "https"}://${cleanHost}`
+    : "";
+  const siteUrl = getBaseUrl(requestOrigin);
+
   const theme = await getTheme();
   const isAdmin = pathname.startsWith("/admin");
   const dir = theme.direction;
@@ -293,9 +308,26 @@ export default async function RootLayout({ children }) {
         "@context": "https://schema.org",
         "@type": "Organization",
         name: siteName,
-        url: getSiteUrl(),
+        url: siteUrl,
       }
     : null;
+
+  const cleanPath = pathname.replace(/^\/+|\/+$/g, "");
+  const isPublicInnerPage =
+    !isAdmin &&
+    cleanPath &&
+    cleanPath !== "home" &&
+    !cleanPath.startsWith("api") &&
+    !cleanPath.startsWith("preview");
+
+  let breadcrumbJsonLd = null;
+  if (isPublicInnerPage) {
+    const breadcrumbItems = resolveBreadcrumbsForPage(cleanPath);
+    breadcrumbJsonLd = buildBreadcrumbSchema(breadcrumbItems, {
+      currentUrl: pathname,
+      baseUrl: siteUrl,
+    });
+  }
 
   return (
     <html lang={theme.defaultLocale} dir={dir} style={cssVars} data-header-layout={theme.headerLayout} data-card-style={theme.cardStyle}>
@@ -344,6 +376,12 @@ html.page-loading,body.page-loading{overflow:hidden;margin:0;padding:0}
         )}
         {orgJsonLd && (
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
+        )}
+        {breadcrumbJsonLd && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
+          />
         )}
       </head>
       <body>
