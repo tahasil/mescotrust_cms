@@ -393,7 +393,7 @@ html.page-loading,body.page-loading{overflow:hidden;margin:0;padding:0}
           </>
         )}
         {orgJsonLd && (
-          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(orgJsonLd) }} />
         )}
         {breadcrumbJsonLd && (
           <script

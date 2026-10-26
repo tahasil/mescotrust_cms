@@ -37,7 +37,9 @@
     "index:search-pdfs": "node scripts/index-pdf-search.js",
     "test:unified-search": "node scripts/test-unified-search.js",
     "test:advanced-search": "node scripts/test-advanced-search.js",
-    "test:e2e:search": "playwright test e2e/advanced-search.spec.js"
+    "test:e2e:search": "playwright test e2e/advanced-search.spec.js",
+    "test:xss": "node scripts/test-xss-security.js",
+    "test:e2e:xss": "playwright test e2e/xss-protection.spec.js"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.0",

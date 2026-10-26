@@ -10,6 +10,7 @@ import {
 import { syncMediaUsageForPage } from "@/lib/media/usageTracker";
 import { sanitizeVideoPlayingLayout } from "@/lib/videoPlayingImageValidation";
 import { sanitizePhotoGalleryLayout } from "@/lib/photoGalleryImageValidation";
+import { sanitizePlainText } from "@/lib/security/sanitize";
 
 export async function GET(req) {
   const session = await requireAuth(req);
@@ -68,7 +69,8 @@ export async function POST(req) {
     const body = await req.json();
     const { title, slug: rawSlug, status, layout, meta, locale } = body;
 
-    const result = normalizeSlug(rawSlug || title);
+    const cleanTitle = sanitizePlainText(title) || "Untitled";
+    const result = normalizeSlug(rawSlug || cleanTitle);
     if (!result.valid) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
@@ -95,12 +97,19 @@ export async function POST(req) {
       }
     }
 
+    const cleanMeta = meta && typeof meta === "object" ? {
+      ...meta,
+      metaTitle: sanitizePlainText(meta.metaTitle),
+      metaDescription: sanitizePlainText(meta.metaDescription),
+      metaKeywords: sanitizePlainText(meta.metaKeywords),
+    } : {};
+
     const page = await Page.create({
-      title: title || "Untitled",
+      title: cleanTitle,
       slug,
       status: status || "draft",
       layout: safeLayout,
-      meta: meta || {},
+      meta: cleanMeta,
       ...(locale && { locale }),
       createdBy: session.email || "",
       updatedBy: session.email || "",

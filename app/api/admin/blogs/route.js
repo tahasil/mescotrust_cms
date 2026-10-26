@@ -5,6 +5,7 @@ import Blog from "@/models/Blog";
 import { normalizeSlug } from "@/lib/slug";
 import { syncMediaUsageForBlog } from "@/lib/media/usageTracker";
 import { validateBlogImages } from "@/lib/blogImageValidation";
+import { sanitizeHtml, sanitizePlainText } from "@/lib/security/sanitize";
 
 export async function GET(req) {
   const session = await requireAuth(req);
@@ -46,7 +47,8 @@ export async function POST(req) {
       );
     }
 
-    const result = normalizeSlug(rawSlug || title);
+    const cleanTitle = sanitizePlainText(title) || "Untitled";
+    const result = normalizeSlug(rawSlug || cleanTitle);
     if (!result.valid) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
@@ -58,19 +60,26 @@ export async function POST(req) {
       return NextResponse.json({ error: "A post with this slug already exists" }, { status: 400 });
     }
 
+    const cleanMeta = meta && typeof meta === "object" ? {
+      ...meta,
+      metaTitle: sanitizePlainText(meta.metaTitle),
+      metaDescription: sanitizePlainText(meta.metaDescription),
+      metaKeywords: sanitizePlainText(meta.metaKeywords),
+    } : {};
+
     const blog = await Blog.create({
-      title: title || "Untitled",
+      title: cleanTitle,
       slug,
-      content: content || "",
-      excerpt: excerpt || "",
+      content: sanitizeHtml(content || ""),
+      excerpt: sanitizePlainText(excerpt || ""),
       featuredImage: featuredImage || "",
       featuredImageMobile: featuredImageMobile || "",
-      author: author || "",
+      author: sanitizePlainText(author || ""),
       status: status || "draft",
       publishedAt: status === "published" ? new Date() : null,
       category: category || null,
-      tags: Array.isArray(tags) ? tags : [],
-      meta: meta || {},
+      tags: Array.isArray(tags) ? tags.map(sanitizePlainText).filter(Boolean) : [],
+      meta: cleanMeta,
       ...(locale && { locale }),
       createdBy: session.email || "",
       updatedBy: session.email || "",

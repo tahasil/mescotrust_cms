@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { sanitizeUrl } from "@/lib/security/sanitize";
 
 function isExternal(url) {
   return /^https?:\/\//.test(url) || url.startsWith("//");
@@ -28,7 +29,7 @@ export default function Buttons({ buttons = [] }) {
   return (
     <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", margin: "1rem 0" }}>
       {items.map((btn, i) => {
-        const url = btn.url || "#";
+        const url = sanitizeUrl(btn.url, "#");
         const style = btnStyle(btn.variant);
 
         if (btn.openInNewTab || isExternal(url)) {

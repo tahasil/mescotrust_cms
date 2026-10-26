@@ -1,3 +1,5 @@
+import { sanitizeUrl } from "@/lib/security/sanitize";
+
 export default function EmbedBlock({ url, caption }) {
   if (!url) return null;
 
@@ -31,10 +33,15 @@ export default function EmbedBlock({ url, caption }) {
     );
   }
 
+  const safeUrl = sanitizeUrl(url, "");
+  if (!safeUrl || (!safeUrl.startsWith("https://") && !safeUrl.startsWith("http://"))) {
+    return null;
+  }
+
   return (
     <figure style={{ margin: "1em 0" }}>
       <iframe
-        src={url}
+        src={safeUrl}
         style={{ width: "100%", minHeight: 400, border: "1px solid #e0e0e0", borderRadius: 6 }}
         loading="lazy"
         title={caption || "Embedded content"}

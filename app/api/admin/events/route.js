@@ -5,6 +5,7 @@ import Event from "@/models/Event";
 import { normalizeSlug } from "@/lib/slug";
 import { syncMediaUsageForEvent } from "@/lib/media/usageTracker";
 import { validateEventImages } from "@/lib/eventImageValidation";
+import { sanitizeHtml, sanitizePlainText, sanitizeUrl } from "@/lib/security/sanitize";
 
 function parseOptionalDate(v) {
   if (v === null || v === undefined || v === "") return null;
@@ -70,7 +71,8 @@ export async function POST(req) {
       );
     }
 
-    const result = normalizeSlug(rawSlug || title);
+    const cleanTitle = sanitizePlainText(title) || "Untitled";
+    const result = normalizeSlug(rawSlug || cleanTitle);
     if (!result.valid) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
@@ -82,23 +84,30 @@ export async function POST(req) {
       return NextResponse.json({ error: "An event with this slug already exists" }, { status: 400 });
     }
 
+    const cleanMeta = meta && typeof meta === "object" ? {
+      ...meta,
+      metaTitle: sanitizePlainText(meta.metaTitle),
+      metaDescription: sanitizePlainText(meta.metaDescription),
+      metaKeywords: sanitizePlainText(meta.metaKeywords),
+    } : {};
+
     const doc = await Event.create({
-      title: title || "Untitled",
+      title: cleanTitle,
       slug,
-      description: description || "",
-      content: content || "",
+      description: sanitizePlainText(description || ""),
+      content: sanitizeHtml(content || ""),
       featuredImageDesktop: featuredImageDesktop || "",
       featuredImageMobile: featuredImageMobile || "",
       startDate: parseOptionalDate(startDate),
       endDate: parseOptionalDate(endDate),
-      time: time || "",
-      location: isOnline ? "" : location || "",
+      time: sanitizePlainText(time || ""),
+      location: isOnline ? "" : sanitizePlainText(location || ""),
       isOnline: Boolean(isOnline),
       featured: featured === true,
-      eventLink: eventLink || "",
-      tags: Array.isArray(tags) ? tags : [],
+      eventLink: sanitizeUrl(eventLink || "", ""),
+      tags: Array.isArray(tags) ? tags.map(sanitizePlainText).filter(Boolean) : [],
       status: status || "draft",
-      meta: meta || {},
+      meta: cleanMeta,
       ...(locale && { locale }),
       createdBy: session.email || "",
       updatedBy: session.email || "",

@@ -15,6 +15,7 @@ import {
   normalizePdfTarget,
   usePdfViewerModal,
 } from "@/components/site/shared/PdfViewerModal";
+import { sanitizeUrl } from "@/lib/security/sanitize";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -68,7 +69,7 @@ export default function LatestNews(props) {
   const pageContainerBgType = text(props?.latestEvents1PageContainerBgType || "default"); const pageContainerBgImage = text(props?.latestEvents1PageContainerBgImage); const pageContainerBgColorKey = text(props?.latestEvents1PageContainerBgColorKey);
   const pageContainerBgStyle = { ...(pageContainerBgType === "image" && pageContainerBgImage ? { backgroundImage: `url(${pageContainerBgImage})`, backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" } : pageContainerBgType === "color" && pageContainerBgColorKey ? { backgroundColor: getColor(pageContainerBgColorKey), backgroundImage: "none" } : {}), ...Object.fromEntries([["paddingTop", props?.latestEvents1PageContainerPaddingTop], ["paddingRight", props?.latestEvents1PageContainerPaddingRight], ["paddingBottom", props?.latestEvents1PageContainerPaddingBottom], ["paddingLeft", props?.latestEvents1PageContainerPaddingLeft], ["marginTop", props?.latestEvents1PageContainerMarginTop], ["marginBottom", props?.latestEvents1PageContainerMarginBottom]].filter(([, value]) => value != null && value !== "" && number(value, -1) >= 0).map(([key, value]) => [key, `${number(value, 0)}px`])) };
   const renderNewsItem = (item, index) => {
-    const href = text(item?.buttonLink);
+    const href = sanitizeUrl(text(item?.buttonLink), "");
     const fallbackTarget = item?.buttonOpenInNewTab ? "_blank" : "_self";
     const configuredTarget = normalizePdfTarget(
       item?.target || item?.buttonTarget,

@@ -13,6 +13,7 @@ import ThemeConfig from "@/models/ThemeConfig";
 import { extractGlobalSeoFromTheme, parseMetaKeywords } from "@/lib/seo";
 import { getBlogImageSources } from "@/components/blog/blogDisplay";
 import PageBuilderPage from "@/components/cms/PageBuilderPage";
+import { serializeJsonLd } from "@/lib/security/jsonLd";
 
 export const revalidate = 60;
 
@@ -123,7 +124,7 @@ export default async function BlogPostPage({ params }) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
       <main>
         <PageBuilderPage
           pageId={BLOG_DETAILS_PAGE_ID}

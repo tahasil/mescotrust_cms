@@ -13,6 +13,7 @@ import {
 } from "@ant-design/icons";
 import { resolveYearPlaceholder } from "@/lib/yearPlaceholder";
 import { PageContainer } from "@/styles/Theme";
+import { sanitizeUrl } from "@/lib/security/sanitize";
 
 const SOCIAL_ICONS = {
   facebook: FacebookFilled,
@@ -32,7 +33,7 @@ function LinkColumn({ title, links = [], titleClassName = "" }) {
       {links.map((item, index) => (
         <a
           key={`${item?.label}-${index}`}
-          href={item?.url || "#"}
+          href={sanitizeUrl(item?.url, "#")}
           target={item?.target === "_blank" ? "_blank" : "_self"}
           rel={item?.target === "_blank" ? "noopener noreferrer" : undefined}
         >
@@ -119,7 +120,7 @@ export default function AppearanceFooter({
           {footerLogoUrl ? (
             <a
               className="footer-logo-link"
-              href={footerLogoHref || "/"}
+              href={sanitizeUrl(footerLogoHref, "/")}
               target={footerLogoTarget === "_blank" ? "_blank" : "_self"}
               rel={footerLogoTarget === "_blank" ? "noopener noreferrer" : undefined}
             >
@@ -131,10 +132,12 @@ export default function AppearanceFooter({
             <div className="footer-socials">
               {socials.map((item, index) => {
                 const Icon = SOCIAL_ICONS[String(item?.platform || "").toLowerCase()] || GlobalOutlined;
+                const safeSocialUrl = sanitizeUrl(item.url, "");
+                if (!safeSocialUrl) return null;
                 return (
                   <a
                     key={`${item.platform}-${index}`}
-                    href={item.url}
+                    href={safeSocialUrl}
                     target={item?.target === "_blank" ? "_blank" : "_self"}
                     rel={item?.target === "_blank" ? "noopener noreferrer" : undefined}
                     aria-label={item.platform}
@@ -163,8 +166,8 @@ export default function AppearanceFooter({
         <PageContainer className="footer-bottom page-container-footer">
           <p>{copyright}</p>
           <div className="footer-legal">
-            {footerPrivacyUrl ? <a href={footerPrivacyUrl} target={footerPrivacyTarget === "_blank" ? "_blank" : "_self"} rel={footerPrivacyTarget === "_blank" ? "noopener noreferrer" : undefined}>{footerPrivacyLabel}</a> : null}
-            {footerRefundUrl ? <a href={footerRefundUrl} target={footerRefundTarget === "_blank" ? "_blank" : "_self"} rel={footerRefundTarget === "_blank" ? "noopener noreferrer" : undefined}>{footerRefundLabel}</a> : null}
+            {sanitizeUrl(footerPrivacyUrl, "") ? <a href={sanitizeUrl(footerPrivacyUrl, "#")} target={footerPrivacyTarget === "_blank" ? "_blank" : "_self"} rel={footerPrivacyTarget === "_blank" ? "noopener noreferrer" : undefined}>{footerPrivacyLabel}</a> : null}
+            {sanitizeUrl(footerRefundUrl, "") ? <a href={sanitizeUrl(footerRefundUrl, "#")} target={footerRefundTarget === "_blank" ? "_blank" : "_self"} rel={footerRefundTarget === "_blank" ? "noopener noreferrer" : undefined}>{footerRefundLabel}</a> : null}
           </div>
         </PageContainer>
       </div>

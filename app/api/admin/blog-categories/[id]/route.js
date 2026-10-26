@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/db";
 import BlogCategory from "@/models/BlogCategory";
 import Blog from "@/models/Blog";
 import { normalizeSlug } from "@/lib/slug";
+import { sanitizePlainText } from "@/lib/security/sanitize";
 
 export async function GET(req, { params }) {
   const session = await requireAuth(req);
@@ -53,8 +54,8 @@ export async function PUT(req, { params }) {
       }
       category.slug = result.slug;
     }
-    if (name !== undefined) category.name = name;
-    if (description !== undefined) category.description = description;
+    if (name !== undefined) category.name = sanitizePlainText(name) || "Unnamed";
+    if (description !== undefined) category.description = sanitizePlainText(description);
     if (typeof order === "number") category.order = order;
 
     await category.save();

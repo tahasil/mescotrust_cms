@@ -5,6 +5,7 @@ import BlogComment from "@/models/BlogComment";
 import ThemeConfig from "@/models/ThemeConfig";
 import { unstable_cache } from "next/cache";
 import { createRateLimiter, getClientIp } from "@/lib/rateLimit";
+import { sanitizePlainText } from "@/lib/security/sanitize";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const checkRateLimit = createRateLimiter({ windowMs: 60_000, max: 10 });
@@ -59,9 +60,9 @@ export async function POST(req, { params }) {
 
     const slug = params.slug;
     const body = await req.json();
-    const name = (body.name || "").trim();
-    const email = (body.email || "").trim();
-    const comment = (body.comment || "").trim();
+    const name = sanitizePlainText(body.name || "");
+    const email = (body.email || "").trim().toLowerCase();
+    const comment = sanitizePlainText(body.comment || "");
 
     if (!name || !email || !comment) {
       return NextResponse.json({ error: "Name, email, and comment are required" }, { status: 400 });

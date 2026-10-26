@@ -6,6 +6,7 @@ import Blog from "@/models/Blog";
 import { normalizeSlug } from "@/lib/slug";
 import { clearUsageForRef, syncMediaUsageForBlog } from "@/lib/media/usageTracker";
 import { validateBlogImages } from "@/lib/blogImageValidation";
+import { sanitizeHtml, sanitizePlainText } from "@/lib/security/sanitize";
 
 export async function GET(req, { params }) {
   const session = await requireAuth(req);
@@ -63,20 +64,27 @@ export async function PUT(req, { params }) {
       }
       blog.slug = result.slug;
     }
-    if (title !== undefined) blog.title = title;
-    if (content !== undefined) blog.content = content;
-    if (excerpt !== undefined) blog.excerpt = excerpt;
+    if (title !== undefined) blog.title = sanitizePlainText(title) || "Untitled";
+    if (content !== undefined) blog.content = sanitizeHtml(content);
+    if (excerpt !== undefined) blog.excerpt = sanitizePlainText(excerpt);
     if (featuredImage !== undefined) blog.featuredImage = featuredImage;
     if (featuredImageMobile !== undefined) blog.featuredImageMobile = featuredImageMobile;
-    if (author !== undefined) blog.author = author;
+    if (author !== undefined) blog.author = sanitizePlainText(author);
     if (status !== undefined) {
       blog.status = status;
       if (status === "published" && !blog.publishedAt) blog.publishedAt = new Date();
     }
     if (publishedAt !== undefined) blog.publishedAt = publishedAt;
     if (category !== undefined) blog.category = category;
-    if (Array.isArray(tags)) blog.tags = tags;
-    if (meta !== undefined) blog.meta = meta;
+    if (Array.isArray(tags)) blog.tags = tags.map(sanitizePlainText).filter(Boolean);
+    if (meta !== undefined) {
+      blog.meta = meta && typeof meta === "object" ? {
+        ...meta,
+        metaTitle: sanitizePlainText(meta.metaTitle),
+        metaDescription: sanitizePlainText(meta.metaDescription),
+        metaKeywords: sanitizePlainText(meta.metaKeywords),
+      } : {};
+    }
     if (locale !== undefined) blog.locale = locale;
     blog.updatedBy = session.email || "";
 

@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import BlogCategory from "@/models/BlogCategory";
 import { normalizeSlug } from "@/lib/slug";
+import { sanitizePlainText } from "@/lib/security/sanitize";
 
 export async function GET(req) {
   const session = await requireAuth(req);
@@ -25,7 +26,8 @@ export async function POST(req) {
     const body = await req.json();
     const { name, slug: rawSlug, description, order } = body;
 
-    const result = normalizeSlug(rawSlug || name);
+    const cleanName = sanitizePlainText(name) || "Unnamed";
+    const result = normalizeSlug(rawSlug || cleanName);
     if (!result.valid) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
@@ -38,9 +40,9 @@ export async function POST(req) {
     }
 
     const category = await BlogCategory.create({
-      name: name || "Unnamed",
+      name: cleanName,
       slug,
-      description: description || "",
+      description: sanitizePlainText(description || ""),
       order: typeof order === "number" ? order : 0,
     });
     return NextResponse.json(category);

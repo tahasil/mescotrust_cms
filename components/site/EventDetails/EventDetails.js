@@ -25,6 +25,7 @@ import {
   isEventStarted,
 } from "@/components/events/eventDisplay";
 import { buildEventRegistrationHref } from "@/components/events/eventRegistration";
+import { sanitizeUrl } from "@/lib/security/sanitize";
 
 const EventDetailsRoot = styled.div`
   --event-detail-display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
@@ -450,13 +451,13 @@ function normalizeGallery(event) {
 function normalizeAttachments(event) {
   const source = Array.isArray(event?.attachments) ? event.attachments : [];
   const items = source.map((item, index) => {
-    if (typeof item === "string") return { url: item, label: `Download ${index + 1}` };
+    if (typeof item === "string") return { url: sanitizeUrl(item, ""), label: `Download ${index + 1}` };
     return {
-      url: text(item?.url || item?.file || item?.href),
+      url: sanitizeUrl(item?.url || item?.file || item?.href, ""),
       label: text(item?.label || item?.title || item?.name, `Download ${index + 1}`),
     };
   });
-  const singleUrl = text(event?.attachmentUrl || event?.downloadUrl);
+  const singleUrl = sanitizeUrl(event?.attachmentUrl || event?.downloadUrl, "");
   if (singleUrl) {
     items.unshift({
       url: singleUrl,

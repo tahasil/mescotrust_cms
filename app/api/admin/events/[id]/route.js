@@ -6,6 +6,7 @@ import Event from "@/models/Event";
 import { normalizeSlug } from "@/lib/slug";
 import { clearUsageForRef, syncMediaUsageForEvent } from "@/lib/media/usageTracker";
 import { validateEventImages } from "@/lib/eventImageValidation";
+import { sanitizeHtml, sanitizePlainText, sanitizeUrl } from "@/lib/security/sanitize";
 
 function parseOptionalDate(v) {
   if (v === null || v === undefined || v === "") return null;
@@ -87,22 +88,29 @@ export async function PUT(req, { params }) {
       }
       doc.slug = result.slug;
     }
-    if (title !== undefined) doc.title = title;
-    if (description !== undefined) doc.description = description;
-    if (content !== undefined) doc.content = content;
+    if (title !== undefined) doc.title = sanitizePlainText(title) || "Untitled";
+    if (description !== undefined) doc.description = sanitizePlainText(description);
+    if (content !== undefined) doc.content = sanitizeHtml(content);
     if (featuredImageDesktop !== undefined) doc.featuredImageDesktop = featuredImageDesktop;
     if (featuredImageMobile !== undefined) doc.featuredImageMobile = featuredImageMobile;
     if (startDate !== undefined) doc.startDate = parseOptionalDate(startDate);
     if (endDate !== undefined) doc.endDate = parseOptionalDate(endDate);
-    if (time !== undefined) doc.time = time;
+    if (time !== undefined) doc.time = sanitizePlainText(time);
     if (isOnline !== undefined) doc.isOnline = Boolean(isOnline);
     if (featured !== undefined) doc.featured = featured === true;
-    if (location !== undefined && !doc.isOnline) doc.location = location;
+    if (location !== undefined && !doc.isOnline) doc.location = sanitizePlainText(location);
     if (doc.isOnline) doc.location = "";
-    if (eventLink !== undefined) doc.eventLink = eventLink;
-    if (Array.isArray(tags)) doc.tags = tags;
+    if (eventLink !== undefined) doc.eventLink = sanitizeUrl(eventLink, "");
+    if (Array.isArray(tags)) doc.tags = tags.map(sanitizePlainText).filter(Boolean);
     if (status !== undefined) doc.status = status;
-    if (meta !== undefined) doc.meta = meta;
+    if (meta !== undefined) {
+      doc.meta = meta && typeof meta === "object" ? {
+        ...meta,
+        metaTitle: sanitizePlainText(meta.metaTitle),
+        metaDescription: sanitizePlainText(meta.metaDescription),
+        metaKeywords: sanitizePlainText(meta.metaKeywords),
+      } : {};
+    }
     if (locale !== undefined) doc.locale = locale;
     doc.updatedBy = session.email || "";
 

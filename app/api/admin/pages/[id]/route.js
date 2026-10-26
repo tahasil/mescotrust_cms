@@ -19,6 +19,7 @@ import { clearUsageForRef, syncMediaUsageForPage } from "@/lib/media/usageTracke
 import { sanitizeVideoPlayingLayout } from "@/lib/videoPlayingImageValidation";
 import { sanitizePhotoGalleryLayout } from "@/lib/photoGalleryImageValidation";
 import { normalizeAboutPageDesign } from "@/lib/aboutPageDesign";
+import { sanitizePlainText } from "@/lib/security/sanitize";
 
 export async function GET(req, { params }) {
   const session = await requireAuth(req);
@@ -71,7 +72,7 @@ export async function PUT(req, { params }) {
       }
       page.slug = nextSlug;
     }
-    if (title !== undefined) page.title = title;
+    if (title !== undefined) page.title = sanitizePlainText(title) || "Untitled";
     if (status !== undefined) page.status = status;
     if (Array.isArray(layout)) {
       const normalizedLayout = normalizeAboutPageDesign(nextSlug, layout);
@@ -88,7 +89,14 @@ export async function PUT(req, { params }) {
       }
       page.layout = safeLayout;
     }
-    if (meta !== undefined) page.meta = meta;
+    if (meta !== undefined) {
+      page.meta = meta && typeof meta === "object" ? {
+        ...meta,
+        metaTitle: sanitizePlainText(meta.metaTitle),
+        metaDescription: sanitizePlainText(meta.metaDescription),
+        metaKeywords: sanitizePlainText(meta.metaKeywords),
+      } : {};
+    }
     if (locale !== undefined) page.locale = locale;
     page.updatedBy = session.email || "";
 

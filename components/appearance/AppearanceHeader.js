@@ -8,6 +8,7 @@ import {
   usePdfViewerModal,
 } from "@/components/site/shared/PdfViewerModal";
 import { PageContainer } from "@/styles/Theme";
+import { sanitizeCssToken, sanitizeUrl } from "@/lib/security/sanitize";
 
 const SearchIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -239,7 +240,9 @@ export default function AppearanceHeader(props) {
   const resolvedLogoTarget = logoTarget === "_blank" ? "_blank" : undefined;
   const hasSearchAction =
     headerSearchEnabled === true && String(headerSearchLabel || "").trim();
-  const navTextColor = headerNavTextValue || "#1a1a1a";
+  const navTextColor = sanitizeCssToken(headerNavTextValue, "#1a1a1a");
+  const safeVolunteerHref = sanitizeUrl(volunteerHref, "");
+  const safeDonateHref = sanitizeUrl(donateHref, "");
   const navBackground = resolveNavBackground(headerBgValue);
   const navBackgroundScrolled = resolveScrolledNavBackground(headerBgValue);
   const searchBg = headerSearchBgValue || "transparent";
@@ -479,18 +482,18 @@ export default function AppearanceHeader(props) {
                   <span>{headerSearchLabel}</span>
                 </button>
               ) : null}
-              {volunteerHref ? (
-                <a className="appearance-volunteer" href={volunteerHref} target={volunteerTarget} rel={volunteerTarget ? "noopener noreferrer" : undefined}>
+              {safeVolunteerHref ? (
+                <a className="appearance-volunteer" href={safeVolunteerHref} target={volunteerTarget} rel={volunteerTarget ? "noopener noreferrer" : undefined}>
                   <span className="appearance-btn-label">{volunteerLabel}</span>
                   <span className="appearance-btn-icon appearance-btn-icon-volunteer" aria-hidden="true">
                     <img src={volunteerIconSrc} alt="" />
                   </span>
                 </a>
               ) : null}
-              {donateHref ? (
+              {safeDonateHref ? (
                 <a
                   className="appearance-donate"
-                  href={donateHref}
+                  href={safeDonateHref}
                   target={donateTarget}
                   rel={donateTarget ? "noopener noreferrer" : undefined}
                 >

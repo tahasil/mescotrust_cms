@@ -161,6 +161,8 @@ NPM scripts:
 - `npm run audit:menu-links` -> report every nav link that would 404 (read-only)
 - `npm run fix:menu-links` -> re-point menu items at the slug that actually resolves
 - `npm run test:menu-page-sync` -> end-to-end tests for page/menu sync and move behaviour
+- `npm run test:xss` -> comprehensive 10-scenario XSS contract security test suite
+- `npm run test:e2e:xss` -> Playwright E2E browser XSS execution protection test suite
 
 ## 7. Standard Workflows
 
@@ -351,6 +353,10 @@ Key implementation files:
 - `lib/search/unifiedSearch.js` (Unified Search across Pages, Events, Blogs, News, and Annual Reports)
 - `components/search/SearchResultsClient.js` (Search Results client component with tabs, filters, highlighting)
 - `app/(site)/search/page.js` (Search results public route)
+- `lib/security/sanitize.js` (Universal sanitization engine: HTML allowlist, plain-text tag stripping, URL protocol filter, CSS token defense)
+- `lib/security/jsonLd.js` (Unicode-escaped JSON-LD serializer preventing inline script breakout)
+- `scripts/test-xss-security.js` (Automated 10-scenario contract security suite)
+- `e2e/xss-protection.spec.js` (Playwright E2E browser execution prevention suite)
 
 ---
 

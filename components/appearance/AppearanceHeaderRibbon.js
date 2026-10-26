@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { ArrowRightOutlined, NotificationFilled } from "@ant-design/icons";
 import { getColor } from "@/styles/Theme";
 import { normalizeTarget } from "./editorUtils";
+import { sanitizeUrl } from "@/lib/security/sanitize";
 
 function text(value) {
   return value == null ? "" : String(value).trim();
@@ -276,10 +277,10 @@ export default function AppearanceHeaderRibbon({
             </p>
           ) : null}
           {actionEnabled && items[0]?.actionText ? (
-            items[0]?.actionUrl ? (
+            sanitizeUrl(items[0]?.actionUrl, "") ? (
               <a
                 className="appearance-header-ribbon__action"
-                href={items[0].actionUrl}
+                href={sanitizeUrl(items[0].actionUrl, "#")}
                 target={
                   items[0].actionTarget === "_blank" ? "_blank" : undefined
                 }

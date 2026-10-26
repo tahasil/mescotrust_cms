@@ -16,6 +16,7 @@ import {
 } from "@/lib/seo";
 import { getEventImageSources } from "@/components/events/eventDisplay";
 import PageBuilderPage from "@/components/cms/PageBuilderPage";
+import { serializeJsonLd } from "@/lib/security/jsonLd";
 
 export const revalidate = 60;
 
@@ -143,7 +144,7 @@ export default async function EventDetailPage({ params }) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <main>
         <PageBuilderPage
