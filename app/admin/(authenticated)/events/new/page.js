@@ -85,8 +85,15 @@ async function validateDesktopImageDimensions(_, value) {
   }
 }
 
+import { useAdminAuth } from "@/components/admin/AdminAuthContext";
+import { Tag } from "antd";
+
 export default function AdminEventNewPage() {
   const router = useRouter();
+  const auth = useAdminAuth();
+  const normalizedRole = String(auth?.roleKey || auth?.role || "").trim().toLowerCase();
+  const isAdmin = normalizedRole === "admin" || normalizedRole === "super_admin";
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
@@ -160,9 +167,9 @@ export default function AdminEventNewPage() {
         </>
       }
       extra={
-        <Space size={8} wrap style={{ justifyContent: "flex-end" }}>
-          <Space size={8} wrap>
-            <span>Status</span>
+        <Space size={8} wrap style={{ justifyContent: "flex-end", alignItems: "center" }}>
+          <span>Status:</span>
+          {isAdmin ? (
             <Switch
               checked={status === "published"}
               checkedChildren="Published"
@@ -171,7 +178,9 @@ export default function AdminEventNewPage() {
                 form.setFieldValue("status", checked ? "published" : "draft")
               }
             />
-          </Space>
+          ) : (
+            <Tag color="default">Draft</Tag>
+          )}
         </Space>
       }
     >

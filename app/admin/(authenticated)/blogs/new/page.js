@@ -60,8 +60,15 @@ async function validateDesktopImageDimensions(_, value) {
   }
 }
 
+import { useAdminAuth } from "@/components/admin/AdminAuthContext";
+import { Tag } from "antd";
+
 export default function AdminBlogNewPage() {
   const router = useRouter();
+  const auth = useAdminAuth();
+  const normalizedRole = String(auth?.roleKey || auth?.role || "").trim().toLowerCase();
+  const isAdmin = normalizedRole === "admin" || normalizedRole === "super_admin";
+
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -124,16 +131,20 @@ export default function AdminBlogNewPage() {
         </>
       }
       extra={
-        <Space size={8} wrap style={{ justifyContent: "flex-end" }}>
-          <span>Status</span>
-          <Switch
-            checked={status === "published"}
-            checkedChildren="Published"
-            unCheckedChildren="Draft"
-            onChange={(checked) =>
-              form.setFieldValue("status", checked ? "published" : "draft")
-            }
-          />
+        <Space size={8} wrap style={{ justifyContent: "flex-end", alignItems: "center" }}>
+          <span>Status:</span>
+          {isAdmin ? (
+            <Switch
+              checked={status === "published"}
+              checkedChildren="Published"
+              unCheckedChildren="Draft"
+              onChange={(checked) =>
+                form.setFieldValue("status", checked ? "published" : "draft")
+              }
+            />
+          ) : (
+            <Tag color="default">Draft</Tag>
+          )}
         </Space>
       }
     >

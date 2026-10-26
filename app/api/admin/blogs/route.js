@@ -7,6 +7,9 @@ import { syncMediaUsageForBlog } from "@/lib/media/usageTracker";
 import { validateBlogImages } from "@/lib/blogImageValidation";
 import { sanitizeHtml, sanitizePlainText } from "@/lib/security/sanitize";
 
+import { isContentAdmin, isContentAuthor, appendWorkflowHistory } from "@/lib/workflow/workflowEngine";
+import { CONTENT_STATUSES } from "@/lib/workflow/constants";
+
 export async function GET(req) {
   const session = await requireAuth(req);
   if (session instanceof NextResponse) return session;
@@ -16,11 +19,38 @@ export async function GET(req) {
     const page = Math.max(1, Number(searchParams.get("page")) || 1);
     const limit = Math.min(100, Math.max(1, Number(searchParams.get("limit")) || 50));
     const skip = (page - 1) * limit;
+    const status = searchParams.get("status");
+    const scope = searchParams.get("scope");
+    const q = searchParams.get("q") || searchParams.get("search");
 
     await connectDB();
+
+    const query = {};
+
+    if (isContentAuthor(session) || scope === "my") {
+      const email = String(session.email || "").trim();
+      const userId = session.id || session.userId;
+      query.$or = [{ createdBy: email }];
+      if (userId) {
+        query.$or.push({ creatorId: userId });
+      }
+    }
+
+    if (status && status !== "all") {
+      query.status = status;
+    }
+
+    if (q && q.trim()) {
+      const regex = new RegExp(q.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+      query.$and = query.$and || [];
+      query.$and.push({
+        $or: [{ title: regex }, { slug: regex }],
+      });
+    }
+
     const [blogs, total] = await Promise.all([
-      Blog.find().populate("category").sort({ updatedAt: -1 }).skip(skip).limit(limit).lean(),
-      Blog.countDocuments(),
+      Blog.find(query).populate("category").sort({ updatedAt: -1 }).skip(skip).limit(limit).lean(),
+      Blog.countDocuments(query),
     ]);
     return NextResponse.json({ items: blogs, total, page, totalPages: Math.ceil(total / limit) });
   } catch (err) {
@@ -34,7 +64,7 @@ export async function POST(req) {
 
   try {
     const body = await req.json();
-    const { title, slug: rawSlug, content, excerpt, featuredImage, featuredImageMobile, author, status, publishedAt, category, tags, meta, locale } = body;
+    const { title, slug: rawSlug, content, excerpt, featuredImage, featuredImageMobile, author, status: requestedStatus, publishedAt, category, tags, meta, locale } = body;
 
     const imageValidationErrors = await validateBlogImages({
       featuredImage,
@@ -67,7 +97,15 @@ export async function POST(req) {
       metaKeywords: sanitizePlainText(meta.metaKeywords),
     } : {};
 
-    const blog = await Blog.create({
+    let finalStatus = CONTENT_STATUSES.DRAFT;
+    if (isContentAdmin(session)) {
+      finalStatus = requestedStatus || CONTENT_STATUSES.DRAFT;
+    } else {
+      // Authors can only create Drafts initially
+      finalStatus = CONTENT_STATUSES.DRAFT;
+    }
+
+    const blogData = {
       title: cleanTitle,
       slug,
       content: sanitizeHtml(content || ""),
@@ -75,15 +113,25 @@ export async function POST(req) {
       featuredImage: featuredImage || "",
       featuredImageMobile: featuredImageMobile || "",
       author: sanitizePlainText(author || ""),
-      status: status || "draft",
-      publishedAt: status === "published" ? new Date() : null,
+      status: finalStatus,
+      publishedAt: finalStatus === CONTENT_STATUSES.PUBLISHED ? (publishedAt ? new Date(publishedAt) : new Date()) : null,
+      publishedBy: finalStatus === CONTENT_STATUSES.PUBLISHED ? (session.email || "") : "",
       category: category || null,
       tags: Array.isArray(tags) ? tags.map(sanitizePlainText).filter(Boolean) : [],
       meta: cleanMeta,
       ...(locale && { locale }),
       createdBy: session.email || "",
+      creatorId: session.id || session.userId || null,
       updatedBy: session.email || "",
+    };
+
+    const blog = new Blog(blogData);
+    appendWorkflowHistory(blog, {
+      action: "create",
+      sessionLike: session,
+      notes: `Created with status ${finalStatus}`,
     });
+    await blog.save();
     await syncMediaUsageForBlog(blog);
     return NextResponse.json(blog);
   } catch (err) {

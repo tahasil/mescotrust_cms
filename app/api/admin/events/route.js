@@ -13,6 +13,9 @@ function parseOptionalDate(v) {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
+import { isContentAdmin, isContentAuthor, appendWorkflowHistory } from "@/lib/workflow/workflowEngine";
+import { CONTENT_STATUSES } from "@/lib/workflow/constants";
+
 export async function GET(req) {
   const session = await requireAuth(req);
   if (session instanceof NextResponse) return session;
@@ -22,11 +25,38 @@ export async function GET(req) {
     const page = Math.max(1, Number(searchParams.get("page")) || 1);
     const limit = Math.min(100, Math.max(1, Number(searchParams.get("limit")) || 50));
     const skip = (page - 1) * limit;
+    const status = searchParams.get("status");
+    const scope = searchParams.get("scope");
+    const q = searchParams.get("q") || searchParams.get("search");
 
     await connectDB();
+
+    const query = {};
+
+    if (isContentAuthor(session) || scope === "my") {
+      const email = String(session.email || "").trim();
+      const userId = session.id || session.userId;
+      query.$or = [{ createdBy: email }];
+      if (userId) {
+        query.$or.push({ creatorId: userId });
+      }
+    }
+
+    if (status && status !== "all") {
+      query.status = status;
+    }
+
+    if (q && q.trim()) {
+      const regex = new RegExp(q.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+      query.$and = query.$and || [];
+      query.$and.push({
+        $or: [{ title: regex }, { slug: regex }],
+      });
+    }
+
     const [items, total] = await Promise.all([
-      Event.find().sort({ updatedAt: -1 }).skip(skip).limit(limit).lean(),
-      Event.countDocuments(),
+      Event.find(query).sort({ updatedAt: -1 }).skip(skip).limit(limit).lean(),
+      Event.countDocuments(query),
     ]);
     return NextResponse.json({ items, total, page, totalPages: Math.ceil(total / limit) });
   } catch (err) {
@@ -55,7 +85,8 @@ export async function POST(req) {
       featured,
       eventLink,
       tags,
-      status,
+      status: requestedStatus,
+      publishedAt,
       meta,
       locale,
     } = body;
@@ -91,7 +122,15 @@ export async function POST(req) {
       metaKeywords: sanitizePlainText(meta.metaKeywords),
     } : {};
 
-    const doc = await Event.create({
+    let finalStatus = CONTENT_STATUSES.DRAFT;
+    if (isContentAdmin(session)) {
+      finalStatus = requestedStatus || CONTENT_STATUSES.DRAFT;
+    } else {
+      // Authors can only create Drafts initially
+      finalStatus = CONTENT_STATUSES.DRAFT;
+    }
+
+    const doc = new Event({
       title: cleanTitle,
       slug,
       description: sanitizePlainText(description || ""),
@@ -106,12 +145,23 @@ export async function POST(req) {
       featured: featured === true,
       eventLink: sanitizeUrl(eventLink || "", ""),
       tags: Array.isArray(tags) ? tags.map(sanitizePlainText).filter(Boolean) : [],
-      status: status || "draft",
+      status: finalStatus,
+      publishedAt: finalStatus === CONTENT_STATUSES.PUBLISHED ? (publishedAt ? new Date(publishedAt) : new Date()) : null,
+      publishedBy: finalStatus === CONTENT_STATUSES.PUBLISHED ? (session.email || "") : "",
       meta: cleanMeta,
       ...(locale && { locale }),
       createdBy: session.email || "",
+      creatorId: session.id || session.userId || null,
       updatedBy: session.email || "",
     });
+
+    appendWorkflowHistory(doc, {
+      action: "create",
+      sessionLike: session,
+      notes: `Created event with status ${finalStatus}`,
+    });
+
+    await doc.save();
     await syncMediaUsageForEvent(doc);
     return NextResponse.json(doc);
   } catch (err) {

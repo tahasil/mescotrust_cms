@@ -7,6 +7,9 @@ const AdminAuthContext = createContext({
   role: "",
   roleKey: "",
   permissionKeys: [],
+  email: "",
+  userId: "",
+  userName: "",
 });
 
 export function AdminAuthProvider({ value, children }) {

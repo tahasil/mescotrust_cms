@@ -516,6 +516,8 @@ const DEFAULT_ADMIN_THEME = {
 export default function AdminLayoutClient({
   children,
   userName,
+  userEmail = "",
+  userId = "",
   userRole,
   userRoleKey,
   permissionKeys = [],
@@ -870,6 +872,9 @@ export default function AdminLayoutClient({
     role: userRole,
     roleKey: normalizedRoleKey,
     permissionKeys,
+    email: userEmail,
+    userId: userId,
+    userName: userName,
   };
   const menuItems = filterMenuItemsByPermission(baseMenuItems, authContext);
   const isComponentsSubPath = String(pathname || "").startsWith("/admin/components/");
@@ -894,8 +899,20 @@ export default function AdminLayoutClient({
 
   const fetchNotifications = useCallback(() => {
     if (normalizedRoleKey === "author") {
-      setNotifications([]);
-      prevCountRef.current = 0;
+      fetch("/api/admin/workflow/notifications")
+        .then((r) => (r.ok ? r.json() : { items: [] }))
+        .then((data) => {
+          const notifs = (data.items || []).map((item) => ({
+            id: item.id,
+            type: "workflow",
+            icon: <FileTextOutlined style={{ color: "#fa8c16" }} />,
+            title: item.title,
+            time: item.time,
+            link: item.link,
+          }));
+          setNotifications(notifs);
+        })
+        .catch(() => {});
       return;
     }
     Promise.all([
@@ -914,9 +931,22 @@ export default function AdminLayoutClient({
       fetch("/api/admin/forms/submissions/unread?limit=10").then((r) =>
         r.ok ? r.json() : { items: [] },
       ),
+      fetch("/api/admin/workflow/notifications").then((r) =>
+        r.ok ? r.json() : { items: [] },
+      ),
     ])
-      .then(([contacts, donations, subscribers, eventRegs, formSubmissions]) => {
+      .then(([contacts, donations, subscribers, eventRegs, formSubmissions, workflow]) => {
         const notifs = [];
+        (workflow.items || []).forEach((w) => {
+          notifs.push({
+            id: w.id,
+            type: "workflow-review",
+            icon: <ClockCircleOutlined style={{ color: "#fa8c16" }} />,
+            title: w.title,
+            time: w.time,
+            link: w.link,
+          });
+        });
         (contacts.items || []).forEach((c) => {
           if (!c.isRead) {
             notifs.push({

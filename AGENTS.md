@@ -355,6 +355,12 @@ Key implementation files:
 - `app/(site)/search/page.js` (Search results public route)
 - `lib/security/sanitize.js` (Universal sanitization engine: HTML allowlist, plain-text tag stripping, URL protocol filter, CSS token defense)
 - `lib/security/jsonLd.js` (Unicode-escaped JSON-LD serializer preventing inline script breakout)
+- `lib/workflow/constants.js` (Content approval workflow statuses and metadata)
+- `lib/workflow/workflowEngine.js` (RBAC ownership validation, review transitions, and published revision engine)
+- `app/api/admin/blogs/[id]/workflow/route.js` (Blog workflow approval, rejection, and publish API)
+- `app/api/admin/events/[id]/workflow/route.js` (Event workflow approval, rejection, and publish API)
+- `scripts/test-rbac-workflow-security.js` (Automated 14-scenario RBAC workflow security contract test suite)
+- `e2e/rbac-content-approval.spec.js` (Playwright E2E content approval verification suite)
 - `scripts/test-xss-security.js` (Automated 10-scenario contract security suite)
 - `e2e/xss-protection.spec.js` (Playwright E2E browser execution prevention suite)
 

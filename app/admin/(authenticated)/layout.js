@@ -40,6 +40,8 @@ export default async function AuthenticatedAdminLayout({ children }) {
   const adminTheme = await getAdminThemeSettings();
 
   const userName = session.user?.name || session.user?.email || "Admin";
+  const userEmail = session.user?.email || "";
+  const userId = session.user?.id || "";
   const userRole = authorization.access?.role || session.user?.role || "";
   const userRoleKey = authorization.access?.roleKey || session.user?.roleKey || session.user?.role || "";
   const permissionKeys = authorization.access?.permissionKeys || session.user?.permissionKeys || [];
@@ -47,6 +49,8 @@ export default async function AuthenticatedAdminLayout({ children }) {
   return (
     <AdminLayoutClient
       userName={userName}
+      userEmail={userEmail}
+      userId={userId}
       userRole={userRole}
       userRoleKey={userRoleKey}
       permissionKeys={permissionKeys}

@@ -39,7 +39,9 @@
     "test:advanced-search": "node scripts/test-advanced-search.js",
     "test:e2e:search": "playwright test e2e/advanced-search.spec.js",
     "test:xss": "node scripts/test-xss-security.js",
-    "test:e2e:xss": "playwright test e2e/xss-protection.spec.js"
+    "test:e2e:xss": "playwright test e2e/xss-protection.spec.js",
+    "test:rbac": "node scripts/test-rbac-workflow-security.js",
+    "test:e2e:rbac": "playwright test e2e/rbac-content-approval.spec.js"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.0",
