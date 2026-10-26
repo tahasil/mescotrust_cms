@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
-import { connectDB } from "@/lib/db";
-import Page from "@/models/Page";
-import Blog from "@/models/Blog";
-import Event from "@/models/Event";
+import { performUnifiedSearch } from "@/lib/search/unifiedSearch";
 import { createRateLimiter, getClientIp } from "@/lib/rateLimit";
 
-const checkRateLimit = createRateLimiter({ windowMs: 60_000, max: 30 });
+export const dynamic = "force-dynamic";
+
+const checkRateLimit = createRateLimiter({ windowMs: 60_000, max: 120 });
 
 export async function GET(req) {
   const clientId = getClientIp(req);
@@ -14,26 +13,34 @@ export async function GET(req) {
   }
 
   const { searchParams } = new URL(req.url);
-  const q = searchParams.get("q")?.trim();
+  const q = (searchParams.get("q") || searchParams.get("query") || searchParams.get("search") || "").trim();
+  const type = (searchParams.get("type") || "all").trim();
+  const page = Math.max(1, Number(searchParams.get("page")) || 1);
+  const limitParam = searchParams.get("limit");
+  const limit = limitParam ? Math.min(100, Math.max(1, Number(limitParam))) : 20;
+
   if (!q || q.length < 2) {
-    return NextResponse.json({ items: [] });
+    return NextResponse.json({
+      items: [],
+      total: 0,
+      page: 1,
+      totalPages: 0,
+      counts: { all: 0, pages: 0, events: 0, blogs: 0, news: 0, reports: 0 },
+      query: q,
+    });
   }
 
   try {
-    await connectDB();
-    const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
-    const [pages, blogs, events] = await Promise.all([
-      Page.find({ status: "published", $or: [{ title: regex }, { slug: regex }] }).select("title slug").lean(),
-      Blog.find({ status: "published", $or: [{ title: regex }, { slug: regex }, { excerpt: regex }] }).select("title slug excerpt").lean(),
-      Event.find({ status: "published", $or: [{ title: regex }, { slug: regex }, { description: regex }] }).select("title slug description").lean(),
-    ]);
-    const items = [
-      ...pages.map((p) => ({ type: "page", title: p.title, url: `/${p.slug}`, slug: p.slug })),
-      ...blogs.map((b) => ({ type: "blog", title: b.title, url: `/blog/${b.slug}`, slug: b.slug, excerpt: b.excerpt })),
-      ...events.map((ev) => ({ type: "event", title: ev.title, url: `/events/${ev.slug}`, slug: ev.slug, excerpt: ev.description })),
-    ];
-    return NextResponse.json({ items });
+    const result = await performUnifiedSearch({
+      query: q,
+      type,
+      page,
+      limit,
+    });
+
+    return NextResponse.json(result);
   } catch (err) {
+    console.error("[public-search] Error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

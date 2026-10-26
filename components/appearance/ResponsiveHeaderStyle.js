@@ -973,3 +973,24 @@ export const SearchState = styled.div`
   font-size: 0.95rem;
   line-height: 1.5;
 `;
+
+export const SearchViewAllLink = styled.a`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 8px 4px 4px;
+  padding: 12px 14px;
+  background: rgba(168, 45, 45, 0.06);
+  border: 1px solid rgba(168, 45, 45, 0.16);
+  border-radius: 12px;
+  color: #a82d2d !important;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+  &:hover {
+    background: rgba(168, 45, 45, 0.12);
+    transform: translateY(-1px);
+  }
+`;

@@ -119,6 +119,17 @@ export async function PUT(req, { params }) {
       }
     }
 
+    if (
+      Array.isArray(layout) &&
+      layout.some((b) => b?.baseComponent === "Reports")
+    ) {
+      import("@/lib/pdf/extractor")
+        .then(({ indexAllAnnualReports }) => indexAllAnnualReports())
+        .catch((e) =>
+          console.warn("[page-save] Annual reports auto-index warning:", e.message)
+        );
+    }
+
     return NextResponse.json({
       ...page.toObject(),
       menuSync: {

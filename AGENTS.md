@@ -98,6 +98,7 @@ Models in `models/`:
 - `PermissionAuditLog`
 - `PushSubscription`
 - `PushNotification`
+- `PdfSearchIndex` (extracted PDF text and document metadata for unified search)
 
 For field-level schema details, use `docs/TECHNICAL_DESIGN.md`.
 
@@ -345,6 +346,11 @@ Key implementation files:
 - `public/sw.js` (Service Worker handling push and notificationclick events)
 - `components/site/PushNotification/PushNotificationWidget.js` (Client-side opt-in notification bell widget)
 - `components/admin/push-notifications/PushNotificationsModule.js` (Push Notifications admin management module)
+- `models/PdfSearchIndex.js` (PDF text search index schema)
+- `lib/pdf/extractor.js` (PDF text extraction and search indexing engine)
+- `lib/search/unifiedSearch.js` (Unified Search across Pages, Events, Blogs, News, and Annual Reports)
+- `components/search/SearchResultsClient.js` (Search Results client component with tabs, filters, highlighting)
+- `app/(site)/search/page.js` (Search results public route)
 
 ---
 

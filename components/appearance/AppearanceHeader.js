@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import ResponsiveHeader from "./ResponsiveHeader";
 import {
   isPdfDocumentUrl,
@@ -378,19 +379,40 @@ export default function AppearanceHeader(props) {
     };
   }, [headerSearchErrorMessage, searchOpen, searchQuery]);
 
+  const router = useRouter();
   const closeSearch = () => {
     setSearchOpen(false);
     setSearchError("");
   };
   const trimmedQuery = searchQuery.trim();
   const resultLabel = (type) => {
-    if (type === "blog") return headerSearchResultTypeBlogLabel;
-    if (type === "event") return headerSearchResultTypeEventLabel;
-    return headerSearchResultTypePageLabel;
+    if (type === "blog") return headerSearchResultTypeBlogLabel || "Blog";
+    if (type === "event") return headerSearchResultTypeEventLabel || "Event";
+    if (type === "news") return "News";
+    if (type === "report") return "Annual Report";
+    return headerSearchResultTypePageLabel || "Page";
   };
   const excerpt = (value) => {
     const plain = String(value || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
     return plain.length > 130 ? `${plain.slice(0, 127)}...` : plain;
+  };
+  const handleSearchSubmit = (e) => {
+    e?.preventDefault();
+    if (trimmedQuery.length >= 2) {
+      closeSearch();
+      router.push(`/search?q=${encodeURIComponent(trimmedQuery)}`);
+    }
+  };
+  const handleResultClick = (e, item) => {
+    if (item.type === "report" || item.isPdf || (item.url && item.url.endsWith(".pdf"))) {
+      if (item.url) {
+        closeSearch();
+        openPdf(item.url, item.title);
+        e.preventDefault();
+        return;
+      }
+    }
+    closeSearch();
   };
 
   return (
@@ -507,7 +529,7 @@ export default function AppearanceHeader(props) {
           aria-modal="true"
           aria-label={headerSearchDialogLabel || headerSearchLabel}
         >
-          <div className="appearance-search-top-row">
+          <form className="appearance-search-top-row" onSubmit={handleSearchSubmit}>
             <span className="appearance-search-top-icon"><SearchIcon /></span>
             <input
               className="appearance-search-input"
@@ -515,13 +537,22 @@ export default function AppearanceHeader(props) {
               type="search"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  handleSearchSubmit(event);
+                }
+              }}
               placeholder={headerSearchPlaceholder}
               aria-label={headerSearchInputAriaLabel || headerSearchLabel}
             />
             <button className="appearance-search-close" type="button" aria-label={headerSearchCloseAriaLabel || headerSearchLabel} onClick={closeSearch}>
               <CloseIcon />
             </button>
-          </div>
+            <button type="submit" style={{ display: "none" }} aria-hidden="true" tabIndex={-1}>
+              Search
+            </button>
+          </form>
           <div className="appearance-search-results">
             {trimmedQuery.length < 2 ? (
               <div className="appearance-search-state">{headerSearchMinCharsMessage}</div>
@@ -531,13 +562,37 @@ export default function AppearanceHeader(props) {
               <div className="appearance-search-state">{searchError}</div>
             ) : searchItems.length === 0 ? (
               <div className="appearance-search-state">{headerSearchNoResultsMessage.replace("{query}", trimmedQuery)}</div>
-            ) : searchItems.map((item, index) => (
-              <a className="appearance-search-result" key={`${item.type || "result"}-${item.slug || item.url || index}`} href={item.url || ""} onClick={closeSearch}>
-                <span className="appearance-search-result-type">{resultLabel(item.type)}</span>
-                <span className="appearance-search-result-title">{item.title || headerSearchFallbackTitle}</span>
-                <span className="appearance-search-result-meta">{excerpt(item.excerpt) || item.url || headerSearchFallbackMeta}</span>
-              </a>
-            ))}
+            ) : (
+              <>
+                {searchItems.map((item, index) => (
+                  <a
+                    className="appearance-search-result"
+                    key={`${item.type || "result"}-${item.slug || item.url || index}`}
+                    href={item.url || ""}
+                    onClick={(e) => handleResultClick(e, item)}
+                  >
+                    <span className="appearance-search-result-type">{resultLabel(item.type)}</span>
+                    <span className="appearance-search-result-title">{item.title || headerSearchFallbackTitle}</span>
+                    <span className="appearance-search-result-meta">{excerpt(item.excerpt) || item.url || headerSearchFallbackMeta}</span>
+                  </a>
+                ))}
+                <a
+                  className="appearance-search-view-all"
+                  href={`/search?q=${encodeURIComponent(trimmedQuery)}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    closeSearch();
+                    router.push(`/search?q=${encodeURIComponent(trimmedQuery)}`);
+                  }}
+                >
+                  <span>See all results for “{trimmedQuery}”</span>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </a>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -610,6 +665,8 @@ export default function AppearanceHeader(props) {
         .appearance-header .appearance-search-result-type { display: block; margin-bottom: 4px; color: #8c1c13; -webkit-text-fill-color: #8c1c13; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
         .appearance-header .appearance-search-result-title { display: block; font-size: 15.5px; font-weight: 600; line-height: 1.35; }
         .appearance-header .appearance-search-result-meta { display: block; margin-top: 4px; color: rgba(42,40,62,.65); -webkit-text-fill-color: rgba(42,40,62,.65); font-size: 13px; }
+        .appearance-header .appearance-search-view-all { display: flex; align-items: center; justify-content: space-between; margin: 8px 0 4px; padding: 12px 14px; background: rgba(168,45,45,.06); border: 1px solid rgba(168,45,45,.16); border-radius: 12px; color: #a82d2d !important; -webkit-text-fill-color: #a82d2d !important; font-size: 14px; font-weight: 600; text-decoration: none !important; transition: background .2s, transform .2s; cursor: pointer; }
+        .appearance-header .appearance-search-view-all:hover { background: rgba(168,45,45,.12); transform: translateY(-1px); }
         @media (max-width: 1199px) {
           .appearance-header .appearance-desktop { display: none; }
           .appearance-header .current-mobile { display: block; }

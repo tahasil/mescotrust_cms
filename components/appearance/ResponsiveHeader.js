@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, Fragment } from "react";
+import { useRouter } from "next/navigation";
 import {
   HeaderWrapper,
   HeaderContent,
@@ -59,6 +60,7 @@ import {
   SearchResultTitle,
   SearchResultMeta,
   SearchState,
+  SearchViewAllLink,
 } from "./ResponsiveHeaderStyle";
 import { isPdfDocumentUrl } from "@/components/site/shared/PdfViewerModal";
 
@@ -616,14 +618,22 @@ export default function Header({
     setOpenAccordion((prev) => (prev === label ? null : label));
   };
 
+  const router = useRouter();
   const trimmedSearchQuery = searchQuery.trim();
   const hasMinSearchChars = trimmedSearchQuery.length >= 2;
   const resultLabel = (type) => {
-    if (type === "blog")
-      return headerSearchResultTypeBlogLabel || String(type || "");
-    if (type === "event")
-      return headerSearchResultTypeEventLabel || String(type || "");
-    return headerSearchResultTypePageLabel || String(type || "");
+    if (type === "blog") return headerSearchResultTypeBlogLabel || "Blog";
+    if (type === "event") return headerSearchResultTypeEventLabel || "Event";
+    if (type === "news") return "News";
+    if (type === "report") return "Annual Report";
+    return headerSearchResultTypePageLabel || "Page";
+  };
+  const handleSearchSubmit = (e) => {
+    e?.preventDefault();
+    if (trimmedSearchQuery.length >= 2) {
+      closeSearch();
+      router.push(`/search?q=${encodeURIComponent(trimmedSearchQuery)}`);
+    }
   };
   const hasSearchAction =
     headerSearchEnabled === true && String(headerSearchLabel || "").trim() !== "";
@@ -1110,7 +1120,7 @@ export default function Header({
           aria-modal="true"
           aria-label={headerSearchDialogLabel || headerSearchLabel}
         >
-          <SearchTopRow>
+          <SearchTopRow as="form" onSubmit={handleSearchSubmit}>
             <SearchTopIcon>
               <SearchIcon />
             </SearchTopIcon>
@@ -1119,6 +1129,12 @@ export default function Header({
               type="search"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  handleSearchSubmit(event);
+                }
+              }}
               placeholder={headerSearchPlaceholder}
               aria-label={headerSearchInputAriaLabel || headerSearchLabel}
             />
@@ -1129,6 +1145,9 @@ export default function Header({
             >
               <CloseIcon />
             </SearchCloseBtn>
+            <button type="submit" style={{ display: "none" }} aria-hidden="true" tabIndex={-1}>
+              Search
+            </button>
           </SearchTopRow>
           <SearchResults>
             {!hasMinSearchChars ? (
@@ -1140,25 +1159,41 @@ export default function Header({
             ) : searchItems.length === 0 ? (
               <SearchState>{noResultsText}</SearchState>
             ) : (
-              searchItems.map((item, index) => (
-                <SearchResultLink
-                  key={`${item.type || "result"}-${item.slug || item.url || index}`}
-                  href={item.url || ""}
-                  onClick={closeSearch}
+              <>
+                {searchItems.map((item, index) => (
+                  <SearchResultLink
+                    key={`${item.type || "result"}-${item.slug || item.url || index}`}
+                    href={item.url || ""}
+                    onClick={closeSearch}
+                  >
+                    <SearchResultType>{resultLabel(item.type)}</SearchResultType>
+                    <SearchResultTitle>
+                      {item.title || headerSearchFallbackTitle}
+                    </SearchResultTitle>
+                    {toExcerpt(item.excerpt) ? (
+                      <SearchResultMeta>{toExcerpt(item.excerpt)}</SearchResultMeta>
+                    ) : (
+                      <SearchResultMeta>
+                        {item.url || headerSearchFallbackMeta}
+                      </SearchResultMeta>
+                    )}
+                  </SearchResultLink>
+                ))}
+                <SearchViewAllLink
+                  href={`/search?q=${encodeURIComponent(trimmedSearchQuery)}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    closeSearch();
+                    router.push(`/search?q=${encodeURIComponent(trimmedSearchQuery)}`);
+                  }}
                 >
-                  <SearchResultType>{resultLabel(item.type)}</SearchResultType>
-                  <SearchResultTitle>
-                    {item.title || headerSearchFallbackTitle}
-                  </SearchResultTitle>
-                  {toExcerpt(item.excerpt) ? (
-                    <SearchResultMeta>{toExcerpt(item.excerpt)}</SearchResultMeta>
-                  ) : (
-                    <SearchResultMeta>
-                      {item.url || headerSearchFallbackMeta}
-                    </SearchResultMeta>
-                  )}
-                </SearchResultLink>
-              ))
+                  <span>See all results for “{trimmedSearchQuery}”</span>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </SearchViewAllLink>
+              </>
             )}
           </SearchResults>
         </SearchPanel>

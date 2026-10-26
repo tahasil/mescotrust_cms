@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import path from "path";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
@@ -252,6 +252,22 @@ export async function POST(req) {
     draft.errorMessage = optimized.errorMessage || "";
     draft.updatedBy = session.email || session.name || "";
     await draft.save();
+
+    if (mimeType === "application/pdf" || (draft.fileName && draft.fileName.endsWith(".pdf"))) {
+      import("@/lib/pdf/extractor")
+        .then(({ indexPdfByUrl }) =>
+          indexPdfByUrl({
+            url: draft.publicUrl || draft.url,
+            title: draft.title || draft.originalName,
+            category: /annual|report/i.test(draft.originalName || draft.title)
+              ? "annual-report"
+              : "general",
+          })
+        )
+        .catch((e) =>
+          console.warn("[media-upload] PDF auto-index warning:", e.message)
+        );
+    }
 
     return NextResponse.json(draft, { status: 201 });
   } catch (err) {

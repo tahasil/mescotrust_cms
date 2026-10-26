@@ -33,7 +33,11 @@
     "test:e2e:payment": "playwright test e2e/payment-gateway.spec.js",
     "test:e2e:payment:report": "playwright show-report playwright-report/payment-gateway",
     "generate:vapid": "node scripts/generate-vapid-keys.js",
-    "test:push-notifications": "node scripts/test-push-notifications.js"
+    "test:push-notifications": "node scripts/test-push-notifications.js",
+    "index:search-pdfs": "node scripts/index-pdf-search.js",
+    "test:unified-search": "node scripts/test-unified-search.js",
+    "test:advanced-search": "node scripts/test-advanced-search.js",
+    "test:e2e:search": "playwright test e2e/advanced-search.spec.js"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.0",
