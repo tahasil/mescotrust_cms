@@ -74,7 +74,13 @@ export async function generateMetadata({ params }) {
       getPublishedPostBySlug(params.slug),
       getThemeForBlogDetail(),
     ]);
-    if (!post) return {};
+    if (!post) {
+      return {
+        title: "Blog Post Not Found | MESCO Trust",
+        description: "The requested blog post could not be found.",
+        robots: { index: false, follow: false, nocache: true },
+      };
+    }
     const share = getBlogShareMeta(post, themeDoc, params.slug);
     return {
       title: share.title,
@@ -98,7 +104,10 @@ export async function generateMetadata({ params }) {
       },
     };
   } catch {
-    return {};
+    return {
+      title: "Blog Post Not Found | MESCO Trust",
+      robots: { index: false, follow: false, nocache: true },
+    };
   }
 }
 

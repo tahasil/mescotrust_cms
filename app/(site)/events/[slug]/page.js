@@ -79,7 +79,13 @@ export async function generateMetadata({ params }) {
       getPublishedEventBySlug(params.slug),
       getThemeForEventDetail(),
     ]);
-    if (!event) return {};
+    if (!event) {
+      return {
+        title: "Event Not Found | MESCO Trust",
+        description: "The requested event could not be found.",
+        robots: { index: false, follow: false, nocache: true },
+      };
+    }
     const share = getEventShareMeta(event, themeDoc, params.slug);
     return {
       title: share.title,
@@ -101,7 +107,10 @@ export async function generateMetadata({ params }) {
       },
     };
   } catch {
-    return {};
+    return {
+      title: "Event Not Found | MESCO Trust",
+      robots: { index: false, follow: false, nocache: true },
+    };
   }
 }
 

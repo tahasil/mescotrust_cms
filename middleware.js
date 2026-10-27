@@ -10,6 +10,9 @@ const loginPath = "/admin/login";
 const LEGACY_ADMIN_ROUTE_REDIRECTS = new Map([
   ["/admin/components/theme-components", "/admin/components"],
 ]);
+const PERMANENT_PUBLIC_REDIRECTS = new Map([
+  ["/home", "/"],
+]);
 // Payment gateways POST their result back cross-origin, so the CSRF origin
 // check cannot apply. Both routes authenticate the payload themselves —
 // CCAvenue by working-key decryption, Razorpay by HMAC signature.
@@ -133,12 +136,20 @@ function roleUpdatedLoginUrl(req, reason = "role-updated") {
 export async function middleware(req) {
   const { pathname } = req.nextUrl;
 
+  const permanentPublicPath = PERMANENT_PUBLIC_REDIRECTS.get(pathname);
+  if (permanentPublicPath) {
+    const url = req.nextUrl.clone();
+    url.pathname = permanentPublicPath;
+    url.search = "";
+    return NextResponse.redirect(url, 301);
+  }
+
   const canonicalAdminPath = LEGACY_ADMIN_ROUTE_REDIRECTS.get(pathname);
   if (canonicalAdminPath) {
     const url = req.nextUrl.clone();
     url.pathname = canonicalAdminPath;
     url.search = "";
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(url, 301);
   }
 
   // Resolve frontend CMS pages under /media/* (e.g. /media/in-media)

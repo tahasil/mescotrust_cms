@@ -412,6 +412,7 @@ export default async function NotFound() {
           transform: translateY(-2px) scale(1.12);
         }
 
+
         /* Right Side: Organic Wave Backdrop & 3D Illustration */
         .right-wave-area {
           position: relative;

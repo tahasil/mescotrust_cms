@@ -41,7 +41,9 @@
     "test:xss": "node scripts/test-xss-security.js",
     "test:e2e:xss": "playwright test e2e/xss-protection.spec.js",
     "test:rbac": "node scripts/test-rbac-workflow-security.js",
-    "test:e2e:rbac": "playwright test e2e/rbac-content-approval.spec.js"
+    "test:e2e:rbac": "playwright test e2e/rbac-content-approval.spec.js",
+    "test:404": "node scripts/test-404-seo.js",
+    "test:e2e:404": "playwright test e2e/404-seo-handling.spec.js"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.0",

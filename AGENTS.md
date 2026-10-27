@@ -163,6 +163,8 @@ NPM scripts:
 - `npm run test:menu-page-sync` -> end-to-end tests for page/menu sync and move behaviour
 - `npm run test:xss` -> comprehensive 10-scenario XSS contract security test suite
 - `npm run test:e2e:xss` -> Playwright E2E browser XSS execution protection test suite
+- `npm run test:404` -> comprehensive 13-scenario HTTP 404 status and SEO verification test suite
+- `npm run test:e2e:404` -> Playwright E2E browser 404 status, responsive UI, and navigation test suite
 
 ## 7. Standard Workflows
 
@@ -363,6 +365,9 @@ Key implementation files:
 - `e2e/rbac-content-approval.spec.js` (Playwright E2E content approval verification suite)
 - `scripts/test-xss-security.js` (Automated 10-scenario contract security suite)
 - `e2e/xss-protection.spec.js` (Playwright E2E browser execution prevention suite)
+- `app/not-found.js` (Custom 404 Page with brand styling, animated SVG scene, section exploration, and soft 404 prevention)
+- `scripts/test-404-seo.js` (Automated 13-scenario contract test suite for HTTP 404, status codes, and XML sitemap integrity)
+- `e2e/404-seo-handling.spec.js` (Playwright E2E 404 status codes and responsive design verification suite)
 
 ---
 
