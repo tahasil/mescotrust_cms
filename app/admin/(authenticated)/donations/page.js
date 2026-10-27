@@ -50,6 +50,7 @@ const DONATION_EXPORT_COLUMNS = [
   { key: "amount", label: "Donation Amount" },
   { key: "currency", label: "Currency" },
   { key: "status", label: "Payment Status" },
+  { key: "donationCategory", label: "Donation Category" },
   { key: "zakat", label: "Zakat" },
   { key: "interestMoney", label: "Interest Money" },
   { key: "studentsCount", label: "Student Count" },
@@ -412,6 +413,16 @@ export default function AdminDonationsPage() {
               <Tag color={STATUS_COLORS[viewItem.status] || "default"}>
                 {formatStatus(viewItem.status)}
               </Tag>
+            </Descriptions.Item>
+            <Descriptions.Item label="Donation Category">
+              {renderMaybeText(
+                viewItem.donationCategory ||
+                  (viewItem.zakat === "Yes"
+                    ? "Zakat"
+                    : viewItem.interestMoney === "Yes"
+                      ? "Interest Money"
+                      : "Non-Zakat"),
+              )}
             </Descriptions.Item>
             <Descriptions.Item label="Zakat">{renderMaybeText(viewItem.zakat)}</Descriptions.Item>
             <Descriptions.Item label="Interest Money">{renderMaybeText(viewItem.interestMoney)}</Descriptions.Item>

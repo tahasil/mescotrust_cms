@@ -55,6 +55,16 @@ const DONATION_COLUMNS = [
       return ["aborted", "cancelled"].includes(s) ? "CANCELLED" : s.toUpperCase();
     },
   },
+  {
+    key: "donationCategory",
+    label: "Donation Category",
+    accessor: (r) => {
+      if (r?.donationCategory) return String(r.donationCategory).trim();
+      if (String(r?.zakat ?? "").trim().toLowerCase() === "yes") return "Zakat";
+      if (String(r?.interestMoney ?? "").trim().toLowerCase() === "yes") return "Interest Money";
+      return "Non-Zakat";
+    },
+  },
   { key: "zakat", label: "Zakat", accessor: (r) => String(r?.zakat ?? "").trim() },
   { key: "interestMoney", label: "Interest Money", accessor: (r) => String(r?.interestMoney ?? "").trim() },
   { key: "studentsCount", label: "Student Count", accessor: (r) => String(r?.studentsCount ?? "").trim() },

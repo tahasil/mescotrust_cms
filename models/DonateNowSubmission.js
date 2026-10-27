@@ -81,6 +81,7 @@ const donateNowSubmissionSchema = new mongoose.Schema(
     currency: { type: String, default: "INR", trim: true },
     purpose: { type: String, default: "", trim: true },
     schemes: { type: [schemeEntrySchema], default: [] },
+    donationCategory: { type: String, default: "", trim: true },
     zakat: { type: String, default: "No", trim: true },
     interestMoney: { type: String, default: "No", trim: true },
     studentsCount: { type: String, default: "", trim: true },
@@ -132,7 +133,8 @@ donateNowSubmissionSchema.index({ "payment.gatewayOrderId": 1 });
 if (
   mongoose.models &&
   mongoose.models.DonateNowSubmission &&
-  !mongoose.models.DonateNowSubmission.schema?.paths?.schemes
+  (!mongoose.models.DonateNowSubmission.schema?.paths?.schemes ||
+    !mongoose.models.DonateNowSubmission.schema?.paths?.donationCategory)
 ) {
   delete mongoose.models.DonateNowSubmission;
 }

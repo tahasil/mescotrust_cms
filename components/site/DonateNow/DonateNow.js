@@ -24,11 +24,13 @@ import {
   computeMultipleSchemesAmount,
   computePurposeAmount,
   DONATE_NOW_BASE_FIELDS,
-  getDefaultDonateNowPurposes,
   DONATE_NOW_FIGMA_PURPOSE_ORDER,
+  DONATION_CATEGORY_OPTIONS,
+  getDefaultDonateNowPurposes,
   getDefaultPurposeValue,
   getPurposeRuleState,
   getQuantityFieldLabel,
+  isSchemeNonZakatOnly,
   normalizeDonateNowConfig,
   PURPOSE_ID_ALIASES,
 } from "@/lib/donateNowConfig";
@@ -125,6 +127,11 @@ function getFieldValidationError(fieldKey, value, fieldConfig, required, selecte
   }
   if (validation === "number" && !/^\d+$/.test(toDigits(normalized))) {
     return "Please enter a valid number";
+  }
+  if (validation === "donationcategory" || fieldKey === "donationCategory") {
+    if (required && !normalized) {
+      return "Please select a donation category";
+    }
   }
   if (validation === "amount") {
     const amount = Number(normalized);
@@ -604,6 +611,44 @@ export default function DonateNow(props = {}) {
   const selectedPurpose = singleSchemeEntry ? singleSchemeEntry.purpose : null;
   const selectedPurposeId = singleSchemeEntry ? singleSchemeEntry.id : "";
 
+  const nonZakatRestrictedScheme = useMemo(() => {
+    return selectedSchemeEntries.find((entry) => {
+      const p = selectablePurposes.find((item) => item.id === entry.schemeId);
+      return isSchemeNonZakatOnly(p || entry.purpose || entry);
+    });
+  }, [selectedSchemeEntries, selectablePurposes]);
+
+  const isNonZakatOnlyEnforced = Boolean(nonZakatRestrictedScheme);
+
+  const totalCalculatedAmount = useMemo(() => {
+    return selectedSchemeEntries.reduce((sum, entry) => sum + entry.subtotal, 0);
+  }, [selectedSchemeEntries]);
+
+  const totalCalculatedQuantity = useMemo(() => {
+    return selectedSchemeEntries.reduce((sum, entry) => sum + entry.quantity, 0);
+  }, [selectedSchemeEntries]);
+
+  const [mobileCartDrawerOpen, setMobileCartDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    if (isNonZakatOnlyEnforced) {
+      setFieldValues((prev) => {
+        if (prev.donationCategory !== "Non-Zakat") {
+          return { ...prev, donationCategory: "Non-Zakat" };
+        }
+        return prev;
+      });
+      setErrors((prev) => {
+        if (prev.donationCategory) {
+          const next = { ...prev };
+          delete next.donationCategory;
+          return next;
+        }
+        return prev;
+      });
+    }
+  }, [isNonZakatOnlyEnforced]);
+
   const handleToggleScheme = (schemeId) => {
     setSelectedSchemes((prev) => {
       const next = { ...prev };
@@ -982,6 +1027,9 @@ export default function DonateNow(props = {}) {
   };
 
   const handleFieldValue = (fieldKey, nextValue) => {
+    if (fieldKey === "donationCategory" && isNonZakatOnlyEnforced) {
+      nextValue = "Non-Zakat";
+    }
     if (fieldKey === "lookup") {
       lastLookedUpRef.current = "";
       setLookupState(getInitialLookupState());
@@ -1324,6 +1372,25 @@ export default function DonateNow(props = {}) {
           setSelectedSchemes(restored);
           setAmountTouched(false);
         }
+
+        const hasRestoredNZ = Object.keys(restored).some((id) => {
+          const p = selectablePurposes.find((item) => item.id === id);
+          return isSchemeNonZakatOnly(p);
+        });
+
+        const restoredCategory =
+          lastDonationData.donationCategory ||
+          (lastDonationData.zakat === "Yes"
+            ? "Zakat"
+            : lastDonationData.interestMoney === "Yes"
+              ? "Interest Money"
+              : "Non-Zakat");
+
+        if (hasRestoredNZ) {
+          setFieldValues((prev) => ({ ...prev, donationCategory: "Non-Zakat" }));
+        } else if (restoredCategory) {
+          setFieldValues((prev) => ({ ...prev, donationCategory: restoredCategory }));
+        }
       }
 
       setErrors((previous) => {
@@ -1529,14 +1596,21 @@ export default function DonateNow(props = {}) {
           ? selectedSchemeEntries[0].schemeName
           : "";
 
+    const resolvedCategory = isNonZakatOnlyEnforced
+      ? "Non-Zakat"
+      : normalizeText(fieldValues.donationCategory) || "Non-Zakat";
+    const effectiveZakat = resolvedCategory === "Zakat" ? "Yes" : "No";
+    const effectiveInterestMoney = resolvedCategory === "Interest Money" ? "Yes" : "No";
+
     // Purpose ID is deliberately not sent: it must never be persisted.
     const payload = {
       amount,
       currency: paymentSettings.currency || "INR",
       purpose: effectivePurpose,
       schemes: schemesPayload,
-      zakat: normalizeText(fieldValues.zakat) || "No",
-      interestMoney: normalizeText(fieldValues.interestMoney) || "No",
+      donationCategory: resolvedCategory,
+      zakat: effectiveZakat,
+      interestMoney: effectiveInterestMoney,
       studentsCount: isSingleScheme
         ? String(singleSchemeEntry.quantity)
         : normalizeText(fieldValues.studentsCount),
@@ -1696,29 +1770,45 @@ export default function DonateNow(props = {}) {
 
     if (isSelectField(config)) {
       const isStudentsField = key === "studentsCount";
+      const isDonationCategory = key === "donationCategory";
       const isFieldDisabled =
         isStudentsField && isMultipleSchemes
           ? true
           : key === "lookup"
             ? lookupState.loading
             : disabled;
+
+      let selectOptions = fieldOptions[key] || [];
+      if (isDonationCategory) {
+        if (!selectOptions || selectOptions.length === 0) {
+          selectOptions = DONATION_CATEGORY_OPTIONS;
+        }
+        if (isNonZakatOnlyEnforced) {
+          selectOptions = selectOptions.map((opt) => ({
+            ...opt,
+            disabled: opt.value !== "Non-Zakat",
+          }));
+        }
+      }
+
       const selectValue =
         isStudentsField && isMultipleSchemes
           ? undefined
           : isStudentsField && isSingleScheme
             ? String(singleSchemeEntry?.quantity || value || "1")
-            : value || undefined;
+            : isDonationCategory && isNonZakatOnlyEnforced
+              ? "Non-Zakat"
+              : value || undefined;
+
       const selectPlaceholder =
         isStudentsField && isMultipleSchemes
           ? "Disabled for multiple schemes"
-          : placeholder ||
-            (key === "zakat"
-              ? "Select Zakat"
-              : key === "interestMoney"
-                ? "Select Interest Money"
-                : config.label
-                  ? `Select ${config.label}`
-                  : "Select");
+          : isDonationCategory
+            ? placeholder || "Select Donation Category"
+            : placeholder ||
+              (config.label
+                ? `Select ${config.label}`
+                : "Select");
 
       return (
         <Col key={key} {...colProps}>
@@ -1733,8 +1823,8 @@ export default function DonateNow(props = {}) {
               onChange={(nextValue) => handleFieldValue(key, nextValue ?? "")}
               status={error ? "error" : ""}
               placeholder={selectPlaceholder}
-              options={fieldOptions[key] || []}
-              allowClear={!isStudentsField}
+              options={selectOptions}
+              allowClear={!isStudentsField && !(isDonationCategory && isNonZakatOnlyEnforced)}
               disabled={isFieldDisabled}
               onBlur={() => {
                 if (key === "lookup") {
@@ -1742,6 +1832,18 @@ export default function DonateNow(props = {}) {
                 }
               }}
             />
+            {isDonationCategory && isNonZakatOnlyEnforced ? (
+              <CategoryRestrictionNotice>
+                <span className="notice-icon">ℹ️</span>
+                <span>
+                  <strong>
+                    {nonZakatRestrictedScheme?.schemeName ||
+                      "High Cost Education Scholarship"}
+                  </strong>{" "}
+                  accepts Non-Zakat donations only.
+                </span>
+              </CategoryRestrictionNotice>
+            ) : null}
             {error ? <FieldError>{error}</FieldError> : null}
           </FieldWrap>
         </Col>
@@ -1836,7 +1938,7 @@ export default function DonateNow(props = {}) {
   return (
     <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
       <PageContainer $managedStyle={pageContainerBgStyle}>
-        <div className="fable-section">
+        <div className={`fable-section ${selectedCount > 0 ? "has-mobile-cart" : ""}`}>
         {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) ? (
           <Row gutter={[16, 16]}>
             <Col span={24} className="mb-4">
@@ -1962,7 +2064,7 @@ export default function DonateNow(props = {}) {
                 ) : null}
               </PurposePanel>
 
-              <FormPanel>
+              <FormPanel id="donate-now-details-section">
                 <PanelTitle style={{ color: formHeadingColor }}>
                   {copy.formTitle || "Details"}
                 </PanelTitle>
@@ -2253,6 +2355,182 @@ export default function DonateNow(props = {}) {
               value={encData.accessCode}
             />
           </form>
+        ) : null}
+
+        {/* Mobile Sticky Donation Summary Cart & Expandable Drawer */}
+        {selectedCount > 0 ? (
+          <>
+            <MobileStickyCartBar role="region" aria-label="Mobile Donation Cart">
+              <CartSummaryToggle
+                type="button"
+                onClick={() => setMobileCartDrawerOpen((open) => !open)}
+                aria-expanded={mobileCartDrawerOpen}
+                aria-label="Toggle donation cart breakdown"
+              >
+                <div className="cart-badge-row">
+                  <span className="cart-icon">🛒</span>
+                  <span className="cart-count">
+                    {selectedCount} {selectedCount === 1 ? "Scheme" : "Schemes"}
+                    <span className="cart-qty"> • Qty: {totalCalculatedQuantity}</span>
+                  </span>
+                </div>
+                <div className="cart-amount-row">
+                  <span className="cart-total-amount">
+                    {formatInr(totalCalculatedAmount)}
+                  </span>
+                  <span className="cart-breakdown-trigger">
+                    {mobileCartDrawerOpen ? "Hide ▾" : "View Breakdown ▴"}
+                  </span>
+                </div>
+              </CartSummaryToggle>
+
+              <CartProceedBtn
+                type="button"
+                onClick={() => {
+                  setMobileCartDrawerOpen(false);
+                  const el = document.getElementById("donate-now-details-section");
+                  if (el) {
+                    el.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }
+                }}
+              >
+                Proceed to Donate ➔
+              </CartProceedBtn>
+            </MobileStickyCartBar>
+
+            {mobileCartDrawerOpen ? (
+              <>
+                <MobileCartDrawerOverlay
+                  onClick={() => setMobileCartDrawerOpen(false)}
+                  aria-hidden="true"
+                />
+                <MobileCartDrawerSheet
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Donation schemes breakdown drawer"
+                >
+                  <DrawerDragHandle />
+                  <DrawerHeader>
+                    <div className="drawer-title-group">
+                      <h3>Donation Cart</h3>
+                      <span className="drawer-count-badge">
+                        {selectedCount} {selectedCount === 1 ? "Scheme" : "Schemes"}
+                      </span>
+                    </div>
+                    <DrawerCloseBtn
+                      type="button"
+                      onClick={() => setMobileCartDrawerOpen(false)}
+                      aria-label="Close donation cart breakdown"
+                    >
+                      ✕
+                    </DrawerCloseBtn>
+                  </DrawerHeader>
+
+                  {isNonZakatOnlyEnforced ? (
+                    <DrawerNZAlert>
+                      <span className="alert-icon">ℹ️</span>
+                      <span>
+                        <strong>
+                          {nonZakatRestrictedScheme?.schemeName ||
+                            "High Cost Education Scholarship"}
+                        </strong>{" "}
+                        accepts Non-Zakat donations only.
+                      </span>
+                    </DrawerNZAlert>
+                  ) : null}
+
+                  <DrawerItemsList>
+                    {selectedSchemeEntries.map((entry) => (
+                      <DrawerItemCard key={entry.schemeId}>
+                        <div className="item-header-row">
+                          <h4 className="item-title">{entry.schemeName}</h4>
+                          <button
+                            type="button"
+                            className="item-remove-btn"
+                            title="Remove scheme"
+                            aria-label={`Remove ${entry.schemeName}`}
+                            onClick={() => handleToggleScheme(entry.schemeId)}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <div className="item-details-row">
+                          <span className="item-unit-price">
+                            {formatInr(entry.amount)} each
+                          </span>
+                          <div className="item-qty-controls">
+                            <button
+                              type="button"
+                              className="qty-btn"
+                              disabled={entry.quantity <= 1}
+                              onClick={(e) =>
+                                handleUpdateQuantity(entry.schemeId, -1, e)
+                              }
+                              aria-label={`Decrease quantity for ${entry.schemeName}`}
+                            >
+                              -
+                            </button>
+                            <span className="qty-value">{entry.quantity}</span>
+                            <button
+                              type="button"
+                              className="qty-btn"
+                              onClick={(e) =>
+                                handleUpdateQuantity(entry.schemeId, 1, e)
+                              }
+                              aria-label={`Increase quantity for ${entry.schemeName}`}
+                            >
+                              +
+                            </button>
+                          </div>
+                          <span className="item-subtotal">
+                            {formatInr(entry.subtotal)}
+                          </span>
+                        </div>
+                      </DrawerItemCard>
+                    ))}
+                  </DrawerItemsList>
+
+                  <DrawerSummarySection>
+                    <div className="summary-row">
+                      <span className="summary-label">Donation Category:</span>
+                      <span className="summary-val category-badge">
+                        {isNonZakatOnlyEnforced
+                          ? "Non-Zakat (Restricted)"
+                          : fieldValues.donationCategory || "Select in Details"}
+                      </span>
+                    </div>
+                    <div className="summary-row">
+                      <span className="summary-label">Total Quantity:</span>
+                      <span className="summary-val">
+                        {totalCalculatedQuantity} {totalCalculatedQuantity === 1 ? "unit" : "units"}
+                      </span>
+                    </div>
+                    <div className="summary-row total-row">
+                      <span className="total-label">Total Amount:</span>
+                      <span className="total-value">
+                        {formatInr(totalCalculatedAmount)}
+                      </span>
+                    </div>
+                  </DrawerSummarySection>
+
+                  <DrawerFooterAction>
+                    <DrawerProceedBtn
+                      type="button"
+                      onClick={() => {
+                        setMobileCartDrawerOpen(false);
+                        const el = document.getElementById("donate-now-details-section");
+                        if (el) {
+                          el.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }
+                      }}
+                    >
+                      Continue to Donor Details ➔
+                    </DrawerProceedBtn>
+                  </DrawerFooterAction>
+                </MobileCartDrawerSheet>
+              </>
+            ) : null}
+          </>
         ) : null}
         </div>
       </PageContainer>
@@ -2920,3 +3198,448 @@ const FooterBanner = styled.div`
     min-height: 92px;
   }
 `;
+
+const CategoryRestrictionNotice = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 8px 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #991b1b;
+  font-size: 12px;
+  line-height: 1.45;
+
+  .notice-icon {
+    font-size: 14px;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  strong {
+    font-weight: 700;
+    color: #7f1d1d;
+  }
+`;
+
+const MobileStickyCartBar = styled.aside`
+  display: none;
+
+  @media (max-width: 768px) {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: #111827;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+`;
+
+const CartSummaryToggle = styled.button`
+  background: transparent;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: #ffffff;
+  font-family: inherit;
+
+  .cart-badge-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #f3f4f6;
+    line-height: 1.2;
+
+    .cart-icon {
+      font-size: 14px;
+    }
+
+    .cart-qty {
+      font-size: 11px;
+      font-weight: 500;
+      color: #9ca3af;
+    }
+  }
+
+  .cart-amount-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+
+    .cart-total-amount {
+      font-size: 18px;
+      font-weight: 800;
+      color: #38bdf8;
+      letter-spacing: -0.3px;
+      line-height: 1.2;
+    }
+
+    .cart-breakdown-trigger {
+      font-size: 11px;
+      font-weight: 600;
+      color: #fde047;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+  }
+`;
+
+const CartProceedBtn = styled.button`
+  background: linear-gradient(135deg, #e03c33 0%, #b91c1c 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(224, 60, 51, 0.45);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  font-family: inherit;
+
+  &:active {
+    transform: scale(0.96);
+  }
+`;
+
+const MobileCartDrawerOverlay = styled.div`
+  display: none;
+
+  @media (max-width: 768px) {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.65);
+    z-index: 10000;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+`;
+
+const MobileCartDrawerSheet = styled.section`
+  display: none;
+
+  @media (max-width: 768px) {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 85vh;
+    background: #ffffff;
+    z-index: 10001;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3);
+    flex-direction: column;
+    overflow: hidden;
+    animation: drawerSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+
+    @keyframes drawerSlideUp {
+      from {
+        transform: translateY(100%);
+      }
+      to {
+        transform: translateY(0);
+      }
+    }
+  }
+`;
+
+const DrawerDragHandle = styled.div`
+  width: 40px;
+  height: 4px;
+  background: #d1d5db;
+  border-radius: 999px;
+  margin: 10px auto 4px;
+  flex-shrink: 0;
+`;
+
+const DrawerHeader = styled.header`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 18px 12px;
+  border-bottom: 1px solid #f3f4f6;
+  flex-shrink: 0;
+
+  .drawer-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    h3 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .drawer-count-badge {
+      font-size: 11px;
+      font-weight: 600;
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+  }
+`;
+
+const DrawerCloseBtn = styled.button`
+  background: #f3f4f6;
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #4b5563;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:active {
+    background: #e5e7eb;
+  }
+`;
+
+const DrawerNZAlert = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 12px 18px 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #92400e;
+  flex-shrink: 0;
+
+  .alert-icon {
+    font-size: 14px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  strong {
+    font-weight: 700;
+  }
+`;
+
+const DrawerItemsList = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  -webkit-overflow-scrolling: touch;
+`;
+
+const DrawerItemCard = styled.div`
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .item-header-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+
+    .item-title {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1f2937;
+      line-height: 1.35;
+      flex: 1;
+    }
+
+    .item-remove-btn {
+      background: none;
+      border: none;
+      color: #9ca3af;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+      line-height: 1;
+
+      &:hover {
+        color: #ef4444;
+        background: #fee2e2;
+      }
+    }
+  }
+
+  .item-details-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+
+    .item-unit-price {
+      font-size: 11px;
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .item-qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 2px 4px;
+
+      .qty-btn {
+        background: none;
+        border: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 700;
+        color: #374151;
+        cursor: pointer;
+
+        &:disabled {
+          opacity: 0.35;
+          cursor: not-allowed;
+        }
+
+        &:active:not(:disabled) {
+          background: #f3f4f6;
+        }
+      }
+
+      .qty-value {
+        min-width: 20px;
+        text-align: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: #111827;
+      }
+    }
+
+    .item-subtotal {
+      font-size: 13px;
+      font-weight: 700;
+      color: #111827;
+      text-align: right;
+      min-width: 70px;
+    }
+  }
+`;
+
+const DrawerSummarySection = styled.div`
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  padding: 12px 18px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #4b5563;
+
+    .category-badge {
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 11px;
+    }
+  }
+
+  .total-row {
+    border-top: 1px dashed #cbd5e1;
+    margin-top: 4px;
+    padding-top: 8px;
+
+    .total-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .total-value {
+      font-size: 16px;
+      font-weight: 800;
+      color: #b91c1c;
+    }
+  }
+`;
+
+const DrawerFooterAction = styled.div`
+  padding: 10px 18px calc(14px + env(safe-area-inset-bottom, 0px));
+  background: #ffffff;
+  border-top: 1px solid #f1f5f9;
+  flex-shrink: 0;
+`;
+
+const DrawerProceedBtn = styled.button`
+  width: 100%;
+  background: linear-gradient(135deg, #e03c33 0%, #b91c1c 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 12px 18px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(224, 60, 51, 0.35);
+  transition: transform 0.15s ease;
+  font-family: inherit;
+
+  &:active {
+    transform: scale(0.98);
+  }
+`;
+

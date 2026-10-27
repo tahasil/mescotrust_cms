@@ -410,6 +410,9 @@ export async function POST(req) {
         purpose: toTrimmedString(donation?.purpose),
         schemes: Array.isArray(donation?.schemes) ? donation.schemes : [],
         studentsCount: toTrimmedString(donation?.studentsCount),
+        donationCategory: toTrimmedString(donation?.donationCategory),
+        zakat: toTrimmedString(donation?.zakat),
+        interestMoney: toTrimmedString(donation?.interestMoney),
         createdAt: donation?.createdAt || null,
       },
       verificationProof: createVerificationToken({

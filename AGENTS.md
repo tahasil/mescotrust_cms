@@ -165,6 +165,8 @@ NPM scripts:
 - `npm run test:e2e:xss` -> Playwright E2E browser XSS execution protection test suite
 - `npm run test:404` -> comprehensive 13-scenario HTTP 404 status and SEO verification test suite
 - `npm run test:e2e:404` -> Playwright E2E browser 404 status, responsive UI, and navigation test suite
+- `npm run test:donate-schemes` -> 11-scenario contract test suite for multi-scheme selection, trusted pricing, and returning donor restoration
+- `npm run test:donate-categories` -> 10-scenario contract test suite for unified donation category dropdown and Non-Zakat scheme allocation rules (DON-04)
 
 ## 7. Standard Workflows
 
@@ -368,7 +370,12 @@ Key implementation files:
 - `app/not-found.js` (Custom 404 Page with brand styling, animated SVG scene, section exploration, and soft 404 prevention)
 - `scripts/test-404-seo.js` (Automated 13-scenario contract test suite for HTTP 404, status codes, and XML sitemap integrity)
 - `e2e/404-seo-handling.spec.js` (Playwright E2E 404 status codes and responsive design verification suite)
+- `lib/donateNowConfig.js` (Canonical donation schemes, category eligibility rules, and multi-scheme calculation)
+- `components/site/DonateNow/DonateNow.js` (Donate Now public client component with unified category dropdown, Non-Zakat auto-lock, and mobile sticky cart drawer)
+- `scripts/test-donate-non-zakat-and-category-contracts.js` (Automated 10-scenario contract test suite for unified categories and DON-04 Non-Zakat rules)
+- `scripts/test-donate-multi-scheme-contracts.js` (Automated 11-scenario contract test suite for multi-scheme selection, trusted pricing, and returning donor restoration)
 
 ---
 
 If this file diverges from implementation, treat code as source of truth and update `AGENTS.md` in the same change.
+

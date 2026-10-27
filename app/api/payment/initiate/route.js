@@ -17,6 +17,7 @@ import {
 } from "@/lib/paymentGateway";
 import {
   getDefaultDonateNowPurposes,
+  isSchemeNonZakatOnly,
   PURPOSE_ID_ALIASES,
 } from "@/lib/donateNowConfig";
 
@@ -80,13 +81,29 @@ export async function POST(req) {
     const body = await req.json();
     const { amount, purpose, purposeId, zakat, note, donor, schemes } = body;
 
+    const rawCategory = toSafeString(body?.donationCategory);
+    let resolvedCategory = rawCategory;
+    if (!resolvedCategory) {
+      if (toSafeString(zakat) === "Yes") {
+        resolvedCategory = "Zakat";
+      } else if (toSafeString(body?.interestMoney) === "Yes") {
+        resolvedCategory = "Interest Money";
+      } else {
+        resolvedCategory = "Non-Zakat";
+      }
+    }
+
+    const effectiveZakat = resolvedCategory === "Zakat" ? "Yes" : "No";
+    const effectiveInterestMoney = resolvedCategory === "Interest Money" ? "Yes" : "No";
+
     let verifiedSchemes = [];
     let computedAmount = 0;
     let effectivePurpose = toSafeString(purpose);
     let resolvedStudentsCount = toSafeString(body?.studentsCount);
 
+    const trustedPurposes = getDefaultDonateNowPurposes();
+
     if (Array.isArray(schemes) && schemes.length > 0) {
-      const trustedPurposes = getDefaultDonateNowPurposes();
       for (const item of schemes) {
         const rawId = toSafeString(item.schemeId || item.id);
         const rawName = toSafeString(item.schemeName || item.name).toLowerCase();
@@ -130,6 +147,34 @@ export async function POST(req) {
           .map((s) => `${s.schemeName} (${s.quantity})`)
           .join(", ");
         resolvedStudentsCount = "";
+      }
+    }
+
+    // Enforce scheme donation category eligibility (e.g. Non-Zakat only for HCES)
+    if (verifiedSchemes.length > 0) {
+      for (const schemeItem of verifiedSchemes) {
+        const matched = trustedPurposes.find((p) => p.id === schemeItem.schemeId);
+        if (matched && isSchemeNonZakatOnly(matched)) {
+          if (resolvedCategory !== "Non-Zakat") {
+            return NextResponse.json(
+              { error: `${matched.name} accepts Non-Zakat donations only.` },
+              { status: 400 },
+            );
+          }
+        }
+      }
+    } else if (effectivePurpose) {
+      const matched = trustedPurposes.find(
+        (p) =>
+          p.id === purposeId ||
+          p.name.toLowerCase() === effectivePurpose.toLowerCase() ||
+          (p.cardTitle && p.cardTitle.toLowerCase() === effectivePurpose.toLowerCase()),
+      );
+      if (matched && isSchemeNonZakatOnly(matched) && resolvedCategory !== "Non-Zakat") {
+        return NextResponse.json(
+          { error: `${matched.name} accepts Non-Zakat donations only.` },
+          { status: 400 },
+        );
       }
     }
 
@@ -394,8 +439,9 @@ export async function POST(req) {
       currency: "INR",
       purpose: toSafeString(effectivePurpose),
       schemes: verifiedSchemes,
-      zakat: zakat || "No",
-      interestMoney,
+      donationCategory: resolvedCategory,
+      zakat: effectiveZakat,
+      interestMoney: effectiveInterestMoney,
       studentsCount: resolvedStudentsCount,
       note: toSafeString(note),
       donor: normalizedDonor,
@@ -431,7 +477,8 @@ export async function POST(req) {
             orderId,
             purpose: toSafeString(purpose, 200),
             purposeId: toSafeString(purposeId, 100),
-            zakat: toSafeString(zakat || "No", 20),
+            donationCategory: toSafeString(resolvedCategory, 50),
+            zakat: toSafeString(effectiveZakat || "No", 20),
             pan: normalizedDonor.pan,
             note: toSafeString(note, 200),
           },
@@ -493,7 +540,7 @@ export async function POST(req) {
       billing_zip: normalizedDonor.pincode,
       billing_country: normalizedDonor.country || "India",
       merchant_param1: toSafeString(effectivePurpose || purpose, 100),
-      merchant_param2: toSafeString(zakat || "No"),
+      merchant_param2: toSafeString(effectiveZakat || "No"),
       merchant_param3: normalizedDonor.pan,
       merchant_param4: toSafeString(note),
       merchant_param5: toSafeString(purposeId),

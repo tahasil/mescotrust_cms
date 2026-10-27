@@ -186,6 +186,16 @@ function normalizePurposeForSave(purpose = {}, index = 0) {
     active: isOtherDonation ? true : purpose.active !== false,
     showOnCard: !isOtherDonation,
     showStudentsCount,
+    isNonZakatOnly:
+      Boolean(purpose.isNonZakatOnly) ||
+      id === "high-cost-education-scholarship" ||
+      name.toLowerCase().includes("high cost education scholarship"),
+    allowedDonationTypes:
+      Boolean(purpose.isNonZakatOnly) ||
+      id === "high-cost-education-scholarship" ||
+      name.toLowerCase().includes("high cost education scholarship")
+        ? ["Non-Zakat"]
+        : ["Zakat", "Non-Zakat", "Interest Money", "Other"],
     highlight: false,
     badgeText: "",
   };
@@ -890,6 +900,7 @@ function DonateNowEditForm(
                           <Col span={24}>
                             <SwitchSettingsCard items={[
                               { name: [name, "showStudentsCount"], label: "Enable Select Student", tooltip: "Allow a donor to select a student count." },
+                              { name: [name, "isNonZakatOnly"], label: "Non-Zakat Only (DON-04)", tooltip: "Enforce Non-Zakat category exclusively for this scheme (e.g. HCES)." },
                               { name: [name, "active"], label: "Active", tooltip: "Make this donation purpose available." },
                             ]} />
                           </Col>
