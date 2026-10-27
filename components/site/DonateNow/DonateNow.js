@@ -21,6 +21,7 @@ import {
   toDigits,
 } from "@/lib/formValidation";
 import {
+  computeMultipleSchemesAmount,
   computePurposeAmount,
   DONATE_NOW_BASE_FIELDS,
   getDefaultDonateNowPurposes,
@@ -29,6 +30,7 @@ import {
   getPurposeRuleState,
   getQuantityFieldLabel,
   normalizeDonateNowConfig,
+  PURPOSE_ID_ALIASES,
 } from "@/lib/donateNowConfig";
 
 function resolveColor(key, fallback) {
@@ -62,12 +64,8 @@ function getFieldDefaultValue(fieldConfig) {
   ) {
     return String(fieldConfig.defaultValue);
   }
-  if (
-    fieldConfig?.inputType === "select" &&
-    Array.isArray(fieldConfig.options)
-  ) {
-    const firstOption = fieldConfig.options[0];
-    if (firstOption?.value != null) return String(firstOption.value);
+  if (fieldConfig?.key === "studentsCount") {
+    return "1";
   }
   return "";
 }
@@ -171,6 +169,71 @@ function logDonorLookupClientDebug(stage, payload = {}) {
   if (process.env.NODE_ENV === "production") return;
   // Debug helper for lookup diagnostics in browser console.
   console.info("[donor-lookup-ui]", stage, payload);
+}
+
+function restorePreviousSchemes(lastDonation, selectablePurposes = []) {
+  if (!lastDonation || typeof lastDonation !== "object") return null;
+
+  const restored = {};
+
+  if (Array.isArray(lastDonation.schemes) && lastDonation.schemes.length > 0) {
+    lastDonation.schemes.forEach((item) => {
+      const rawId = String(item.schemeId || item.id || "").trim();
+      const rawName = String(item.schemeName || item.name || "").trim().toLowerCase();
+      const qty = Math.max(1, Number(item.quantity) || 1);
+
+      const matched = selectablePurposes.find(
+        (p) =>
+          p.id === rawId ||
+          PURPOSE_ID_ALIASES[rawId] === p.id ||
+          p.name.toLowerCase() === rawName ||
+          (p.cardTitle && p.cardTitle.toLowerCase() === rawName),
+      );
+      if (matched) {
+        restored[matched.id] = (restored[matched.id] || 0) + qty;
+      }
+    });
+  }
+
+  if (Object.keys(restored).length === 0 && lastDonation.purpose) {
+    const rawPurpose = String(lastDonation.purpose).trim();
+    const defaultQty = Math.max(1, Number(lastDonation.studentsCount) || 1);
+
+    if (rawPurpose.includes(",")) {
+      const parts = rawPurpose.split(",");
+      parts.forEach((part) => {
+        const trimmed = part.trim();
+        const matchWithQty = trimmed.match(/^(.*?)\s*\((?:Qty:\s*)?(\d+)\)$/i);
+        const namePart = matchWithQty ? matchWithQty[1].trim() : trimmed;
+        const partQty = matchWithQty ? Number(matchWithQty[2]) || 1 : 1;
+        const matched = selectablePurposes.find(
+          (p) =>
+            p.name.toLowerCase() === namePart.toLowerCase() ||
+            (p.cardTitle && p.cardTitle.toLowerCase() === namePart.toLowerCase()) ||
+            p.id === namePart.toLowerCase() ||
+            PURPOSE_ID_ALIASES[namePart] === p.id,
+        );
+        if (matched) {
+          restored[matched.id] = partQty;
+        }
+      });
+    }
+
+    if (Object.keys(restored).length === 0) {
+      const matched = selectablePurposes.find(
+        (p) =>
+          p.name.toLowerCase() === rawPurpose.toLowerCase() ||
+          (p.cardTitle && p.cardTitle.toLowerCase() === rawPurpose.toLowerCase()) ||
+          p.id === rawPurpose.toLowerCase() ||
+          PURPOSE_ID_ALIASES[rawPurpose] === p.id,
+      );
+      if (matched) {
+        restored[matched.id] = defaultQty;
+      }
+    }
+  }
+
+  return Object.keys(restored).length > 0 ? restored : {};
 }
 
 const DONOR_TYPE_OPTIONS = [
@@ -439,9 +502,12 @@ export default function DonateNow(props = {}) {
     return [...figmaOrdered, ...remaining];
   }, [selectablePurposes, purposeSource]);
 
-  const [selectedPurposeId, setSelectedPurposeId] = useState(
-    defaultPurposeId || getDefaultPurposeValue(selectablePurposes),
-  );
+  const initialPurposeId =
+    defaultPurposeId || getDefaultPurposeValue(selectablePurposes);
+
+  const [selectedSchemes, setSelectedSchemes] = useState(() => {
+    return initialPurposeId ? { [initialPurposeId]: 1 } : {};
+  });
   const [donorType, setDonorType] = useState("");
   const [fieldValues, setFieldValues] = useState(() =>
     getInitialFieldValues(fieldConfig),
@@ -469,9 +535,9 @@ export default function DonateNow(props = {}) {
   );
 
   useEffect(() => {
-    setSelectedPurposeId(
-      defaultPurposeId || getDefaultPurposeValue(selectablePurposes),
-    );
+    const initId =
+      defaultPurposeId || getDefaultPurposeValue(selectablePurposes);
+    setSelectedSchemes(initId ? { [initId]: 1 } : {});
     setDonorType("");
     setFieldValues(getInitialFieldValues(fieldConfig));
     setAdditionalFieldValues({});
@@ -504,96 +570,207 @@ export default function DonateNow(props = {}) {
     });
   }, [donorType, fieldConfig]);
 
-  const selectedPurpose = useMemo(
-    () =>
-      selectablePurposes.find((purpose) => purpose.id === selectedPurposeId) ||
-      selectablePurposes[0] ||
-      null,
-    [selectablePurposes, selectedPurposeId],
-  );
+  const selectedSchemeEntries = useMemo(() => {
+    return Object.entries(selectedSchemes)
+      .filter(([, qty]) => Number(qty) > 0)
+      .map(([id, rawQty]) => {
+        const qty = Math.max(1, Number(rawQty) || 1);
+        const purpose = selectablePurposes.find(
+          (p) => p.id === id || PURPOSE_ID_ALIASES[id] === p.id,
+        );
+        const unitAmount = Number(
+          purpose?.fixedAmount || purpose?.defaultAmount || purpose?.amount || 0,
+        );
+        return {
+          id: purpose?.id || id,
+          schemeId: purpose?.id || id,
+          name: purpose?.name || purpose?.cardTitle || id,
+          schemeName: purpose?.name || purpose?.cardTitle || id,
+          amount: unitAmount,
+          quantity: qty,
+          subtotal: unitAmount * qty,
+          purpose,
+        };
+      })
+      .filter((entry) => Boolean(entry.purpose));
+  }, [selectedSchemes, selectablePurposes]);
 
-  const purposeRuleState = useMemo(
-    () => getPurposeRuleState(selectedPurpose, fieldConfig),
-    [selectedPurpose, fieldConfig],
-  );
+  const selectedCount = selectedSchemeEntries.length;
+  const isMultipleSchemes = selectedCount > 1;
+  const isSingleScheme = selectedCount === 1;
+  const isNoScheme = selectedCount === 0;
+
+  const singleSchemeEntry = isSingleScheme ? selectedSchemeEntries[0] : null;
+  const selectedPurpose = singleSchemeEntry ? singleSchemeEntry.purpose : null;
+  const selectedPurposeId = singleSchemeEntry ? singleSchemeEntry.id : "";
+
+  const handleToggleScheme = (schemeId) => {
+    setSelectedSchemes((prev) => {
+      const next = { ...prev };
+      if (next[schemeId]) {
+        delete next[schemeId];
+      } else {
+        next[schemeId] = 1;
+      }
+      return next;
+    });
+    setAmountTouched(false);
+  };
+
+  const handleUpdateQuantity = (schemeId, delta, event) => {
+    if (event) event.stopPropagation();
+    setSelectedSchemes((prev) => {
+      const current = prev[schemeId] || 1;
+      const nextVal = current + delta;
+      if (nextVal < 1) return prev;
+      return { ...prev, [schemeId]: nextVal };
+    });
+    setAmountTouched(false);
+  };
+
+  const purposeRuleState = useMemo(() => {
+    if (isSingleScheme && selectedPurpose) {
+      return getPurposeRuleState(selectedPurpose, fieldConfig);
+    }
+    if (isMultipleSchemes) {
+      const disabled = new Set(["studentsCount", "purpose"]);
+      const required = new Set();
+      const hidden = new Set();
+      selectedSchemeEntries.forEach((entry) => {
+        const st = getPurposeRuleState(entry.purpose, fieldConfig);
+        st.required.forEach((f) => required.add(f));
+      });
+      return { hidden, disabled, required };
+    }
+    return { hidden: new Set(), disabled: new Set(), required: new Set() };
+  }, [
+    isSingleScheme,
+    isMultipleSchemes,
+    selectedPurpose,
+    selectedSchemeEntries,
+    fieldConfig,
+  ]);
   const hiddenFields = purposeRuleState.hidden;
   const disabledFields = purposeRuleState.disabled;
   const requiredFields = purposeRuleState.required;
 
-  const additionalFields = useMemo(
-    () =>
-      Array.isArray(selectedPurpose?.additionalFields)
+  const additionalFields = useMemo(() => {
+    if (isSingleScheme && selectedPurpose) {
+      return Array.isArray(selectedPurpose.additionalFields)
         ? selectedPurpose.additionalFields.filter(
             (field) => field.active && !field.hidden,
           )
-        : [],
-    [selectedPurpose],
-  );
-  const quantityFieldKey = selectedPurpose?.quantityFieldKey || "studentsCount";
-  const quantityFieldValue = fieldValues[quantityFieldKey];
+        : [];
+    }
+    if (isMultipleSchemes) {
+      const seen = new Set();
+      const merged = [];
+      selectedSchemeEntries.forEach((entry) => {
+        if (Array.isArray(entry.purpose?.additionalFields)) {
+          entry.purpose.additionalFields.forEach((field) => {
+            if (field.active && !field.hidden && !seen.has(field.key)) {
+              seen.add(field.key);
+              merged.push(field);
+            }
+          });
+        }
+      });
+      return merged;
+    }
+    return [];
+  }, [
+    isSingleScheme,
+    isMultipleSchemes,
+    selectedPurpose,
+    selectedSchemeEntries,
+  ]);
 
   useEffect(() => {
-    if (!selectedPurpose) return;
-    const purposeChanged = previousPurposeIdRef.current !== selectedPurpose.id;
-    const minQuantity = Math.max(1, Number(selectedPurpose.minQuantity || 1));
-    const defaultStudentsCount = Math.max(
-      1,
-      Number(
-        selectedPurpose.defaultStudentsCount ||
-          selectedPurpose.minQuantity ||
-          1,
-      ),
-    );
+    if (isMultipleSchemes) {
+      const totalAmount = selectedSchemeEntries.reduce(
+        (sum, entry) => sum + entry.subtotal,
+        0,
+      );
+      setFieldValues((previous) => {
+        const nextAmountStr = totalAmount > 0 ? String(totalAmount) : "";
+        if (previous.amount !== nextAmountStr || previous.purpose !== "") {
+          return {
+            ...previous,
+            amount: nextAmountStr,
+            purpose: "",
+          };
+        }
+        return previous;
+      });
+      return;
+    }
 
-    setFieldValues((previous) => {
-      const next = { ...previous };
-      let changed = false;
+    if (isSingleScheme && selectedPurpose) {
+      const purposeChanged = previousPurposeIdRef.current !== selectedPurpose.id;
+      const currentQty = singleSchemeEntry.quantity;
 
-      if (next.purpose !== selectedPurpose.id) {
-        next.purpose = selectedPurpose.id;
-        changed = true;
-      }
+      setFieldValues((previous) => {
+        const next = { ...previous };
+        let changed = false;
 
-      if (
-        selectedPurpose.calculationMode === "multiply_by_students" ||
-        selectedPurpose.showStudentsCount
-      ) {
-        const parsedQuantity = Number.parseInt(
-          String(previous[quantityFieldKey] || ""),
-          10,
-        );
-        if (purposeChanged) {
-          next[quantityFieldKey] = String(defaultStudentsCount);
-          changed = true;
-        } else if (
-          !Number.isFinite(parsedQuantity) ||
-          parsedQuantity < minQuantity
-        ) {
-          next[quantityFieldKey] = String(defaultStudentsCount);
+        if (next.purpose !== selectedPurpose.id) {
+          next.purpose = selectedPurpose.id;
           changed = true;
         }
-      }
 
-      const quantityValue = next[quantityFieldKey];
-      const nextAmount = computePurposeAmount({
-        purpose: selectedPurpose,
-        quantityValue,
-        studentsCount: next.studentsCount,
-        currentAmount:
-          purposeChanged && selectedPurpose.amountMode === "custom"
-            ? ""
-            : previous.amount,
-        amountTouched,
+        if (next.studentsCount !== String(currentQty)) {
+          next.studentsCount = String(currentQty);
+          changed = true;
+        }
+
+        const nextAmount = computePurposeAmount({
+          purpose: selectedPurpose,
+          quantityValue: currentQty,
+          studentsCount: currentQty,
+          currentAmount:
+            purposeChanged && selectedPurpose.amountMode === "custom"
+              ? ""
+              : previous.amount,
+          amountTouched,
+        });
+
+        if (String(previous.amount || "") !== nextAmount) {
+          next.amount = nextAmount;
+          changed = true;
+        }
+
+        return changed ? next : previous;
       });
-      if (String(previous.amount || "") !== nextAmount) {
-        next.amount = nextAmount;
-        changed = true;
-      }
 
-      return changed ? next : previous;
-    });
-    previousPurposeIdRef.current = selectedPurpose.id;
-  }, [selectedPurpose, quantityFieldKey, quantityFieldValue, amountTouched]);
+      previousPurposeIdRef.current = selectedPurpose.id;
+      return;
+    }
+
+    if (isNoScheme) {
+      setFieldValues((previous) => {
+        let changed = false;
+        const next = { ...previous };
+        if (next.purpose !== "") {
+          next.purpose = "";
+          changed = true;
+        }
+        if (!amountTouched && next.amount !== "") {
+          next.amount = "";
+          changed = true;
+        }
+        return changed ? next : previous;
+      });
+      previousPurposeIdRef.current = "";
+    }
+  }, [
+    isMultipleSchemes,
+    isSingleScheme,
+    isNoScheme,
+    selectedSchemeEntries,
+    selectedPurpose,
+    singleSchemeEntry,
+    amountTouched,
+  ]);
 
   const mainTitle = String(props?.mainTitle || "").trim();
   const subTitle = String(props?.subTitle || "").trim();
@@ -772,7 +949,11 @@ export default function DonateNow(props = {}) {
   };
 
   const selectPurpose = (nextPurposeId) => {
-    setSelectedPurposeId(nextPurposeId);
+    if (!nextPurposeId) {
+      setSelectedSchemes({});
+    } else {
+      setSelectedSchemes({ [nextPurposeId]: 1 });
+    }
     setAmountTouched(false);
     if (errors.purpose) {
       setErrors((previous) => ({ ...previous, purpose: "" }));
@@ -807,8 +988,15 @@ export default function DonateNow(props = {}) {
       setVerificationValues(getInitialVerificationState());
       setVerifyingDonor(false);
     }
-    if (fieldKey === quantityFieldKey || fieldKey === "studentsCount") {
+    const activeQtyKey = selectedPurpose?.quantityFieldKey || "studentsCount";
+    if (fieldKey === activeQtyKey || fieldKey === "studentsCount") {
       setAmountTouched(false);
+      if (isSingleScheme && singleSchemeEntry) {
+        const parsed = parseInt(nextValue, 10);
+        if (!Number.isNaN(parsed) && parsed >= 1) {
+          setSelectedSchemes({ [singleSchemeEntry.id]: parsed });
+        }
+      }
     }
     setFieldValues((previous) => ({ ...previous, [fieldKey]: nextValue }));
     if (errors[fieldKey]) {
@@ -1007,6 +1195,17 @@ export default function DonateNow(props = {}) {
       });
       setVerificationValues(getInitialVerificationState());
 
+      if (data?.lastDonation) {
+        const restored = restorePreviousSchemes(
+          data.lastDonation,
+          selectablePurposes,
+        );
+        if (Object.keys(restored).length > 0) {
+          setSelectedSchemes(restored);
+          setAmountTouched(false);
+        }
+      }
+
       if (copy.donorFoundMessage) {
         notification.success({
           key: "returning-donor-lookup-notice",
@@ -1115,6 +1314,18 @@ export default function DonateNow(props = {}) {
         return next;
       });
 
+      const lastDonationData = data?.lastDonation || lookupState?.lastDonation;
+      if (lastDonationData) {
+        const restored = restorePreviousSchemes(
+          lastDonationData,
+          selectablePurposes,
+        );
+        if (Object.keys(restored).length > 0) {
+          setSelectedSchemes(restored);
+          setAmountTouched(false);
+        }
+      }
+
       setErrors((previous) => {
         const next = { ...previous };
         delete next.donorVerification;
@@ -1216,8 +1427,8 @@ export default function DonateNow(props = {}) {
       if (validationError) nextErrors[key] = validationError;
     });
 
-    if (!selectedPurpose?.id) {
-      nextErrors.purpose = "Please select a purpose";
+    if (selectedCount === 0) {
+      nextErrors.purpose = "Please select at least one donation scheme";
     }
 
     if (canUseDonationFields) {
@@ -1274,15 +1485,61 @@ export default function DonateNow(props = {}) {
       );
     });
 
-    const amount = Number(fieldValues.amount);
+    const isCustomSingleAmount =
+      isSingleScheme &&
+      (selectedPurpose?.amountMode === "custom" ||
+        selectedPurpose?.amountMode === "fixed_or_custom");
+
+    const totalCalculatedAmount = selectedSchemeEntries.reduce(
+      (sum, entry) => sum + entry.subtotal,
+      0,
+    );
+
+    const amount =
+      isCustomSingleAmount && Number(fieldValues.amount) > 0
+        ? Number(fieldValues.amount)
+        : totalCalculatedAmount > 0
+          ? totalCalculatedAmount
+          : Number(fieldValues.amount);
+
+    const schemesPayload = selectedSchemeEntries.map((entry) => {
+      const entryAmount =
+        isCustomSingleAmount && Number(fieldValues.amount) > 0
+          ? Number(fieldValues.amount)
+          : entry.amount;
+      const entrySubtotal =
+        isCustomSingleAmount && Number(fieldValues.amount) > 0
+          ? Number(fieldValues.amount)
+          : entry.subtotal;
+      return {
+        schemeId: entry.schemeId,
+        schemeName: entry.schemeName,
+        amount: entryAmount,
+        quantity: entry.quantity,
+        subtotal: entrySubtotal,
+      };
+    });
+
+    const effectivePurpose =
+      selectedSchemeEntries.length > 1
+        ? selectedSchemeEntries
+            .map((e) => `${e.schemeName} (Qty: ${e.quantity})`)
+            .join(", ")
+        : selectedSchemeEntries.length === 1
+          ? selectedSchemeEntries[0].schemeName
+          : "";
+
     // Purpose ID is deliberately not sent: it must never be persisted.
     const payload = {
       amount,
       currency: paymentSettings.currency || "INR",
-      purpose: selectedPurpose?.name || "",
+      purpose: effectivePurpose,
+      schemes: schemesPayload,
       zakat: normalizeText(fieldValues.zakat) || "No",
       interestMoney: normalizeText(fieldValues.interestMoney) || "No",
-      studentsCount: normalizeText(fieldValues.studentsCount),
+      studentsCount: isSingleScheme
+        ? String(singleSchemeEntry.quantity)
+        : normalizeText(fieldValues.studentsCount),
       note: normalizeText(fieldValues.note),
       donor,
       additionalFields: additionalFieldsPayload,
@@ -1404,6 +1661,14 @@ export default function DonateNow(props = {}) {
         : config.label;
 
     if (key === "purpose") {
+      const purposeValue = isMultipleSchemes
+        ? undefined
+        : selectedPurpose?.id || undefined;
+      const purposePlaceholder = isMultipleSchemes
+        ? "Multiple Schemes Selected"
+        : placeholder || "Select purpose";
+      const isPurposeDisabled = isMultipleSchemes ? true : disabled;
+
       return (
         <Col key={key} {...colProps}>
           <FieldWrap>
@@ -1413,15 +1678,15 @@ export default function DonateNow(props = {}) {
             </FieldLabel>
             <FieldSelect
               size="large"
-              value={selectedPurpose?.id || undefined}
+              value={purposeValue}
               onChange={(nextPurposeId) => selectPurpose(nextPurposeId)}
               status={error ? "error" : ""}
-              placeholder={placeholder || "Select purpose"}
+              placeholder={purposePlaceholder}
               options={selectablePurposes.map((purpose) => ({
                 label: purpose.name,
                 value: purpose.id,
               }))}
-              disabled={disabled}
+              disabled={isPurposeDisabled}
             />
             {error ? <FieldError>{error}</FieldError> : null}
           </FieldWrap>
@@ -1430,6 +1695,31 @@ export default function DonateNow(props = {}) {
     }
 
     if (isSelectField(config)) {
+      const isStudentsField = key === "studentsCount";
+      const isFieldDisabled =
+        isStudentsField && isMultipleSchemes
+          ? true
+          : key === "lookup"
+            ? lookupState.loading
+            : disabled;
+      const selectValue =
+        isStudentsField && isMultipleSchemes
+          ? undefined
+          : isStudentsField && isSingleScheme
+            ? String(singleSchemeEntry?.quantity || value || "1")
+            : value || undefined;
+      const selectPlaceholder =
+        isStudentsField && isMultipleSchemes
+          ? "Disabled for multiple schemes"
+          : placeholder ||
+            (key === "zakat"
+              ? "Select Zakat"
+              : key === "interestMoney"
+                ? "Select Interest Money"
+                : config.label
+                  ? `Select ${config.label}`
+                  : "Select");
+
       return (
         <Col key={key} {...colProps}>
           <FieldWrap>
@@ -1439,12 +1729,13 @@ export default function DonateNow(props = {}) {
             </FieldLabel>
             <FieldSelect
               size="large"
-              value={value || undefined}
-              onChange={(nextValue) => handleFieldValue(key, nextValue)}
+              value={selectValue}
+              onChange={(nextValue) => handleFieldValue(key, nextValue ?? "")}
               status={error ? "error" : ""}
-              placeholder={placeholder}
+              placeholder={selectPlaceholder}
               options={fieldOptions[key] || []}
-              disabled={key === "lookup" ? lookupState.loading : disabled}
+              allowClear={!isStudentsField}
+              disabled={isFieldDisabled}
               onBlur={() => {
                 if (key === "lookup") {
                   performLookup(value, { showValidationError: true });
@@ -1515,9 +1806,24 @@ export default function DonateNow(props = {}) {
                 scheduleLookup(event.target.value);
               }
             }}
-            onBlur={() => {
+            onKeyDown={(event) => {
+              if (
+                event.key === "Enter" &&
+                key === "lookup" &&
+                isExistingDonor &&
+                lookupSettings.enabled
+              ) {
+                event.preventDefault();
+                performLookup(event.target.value || fieldValues[key], {
+                  showValidationError: true,
+                });
+              }
+            }}
+            onBlur={(event) => {
               if (key === "lookup" && isExistingDonor && lookupSettings.enabled) {
-                performLookup(value, { showValidationError: true });
+                performLookup(event.target.value || fieldValues[key], {
+                  showValidationError: true,
+                });
               }
             }}
           />
@@ -1554,12 +1860,14 @@ export default function DonateNow(props = {}) {
               <PurposePanel>
                 <PurposeGrid>
                   {renderedPurposes.map((purpose) => {
-                    const active = selectedPurpose?.id === purpose.id;
+                    const isSelected = Boolean(selectedSchemes[purpose.id]);
+                    const currentQty = selectedSchemes[purpose.id] || 1;
                     return (
                       <PurposeCard
                         key={purpose.id}
-                        type="button"
-                        $active={active}
+                        role="button"
+                        tabIndex={0}
+                        $active={isSelected}
                         $cardBg={cardBg}
                         $cardBorder={cardBorder}
                         $cardTitleColor={cardTitleColor}
@@ -1574,10 +1882,19 @@ export default function DonateNow(props = {}) {
                         $cardActiveText={cardActiveText}
                         $cardActiveAmount={cardActiveAmount}
                         $pkgActiveColor={pkgActiveColor}
-                        onClick={() => selectPurpose(purpose.id)}
+                        onClick={() => handleToggleScheme(purpose.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            handleToggleScheme(purpose.id);
+                          }
+                        }}
                       >
                         {purpose.cardIcon ? (
-                          <CardIconWrap $active={active} $pkgActiveColor={cardActiveBg}>
+                          <CardIconWrap
+                            $active={isSelected}
+                            $pkgActiveColor={cardActiveBg}
+                          >
                             <CardIcon
                               src={purpose.cardIcon}
                               alt={
@@ -1589,7 +1906,10 @@ export default function DonateNow(props = {}) {
                             />
                           </CardIconWrap>
                         ) : (
-                          <CardDot $active={active} $pkgActiveColor={cardActiveBg} />
+                          <CardDot
+                            $active={isSelected}
+                            $pkgActiveColor={cardActiveBg}
+                          />
                         )}
                         <h4>{purpose.cardTitle || purpose.name}</h4>
                         <div className="amount">
@@ -1599,10 +1919,47 @@ export default function DonateNow(props = {}) {
                         {purpose.cardDescription ? (
                           <p>{purpose.cardDescription}</p>
                         ) : null}
+                        {isSelected ? (
+                          <CardQuantityWrap
+                            onClick={(e) => e.stopPropagation()}
+                            onMouseDown={(e) => e.stopPropagation()}
+                          >
+                            <span className="qty-label">Quantity</span>
+                            <div className="qty-controls">
+                              <button
+                                type="button"
+                                className="qty-btn qty-minus"
+                                aria-label={`Decrease quantity for ${purpose.cardTitle || purpose.name}`}
+                                onClick={(e) =>
+                                  handleUpdateQuantity(purpose.id, -1, e)
+                                }
+                                disabled={currentQty <= 1}
+                              >
+                                -
+                              </button>
+                              <span className="qty-value">{currentQty}</span>
+                              <button
+                                type="button"
+                                className="qty-btn qty-plus"
+                                aria-label={`Increase quantity for ${purpose.cardTitle || purpose.name}`}
+                                onClick={(e) =>
+                                  handleUpdateQuantity(purpose.id, 1, e)
+                                }
+                              >
+                                +
+                              </button>
+                            </div>
+                          </CardQuantityWrap>
+                        ) : null}
                       </PurposeCard>
                     );
                   })}
                 </PurposeGrid>
+                {errors.purpose ? (
+                  <FieldError style={{ textAlign: "center", marginTop: 8 }}>
+                    {errors.purpose}
+                  </FieldError>
+                ) : null}
               </PurposePanel>
 
               <FormPanel>
@@ -2237,7 +2594,105 @@ const PurposeGrid = styled.div`
   }
 `;
 
-const PurposeCard = styled.button`
+const CardQuantityWrap = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  box-sizing: border-box;
+  z-index: 2;
+
+  .qty-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1;
+    user-select: none;
+  }
+
+  .qty-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .qty-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+      opacity 0.15s ease,
+      transform 0.1s ease,
+      background-color 0.15s ease;
+    padding: 0;
+    user-select: none;
+
+    &:active {
+      transform: scale(0.92);
+    }
+  }
+
+  .qty-minus {
+    background: rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.35);
+    }
+    &:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+  }
+
+  .qty-plus {
+    background: #E03C33;
+    color: #ffffff;
+    &:hover {
+      background: #c82e25;
+    }
+  }
+
+  .qty-value {
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffffff;
+    min-width: 14px;
+    text-align: center;
+    line-height: 1;
+    user-select: none;
+  }
+
+  @media (max-width: 991px) {
+    padding-top: 6px;
+    .qty-controls {
+      gap: 5px;
+    }
+    .qty-btn {
+      width: 20px;
+      height: 20px;
+      font-size: 13px;
+    }
+    .qty-label {
+      font-size: 10px;
+    }
+    .qty-value {
+      font-size: 12px;
+    }
+  }
+`;
+
+const PurposeCard = styled.div`
   border: 1px solid
     ${(props) =>
       props.$active
@@ -2250,8 +2705,11 @@ const PurposeCard = styled.button`
   border-radius: 10px;
   text-align: center;
   padding: 14px 10px 10px;
-  min-height: 170px;
+  min-height: 228px;
+  height: 100%;
+  box-sizing: border-box;
   cursor: pointer;
+  user-select: none;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2264,15 +2722,18 @@ const PurposeCard = styled.button`
     background-color 0.15s ease,
     border-color 0.15s ease;
   @media (max-width: 1199px) {
-    min-height: 158px;
+    min-height: 228px;
   }
   @media (max-width: 991px) {
-    min-height: 148px;
+    min-height: 200px;
     padding: 12px 8px 10px;
   }
   @media (max-width: 767px) {
-    min-height: 138px;
+    min-height: 195px;
     padding: 10px 8px 8px;
+  }
+  @media (max-width: 575px) {
+    min-height: 180px;
   }
   &:after {
     content: "";

@@ -63,12 +63,24 @@ const lookupSchema = new mongoose.Schema(
   { _id: false },
 );
 
+const schemeEntrySchema = new mongoose.Schema(
+  {
+    schemeId: { type: String, default: "", trim: true },
+    schemeName: { type: String, default: "", trim: true },
+    amount: { type: Number, default: 0 },
+    quantity: { type: Number, default: 1 },
+    subtotal: { type: Number, default: 0 },
+  },
+  { _id: false },
+);
+
 const donateNowSubmissionSchema = new mongoose.Schema(
   {
     orderId: { type: String, required: true, unique: true, trim: true },
     amount: { type: Number, required: true },
     currency: { type: String, default: "INR", trim: true },
     purpose: { type: String, default: "", trim: true },
+    schemes: { type: [schemeEntrySchema], default: [] },
     zakat: { type: String, default: "No", trim: true },
     interestMoney: { type: String, default: "No", trim: true },
     studentsCount: { type: String, default: "", trim: true },
@@ -116,6 +128,14 @@ donateNowSubmissionSchema.index({ isDeleted: 1, createdAt: -1 });
 donateNowSubmissionSchema.index({ "donor.email": 1 });
 donateNowSubmissionSchema.index({ "donor.mobile": 1 });
 donateNowSubmissionSchema.index({ "payment.gatewayOrderId": 1 });
+
+if (
+  mongoose.models &&
+  mongoose.models.DonateNowSubmission &&
+  !mongoose.models.DonateNowSubmission.schema?.paths?.schemes
+) {
+  delete mongoose.models.DonateNowSubmission;
+}
 
 module.exports =
   (mongoose.models && mongoose.models.DonateNowSubmission) ||

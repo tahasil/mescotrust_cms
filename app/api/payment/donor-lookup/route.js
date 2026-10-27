@@ -301,6 +301,8 @@ export async function GET(req) {
       lastDonation: {
         amount: donation?.amount || 0,
         purpose: toTrimmedString(donation?.purpose),
+        schemes: Array.isArray(donation?.schemes) ? donation.schemes : [],
+        studentsCount: toTrimmedString(donation?.studentsCount),
         createdAt: donation?.createdAt || null,
       },
     });
@@ -403,6 +405,13 @@ export async function POST(req) {
       donor,
       matchedSubmissionId: String(donation?._id || ""),
       matchedStatus: toTrimmedString(donation?.status || ""),
+      lastDonation: {
+        amount: donation?.amount || 0,
+        purpose: toTrimmedString(donation?.purpose),
+        schemes: Array.isArray(donation?.schemes) ? donation.schemes : [],
+        studentsCount: toTrimmedString(donation?.studentsCount),
+        createdAt: donation?.createdAt || null,
+      },
       verificationProof: createVerificationToken({
         sid: String(donation?._id || ""),
         verified: true,

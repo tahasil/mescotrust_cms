@@ -396,6 +396,17 @@ export default function AdminDonationsPage() {
             <Descriptions.Item label="Country">{renderMaybeText(viewItem.donor?.country)}</Descriptions.Item>
             <Descriptions.Item label="Pincode">{renderMaybeText(viewItem.donor?.pincode)}</Descriptions.Item>
             <Descriptions.Item label="Purpose">{renderMaybeText(viewItem.purpose)}</Descriptions.Item>
+            {Array.isArray(viewItem.schemes) && viewItem.schemes.length > 0 ? (
+              <Descriptions.Item label="Selected Schemes" span={2}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  {viewItem.schemes.map((s, idx) => (
+                    <div key={idx}>
+                      <strong>{s.schemeName}</strong>: {formatInr(s.amount)} × {s.quantity} = {formatInr(s.subtotal)}
+                    </div>
+                  ))}
+                </div>
+              </Descriptions.Item>
+            ) : null}
             <Descriptions.Item label="Amount">{formatInr(viewItem.amount)}</Descriptions.Item>
             <Descriptions.Item label="Payment Status">
               <Tag color={STATUS_COLORS[viewItem.status] || "default"}>

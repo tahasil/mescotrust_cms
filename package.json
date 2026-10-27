@@ -43,7 +43,9 @@
     "test:rbac": "node scripts/test-rbac-workflow-security.js",
     "test:e2e:rbac": "playwright test e2e/rbac-content-approval.spec.js",
     "test:404": "node scripts/test-404-seo.js",
-    "test:e2e:404": "playwright test e2e/404-seo-handling.spec.js"
+    "test:e2e:404": "playwright test e2e/404-seo-handling.spec.js",
+    "test:donate-schemes": "node scripts/test-donate-multi-scheme-contracts.js",
+    "test:e2e:donate-schemes": "playwright test e2e/donate-multi-scheme.spec.js"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.0",

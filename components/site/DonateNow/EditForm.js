@@ -98,7 +98,7 @@ function normalizeFieldConfigForForm(fieldConfigMap, orderedFields = []) {
       ...(fieldConfigMap?.[baseField.key] || {}),
       label: toTrimmedString(fieldConfigMap?.[baseField.key]?.label || baseField.label),
       placeholder: toTrimmedString(
-        fieldConfigMap?.[baseField.key]?.placeholder !== undefined
+        fieldConfigMap?.[baseField.key]?.placeholder
           ? fieldConfigMap?.[baseField.key]?.placeholder
           : baseField.placeholder || "",
       ),
@@ -113,7 +113,7 @@ function normalizeFieldConfigForForm(fieldConfigMap, orderedFields = []) {
           key: item.key,
           label: toTrimmedString(item.label || normalizedMap[item.key]?.label || item.key),
           placeholder: toTrimmedString(
-            item.placeholder !== undefined
+            item.placeholder
               ? item.placeholder
               : normalizedMap[item.key]?.placeholder || "",
           ),
@@ -333,9 +333,7 @@ function DonateNowEditForm(
               ...item,
               key,
               label: toTrimmedString(item.label || baseDef.label),
-              placeholder: toTrimmedString(
-                item.placeholder !== undefined ? item.placeholder : baseDef.placeholder,
-              ),
+              placeholder: toTrimmedString(item.placeholder) || baseDef.placeholder || "",
               required: Boolean(item.required),
               active: item.active !== false,
               disabled: Boolean(item.disabled),
@@ -659,6 +657,7 @@ function DonateNowEditForm(
                     }}
                     renderItemContent={(name, restField) => {
                       const item = form.getFieldValue(["donateNowFields", name]) || {};
+                      const baseDef = DONATE_NOW_BASE_FIELDS.find((b) => b.key === item.key);
                       return (
                         <Row gutter={[12, 12]}>
                           <Form.Item {...restField} name={[name, "key"]} hidden>
@@ -670,7 +669,7 @@ function DonateNowEditForm(
                               name={[name, "label"]}
                               label="Label"
                             >
-                              <Input placeholder={item.label || "Label"} />
+                              <Input placeholder={item.label || baseDef?.label || "Label"} />
                             </Form.Item>
                           </Col>
                           <Col xs={24} md={12}>
@@ -679,7 +678,7 @@ function DonateNowEditForm(
                               name={[name, "placeholder"]}
                               label="Placeholder"
                             >
-                              <Input placeholder={item.placeholder || "Enter placeholder"} />
+                              <Input placeholder={item.placeholder || baseDef?.placeholder || "Enter placeholder"} />
                             </Form.Item>
                           </Col>
                           <Col xs={24} md={8}>

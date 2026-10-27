@@ -15,11 +15,16 @@ import {
   getGatewayLabel,
   getSiteUrl,
 } from "@/lib/paymentGateway";
+import {
+  getDefaultDonateNowPurposes,
+  PURPOSE_ID_ALIASES,
+} from "@/lib/donateNowConfig";
 
 function toSafeString(value, maxLength = 500) {
   return String(value ?? "").trim().slice(0, maxLength);
 }
 
+// Multi-scheme support: validates schemes array and computes trusted totals
 function toDigits(value) {
   return String(value ?? "").replace(/\D/g, "");
 }
@@ -73,21 +78,76 @@ function verifyDonorProof(token) {
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { amount, purpose, purposeId, zakat, note, donor } = body;
+    const { amount, purpose, purposeId, zakat, note, donor, schemes } = body;
+
+    let verifiedSchemes = [];
+    let computedAmount = 0;
+    let effectivePurpose = toSafeString(purpose);
+    let resolvedStudentsCount = toSafeString(body?.studentsCount);
+
+    if (Array.isArray(schemes) && schemes.length > 0) {
+      const trustedPurposes = getDefaultDonateNowPurposes();
+      for (const item of schemes) {
+        const rawId = toSafeString(item.schemeId || item.id);
+        const rawName = toSafeString(item.schemeName || item.name).toLowerCase();
+        const qty = Math.max(1, Math.round(Number(item.quantity) || 1));
+
+        const matched = trustedPurposes.find(
+          (p) =>
+            p.id === rawId ||
+            PURPOSE_ID_ALIASES[rawId] === p.id ||
+            p.name.toLowerCase() === rawName ||
+            (p.cardTitle && p.cardTitle.toLowerCase() === rawName),
+        );
+
+        if (!matched) {
+          return NextResponse.json(
+            { error: `Invalid donation scheme selected: ${rawId || rawName}` },
+            { status: 400 },
+          );
+        }
+
+        const unitAmount = Number(
+          matched.fixedAmount || matched.defaultAmount || matched.amount || 0,
+        );
+        const subtotal = unitAmount * qty;
+        computedAmount += subtotal;
+
+        verifiedSchemes.push({
+          schemeId: matched.id,
+          schemeName: matched.name,
+          amount: unitAmount,
+          quantity: qty,
+          subtotal,
+        });
+      }
+
+      if (verifiedSchemes.length === 1) {
+        effectivePurpose = verifiedSchemes[0].schemeName;
+        resolvedStudentsCount = String(verifiedSchemes[0].quantity);
+      } else if (verifiedSchemes.length > 1) {
+        effectivePurpose = verifiedSchemes
+          .map((s) => `${s.schemeName} (${s.quantity})`)
+          .join(", ");
+        resolvedStudentsCount = "";
+      }
+    }
+
+    const normalizedAmount =
+      computedAmount > 0 ? computedAmount : Number(amount);
 
     // Validate required fields
-    if (!amount || !purpose) {
+    if (!normalizedAmount || !effectivePurpose) {
       return NextResponse.json(
         { error: "Amount and purpose are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const normalizedAmount = Number(amount);
     if (!Number.isFinite(normalizedAmount) || normalizedAmount <= 0) {
       return NextResponse.json(
         { error: "Amount must be greater than 0" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -332,10 +392,11 @@ export async function POST(req) {
       orderId,
       amount: normalizedAmount,
       currency: "INR",
-      purpose: toSafeString(purpose),
+      purpose: toSafeString(effectivePurpose),
+      schemes: verifiedSchemes,
       zakat: zakat || "No",
       interestMoney,
-      studentsCount,
+      studentsCount: resolvedStudentsCount,
       note: toSafeString(note),
       donor: normalizedDonor,
       additionalFields: normalizedAdditionalFields,
@@ -431,7 +492,7 @@ export async function POST(req) {
       billing_state: normalizedDonor.state,
       billing_zip: normalizedDonor.pincode,
       billing_country: normalizedDonor.country || "India",
-      merchant_param1: toSafeString(purpose),
+      merchant_param1: toSafeString(effectivePurpose || purpose, 100),
       merchant_param2: toSafeString(zakat || "No"),
       merchant_param3: normalizedDonor.pan,
       merchant_param4: toSafeString(note),
