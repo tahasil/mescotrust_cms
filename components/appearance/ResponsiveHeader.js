@@ -25,6 +25,7 @@ import {
   DropdownSubmenu,
   Actions,
   SearchBtn,
+  BtnMembership,
   BtnVolunteer,
   BtnDonate,
   IconWrap,
@@ -46,6 +47,7 @@ import {
   MobileMenuCloseBtn,
   MobileActions,
   MobileBtnSearch,
+  MobileBtnMembership,
   MobileBtnVolunteer,
   MobileBtnDonate,
   SearchOverlay,
@@ -281,6 +283,15 @@ export default function Header({
   sticky = true,
   transparent = false,
   layout = "default",
+  headerMembershipEnabled = true,
+  membershipLabel = "Membership",
+  membershipHref = "",
+  membershipHrefTarget = "_self",
+  headerMembershipBgValue = "",
+  headerMembershipTextValue = "",
+  headerMembershipHoverBgValue = "",
+  headerMembershipHoverTextValue = "",
+  headerMembershipBorderValue = "",
   volunteerLabel = "",
   donateLabel = "",
   volunteerHref = "",
@@ -345,6 +356,9 @@ export default function Header({
   const logoUrlMobile = logoMobileUrl || logoImage;
   const logoHref = String(logoUrl || "").trim();
   const logoHrefTarget = logoTarget === "_blank" ? "_blank" : "_self";
+  const membershipHrefValue = String(membershipHref || "").trim();
+  const membershipTarget =
+    String(membershipHrefTarget || "").trim() === "_blank" ? "_blank" : "_self";
   const volunteerHrefValue = String(volunteerHref || "").trim();
   const volunteerTarget =
     String(volunteerHrefTarget || "").trim() === "_blank" ? "_blank" : "_self";
@@ -637,6 +651,9 @@ export default function Header({
   };
   const hasSearchAction =
     headerSearchEnabled === true && String(headerSearchLabel || "").trim() !== "";
+  const hasMembershipAction =
+    headerMembershipEnabled !== false &&
+    Boolean(membershipHrefValue && membershipLabel);
   const hasVolunteerAction =
     (volunteerLabel || volunteerHrefValue) && volunteerHrefValue;
   const noResultsText = headerSearchNoResultsMessage
@@ -825,6 +842,21 @@ export default function Header({
                   <SearchIcon />
                   {headerSearchLabel}
                 </SearchBtn>
+              )}
+              {hasMembershipAction && (
+                <BtnMembership
+                  className="site-header-membership"
+                  href={membershipHrefValue}
+                  target={membershipTarget}
+                  rel={membershipTarget === "_blank" ? "noopener noreferrer" : undefined}
+                  $headerMembershipBgValue={headerMembershipBgValue}
+                  $headerMembershipTextValue={headerMembershipTextValue}
+                  $headerMembershipHoverBgValue={headerMembershipHoverBgValue}
+                  $headerMembershipHoverTextValue={headerMembershipHoverTextValue}
+                  $headerMembershipBorderValue={headerMembershipBorderValue}
+                >
+                  <span className="btn-label">{membershipLabel}</span>
+                </BtnMembership>
               )}
               {hasVolunteerAction && (
                 <BtnVolunteer
@@ -1074,6 +1106,22 @@ export default function Header({
               <SearchIcon />
               {headerSearchLabel}
             </MobileBtnSearch>
+          )}
+          {hasMembershipAction && (
+            <MobileBtnMembership
+              className="site-header-mobile-membership"
+              href={membershipHrefValue}
+              target={membershipTarget}
+              rel={membershipTarget === "_blank" ? "noopener noreferrer" : undefined}
+              onClick={closeMobile}
+              $headerMembershipBgValue={headerMembershipBgValue}
+              $headerMembershipTextValue={headerMembershipTextValue}
+              $headerMembershipHoverBgValue={headerMembershipHoverBgValue}
+              $headerMembershipHoverTextValue={headerMembershipHoverTextValue}
+              $headerMembershipBorderValue={headerMembershipBorderValue}
+            >
+              <span className="btn-label">{membershipLabel}</span>
+            </MobileBtnMembership>
           )}
           {hasVolunteerAction && (
             <MobileBtnVolunteer

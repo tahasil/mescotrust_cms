@@ -46,6 +46,7 @@
     "test:e2e:404": "playwright test e2e/404-seo-handling.spec.js",
     "test:donate-schemes": "node scripts/test-donate-multi-scheme-contracts.js",
     "test:donate-categories": "node scripts/test-donate-non-zakat-and-category-contracts.js",
+    "test:membership-button": "node scripts/test-membership-header-button-contracts.js",
     "test:e2e:donate-schemes": "playwright test e2e/donate-multi-scheme.spec.js"
   },
   "dependencies": {

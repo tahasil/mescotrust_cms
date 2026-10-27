@@ -187,6 +187,15 @@ export default function AppearanceHeader(props) {
     logoTarget = "_self",
     logoImageUrl = "",
     logoLightUrl = "",
+    headerMembershipEnabled = true,
+    headerMembershipLabel = "Membership",
+    headerMembershipHref = "/membership",
+    headerMembershipHrefTarget = "_self",
+    headerMembershipBgValue = "",
+    headerMembershipTextValue = "",
+    headerMembershipHoverBgValue = "",
+    headerMembershipHoverTextValue = "",
+    headerMembershipBorderValue = "",
     volunteerLabel = "Volunteer",
     volunteerHref = "/about-us/volunteer",
     volunteerHrefTarget = "_self",
@@ -238,6 +247,13 @@ export default function AppearanceHeader(props) {
   const volunteerTarget = volunteerHrefTarget === "_blank" ? "_blank" : undefined;
   const donateTarget = donateHrefTarget === "_blank" ? "_blank" : undefined;
   const resolvedLogoTarget = logoTarget === "_blank" ? "_blank" : undefined;
+  const membershipLabel = String(headerMembershipLabel || "Membership").trim();
+  const safeMembershipHref = sanitizeUrl(headerMembershipHref, "");
+  const membershipTarget =
+    headerMembershipHrefTarget === "_blank" ? "_blank" : undefined;
+  const isMembershipVisible =
+    headerMembershipEnabled !== false &&
+    Boolean(safeMembershipHref && membershipLabel);
   const hasSearchAction =
     headerSearchEnabled === true && String(headerSearchLabel || "").trim();
   const navTextColor = sanitizeCssToken(headerNavTextValue, "#1a1a1a");
@@ -253,6 +269,12 @@ export default function AppearanceHeader(props) {
       ? headerSearchBgValue
       : "#ffffff");
   const searchHoverText = headerSearchHoverTextValue || searchText;
+  const membershipBg = headerMembershipBgValue || "#ffffff";
+  const membershipText = headerMembershipTextValue || "#A82D2D";
+  const membershipHoverBg = headerMembershipHoverBgValue || "#FDF1F1";
+  const membershipHoverText =
+    headerMembershipHoverTextValue || membershipText;
+  const membershipBorder = headerMembershipBorderValue || "#A82D2D";
   const volunteerBg = headerCtaBgValue || "#FDF1F1";
   const volunteerText = headerCtaTextValue || "#A82D2D";
   const volunteerHoverBg = headerCtaHoverBgValue || volunteerBg;
@@ -429,6 +451,11 @@ export default function AppearanceHeader(props) {
         "--appearance-search-text": searchText,
         "--appearance-search-hover-bg": searchHoverBg,
         "--appearance-search-hover-text": searchHoverText,
+        "--appearance-membership-bg": membershipBg,
+        "--appearance-membership-text": membershipText,
+        "--appearance-membership-hover-bg": membershipHoverBg,
+        "--appearance-membership-hover-text": membershipHoverText,
+        "--appearance-membership-border": membershipBorder,
         "--appearance-volunteer-bg": volunteerBg,
         "--appearance-volunteer-text": volunteerText,
         "--appearance-volunteer-hover-bg": volunteerHoverBg,
@@ -482,6 +509,16 @@ export default function AppearanceHeader(props) {
                   <span>{headerSearchLabel}</span>
                 </button>
               ) : null}
+              {isMembershipVisible ? (
+                <a
+                  className="appearance-membership"
+                  href={safeMembershipHref}
+                  target={membershipTarget}
+                  rel={membershipTarget ? "noopener noreferrer" : undefined}
+                >
+                  <span className="appearance-btn-label">{membershipLabel}</span>
+                </a>
+              ) : null}
               {safeVolunteerHref ? (
                 <a className="appearance-volunteer" href={safeVolunteerHref} target={volunteerTarget} rel={volunteerTarget ? "noopener noreferrer" : undefined}>
                   <span className="appearance-btn-label">{volunteerLabel}</span>
@@ -515,6 +552,15 @@ export default function AppearanceHeader(props) {
           logoTarget={logoTarget}
           donateHrefTarget={donateHrefTarget}
           headerNavTextValue={navTextColor}
+          headerMembershipEnabled={headerMembershipEnabled !== false}
+          headerMembershipLabel={membershipLabel}
+          headerMembershipHref={safeMembershipHref}
+          headerMembershipHrefTarget={headerMembershipHrefTarget}
+          headerMembershipBgValue={membershipBg}
+          headerMembershipTextValue={membershipText}
+          headerMembershipHoverBgValue={membershipHoverBg}
+          headerMembershipHoverTextValue={membershipHoverText}
+          headerMembershipBorderValue={membershipBorder}
           appearanceResponsive
           onResponsiveLayerChange={setResponsiveLayerOpen}
           onOpenPdf={openPdf}
@@ -634,6 +680,7 @@ export default function AppearanceHeader(props) {
         .appearance-header .appearance-search { position: relative; display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 18px; border-radius: 999px; font-size: 15px; font-weight: 600; line-height: 1.2; white-space: nowrap; transition: transform .25s, border-color .25s, box-shadow .25s, background .25s, color .25s; cursor: pointer; font-family: inherit; gap: 8px; min-width: 44px; color: var(--appearance-search-text) !important; -webkit-text-fill-color: var(--appearance-search-text) !important; background: var(--appearance-search-bg) !important; border: 1px solid var(--appearance-desktop-search-border, rgba(0,0,0,.12)); text-decoration: none !important; }
         .appearance-header .appearance-actions button.appearance-search svg,
         .appearance-header .appearance-search svg { color: var(--appearance-search-text); stroke: currentColor; transition: stroke .25s, color .25s; }
+        .appearance-header .appearance-desktop .appearance-actions a.appearance-membership,
         .appearance-header .appearance-desktop .appearance-actions a.appearance-volunteer,
         .appearance-header .appearance-desktop .appearance-actions a.appearance-donate { padding: 0 26px; }
         .appearance-header .appearance-desktop .appearance-btn-icon { display: none; }
@@ -646,6 +693,8 @@ export default function AppearanceHeader(props) {
         .appearance-header .appearance-search:hover { border-color: var(--appearance-desktop-search-border, rgba(0,0,0,.12)); background: var(--appearance-search-hover-bg) !important; color: var(--appearance-search-hover-text) !important; -webkit-text-fill-color: var(--appearance-search-hover-text) !important; transform: translateY(-1px); }
         .appearance-header .appearance-actions button.appearance-search:hover svg,
         .appearance-header .appearance-search:hover svg { color: var(--appearance-search-hover-text); stroke: currentColor; }
+        .appearance-header .appearance-membership { color: var(--appearance-membership-text) !important; -webkit-text-fill-color: var(--appearance-membership-text) !important; background: var(--appearance-membership-bg) !important; border: 1.5px solid var(--appearance-membership-border, #A82D2D) !important; box-shadow: 0 2px 8px rgba(0,0,0,.06); transition: transform .25s, background .25s, color .25s, box-shadow .25s, border-color .25s; }
+        .appearance-header .appearance-membership:hover { color: var(--appearance-membership-hover-text) !important; -webkit-text-fill-color: var(--appearance-membership-hover-text) !important; background: var(--appearance-membership-hover-bg) !important; border-color: var(--appearance-membership-border, #A82D2D) !important; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.1); }
         .appearance-header .appearance-volunteer { color: var(--appearance-volunteer-text) !important; -webkit-text-fill-color: var(--appearance-volunteer-text) !important; background: var(--appearance-volunteer-bg) !important; box-shadow: 0 2px 8px rgba(0,0,0,.06); transition: transform .25s, background .25s, color .25s, box-shadow .25s; }
         .appearance-header .appearance-volunteer:hover { color: var(--appearance-volunteer-hover-text) !important; -webkit-text-fill-color: var(--appearance-volunteer-hover-text) !important; background: var(--appearance-volunteer-hover-bg) !important; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.1); }
         .appearance-header .appearance-donate { color: var(--appearance-donate-text) !important; -webkit-text-fill-color: var(--appearance-donate-text) !important; background: var(--appearance-donate-bg) !important; box-shadow: 0 6px 16px rgba(168,45,45,.22); transition: transform .25s, background .25s, color .25s, box-shadow .25s; }

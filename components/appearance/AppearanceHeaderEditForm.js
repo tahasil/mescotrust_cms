@@ -30,6 +30,7 @@ function AppearanceHeaderEditForm(
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [menus, setMenus] = useState([]);
+  const [pages, setPages] = useState([]);
 
   useEffect(() => {
     Promise.all([
@@ -39,9 +40,13 @@ function AppearanceHeaderEditForm(
       fetch("/api/admin/menus", { cache: "no-store" }).then((response) =>
         response.ok ? response.json() : [],
       ),
+      fetch("/api/admin/pages?limit=200&fields=title,slug,status&includeTotal=0", {
+        cache: "no-store",
+      }).then((response) => (response.ok ? response.json() : { items: [] })),
     ])
-      .then(([record, menuList]) => {
+      .then(([record, menuList, pagesData]) => {
         setMenus(Array.isArray(menuList) ? menuList : []);
+        setPages(Array.isArray(pagesData?.items) ? pagesData.items : []);
         form.setFieldsValue({
           logoType: record?.logoType === "text" ? "text" : "image",
           logoLightUrl: record?.logoLightUrl || "",
@@ -49,6 +54,22 @@ function AppearanceHeaderEditForm(
           logoUrl: record?.logoUrl || "/",
           logoTarget: normalizeTarget(record?.logoTarget),
           menuName: record?.menuName || "Primary Menu",
+          headerMembershipEnabled: record?.headerMembershipEnabled !== false,
+          headerMembershipLabel: record?.headerMembershipLabel || "Membership",
+          headerMembershipHref: record?.headerMembershipHref || "/membership",
+          headerMembershipHrefTarget: normalizeTarget(
+            record?.headerMembershipHrefTarget,
+          ),
+          headerMembershipBgColorKey:
+            record?.headerMembershipBgColorKey || "#ffffff",
+          headerMembershipTextColorKey:
+            record?.headerMembershipTextColorKey || "#A82D2D",
+          headerMembershipHoverBgColorKey:
+            record?.headerMembershipHoverBgColorKey || "#FDF1F1",
+          headerMembershipHoverTextColorKey:
+            record?.headerMembershipHoverTextColorKey || "#A82D2D",
+          headerMembershipBorderColorKey:
+            record?.headerMembershipBorderColorKey || "#A82D2D",
           headerSearchEnabled: record?.headerSearchEnabled !== false,
           headerSearchLabel: record?.headerSearchLabel || "Search",
           headerSearchOpenAriaLabel:
@@ -215,6 +236,27 @@ function AppearanceHeaderEditForm(
         ).trim(),
         headerSearchHoverTextColorKey: String(
           values.headerSearchHoverTextColorKey || "",
+        ).trim(),
+        headerMembershipEnabled: values.headerMembershipEnabled !== false,
+        headerMembershipLabel: String(values.headerMembershipLabel || "").trim(),
+        headerMembershipHref: String(values.headerMembershipHref || "").trim(),
+        headerMembershipHrefTarget: normalizeTarget(
+          values.headerMembershipHrefTarget,
+        ),
+        headerMembershipBgColorKey: String(
+          values.headerMembershipBgColorKey || "",
+        ).trim(),
+        headerMembershipTextColorKey: String(
+          values.headerMembershipTextColorKey || "",
+        ).trim(),
+        headerMembershipHoverBgColorKey: String(
+          values.headerMembershipHoverBgColorKey || "",
+        ).trim(),
+        headerMembershipHoverTextColorKey: String(
+          values.headerMembershipHoverTextColorKey || "",
+        ).trim(),
+        headerMembershipBorderColorKey: String(
+          values.headerMembershipBorderColorKey || "",
         ).trim(),
         headerVolunteerLabel: String(values.headerVolunteerLabel || "").trim(),
         headerVolunteerHref: String(values.headerVolunteerHref || "").trim(),
@@ -405,6 +447,111 @@ function AppearanceHeaderEditForm(
                     ),
                   }]}
                 />
+              </>
+            ),
+          },
+          {
+            key: "membership-button",
+            forceRender: true,
+            label: "Membership Button",
+            children: (
+              <>
+                <SwitchSettingsCard
+                  items={[
+                    {
+                      name: "headerMembershipEnabled",
+                      label: "Show Membership button",
+                      tooltip: "Display the Membership action button in the Header and mobile drawer.",
+                    },
+                  ]}
+                />
+                <Form.Item
+                  name="headerMembershipLabel"
+                  label="Membership label"
+                  rules={[
+                    ({ getFieldValue }) => ({
+                      validator(_, value) {
+                        if (!getFieldValue("headerMembershipEnabled")) return Promise.resolve();
+                        if (!String(value || "").trim()) {
+                          return Promise.reject(new Error("Membership label is required when enabled"));
+                        }
+                        return Promise.resolve();
+                      },
+                    }),
+                  ]}
+                >
+                  <Input placeholder="Membership" />
+                </Form.Item>
+                <Form.Item
+                  label="Select internal page"
+                  tooltip="Optionally select a CMS page to populate the destination URL."
+                >
+                  <Select
+                    allowClear
+                    showSearch
+                    placeholder="Choose an internal page"
+                    optionFilterProp="label"
+                    options={pages.map((p) => {
+                      const slugVal = String(p?.slug || "").replace(/^\/+|\/+$/g, "");
+                      const url = !slugVal || slugVal === "home" ? "/" : `/${slugVal}`;
+                      return {
+                        value: url,
+                        label: `${p.title || "Untitled"} (${url})`,
+                      };
+                    })}
+                    onChange={(val) => {
+                      if (val) {
+                        form.setFieldsValue({ headerMembershipHref: val });
+                        onValuesChange?.(form.getFieldsValue(true));
+                      }
+                    }}
+                  />
+                </Form.Item>
+                <Form.Item
+                  name="headerMembershipHref"
+                  label="Membership URL"
+                  rules={[
+                    ({ getFieldValue }) => ({
+                      validator(_, value) {
+                        if (!getFieldValue("headerMembershipEnabled")) return Promise.resolve();
+                        const link = String(value || "").trim();
+                        if (!link) {
+                          return Promise.reject(new Error("Destination URL is required when enabled"));
+                        }
+                        if (
+                          link.startsWith("/") ||
+                          link.startsWith("#") ||
+                          /^(https?:|mailto:|tel:)/i.test(link)
+                        ) {
+                          return Promise.resolve();
+                        }
+                        return Promise.reject(
+                          new Error("Enter a valid relative path (e.g. /membership) or URL (https://...)"),
+                        );
+                      },
+                    }),
+                  ]}
+                >
+                  <Input placeholder="/membership" />
+                </Form.Item>
+                <Form.Item name="headerMembershipHrefTarget" label="Link target">
+                  <Select options={LINK_TARGET_OPTIONS} />
+                </Form.Item>
+                <Form.Item name="headerMembershipBgColorKey" label="Background color">
+                  <Select showSearch allowClear options={colorOptions} optionFilterProp="label" />
+                </Form.Item>
+                <Form.Item name="headerMembershipTextColorKey" label="Text color">
+                  <Select showSearch allowClear options={colorOptions} optionFilterProp="label" />
+                </Form.Item>
+                <Form.Item name="headerMembershipHoverBgColorKey" label="Hover background color">
+                  <Select showSearch allowClear options={colorOptions} optionFilterProp="label" />
+                </Form.Item>
+                <Form.Item name="headerMembershipHoverTextColorKey" label="Hover text color">
+                  <Select showSearch allowClear options={colorOptions} optionFilterProp="label" />
+                </Form.Item>
+                <Form.Item name="headerMembershipBorderColorKey" label="Border color">
+                  <Select showSearch allowClear options={colorOptions} optionFilterProp="label" />
+                </Form.Item>
               </>
             ),
           },

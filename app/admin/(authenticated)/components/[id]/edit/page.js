@@ -1772,6 +1772,42 @@ function HeaderPreviewBlock({ form, themePaletteData, themeHeaderSnapshot }) {
   const logoMobileUrl =
     Form.useWatch("logoMobileUrl", form) || s?.logoMobileUrl || "";
   const logoUrl = Form.useWatch("logoUrl", form) || s?.logoUrl || "";
+  const headerMembershipEnabled =
+    Form.useWatch("headerMembershipEnabled", form) ??
+    s?.headerMembershipEnabled ??
+    true;
+  const headerMembershipLabel =
+    Form.useWatch("headerMembershipLabel", form) ||
+    s?.headerMembershipLabel ||
+    "Membership";
+  const headerMembershipHref =
+    Form.useWatch("headerMembershipHref", form) ||
+    s?.headerMembershipHref ||
+    "/membership";
+  const headerMembershipHrefTarget =
+    Form.useWatch("headerMembershipHrefTarget", form) ||
+    s?.headerMembershipHrefTarget ||
+    "_self";
+  const headerMembershipBgColorKey =
+    Form.useWatch("headerMembershipBgColorKey", form) ||
+    s?.headerMembershipBgColorKey ||
+    "#ffffff";
+  const headerMembershipTextColorKey =
+    Form.useWatch("headerMembershipTextColorKey", form) ||
+    s?.headerMembershipTextColorKey ||
+    "#A82D2D";
+  const headerMembershipHoverBgColorKey =
+    Form.useWatch("headerMembershipHoverBgColorKey", form) ||
+    s?.headerMembershipHoverBgColorKey ||
+    "#FDF1F1";
+  const headerMembershipHoverTextColorKey =
+    Form.useWatch("headerMembershipHoverTextColorKey", form) ||
+    s?.headerMembershipHoverTextColorKey ||
+    "#A82D2D";
+  const headerMembershipBorderColorKey =
+    Form.useWatch("headerMembershipBorderColorKey", form) ||
+    s?.headerMembershipBorderColorKey ||
+    "#A82D2D";
   const volunteerLabel =
     Form.useWatch("headerVolunteerLabel", form) ||
     s?.headerVolunteerLabel ||
@@ -2088,6 +2124,30 @@ function HeaderPreviewBlock({ form, themePaletteData, themeHeaderSnapshot }) {
         logoMobileUrl={logoMobileUrl || undefined}
         logoImageUrl={logoLightUrl}
         logoDarkUrl=""
+        headerMembershipEnabled={headerMembershipEnabled !== false}
+        headerMembershipLabel={headerMembershipLabel}
+        headerMembershipHref={headerMembershipHref}
+        headerMembershipHrefTarget={headerMembershipHrefTarget}
+        headerMembershipBgValue={resolveThemeColorFromPalette(
+          themePaletteData,
+          headerMembershipBgColorKey,
+        )}
+        headerMembershipTextValue={resolveThemeColorFromPalette(
+          themePaletteData,
+          headerMembershipTextColorKey,
+        )}
+        headerMembershipHoverBgValue={resolveThemeColorFromPalette(
+          themePaletteData,
+          headerMembershipHoverBgColorKey,
+        )}
+        headerMembershipHoverTextValue={resolveThemeColorFromPalette(
+          themePaletteData,
+          headerMembershipHoverTextColorKey,
+        )}
+        headerMembershipBorderValue={resolveThemeColorFromPalette(
+          themePaletteData,
+          headerMembershipBorderColorKey,
+        )}
         volunteerLabel={volunteerLabel}
         volunteerHref={volunteerHref}
         volunteerHrefTarget={volunteerHrefTarget}

@@ -442,6 +442,35 @@ export const IconWrap = styled.span`
   }
 `;
 
+export const BtnMembership = styled(Btn)`
+  background: ${(props) => props.$headerMembershipBgValue || "#ffffff"};
+  color: ${(props) => props.$headerMembershipTextValue || "#A82D2D"};
+  border: 1.5px solid ${(props) => props.$headerMembershipBorderValue || "#A82D2D"};
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  padding-left: 20px;
+  padding-right: 20px;
+  &:hover {
+    background: ${(props) =>
+      props.$headerMembershipHoverBgValue ||
+      props.$headerMembershipBgValue ||
+      "#FDF1F1"};
+    color: ${(props) =>
+      props.$headerMembershipHoverTextValue ||
+      props.$headerMembershipTextValue ||
+      "#A82D2D"};
+    border-color: ${(props) =>
+      props.$headerMembershipBorderValue ||
+      "#A82D2D"};
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+  }
+  @media (max-width: 1280px) {
+    min-height: 40px;
+    padding: 5px 16px;
+    font-size: 0.9rem;
+  }
+`;
+
 export const BtnVolunteer = styled(Btn)`
   background: ${(props) => props.$headerCtaBgValue || "transparent"};
   color: ${(props) => props.$headerCtaTextValue || "currentColor"};
@@ -787,6 +816,33 @@ export const MobileBtnSearch = styled.button`
   &:focus-visible {
     outline: 2px solid rgba(0, 0, 0, 0.3);
     outline-offset: 2px;
+  }
+`;
+
+export const MobileBtnMembership = styled(MobileBtn)`
+  background: ${(props) => props.$headerMembershipBgValue || "#ffffff"};
+  color: ${(props) => props.$headerMembershipTextValue || "#A82D2D"};
+  border: 1.5px solid ${(props) => props.$headerMembershipBorderValue || "#A82D2D"};
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  &:hover {
+    background: ${(props) =>
+      props.$headerMembershipHoverBgValue ||
+      props.$headerMembershipBgValue ||
+      "#FDF1F1"};
+    color: ${(props) =>
+      props.$headerMembershipHoverTextValue ||
+      props.$headerMembershipTextValue ||
+      "#A82D2D"};
+    border-color: ${(props) =>
+      props.$headerMembershipBorderValue ||
+      "#A82D2D"};
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 `;
 

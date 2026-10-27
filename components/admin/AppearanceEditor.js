@@ -44,6 +44,10 @@ function headerPreviewProps(props, theme) {
     siteTitle: theme?.siteTitle || "MESCO Trust",
     menuItems: Array.isArray(props?.navItems) ? props.navItems : [],
     logoImageUrl: props?.logoLightUrl || "",
+    headerMembershipEnabled: props?.headerMembershipEnabled !== false,
+    headerMembershipLabel: props?.headerMembershipLabel || "Membership",
+    headerMembershipHref: props?.headerMembershipHref || "/membership",
+    headerMembershipHrefTarget: props?.headerMembershipHrefTarget || "_self",
     volunteerLabel: props?.headerVolunteerLabel || "",
     volunteerHref: props?.headerVolunteerHref || "",
     volunteerHrefTarget: props?.headerVolunteerHrefTarget || "_self",
@@ -78,6 +82,26 @@ function headerPreviewProps(props, theme) {
     headerSearchHoverTextValue: resolveThemeColor(
       theme,
       props?.headerSearchHoverTextColorKey,
+    ),
+    headerMembershipBgValue: resolveThemeColor(
+      theme,
+      props?.headerMembershipBgColorKey,
+    ),
+    headerMembershipTextValue: resolveThemeColor(
+      theme,
+      props?.headerMembershipTextColorKey,
+    ),
+    headerMembershipHoverBgValue: resolveThemeColor(
+      theme,
+      props?.headerMembershipHoverBgColorKey,
+    ),
+    headerMembershipHoverTextValue: resolveThemeColor(
+      theme,
+      props?.headerMembershipHoverTextColorKey,
+    ),
+    headerMembershipBorderValue: resolveThemeColor(
+      theme,
+      props?.headerMembershipBorderColorKey,
     ),
     headerCtaBgValue: resolveThemeColor(theme, props?.headerCtaBgColorKey),
     headerCtaTextValue: resolveThemeColor(theme, props?.headerCtaTextColorKey),

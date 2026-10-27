@@ -167,6 +167,7 @@ NPM scripts:
 - `npm run test:e2e:404` -> Playwright E2E browser 404 status, responsive UI, and navigation test suite
 - `npm run test:donate-schemes` -> 11-scenario contract test suite for multi-scheme selection, trusted pricing, and returning donor restoration
 - `npm run test:donate-categories` -> 10-scenario contract test suite for unified donation category dropdown and Non-Zakat scheme allocation rules (DON-04)
+- `npm run test:membership-button` -> 7-scenario contract test suite for Admin CMS management and frontend integration of Membership Header Button
 
 ## 7. Standard Workflows
 
@@ -374,6 +375,7 @@ Key implementation files:
 - `components/site/DonateNow/DonateNow.js` (Donate Now public client component with unified category dropdown, Non-Zakat auto-lock, and mobile sticky cart drawer)
 - `scripts/test-donate-non-zakat-and-category-contracts.js` (Automated 10-scenario contract test suite for unified categories and DON-04 Non-Zakat rules)
 - `scripts/test-donate-multi-scheme-contracts.js` (Automated 11-scenario contract test suite for multi-scheme selection, trusted pricing, and returning donor restoration)
+- `scripts/test-membership-header-button-contracts.js` (Automated 7-scenario contract test suite for Membership Header Button admin CMS management and frontend integration)
 
 ---
 

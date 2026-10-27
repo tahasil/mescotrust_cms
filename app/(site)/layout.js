@@ -97,6 +97,14 @@ export default async function SiteLayout({ children }) {
             ? data.headerItems
             : appearanceHeaderProps.navItems || [],
         logoImageUrl: appearanceHeaderProps.logoLightUrl || "",
+        headerMembershipEnabled:
+          appearanceHeaderProps.headerMembershipEnabled !== false,
+        membershipLabel:
+          appearanceHeaderProps.headerMembershipLabel || "Membership",
+        membershipHref:
+          appearanceHeaderProps.headerMembershipHref || "/membership",
+        membershipHrefTarget:
+          appearanceHeaderProps.headerMembershipHrefTarget || "_self",
         volunteerLabel: appearanceHeaderProps.headerVolunteerLabel || "",
         volunteerHref: appearanceHeaderProps.headerVolunteerHref || "",
         volunteerHrefTarget:
@@ -140,6 +148,26 @@ export default async function SiteLayout({ children }) {
         headerSearchHoverTextValue: resolveThemeColor(
           theme,
           appearanceHeaderProps.headerSearchHoverTextColorKey,
+        ),
+        headerMembershipBgValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerMembershipBgColorKey,
+        ),
+        headerMembershipTextValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerMembershipTextColorKey,
+        ),
+        headerMembershipHoverBgValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerMembershipHoverBgColorKey,
+        ),
+        headerMembershipHoverTextValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerMembershipHoverTextColorKey,
+        ),
+        headerMembershipBorderValue: resolveThemeColor(
+          theme,
+          appearanceHeaderProps.headerMembershipBorderColorKey,
         ),
         headerCtaBgValue: resolveThemeColor(
           theme,
