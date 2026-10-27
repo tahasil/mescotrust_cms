@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Col, Row, Select, notification } from "antd";
-import styled from "styled-components";
+import styled, { createGlobalStyle } from "styled-components";
 import {
   FullWidthBackground,
   getColor,
@@ -648,6 +648,37 @@ export default function DonateNow(props = {}) {
       });
     }
   }, [isNonZakatOnlyEnforced]);
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.body.classList.add("donate-now-page-active");
+    }
+    return () => {
+      if (typeof document !== "undefined") {
+        document.body.classList.remove("donate-now-page-active");
+        document.body.classList.remove("has-mobile-cart-active");
+        document.body.classList.remove("has-mobile-cart-drawer-open");
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    if (selectedCount > 0) {
+      document.body.classList.add("has-mobile-cart-active");
+    } else {
+      document.body.classList.remove("has-mobile-cart-active");
+    }
+  }, [selectedCount]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    if (mobileCartDrawerOpen) {
+      document.body.classList.add("has-mobile-cart-drawer-open");
+    } else {
+      document.body.classList.remove("has-mobile-cart-drawer-open");
+    }
+  }, [mobileCartDrawerOpen]);
 
   const handleToggleScheme = (schemeId) => {
     setSelectedSchemes((prev) => {
@@ -1938,6 +1969,7 @@ export default function DonateNow(props = {}) {
   return (
     <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
       <PageContainer $managedStyle={pageContainerBgStyle}>
+        <DonatePageMobileOverrides />
         <div className={`fable-section ${selectedCount > 0 ? "has-mobile-cart" : ""}`}>
         {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) ? (
           <Row gutter={[16, 16]}>
@@ -3640,6 +3672,68 @@ const DrawerProceedBtn = styled.button`
 
   &:active {
     transform: scale(0.98);
+  }
+`;
+
+const DonatePageMobileOverrides = createGlobalStyle`
+  @media (max-width: 768px) {
+    /* When sticky cart is active on Donate Page: */
+    body.has-mobile-cart-active {
+      /* 1. Prevent footer text (copyright, legal links) from being covered by sticky cart */
+      .appearance-footer,
+      footer#contact,
+      .footer-copyright-shell,
+      .footer-bottom {
+        padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important;
+      }
+
+      /* 2. Chat Launcher - position cleanly above the sticky cart bar with higher z-index */
+      [data-chatbot-launcher] {
+        bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+        right: 16px !important;
+        z-index: 10002 !important;
+        transition: bottom 0.2s ease, opacity 0.2s ease, transform 0.2s ease !important;
+      }
+
+      /* 3. Scroll to top button - position above the chat launcher */
+      .scroll-to-top-btn {
+        bottom: calc(140px + env(safe-area-inset-bottom, 0px)) !important;
+        right: 16px !important;
+        z-index: 10002 !important;
+        transition: bottom 0.2s ease, opacity 0.2s ease, transform 0.2s ease !important;
+      }
+
+      /* 4. Chat Window - float cleanly above sticky cart with higher z-index so Back/Home & Composer are 100% visible and interactive */
+      [data-chatbot-window] {
+        z-index: 10005 !important;
+      }
+
+      [data-chatbot-window][data-chatbot-expanded="false"] {
+        bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+        right: 16px !important;
+        left: 16px !important;
+        width: calc(100vw - 32px) !important;
+        height: min(66vh, calc(100vh - 170px)) !important;
+        max-height: calc(100vh - 100px) !important;
+      }
+
+      [data-chatbot-window][data-chatbot-expanded="true"] {
+        bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+        right: 16px !important;
+        left: 16px !important;
+        width: calc(100vw - 32px) !important;
+        height: calc(100vh - 100px - env(safe-area-inset-bottom, 0px)) !important;
+        max-height: calc(100vh - 100px) !important;
+      }
+    }
+
+    /* When bottom cart drawer is open, hide floating launcher & scroll-to-top so they don't obstruct drawer sheet */
+    body.has-mobile-cart-drawer-open [data-chatbot-launcher],
+    body.has-mobile-cart-drawer-open .scroll-to-top-btn {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      visibility: hidden !important;
+    }
   }
 `;
 
