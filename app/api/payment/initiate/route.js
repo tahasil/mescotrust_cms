@@ -18,8 +18,32 @@ import {
 import {
   getDefaultDonateNowPurposes,
   isSchemeNonZakatOnly,
+  normalizeDonateNowConfig,
   PURPOSE_ID_ALIASES,
 } from "@/lib/donateNowConfig";
+import Page from "@/models/Page";
+
+/**
+ * Whether the published Donate form marks PAN as required (admin: DonateNow
+ * block -> Fields -> PAN No. -> Required). Read server-side so the rule can't
+ * be skipped by editing the request. Optional when no Donate block is found,
+ * matching the BRD (PAN optional; donors add it if they want an 80G receipt).
+ */
+async function isPanRequiredByDonateForm(pagePath) {
+  try {
+    const select = { layout: 1 };
+    const query = { status: "published", "layout.baseComponent": "DonateNow" };
+    const slug = String(pagePath || "").split(/[?#]/)[0].replace(/^\/+|\/+$/g, "");
+    let page = slug ? await Page.findOne({ ...query, slug }).select(select).lean() : null;
+    if (!page) page = await Page.findOne(query).select(select).lean();
+    const block = page?.layout?.find((item) => item?.baseComponent === "DonateNow");
+    if (!block) return false;
+    const pan = normalizeDonateNowConfig(block.props || {}).fieldConfig?.pan;
+    return Boolean(pan && pan.active !== false && pan.required === true);
+  } catch {
+    return false;
+  }
+}
 
 function toSafeString(value, maxLength = 500) {
   return String(value ?? "").trim().slice(0, maxLength);
@@ -381,15 +405,16 @@ export async function POST(req) {
       }
 
       // Enforced server-side too: the client checks are bypassable, and a PAN
-      // drives 80B tax exemption, so a malformed one must never be stored.
+      // drives 80G tax exemption, so a malformed one must never be stored.
+      // Required only when the Donate form's PAN field is set to required.
       const normPan = toSafeString(donor?.pan).toUpperCase();
-      if (!normPan) {
+      if (!normPan && (await isPanRequiredByDonateForm(body?.pagePath))) {
         return NextResponse.json(
           { error: "PAN number is required" },
           { status: 400 },
         );
       }
-      if (!isValidPan(normPan)) {
+      if (normPan && !isValidPan(normPan)) {
         return NextResponse.json(
           { error: "A valid PAN (e.g. ABCDE1234F) is required" },
           { status: 400 },

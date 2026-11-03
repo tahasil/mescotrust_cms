@@ -151,7 +151,7 @@ export default async function ResolvedSlugPage({ params }) {
   const layoutWithShortcodeProps = await buildLayout(page, slug);
   return (
     <main>
-      <ComponentRenderer layout={layoutWithShortcodeProps} />
+      <ComponentRenderer layout={layoutWithShortcodeProps} pageTitle={page.title} />
     </main>
   );
 }

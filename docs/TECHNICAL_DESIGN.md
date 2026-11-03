@@ -370,6 +370,26 @@ Tracks background bulk optimization jobs.
 
 **Indexes:** `{ orderId: 1 }`, `{ status: 1 }`, `{ "donor.email": 1 }`, `{ createdAt: -1 }`
 
+### 2.11.1 DonorHistoryOtp
+
+**File:** `models/DonorHistoryOtp.js`
+**Collection:** `donor_history_otps`
+
+One-time codes for the public donation history page (UAT DON-05). One row per code sent.
+
+| Field         | Type   | Required | Description |
+|---------------|--------|----------|-------------|
+| challengeId   | String | yes      | Random 32-hex id returned to the browser; unique |
+| email         | String | yes      | Donor email the code was sent to (lowercase) |
+| codeHash      | String | yes      | HMAC of `challengeId` + code; the plain code is never stored |
+| expiresAt     | Date   | yes      | Code stops working (10 minutes) |
+| attempts      | Number | no       | Verify attempts so far; locked at 5 |
+| consumedAt    | Date   | no       | Set when the code is used successfully |
+| invalidatedAt | Date   | no       | Set when a newer code is sent for the same email |
+| purgeAt       | Date   | yes      | TTL: MongoDB deletes the row (1 hour, kept for the hourly send cap) |
+
+**Indexes:** `{ challengeId: 1 }` unique, `{ email: 1, createdAt: -1 }`, `{ purgeAt: 1 }` TTL (`expireAfterSeconds: 0`)
+
 ---
 
 ### 2.10 ThemeConfig
@@ -428,6 +448,10 @@ Base URL: `/api`. Auth: public (no auth), admin (JWT via NextAuth + `requireAuth
 | POST | `/api/payment/callback` | CCAvenue posts encrypted response here after payment |
 | POST | `/api/payment/razorpay/callback` | Razorpay Checkout posts the payment result here |
 | GET | `/api/payment/donor-lookup` | Auto-fill: lookup previous donor by email or mobile |
+| POST | `/api/public/donor-history/request-otp` | Donation history: email a one-time code, or say no donations were found |
+| POST | `/api/public/donor-history/verify-otp` | Donation history: check the code, set the session cookie |
+| GET / DELETE | `/api/public/donor-history` | Donation history: list the donor's successful donations / sign out |
+| POST | `/api/public/donor-history/receipt` | Donation history: re-send one receipt to the donor |
 | GET | `/api/health` | Health check (DB) |
 
 ### 3.2 Admin (auth required)
@@ -593,6 +617,30 @@ Utility file: `lib/ccavenue.js` â€” exports `encrypt(data, workingKey)` and
 - Searches `donations` collection for latest successful donation matching email or mobile
 - Returns donor details (name, email, mobile, PAN, address, city, state, country, pincode)
 - Used by the "Email / Mobile No." field at top of form to pre-fill fields
+
+### 4.5.1 Donation History (UAT DON-05)
+
+Public page `/my-donations` (`app/(site)/my-donations/page.js`, `noindex`) rendered by
+`components/donations/DonationHistoryClient.js`. The Donate form links to it under
+Donor Type; the link text, path and on/off switch are in the DonateNow edit drawer
+under "Returning Donor Lookup" (`donateNowHistoryLink`).
+
+1. Donor enters an email or mobile. If it matches a successful donation, `request-otp`
+   emails a 6-digit code to the email on the most recent one and tells the donor where it
+   went (masked, e.g. `ch*****@gmail.com`). Otherwise no code is sent and the page says
+   no donations were found, or that none were completed. Asking again within 60 seconds
+   reuses the code already sent; more than 5 codes per email per hour is refused.
+2. `verify-otp` checks the code (HMAC-hashed in `donor_history_otps`, 10-minute expiry,
+   5 attempts) and sets a 30-minute signed session cookie scoped to
+   `/api/public/donor-history`.
+3. The list shows successful, non-deleted `donate_now_submissions` for that email only,
+   with date, schemes, category, amount and order ID. "Email receipt again" re-sends the
+   standard receipt to the donor without the admin copy.
+
+The session key is derived from `NEXTAUTH_SECRET` with its own context string and the
+token carries `purpose: "donor-history"`, so a donor-lookup `verificationProof` can't be
+replayed as a history session. Mobile OTP isn't implemented (no SMS provider). Tests:
+`npm run test:donor-history`.
 
 ### 4.6 Site Component: DonateNow
 

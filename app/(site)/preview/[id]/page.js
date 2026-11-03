@@ -93,7 +93,7 @@ export default async function PreviewPage({ params, searchParams }) {
           Draft preview — this content is not published.
         </div>
         <h1>{page.title}</h1>
-        <ComponentRenderer layout={await attachShortcodeModuleProps(layout)} />
+        <ComponentRenderer layout={await attachShortcodeModuleProps(layout)} pageTitle={page.title} />
       </main>
     );
   } catch {

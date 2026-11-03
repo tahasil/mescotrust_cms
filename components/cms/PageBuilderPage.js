@@ -79,7 +79,7 @@ export default async function PageBuilderPage({ pageId, slug, pathname, emitBrea
       {breadcrumbItems.length > 0 ? (
         <BreadcrumbJsonLd items={breadcrumbItems} currentUrl={effectivePath} />
       ) : null}
-      <ComponentRenderer layout={document.layout} />
+      <ComponentRenderer layout={document.layout} pageTitle={document.page?.title} />
     </>
   );
 }

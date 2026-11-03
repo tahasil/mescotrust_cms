@@ -75,7 +75,7 @@ async function PageContent({ slug }) {
   });
 
   const layoutWithShortcodeProps = await attachShortcodeModuleProps(layout);
-  return <ComponentRenderer layout={layoutWithShortcodeProps} />;
+  return <ComponentRenderer layout={layoutWithShortcodeProps} pageTitle={page.title} />;
 }
 
 export default function ResolvedSlugPage({ params }) {

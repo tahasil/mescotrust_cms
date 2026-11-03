@@ -78,6 +78,7 @@ Models in `models/`:
 - `Subscriber`
 - `Donation`
 - `DonateNowSubmission`
+- `DonorHistoryOtp` (collection: `donor_history_otps`; hashed one-time codes for the public donation history page, TTL-purged)
 - `Event`
 - `EventRegistration`
 - `VolunteersFeedbackSubmission`
@@ -113,6 +114,7 @@ Conventions:
 
 Key public groups:
 - Pages, blogs, categories, menus, search, theme, social wall, event registrations
+- Donor history under `/api/public/donor-history/*` (email OTP, signed session cookie, donor's own successful donations, receipt re-send)
 
 Key admin groups:
 - Pages, blogs, categories, comments, components, site-components, menus
@@ -168,6 +170,7 @@ NPM scripts:
 - `npm run test:donate-schemes` -> 11-scenario contract test suite for multi-scheme selection, trusted pricing, and returning donor restoration
 - `npm run test:donate-categories` -> 10-scenario contract test suite for unified donation category dropdown and Non-Zakat scheme allocation rules (DON-04)
 - `npm run test:membership-button` -> 7-scenario contract test suite for Admin CMS management and frontend integration of Membership Header Button
+- `npm run test:donor-history` -> donation history (DON-05) contract tests: offline OTP/session/PII checks, plus HTTP scenarios when `npm run dev` is running (set `DONOR_HISTORY_TEST_EMAIL` to also exercise real code and receipt emails)
 
 ## 7. Standard Workflows
 
@@ -376,6 +379,11 @@ Key implementation files:
 - `scripts/test-donate-non-zakat-and-category-contracts.js` (Automated 10-scenario contract test suite for unified categories and DON-04 Non-Zakat rules)
 - `scripts/test-donate-multi-scheme-contracts.js` (Automated 11-scenario contract test suite for multi-scheme selection, trusted pricing, and returning donor restoration)
 - `scripts/test-membership-header-button-contracts.js` (Automated 7-scenario contract test suite for Membership Header Button admin CMS management and frontend integration)
+- `lib/donations/donorHistoryAuth.js` (Donation history OTP, session token, identifier parsing and PII-safe row mapping; builtin imports only so scripts can require it)
+- `lib/donations/signedToken.js` (HMAC token sign/verify shared by donor lookup and donor history, each with its own key)
+- `app/api/public/donor-history/` (request-otp, verify-otp, list/sign-out, receipt re-send routes)
+- `app/(site)/my-donations/page.js` + `components/donations/DonationHistoryClient.js` (Public donation history page)
+- `scripts/test-donor-history-contracts.js` (Donation history contract tests)
 
 ---
 

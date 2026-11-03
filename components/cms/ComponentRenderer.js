@@ -194,10 +194,16 @@ function UnavailableBlock({ baseComponent }) {
  * Renders page layout from the pages collection only.
  * layout = page.layout (blocks with baseComponent, props, order). All block content comes from block.props (page document).
  */
+// Blocks that need the page's own title (not their headline prop) receive it
+// as `pageTitle`. Kept to a list so the extra prop never reaches components
+// that spread unknown props onto DOM elements.
+const PAGE_TITLE_AWARE_COMPONENTS = new Set(["InnerPageHero"]);
+
 export default function ComponentRenderer({
   layout,
   wrapperContainer,
   onElementClick,
+  pageTitle,
 }) {
   if (!Array.isArray(layout) || layout.length === 0) return null;
 
@@ -298,6 +304,10 @@ export default function ComponentRenderer({
                 onElementClick(block.instanceId, elementKey),
             }
           : {};
+        const pageTitleProp =
+          pageTitle && PAGE_TITLE_AWARE_COMPONENTS.has(baseComponent)
+            ? { pageTitle: String(pageTitle) }
+            : {};
 
         const shortcodeRaw = String(allProps.shortcode || allProps.shortCode || "").toLowerCase();
         const isShortcodeFullBleed =
@@ -329,7 +339,7 @@ export default function ComponentRenderer({
               className={`cms-full-bleed${sectionAnchorId ? " cms-section-anchor" : ""}`}
               style={{ width: "100%" }}
             >
-              <Component {...clean} {...elementClickProp} />
+              <Component {...clean} {...elementClickProp} {...pageTitleProp} />
             </div>
           );
           return useFade ? <FadeInSection key={key}>{inner}</FadeInSection> : inner;
@@ -346,7 +356,7 @@ export default function ComponentRenderer({
             style={hasSectionStyle ? sectionStyle : undefined}
           >
             <>
-              <Component {...clean} {...elementClickProp} />
+              <Component {...clean} {...elementClickProp} {...pageTitleProp} />
             </>
           </section>
         );

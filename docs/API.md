@@ -32,6 +32,23 @@ All API routes live under `/api/`. The convention is:
 | GET | `/media/[id]?size=original&format=auto` | Stable media delivery endpoint (`format=auto` prefers WebP, then AVIF, then original/JPG). Legacy size names are accepted and resolved to original. |
 | GET | `/api/health` | Database connectivity check (200 or 503) |
 
+## Donor History (public, UAT DON-05)
+
+Backs the public `/my-donations` page. A donor proves they own the email on
+their donations with a 6-digit code, then gets a 30-minute httpOnly session
+cookie (`mesco_donor_history`, `SameSite=Lax`, `Path=/api/public/donor-history`,
+`Secure` over HTTPS). Rules live in `lib/donations/donorHistoryAuth.js`. The request step tells the visitor whether an email/mobile has donations (by product decision, matching the Donate page lookup), so the per-IP limit is the only brake on checking a list of addresses.
+All routes fail closed with 503 when `NEXTAUTH_SECRET` is missing. POST/DELETE
+go through the normal middleware same-origin check.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/public/donor-history/request-otp` | Body `{ identifier }` (email, or a 10-15 digit mobile). Codes go only to donors with a successful, non-deleted donation; for a mobile, to the email on the most recent one. Sent: 200 `{ ok: true, challengeId, sentTo (masked email), message, resendAfterSeconds, expiresInSeconds }`. Asked again within 60s, or hourly cap (5) reached while a code is still valid: same 200 shape with the existing `challengeId` and a message saying so. No donations: 200 `{ ok: false, found: false, message }`. Only pending/failed donations: 200 `{ ok: false, found: true, completed: false, message }`. Errors: 400 malformed identifier, 429 cooldown/hourly cap with no usable code or more than 10 requests/min per IP (`retryAfterSeconds`), 502 the email couldn't be sent, 503 no mail provider configured. |
+| POST | `/api/public/donor-history/verify-otp` | Body `{ challengeId, code }`. 200 `{ ok, email }` and sets the session cookie. Every failure (unknown challenge, wrong code, expired, used, locked) returns the same 400 message. Codes expire after 10 minutes and lock after 5 attempts; only the newest code for an email works. |
+| GET | `/api/public/donor-history?page=1` | With a valid session: `{ signedIn: true, email, sessionExpiresAt, page, pageSize, total, totalPages, items[] }`, 20 per page, newest first. Items carry `orderId, date, amount, currency, purpose, schemes[{ name, quantity, subtotal }], category, paymentMode, transactionId` and never PAN, address or mobile. Only `status: "success"` and non-deleted rows. Without a valid session: 200 `{ signedIn: false }`. |
+| DELETE | `/api/public/donor-history` | Signs out (clears the cookie). |
+| POST | `/api/public/donor-history/receipt` | Body `{ orderId }`. Re-sends the receipt email for one of the session donor's own successful donations, donor only (no admin copy). 401 without a session, 404 for an order that isn't theirs, 429 after 3 re-sends of one order in 10 minutes, 502 if the mail provider didn't deliver. |
+
 ## Admin APIs
 
 All admin APIs require authentication via JWT and the operation-specific permission resolved by `requireAuth`. The role names below describe the default system-role grants; custom roles can receive the same permissions.

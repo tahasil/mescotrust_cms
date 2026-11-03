@@ -28,7 +28,11 @@ export default function InnerPageHero(props) {
     ? getColor(props.innerPageHeroBreadcrumbColor2Key)
     : undefined;
   const rawItems = Array.isArray(props?.breadcrumbItems) ? props.breadcrumbItems : [];
-  const items = resolveBreadcrumbsForPage(pathname, title, rawItems);
+  // The last crumb is the page's own name (from ComponentRenderer), not the
+  // hero headline, which is often a tagline with *highlight* markup. Falls
+  // back to the headline, markup stripped, where no page title is passed.
+  const pageTitle = String(props?.pageTitle ?? "").trim();
+  const items = resolveBreadcrumbsForPage(pathname, pageTitle || title, rawItems);
 
   return (
     <InnerBanner
