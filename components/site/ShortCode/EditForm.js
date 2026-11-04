@@ -87,11 +87,18 @@ function normalizeConfiguredShortcode(input = {}) {
 
 function normalizeInitialValues(data = {}) {
   const input = data && typeof data === "object" ? data : {};
+  const isTitleEn = !(input.shortCodeTitleEnabled === false || input.titleEnabled === false || input.shortCodeTitleEnabled === "false" || input.titleEnabled === "false");
+  const isSubTitleEn = !(input.shortCodeSubTitleEnabled === false || input.subTitleEnabled === false || input.shortCodeSubTitleEnabled === "false" || input.subTitleEnabled === "false");
+
   return {
-    mainTitle: input.mainTitle ?? "Section Title",
-    subTitle: input.subTitle ?? "Subtitle",
-    shortCodeTitleEnabled: input.shortCodeTitleEnabled !== false,
-    shortCodeSubTitleEnabled: input.shortCodeSubTitleEnabled !== false,
+    mainTitle: input.mainTitle ?? "",
+    subTitle: input.subTitle ?? "",
+    shortCodeTitleEnabled: isTitleEn,
+    titleEnabled: isTitleEn,
+    faqsTitleEnabled: isTitleEn,
+    shortCodeSubTitleEnabled: isSubTitleEn,
+    subTitleEnabled: isSubTitleEn,
+    faqsSubTitleEnabled: isSubTitleEn,
     shortCodeSubTitleColorKey: input.shortCodeSubTitleColorKey ?? "",
     shortCodeMainTitleColorKey: input.shortCodeMainTitleColorKey ?? "",
     shortCodeCardBgColorKey: input.shortCodeCardBgColorKey ?? "",
@@ -175,13 +182,20 @@ function ShortCodeEditForm(
           return;
         }
 
+        const isTitleEn = !(values.shortCodeTitleEnabled === false || values.titleEnabled === false || values.shortCodeTitleEnabled === "false" || values.titleEnabled === "false");
+        const isSubTitleEn = !(values.shortCodeSubTitleEnabled === false || values.subTitleEnabled === false || values.shortCodeSubTitleEnabled === "false" || values.subTitleEnabled === "false");
+
         const payload = {
           ...values,
-          mainTitle: normalizeShortcodeText(values.mainTitle || "Section Title"),
-          subTitle: normalizeShortcodeText(values.subTitle || "Subtitle"),
+          mainTitle: normalizeShortcodeText(values.mainTitle ?? ""),
+          subTitle: normalizeShortcodeText(values.subTitle ?? ""),
           shortcode,
-          shortCodeTitleEnabled: values.shortCodeTitleEnabled !== false,
-          shortCodeSubTitleEnabled: values.shortCodeSubTitleEnabled !== false,
+          shortCodeTitleEnabled: isTitleEn,
+          titleEnabled: isTitleEn,
+          faqsTitleEnabled: isTitleEn,
+          shortCodeSubTitleEnabled: isSubTitleEn,
+          subTitleEnabled: isSubTitleEn,
+          faqsSubTitleEnabled: isSubTitleEn,
           shortCodeSubTitleColorKey: normalizeShortcodeText(values.shortCodeSubTitleColorKey),
           shortCodeMainTitleColorKey: normalizeShortcodeText(values.shortCodeMainTitleColorKey),
           shortCodeCardBgColorKey: normalizeShortcodeText(values.shortCodeCardBgColorKey),

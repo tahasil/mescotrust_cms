@@ -61,4 +61,5 @@ export { default as FormEmbed } from "./FormEmbed/FormEmbed";
 export { default as TimelineTrack } from "./TimelineTrack/TimelineTrack";
 export { default as TeamEmbed } from "./TeamEmbed/TeamEmbed";
 export { default as ShortCode } from "./ShortCode/ShortCode";
+export { default as Faqs } from "./Faqs/Faqs";
 export { default as CareersUpload } from "./CareersUpload/CareersUpload";

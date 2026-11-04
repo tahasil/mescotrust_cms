@@ -59,6 +59,7 @@ import {
   CloseOutlined,
   SafetyCertificateOutlined,
   SolutionOutlined,
+  QuestionCircleOutlined,
 } from "@ant-design/icons";
 import { signOut } from "next-auth/react";
 import { roleLabelFromKey } from "@/lib/rbac/constants";
@@ -230,6 +231,15 @@ const baseMenuItems = [
     label: (
       <Link href="/admin/gallery" style={linkStyle}>
         Gallery
+      </Link>
+    ),
+  },
+  {
+    key: "/admin/faqs",
+    icon: <QuestionCircleOutlined />,
+    label: (
+      <Link href="/admin/faqs" style={linkStyle}>
+        FAQs
       </Link>
     ),
   },

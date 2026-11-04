@@ -93,6 +93,7 @@ Models in `models/`:
 - `SocialWallConfigAudit`
 - `Team`
 - `Gallery`
+- `Faq`
 - `AdminRole`
 - `Permission`
 - `RolePermission`
@@ -113,11 +114,11 @@ Conventions:
 - `/api/health` -> DB health
 
 Key public groups:
-- Pages, blogs, categories, menus, search, theme, social wall, event registrations
+- Pages, blogs, categories, menus, search, theme, social wall, event registrations, faqs
 - Donor history under `/api/public/donor-history/*` (email OTP, signed session cookie, donor's own successful donations, receipt re-send)
 
 Key admin groups:
-- Pages, blogs, categories, comments, components, site-components, menus
+- Pages, blogs, categories, comments, components, site-components, menus, faqs
 - Appearance Header Ribbon/Header/Footer under `/api/admin/appearance/*`
 - Sitemap and robots management under `/api/admin/settings/*`
 - Media, contacts, users, subscribers, donations, events, event-registrations, volunteers-feedback, fonts
@@ -172,6 +173,7 @@ NPM scripts:
 - `npm run test:membership-button` -> 7-scenario contract test suite for Admin CMS management and frontend integration of Membership Header Button
 - `npm run test:careers-role` -> 12-scenario contract test suite for Careers application form active openings and Other conditional input (NEW-03)
 - `npm run test:donor-history` -> donation history (DON-05) contract tests: offline OTP/session/PII checks, plus HTTP scenarios when `npm run dev` is running (set `DONOR_HISTORY_TEST_EMAIL` to also exercise real code and receipt emails)
+- `npm run test:faqs` -> 10-scenario contract test suite for FAQ management, document section 6 requirements, admin sidebar, and shortcode integration
 
 ## 7. Standard Workflows
 
@@ -386,6 +388,13 @@ Key implementation files:
 - `app/api/public/donor-history/` (request-otp, verify-otp, list/sign-out, receipt re-send routes)
 - `app/(site)/my-donations/page.js` + `components/donations/DonationHistoryClient.js` (Public donation history page)
 - `scripts/test-donor-history-contracts.js` (Donation history contract tests)
+- `models/Faq.js` (FAQ database schema)
+- `lib/faqDefaults.js` (12 baseline FAQs across 8 categories from document Section 6)
+- `app/api/admin/faqs/` (Admin FAQ management CRUD, seed, and reorder routes)
+- `app/api/public/faqs/` (Public FAQs endpoint with category and search filtering)
+- `app/admin/(authenticated)/faqs/page.js` (Admin FAQs module with category filtering, CRUD, and shortcode copy helper)
+- `components/site/Faqs/Faqs.js` (Public FAQs component with live search, category tabs, accessible accordion, and Schema.org FAQPage JSON-LD)
+- `scripts/test-faqs-contracts.js` (Automated 10-scenario contract test suite for FAQs and shortcode integration)
 
 ---
 

@@ -10,6 +10,7 @@ export { default as Subscribe, SubscribeEditForm } from "./Subscribe/index";
 export { default as CareersUpload, CareersUploadEditForm } from "./CareersUpload/index";
 export { default as CTABanner, CTABannerEditForm } from "./CTABanner/index";
 export { default as ShortCode, ShortCodeEditForm } from "./ShortCode/index";
+export { default as Faqs, FaqsEditForm } from "./Faqs/index";
 export { default as Cards1, Cards1EditForm } from "./Cards1/index";
 export { default as VolunteersFeedback, VolunteersFeedbackEditForm } from "./VolunteersFeedback/index";
 export { default as Internshiplifecycle, InternshiplifecycleEditForm } from "./Internshiplifecycle/index";
@@ -129,6 +130,7 @@ import FormEmbedEditForm from "./FormEmbed/EditForm";
 import TimelineTrackEditForm from "./TimelineTrack/EditForm";
 import TeamEmbedEditForm from "./TeamEmbed/EditForm";
 import LeaveusamessageModalEditForm from "./LeaveusamessageModal/EditForm";
+import FaqsEditForm from "./Faqs/EditForm";
 /** componentId -> EditForm for drawer (Admin → Components and Page Builder use same form). Add new editable site components here. */
 export const EDITABLE_SITE_EDIT_FORMS = {
   HomeHero: HomeHeroEditForm,
@@ -196,4 +198,5 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   CareersUpload: CareersUploadEditForm,
   TeamEmbed: TeamEmbedEditForm,
   LeaveusamessageModal: LeaveusamessageModalEditForm,
+  Faqs: FaqsEditForm,
 };

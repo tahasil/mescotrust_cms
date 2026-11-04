@@ -7,7 +7,12 @@ import TeamEmbed from "@/components/site/TeamEmbed/TeamEmbed";
 import * as PublicSiteComponents from "@/components/site/publicComponents";
 import { SITE_COMPONENT_IDS } from "@/lib/siteComponentRegistry";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
-import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
+import {
+  getTitleAlign,
+  getTitleAlignStyles,
+  getSubtitleAlignStyles,
+  getHeaderAlignStyles,
+} from "@/components/site/titleUtils";
 import {
   buildShortcodeFromSelection,
   findComponentIdByShortcodeValue,
@@ -28,13 +33,40 @@ const API_PATH_BY_COMPONENT_ID = {
   Marquee: "/api/theme/marquee",
   Subscribe: "/api/theme/subscribe",
 };
+
 const PASSTHROUGH_COMPONENT_SHORTCODES = new Set([
   "Testimonials",
   "HomeSlider",
   "EventsSlider",
   "CommitteeMembers",
   "TeamEmbed",
+  "Faqs",
 ]);
+
+function isFaqShortcodeValue(value = "") {
+  const lower = String(value || "").trim().toLowerCase();
+  return (
+    lower === "faq" ||
+    lower === "faqs" ||
+    lower.startsWith("faq:") ||
+    lower.startsWith("faqs:")
+  );
+}
+
+function parseFaqCategoryFromShortcode(value = "") {
+  const clean = String(value || "").trim();
+  const lower = clean.toLowerCase();
+  if (lower === "faq" || lower === "faqs") return "";
+  if (lower.startsWith("faqs:") || lower.startsWith("faq:")) {
+    const colonIdx = clean.indexOf(":");
+    let cat = clean.slice(colonIdx + 1).trim();
+    if (cat.toLowerCase().startsWith("category=")) {
+      cat = cat.slice(9).trim();
+    }
+    return cat;
+  }
+  return "";
+}
 
 function sanitizePayload(data) {
   if (!data || typeof data !== "object") return {};
@@ -65,15 +97,35 @@ async function fetchComponentProps(componentId) {
 /**
  * Site component: ShortCode (Short Code).
  * Supports a single shortcode format: [shortcode="Target"].
- * Target dynamically resolves to a site component ID first, team shortcode second, otherwise to form shortcode.
+ * Target dynamically resolves to:
+ * 1. FAQ shortcodes: [shortcode="faqs"] or [shortcode="faqs:CategoryName"]
+ * 2. Site component IDs: [shortcode="Subscribe"] or [shortcode="Faqs"]
+ * 3. Dynamic galleries: [shortcode="gallery-slug"]
+ * 4. Team records: [shortcode="team-slug"]
+ * 5. Forms: [shortcode="form-shortcode"]
  */
 export default function ShortCode(props) {
   const mainTitle = (props?.mainTitle ?? "Section Title").toString().trim();
   const titleAlign = getTitleAlign(props, "left", "shortCode");
   const subTitle = (props?.subTitle ?? "Subtitle").toString().trim();
 
-  const titleEnabled = props?.shortCodeTitleEnabled !== false;
-  const subTitleEnabled = props?.shortCodeSubTitleEnabled !== false;
+  const titleEnabled = !(
+    props?.shortCodeTitleEnabled === false ||
+    props?.shortCodeTitleEnabled === "false" ||
+    props?.titleEnabled === false ||
+    props?.titleEnabled === "false" ||
+    props?.faqsTitleEnabled === false ||
+    props?.faqsTitleEnabled === "false"
+  );
+
+  const subTitleEnabled = !(
+    props?.shortCodeSubTitleEnabled === false ||
+    props?.shortCodeSubTitleEnabled === "false" ||
+    props?.subTitleEnabled === false ||
+    props?.subTitleEnabled === "false" ||
+    props?.faqsSubTitleEnabled === false ||
+    props?.faqsSubTitleEnabled === "false"
+  );
 
   const mainTitleColorKey = (
     props?.shortCodeMainTitleColorKey ?? props?.titleColorKey ?? ""
@@ -236,6 +288,11 @@ export default function ShortCode(props) {
     [shortcodeText],
   );
   const shortcodeValue = normalizeShortcodeText(parsedShortcode?.targetKey);
+  const isFaqShortcode = useMemo(
+    () => isFaqShortcodeValue(shortcodeValue),
+    [shortcodeValue],
+  );
+
   // Server-rendered targets (see lib/shortcodeServerProps.js) let this component
   // render in the SSR HTML instead of waiting for a client-side fetch.
   const serverTargetComponentId = normalizeShortcodeText(
@@ -263,17 +320,21 @@ export default function ShortCode(props) {
   const [galleryData, setGalleryData] = useState(null);
   const [teamData, setTeamData] = useState(null);
   // True while probing dynamic targets (gallery / team) for this shortcode.
-  // Starts as true when there is a shortcode to probe, so the very first
-  // render cannot fall through to the form fallback and flash a
-  // "Form not found or not published" warning before the real target loads.
   const [resolvingDynamic, setResolvingDynamic] = useState(
-    !resolvedComponentId && Boolean(shortcodeValue),
+    !resolvedComponentId && Boolean(shortcodeValue) && !isFaqShortcode,
   );
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadComponentProps() {
+      if (isFaqShortcode) {
+        setResolvingDynamic(false);
+        setGalleryData(null);
+        setTeamData(null);
+        return;
+      }
+
       if (!resolvedComponentId || resolvedComponentId === "ShortCode") {
         setModuleLoading(false);
         setModuleError("");
@@ -365,7 +426,7 @@ export default function ShortCode(props) {
     return () => {
       cancelled = true;
     };
-  }, [resolvedComponentId, shortcodeValue, serverModuleProps, serverTargetComponentId]);
+  }, [resolvedComponentId, shortcodeValue, serverModuleProps, serverTargetComponentId, isFaqShortcode]);
 
   const isGalleryShortcode = Boolean(galleryData);
   const isTeamShortcode = Boolean(teamData);
@@ -396,6 +457,23 @@ export default function ShortCode(props) {
         <div style={{ color: "#b42318" }}>
           ShortCode cannot render itself.
         </div>
+      );
+    }
+
+    // Direct FAQ Shortcode handler
+    if (isFaqShortcode) {
+      const cat = parseFaqCategoryFromShortcode(shortcodeValue);
+      return (
+        <PublicSiteComponents.Faqs
+          categoryFilter={cat}
+          {...props}
+          titleEnabled={titleEnabled}
+          subTitleEnabled={subTitleEnabled}
+          faqsTitleEnabled={titleEnabled}
+          faqsSubTitleEnabled={subTitleEnabled}
+          shortCodeTitleEnabled={titleEnabled}
+          shortCodeSubTitleEnabled={subTitleEnabled}
+        />
       );
     }
 
@@ -446,6 +524,10 @@ export default function ShortCode(props) {
   }
 
   if (isPassthroughShortcode) {
+    return renderShortcodeContent();
+  }
+
+  if (isFaqShortcode) {
     return renderShortcodeContent();
   }
 
