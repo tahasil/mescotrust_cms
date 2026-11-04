@@ -458,7 +458,9 @@ export default function SearchResultsClient({ initialData, initialQuery, initial
         .search-hero {
           background: linear-gradient(180deg, #fbf8f5 0%, #ffffff 100%);
           border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-          padding: 56px 20px 48px;
+          /* Appearance header is position:fixed and reserves no flow space; the
+             offset var (ribbon + header) is published on .public-site by the header. */
+          padding: calc(var(--appearance-header-offset, 128px) + 28px) 20px 48px;
         }
         .search-hero-inner {
           max-width: 860px;
@@ -934,7 +936,7 @@ export default function SearchResultsClient({ initialData, initialQuery, initial
             height: 160px;
           }
           .search-hero {
-            padding: 36px 16px 32px;
+            padding: calc(var(--appearance-header-offset, 99px) + 16px) 16px 32px;
           }
           .search-main-section {
             padding: 24px 16px 60px;
