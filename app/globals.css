@@ -1254,6 +1254,42 @@ div:has(> .fable-section.fable-scheme) {
 .fable-mission-vision .fable-feature:hover { transform: translateY(-4px); background: var(--mission-vision-card-hover-bg); border-color: var(--mission-vision-card-hover-border); box-shadow: 0 22px 44px color-mix(in srgb,var(--fable-dark) 8%,transparent); }
 .fable-mission-vision .fable-feature h3 { color: var(--mission-vision-card-title); }
 .fable-mission-vision .fable-feature p { color: var(--mission-vision-description); }
+.fable-mission-vision .fable-feature .fable-mission-vision__desc,
+.fable-mission-vision .fable-feature .fable-mission-vision__desc p,
+.fable-mission-vision .fable-feature .fable-mission-vision__desc span,
+.fable-mission-vision .fable-feature .fable-mission-vision__desc li {
+  color: var(--mission-vision-description);
+}
+.fable-mission-vision .fable-feature .fable-mission-vision__desc p {
+  margin: 0 0 10px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.fable-mission-vision .fable-feature .fable-mission-vision__desc p:last-child {
+  margin-bottom: 0;
+}
+.fable-mission-vision .fable-feature .fable-mission-vision__desc ul,
+.fable-mission-vision .fable-feature .fable-mission-vision__desc ol {
+  color: var(--mission-vision-description);
+  margin: 8px 0 12px;
+  padding-left: 22px;
+}
+.fable-mission-vision .fable-feature .fable-mission-vision__desc ul {
+  list-style-type: disc;
+}
+.fable-mission-vision .fable-feature .fable-mission-vision__desc ol {
+  list-style-type: decimal;
+}
+.fable-mission-vision .fable-feature .fable-mission-vision__desc li {
+  margin-bottom: 6px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.fable-mission-vision .fable-feature .fable-mission-vision__desc strong,
+.fable-mission-vision .fable-feature .fable-mission-vision__desc b {
+  font-weight: 650;
+  color: var(--mission-vision-card-title);
+}
 .fable-mission-vision .fable-feature-grid { grid-template-columns: repeat(var(--mission-vision-columns,2),minmax(0,1fr)); }
 .fable-mission-vision a.fable-mission-vision__mobile { display: inline-flex; width: fit-content; margin-top: 3px; color: var(--mission-vision-mobile); -webkit-text-fill-color: var(--mission-vision-mobile); font-size: 16px; font-weight: 650; line-height: 1.5; }
 .fable-mission-vision a.fable-mission-vision__mobile:hover { color: var(--mission-vision-mobile); -webkit-text-fill-color: var(--mission-vision-mobile); text-decoration: underline; text-underline-offset: 3px; }

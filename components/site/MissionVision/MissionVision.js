@@ -11,6 +11,7 @@ import {
   TeamOutlined,
 } from "@ant-design/icons";
 import { FullWidthBackground, getColor, PageContainer } from "@/styles/Theme";
+import SafeHtml from "@/components/cms/SafeHtml";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 import {
@@ -28,6 +29,20 @@ import {
 } from "./icons";
 
 const clean = (value, fallback = "") => value == null ? fallback : String(value).trim();
+
+function formatDescriptionHtml(value) {
+  if (value == null) return "";
+  const s = String(value).trim();
+  if (!s) return "";
+  if (/<[a-z][\s\S]*>/i.test(s)) return s;
+  if (s.includes("\n")) {
+    return s
+      .split(/\n{2,}/)
+      .map((p) => `<p>${p.trim().replace(/\n/g, "<br />")}</p>`)
+      .join("");
+  }
+  return `<p>${s}</p>`;
+}
 
 const ICONS = {
   "mumbai-city-unit": MumbaiCityUnitIcon,
@@ -165,7 +180,10 @@ export default function MissionVision(props) {
                   <Icon />
                 </span>
                 <h3>{title}</h3>
-                <p>{description}</p>
+                <SafeHtml
+                  html={formatDescriptionHtml(description)}
+                  className="fable-mission-vision__desc"
+                />
                 {mobileNumber ? (
                   <a className="fable-mission-vision__mobile" href={`tel:${mobileNumber.replace(/[^+\d]/g, "")}`}>
                     {mobileNumber}

@@ -13,6 +13,7 @@ import {
   TeamOutlined,
 } from "@ant-design/icons";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
+import RichTextEditor from "@/components/admin/RichTextEditor";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
 import { getManageSectionInitialValues, getManageSectionPayload } from "@/lib/manageSectionFields";
@@ -99,32 +100,57 @@ const COLOR_FIELDS = [
 ];
 const clean = (value) => value == null ? "" : String(value).trim();
 
+function cleanHtml(value) {
+  if (value == null) return "";
+  const s = String(value).trim();
+  const textOnly = s.replace(/<[^>]*>/g, "").replace(/&nbsp;/gi, " ").trim();
+  return textOnly ? s : "";
+}
+
+function toRichTextValue(value) {
+  if (value == null) return "";
+  const s = String(value).trim();
+  if (!s) return "";
+  if (/<[a-z][\s\S]*>/i.test(s)) return s;
+  return s
+    .split(/\n{2,}/)
+    .map((p) => `<p>${p.trim().replace(/\n/g, "<br />")}</p>`)
+    .join("");
+}
+
 function normalizeCard(item, index = 0) {
   const fallback = DEFAULT_CARDS[index] || { title: "", description: "", icon: "aim" };
+  const desc = cleanHtml(item?.description);
   return {
     title: clean(item?.title) || fallback.title,
-    description: clean(item?.description) || fallback.description,
+    description: desc || fallback.description,
     icon: normalizeIcon(item?.icon, fallback.icon),
     mobileNumber: clean(item?.mobileNumber),
   };
 }
 
 function resolveCards(data = {}) {
-  if (Array.isArray(data.missionVisionItems)) {
-    return data.missionVisionItems.map(normalizeCard);
-  }
-  return [
-    normalizeCard({
-      title: data.missionVisionVisionTitle,
-      description: data.missionVisionVisionDescription,
-      icon: data.missionVisionVisionIcon,
-    }, 0),
-    normalizeCard({
-      title: data.missionVisionMissionTitle,
-      description: data.missionVisionMissionDescription,
-      icon: data.missionVisionMissionIcon,
-    }, 1),
-  ];
+  const rawCards = Array.isArray(data.missionVisionItems)
+    ? data.missionVisionItems
+    : [
+        {
+          title: data.missionVisionVisionTitle,
+          description: data.missionVisionVisionDescription,
+          icon: data.missionVisionVisionIcon,
+        },
+        {
+          title: data.missionVisionMissionTitle,
+          description: data.missionVisionMissionDescription,
+          icon: data.missionVisionMissionIcon,
+        },
+      ];
+  return rawCards.map((item, index) => {
+    const card = normalizeCard(item, index);
+    return {
+      ...card,
+      description: toRichTextValue(card.description),
+    };
+  });
 }
 
 function MissionVisionEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, themeColorOptions: suppliedColors = [] }, ref) {
@@ -246,9 +272,22 @@ function MissionVisionEditForm({ source, initialData: initialDataProp, onSaveToP
                       {...restField}
                       name={[name, "description"]}
                       label="Card description"
-                      rules={[{ required: true, message: "Card description is required" }]}
+                      rules={[
+                        {
+                          validator: (_, value) => {
+                            const textOnly = String(value || "")
+                              .replace(/<[^>]*>/g, "")
+                              .replace(/&nbsp;/gi, " ")
+                              .trim();
+                            if (!textOnly) {
+                              return Promise.reject(new Error("Card description is required"));
+                            }
+                            return Promise.resolve();
+                          },
+                        },
+                      ]}
                     >
-                      <Input.TextArea rows={3} placeholder="Enter card description" />
+                      <RichTextEditor placeholder="Enter card description..." minHeight={160} />
                     </Form.Item>
                     <Form.Item {...restField} name={[name, "icon"]} label="Card icon">
                       <Select options={ICON_OPTIONS} placeholder="Select card icon" />
