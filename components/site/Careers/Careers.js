@@ -433,9 +433,21 @@ export default function Careers(props) {
                 </div>
               </JobInfo>
               <ApplyBtn
-                href={applyUrl || "#"}
+                href={applyUrl || "#careers-application-form"}
                 style={{ background: btnBgColor, color: btnTextColor }}
-                onClick={applyUrl ? undefined : (e) => e.preventDefault()}
+                onClick={(e) => {
+                  if (applyUrl) return;
+                  if (typeof window !== "undefined") {
+                    const formEl = document.getElementById("careers-application-form");
+                    if (formEl) {
+                      e.preventDefault();
+                      window.dispatchEvent(
+                        new CustomEvent("careers-select-role", { detail: { role: title } })
+                      );
+                      formEl.scrollIntoView({ behavior: "smooth" });
+                    }
+                  }
+                }}
               >
                 {btnText}
               </ApplyBtn>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   Row,
   Col,
@@ -277,15 +277,26 @@ const Honeypot = styled.input`
   pointer-events: none;
 `;
 
-const DEFAULT_POSITIONS = [
-  "General Application",
-  "Programme Coordinator",
-  "Medical Officer",
-  "Accounts Executive",
-  "Content & Communications Executive",
-  "Social Worker",
-  "IT Support Specialist",
-  "Internship",
+const DUMMY_OR_GENERIC_ROLES = new Set([
+  "general application",
+  "general",
+  "other",
+  "others",
+  "select",
+  "select position",
+  "select role",
+  "none",
+  "n/a",
+  "--",
+]);
+
+const INACTIVE_ROLE_PATTERNS = [
+  /\(closed\)/i,
+  /\[closed\]/i,
+  /\(inactive\)/i,
+  /\[inactive\]/i,
+  /\(expired\)/i,
+  /\[expired\]/i,
 ];
 
 const EXPERIENCE_OPTIONS = [
@@ -411,15 +422,71 @@ export default function CareersUpload(props = {}) {
   const buttonTextColorKey = (props?.careersUploadButtonTextColorKey ?? "").toString().trim();
   const buttonTextColor = buttonTextColorKey ? getColor(buttonTextColorKey) : "#ffffff";
 
-  /* -- Form Field Configs -- */
-  const rawPositions = props?.careersUploadPositions;
-  const positionsList = Array.isArray(rawPositions) && rawPositions.length > 0
-    ? rawPositions
-    : typeof rawPositions === "string" && rawPositions.trim()
-      ? rawPositions.split(",").map((p) => p.trim()).filter(Boolean)
-      : DEFAULT_POSITIONS;
+  /* -- Dynamic Active Openings Calculation -- */
+  const rawPositions = props?.careersUploadPositions ?? props?.positions ?? props?.openings;
 
-  const positionOptions = positionsList.map((p) => ({ label: p, value: p }));
+  const activeOpenings = useMemo(() => {
+    let candidatePositions = [];
+    if (Array.isArray(rawPositions)) {
+      candidatePositions = rawPositions;
+    } else if (typeof rawPositions === "string" && rawPositions.trim()) {
+      candidatePositions = rawPositions.includes("\n")
+        ? rawPositions.split("\n")
+        : rawPositions.split(",");
+    }
+
+    const seenKeys = new Set();
+    const openings = [];
+
+    for (const candidate of candidatePositions) {
+      if (!candidate) continue;
+      let title = "";
+      let value = "";
+
+      if (typeof candidate === "object") {
+        if (
+          candidate.active === false ||
+          candidate.isClosed ||
+          candidate.isExpired ||
+          candidate.status === "closed" ||
+          candidate.status === "inactive" ||
+          candidate.status === "expired" ||
+          candidate.status === "draft"
+        ) {
+          continue;
+        }
+        title = String(candidate.title || candidate.name || "").trim();
+        value = String(candidate.id || candidate._id || candidate.slug || candidate.value || title).trim();
+      } else if (typeof candidate === "string") {
+        title = candidate.trim();
+        value = title;
+      }
+
+      if (!title) continue;
+      if (INACTIVE_ROLE_PATTERNS.some((pat) => pat.test(title))) continue;
+      if (DUMMY_OR_GENERIC_ROLES.has(title.toLowerCase())) continue;
+
+      const dedupeKey = title.toLowerCase();
+      if (seenKeys.has(dedupeKey)) continue;
+      seenKeys.add(dedupeKey);
+
+      openings.push({
+        label: title,
+        value: value || title,
+        title,
+      });
+    }
+    return openings;
+  }, [rawPositions]);
+
+  // Display only eligible active openings + "Other"
+  const positionOptions = useMemo(
+    () => [
+      ...activeOpenings.map((o) => ({ label: o.label, value: o.value })),
+      { label: "Other", value: "Other" },
+    ],
+    [activeOpenings]
+  );
 
   const showQualification = props?.careersUploadShowQualification !== false;
   const showExperience = props?.careersUploadShowExperience !== false;
@@ -447,6 +514,95 @@ export default function CareersUpload(props = {}) {
   const [fileList, setFileList] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [submittedRef, setSubmittedRef] = useState(null);
+  const hasUserManuallySelectedRef = useRef(false);
+
+  // Watch selected position for conditional "Other" input
+  const watchedPosition = Form.useWatch("position", form);
+  const isOtherSelected = watchedPosition === "Other";
+
+  // Clear customPosition if user switches from Other to an active opening
+  useEffect(() => {
+    if (!isOtherSelected) {
+      if (form.getFieldValue("customPosition")) {
+        form.setFieldsValue({ customPosition: undefined });
+      }
+    }
+  }, [isOtherSelected, form]);
+
+  // Automatic position selection from URL query parameter or single active opening
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (hasUserManuallySelectedRef.current) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const paramRole =
+      params.get("role") ||
+      params.get("position") ||
+      params.get("job") ||
+      params.get("opening");
+
+    if (paramRole) {
+      const cleanParam = paramRole.trim().toLowerCase();
+      const matched = activeOpenings.find((o) => {
+        const titleLower = o.title.toLowerCase();
+        const valueLower = String(o.value).toLowerCase();
+        const slugHyphen = titleLower.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+        const slugUnderscore = titleLower.replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+        return (
+          titleLower === cleanParam ||
+          valueLower === cleanParam ||
+          slugHyphen === cleanParam ||
+          slugUnderscore === cleanParam
+        );
+      });
+
+      if (matched) {
+        form.setFieldsValue({ position: matched.value });
+        return;
+      } else {
+        // Invalid or expired reference -> leave empty
+        form.setFieldsValue({ position: undefined });
+        return;
+      }
+    }
+
+    // Single active opening -> automatically select it
+    if (activeOpenings.length === 1) {
+      form.setFieldsValue({ position: activeOpenings[0].value });
+      return;
+    }
+
+    // Multiple active openings -> let applicant choose (keep unselected)
+  }, [activeOpenings, form]);
+
+  // Listen for role selection events from job card clicks
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleRoleSelectEvent = (e) => {
+      const role = e.detail?.role || e.detail?.position || e.detail?.id;
+      if (!role) return;
+      hasUserManuallySelectedRef.current = true;
+      const cleanParam = String(role).trim().toLowerCase();
+      const matched = activeOpenings.find((o) => {
+        const titleLower = o.title.toLowerCase();
+        const valueLower = String(o.value).toLowerCase();
+        const slugHyphen = titleLower.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+        const slugUnderscore = titleLower.replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+        return (
+          titleLower === cleanParam ||
+          valueLower === cleanParam ||
+          slugHyphen === cleanParam ||
+          slugUnderscore === cleanParam
+        );
+      });
+      if (matched) {
+        form.setFieldsValue({ position: matched.value });
+      }
+    };
+
+    window.addEventListener("careers-select-role", handleRoleSelectEvent);
+    return () => window.removeEventListener("careers-select-role", handleRoleSelectEvent);
+  }, [activeOpenings, form]);
 
   const handleBeforeUpload = (file) => {
     const allowedExts = [".pdf", ".doc", ".docx"];
@@ -487,13 +643,34 @@ export default function CareersUpload(props = {}) {
       return;
     }
 
+    const isOther = values.position === "Other";
+    const customPosition = normalizeText(values.customPosition);
+
+    if (isOther && !customPosition) {
+      notification.error({
+        message: "Role Required",
+        description: "Please specify the role or position name you are interested in.",
+        placement: "bottomRight",
+      });
+      return;
+    }
+
     setSubmitting(true);
     try {
       const payload = new FormData();
       payload.append("fullName", normalizeText(values.fullName));
       payload.append("email", normalizeText(values.email).toLowerCase());
       payload.append("phone", normalizeText(values.phone));
-      payload.append("position", values.position || positionsList[0] || "General Application");
+
+      if (isOther) {
+        payload.append("position", customPosition);
+        payload.append("customPosition", customPosition);
+        payload.append("positionCategory", "Other");
+      } else {
+        payload.append("position", values.position);
+        payload.append("positionCategory", "ActiveOpening");
+      }
+
       payload.append("qualification", normalizeText(values.qualification));
       payload.append("experience", normalizeText(values.experience));
       payload.append("currentCity", normalizeText(values.currentCity));
@@ -543,7 +720,11 @@ export default function CareersUpload(props = {}) {
   const handleReset = () => {
     setSubmittedRef(null);
     setFileList([]);
+    hasUserManuallySelectedRef.current = false;
     form.resetFields();
+    if (activeOpenings.length === 1) {
+      form.setFieldsValue({ position: activeOpenings[0].value });
+    }
   };
 
   return (
@@ -588,6 +769,7 @@ export default function CareersUpload(props = {}) {
           <Row gutter={[16, 16]} justify="center">
             <Col xs={24} md={20} lg={16}>
               <FormCard
+                id="careers-application-form"
                 $bg={cardBgColor}
                 $labelColor={labelColor}
                 $buttonBg={buttonBgColor}
@@ -728,8 +910,41 @@ export default function CareersUpload(props = {}) {
                                 allowClear
                                 popupClassName="careers-upload-dropdown"
                                 options={positionOptions}
+                                onChange={(val) => {
+                                  hasUserManuallySelectedRef.current = true;
+                                  form.setFieldsValue({ position: val });
+                                  if (val !== "Other") {
+                                    form.setFieldsValue({ customPosition: undefined });
+                                  }
+                                }}
                               />
                             </Form.Item>
+
+                            {isOtherSelected && (
+                              <Form.Item
+                                name="customPosition"
+                                label="Specify Role / Position Name"
+                                rules={[
+                                  { required: true, message: "Please specify the role or position name" },
+                                  {
+                                    validator: (_, val) => {
+                                      if (val && !normalizeText(val)) {
+                                        return Promise.reject(
+                                          new Error("Role / position name cannot be empty"),
+                                        );
+                                      }
+                                      return Promise.resolve();
+                                    },
+                                  },
+                                ]}
+                              >
+                                <Input
+                                  size="large"
+                                  placeholder="Enter the role or position you are interested in"
+                                  autoFocus
+                                />
+                              </Form.Item>
+                            )}
                           </Col>
                         </Row>
 

@@ -13,7 +13,7 @@ const PREFIX = "careersUpload";
 const API_PATH = `/api/theme/${COMPONENT_ID}`;
 
 const DEFAULT_POSITIONS_TEXT =
-  "General Application\nProgramme Coordinator\nMedical Officer\nAccounts Executive\nContent & Communications Executive\nSocial Worker\nIT Support Specialist\nInternship";
+  "Programme Coordinator\nMedical Officer\nAccounts Executive\nContent & Communications Executive";
 
 function CareersUploadEditForm(
   {
@@ -214,7 +214,7 @@ function CareersUploadEditForm(
                 <Form.Item
                   name="careersUploadPositionsText"
                   label="Available Positions (One per line)"
-                  extra="Populates the position dropdown in the candidate application form"
+                  extra="Populates the position dropdown in the candidate application form with active openings. 'Other' will automatically be appended as an option for applicants."
                   style={{ marginBottom: 0 }}
                 >
                   <Input.TextArea rows={5} placeholder="Enter one position title per line" />

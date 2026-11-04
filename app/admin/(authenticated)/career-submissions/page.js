@@ -143,7 +143,12 @@ export default function AdminCareerSubmissionsPage() {
       title: "Applied Position",
       dataIndex: "position",
       key: "position",
-      render: (val) => <Tag color="blue">{val || "General Application"}</Tag>,
+      render: (val, r) => (
+        <Space size={4}>
+          <Tag color="blue">{val || "General Application"}</Tag>
+          {r?.positionCategory === "Other" && <Tag color="purple">Other</Tag>}
+        </Space>
+      ),
     },
     {
       title: "Experience / City",
@@ -333,7 +338,10 @@ export default function AdminCareerSubmissionsPage() {
               <a href={`tel:${viewItem.phone}`}>{viewItem.phone}</a>
             </Descriptions.Item>
             <Descriptions.Item label="Position Applied For">
-              <Tag color="blue">{viewItem.position || "General Application"}</Tag>
+              <Space size={4}>
+                <Tag color="blue">{viewItem.position || "General Application"}</Tag>
+                {viewItem.positionCategory === "Other" && <Tag color="purple">Other (Specified Role)</Tag>}
+              </Space>
             </Descriptions.Item>
             <Descriptions.Item label="Highest Qualification">
               {viewItem.qualification || "Not provided"}

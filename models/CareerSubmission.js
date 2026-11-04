@@ -6,6 +6,8 @@ const careerSubmissionSchema = new mongoose.Schema(
     email: { type: String, required: true, trim: true, lowercase: true },
     phone: { type: String, required: true, trim: true },
     position: { type: String, default: "General Application", trim: true },
+    positionCategory: { type: String, default: "", trim: true },
+    customPosition: { type: String, default: "", trim: true },
     qualification: { type: String, default: "", trim: true },
     experience: { type: String, default: "", trim: true },
     currentCity: { type: String, default: "", trim: true },

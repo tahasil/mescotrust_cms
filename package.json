@@ -47,6 +47,7 @@
     "test:donate-schemes": "node scripts/test-donate-multi-scheme-contracts.js",
     "test:donate-categories": "node scripts/test-donate-non-zakat-and-category-contracts.js",
     "test:membership-button": "node scripts/test-membership-header-button-contracts.js",
+    "test:careers-role": "node --test scripts/test-careers-role-contracts.js",
     "test:e2e:donate-schemes": "playwright test e2e/donate-multi-scheme.spec.js"
   },
   "dependencies": {

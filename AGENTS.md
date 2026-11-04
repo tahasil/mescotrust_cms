@@ -168,6 +168,7 @@ NPM scripts:
 - `npm run test:donate-schemes` -> 11-scenario contract test suite for multi-scheme selection, trusted pricing, and returning donor restoration
 - `npm run test:donate-categories` -> 10-scenario contract test suite for unified donation category dropdown and Non-Zakat scheme allocation rules (DON-04)
 - `npm run test:membership-button` -> 7-scenario contract test suite for Admin CMS management and frontend integration of Membership Header Button
+- `npm run test:careers-role` -> 12-scenario contract test suite for Careers application form active openings and Other conditional input (NEW-03)
 
 ## 7. Standard Workflows
 
@@ -376,6 +377,7 @@ Key implementation files:
 - `scripts/test-donate-non-zakat-and-category-contracts.js` (Automated 10-scenario contract test suite for unified categories and DON-04 Non-Zakat rules)
 - `scripts/test-donate-multi-scheme-contracts.js` (Automated 11-scenario contract test suite for multi-scheme selection, trusted pricing, and returning donor restoration)
 - `scripts/test-membership-header-button-contracts.js` (Automated 7-scenario contract test suite for Membership Header Button admin CMS management and frontend integration)
+- `scripts/test-careers-role-contracts.js` (Automated 12-scenario contract test suite for Careers application form active openings and Other conditional input)
 
 ---
 
