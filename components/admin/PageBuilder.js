@@ -3214,6 +3214,7 @@ export default function PageBuilder({
                     initialData={initialData}
                     onSaveToPage={isPageContext ? handleSaveToPage : undefined}
                     themeColorOptions={siteEditFormColorOptions}
+                    allPageBlocks={blocks}
                     onSuccess={() => {
                       setDrawerOpen(false);
                       setEditingIndex(null);

@@ -283,3 +283,46 @@ test("12. Careers job card Apply button links to application form with role sele
   assert.match(source, /#careers-application-form/);
   assert.match(source, /careers-select-role/);
 });
+
+test("13. Careers card hover animation is smooth and light without jerky padding shift", () => {
+  const source = readFile("components/site/Careers/Careers.js");
+
+  // Renders career-job-card instead of fable-row-link to prevent jerky global padding shift
+  assert.match(source, /className="career-job-card"/);
+  assert.doesNotMatch(source, /<JobCard className="fable-row-link"/);
+
+  // Smooth translateY lift and subtle shadow on hover
+  assert.match(source, /transform:\s*translateY\(-3px\)/);
+  assert.match(source, /cubic-bezier\(0\.16,\s*1,\s*0\.3,\s*1\)/);
+  assert.match(source, /padding-left:\s*32px/);
+});
+
+test("14. Careers EditForm Apply URL is a dropdown connected to CareersUpload positions", () => {
+  const source = readFile("components/site/Careers/EditForm.js");
+
+  // Select component imported and used for Apply URL
+  assert.match(source, /import\s*\{[^}]*Select[^}]*\}\s*from\s*"antd"/);
+  assert.match(source, /<Select[^>]*placeholder="Select position from Careers Upload\.\.\."/);
+
+  // Extracts positions from CareersUpload and fetches /api/theme/CareersUpload
+  assert.match(source, /extractPositionsFromData/);
+  assert.match(source, /\/api\/theme\/CareersUpload/);
+  assert.match(source, /Refresh Positions/);
+
+  // Accepts allPageBlocks prop for cross-block sibling sync in PageBuilder
+  assert.match(source, /allPageBlocks/);
+  assert.match(source, /findMatchingPosition/);
+});
+
+test("15. Frontend Apply button scrolls to CareersUpload form and preselects the configured role", () => {
+  const careersSource = readFile("components/site/Careers/Careers.js");
+  const uploadSource = readFile("components/site/CareersUpload/CareersUpload.js");
+
+  // Careers dispatches targetRole from applyUrl or title with smooth scroll offset
+  assert.match(careersSource, /detail:\s*\{\s*role:\s*targetRole/);
+  assert.match(careersSource, /window\.scrollTo\(\{\s*top:\s*Math\.max\(0,\s*y\),\s*behavior:\s*"smooth"\s*\}\)/);
+
+  // CareersUpload listens and selects the position in the Ant Design form
+  assert.match(uploadSource, /window\.addEventListener\("careers-select-role"/);
+  assert.match(uploadSource, /form\.setFieldsValue\(\{\s*position:\s*matched\.value\s*\}\)/);
+});

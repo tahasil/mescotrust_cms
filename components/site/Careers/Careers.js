@@ -12,6 +12,12 @@ import {
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 import { getTitleAlign, getTitleAlignStyles, getSubtitleAlignStyles, getHeaderAlignStyles } from "@/components/site/titleUtils";
 
+/* ── Helpers ── */
+function isExternalUrl(url) {
+  if (!url || typeof url !== "string") return false;
+  return /^(https?:\/\/|mailto:)/i.test(url.trim());
+}
+
 /* ── Styled Components ── */
 const JobCard = styled.div`
   display: flex;
@@ -24,20 +30,43 @@ const JobCard = styled.div`
   background: #fff;
   margin-bottom: 16px;
   transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.25s ease;
   &:last-child {
     margin-bottom: 0;
   }
+  && {
+    padding-left: 32px;
+  }
   &:hover {
-    border-color: rgba(0, 0, 0, 0.15);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transform: translateY(-3px);
+    border-color: rgba(0, 0, 0, 0.14);
+    box-shadow: 0 10px 24px -4px rgba(0, 0, 0, 0.07), 0 4px 8px -2px rgba(0, 0, 0, 0.03);
+    padding-left: 32px;
+  }
+  .fable-row-icon {
+    transition:
+      transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+      background-color 0.25s ease,
+      color 0.25s ease;
+  }
+  &:hover .fable-row-icon {
+    transform: translate(2px, -2px);
+    color: var(--primary-color, #e03c33);
   }
   @media (max-width: 576px) {
     flex-direction: column;
     align-items: flex-start;
     padding: 20px;
     gap: 12px;
+    && {
+      padding-left: 20px;
+    }
+    &:hover {
+      transform: none;
+      padding-left: 20px;
+    }
   }
 `;
 
@@ -88,9 +117,18 @@ const ApplyBtn = styled.a`
   font-weight: 600;
   border-radius: 24px;
   text-decoration: none;
-  transition: opacity 0.2s ease;
+  cursor: pointer;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   &:hover {
-    opacity: 0.85;
+    opacity: 0.92;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  }
+  &:active {
+    transform: translateY(0);
   }
   @media (max-width: 576px) {
     margin-top: 16px;
@@ -326,7 +364,7 @@ export default function Careers(props) {
           const applyUrl = (item?.applyUrl ?? "").toString().trim();
           const btnText = (item?.btnText ?? "Apply Now").toString().trim();
           return (
-            <JobCard className="fable-row-link" key={idx}>
+            <JobCard className="career-job-card" key={idx}>
               <span className="fable-row-icon" aria-hidden="true">↗</span>
               <JobInfo className="fable-row-copy">
                 {title && (
@@ -433,18 +471,48 @@ export default function Careers(props) {
                 </div>
               </JobInfo>
               <ApplyBtn
-                href={applyUrl || "#careers-application-form"}
+                href={isExternalUrl(applyUrl) ? applyUrl : "#careers-application-form"}
+                target={isExternalUrl(applyUrl) ? "_blank" : undefined}
+                rel={isExternalUrl(applyUrl) ? "noopener noreferrer" : undefined}
                 style={{ background: btnBgColor, color: btnTextColor }}
                 onClick={(e) => {
-                  if (applyUrl) return;
+                  if (isExternalUrl(applyUrl)) return;
                   if (typeof window !== "undefined") {
+                    e.preventDefault();
+                    let targetRole = applyUrl || title;
+                    if (targetRole.includes("role=")) {
+                      try {
+                        const q = targetRole.includes("?") ? targetRole.split("?")[1] : targetRole;
+                        const sp = new URLSearchParams(q);
+                        const r = sp.get("role");
+                        if (r) targetRole = r;
+                      } catch {}
+                    }
+
+                    window.dispatchEvent(
+                      new CustomEvent("careers-select-role", { detail: { role: targetRole, position: targetRole } })
+                    );
+
                     const formEl = document.getElementById("careers-application-form");
                     if (formEl) {
-                      e.preventDefault();
-                      window.dispatchEvent(
-                        new CustomEvent("careers-select-role", { detail: { role: title } })
-                      );
-                      formEl.scrollIntoView({ behavior: "smooth" });
+                      const yOffset = -90;
+                      const y = formEl.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                      window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+
+                      setTimeout(() => {
+                        const firstInput = formEl.querySelector("input#fullName, input[name='fullName'], input");
+                        if (firstInput) {
+                          try {
+                            firstInput.focus({ preventScroll: true });
+                          } catch {}
+                        }
+                      }, 450);
+                    } else {
+                      const cleanSlug = targetRole
+                        .toLowerCase()
+                        .replace(/[^a-z0-9]+/g, "-")
+                        .replace(/^-+|-+$/g, "");
+                      window.location.href = `/get-involved/careers?role=${encodeURIComponent(cleanSlug)}#careers-application-form`;
                     }
                   }
                 }}

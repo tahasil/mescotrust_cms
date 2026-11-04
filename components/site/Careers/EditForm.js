@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import { Form, Input, Row, Col, Collapse, message, Spin } from "antd";
+import { Form, Input, Row, Col, Collapse, message, Spin, Select } from "antd";
 import ManageSectionFields from "@/components/admin/ManageSectionFields";
 import SortableFormList from "@/components/admin/SortableFormList";
 import TitleAndColorsSection from "@/components/admin/TitleAndColorsSection";
@@ -11,10 +11,58 @@ import { getTitleAndColorsConfig } from "@/lib/titleAndColorsConfig";
 const API_PATH = "/api/theme/Careers";
 const PREFIX = "careers";
 
+const DEFAULT_CAREERS_UPLOAD_POSITIONS = [
+  "Programme Coordinator",
+  "Medical Officer",
+  "Accounts Executive",
+  "Content & Communications Executive",
+];
+
+function extractPositionsFromData(data) {
+  if (!data || typeof data !== "object") return [];
+  const raw = data?.careersUploadPositions ?? data?.positions;
+  if (Array.isArray(raw) && raw.length > 0) {
+    return raw.map((s) => String(s).trim()).filter(Boolean);
+  }
+  const text = data?.careersUploadPositionsText ?? data?.positionsText;
+  if (typeof text === "string" && text.trim()) {
+    return text
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
+function findMatchingPosition(val, positions) {
+  if (!val || typeof val !== "string" || !Array.isArray(positions) || positions.length === 0) {
+    return null;
+  }
+  const raw = val.trim();
+  const exact = positions.find((p) => p.toLowerCase() === raw.toLowerCase());
+  if (exact) return exact;
+
+  let rolePart = raw;
+  if (raw.includes("role=")) {
+    try {
+      const q = raw.includes("?") ? raw.split("?")[1] : raw;
+      const sp = new URLSearchParams(q);
+      if (sp.get("role")) rolePart = sp.get("role");
+    } catch {}
+  }
+  const cleanRole = rolePart.toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (!cleanRole) return null;
+  const match = positions.find((p) => {
+    const cleanPos = p.toLowerCase().replace(/[^a-z0-9]/g, "");
+    return cleanPos === cleanRole;
+  });
+  return match || null;
+}
+
 const DEFAULT_ITEMS = [
-  { title: "Programme Coordinator", department: "Education Dept.", location: "Mumbai", type: "Full-time", applyUrl: "", btnText: "Apply Now" },
-  { title: "Medical Officer", department: "Healthcare", location: "Mumbai", type: "Full-time", applyUrl: "", btnText: "Apply Now" },
-  { title: "Content & Communications Executive", department: "Media", location: "Mumbai", type: "Full-time", applyUrl: "", btnText: "Apply Now" },
+  { title: "Programme Coordinator", department: "Education Dept.", location: "Mumbai", type: "Full-time", applyUrl: "Programme Coordinator", btnText: "Apply Now" },
+  { title: "Medical Officer", department: "Healthcare", location: "Mumbai", type: "Full-time", applyUrl: "Medical Officer", btnText: "Apply Now" },
+  { title: "Content & Communications Executive", department: "Media", location: "Mumbai", type: "Full-time", applyUrl: "Content & Communications Executive", btnText: "Apply Now" },
 ];
 
 function normalizeItem(it) {
@@ -28,15 +76,57 @@ function normalizeItem(it) {
   };
 }
 
-function CareersEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [] }, ref) {
+function CareersEditForm({ source, initialData: initialDataProp, onSaveToPage, onSuccess, onCancel, themeColorOptions: themeColorOptionsProp = [], allPageBlocks = [] }, ref) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [themeColorOptions, setThemeColorOptions] = useState(themeColorOptionsProp);
   const [reorderMovedIndex, setReorderMovedIndex] = useState(-1);
   const [reorderDirection, setReorderDirection] = useState("up");
+  const [careersUploadPositions, setCareersUploadPositions] = useState(DEFAULT_CAREERS_UPLOAD_POSITIONS);
+  const [fetchingPositions, setFetchingPositions] = useState(false);
   const themeFetchedForColorsRef = useRef(false);
   const isPageBlock = source === "page";
+
+  const loadPositions = () => {
+    let fromBlocks = [];
+    if (Array.isArray(allPageBlocks)) {
+      const cuBlock = allPageBlocks.find(
+        (b) => b?.baseComponent === "CareersUpload" || b?.componentId === "CareersUpload"
+      );
+      if (cuBlock?.props) {
+        fromBlocks = extractPositionsFromData(cuBlock.props);
+      }
+    }
+
+    if (fromBlocks.length > 0) {
+      setCareersUploadPositions(fromBlocks);
+    }
+
+    setFetchingPositions(true);
+    fetch("/api/theme/CareersUpload", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : {}))
+      .then((themeData) => {
+        const fromTheme = extractPositionsFromData(themeData);
+        if (fromBlocks.length > 0) {
+          setCareersUploadPositions(fromBlocks);
+        } else if (fromTheme.length > 0) {
+          setCareersUploadPositions(fromTheme);
+        } else {
+          setCareersUploadPositions(DEFAULT_CAREERS_UPLOAD_POSITIONS);
+        }
+      })
+      .catch(() => {
+        if (fromBlocks.length === 0) {
+          setCareersUploadPositions(DEFAULT_CAREERS_UPLOAD_POSITIONS);
+        }
+      })
+      .finally(() => setFetchingPositions(false));
+  };
+
+  useEffect(() => {
+    loadPositions();
+  }, [allPageBlocks]);
 
   useEffect(() => {
     if (themeColorOptionsProp?.length > 0) setThemeColorOptions(themeColorOptionsProp);
@@ -46,7 +136,14 @@ function CareersEditForm({ source, initialData: initialDataProp, onSaveToPage, o
     setLoading(true);
     const setFormAndColors = (data, theme) => {
       const items = Array.isArray(data?.careersItems)
-        ? data.careersItems.map(normalizeItem)
+        ? data.careersItems.map((it) => {
+            const normalized = normalizeItem(it);
+            const matched = findMatchingPosition(normalized.applyUrl, careersUploadPositions);
+            if (matched) {
+              normalized.applyUrl = matched;
+            }
+            return normalized;
+          })
         : [];
       form.setFieldsValue({
         ...getManageSectionInitialValues(PREFIX, data),
@@ -174,7 +271,7 @@ function CareersEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                       department: "",
                       location: "",
                       type: "Full-time",
-                      applyUrl: "",
+                      applyUrl: careersUploadPositions[0] || "",
                       btnText: "Apply Now",
                     }}
                     reorderMovedIndex={reorderMovedIndex}
@@ -217,8 +314,64 @@ function CareersEditForm({ source, initialData: initialDataProp, onSaveToPage, o
                           </Form.Item>
                         </Col>
                         <Col span={24}>
-                          <Form.Item {...restField} name={[name, "applyUrl"]} label="Apply URL">
-                            <Input placeholder="https://forms.google.com/..." size="large" />
+                          <Form.Item
+                            noStyle
+                            shouldUpdate={(prev, cur) =>
+                              prev?.careersItems?.[name]?.applyUrl !== cur?.careersItems?.[name]?.applyUrl
+                            }
+                          >
+                            {() => {
+                              const curVal = form.getFieldValue(["careersItems", name, "applyUrl"]);
+                              const baseOptions = careersUploadPositions.map((pos) => ({
+                                label: pos,
+                                value: pos,
+                              }));
+                              const matched = findMatchingPosition(curVal, careersUploadPositions);
+                              if (curVal && !careersUploadPositions.includes(curVal) && !matched) {
+                                baseOptions.push({
+                                  label: `${curVal} (Custom / External)`,
+                                  value: curVal,
+                                });
+                              }
+                              return (
+                                <Form.Item
+                                  {...restField}
+                                  name={[name, "applyUrl"]}
+                                  label={
+                                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+                                      <span>Apply URL</span>
+                                      <span
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          loadPositions();
+                                          message.info("Positions refreshed from Careers Upload");
+                                        }}
+                                        style={{
+                                          fontSize: 12,
+                                          color: "#1890ff",
+                                          cursor: "pointer",
+                                          fontWeight: "normal",
+                                          marginLeft: 8,
+                                        }}
+                                      >
+                                        ↻ Refresh Positions
+                                      </span>
+                                    </div>
+                                  }
+                                  extra="Select the position from Careers Upload. Clicking Apply on the job card will scroll to the form and auto-select this role."
+                                >
+                                  <Select
+                                    size="large"
+                                    showSearch
+                                    allowClear
+                                    placeholder="Select position from Careers Upload..."
+                                    loading={fetchingPositions}
+                                    options={baseOptions}
+                                  />
+                                </Form.Item>
+                              );
+                            }}
                           </Form.Item>
                         </Col>
                       </Row>

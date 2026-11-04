@@ -584,19 +584,27 @@ export default function CareersUpload(props = {}) {
       hasUserManuallySelectedRef.current = true;
       const cleanParam = String(role).trim().toLowerCase();
       const matched = activeOpenings.find((o) => {
-        const titleLower = o.title.toLowerCase();
-        const valueLower = String(o.value).toLowerCase();
+        const titleLower = o.title.toLowerCase().trim();
+        const valueLower = String(o.value).toLowerCase().trim();
         const slugHyphen = titleLower.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
         const slugUnderscore = titleLower.replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+        const strippedTitle = titleLower.replace(/[^a-z0-9]/g, "");
+        const strippedParam = cleanParam.replace(/[^a-z0-9]/g, "");
         return (
           titleLower === cleanParam ||
           valueLower === cleanParam ||
           slugHyphen === cleanParam ||
-          slugUnderscore === cleanParam
+          slugUnderscore === cleanParam ||
+          (strippedParam && strippedTitle === strippedParam)
         );
       });
       if (matched) {
         form.setFieldsValue({ position: matched.value });
+        if (form.getFieldValue("customPosition")) {
+          form.setFieldsValue({ customPosition: undefined });
+        }
+      } else if (cleanParam === "other") {
+        form.setFieldsValue({ position: "Other" });
       }
     };
 
