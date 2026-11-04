@@ -62,6 +62,7 @@ function SortableRow({
   onMoveDown,
   onRemove,
   hideRemove,
+  allowDeleteLast = false,
   defaultExpanded = false,
 }) {
   const {
@@ -163,7 +164,7 @@ function SortableRow({
           }}
           title="Move down"
         />
-        {!hideRemove && totalItems > 1 && (
+        {!hideRemove && (allowDeleteLast ? totalItems >= 1 : totalItems > 1) && (
           <Button
             type="text"
             danger
@@ -230,6 +231,7 @@ export default function SortableFormList({
   onMoveWithTransition,
   resolveItemTitle,
   hideRemove = false,
+  allowDeleteLast = false,
   hideAdd = false,
   defaultExpanded = false,
 }) {
@@ -290,6 +292,7 @@ export default function SortableFormList({
                 onMoveDown={() => handleMove(name, name + 1)}
                 onRemove={() => remove(name)}
                 hideRemove={hideRemove}
+                allowDeleteLast={allowDeleteLast}
                 defaultExpanded={defaultExpanded}
               >
                 {renderItemContent ? renderItemContent(name, restField) : null}

@@ -14,6 +14,65 @@ import {
   normalizeText,
 } from "@/lib/formValidation";
 
+const DEFAULT_DEPARTMENTS = [
+  {
+    name: "Donations & Fundraising",
+    contactPerson: "",
+    email: "",
+    phone: "",
+    enquiryLink: "",
+    enquiryBtnText: "Enquire Now",
+  },
+  {
+    name: "Scholarships / Educational Aid",
+    contactPerson: "",
+    email: "",
+    phone: "",
+    enquiryLink: "",
+    enquiryBtnText: "Enquire Now",
+  },
+  {
+    name: "Volunteering",
+    contactPerson: "",
+    email: "",
+    phone: "",
+    enquiryLink: "",
+    enquiryBtnText: "Enquire Now",
+  },
+  {
+    name: "Medical Assistance",
+    contactPerson: "",
+    email: "",
+    phone: "",
+    enquiryLink: "",
+    enquiryBtnText: "Enquire Now",
+  },
+  {
+    name: "Relief of Poverty",
+    contactPerson: "",
+    email: "",
+    phone: "",
+    enquiryLink: "",
+    enquiryBtnText: "Enquire Now",
+  },
+  {
+    name: "CSR / Partnerships",
+    contactPerson: "",
+    email: "",
+    phone: "",
+    enquiryLink: "",
+    enquiryBtnText: "Enquire Now",
+  },
+  {
+    name: "General Enquiries",
+    contactPerson: "MESCO Trust office",
+    email: "mescotrust@mescotrust.org",
+    phone: "+91 22 24441442 / +91 22 24448637",
+    enquiryLink: "",
+    enquiryBtnText: "Enquire Now",
+  },
+];
+
 const FormWrapper = styled.div`
   width: 100%;
   max-width: 1280px;
@@ -126,7 +185,6 @@ const FormWrapper = styled.div`
       grid-template-columns: minmax(0, 1fr);
       gap: 48px;
     }
-
   }
 
   @media (max-width: 767px) {
@@ -220,7 +278,232 @@ const InfoItem = styled.div`
 
   @media (max-width: 480px) {
     padding: 18px;
+  }
+`;
 
+const DepartmentsSection = styled.section`
+  margin-top: clamp(48px, 6vw, 72px);
+  width: 100%;
+
+  .dept-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: clamp(24px, 3vw, 36px);
+  }
+
+  .dept-title-group {
+    max-width: 680px;
+  }
+
+  .dept-section-title {
+    margin: 0 0 8px;
+    color: var(--contact-dept-title-color, var(--contact-form-heading-color, var(--theme-black, #2a283e)));
+    font-family: var(--fable-display, inherit);
+    font-size: clamp(22px, 2.5vw, 30px);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+  }
+
+  .dept-section-subtitle {
+    margin: 0;
+    color: var(--contact-info-text-color, var(--theme-black-light, #555));
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .dept-search-wrap {
+    position: relative;
+    min-width: 260px;
+    max-width: 340px;
+    width: 100%;
+  }
+
+  .dept-search-input {
+    width: 100%;
+    height: 42px;
+    padding: 9px 38px 9px 15px;
+    border: 1px solid var(--contact-input-border, var(--theme-border, rgba(42, 40, 62, 0.14)));
+    border-radius: 999px;
+    font-size: 13px;
+    outline: none;
+    background: var(--contact-input-bg, #fff);
+    color: var(--contact-input-text-color, #2a283e);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &:focus {
+      border-color: var(--contact-input-focus, var(--primary-color, #e03c33));
+      box-shadow: 0 0 0 3px var(--theme-primary-light, rgba(224, 60, 51, 0.1));
+    }
+
+    &::placeholder {
+      color: var(--theme-black-muted, rgba(42, 40, 62, 0.52));
+    }
+  }
+
+  .dept-search-icon {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+  }
+
+  .dept-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+  }
+
+  .dept-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: var(--contact-info-card-bg, #ffffff);
+    border: 1px solid var(--contact-info-card-border, var(--theme-border, rgba(42, 40, 62, 0.14)));
+    border-radius: 16px;
+    padding: 22px 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+
+    &:hover {
+      border-color: var(--theme-primary-pale, rgba(224, 60, 51, 0.38));
+      transform: translateY(-3px);
+      box-shadow: 0 10px 24px rgba(42, 40, 62, 0.08);
+    }
+  }
+
+  .dept-card-top {
+    margin-bottom: 16px;
+  }
+
+  .dept-name {
+    margin: 0 0 14px;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--contact-form-heading-color, #2a283e);
+    line-height: 1.35;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--theme-border, rgba(42, 40, 62, 0.08));
+  }
+
+  .dept-details {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+  }
+
+  .dept-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--contact-info-text-color, #555);
+  }
+
+  .dept-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--contact-info-label-color, var(--primary-color, #e03c33));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dept-val {
+    flex: 1;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .dept-link {
+    color: var(--contact-info-text-color, #555);
+    text-decoration: none;
+    transition: color 0.15s ease;
+
+    &:hover {
+      color: var(--primary-color, #e03c33) !important;
+      text-decoration: underline;
+    }
+  }
+
+  .dept-card-bottom {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--theme-border, rgba(42, 40, 62, 0.12));
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .dept-enquiry-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 18px;
+    background: transparent;
+    color: var(--primary-color, #e03c33);
+    border: 1.5px solid var(--primary-color, #e03c33);
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+      background: var(--primary-color, #e03c33);
+      color: #fff !important;
+      transform: translateY(-1px);
+    }
+  }
+
+  .dept-empty-search {
+    padding: 40px 20px;
+    text-align: center;
+    background: var(--contact-info-card-bg, #fff);
+    border: 1px dashed var(--theme-border, rgba(42, 40, 62, 0.2));
+    border-radius: 16px;
+    color: #666;
+
+    button {
+      margin-top: 10px;
+      padding: 6px 16px;
+      background: transparent;
+      border: 1px solid #ccc;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 12px;
+      &:hover {
+        border-color: #999;
+      }
+    }
+  }
+
+  @media (max-width: 767px) {
+    margin-top: 40px;
+
+    .dept-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+    }
+
+    .dept-search-wrap {
+      max-width: 100%;
+    }
+
+    .dept-grid {
+      grid-template-columns: 1fr;
+    }
   }
 `;
 
@@ -263,6 +546,11 @@ export default function ContactForm({
   source,
   subjectOptions,
   contactInfo,
+  departments: departmentsProp,
+  showDepartments = true,
+  deptTitle = "Department Contacts",
+  deptSubtitle = "",
+  deptTitleColor,
   btnBgColor,
   btnTextColor,
   formHeadingColor,
@@ -283,6 +571,9 @@ export default function ContactForm({
   const [state, formAction] = useFormState(submitContact, null);
   const formRef = useRef(null);
   const [errors, setErrors] = useState({});
+  const [deptSearch, setDeptSearch] = useState("");
+  const [selectedSubject, setSelectedSubject] = useState("");
+
   const resolvedBtnBg = btnBgColor || getColor("primary");
   const resolvedBtnText = btnTextColor || getColor("white");
 
@@ -291,6 +582,11 @@ export default function ContactForm({
       ? subjectOptions
       : ["General Inquiry", "Volunteering", "Donation", "Partnership", "Other"];
 
+  const currentSubjects = [...subjects];
+  if (selectedSubject && !currentSubjects.includes(selectedSubject)) {
+    currentSubjects.push(selectedSubject);
+  }
+
   const info = contactInfo || {
     regdOffice:
       "110, Natalwala Building, V. S. Road, Mahim(W), Mumbai - 400 016.",
@@ -298,6 +594,42 @@ export default function ContactForm({
       "1 & 2, Plot No 423, Landmark Building, Next to Johnson & Johnson, Near Saraswati Mandir School, Senapati Bapat Marg, Mahim(W), Mumbai - 400016.",
     email: "mescotrust@mescotrust.org",
     phone: "(+9122) 24441442, (+9122) 24448637",
+  };
+
+  const departments =
+    Array.isArray(departmentsProp)
+      ? departmentsProp
+      : departmentsProp === undefined
+        ? DEFAULT_DEPARTMENTS
+        : [];
+
+  const filteredDepartments = departments.filter((dept) => {
+    if (!deptSearch.trim()) return true;
+    const q = deptSearch.toLowerCase().trim();
+    const nameMatch = (dept?.name || "").toLowerCase().includes(q);
+    const personMatch = (dept?.contactPerson || "").toLowerCase().includes(q);
+    const emailMatch = (dept?.email || "").toLowerCase().includes(q);
+    const phoneMatch = (dept?.phone || "").toLowerCase().includes(q);
+    return nameMatch || personMatch || emailMatch || phoneMatch;
+  });
+
+  const handleDeptEnquiry = (dept) => {
+    const link = (dept?.enquiryLink || "").trim();
+    if (link && !link.startsWith("#")) {
+      window.open(link, link.startsWith("mailto:") ? "_self" : "_blank", "noopener,noreferrer");
+      return;
+    }
+    const formHeading = document.getElementById("contact-form-title");
+    if (formHeading) {
+      formHeading.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    if (dept?.name) {
+      setSelectedSubject(dept.name);
+    }
+    const msgInput = document.getElementById("contact-message");
+    if (msgInput) {
+      msgInput.focus();
+    }
   };
 
   useEffect(() => {
@@ -309,6 +641,7 @@ export default function ContactForm({
         placement: "bottomRight",
       });
       formRef.current?.reset();
+      setSelectedSubject("");
       window.dispatchEvent(new Event("new-contact-submission"));
     } else if (state.error) {
       notification.error({
@@ -352,6 +685,7 @@ export default function ContactForm({
     <FormWrapper
       style={{
         "--contact-form-heading-color": formHeadingColor,
+        "--contact-dept-title-color": deptTitleColor,
         "--contact-info-label-color": infoLabelColor,
         "--contact-info-text-color": infoTextColor,
         "--contact-info-card-bg": infoCardBgColor,
@@ -492,17 +826,20 @@ export default function ContactForm({
                 id="contact-subject"
                 name="subject"
                 required
+                value={selectedSubject}
                 aria-invalid={Boolean(errors.subject)}
                 aria-describedby={errors.subject ? "contact-subject-error" : undefined}
                 className="form-field"
-                defaultValue=""
-                onChange={() => errors.subject && setErrors((prev) => ({ ...prev, subject: "" }))}
+                onChange={(e) => {
+                  setSelectedSubject(e.target.value);
+                  if (errors.subject) setErrors((prev) => ({ ...prev, subject: "" }));
+                }}
                 style={errors.subject ? { borderColor: "#E03C33" } : undefined}
               >
                 <option value="" disabled>
                   Select a subject
                 </option>
-                {subjects.map((subject) => (
+                {currentSubjects.map((subject) => (
                   <option key={subject} value={subject}>
                     {subject}
                   </option>
@@ -537,6 +874,135 @@ export default function ContactForm({
           </form>
         </section>
       </div>
+
+      {showDepartments && departments.length > 0 && (
+        <DepartmentsSection aria-label="Department Contacts">
+          <div className="dept-header">
+            <div className="dept-title-group">
+              <h2 className="dept-section-title">{deptTitle || "Department Contacts"}</h2>
+              {deptSubtitle && <p className="dept-section-subtitle">{deptSubtitle}</p>}
+            </div>
+            {departments.length > 1 && (
+              <div className="dept-search-wrap">
+                <input
+                  type="text"
+                  className="dept-search-input"
+                  placeholder="Search departments..."
+                  value={deptSearch}
+                  onChange={(e) => setDeptSearch(e.target.value)}
+                  aria-label="Search departments"
+                />
+                <span className="dept-search-icon" aria-hidden="true">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.3-4.3" />
+                  </svg>
+                </span>
+              </div>
+            )}
+          </div>
+
+          {filteredDepartments.length === 0 ? (
+            <div className="dept-empty-search">
+              <p>No departments found matching &ldquo;{deptSearch}&rdquo;</p>
+              <button type="button" onClick={() => setDeptSearch("")}>
+                Clear search
+              </button>
+            </div>
+          ) : (
+            <div className="dept-grid">
+              {filteredDepartments.map((dept, idx) => {
+                const hasPerson = Boolean(dept?.contactPerson?.trim());
+                const hasEmail = Boolean(dept?.email?.trim());
+                const hasPhone = Boolean(dept?.phone?.trim());
+                const btnText = dept?.enquiryBtnText?.trim() || "Enquire Now";
+                const hasLink = Boolean(dept?.enquiryLink?.trim());
+                const isExternal = hasLink && (dept.enquiryLink.startsWith("http://") || dept.enquiryLink.startsWith("https://") || dept.enquiryLink.startsWith("mailto:"));
+
+                return (
+                  <div key={dept._id || dept.name || idx} className="dept-card">
+                    <div className="dept-card-top">
+                      {dept.name && <h3 className="dept-name">{dept.name}</h3>}
+                      <div className="dept-details">
+                        {hasPerson && (
+                          <div className="dept-row">
+                            <span className="dept-icon" title="Contact Person">
+                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                              </svg>
+                            </span>
+                            <span className="dept-val">{dept.contactPerson}</span>
+                          </div>
+                        )}
+                        {hasEmail && (
+                          <div className="dept-row">
+                            <span className="dept-icon" title="Email">
+                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect width="20" height="16" x="2" y="4" rx="2" />
+                                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                              </svg>
+                            </span>
+                            <span className="dept-val">
+                              <a href={`mailto:${dept.email}`} className="dept-link">
+                                {dept.email}
+                              </a>
+                            </span>
+                          </div>
+                        )}
+                        {hasPhone && (
+                          <div className="dept-row">
+                            <span className="dept-icon" title="Phone">
+                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                              </svg>
+                            </span>
+                            <span className="dept-val">
+                              <a href={`tel:${dept.phone.replace(/[^0-9+]/g, "")}`} className="dept-link">
+                                {dept.phone}
+                              </a>
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="dept-card-bottom">
+                      {isExternal ? (
+                        <a
+                          href={dept.enquiryLink}
+                          target={dept.enquiryLink.startsWith("mailto:") ? "_self" : "_blank"}
+                          rel="noopener noreferrer"
+                          className="dept-enquiry-btn"
+                        >
+                          <span>{btnText}</span>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M5 12h14" />
+                            <path d="m12 5 7 7-7 7" />
+                          </svg>
+                        </a>
+                      ) : (
+                        <button
+                          type="button"
+                          className="dept-enquiry-btn"
+                          onClick={() => handleDeptEnquiry(dept)}
+                        >
+                          <span>{btnText}</span>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M5 12h14" />
+                            <path d="m12 5 7 7-7 7" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </DepartmentsSection>
+      )}
+
       {mapEmbedUrl && (
         <MapWrapper>
           <iframe

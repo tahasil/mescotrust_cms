@@ -17,7 +17,7 @@ function numberInRange(value, fallback, min, max) {
 /**
  * Site component: ContactUs.
  * Wraps ContactForm so it can be used from the Page Builder.
- * All contact info, subject options, and colors are managed from the drawer.
+ * All contact info, department contacts, subject options, and colors are managed from the drawer.
  */
 export default function ContactUs(props) {
   /* ── Contact info ── */
@@ -27,6 +27,19 @@ export default function ContactUs(props) {
     email: (props?.contactUsEmail ?? "").toString().trim(),
     phone: (props?.contactUsPhone ?? "").toString().trim(),
   };
+
+  /* ── Department Contacts ── */
+  let departments = props?.contactUsDepartments;
+  if (typeof departments === "string") {
+    try {
+      departments = JSON.parse(departments);
+    } catch {
+      departments = [];
+    }
+  }
+  const showDepartments = props?.contactUsShowDepartments !== false;
+  const deptTitle = (props?.contactUsDeptTitle ?? "Department Contacts").toString().trim();
+  const deptSubtitle = (props?.contactUsDeptSubtitle ?? "").toString().trim();
 
   /* ── Subject options ── */
   const subjectOptions = (props?.contactUsSubjects ?? "").toString().trim()
@@ -44,6 +57,7 @@ export default function ContactUs(props) {
     const value = (props?.[key] ?? "").toString().trim();
     return value ? getColor(value) : getColor(fallback);
   };
+  const deptTitleColor = resolveColor("contactUsDeptTitleColorKey", "black");
   const typography = {
     formHeadingSize: numberInRange(props?.contactUsFormHeadingFontSize, 24, 16, 64),
     formHeadingWeight: numberInRange(props?.contactUsFormHeadingFontWeight, 620, 100, 900),
@@ -121,28 +135,33 @@ export default function ContactUs(props) {
     <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
       <PageContainer $managedStyle={pageContainerBgStyle}>
         <div className="fable-section">
-        <ContactForm
-          page="contact-us"
-          source="page-builder"
-          contactInfo={contactInfo}
-          subjectOptions={subjectOptions}
-          btnBgColor={btnBgColor}
-          btnTextColor={btnTextColor}
-          formHeadingColor={formHeadingColor}
-          infoLabelColor={resolveColor("contactUsInfoLabelColorKey", "primary")}
-          infoTextColor={resolveColor("contactUsInfoTextColorKey", "blackLight")}
-          infoCardBgColor={resolveColor("contactUsInfoCardBgColorKey", "white")}
-          infoCardBorderColor={resolveColor("contactUsInfoCardBorderColorKey", "border")}
-          formCardBgColor={resolveColor("contactUsFormCardBgColorKey", "white")}
-          formCardBorderColor={resolveColor("contactUsFormCardBorderColorKey", "border")}
-          fieldLabelColor={resolveColor("contactUsFieldLabelColorKey", "black")}
-          inputBgColor={resolveColor("contactUsInputBgColorKey", "white")}
-          inputBorderColor={resolveColor("contactUsInputBorderColorKey", "border")}
-          inputFocusColor={resolveColor("contactUsInputFocusColorKey", "primary")}
-          inputTextColor={resolveColor("contactUsInputTextColorKey", "black")}
-          typography={typography}
-          mapEmbedUrl={mapEmbedUrl}
-        />
+          <ContactForm
+            page="contact-us"
+            source="page-builder"
+            contactInfo={contactInfo}
+            departments={departments}
+            showDepartments={showDepartments}
+            deptTitle={deptTitle}
+            deptSubtitle={deptSubtitle}
+            deptTitleColor={deptTitleColor}
+            subjectOptions={subjectOptions}
+            btnBgColor={btnBgColor}
+            btnTextColor={btnTextColor}
+            formHeadingColor={formHeadingColor}
+            infoLabelColor={resolveColor("contactUsInfoLabelColorKey", "primary")}
+            infoTextColor={resolveColor("contactUsInfoTextColorKey", "blackLight")}
+            infoCardBgColor={resolveColor("contactUsInfoCardBgColorKey", "white")}
+            infoCardBorderColor={resolveColor("contactUsInfoCardBorderColorKey", "border")}
+            formCardBgColor={resolveColor("contactUsFormCardBgColorKey", "white")}
+            formCardBorderColor={resolveColor("contactUsFormCardBorderColorKey", "border")}
+            fieldLabelColor={resolveColor("contactUsFieldLabelColorKey", "black")}
+            inputBgColor={resolveColor("contactUsInputBgColorKey", "white")}
+            inputBorderColor={resolveColor("contactUsInputBorderColorKey", "border")}
+            inputFocusColor={resolveColor("contactUsInputFocusColorKey", "primary")}
+            inputTextColor={resolveColor("contactUsInputTextColorKey", "black")}
+            typography={typography}
+            mapEmbedUrl={mapEmbedUrl}
+          />
         </div>
       </PageContainer>
     </FullWidthBackground>
