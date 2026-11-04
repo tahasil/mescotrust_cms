@@ -473,7 +473,9 @@ export default function DonationHistoryClient({ donateHref = "/donate-now" }) {
         .dh-hero {
           background: linear-gradient(180deg, #fbf8f5 0%, #ffffff 100%);
           border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-          padding: 56px 16px 40px;
+          /* Appearance header is position:fixed and reserves no flow space; the
+             offset var (ribbon + header) is published on .public-site by the header. */
+          padding: calc(var(--appearance-header-offset, 128px) + 28px) 16px 40px;
         }
         .dh-hero-inner {
           max-width: 720px;
