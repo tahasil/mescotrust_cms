@@ -281,6 +281,7 @@ function DonateNowEditForm(
               : reusableFields,
         },
         donateNowPaymentSettings: normalized.paymentSettings,
+        donateNowHistoryLink: normalized.historyLink,
         donateNowPurposes: normalized.purposes,
         donateNowDefaultPurposeId: normalized.defaultPurposeId,
       });
@@ -472,6 +473,11 @@ function DonateNowEditForm(
             enableQrButton: values?.donateNowPaymentSettings?.enableQrButton !== false,
             requirePaymentGateway:
               values?.donateNowPaymentSettings?.requirePaymentGateway !== false,
+          },
+          donateNowHistoryLink: {
+            enabled: values?.donateNowHistoryLink?.enabled !== false,
+            label: toTrimmedString(values?.donateNowHistoryLink?.label),
+            href: toTrimmedString(values?.donateNowHistoryLink?.href),
           },
           donateNowPurposes: purposes,
           donateNowDefaultPurposeId: toTrimmedString(values?.donateNowDefaultPurposeId),
@@ -790,6 +796,32 @@ function DonateNowEditForm(
                     />
                   </Form.Item>
                 </Col>
+                </Row>
+                <SwitchSettingsCard items={[
+                  {
+                    name: ["donateNowHistoryLink", "enabled"],
+                    label: "Show Donation History Link",
+                    tooltip: "Show a link under Donor Type to the page where donors verify by email and see past donations.",
+                  },
+                ]} />
+                <Row gutter={[16, 12]}>
+                  <Col xs={24} md={14}>
+                    <Form.Item
+                      name={["donateNowHistoryLink", "label"]}
+                      label="History Link Text"
+                    >
+                      <Input placeholder="Donated before? View your donation history" />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={10}>
+                    <Form.Item
+                      name={["donateNowHistoryLink", "href"]}
+                      label="History Page Path"
+                      tooltip="Must be a path on this site, starting with /."
+                    >
+                      <Input placeholder="/my-donations" />
+                    </Form.Item>
+                  </Col>
                 </Row>
               </div>
             ),

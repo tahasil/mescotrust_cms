@@ -358,6 +358,7 @@ export default function DonateNow(props = {}) {
     lookupSettings,
     paymentSettings,
     defaultPurposeId,
+    historyLink,
   } = normalizedConfig;
 
   useEffect(() => {
@@ -2150,6 +2151,11 @@ export default function DonateNow(props = {}) {
                       {errors.donorType ? (
                         <FieldError>{errors.donorType}</FieldError>
                       ) : null}
+                      {historyLink?.enabled ? (
+                        <HistoryLink href={historyLink.href}>
+                          {historyLink.label}
+                        </HistoryLink>
+                      ) : null}
                     </FieldWrap>
                   </Col>
 
@@ -2827,6 +2833,24 @@ const FieldError = styled.div`
   margin-top: 6px;
   color: #E03C33;
   font-size: 12px;
+`;
+
+// `&&` doubles the class so it beats the global `.fable-section a` reset.
+const HistoryLink = styled.a`
+  && {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #E03C33;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  &&:hover,
+  &&:focus-visible {
+    color: #b8302a;
+  }
 `;
 
 const ButtonRow = styled.div`

@@ -1,9 +1,15 @@
-import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import DonateNowSubmission from "@/models/DonateNowSubmission";
 import { maskMobile } from "@/lib/donateNowConfig";
 import { createRateLimiter, getClientIp } from "@/lib/rateLimit";
+import { signToken, verifySignedToken } from "@/lib/donations/signedToken";
+import {
+  escapeRegex,
+  getMobileVariants,
+  isValidEmail,
+  toDigits,
+} from "@/lib/donations/donorHistoryAuth";
 
 const SAFE_REUSABLE_FIELDS = [
   "name",
@@ -25,40 +31,11 @@ function toTrimmedString(value) {
   return String(value ?? "").trim();
 }
 
-function toDigits(value) {
-  return String(value ?? "").replace(/\D/g, "");
-}
-
-function isValidEmail(value) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
-
-function escapeRegex(value) {
-  return String(value ?? "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 function getReusableFieldKeys(rawValue) {
   return String(rawValue ?? "")
     .split(",")
     .map((item) => item.trim())
     .filter((item) => SAFE_REUSABLE_FIELDS.includes(item));
-}
-
-function getMobileVariants(rawValue) {
-  const digits = toDigits(rawValue);
-  if (!digits) return [];
-  const normalized = digits.replace(/^0+/, "");
-  const variants = new Set([digits, normalized]);
-
-  if (normalized.length > 10) {
-    variants.add(normalized.slice(-10));
-  }
-  if (normalized.length === 10) {
-    variants.add(`91${normalized}`);
-    variants.add(`0${normalized}`);
-  }
-
-  return [...variants].filter(Boolean);
 }
 
 function getLookupOrConditions({
@@ -157,41 +134,18 @@ function getVerificationSecret() {
   return process.env.NEXTAUTH_SECRET || "donor_lookup_secret";
 }
 
+// Token format is shared with verifyDonorProof in /api/payment/initiate, which
+// still checks these tokens with the same key, so keep the two in step.
 function createVerificationToken(payload) {
-  const payloadJson = JSON.stringify(payload);
-  const payloadEncoded = Buffer.from(payloadJson).toString("base64url");
-  const signature = crypto
-    .createHmac("sha256", getVerificationSecret())
-    .update(payloadEncoded)
-    .digest("base64url");
-  return `${payloadEncoded}.${signature}`;
+  return signToken(payload, getVerificationSecret());
 }
 
 function verifyVerificationToken(token) {
-  if (!token || !token.includes(".")) return null;
-  const [payloadEncoded, signature] = token.split(".");
-  if (!payloadEncoded || !signature) return null;
-
-  const expectedSignature = crypto
-    .createHmac("sha256", getVerificationSecret())
-    .update(payloadEncoded)
-    .digest("base64url");
-  const safeMatch =
-    expectedSignature.length === signature.length &&
-    crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
-  if (!safeMatch) return null;
-
-  try {
-    const payload = JSON.parse(
-      Buffer.from(payloadEncoded, "base64url").toString("utf8"),
-    );
-    if (!payload?.sid || !payload?.exp || Date.now() > Number(payload.exp)) {
-      return null;
-    }
-    return payload;
-  } catch {
+  const payload = verifySignedToken(token, getVerificationSecret());
+  if (!payload?.sid || !payload?.exp || Date.now() > Number(payload.exp)) {
     return null;
   }
+  return payload;
 }
 
 function logLookupDebug(stage, payload = {}) {
