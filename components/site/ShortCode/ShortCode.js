@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Col, Row } from "antd";
 import FormEmbed from "@/components/site/FormEmbed/FormEmbed";
 import TeamEmbed from "@/components/site/TeamEmbed/TeamEmbed";
+import TestimonialEmbed from "@/components/site/TestimonialEmbed/TestimonialEmbed";
 import * as PublicSiteComponents from "@/components/site/publicComponents";
 import { SITE_COMPONENT_IDS } from "@/lib/siteComponentRegistry";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
@@ -319,7 +320,8 @@ export default function ShortCode(props) {
   const [loadedComponentId, setLoadedComponentId] = useState(serverTargetComponentId || "");
   const [galleryData, setGalleryData] = useState(null);
   const [teamData, setTeamData] = useState(null);
-  // True while probing dynamic targets (gallery / team) for this shortcode.
+  const [testimonialData, setTestimonialData] = useState(null);
+  // True while probing dynamic targets (gallery / team / testimonial) for this shortcode.
   const [resolvingDynamic, setResolvingDynamic] = useState(
     !resolvedComponentId && Boolean(shortcodeValue) && !isFaqShortcode,
   );
@@ -332,6 +334,7 @@ export default function ShortCode(props) {
         setResolvingDynamic(false);
         setGalleryData(null);
         setTeamData(null);
+        setTestimonialData(null);
         return;
       }
 
@@ -353,11 +356,12 @@ export default function ShortCode(props) {
               const gData = await galleryRes.json();
               setGalleryData(gData);
               setTeamData(null);
+              setTestimonialData(null);
               setResolvingDynamic(false);
               return;
             }
           } catch {
-            // continue to team / form fallback
+            // continue to team / testimonial / form fallback
           }
 
           if (cancelled) return;
@@ -372,6 +376,26 @@ export default function ShortCode(props) {
             if (res.ok && !cancelled) {
               const data = await res.json();
               setTeamData(data);
+              setTestimonialData(null);
+              setResolvingDynamic(false);
+              return;
+            }
+          } catch {
+            // continue to testimonial / form fallback
+          }
+
+          if (cancelled) return;
+          setTeamData(null);
+
+          // 3. Check if shortcode resolves to a testimonial group
+          try {
+            const res = await fetch(
+              `/api/public/testimonials/${encodeURIComponent(shortcodeValue)}`,
+              { cache: "no-store" },
+            );
+            if (res.ok && !cancelled) {
+              const data = await res.json();
+              setTestimonialData(data);
               setResolvingDynamic(false);
               return;
             }
@@ -380,12 +404,13 @@ export default function ShortCode(props) {
           }
 
           if (!cancelled) {
-            setTeamData(null);
+            setTestimonialData(null);
             setResolvingDynamic(false);
           }
         } else {
           setGalleryData(null);
           setTeamData(null);
+          setTestimonialData(null);
           setResolvingDynamic(false);
         }
         return;
@@ -394,6 +419,7 @@ export default function ShortCode(props) {
       setResolvingDynamic(false);
       setGalleryData(null);
       setTeamData(null);
+      setTestimonialData(null);
 
       // Props resolved on the server: render immediately, no client fetch needed.
       if (serverModuleProps && serverTargetComponentId === resolvedComponentId) {
@@ -431,7 +457,7 @@ export default function ShortCode(props) {
   const isGalleryShortcode = Boolean(galleryData);
   const isTeamShortcode = Boolean(teamData);
 
-  // Stay blank while the gallery / team probe is in flight, otherwise the
+  // Stay blank while the gallery / team / testimonial probe is in flight, otherwise the
   // render falls through to the FormEmbed fallback and flashes a warning.
   if (resolvingDynamic) return null;
 
@@ -516,6 +542,10 @@ export default function ShortCode(props) {
       return <TeamEmbed initialTeam={teamData} {...props} />;
     }
 
+    if (testimonialData) {
+      return <TestimonialEmbed initialTestimonial={testimonialData} {...props} />;
+    }
+
     return <FormEmbed mode="shortcode" shortcode={shortcodeValue.toLowerCase()} />;
   };
 
@@ -536,6 +566,13 @@ export default function ShortCode(props) {
   }
 
   if (isTeamShortcode) {
+    return renderShortcodeContent();
+  }
+
+  if (testimonialData) {
+    // Passthrough like TeamEmbed: TestimonialEmbed renders the section with its
+    // own design (heading styles + spacing) and receives the block's title
+    // config through props, so the "Enable title/subtitle" toggles keep working.
     return renderShortcodeContent();
   }
 

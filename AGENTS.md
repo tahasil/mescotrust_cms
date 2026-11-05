@@ -92,6 +92,8 @@ Models in `models/`:
 - `SocialWallFetchLog`
 - `SocialWallConfigAudit`
 - `Team`
+- `Testimonial` (collection: `testimonials`; testimonial groups with card/slider style, titles, typography, and a unique shortcode rendered via ShortCode)
+- `TestimonialItem` (collection: `testimonial_items`; the single shared pool of testimonial entries rendered by every testimonial group)
 - `Gallery`
 - `Faq`
 - `AdminRole`

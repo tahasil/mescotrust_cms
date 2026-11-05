@@ -226,6 +226,15 @@ const baseMenuItems = [
     ),
   },
   {
+    key: "/admin/testimonials",
+    icon: <CommentOutlined />,
+    label: (
+      <Link href="/admin/testimonials" style={linkStyle}>
+        Testimonials
+      </Link>
+    ),
+  },
+  {
     key: "/admin/gallery",
     icon: <PictureOutlined />,
     label: (

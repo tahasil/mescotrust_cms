@@ -149,6 +149,14 @@ export default function DonorTestimonials(props) {
     .toString()
     .trim();
   const roleColor = roleColorKey ? getColor(roleColorKey) : undefined;
+  // Optional card chrome overrides (set via ShortCode block colors). Empty means
+  // "keep the component design"; they never change the default look on their own.
+  const cardBgOverrideKey = (props?.donorTestimonialsCardBgColorKey ?? "")
+    .toString()
+    .trim();
+  const cardBorderOverrideKey = (props?.donorTestimonialsCardBorderColorKey ?? "")
+    .toString()
+    .trim();
   const fontSize = (value, fallback, min, max) => {
     const parsed = Number(value);
     return Number.isFinite(parsed)
@@ -156,9 +164,15 @@ export default function DonorTestimonials(props) {
       : fallback;
   };
   const designStyle = {
-    "--donor-card-bg": getColor("white"),
-    "--donor-card-bg-alt": getColor("surface"),
-    "--donor-card-border": getColor("border"),
+    "--donor-card-bg": cardBgOverrideKey
+      ? getColor(cardBgOverrideKey)
+      : getColor("white"),
+    "--donor-card-bg-alt": cardBgOverrideKey
+      ? getColor(cardBgOverrideKey)
+      : getColor("surface"),
+    "--donor-card-border": cardBorderOverrideKey
+      ? getColor(cardBorderOverrideKey)
+      : getColor("border"),
     "--donor-card-shadow": getColor("black"),
     "--donor-quote-icon": quoteIconColor,
     "--donor-quote-text": quoteTextColor || getColor("black"),

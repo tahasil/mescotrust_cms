@@ -92,8 +92,17 @@ function FaqsEditForm(
       .validateFields()
       .then(() => {
         const values = form.getFieldsValue(true);
-        const isTitleEn = !(values.faqsTitleEnabled === false || values.titleEnabled === false || values.faqsTitleEnabled === "false" || values.titleEnabled === "false");
-        const isSubTitleEn = !(values.faqsSubTitleEnabled === false || values.subTitleEnabled === false || values.faqsSubTitleEnabled === "false" || values.subTitleEnabled === "false");
+        // The toggle is bound to faqs*Enabled; titleEnabled/subTitleEnabled are
+        // legacy mirrors that are never updated by the toggle, so they must only be
+        // used as a fallback when the bound field is undefined (stale false would
+        // otherwise overwrite the user's choice on every save).
+        const resolveEnabled = (primary, fallback) => {
+          if (primary === true || primary === "true") return true;
+          if (primary === false || primary === "false") return false;
+          return !(fallback === false || fallback === "false");
+        };
+        const isTitleEn = resolveEnabled(values.faqsTitleEnabled, values.titleEnabled);
+        const isSubTitleEn = resolveEnabled(values.faqsSubTitleEnabled, values.subTitleEnabled);
 
         const payload = {
           ...values,

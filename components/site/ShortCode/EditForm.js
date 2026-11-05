@@ -182,8 +182,17 @@ function ShortCodeEditForm(
           return;
         }
 
-        const isTitleEn = !(values.shortCodeTitleEnabled === false || values.titleEnabled === false || values.shortCodeTitleEnabled === "false" || values.titleEnabled === "false");
-        const isSubTitleEn = !(values.shortCodeSubTitleEnabled === false || values.subTitleEnabled === false || values.shortCodeSubTitleEnabled === "false" || values.subTitleEnabled === "false");
+        // The Switch is bound to shortCode*Enabled; titleEnabled/subTitleEnabled are
+        // legacy mirrors that are never updated by the Switch, so they must only be
+        // used as a fallback when the bound field is undefined (stale false would
+        // otherwise overwrite the user's choice on every save).
+        const resolveEnabled = (primary, fallback) => {
+          if (primary === true || primary === "true") return true;
+          if (primary === false || primary === "false") return false;
+          return !(fallback === false || fallback === "false");
+        };
+        const isTitleEn = resolveEnabled(values.shortCodeTitleEnabled, values.titleEnabled);
+        const isSubTitleEn = resolveEnabled(values.shortCodeSubTitleEnabled, values.subTitleEnabled);
 
         const payload = {
           ...values,

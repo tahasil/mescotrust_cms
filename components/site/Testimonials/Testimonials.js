@@ -17,10 +17,11 @@ const QuoteSection = styled.div`
   text-align: center;
   color: var(--q-ink);
   font-family: "Instrument Sans", system-ui, sans-serif;
+  padding: 16px 0 24px;
 
   .qSubTitle {
     margin: 0 0 30px;
-    color: var(--q-subtitle);
+    color: var(--q-subtitle, var(--primary-color, var(--theme-primary, #E03C33)));
     font-size: 13px;
     font-weight: 650;
     letter-spacing: .16em;
@@ -40,7 +41,7 @@ const QuoteSection = styled.div`
     color: var(--q-mark);
     font-family: "Bricolage Grotesque", system-ui, sans-serif;
     font-weight: 700;
-    font-size: 76px;
+    font-size: var(--q-mark-size, 76px);
     line-height: .55;
     margin-bottom: 30px;
   }
@@ -91,7 +92,7 @@ const QuoteSection = styled.div`
     color: var(--q-quote);
     font-family: "Bricolage Grotesque", system-ui, sans-serif;
     font-weight: 480;
-    font-size: clamp(23px, 2.8vw, 38px);
+    font-size: clamp(23px, 2.8vw, var(--q-quote-max, 38px));
     line-height: 1.3;
     letter-spacing: -.015em;
   }
@@ -130,13 +131,13 @@ const QuoteSection = styled.div`
   .qWho strong {
     display: block;
     color: var(--q-name);
-    font-size: 16.5px;
+    font-size: var(--q-name-size, 16.5px);
   }
 
   .qWho span {
     display: block;
     color: var(--q-role);
-    font-size: 14.5px;
+    font-size: var(--q-role-size, 14.5px);
   }
 
   .qDots {
@@ -144,6 +145,8 @@ const QuoteSection = styled.div`
     gap: 9px;
     justify-content: center;
     margin-top: 34px;
+    margin-bottom: 20px;
+    padding: 6px 0;
   }
 
   .qDot {
@@ -190,7 +193,7 @@ const QuoteSection = styled.div`
       margin-bottom: 24px;
     }
     .qMark {
-      font-size: 60px;
+      font-size: calc(var(--q-mark-size, 76px) * .79);
       margin-bottom: 22px;
     }
     .qDots {
@@ -542,6 +545,12 @@ export default function Testimonials(props) {
         .map(([key, value]) => [key, `${num(value, 0)}px`]),
     ),
   };
+  if (!sectionBgStyle.paddingBottom) {
+    sectionBgStyle.paddingBottom = "48px";
+  }
+  if (!sectionBgStyle.paddingTop) {
+    sectionBgStyle.paddingTop = "40px";
+  }
   const pageContainerBgType = text(props?.testimonialsPageContainerBgType || "default");
   const pageContainerBgImage = text(props?.testimonialsPageContainerBgImage);
   const pageContainerBgColorKey = text(props?.testimonialsPageContainerBgColorKey);
@@ -565,8 +574,8 @@ export default function Testimonials(props) {
           ref={rootRef}
           style={{
             "--q-ink": color(props?.testimonialsTitleColorKey, "#2A283E"),
-            "--q-subtitle": color(props?.testimonialsTitleColorKey, "#E03C33"),
-            "--q-mark": color(props?.testimonialsQuoteMarkColorKey, "#E03C33"),
+            "--q-subtitle": color(props?.testimonialsTitleColorKey, "var(--primary-color, var(--theme-primary, #E03C33))"),
+            "--q-mark": color(props?.testimonialsQuoteMarkColorKey, "var(--primary-color, var(--theme-primary, #E03C33))"),
             "--q-quote": color(props?.testimonialsQuoteColorKey, "#2A283E"),
             "--q-name": color(props?.testimonialsNameColorKey, "#2A283E"),
             "--q-role": color(props?.testimonialsRoleColorKey, "rgba(42,40,62,.55)"),
@@ -575,11 +584,17 @@ export default function Testimonials(props) {
             "--q-link": color(props?.testimonialsLinkColorKey, "#2A283E"),
             "--q-duration": `${num(props?.testimonialsSpeed, 650) / 1000}s`,
             "--q-clamp": String(clampLines),
+            /* Optional typography overrides (Testimonials Management drawer).
+               Defaults reproduce the original design exactly. */
+            "--q-quote-max": `${num(props?.testimonialsQuoteFontSize, 38)}px`,
+            "--q-mark-size": `${num(props?.testimonialsQuoteMarkFontSize, 76)}px`,
+            "--q-name-size": `${num(props?.testimonialsNameFontSize, 16.5)}px`,
+            "--q-role-size": `${num(props?.testimonialsRoleFontSize, 14.5)}px`,
           }}
         >
           {props?.testimonialsTitleEnabled !== false && text(props?.testimonialsTitle) ? (
             <p className="qSubTitle qReveal">
-              {renderHighlightedTitle(text(props.testimonialsTitle), props)}
+              {text(props.testimonialsTitle)}
             </p>
           ) : null}
           {items.length > 0 ? (
