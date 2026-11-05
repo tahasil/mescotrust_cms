@@ -48,6 +48,7 @@
     "test:donate-categories": "node scripts/test-donate-non-zakat-and-category-contracts.js",
     "test:membership-button": "node scripts/test-membership-header-button-contracts.js",
     "test:careers-role": "node --test scripts/test-careers-role-contracts.js",
+    "test:internships": "node --test scripts/test-internship-submissions-contracts.js",
     "test:donor-history": "node scripts/test-donor-history-contracts.js",
     "test:faqs": "node scripts/test-faqs-contracts.js",
     "test:e2e:donate-schemes": "playwright test e2e/donate-multi-scheme.spec.js"

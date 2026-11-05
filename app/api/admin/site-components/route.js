@@ -93,6 +93,9 @@ export async function GET(req) {
       ) {
         displayName = "Latest Image Gallery";
       }
+      if (id === "InternshipUpload" && (!displayName || displayName === "InternshipUpload")) {
+        displayName = "Internship Upload";
+      }
       if (
         id === LATEST_NEWS_ID &&
         (!displayName ||

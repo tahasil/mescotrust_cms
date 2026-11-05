@@ -8,6 +8,7 @@ export { default as HomeSlider, HomeSliderEditForm } from "./HomeSlider/index";
 export { default as Marquee, MarqueeEditForm } from "./Marquee/index";
 export { default as Subscribe, SubscribeEditForm } from "./Subscribe/index";
 export { default as CareersUpload, CareersUploadEditForm } from "./CareersUpload/index";
+export { default as InternshipUpload, InternshipUploadEditForm } from "./InternshipUpload/index";
 export { default as CTABanner, CTABannerEditForm } from "./CTABanner/index";
 export { default as ShortCode, ShortCodeEditForm } from "./ShortCode/index";
 export { default as Faqs, FaqsEditForm } from "./Faqs/index";
@@ -71,6 +72,7 @@ import HomeHeroEditForm from "./HomeHero/EditForm";
 import MarqueeEditForm from "./Marquee/EditForm";
 import SubscribeEditForm from "./Subscribe/EditForm";
 import CareersUploadEditForm from "./CareersUpload/EditForm";
+import InternshipUploadEditForm from "./InternshipUpload/EditForm";
 import CTABannerEditForm from "./CTABanner/EditForm";
 import ShortCodeEditForm from "./ShortCode/EditForm";
 import Cards1EditForm from "./Cards1/EditForm";
@@ -196,6 +198,7 @@ export const EDITABLE_SITE_EDIT_FORMS = {
   TimelineTrack: TimelineTrackEditForm,
   ShortCode: ShortCodeEditForm,
   CareersUpload: CareersUploadEditForm,
+  InternshipUpload: InternshipUploadEditForm,
   TeamEmbed: TeamEmbedEditForm,
   LeaveusamessageModal: LeaveusamessageModalEditForm,
   Faqs: FaqsEditForm,

@@ -75,6 +75,8 @@ Models in `models/`:
 - `BlogCategory`
 - `BlogComment`
 - `ContactSubmission`
+- `CareerSubmission`
+- `InternshipSubmission`
 - `Subscriber`
 - `Donation`
 - `DonateNowSubmission`
@@ -174,6 +176,7 @@ NPM scripts:
 - `npm run test:donate-categories` -> 10-scenario contract test suite for unified donation category dropdown and Non-Zakat scheme allocation rules (DON-04)
 - `npm run test:membership-button` -> 7-scenario contract test suite for Admin CMS management and frontend integration of Membership Header Button
 - `npm run test:careers-role` -> 12-scenario contract test suite for Careers application form active openings and Other conditional input (NEW-03)
+- `npm run test:internships` -> 10-scenario contract test suite for Internship Upload component and Internship Submissions admin management
 - `npm run test:donor-history` -> donation history (DON-05) contract tests: offline OTP/session/PII checks, plus HTTP scenarios when `npm run dev` is running (set `DONOR_HISTORY_TEST_EMAIL` to also exercise real code and receipt emails)
 - `npm run test:faqs` -> 10-scenario contract test suite for FAQ management, document section 6 requirements, admin sidebar, and shortcode integration
 
@@ -385,6 +388,12 @@ Key implementation files:
 - `scripts/test-donate-multi-scheme-contracts.js` (Automated 11-scenario contract test suite for multi-scheme selection, trusted pricing, and returning donor restoration)
 - `scripts/test-membership-header-button-contracts.js` (Automated 7-scenario contract test suite for Membership Header Button admin CMS management and frontend integration)
 - `scripts/test-careers-role-contracts.js` (Automated 12-scenario contract test suite for Careers application form active openings and Other conditional input)
+- `models/InternshipSubmission.js` (Internship application submission schema)
+- `components/site/InternshipUpload/` (Internship application form component and Page Builder EditForm)
+- `app/api/public/internship-upload/route.js` (Public internship application and CV upload API)
+- `app/api/admin/internship-submissions/` (Admin internship submissions management API)
+- `app/admin/(authenticated)/internship-submissions/page.js` (Admin internship submissions list, review, and status management UI)
+- `scripts/test-internship-submissions-contracts.js` (Automated 10-scenario contract test suite for Internship component and submissions)
 - `lib/donations/donorHistoryAuth.js` (Donation history OTP, session token, identifier parsing and PII-safe row mapping; builtin imports only so scripts can require it)
 - `lib/donations/signedToken.js` (HMAC token sign/verify shared by donor lookup and donor history, each with its own key)
 - `app/api/public/donor-history/` (request-otp, verify-otp, list/sign-out, receipt re-send routes)

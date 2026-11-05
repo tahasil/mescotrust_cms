@@ -422,6 +422,15 @@ const baseMenuItems = [
           </Link>
         ),
       },
+      {
+        key: "/admin/internship-submissions",
+        icon: <SolutionOutlined />,
+        label: (
+          <Link href="/admin/internship-submissions" style={linkStyle}>
+            Internship Submissions
+          </Link>
+        ),
+      },
     ],
   },
   {

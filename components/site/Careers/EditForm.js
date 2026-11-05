@@ -20,11 +20,20 @@ const DEFAULT_CAREERS_UPLOAD_POSITIONS = [
 
 function extractPositionsFromData(data) {
   if (!data || typeof data !== "object") return [];
-  const raw = data?.careersUploadPositions ?? data?.positions;
+  const raw =
+    data?.internshipUploadRoles ??
+    data?.careersUploadPositions ??
+    data?.positions ??
+    data?.roles;
   if (Array.isArray(raw) && raw.length > 0) {
-    return raw.map((s) => String(s).trim()).filter(Boolean);
+    return raw
+      .map((s) => (typeof s === "object" ? String(s?.title || s?.name || "").trim() : String(s).trim()))
+      .filter(Boolean);
   }
-  const text = data?.careersUploadPositionsText ?? data?.positionsText;
+  const text =
+    data?.internshipUploadRolesText ??
+    data?.careersUploadPositionsText ??
+    data?.positionsText;
   if (typeof text === "string" && text.trim()) {
     return text
       .split("\n")
@@ -92,7 +101,7 @@ function CareersEditForm({ source, initialData: initialDataProp, onSaveToPage, o
     let fromBlocks = [];
     if (Array.isArray(allPageBlocks)) {
       const cuBlock = allPageBlocks.find(
-        (b) => b?.baseComponent === "CareersUpload" || b?.componentId === "CareersUpload"
+        (b) => b?.baseComponent === "CareersUpload" || b?.componentId === "CareersUpload" || b?.baseComponent === "InternshipUpload" || b?.componentId === "InternshipUpload"
       );
       if (cuBlock?.props) {
         fromBlocks = extractPositionsFromData(cuBlock.props);

@@ -471,7 +471,13 @@ export default function Careers(props) {
                 </div>
               </JobInfo>
               <ApplyBtn
-                href={isExternalUrl(applyUrl) ? applyUrl : "#careers-application-form"}
+                href={
+                  isExternalUrl(applyUrl)
+                    ? applyUrl
+                    : typeof window !== "undefined" && window.location.pathname.toLowerCase().includes("internship")
+                      ? "#internship-application-form"
+                      : "#careers-application-form"
+                }
                 target={isExternalUrl(applyUrl) ? "_blank" : undefined}
                 rel={isExternalUrl(applyUrl) ? "noopener noreferrer" : undefined}
                 style={{ background: btnBgColor, color: btnTextColor }}
@@ -492,8 +498,15 @@ export default function Careers(props) {
                     window.dispatchEvent(
                       new CustomEvent("careers-select-role", { detail: { role: targetRole, position: targetRole } })
                     );
+                    window.dispatchEvent(
+                      new CustomEvent("internship-select-role", { detail: { role: targetRole, position: targetRole } })
+                    );
 
-                    const formEl = document.getElementById("careers-application-form");
+                    const isInternshipPage = window.location.pathname.toLowerCase().includes("internship");
+                    const formEl = isInternshipPage
+                      ? (document.getElementById("internship-application-form") || document.getElementById("careers-application-form"))
+                      : (document.getElementById("careers-application-form") || document.getElementById("internship-application-form"));
+
                     if (formEl) {
                       const yOffset = -90;
                       const y = formEl.getBoundingClientRect().top + window.pageYOffset + yOffset;
@@ -512,7 +525,10 @@ export default function Careers(props) {
                         .toLowerCase()
                         .replace(/[^a-z0-9]+/g, "-")
                         .replace(/^-+|-+$/g, "");
-                      window.location.href = `/get-involved/careers?role=${encodeURIComponent(cleanSlug)}#careers-application-form`;
+                      const targetPath = isInternshipPage
+                        ? `/get-involved/internships?role=${encodeURIComponent(cleanSlug)}#internship-application-form`
+                        : `/get-involved/careers?role=${encodeURIComponent(cleanSlug)}#careers-application-form`;
+                      window.location.href = targetPath;
                     }
                   }
                 }}
