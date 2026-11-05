@@ -224,3 +224,47 @@ test("12. Careers Apply Now button scrolls to internship-application-form withou
   assert.match(internshipSource, /form\.setFieldsValue\(\{\s*roleTitle:\s*matched\.value\s*\}\)/);
   assert.match(internshipSource, /params\.get\("role"\)/);
 });
+
+/* ── Scenario 13: Resume / CV Column Compact Width & Text Ellipsis ── */
+test("13. Resume / CV column is compact with text ellipsis and full filename tooltip", () => {
+  const internUi = readFile("app/admin/(authenticated)/internship-submissions/page.js");
+  const careerUi = readFile("app/admin/(authenticated)/career-submissions/page.js");
+
+  // Internship Submissions Resume Column
+  assert.match(internUi, /key:\s*"resume"/);
+  assert.match(internUi, /width:\s*170/);
+  assert.match(internUi, /textOverflow:\s*"ellipsis"/);
+  assert.match(internUi, /whiteSpace:\s*"nowrap"/);
+  assert.match(internUi, /<Tooltip title=\{`Download \$\{fileName\}`\}/);
+
+  // Career Submissions Resume Column
+  assert.match(careerUi, /key:\s*"resume"/);
+  assert.match(careerUi, /width:\s*170/);
+  assert.match(careerUi, /textOverflow:\s*"ellipsis"/);
+  assert.match(careerUi, /whiteSpace:\s*"nowrap"/);
+  assert.match(careerUi, /<Tooltip title=\{`Download \$\{fileName\}`\}/);
+});
+
+/* ── Scenario 14: Export Integration and Title Rename ── */
+test("14. Export endpoints exist, AdminExportDropdown integrated, and Career title renamed", () => {
+  const internUi = readFile("app/admin/(authenticated)/internship-submissions/page.js");
+  const careerUi = readFile("app/admin/(authenticated)/career-submissions/page.js");
+  const internExportApi = readFile("app/api/admin/internship-submissions/export/route.js");
+  const careerExportApi = readFile("app/api/admin/career-submissions/export/route.js");
+
+  // AdminExportDropdown integration
+  assert.match(internUi, /<AdminExportDropdown/);
+  assert.match(internUi, /exportUrl="\/api\/admin\/internship-submissions\/export"/);
+  assert.match(careerUi, /<AdminExportDropdown/);
+  assert.match(careerUi, /exportUrl="\/api\/admin\/career-submissions\/export"/);
+
+  // Career Submissions title renamed
+  assert.match(careerUi, /title="Career Submissions"/);
+  assert.doesNotMatch(careerUi, /title="Career & Resume Submissions"/);
+
+  // Export APIs implement requireAuth, connectDB, and createExportResponse
+  assert.match(internExportApi, /requireAuth/);
+  assert.match(internExportApi, /createExportResponse/);
+  assert.match(careerExportApi, /requireAuth/);
+  assert.match(careerExportApi, /createExportResponse/);
+});

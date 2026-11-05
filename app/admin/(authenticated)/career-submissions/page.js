@@ -1,11 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button, Descriptions, Input, Modal, Select, Space, Table, Tag, message } from "antd";
+import { Button, Descriptions, Input, Modal, Select, Space, Table, Tag, Tooltip, message } from "antd";
 import { CheckOutlined, DeleteOutlined, DownloadOutlined, EyeOutlined, ReloadOutlined, SearchOutlined } from "@ant-design/icons";
 import { formatDateTime } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
+import AdminExportDropdown from "@/components/admin/AdminExportDropdown";
+
+const CAREER_EXPORT_COLUMNS = [
+  { key: "submitted_at", label: "Submitted At" },
+  { key: "fullName", label: "Candidate Name" },
+  { key: "email", label: "Email" },
+  { key: "phone", label: "Phone" },
+  { key: "position", label: "Applied Position" },
+  { key: "customPosition", label: "Specified Role (Other)" },
+  { key: "positionCategory", label: "Position Category" },
+  { key: "qualification", label: "Highest Qualification" },
+  { key: "experience", label: "Experience" },
+  { key: "currentCity", label: "Current City" },
+  { key: "status", label: "Status" },
+  { key: "resumeName", label: "Resume Filename" },
+  { key: "resumeUrl", label: "Resume URL" },
+  { key: "coverLetter", label: "Cover Letter / Statement" },
+  { key: "sourcePage", label: "Source Page" },
+];
 
 const STATUS_OPTIONS = [
   { label: "All Statuses", value: "all" },
@@ -163,19 +182,39 @@ export default function AdminCareerSubmissionsPage() {
     {
       title: "Resume / CV",
       key: "resume",
+      width: 170,
       render: (_, r) => {
-        if (!r.resume?.url) return <span style={{ color: "#999" }}>No CV</span>;
+        if (!r.resume?.url) return <span style={{ color: "#999", fontSize: 12 }}>No CV</span>;
+        const fileName = r.resume.originalName || r.resume.filename || "Resume";
         return (
-          <Button
-            type="link"
-            icon={<DownloadOutlined />}
-            href={r.resume.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            size="small"
-          >
-            Download ({r.resume.originalName || "Resume"})
-          </Button>
+          <Tooltip title={`Download ${fileName}`} placement="topLeft">
+            <Button
+              type="link"
+              icon={<DownloadOutlined />}
+              href={r.resume.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              size="small"
+              style={{
+                padding: 0,
+                maxWidth: 155,
+                display: "inline-flex",
+                alignItems: "center",
+              }}
+            >
+              <span
+                style={{
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  display: "inline-block",
+                  maxWidth: 130,
+                }}
+              >
+                {fileName}
+              </span>
+            </Button>
+          </Tooltip>
         );
       },
     },
@@ -242,11 +281,23 @@ export default function AdminCareerSubmissionsPage() {
   return (
     <div>
       <ThemeAdminCard
-        title="Career & Resume Submissions"
+        title="Career Submissions"
         extra={
-          <Button icon={<ReloadOutlined />} onClick={fetchItems}>
-            Refresh
-          </Button>
+          <Space>
+            <AdminExportDropdown
+              exportUrl="/api/admin/career-submissions/export"
+              filters={{
+                search,
+                status: statusFilter !== "all" ? statusFilter : "",
+                position: positionFilter !== "all" ? positionFilter : "",
+              }}
+              availableColumns={CAREER_EXPORT_COLUMNS}
+              defaultFilename="career-submissions-export"
+            />
+            <Button icon={<ReloadOutlined />} onClick={fetchItems}>
+              Refresh
+            </Button>
+          </Space>
         }
       >
         <Space wrap style={{ marginBottom: 20, width: "100%", justifyContent: "space-between" }}>

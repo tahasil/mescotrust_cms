@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button, Descriptions, Input, Modal, Select, Space, Table, Tag, message } from "antd";
+import { Button, Descriptions, Input, Modal, Select, Space, Table, Tag, Tooltip, message } from "antd";
 import {
   CheckOutlined,
   DeleteOutlined,
@@ -13,6 +13,27 @@ import {
 import { formatDateTime } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
+import AdminExportDropdown from "@/components/admin/AdminExportDropdown";
+
+const INTERNSHIP_EXPORT_COLUMNS = [
+  { key: "submitted_at", label: "Submitted At" },
+  { key: "fullName", label: "Candidate Name" },
+  { key: "email", label: "Email" },
+  { key: "phone", label: "Phone" },
+  { key: "roleTitle", label: "Applied Role / Department" },
+  { key: "customRole", label: "Specified Role (Other)" },
+  { key: "roleCategory", label: "Role Category" },
+  { key: "skills", label: "Eligibility & Skills" },
+  { key: "workMode", label: "Work Mode" },
+  { key: "duration", label: "Duration & Stipend" },
+  { key: "startDate", label: "Start Date / Availability" },
+  { key: "currentCity", label: "Current City" },
+  { key: "status", label: "Status" },
+  { key: "resumeName", label: "Resume Filename" },
+  { key: "resumeUrl", label: "Resume URL" },
+  { key: "statement", label: "Statement of Interest" },
+  { key: "sourcePage", label: "Source Page" },
+];
 
 const STATUS_OPTIONS = [
   { label: "All Statuses", value: "all" },
@@ -181,22 +202,43 @@ export default function AdminInternshipSubmissionsPage() {
     {
       title: "Resume / CV",
       key: "resume",
-      render: (_, r) =>
-        r.resume?.url ? (
-          <Button
-            type="link"
-            size="small"
-            icon={<DownloadOutlined />}
-            href={r.resume.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ padding: 0 }}
-          >
-            Download ({r.resume.originalName || "Resume"})
-          </Button>
-        ) : (
-          <span style={{ color: "#aaa", fontSize: 12 }}>No CV</span>
-        ),
+      width: 170,
+      render: (_, r) => {
+        if (!r.resume?.url) {
+          return <span style={{ color: "#aaa", fontSize: 12 }}>No CV</span>;
+        }
+        const fileName = r.resume.originalName || r.resume.filename || "Resume";
+        return (
+          <Tooltip title={`Download ${fileName}`} placement="topLeft">
+            <Button
+              type="link"
+              size="small"
+              icon={<DownloadOutlined />}
+              href={r.resume.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                padding: 0,
+                maxWidth: 155,
+                display: "inline-flex",
+                alignItems: "center",
+              }}
+            >
+              <span
+                style={{
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  display: "inline-block",
+                  maxWidth: 130,
+                }}
+              >
+                {fileName}
+              </span>
+            </Button>
+          </Tooltip>
+        );
+      },
     },
     {
       title: "Status",
@@ -253,9 +295,21 @@ export default function AdminInternshipSubmissionsPage() {
       <ThemeAdminCard
         title="Internship Submissions"
         extra={
-          <Button icon={<ReloadOutlined />} onClick={fetchItems} loading={loading}>
-            Refresh
-          </Button>
+          <Space>
+            <AdminExportDropdown
+              exportUrl="/api/admin/internship-submissions/export"
+              filters={{
+                search,
+                status: statusFilter !== "all" ? statusFilter : "",
+                roleTitle: roleFilter !== "all" ? roleFilter : "",
+              }}
+              availableColumns={INTERNSHIP_EXPORT_COLUMNS}
+              defaultFilename="internship-submissions-export"
+            />
+            <Button icon={<ReloadOutlined />} onClick={fetchItems} loading={loading}>
+              Refresh
+            </Button>
+          </Space>
         }
       >
         {/* Filters */}
