@@ -9,7 +9,6 @@ import {
   Form,
   Input,
   InputNumber,
-  Popconfirm,
   Row,
   Select,
   Space,
@@ -23,7 +22,6 @@ import {
 import {
   CheckOutlined,
   CopyOutlined,
-  DeleteOutlined,
   EditOutlined,
   ReloadOutlined,
   UnorderedListOutlined,
@@ -627,20 +625,6 @@ export default function AdminTestimonialsListPage() {
     setDrawerOpen(true);
   };
 
-  const onDelete = async (id) => {
-    try {
-      const res = await fetch(`/api/admin/testimonials/${encodeURIComponent(id)}`, {
-        method: "DELETE",
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || "Failed to delete testimonial");
-      message.success("Testimonial deleted");
-      fetchTestimonials(page, search);
-    } catch (err) {
-      message.error(err?.message || "Failed to delete testimonial");
-    }
-  };
-
   const columns = useMemo(
     () => [
       {
@@ -728,35 +712,17 @@ export default function AdminTestimonialsListPage() {
       {
         title: "Actions",
         key: "actions",
-        width: 200,
+        width: 100,
         render: (_, record) => (
-          <Space size={6}>
-            <Button
-              type="link"
-              size="small"
-              icon={<EditOutlined />}
-              style={{ color: "#2A283E" }}
-              onClick={() => openEditDrawer(record)}
-            >
-              Edit
-            </Button>
-            <Popconfirm
-              title="Delete this testimonial?"
-              description="This will permanently delete the testimonial group and its entries."
-              okText="Delete"
-              okType="danger"
-              onConfirm={() => onDelete(record._id)}
-            >
-              <Button
-                type="link"
-                size="small"
-                danger
-                icon={<DeleteOutlined />}
-                aria-label="Delete testimonial"
-                title="Delete"
-              />
-            </Popconfirm>
-          </Space>
+          <Button
+            type="link"
+            size="small"
+            icon={<EditOutlined />}
+            style={{ color: "#2A283E" }}
+            onClick={() => openEditDrawer(record)}
+          >
+            Edit
+          </Button>
         ),
       },
       {
