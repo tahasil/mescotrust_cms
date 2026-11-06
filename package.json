@@ -51,6 +51,7 @@
     "test:internships": "node --test scripts/test-internship-submissions-contracts.js",
     "test:donor-history": "node scripts/test-donor-history-contracts.js",
     "test:faqs": "node scripts/test-faqs-contracts.js",
+    "test:documentation": "node scripts/test-documentation-contracts.js",
     "test:e2e:donate-schemes": "playwright test e2e/donate-multi-scheme.spec.js"
   },
   "dependencies": {

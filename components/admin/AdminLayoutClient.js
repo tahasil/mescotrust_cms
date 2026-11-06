@@ -60,6 +60,7 @@ import {
   SafetyCertificateOutlined,
   SolutionOutlined,
   QuestionCircleOutlined,
+  ReadOutlined,
 } from "@ant-design/icons";
 import { signOut } from "next-auth/react";
 import { roleLabelFromKey } from "@/lib/rbac/constants";
@@ -493,6 +494,238 @@ const baseMenuItems = [
         Roles & Permissions
       </Link>
     ),
+  },
+  {
+    key: "group:admin:documentation",
+    icon: <ReadOutlined />,
+    label: "Documentation",
+    children: [
+      {
+        key: "/admin/documentation",
+        icon: <BookOutlined />,
+        label: (
+          <Link href="/admin/documentation" style={linkStyle}>
+            All Guides Overview
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/dashboard",
+        icon: <DashboardOutlined />,
+        label: (
+          <Link href="/admin/documentation/dashboard" style={linkStyle}>
+            Dashboard
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/pages",
+        icon: <FileTextOutlined />,
+        label: (
+          <Link href="/admin/documentation/pages" style={linkStyle}>
+            Pages (Page Builder)
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/components",
+        icon: <AppstoreOutlined />,
+        label: (
+          <Link href="/admin/documentation/components" style={linkStyle}>
+            Components
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/appearance-header",
+        icon: <InsertRowAboveOutlined />,
+        label: (
+          <Link href="/admin/documentation/appearance-header" style={linkStyle}>
+            Header
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/appearance-header-ribbon",
+        icon: <NotificationOutlined />,
+        label: (
+          <Link href="/admin/documentation/appearance-header-ribbon" style={linkStyle}>
+            Header Ribbon
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/appearance-footer",
+        icon: <InsertRowBelowOutlined />,
+        label: (
+          <Link href="/admin/documentation/appearance-footer" style={linkStyle}>
+            Footer
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/menus",
+        icon: <MenuOutlined />,
+        label: (
+          <Link href="/admin/documentation/menus" style={linkStyle}>
+            Navigation Menu
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/chatbot",
+        icon: <RobotOutlined />,
+        label: (
+          <Link href="/admin/documentation/chatbot" style={linkStyle}>
+            Chatbot
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/social-wall",
+        icon: <ShareAltOutlined />,
+        label: (
+          <Link href="/admin/documentation/social-wall" style={linkStyle}>
+            Social Wall
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/form-builder",
+        icon: <FormOutlined />,
+        label: (
+          <Link href="/admin/documentation/form-builder" style={linkStyle}>
+            Form Builder
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/sliders",
+        icon: <SlidersOutlined />,
+        label: (
+          <Link href="/admin/documentation/sliders" style={linkStyle}>
+            Sliders
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/popups",
+        icon: <BorderOutlined />,
+        label: (
+          <Link href="/admin/documentation/popups" style={linkStyle}>
+            Popups
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/push-notifications",
+        icon: <BellOutlined />,
+        label: (
+          <Link href="/admin/documentation/push-notifications" style={linkStyle}>
+            Push Notifications
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/team",
+        icon: <TeamOutlined />,
+        label: (
+          <Link href="/admin/documentation/team" style={linkStyle}>
+            Team
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/testimonials",
+        icon: <CommentOutlined />,
+        label: (
+          <Link href="/admin/documentation/testimonials" style={linkStyle}>
+            Testimonials
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/gallery",
+        icon: <PictureOutlined />,
+        label: (
+          <Link href="/admin/documentation/gallery" style={linkStyle}>
+            Gallery
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/faqs",
+        icon: <QuestionCircleOutlined />,
+        label: (
+          <Link href="/admin/documentation/faqs" style={linkStyle}>
+            FAQs
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/blogs",
+        icon: <BookOutlined />,
+        label: (
+          <Link href="/admin/documentation/blogs" style={linkStyle}>
+            Blogs
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/events",
+        icon: <CalendarOutlined />,
+        label: (
+          <Link href="/admin/documentation/events" style={linkStyle}>
+            Events
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/media",
+        icon: <FolderOpenOutlined />,
+        label: (
+          <Link href="/admin/documentation/media" style={linkStyle}>
+            Media Library
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/submissions",
+        icon: <InboxOutlined />,
+        label: (
+          <Link href="/admin/documentation/submissions" style={linkStyle}>
+            Submissions
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/settings",
+        icon: <SettingOutlined />,
+        label: (
+          <Link href="/admin/documentation/settings" style={linkStyle}>
+            Settings
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/users",
+        icon: <UserOutlined />,
+        label: (
+          <Link href="/admin/documentation/users" style={linkStyle}>
+            Users
+          </Link>
+        ),
+      },
+      {
+        key: "/admin/documentation/rbac",
+        icon: <SafetyCertificateOutlined />,
+        label: (
+          <Link href="/admin/documentation/rbac" style={linkStyle}>
+            Roles & Permissions
+          </Link>
+        ),
+      },
+    ],
   },
 ];
 
@@ -1575,6 +1808,39 @@ export default function AdminLayoutClient({
           }
           .admin-header .admin-search-input {
             display: none;
+          }
+        }
+
+        /* Global Print Rules for Admin Shell: strips sidebar offset & fixed header */
+        @media print {
+          .admin-sidebar,
+          .admin-sidebar-backdrop,
+          .admin-header,
+          .admin-route-loader,
+          .no-print {
+            display: none !important;
+            visibility: hidden !important;
+          }
+          .admin-content {
+            margin: 0 !important;
+            margin-left: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-height: auto !important;
+            left: 0 !important;
+            background: #ffffff !important;
+          }
+          .admin-content > div {
+            margin-top: 0 !important;
+            min-height: auto !important;
+            padding: 0 !important;
+          }
+          .admin-content .ant-layout-content {
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
           }
         }
       `}</style>
