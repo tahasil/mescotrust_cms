@@ -30,6 +30,30 @@ function shouldAutoOpenCard() {
   );
 }
 
+// Registration with the browser's push service can fail briefly and then work.
+async function subscribeWithRetry(registration, options) {
+  try {
+    return await registration.pushManager.subscribe(options);
+  } catch (err) {
+    if (err?.name !== "AbortError") throw err;
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    return registration.pushManager.subscribe(options);
+  }
+}
+
+function describeSubscribeFailure(stage, err) {
+  if (stage === "worker") {
+    return "This browser couldn't start notifications for this site. Please reload the page and try again.";
+  }
+  if (stage === "save") {
+    return "We couldn't save your alert settings. Please check your connection and try again.";
+  }
+  if (err?.name === "NotAllowedError") {
+    return "Notifications are turned off for this browser. Allow them in your device settings, then try again.";
+  }
+  return "This browser couldn't reach its notification service. Check your connection, turn off any VPN or ad blocker, then try again. If it still fails, try Google Chrome.";
+}
+
 function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
@@ -71,6 +95,7 @@ export default function PushNotificationWidget({ initialSettings = null }) {
 
   const [loading, setLoading] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
+  const [subscribeError, setSubscribeError] = useState(null);
 
   const [settings, setSettings] = useState(() => {
     const base = {
@@ -117,6 +142,7 @@ export default function PushNotificationWidget({ initialSettings = null }) {
 
   const handleClose = useCallback(() => {
     setCardOpen(false);
+    setSubscribeError(null);
     try {
       localStorage.setItem(PROMPT_DISMISSED_KEY, String(Date.now()));
     } catch {}
@@ -226,6 +252,8 @@ export default function PushNotificationWidget({ initialSettings = null }) {
   // Handle subscribe action
   const handleSubscribe = useCallback(async () => {
     setLoading(true);
+    setSubscribeError(null);
+    let stage = "permission";
     try {
       const perm = await Notification.requestPermission();
       setPermission(perm);
@@ -239,16 +267,18 @@ export default function PushNotificationWidget({ initialSettings = null }) {
       }
 
       // Register or get service worker
+      stage = "worker";
       const reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
       await navigator.serviceWorker.ready;
 
+      stage = "subscribe";
       const publicKey = await getPublicKey();
       const applicationServerKey = urlBase64ToUint8Array(publicKey);
 
       // Subscribe with push manager
       let sub = await reg.pushManager.getSubscription();
       if (!sub) {
-        sub = await reg.pushManager.subscribe({
+        sub = await subscribeWithRetry(reg, {
           userVisibleOnly: true,
           applicationServerKey,
         });
@@ -257,6 +287,7 @@ export default function PushNotificationWidget({ initialSettings = null }) {
       const rawJson = sub.toJSON();
 
       // Save to server
+      stage = "save";
       const res = await fetch("/api/public/push-subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -271,7 +302,7 @@ export default function PushNotificationWidget({ initialSettings = null }) {
       });
 
       if (!res.ok) {
-        throw new Error("Failed to register subscription on server.");
+        throw new Error(`Server responded ${res.status}`);
       }
 
       try {
@@ -281,8 +312,11 @@ export default function PushNotificationWidget({ initialSettings = null }) {
       setCardOpen(false);
       showToast("Subscribed to MESCO Trust notifications!");
     } catch (err) {
-      console.error("[PushNotificationWidget] Subscription failed:", err);
-      showToast("Could not subscribe. Please try again.");
+      console.error(`[PushNotificationWidget] Subscription failed at ${stage}:`, err);
+      setSubscribeError({
+        message: describeSubscribeFailure(stage, err),
+        code: `${stage}: ${err?.name || "Error"}${err?.message ? ` (${err.message})` : ""}`,
+      });
     } finally {
       setLoading(false);
     }
@@ -416,6 +450,12 @@ export default function PushNotificationWidget({ initialSettings = null }) {
                   "Stay connected with MESCO Trust! Enable notifications to receive timely updates on emergency relief, education aid, and community events."}
               </p>
             )}
+            {subscribeError ? (
+              <div className="mesco-push-error" role="alert">
+                <p>{subscribeError.message}</p>
+                <code>{subscribeError.code}</code>
+              </div>
+            ) : null}
           </div>
 
           <div className="mesco-push-card-actions">
@@ -477,6 +517,25 @@ export default function PushNotificationWidget({ initialSettings = null }) {
       )}
 
       <style jsx>{`
+        .mesco-push-error {
+          flex: 0 0 100%;
+          margin-top: 10px;
+          padding: 10px 12px;
+          border-radius: 8px;
+          background: #fef2f2;
+          color: #991b1b;
+          font-size: 13px;
+          line-height: 1.45;
+        }
+        .mesco-push-error p {
+          margin: 0 0 4px;
+        }
+        .mesco-push-error code {
+          display: block;
+          font-size: 11px;
+          color: #7f1d1d;
+          word-break: break-word;
+        }
         .mesco-push-root {
           position: fixed;
           bottom: 24px;
@@ -635,6 +694,7 @@ export default function PushNotificationWidget({ initialSettings = null }) {
           margin-bottom: 16px;
           min-height: 54px;
           display: flex;
+          flex-wrap: wrap;
           align-items: center;
         }
 
