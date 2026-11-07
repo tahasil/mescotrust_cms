@@ -27,6 +27,7 @@ import {
   DONATE_NOW_BASE_FIELDS,
   DONATE_NOW_OTHER_PURPOSE_ID,
   normalizeDonateNowConfig,
+  PAN_REQUIRED_MIN_AMOUNT,
 } from "@/lib/donateNowConfig";
 
 const API_PATH = "/api/theme/DonateNow";
@@ -735,13 +736,21 @@ function DonateNowEditForm(
                                 {
                                   name: [name, "active"],
                                   label: "Visible",
-                                  tooltip: "Show this donor field.",
+                                  tooltip:
+                                    item.key === "pan"
+                                      ? `Show this donor field. PAN is required, and always shown, for donations of ₹${PAN_REQUIRED_MIN_AMOUNT.toLocaleString("en-IN")} or more.`
+                                      : "Show this donor field.",
                                 },
-                                {
-                                  name: [name, "required"],
-                                  label: "Required",
-                                  tooltip: "Require this donor field.",
-                                },
+                                // PAN is required by donation amount, not by this switch.
+                                ...(item.key === "pan"
+                                  ? []
+                                  : [
+                                      {
+                                        name: [name, "required"],
+                                        label: "Required",
+                                        tooltip: "Require this donor field.",
+                                      },
+                                    ]),
                                 {
                                   name: [name, "disabled"],
                                   label: "Disabled",

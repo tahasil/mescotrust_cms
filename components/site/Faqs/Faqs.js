@@ -11,6 +11,7 @@ import {
   SubTitle,
 } from "@/styles/Theme";
 import SafeHtml from "@/components/cms/SafeHtml";
+import { serializeJsonLd } from "@/lib/security/jsonLd";
 import { renderHighlightedTitle } from "@/components/site/HighlightedTitle";
 import {
   getTitleAlign,
@@ -538,7 +539,7 @@ export default function Faqs(props) {
         {jsonLdData && (
           <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdData) }}
+            dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLdData) }}
           />
         )}
 

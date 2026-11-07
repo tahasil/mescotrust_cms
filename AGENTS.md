@@ -168,12 +168,13 @@ NPM scripts:
 - `npm run audit:menu-links` -> report every nav link that would 404 (read-only)
 - `npm run fix:menu-links` -> re-point menu items at the slug that actually resolves
 - `npm run test:menu-page-sync` -> end-to-end tests for page/menu sync and move behaviour
-- `npm run test:xss` -> comprehensive 10-scenario XSS contract security test suite
+- `npm run test:xss` -> comprehensive 12-scenario XSS contract security test suite
 - `npm run test:e2e:xss` -> Playwright E2E browser XSS execution protection test suite
 - `npm run test:404` -> comprehensive 13-scenario HTTP 404 status and SEO verification test suite
 - `npm run test:e2e:404` -> Playwright E2E browser 404 status, responsive UI, and navigation test suite
 - `npm run test:donate-schemes` -> 11-scenario contract test suite for multi-scheme selection, trusted pricing, and returning donor restoration
 - `npm run test:donate-categories` -> 10-scenario contract test suite for unified donation category dropdown and Non-Zakat scheme allocation rules (DON-04)
+- `npm run test:donate-pan` -> 12-scenario offline contract test suite for the PAN rule (mandatory at ₹50,000 or more, optional below)
 - `npm run test:membership-button` -> 7-scenario contract test suite for Admin CMS management and frontend integration of Membership Header Button
 - `npm run test:careers-role` -> 12-scenario contract test suite for Careers application form active openings and Other conditional input (NEW-03)
 - `npm run test:internships` -> 10-scenario contract test suite for Internship Upload component and Internship Submissions admin management
@@ -378,7 +379,7 @@ Key implementation files:
 - `app/api/admin/events/[id]/workflow/route.js` (Event workflow approval, rejection, and publish API)
 - `scripts/test-rbac-workflow-security.js` (Automated 14-scenario RBAC workflow security contract test suite)
 - `e2e/rbac-content-approval.spec.js` (Playwright E2E content approval verification suite)
-- `scripts/test-xss-security.js` (Automated 10-scenario contract security suite)
+- `scripts/test-xss-security.js` (Automated 12-scenario contract security suite)
 - `e2e/xss-protection.spec.js` (Playwright E2E browser execution prevention suite)
 - `app/not-found.js` (Custom 404 Page with brand styling, animated SVG scene, section exploration, and soft 404 prevention)
 - `scripts/test-404-seo.js` (Automated 13-scenario contract test suite for HTTP 404, status codes, and XML sitemap integrity)
@@ -387,8 +388,10 @@ Key implementation files:
 - `components/site/DonateNow/DonateNow.js` (Donate Now public client component with unified category dropdown, Non-Zakat auto-lock, and mobile sticky cart drawer)
 - `scripts/test-donate-non-zakat-and-category-contracts.js` (Automated 10-scenario contract test suite for unified categories and DON-04 Non-Zakat rules)
 - `scripts/test-donate-multi-scheme-contracts.js` (Automated 11-scenario contract test suite for multi-scheme selection, trusted pricing, and returning donor restoration)
+- `scripts/test-donate-pan-threshold-contracts.js` (Automated 12-scenario offline contract test suite for the Donate Now PAN amount rule)
 - `scripts/test-membership-header-button-contracts.js` (Automated 7-scenario contract test suite for Membership Header Button admin CMS management and frontend integration)
 - `scripts/test-careers-role-contracts.js` (Automated 12-scenario contract test suite for Careers application form active openings and Other conditional input)
+- `components/admin/testimonials/TestimonialEntriesTable.js` (Manage Testimonials tab on `/admin/testimonials`: table for the shared testimonial pool with drag reorder and per-item saves)
 - `models/InternshipSubmission.js` (Internship application submission schema)
 - `components/site/InternshipUpload/` (Internship application form component and Page Builder EditForm)
 - `app/api/public/internship-upload/route.js` (Public internship application and CV upload API)

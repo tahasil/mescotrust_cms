@@ -85,7 +85,7 @@ const DEFAULT_DEPARTMENTS = [
     name: "General Enquiries",
     contactPerson: "MESCO Trust office",
     email: "mescotrust@mescotrust.org",
-    phone: "+91 22 24441442 / +91 22 24448637",
+    phone: "+91 22 2444 1442 / +91 22 2444 8637",
     enquiryLink: "",
     enquiryBtnText: "Enquire Now",
     enquiryTarget: "_self",
@@ -157,7 +157,7 @@ function ContactUsEditForm({ source, initialData: initialDataProp, onSaveToPage,
         contactUsRegdOffice: data?.contactUsRegdOffice ?? "110, Natalwala Building, V. S. Road, Mahim(W), Mumbai - 400 016.",
         contactUsAdminOffice: data?.contactUsAdminOffice ?? "1 & 2, Plot No 423, Landmark Building, Next to Johnson & Johnson, Near Saraswati Mandir School, Senapati Bapat Marg, Mahim(W), Mumbai - 400016.",
         contactUsEmail: data?.contactUsEmail ?? "mescotrust@mescotrust.org",
-        contactUsPhone: data?.contactUsPhone ?? "(+9122) 24441442, (+9122) 24448637",
+        contactUsPhone: data?.contactUsPhone ?? "+91 22 2444 1442 / +91 22 2444 8637",
         contactUsSubjects: data?.contactUsSubjects ?? "General Inquiry, Volunteering, Donation, Partnership, Other",
         contactUsMapEmbedUrl: data?.contactUsMapEmbedUrl ?? "",
         contactUsShowDepartments: data?.contactUsShowDepartments !== false,
@@ -366,7 +366,7 @@ function ContactUsEditForm({ source, initialData: initialDataProp, onSaveToPage,
                   <Input placeholder="e.g. mescotrust@mescotrust.org" />
                 </Form.Item>
                 <Form.Item name="contactUsPhone" label="Phone">
-                  <Input placeholder="e.g. (+9122) 24441442, (+9122) 24448637" />
+                  <Input placeholder="e.g. +91 22 2444 1442 / +91 22 2444 8637" />
                 </Form.Item>
                 <Form.Item name="contactUsSubjects" label="Subject Options" extra="Comma-separated list of subjects for the dropdown">
                   <Input placeholder="General Inquiry, Volunteering, Donation, Partnership, Other" />
@@ -464,7 +464,7 @@ function ContactUsEditForm({ source, initialData: initialDataProp, onSaveToPage,
                               name={[name, "phone"]}
                               label="Phone / Mobile"
                             >
-                              <Input placeholder="e.g. +91 22 24441442" />
+                              <Input placeholder="e.g. +91 22 2444 1442" />
                             </Form.Item>
                           </Col>
                           <Col span={24}>

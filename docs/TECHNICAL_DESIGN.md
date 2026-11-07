@@ -346,7 +346,7 @@ Tracks background bulk optimization jobs.
 | name    | String | yes      | Full name |
 | email   | String | yes      | Email address |
 | mobile  | String | yes      | Mobile number |
-| pan     | String | no       | PAN number |
+| pan     | String | no       | PAN number. Mandatory for donations of ₹50,000 or more, enforced in `/api/payment/initiate` |
 | address | String | no       | Address |
 | city    | String | no       | City |
 | state   | String | no       | State |

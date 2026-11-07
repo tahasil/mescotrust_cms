@@ -157,39 +157,3 @@ export async function POST(req) {
     );
   }
 }
-
-export async function PUT(req) {
-  const session = await requireAuth(req);
-  if (session instanceof NextResponse) return session;
-
-  try {
-    await connectDB();
-    const body = await req.json();
-    const rawItems = Array.isArray(body?.items) ? body.items : [];
-    const items = rawItems
-      .map((it, idx) => ({
-        quote: String(it?.quote || "").trim(),
-        name: String(it?.name || "").trim(),
-        role: String(it?.role || "").trim(),
-        showInSlider: it?.showInSlider === true,
-        order: idx + 1,
-        createdBy: String(session?.id || ""),
-        updatedBy: String(session?.id || ""),
-      }))
-      .filter((it) => it.quote && it.name);
-
-    await TestimonialItem.deleteMany({});
-    if (items.length > 0) {
-      await TestimonialItem.insertMany(items);
-    }
-
-    const saved = await TestimonialItem.find({}).sort({ order: 1 }).lean();
-    return NextResponse.json({ items: saved });
-  } catch (err) {
-    console.error("[Testimonial Item API PUT error]:", err);
-    return NextResponse.json(
-      { error: err.message || "Failed to save testimonial items" },
-      { status: 500 },
-    );
-  }
-}

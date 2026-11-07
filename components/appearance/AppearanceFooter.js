@@ -8,6 +8,7 @@ import {
   LinkedinFilled,
   MailOutlined,
   PhoneOutlined,
+  WhatsAppOutlined,
   YoutubeFilled,
   XOutlined,
 } from "@ant-design/icons";
@@ -44,6 +45,13 @@ function LinkColumn({ title, links = [], titleClassName = "" }) {
   );
 }
 
+// wa.me needs the country code, so a bare 10-digit Indian number gets +91.
+function getWhatsappUrl(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (!digits) return "";
+  return `https://wa.me/${digits.length === 10 ? `91${digits}` : digits}`;
+}
+
 export default function AppearanceFooter({
   siteTitle = "MESCO Trust",
   footerLogoUrl = "",
@@ -55,6 +63,7 @@ export default function AppearanceFooter({
   footerEmailTarget = "_self",
   footerPhone = "",
   footerPhoneTarget = "_self",
+  footerWhatsapp = "",
   footerCol1Title = "Our Works",
   footerCol1Links = [],
   footerCol2Title = "Media",
@@ -79,6 +88,7 @@ export default function AppearanceFooter({
   footerLinkHoverValue = "",
   footerBrandDescriptionValue = "",
 }) {
+  const whatsappUrl = getWhatsappUrl(footerWhatsapp);
   const socials = Array.isArray(footerSocialLinks)
     ? footerSocialLinks.filter((item) => String(item?.url || "").trim())
     : [];
@@ -157,6 +167,7 @@ export default function AppearanceFooter({
           {footerAddress ? <p><EnvironmentOutlined className="contact-icon" aria-hidden="true" /><span>{footerAddress}</span></p> : null}
           {footerEmail ? <p><MailOutlined className="contact-icon" aria-hidden="true" /><a href={`mailto:${footerEmail}`} target={footerEmailTarget === "_blank" ? "_blank" : "_self"} rel={footerEmailTarget === "_blank" ? "noopener noreferrer" : undefined}>{footerEmail}</a></p> : null}
           {footerPhone ? <p><PhoneOutlined className="contact-icon" aria-hidden="true" /><a href={`tel:${footerPhone.replace(/[^+\d]/g, "")}`} target={footerPhoneTarget === "_blank" ? "_blank" : "_self"} rel={footerPhoneTarget === "_blank" ? "noopener noreferrer" : undefined}>{footerPhone}</a></p> : null}
+          {whatsappUrl ? <p><WhatsAppOutlined className="contact-icon" aria-hidden="true" /><a href={whatsappUrl} target="_blank" rel="noopener noreferrer">{footerWhatsapp}</a></p> : null}
         </div>
       </PageContainer>
       <div

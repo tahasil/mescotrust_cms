@@ -12,8 +12,11 @@
  * 8. API-level request payload sanitization (bypassing frontend UI)
  * 9. Rich text editor formatting preservation while stripping unsafe tags
  * 10. JSON-LD inline script breakout prevention (\u003c encoding)
+ * 11. FAQ structured data and FAQ admin API sanitization
+ * 12. Chatbot HTML-to-text conversion never parses unsanitized markup
  */
 
+const fs = require("fs");
 const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "..", ".env"), override: true });
 
@@ -259,6 +262,35 @@ function runTests() {
       const sanitized = sanitizeCssToken(good, "#1a1a1a");
       assert(sanitized === good, `Legitimate CSS token preserved: ${good}`);
     }
+  }
+
+  console.log("\n[Test 11] FAQ structured data and admin API sanitization");
+  {
+    const read = (file) => fs.readFileSync(path.join(__dirname, "..", file), "utf8");
+    const faqs = read("components/site/Faqs/Faqs.js");
+    assert(
+      faqs.includes("serializeJsonLd(jsonLdData)") && !faqs.includes("JSON.stringify(jsonLdData)"),
+      "FAQ JSON-LD goes through the safe serializer",
+    );
+    const breakout = serializeJsonLd({ name: "</script><script>alert(1)</script>" });
+    assert(!breakout.includes("</script"), "FAQ question cannot close the JSON-LD script tag");
+    assert(JSON.parse(breakout).name.includes("</script>"), "Escaped JSON-LD still parses to the original text");
+    for (const file of ["app/api/admin/faqs/route.js", "app/api/admin/faqs/[id]/route.js"]) {
+      const route = read(file);
+      assert(
+        route.includes("sanitizePlainText(body.question)") && route.includes("sanitizeHtml(String(body.answer"),
+        `${file} sanitizes question and answer on save`,
+      );
+    }
+  }
+
+  console.log("\n[Test 12] Chatbot HTML-to-text conversion");
+  {
+    const chatbot = fs.readFileSync(path.join(__dirname, "..", "components/site/ChatbotWidget.js"), "utf8");
+    assert(
+      chatbot.includes("node.innerHTML = DOMPurify.sanitize(formattedHtml)"),
+      "Chatbot sanitizes markup before parsing it into a detached node",
+    );
   }
 
   console.log("\n==========================================================");

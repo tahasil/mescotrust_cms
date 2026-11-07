@@ -62,6 +62,7 @@ function AppearanceFooterEditForm(
           footerEmailTarget: normalizeTarget(record?.footerEmailTarget),
           footerPhone: record?.footerPhone || "",
           footerPhoneTarget: normalizeTarget(record?.footerPhoneTarget),
+          footerWhatsapp: record?.footerWhatsapp || "",
           footerCol1Title: record?.footerCol1Title || "Our Works",
           footerCol1Links: normalizeLinkItems(record?.footerCol1Links),
           footerCol2Title: record?.footerCol2Title || "Media",
@@ -116,6 +117,7 @@ function AppearanceFooterEditForm(
         footerEmailTarget: normalizeTarget(values.footerEmailTarget),
         footerPhone: String(values.footerPhone || "").trim(),
         footerPhoneTarget: normalizeTarget(values.footerPhoneTarget),
+        footerWhatsapp: String(values.footerWhatsapp || "").trim(),
         footerCol1Title: String(values.footerCol1Title || "").trim(),
         footerCol1Links: normalizeLinkItems(values.footerCol1Links),
         footerCol2Title: String(values.footerCol2Title || "").trim(),
@@ -258,6 +260,7 @@ function AppearanceFooterEditForm(
                 <Form.Item name="footerEmailTarget" label="Email target"><Select options={LINK_TARGET_OPTIONS} /></Form.Item>
                 <Form.Item name="footerPhone" label="Phone"><Input /></Form.Item>
                 <Form.Item name="footerPhoneTarget" label="Phone target"><Select options={LINK_TARGET_OPTIONS} /></Form.Item>
+                <Form.Item name="footerWhatsapp" label="WhatsApp number" extra="Shown in the footer as a WhatsApp chat link. Leave empty to hide it."><Input placeholder="e.g. +91 98765 43210" /></Form.Item>
               </>
             ),
           },

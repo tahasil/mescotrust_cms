@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
+import { sanitizeHtml, sanitizePlainText } from "@/lib/security/sanitize";
 import Faq from "@/models/Faq";
 
 export const dynamic = "force-dynamic";
@@ -41,7 +42,7 @@ export async function PUT(req, { params }) {
     }
 
     if (body.question !== undefined) {
-      const q = String(body.question || "").trim();
+      const q = sanitizePlainText(body.question);
       if (!q) {
         return NextResponse.json(
           { error: "Question cannot be empty" },
@@ -52,7 +53,7 @@ export async function PUT(req, { params }) {
     }
 
     if (body.answer !== undefined) {
-      const a = String(body.answer || "").trim();
+      const a = sanitizeHtml(String(body.answer || "").trim());
       if (!a) {
         return NextResponse.json(
           { error: "Answer cannot be empty" },
@@ -63,7 +64,7 @@ export async function PUT(req, { params }) {
     }
 
     if (body.category !== undefined) {
-      faq.category = String(body.category || "General").trim() || "General";
+      faq.category = sanitizePlainText(body.category) || "General";
     }
 
     if (body.order !== undefined) {
@@ -78,7 +79,7 @@ export async function PUT(req, { params }) {
     }
 
     if (body.tags !== undefined && Array.isArray(body.tags)) {
-      faq.tags = body.tags.map((t) => String(t).trim()).filter(Boolean);
+      faq.tags = body.tags.map((t) => sanitizePlainText(t)).filter(Boolean);
     }
 
     if (body.isFeatured !== undefined) {

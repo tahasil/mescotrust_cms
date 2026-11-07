@@ -21,6 +21,7 @@ import {
   toDigits,
 } from "@/lib/formValidation";
 import {
+  applyPanAmountRule,
   computeMultipleSchemesAmount,
   computePurposeAmount,
   DONATE_NOW_BASE_FIELDS,
@@ -32,6 +33,8 @@ import {
   getQuantityFieldLabel,
   isSchemeNonZakatOnly,
   normalizeDonateNowConfig,
+  PAN_REQUIRED_MESSAGE,
+  PAN_REQUIRED_VERIFY_MESSAGE,
   PURPOSE_ID_ALIASES,
 } from "@/lib/donateNowConfig";
 
@@ -105,7 +108,9 @@ function getFieldValidationError(fieldKey, value, fieldConfig, required, selecte
       ? getQuantityFieldLabel(selectedPurpose)
       : fieldConfig?.label || fieldKey;
   if (required && !normalized) {
-    return `${effectiveLabel} is required`;
+    return fieldKey === "pan"
+      ? PAN_REQUIRED_MESSAGE
+      : `${effectiveLabel} is required`;
   }
   if (!normalized) return "";
 
@@ -727,9 +732,42 @@ export default function DonateNow(props = {}) {
     selectedSchemeEntries,
     fieldConfig,
   ]);
-  const hiddenFields = purposeRuleState.hidden;
-  const disabledFields = purposeRuleState.disabled;
-  const requiredFields = purposeRuleState.required;
+
+  const isCustomSingleAmount =
+    isSingleScheme &&
+    (selectedPurpose?.amountMode === "custom" ||
+      selectedPurpose?.amountMode === "fixed_or_custom");
+  const payableAmount =
+    isCustomSingleAmount && Number(fieldValues.amount) > 0
+      ? Number(fieldValues.amount)
+      : totalCalculatedAmount > 0
+        ? totalCalculatedAmount
+        : Number(fieldValues.amount);
+
+  const {
+    hidden: hiddenFields,
+    disabled: disabledFields,
+    required: requiredFields,
+  } = useMemo(
+    () => applyPanAmountRule(purposeRuleState, payableAmount),
+    [purposeRuleState, payableAmount],
+  );
+  const isPanMandatory = requiredFields.has("pan");
+
+  // Lowering the amount below the threshold withdraws any PAN error it caused.
+  useEffect(() => {
+    if (isPanMandatory) return;
+    setErrors((previous) => {
+      const staleField = previous.pan === PAN_REQUIRED_MESSAGE;
+      const staleVerify =
+        previous.donorVerification === PAN_REQUIRED_VERIFY_MESSAGE;
+      if (!staleField && !staleVerify) return previous;
+      const next = { ...previous };
+      if (staleField) delete next.pan;
+      if (staleVerify) delete next.donorVerification;
+      return next;
+    });
+  }, [isPanMandatory]);
 
   const additionalFields = useMemo(() => {
     if (isSingleScheme && selectedPurpose) {
@@ -1526,6 +1564,17 @@ export default function DonateNow(props = {}) {
       if (validationError) nextErrors[key] = validationError;
     });
 
+    // Masked fields are skipped above, so a returning donor with no PAN on
+    // file has to verify before they can add one.
+    if (
+      isPanMandatory &&
+      isExistingDonor &&
+      !lookupState.verified &&
+      !lookupState.requiresPanLast4
+    ) {
+      nextErrors.donorVerification = PAN_REQUIRED_VERIFY_MESSAGE;
+    }
+
     if (selectedCount === 0) {
       nextErrors.purpose = "Please select at least one donation scheme";
     }
@@ -1584,23 +1633,6 @@ export default function DonateNow(props = {}) {
       );
     });
 
-    const isCustomSingleAmount =
-      isSingleScheme &&
-      (selectedPurpose?.amountMode === "custom" ||
-        selectedPurpose?.amountMode === "fixed_or_custom");
-
-    const totalCalculatedAmount = selectedSchemeEntries.reduce(
-      (sum, entry) => sum + entry.subtotal,
-      0,
-    );
-
-    const amount =
-      isCustomSingleAmount && Number(fieldValues.amount) > 0
-        ? Number(fieldValues.amount)
-        : totalCalculatedAmount > 0
-          ? totalCalculatedAmount
-          : Number(fieldValues.amount);
-
     const schemesPayload = selectedSchemeEntries.map((entry) => {
       const entryAmount =
         isCustomSingleAmount && Number(fieldValues.amount) > 0
@@ -1636,7 +1668,7 @@ export default function DonateNow(props = {}) {
 
     // Purpose ID is deliberately not sent: it must never be persisted.
     const payload = {
-      amount,
+      amount: payableAmount,
       currency: paymentSettings.currency || "INR",
       purpose: effectivePurpose,
       schemes: schemesPayload,

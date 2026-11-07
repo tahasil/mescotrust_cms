@@ -635,7 +635,8 @@ function htmlToText(input) {
 
   if (typeof window !== "undefined") {
     const node = document.createElement("div");
-    node.innerHTML = formattedHtml;
+    // A detached node still loads images, so <img onerror> would run unsanitized.
+    node.innerHTML = DOMPurify.sanitize(formattedHtml);
     return String(node.textContent || node.innerText || "")
       .replace(/[ \t]+\n/g, "\n")
       .replace(/\n{3,}/g, "\n\n")

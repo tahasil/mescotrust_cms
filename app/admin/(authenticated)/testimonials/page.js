@@ -13,8 +13,8 @@ import {
   Select,
   Space,
   Spin,
-  Switch,
   Table,
+  Tabs,
   Tag,
   Typography,
   message,
@@ -24,13 +24,12 @@ import {
   CopyOutlined,
   EditOutlined,
   ReloadOutlined,
-  UnorderedListOutlined,
 } from "@ant-design/icons";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { formatDateTime } from "@/lib/formatDate";
 import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
 import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
-import SortableFormList from "@/components/admin/SortableFormList";
+import TestimonialEntriesTable from "@/components/admin/testimonials/TestimonialEntriesTable";
 
 const STATUS_COLORS = {
   draft: "default",
@@ -44,6 +43,8 @@ const STYLE_LABELS = {
 };
 
 const TESTIMONIAL_SEARCH_STORAGE_KEY = "admin-testimonials-search-query-v1";
+const GROUPS_TAB = "groups";
+const MANAGE_TAB = "manage";
 
 const DEFAULT_CARD_ITEMS = [
   {
@@ -93,181 +94,6 @@ function getShortcodeSnippet(shortcode) {
   const value = String(shortcode || "").trim();
   if (!value) return "";
   return `[shortcode="${value}"]`;
-}
-
-/**
- * Shared "Testimonials" pool manager: renders an accordion list of all
- * testimonials using SortableFormList, matching the "Manage Testimonials"
- * design in DonorTestimonials.
- */
-function TestimonialPoolManager({ open, onClose }) {
-  const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [reorderMovedIndex, setReorderMovedIndex] = useState(-1);
-  const [reorderDirection, setReorderDirection] = useState("up");
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/admin/testimonial-items", { cache: "no-store" });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || "Failed to load testimonials");
-      const list = Array.isArray(data?.items) ? data.items : [];
-      form.setFieldsValue({
-        items: list.map((it) => ({
-          _id: it?._id,
-          quote: it?.quote || "",
-          name: it?.name || "",
-          role: it?.role || "",
-          showInSlider: it?.showInSlider === true,
-        })),
-      });
-    } catch (err) {
-      message.error(err?.message || "Failed to load testimonials");
-      form.setFieldsValue({ items: [] });
-    } finally {
-      setLoading(false);
-    }
-  }, [form]);
-
-  useEffect(() => {
-    if (!open) return;
-    load();
-  }, [open, load]);
-
-  const handleSave = async () => {
-    try {
-      const values = await form.validateFields();
-      setSaving(true);
-      const rawItems = values?.items || [];
-      const items = rawItems
-        .map((it, idx) => ({
-          quote: String(it?.quote || "").trim(),
-          name: String(it?.name || "").trim(),
-          role: String(it?.role || "").trim(),
-          showInSlider: it?.showInSlider === true,
-          order: idx + 1,
-        }))
-        .filter((it) => it.quote && it.name);
-
-      const res = await fetch("/api/admin/testimonial-items", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || "Failed to save testimonials");
-      message.success("Testimonials saved successfully");
-      onClose();
-    } catch (err) {
-      if (err?.errorFields) {
-        message.error("Please fill in required fields");
-      } else {
-        message.error(err?.message || "Failed to save testimonials");
-      }
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <Drawer
-      title={
-        <Space>
-          <UnorderedListOutlined />
-          <span>Manage Testimonials</span>
-        </Space>
-      }
-      placement="right"
-      width={Math.min(640, typeof window !== "undefined" ? window.innerWidth * 0.94 : 640)}
-      open={open}
-      onClose={onClose}
-      extra={
-        <Button
-          type="primary"
-          icon={<CheckOutlined />}
-          loading={saving}
-          onClick={handleSave}
-        >
-          Update
-        </Button>
-      }
-    >
-      {loading ? (
-        <div style={{ padding: 60, textAlign: "center" }}>
-          <Spin size="large" />
-        </div>
-      ) : (
-        <Form form={form} layout="vertical">
-          <Form.List name="items">
-            {(fields, { add, remove, move }) => (
-              <SortableFormList
-                fields={fields}
-                add={add}
-                remove={remove}
-                move={move}
-                itemLabel="Testimonial"
-                addButtonText="Add testimonial"
-                defaultAddPayload={{
-                  quote: "",
-                  name: "",
-                  role: "",
-                  showInSlider: true,
-                }}
-                reorderMovedIndex={reorderMovedIndex}
-                reorderDirection={reorderDirection}
-                onMoveWithTransition={(from, to) => {
-                  setReorderDirection(to < from ? "up" : "down");
-                  setReorderMovedIndex(to);
-                  setTimeout(() => setReorderMovedIndex(-1), 400);
-                }}
-                renderItemContent={(name, restField) => (
-                  <Row gutter={[16, 16]}>
-                    <Col span={24}>
-                      <Form.Item
-                        {...restField}
-                        name={[name, "showInSlider"]}
-                        label="Show in Slider"
-                        valuePropName="checked"
-                      >
-                        <Switch />
-                      </Form.Item>
-                    </Col>
-                    <Col span={24}>
-                      <Form.Item
-                        {...restField}
-                        name={[name, "quote"]}
-                        label="Quote"
-                        rules={[{ required: true, message: "Quote is required" }]}
-                      >
-                        <Input.TextArea rows={4} placeholder="Donor testimonial text..." size="large" />
-                      </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                      <Form.Item
-                        {...restField}
-                        name={[name, "name"]}
-                        label="Name"
-                        rules={[{ required: true, message: "Name is required" }]}
-                      >
-                        <Input placeholder="e.g. Mr. Mohsin Shaikh" size="large" />
-                      </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                      <Form.Item {...restField} name={[name, "role"]} label="Role / Title">
-                        <Input placeholder="e.g. Education Sponsor" size="large" />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-                )}
-              />
-            )}
-          </Form.List>
-        </Form>
-      )}
-    </Drawer>
-  );
 }
 
 function TestimonialFormDrawer({ open, record, onClose, onSaved }) {
@@ -552,11 +378,14 @@ export default function AdminTestimonialsListPage() {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
-  const [poolOpen, setPoolOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState(GROUPS_TAB);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("tab") === MANAGE_TAB) {
+      setActiveTab(MANAGE_TAB);
+    }
     const urlSearch = urlParams.get("search") || urlParams.get("q");
     const resolvedSearch = resolveAdminStoredFilter(TESTIMONIAL_SEARCH_STORAGE_KEY, urlSearch);
     if (resolvedSearch) {
@@ -584,6 +413,22 @@ export default function AdminTestimonialsListPage() {
       const newUrl = `${window.location.pathname}${newSearch ? `?${newSearch}` : ""}`;
       window.history.replaceState(null, "", newUrl);
     }
+  };
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    const params = new URLSearchParams(window.location.search);
+    if (tab === MANAGE_TAB) {
+      params.set("tab", MANAGE_TAB);
+    } else {
+      params.delete("tab");
+    }
+    const nextSearch = params.toString();
+    window.history.replaceState(
+      null,
+      "",
+      `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ""}`,
+    );
   };
 
   const fetchTestimonials = useCallback(
@@ -737,42 +582,56 @@ export default function AdminTestimonialsListPage() {
   );
 
   return (
-    <ThemeAdminCard
-      title="Testimonials Management"
-      extra={
-        <Space>
-          <Input.Search
-            allowClear
-            placeholder="Search testimonials by name, title, or shortcode"
-            style={{ width: 300 }}
-            value={search}
-            onChange={handleSearchChange}
-          />
-          <Button icon={<ReloadOutlined />} onClick={() => fetchTestimonials(page, search)}>
-            Refresh
-          </Button>
-          <Button type="primary" icon={<UnorderedListOutlined />} onClick={() => setPoolOpen(true)}>
-            Manage Testimonials
-          </Button>
-        </Space>
-      }
-    >
-      <Table
-        rowKey="_id"
-        loading={adminTableLoading(loading)}
-        locale={adminTableLocale(loading)}
-        columns={columns}
-        dataSource={items}
-        pagination={{
-          current: page,
-          pageSize: 20,
-          total,
-          showTotal: (val) => `${val} testimonial(s)`,
-          onChange: (nextPage) => {
-            setPage(nextPage);
-            fetchTestimonials(nextPage, search);
+    <ThemeAdminCard title="Testimonials Management">
+      <Tabs
+        activeKey={activeTab}
+        onChange={handleTabChange}
+        items={[
+          {
+            key: GROUPS_TAB,
+            label: "Testimonial Groups",
+            children: (
+              <>
+                <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
+                  <Space wrap>
+                    <Input.Search
+                      allowClear
+                      placeholder="Search testimonials by name, title, or shortcode"
+                      style={{ width: 300, maxWidth: "100%" }}
+                      value={search}
+                      onChange={handleSearchChange}
+                    />
+                    <Button icon={<ReloadOutlined />} onClick={() => fetchTestimonials(page, search)}>
+                      Refresh
+                    </Button>
+                  </Space>
+                </div>
+                <Table
+                  rowKey="_id"
+                  loading={adminTableLoading(loading)}
+                  locale={adminTableLocale(loading)}
+                  columns={columns}
+                  dataSource={items}
+                  pagination={{
+                    current: page,
+                    pageSize: 20,
+                    total,
+                    showTotal: (val) => `${val} testimonial(s)`,
+                    onChange: (nextPage) => {
+                      setPage(nextPage);
+                      fetchTestimonials(nextPage, search);
+                    },
+                  }}
+                />
+              </>
+            ),
           },
-        }}
+          {
+            key: MANAGE_TAB,
+            label: "Manage Testimonials",
+            children: <TestimonialEntriesTable />,
+          },
+        ]}
       />
 
       <TestimonialFormDrawer
@@ -781,8 +640,6 @@ export default function AdminTestimonialsListPage() {
         onClose={() => setDrawerOpen(false)}
         onSaved={() => fetchTestimonials(page, search)}
       />
-
-      <TestimonialPoolManager open={poolOpen} onClose={() => setPoolOpen(false)} />
     </ThemeAdminCard>
   );
 }

@@ -14,6 +14,13 @@ import {
   normalizeText,
 } from "@/lib/formValidation";
 
+function splitPhoneNumbers(value) {
+  return String(value || "")
+    .split(/\s*[/,]\s*/)
+    .map((number) => number.trim())
+    .filter(Boolean);
+}
+
 const DEFAULT_DEPARTMENTS = [
   {
     name: "Donations & Fundraising",
@@ -67,7 +74,7 @@ const DEFAULT_DEPARTMENTS = [
     name: "General Enquiries",
     contactPerson: "MESCO Trust office",
     email: "mescotrust@mescotrust.org",
-    phone: "+91 22 24441442 / +91 22 24448637",
+    phone: "+91 22 2444 1442 / +91 22 2444 8637",
     enquiryLink: "",
     enquiryBtnText: "Enquire Now",
   },
@@ -593,7 +600,7 @@ export default function ContactForm({
     adminOffice:
       "1 & 2, Plot No 423, Landmark Building, Next to Johnson & Johnson, Near Saraswati Mandir School, Senapati Bapat Marg, Mahim(W), Mumbai - 400016.",
     email: "mescotrust@mescotrust.org",
-    phone: "(+9122) 24441442, (+9122) 24448637",
+    phone: "+91 22 2444 1442 / +91 22 2444 8637",
   };
 
   const departments =
@@ -958,9 +965,15 @@ export default function ContactForm({
                               </svg>
                             </span>
                             <span className="dept-val">
-                              <a href={`tel:${dept.phone.replace(/[^0-9+]/g, "")}`} className="dept-link">
-                                {dept.phone}
-                              </a>
+                              {/* One link per number: a joined tel: link can't be dialled. */}
+                              {splitPhoneNumbers(dept.phone).map((number, index) => (
+                                <span key={number}>
+                                  {index > 0 ? " / " : null}
+                                  <a href={`tel:${number.replace(/[^0-9+]/g, "")}`} className="dept-link">
+                                    {number}
+                                  </a>
+                                </span>
+                              ))}
                             </span>
                           </div>
                         )}

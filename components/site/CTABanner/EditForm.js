@@ -17,7 +17,7 @@ import {
 const API_PATH = "/api/theme/CTABanner";
 const DEFAULTS = {
   ctaBannerTitle: "Be someone's *tomorrow.*",
-  ctaBannerDonateText: "Donate Now",
+  ctaBannerDonateText: "Become a Donor",
   ctaBannerDonateLink: "/donate-now",
   ctaBannerDonateTarget: "_self",
   ctaBannerVolunteerText: "Become a Volunteer",

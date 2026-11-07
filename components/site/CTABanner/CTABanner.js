@@ -59,7 +59,7 @@ function CtaButton({ className, href, target, children, onOpenPdf }) {
 
 export default function CTABanner(props) {
   const title = text(props?.ctaBannerTitle, "Be someone's *tomorrow.*");
-  const donateText = text(props?.ctaBannerDonateText, "Donate Now");
+  const donateText = text(props?.ctaBannerDonateText, "Become a Donor");
   const donateLink = text(props?.ctaBannerDonateLink, "/donate-now");
   const volunteerText = text(
     props?.ctaBannerVolunteerText,

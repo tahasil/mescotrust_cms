@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
+import { sanitizeHtml, sanitizePlainText } from "@/lib/security/sanitize";
 import Faq from "@/models/Faq";
 import { DEFAULT_FAQS, DEFAULT_FAQ_CATEGORIES } from "@/lib/faqDefaults";
 
@@ -92,15 +93,15 @@ export async function POST(req) {
     await connectDB();
     const body = await req.json();
 
-    const question = String(body.question || "").trim();
-    const answer = String(body.answer || "").trim();
-    const category = String(body.category || "General").trim();
+    const question = sanitizePlainText(body.question);
+    const answer = sanitizeHtml(String(body.answer || "").trim());
+    const category = sanitizePlainText(body.category) || "General";
     const order = Number.isFinite(Number(body.order)) ? Number(body.order) : 0;
     const status = ["published", "draft", "archived"].includes(body.status)
       ? body.status
       : "published";
     const tags = Array.isArray(body.tags)
-      ? body.tags.map((t) => String(t).trim()).filter(Boolean)
+      ? body.tags.map((t) => sanitizePlainText(t)).filter(Boolean)
       : [];
     const isFeatured = Boolean(body.isFeatured);
 

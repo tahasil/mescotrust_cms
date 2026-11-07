@@ -1063,6 +1063,20 @@ a {
   word-break: break-word;
 }
 
+/* Body copy is justified, but phones keep left-aligned text because justifying
+   a narrow column leaves wide gaps. Explicitly centred or right-aligned content
+   keeps its alignment. */
+@media (min-width: 768px) {
+  .rich-content :is(p, li):not(
+    .ql-align-center, .ql-align-right,
+    .text-center *,
+    [style*="text-align:center"] *, [style*="text-align: center"] *,
+    [style*="text-align:right"] *, [style*="text-align: right"] *
+  ) {
+    text-align: justify;
+  }
+}
+
 /* Reusable page-builder sections based on the current MESCO design system. */
 .fable-section {
   --fable-primary: var(--primary-color, var(--theme-primary));
@@ -1096,6 +1110,7 @@ a {
 }
 .fable-heading {
   max-width: 18ch;
+  text-wrap: balance;
   margin: 0 0 clamp(28px, 4vw, 54px);
   color: var(--fable-ink);
   font-family: var(--fable-display);
@@ -1463,7 +1478,8 @@ div:has(> .fable-section.fable-scheme) {
 }
 
 .fable-page-hero .fable-page-hero__title {
-  max-width: 15ch;
+  max-width: 24ch;
+  text-wrap: balance;
   margin: 0 0 20px;
   color: var(--theme-cream, #fbfaf7);
   font-family: var(--fable-display);
