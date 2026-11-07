@@ -26,47 +26,19 @@ console.log("\n========================================================");
 console.log(" Running CMS Documentation & Sidebar Submenus Contract Tests");
 console.log("========================================================\n");
 
-// Scenario 1: Sidebar Extension with Submenus in AdminLayoutClient.js
-runScenario("Scenario 1: Sidebar Extension includes 'Documentation' group with comprehensive submenus", () => {
+// Scenario 1: One sidebar link. Moving between guides happens on the guide page.
+runScenario("Scenario 1: Sidebar has a single Documentation link with no submenu", () => {
   const filePath = path.join(__dirname, "..", "components", "admin", "AdminLayoutClient.js");
   const content = fs.readFileSync(filePath, "utf-8");
 
-  assert(content.includes('key: "group:admin:documentation"'), "AdminLayoutClient.js must define group:admin:documentation");
-  assert(content.includes('label: "Documentation"'), "AdminLayoutClient.js must label the group 'Documentation'");
+  assert(content.includes('key: "/admin/documentation"'), "Sidebar must link to /admin/documentation");
   assert(content.includes("ReadOutlined"), "AdminLayoutClient.js must use ReadOutlined icon");
-
-  // Check key submenus
-  const requiredSubmenuKeys = [
-    "/admin/documentation",
-    "/admin/documentation/dashboard",
-    "/admin/documentation/pages",
-    "/admin/documentation/components",
-    "/admin/documentation/appearance-header",
-    "/admin/documentation/appearance-header-ribbon",
-    "/admin/documentation/appearance-footer",
-    "/admin/documentation/menus",
-    "/admin/documentation/chatbot",
-    "/admin/documentation/social-wall",
-    "/admin/documentation/form-builder",
-    "/admin/documentation/sliders",
-    "/admin/documentation/popups",
-    "/admin/documentation/push-notifications",
-    "/admin/documentation/team",
-    "/admin/documentation/testimonials",
-    "/admin/documentation/gallery",
-    "/admin/documentation/faqs",
-    "/admin/documentation/blogs",
-    "/admin/documentation/events",
-    "/admin/documentation/media",
-    "/admin/documentation/submissions",
-    "/admin/documentation/settings",
-    "/admin/documentation/users",
-    "/admin/documentation/rbac",
-  ];
-
-  requiredSubmenuKeys.forEach((key) => {
-    assert(content.includes(`key: "${key}"`), `Submenu key '${key}' must exist in AdminLayoutClient.js`);
-  });
+  assert(!content.includes("group:admin:documentation"), "Documentation must not be a submenu group");
+  assert(!/key: "\/admin\/documentation\//.test(content), "Individual guides must not be listed in the sidebar");
+  assert(
+    content.includes('startsWith("/admin/documentation/")'),
+    "Guide pages must keep the Documentation link highlighted",
+  );
 });
 
 // Scenario 2: RBAC permissions catalog includes documentation module and controls
@@ -112,10 +84,11 @@ runScenario("Scenario 3: Route app/admin/(authenticated)/documentation/[module]/
 
   const sheetContent = fs.readFileSync(sheetPath, "utf-8");
   assert(sheetContent.includes("ThemeAdminCard"), "DocumentGuideSheet must use standard ThemeAdminCard layout");
-  assert(sheetContent.includes("Open page"), "DocumentGuideSheet must provide 'Open page' action");
-  assert(sheetContent.includes("Admin panel guide"), "DocumentGuideSheet header must contain 'Admin panel guide'");
-  assert(sheetContent.includes("Previous"), "DocumentGuideSheet must have Previous button");
-  assert(sheetContent.includes("Next →"), "DocumentGuideSheet must have Next button");
+  assert(sheetContent.includes("Open {guide.title}"), "DocumentGuideSheet must link to the screen it describes");
+  assert(sheetContent.includes('href="/admin/documentation"'), "DocumentGuideSheet must link back to Documentation");
+  assert(sheetContent.includes('aria-label="All guides"'), "DocumentGuideSheet must list the guides beside the article");
+  assert(sheetContent.includes("Previous: {previous.title}"), "DocumentGuideSheet must name the previous guide");
+  assert(sheetContent.includes("Next: {next.title}"), "DocumentGuideSheet must name the next guide");
   assert(!sheetContent.includes("All Documentation Guides"), "Middle button must be removed");
   assert(sheetContent.includes("@page {"), "DocumentGuideSheet must define @page A4 print configuration");
   assert(sheetContent.includes("print-color-adjust: exact"), "DocumentGuideSheet must force exact print color adjustment");
@@ -170,7 +143,7 @@ runScenario("Scenario 4: Catalog lib/documentation/adminGuidesData.js contains a
 });
 
 // Scenario 5: Beginner-Friendly Step-by-Step Format Integrity Matching User Reference
-runScenario("Scenario 5: Every module guide contains structured tables, numbered steps, and 'A few things to keep in mind'", () => {
+runScenario("Scenario 5: Every guide has the required fields, and key tasks stay documented", () => {
   const dataPath = path.join(__dirname, "..", "lib", "documentation", "adminGuidesData.js");
   const content = fs.readFileSync(dataPath, "utf-8");
 
@@ -190,13 +163,10 @@ runScenario("Scenario 5: Every module guide contains structured tables, numbered
   guides.forEach((g) => {
     assert(g.id, `Module must have an id`);
     assert(g.title, `Module ${g.id} must have a title`);
-    assert(g.documentTitle, `Module ${g.id} must have a documentTitle`);
-    assert(g.documentSubtitle, `Module ${g.id} must have a documentSubtitle`);
-    assert(g.auditReference, `Module ${g.id} must have an auditReference`);
     assert(g.adminRoute, `Module ${g.id} must have an adminRoute`);
     assert(g.summary, `Module ${g.id} must have a summary`);
     assert(Array.isArray(g.sections) && g.sections.length > 0, `Module ${g.id} must have sections`);
-    assert(Array.isArray(g.keepInMind) && g.keepInMind.length > 0, `Module ${g.id} must have keepInMind takeaways`);
+    assert(Array.isArray(g.keepInMind), `Module ${g.id} must have a keepInMind list, even if it's empty`);
   });
 
   // Verify Pages matches PDF 1
@@ -211,7 +181,6 @@ runScenario("Scenario 5: Every module guide contains structured tables, numbered
   // Verify Menus matches PDF 2
   const menusGuide = guides.find((g) => g.id === "menus");
   assert(menusGuide, "Menus guide must exist");
-  assert(menusGuide.tables.some((t) => t.title.includes("Field Controls")), "Menus guide must include Field controls table");
   assert(menusGuide.sections.some((s) => s.title.includes("Changing the order")), "Menus guide must include Changing the order");
 
   // Verify Sliders matches PDF 3
@@ -236,7 +205,7 @@ runScenario("Scenario 6: Every module in adminGuidesData contains structured hea
     assert(guide.adminRoute && guide.adminRoute.startsWith("/admin"), `Guide ${guide.id} must have adminRoute`);
     assert(guide.whereManaged && typeof guide.whereManaged === "string", `Guide ${guide.id} must describe whereManaged`);
     assert(Array.isArray(guide.sections) && guide.sections.length > 0, `Guide ${guide.id} must have sections`);
-    assert(Array.isArray(guide.keepInMind) && guide.keepInMind.length > 0, `Guide ${guide.id} must have keepInMind points`);
+    assert(Array.isArray(guide.keepInMind), `Guide ${guide.id} must have a keepInMind list`);
 
     // Verify at least one section has structured steps
     const hasSteps = guide.sections.some((s) => Array.isArray(s.steps) && s.steps.length > 0);
@@ -244,13 +213,68 @@ runScenario("Scenario 6: Every module in adminGuidesData contains structured hea
   });
 });
 
-// Scenario 7: In-App Hub Links to Individual Sub-Pages
-runScenario("Scenario 7: DocumentationHub component links directly to sub-routes (/admin/documentation/[module])", () => {
+// Scenario 7: The documentation page is a searchable, grouped index
+runScenario("Scenario 7: DocumentationHub is a grouped index with search, linking to each guide", () => {
   const hubPath = path.join(__dirname, "..", "components", "admin", "documentation", "DocumentationHub.js");
   const content = fs.readFileSync(hubPath, "utf-8");
 
-  assert(content.includes("/admin/documentation/"), "DocumentationHub must link directly to module sub-pages");
-  assert(content.includes("Read Guide →"), "DocumentationHub must contain Read Guide action linking to sub-page");
+  assert(content.includes("/admin/documentation/"), "DocumentationHub must link to the guides");
+  assert(content.includes("DOCUMENTATION_GROUPS"), "DocumentationHub must group the guides");
+  assert(content.includes("COMMON_TASKS"), "DocumentationHub must offer common tasks");
+  assert(content.includes("searchGuides"), "DocumentationHub must be searchable");
+  assert(!content.includes("Read Guide"), "DocumentationHub must not repeat a button on every guide");
+});
+
+// Scenario 8: Groups and common tasks can't drift from the guides
+runScenario("Scenario 8: Every guide is in exactly one group, and common tasks point at real sections", () => {
+  const dataPath = path.join(__dirname, "..", "lib", "documentation", "adminGuidesData.js");
+  const { ADMIN_MODULE_GUIDES, COMMON_TASKS, DOCUMENTATION_GROUPS, getGuideById } = require(dataPath);
+
+  const grouped = DOCUMENTATION_GROUPS.flatMap((group) => group.guides);
+  assert.strictEqual(new Set(grouped).size, grouped.length, "A guide must not appear in two groups");
+  assert.deepStrictEqual(
+    [...grouped].sort(),
+    ADMIN_MODULE_GUIDES.map((guide) => guide.id).sort(),
+    "Groups must list every guide",
+  );
+  COMMON_TASKS.forEach((task) => {
+    const guide = getGuideById(task.guide);
+    assert(guide, `Common task '${task.label}' points at a missing guide`);
+    assert(
+      guide.sections.some((section) => section.title === task.section),
+      `Common task '${task.label}' points at a missing section: ${task.section}`,
+    );
+  });
+});
+
+// Scenario 9: A guide can't describe a screen that doesn't exist
+runScenario("Scenario 9: Every guide's Open button goes to a real admin screen", () => {
+  const dataPath = path.join(__dirname, "..", "lib", "documentation", "adminGuidesData.js");
+  const { ADMIN_MODULE_GUIDES } = require(dataPath);
+  const adminRoot = path.join(__dirname, "..", "app", "admin", "(authenticated)");
+
+  ADMIN_MODULE_GUIDES.forEach((guide) => {
+    const relative = guide.adminRoute.replace(/^\/admin\/?/, "");
+    assert(
+      fs.existsSync(path.join(adminRoot, relative, "page.js")),
+      `Guide ${guide.id} links to ${guide.adminRoute}, which has no page`,
+    );
+  });
+});
+
+// Scenario 10: The writing stays plain
+runScenario("Scenario 10: Guides are free of filler and marketing language", () => {
+  const dataPath = path.join(__dirname, "..", "lib", "documentation", "adminGuidesData.js");
+  const { ADMIN_MODULE_GUIDES } = require(dataPath);
+  const banned =
+    /\b(seamless(ly)?|robust|comprehensive|powerful|leverag\w+|streamlin\w+|mission control|command cent(er|re)|real-time|instant(ly)?|operational|ecosystem|empower\w*|effortless(ly)?|intuitive|utili[sz]\w+|facilitat\w+|citizen|at a glance|on the fly|pulse|navigate to|in order to|cutting-edge|state-of-the-art|game-changing|elevate|simply|please note)\b/i;
+
+  ADMIN_MODULE_GUIDES.forEach((guide) => {
+    const words = JSON.stringify(guide);
+    const match = words.match(banned);
+    assert(!match, `Guide ${guide.id} contains "${match && match[0]}"`);
+    assert(!/[\u{1F300}-\u{1FAFF}]/u.test(words), `Guide ${guide.id} contains an emoji`);
+  });
 });
 
 console.log("\n========================================================");

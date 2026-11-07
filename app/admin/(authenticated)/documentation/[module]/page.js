@@ -1,11 +1,12 @@
 import DocumentGuideSheet from "@/components/admin/documentation/DocumentGuideSheet";
-import { getGuideById, ADMIN_MODULE_GUIDES } from "@/lib/documentation/adminGuidesData";
+import { getGuideById } from "@/lib/documentation/adminGuidesData";
+import { plainGuideText } from "@/components/admin/documentation/guideText";
 
 export function generateMetadata({ params }) {
   const guide = getGuideById(params?.module);
   return {
-    title: `${guide?.documentTitle || guide?.title || "Guide"} | MESCO CMS Documentation`,
-    description: guide?.summary || "MESCO Trust CMS Admin Documentation Guide",
+    title: `${guide?.title || "Guide"} | Documentation`,
+    description: plainGuideText(guide?.summary) || "MESCO Trust admin guide",
   };
 }
 

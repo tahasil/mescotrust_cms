@@ -182,7 +182,7 @@ NPM scripts:
 - `npm run test:donor-history` -> donation history (DON-05) contract tests: offline OTP/session/PII checks, plus HTTP scenarios when `npm run dev` is running (set `DONOR_HISTORY_TEST_EMAIL` to also exercise real code and receipt emails)
 - `npm run test:faqs` -> 10-scenario contract test suite for FAQ management, document section 6 requirements, admin sidebar, and shortcode integration
 - `npm run test:event-rsvp` -> 19-scenario offline contract test suite for event RSVP (NEW-06): seat rules, closing rules, change links, calendar files and emails
-- `npm run test:documentation` -> 7-scenario contract test suite for Admin Sidebar Documentation extension, RBAC route access, in-app documentation hub, and 24-module step-by-step workflow coverage
+- `npm run test:documentation` -> 10-scenario contract test suite for the Documentation sidebar link, RBAC route access, the in-app documentation hub, 24-module guide coverage, real screen links, and plain writing
 
 ## 7. Standard Workflows
 
@@ -422,10 +422,10 @@ Key implementation files:
 - `app/admin/(authenticated)/faqs/page.js` (Admin FAQs module with category filtering, CRUD, and shortcode copy helper)
 - `components/site/Faqs/Faqs.js` (Public FAQs component with live search, category tabs, accessible accordion, and Schema.org FAQPage JSON-LD)
 - `scripts/test-faqs-contracts.js` (Automated 10-scenario contract test suite for FAQs and shortcode integration)
-- `lib/documentation/adminGuidesData.js` (Single source of truth for in-app CMS documentation and step-by-step module workflows across all 24 sidebar modules)
-- `components/admin/documentation/DocumentationHub.js` (Centralized interactive documentation hub with live search, categories, and module guides)
+- `lib/documentation/adminGuidesData.js` (Single source of truth for in-app CMS documentation: guide groups, common tasks and all 24 guides. Written for MESCO office staff, checked against the real screens)
+- `components/admin/documentation/DocumentationHub.js` (Documentation page: search, common tasks and guides grouped by topic)
 - `app/admin/(authenticated)/documentation/page.js` (Admin documentation hub route `/admin/documentation`)
-- `scripts/test-documentation-contracts.js` (Automated 7-scenario contract test suite for sidebar documentation extension, RBAC route access, and module coverage)
+- `scripts/test-documentation-contracts.js` (Automated 10-scenario contract test suite for the Documentation link, RBAC route access, guide coverage, and plain writing)
 
 ---
 

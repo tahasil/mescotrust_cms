@@ -1,175 +1,200 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import Link from "next/link";
+import { Input } from "antd";
+import { SearchOutlined } from "@ant-design/icons";
+import { ThemeAdminCard } from "@/styles/Theme";
 import {
-  Card,
-  Typography,
-  Tag,
-  Button,
-  Space,
-  Row,
-  Col,
-  Tooltip,
-} from "antd";
-import {
-  DashboardOutlined,
-  FileTextOutlined,
-  AppstoreOutlined,
-  InsertRowAboveOutlined,
-  NotificationOutlined,
-  InsertRowBelowOutlined,
-  MenuOutlined,
-  RobotOutlined,
-  ShareAltOutlined,
-  FormOutlined,
-  SlidersOutlined,
-  BorderOutlined,
-  BellOutlined,
-  TeamOutlined,
-  CommentOutlined,
-  PictureOutlined,
-  QuestionCircleOutlined,
-  BookOutlined,
-  CalendarOutlined,
-  InboxOutlined,
-  SettingOutlined,
-  UserOutlined,
-  SafetyCertificateOutlined,
-  LinkOutlined,
-  ReadOutlined,
-  FolderOpenOutlined,
-} from "@ant-design/icons";
-import { ADMIN_MODULE_GUIDES } from "@/lib/documentation/adminGuidesData";
+  ADMIN_MODULE_GUIDES,
+  COMMON_TASKS,
+  DOCUMENTATION_GROUPS,
+  getGuideById,
+} from "@/lib/documentation/adminGuidesData";
+import { getSectionAnchor, plainGuideText } from "@/components/admin/documentation/guideText";
 
-const { Title, Text, Paragraph } = Typography;
+function sectionHref(guideId, sectionTitle) {
+  return `/admin/documentation/${guideId}#${getSectionAnchor(sectionTitle)}`;
+}
 
-const ICON_MAP = {
-  DashboardOutlined: <DashboardOutlined />,
-  FileTextOutlined: <FileTextOutlined />,
-  AppstoreOutlined: <AppstoreOutlined />,
-  InsertRowAboveOutlined: <InsertRowAboveOutlined />,
-  NotificationOutlined: <NotificationOutlined />,
-  InsertRowBelowOutlined: <InsertRowBelowOutlined />,
-  MenuOutlined: <MenuOutlined />,
-  RobotOutlined: <RobotOutlined />,
-  ShareAltOutlined: <ShareAltOutlined />,
-  FormOutlined: <FormOutlined />,
-  SlidersOutlined: <SlidersOutlined />,
-  BorderOutlined: <BorderOutlined />,
-  BellOutlined: <BellOutlined />,
-  TeamOutlined: <TeamOutlined />,
-  CommentOutlined: <CommentOutlined />,
-  PictureOutlined: <PictureOutlined />,
-  QuestionCircleOutlined: <QuestionCircleOutlined />,
-  BookOutlined: <BookOutlined />,
-  CalendarOutlined: <CalendarOutlined />,
-  InboxOutlined: <InboxOutlined />,
-  SettingOutlined: <SettingOutlined />,
-  UserOutlined: <UserOutlined />,
-  SafetyCertificateOutlined: <SafetyCertificateOutlined />,
-  FolderOpenOutlined: <FolderOpenOutlined />,
-};
+/** Guides matching the search, each with the tasks inside it that matched. */
+function searchGuides(query) {
+  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+  const matches = (text) => {
+    const haystack = plainGuideText(text).toLowerCase();
+    return words.every((word) => haystack.includes(word));
+  };
 
-function getModuleIcon(iconName) {
-  return ICON_MAP[iconName] || <ReadOutlined />;
+  return ADMIN_MODULE_GUIDES.map((guide) => {
+    const sections = guide.sections.filter((section) =>
+      matches([section.title, section.paragraph, ...(section.steps || [])].join(" ")),
+    );
+    const guideMatches = matches([guide.title, guide.summary].join(" "));
+    return guideMatches || sections.length ? { guide, sections } : null;
+  }).filter(Boolean);
 }
 
 export default function DocumentationHub() {
+  const [query, setQuery] = useState("");
+  const trimmed = query.trim();
+  const results = useMemo(() => (trimmed ? searchGuides(trimmed) : []), [trimmed]);
+
   return (
-    <div style={{ padding: "8px 0 50px 0" }}>
-      {/* Modules Cards Grid */}
-      <Row gutter={[20, 20]}>
-        {ADMIN_MODULE_GUIDES.map((module) => (
-          <Col xs={24} sm={12} lg={8} key={module.id}>
-            <Card
-              hoverable
-              style={{
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                borderRadius: 10,
-                border: "1px solid #e5e7eb",
-                transition: "all 0.2s ease-in-out",
-              }}
-              bodyStyle={{
-                padding: 20,
-                display: "flex",
-                flexDirection: "column",
-                flex: 1,
-              }}
-            >
-              <div>
-                {/* Card Top Icon & Badges */}
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    marginBottom: 12,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 10,
-                      backgroundColor: "#e6f4ff",
-                      color: "#1677ff",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 22,
-                    }}
-                  >
-                    {getModuleIcon(module.icon)}
-                  </div>
-                  <Tag color="blue" style={{ margin: 0 }}>
-                    {module.badge}
-                  </Tag>
-                </div>
+    <ThemeAdminCard title="Documentation">
+      <div className="doc-hub">
+        <p className="doc-hub-intro">
+          How to do things in the MESCO admin panel. Search for what you need, or pick a topic below.
+        </p>
 
-                {/* Card Title & Category */}
-                <Title level={4} style={{ margin: "0 0 4px 0", fontSize: 17, fontWeight: 600 }}>
-                  <Link href={`/admin/documentation/${module.id}`} style={{ color: "inherit" }}>
-                    {module.documentTitle || module.title}
-                  </Link>
-                </Title>
-                <Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 10 }}>
-                  {module.categoryLabel} • {module.adminRoute}
-                </Text>
+        <Input
+          allowClear
+          size="large"
+          prefix={<SearchOutlined />}
+          placeholder="Search, for example: publish a page"
+          aria-label="Search the documentation"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          className="doc-hub-search"
+        />
 
-                {/* Summary */}
-                <Paragraph
-                  ellipsis={{ rows: 3 }}
-                  style={{ fontSize: 13, color: "#4b5563", lineHeight: 1.5, marginBottom: 14 }}
-                >
-                  {module.summary}
-                </Paragraph>
-              </div>
+        {trimmed ? (
+          <section aria-live="polite">
+            <h2 className="doc-hub-heading">
+              {results.length
+                ? `${results.length} ${results.length === 1 ? "guide" : "guides"} found`
+                : "Nothing found"}
+            </h2>
+            {results.length ? (
+              <ul className="doc-hub-results">
+                {results.map(({ guide, sections }) => (
+                  <li key={guide.id}>
+                    <Link href={`/admin/documentation/${guide.id}`} className="doc-hub-link">
+                      {guide.title}
+                    </Link>
+                    <p>{plainGuideText(guide.summary)}</p>
+                    {sections.length ? (
+                      <ul className="doc-hub-sections">
+                        {sections.map((section) => (
+                          <li key={section.title}>
+                            <Link href={sectionHref(guide.id, section.title)}>{section.title}</Link>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="doc-hub-empty">Try a shorter word, like “menu” or “photo”.</p>
+            )}
+          </section>
+        ) : (
+          <>
+            <section>
+              <h2 className="doc-hub-heading">Common tasks</h2>
+              <ul className="doc-hub-tasks">
+                {COMMON_TASKS.map((task) => (
+                  <li key={task.label}>
+                    <Link href={sectionHref(task.guide, task.section)}>{task.label}</Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
 
-              {/* Bottom Actions */}
-              <div style={{ borderTop: "1px solid #f0f0f0", paddingTop: 14, marginTop: "auto" }}>
-                <Space style={{ width: "100%", justifyContent: "space-between" }}>
-                  <Link href={`/admin/documentation/${module.id}`}>
-                    <Button type="primary" ghost size="middle">
-                      Read Guide →
-                    </Button>
-                  </Link>
+            <div className="doc-hub-groups">
+              {DOCUMENTATION_GROUPS.map((group) => (
+                <section key={group.key}>
+                  <h2 className="doc-hub-heading">{group.label}</h2>
+                  <ul className="doc-hub-list">
+                    {group.guides.map((id) => {
+                      const guide = getGuideById(id);
+                      return (
+                        <li key={id}>
+                          <Link href={`/admin/documentation/${id}`} className="doc-hub-link">
+                            {guide.title}
+                          </Link>
+                          <p>{plainGuideText(guide.summary)}</p>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </section>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
 
-                  <Link href={module.adminRoute}>
-                    <Tooltip title={`Open ${module.title} in Admin`}>
-                      <Button size="middle" icon={<LinkOutlined />}>
-                        Open
-                      </Button>
-                    </Tooltip>
-                  </Link>
-                </Space>
-              </div>
-            </Card>
-          </Col>
-        ))}
-      </Row>
-    </div>
+      <style jsx global>{`
+        .doc-hub {
+          max-width: 1040px;
+        }
+        .doc-hub-intro {
+          margin: 0 0 16px;
+          font-size: 15px;
+          color: #374151;
+        }
+        .doc-hub-search {
+          max-width: 520px;
+          margin-bottom: 28px;
+        }
+        .doc-hub-heading {
+          margin: 0 0 10px;
+          padding-bottom: 8px;
+          border-bottom: 1px solid #e5e7eb;
+          font-size: 15px;
+          font-weight: 600;
+          color: #111827;
+        }
+        .doc-hub-tasks {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+          gap: 6px 24px;
+          margin: 0 0 32px;
+          padding: 0;
+          list-style: none;
+          font-size: 14px;
+        }
+        .doc-hub-groups {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 32px 40px;
+        }
+        .doc-hub-list,
+        .doc-hub-results {
+          margin: 0;
+          padding: 0;
+          list-style: none;
+        }
+        .doc-hub-list > li,
+        .doc-hub-results > li {
+          padding: 8px 0;
+        }
+        .doc-hub-link {
+          font-size: 14.5px;
+          font-weight: 600;
+        }
+        .doc-hub-list p,
+        .doc-hub-results p {
+          margin: 2px 0 0;
+          font-size: 13px;
+          line-height: 1.5;
+          color: #6b7280;
+        }
+        .doc-hub-sections {
+          margin: 6px 0 0;
+          padding-left: 18px;
+          font-size: 13.5px;
+        }
+        .doc-hub-empty {
+          color: #6b7280;
+        }
+        @media (max-width: 768px) {
+          .doc-hub-groups {
+            grid-template-columns: minmax(0, 1fr);
+          }
+        }
+      `}</style>
+    </ThemeAdminCard>
   );
 }
