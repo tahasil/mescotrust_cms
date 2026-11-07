@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Col, Row, Select, notification } from "antd";
+import { ArrowRightOutlined, HeartFilled, UpOutlined } from "@ant-design/icons";
 import styled, { createGlobalStyle } from "styled-components";
 import {
   FullWidthBackground,
@@ -635,6 +636,27 @@ export default function DonateNow(props = {}) {
   }, [selectedSchemeEntries]);
 
   const [mobileCartDrawerOpen, setMobileCartDrawerOpen] = useState(false);
+  const [detailsInView, setDetailsInView] = useState(false);
+  const donateRootRef = useRef(null);
+  const detailsPanelRef = useRef(null);
+
+  // Drives the mobile bar's single action: "Enter Details" until the form is
+  // on screen, then the real submit. The bottom margin stops a sliver of the
+  // form peeking above the bar from counting as "on screen".
+  useEffect(() => {
+    const panel = detailsPanelRef.current;
+    if (!panel) return undefined;
+    if (typeof IntersectionObserver === "undefined") {
+      setDetailsInView(true);
+      return undefined;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => setDetailsInView(entry.isIntersecting),
+      { rootMargin: "0px 0px -40% 0px" },
+    );
+    observer.observe(panel);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (isNonZakatOnlyEnforced) {
@@ -674,6 +696,7 @@ export default function DonateNow(props = {}) {
       document.body.classList.add("has-mobile-cart-active");
     } else {
       document.body.classList.remove("has-mobile-cart-active");
+      setMobileCartDrawerOpen(false);
     }
   }, [selectedCount]);
 
@@ -1603,9 +1626,34 @@ export default function DonateNow(props = {}) {
     return Object.keys(nextErrors).length === 0;
   };
 
+  const showDonorDetails = () => {
+    const panel = detailsPanelRef.current;
+    if (!panel) return;
+    panel.scrollIntoView({ behavior: "smooth", block: "start" });
+    panel.focus({ preventScroll: true });
+  };
+
+  // Errors can sit far above the button that was pressed, so bring the first
+  // one into view. Runs on the next frame, once setErrors has rendered it.
+  const revealFirstError = () => {
+    window.requestAnimationFrame(() => {
+      const firstError = donateRootRef.current?.querySelector(
+        "[data-donate-error]",
+      );
+      if (firstError) {
+        firstError.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else {
+        showDonorDetails();
+      }
+    });
+  };
+
   const handleSubmit = async () => {
     if (submitting) return;
-    if (!validateBeforeSubmit()) return;
+    if (!validateBeforeSubmit()) {
+      revealFirstError();
+      return;
+    }
 
     const donor = {
       name: normalizeText(fieldValues.name),
@@ -1999,11 +2047,33 @@ export default function DonateNow(props = {}) {
     );
   };
 
+  const handleMobilePrimaryAction = () => {
+    setMobileCartDrawerOpen(false);
+    if (detailsInView) {
+      handleSubmit();
+    } else {
+      showDonorDetails();
+    }
+  };
+
+  const mobilePrimaryContent = !detailsInView ? (
+    <>
+      Enter Details <ArrowRightOutlined aria-hidden="true" />
+    </>
+  ) : submitting ? (
+    copy.donateButtonProcessingText || "Processing..."
+  ) : (
+    copy.donateButtonText || "Donate Now"
+  );
+
   return (
     <FullWidthBackground className={sectionBgClassName} $managedStyle={sectionBgStyle}>
       <PageContainer $managedStyle={pageContainerBgStyle}>
         <DonatePageMobileOverrides />
-        <div className={`fable-section ${selectedCount > 0 ? "has-mobile-cart" : ""}`}>
+        <div
+          ref={donateRootRef}
+          className={`fable-section ${selectedCount > 0 ? "has-mobile-cart" : ""}`}
+        >
         {(titleEnabled || subTitleEnabled) && (mainTitle || subTitle) ? (
           <Row gutter={[16, 16]}>
             <Col span={24} className="mb-4">
@@ -2129,7 +2199,11 @@ export default function DonateNow(props = {}) {
                 ) : null}
               </PurposePanel>
 
-              <FormPanel id="donate-now-details-section">
+              <FormPanel
+                id="donate-now-details-section"
+                ref={detailsPanelRef}
+                tabIndex={-1}
+              >
                 <PanelTitle style={{ color: formHeadingColor }}>
                   {copy.formTitle || "Details"}
                 </PanelTitle>
@@ -2364,6 +2438,7 @@ export default function DonateNow(props = {}) {
                   ) : null}
                   <DonateButton
                     type="button"
+                    $replacedOnMobile={selectedCount > 0}
                     style={{
                       background: donateButtonBg,
                       color: donateButtonText,
@@ -2427,18 +2502,19 @@ export default function DonateNow(props = {}) {
           </form>
         ) : null}
 
-        {/* Mobile Sticky Donation Summary Cart & Expandable Drawer */}
+        {/* Mobile sticky donation summary and expandable drawer */}
         {selectedCount > 0 ? (
           <>
-            <MobileStickyCartBar role="region" aria-label="Mobile Donation Cart">
+            <MobileStickyCartBar role="region" aria-label="Your donation">
               <CartSummaryToggle
                 type="button"
                 onClick={() => setMobileCartDrawerOpen((open) => !open)}
                 aria-expanded={mobileCartDrawerOpen}
-                aria-label="Toggle donation cart breakdown"
+                aria-haspopup="dialog"
+                aria-label={`Your donation is ${formatInr(payableAmount)}. View summary`}
               >
                 <div className="cart-badge-row">
-                  <span className="cart-icon">🛒</span>
+                  <HeartFilled className="cart-icon" aria-hidden="true" />
                   <span className="cart-count">
                     {selectedCount} {selectedCount === 1 ? "Scheme" : "Schemes"}
                     <span className="cart-qty"> • Qty: {totalCalculatedQuantity}</span>
@@ -2446,25 +2522,21 @@ export default function DonateNow(props = {}) {
                 </div>
                 <div className="cart-amount-row">
                   <span className="cart-total-amount">
-                    {formatInr(totalCalculatedAmount)}
+                    {formatInr(payableAmount)}
                   </span>
                   <span className="cart-breakdown-trigger">
-                    {mobileCartDrawerOpen ? "Hide ▾" : "View Breakdown ▴"}
+                    <span className="cart-summary-label">View Summary</span>
+                    <UpOutlined aria-hidden="true" />
                   </span>
                 </div>
               </CartSummaryToggle>
 
               <CartProceedBtn
                 type="button"
-                onClick={() => {
-                  setMobileCartDrawerOpen(false);
-                  const el = document.getElementById("donate-now-details-section");
-                  if (el) {
-                    el.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }
-                }}
+                disabled={submitting}
+                onClick={handleMobilePrimaryAction}
               >
-                Proceed to Donate ➔
+                {mobilePrimaryContent}
               </CartProceedBtn>
             </MobileStickyCartBar>
 
@@ -2477,12 +2549,12 @@ export default function DonateNow(props = {}) {
                 <MobileCartDrawerSheet
                   role="dialog"
                   aria-modal="true"
-                  aria-label="Donation schemes breakdown drawer"
+                  aria-label="Your donation summary"
                 >
                   <DrawerDragHandle />
                   <DrawerHeader>
                     <div className="drawer-title-group">
-                      <h3>Donation Cart</h3>
+                      <h3>Your Donation</h3>
                       <span className="drawer-count-badge">
                         {selectedCount} {selectedCount === 1 ? "Scheme" : "Schemes"}
                       </span>
@@ -2490,7 +2562,7 @@ export default function DonateNow(props = {}) {
                     <DrawerCloseBtn
                       type="button"
                       onClick={() => setMobileCartDrawerOpen(false)}
-                      aria-label="Close donation cart breakdown"
+                      aria-label="Close donation summary"
                     >
                       ✕
                     </DrawerCloseBtn>
@@ -2578,7 +2650,7 @@ export default function DonateNow(props = {}) {
                     <div className="summary-row total-row">
                       <span className="total-label">Total Amount:</span>
                       <span className="total-value">
-                        {formatInr(totalCalculatedAmount)}
+                        {formatInr(payableAmount)}
                       </span>
                     </div>
                   </DrawerSummarySection>
@@ -2586,15 +2658,10 @@ export default function DonateNow(props = {}) {
                   <DrawerFooterAction>
                     <DrawerProceedBtn
                       type="button"
-                      onClick={() => {
-                        setMobileCartDrawerOpen(false);
-                        const el = document.getElementById("donate-now-details-section");
-                        if (el) {
-                          el.scrollIntoView({ behavior: "smooth", block: "start" });
-                        }
-                      }}
+                      disabled={submitting}
+                      onClick={handleMobilePrimaryAction}
                     >
-                      Continue to Donor Details ➔
+                      {mobilePrimaryContent}
                     </DrawerProceedBtn>
                   </DrawerFooterAction>
                 </MobileCartDrawerSheet>
@@ -2619,6 +2686,9 @@ const FormPanel = styled.div`
   border-radius: 10px;
   padding: 32px 40px 30px;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
+  outline: none;
+  /* Keeps the "Details" heading clear of the fixed mobile header. */
+  scroll-margin-top: 96px;
   @media (max-width: 767px) {
     padding: 18px 14px 16px;
     border-radius: 10px;
@@ -2861,7 +2931,10 @@ const FieldSelect = styled(Select)`
   }
 `;
 
-const FieldError = styled.div`
+const FieldError = styled.div.attrs({
+  role: "alert",
+  "data-donate-error": "true",
+})`
   margin-top: 6px;
   color: #E03C33;
   font-size: 12px;
@@ -2920,6 +2993,9 @@ const DonateButton = styled.button`
     cursor: not-allowed;
     transform: none;
   }
+  /* The sticky bar carries this action on mobile once a scheme is selected. */
+  ${({ $replacedOnMobile }) =>
+    $replacedOnMobile ? "@media (max-width: 768px) { display: none; }" : ""}
 `;
 
 const QrButton = styled.button`
@@ -3359,7 +3435,15 @@ const CartSummaryToggle = styled.button`
     line-height: 1.2;
 
     .cart-icon {
-      font-size: 14px;
+      font-size: 13px;
+      color: #f87171;
+    }
+
+    .cart-count {
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
     }
 
     .cart-qty {
@@ -3377,22 +3461,39 @@ const CartSummaryToggle = styled.button`
     .cart-total-amount {
       font-size: 18px;
       font-weight: 800;
-      color: #38bdf8;
+      color: #ffffff;
       letter-spacing: -0.3px;
       line-height: 1.2;
     }
 
     .cart-breakdown-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
       font-size: 11px;
       font-weight: 600;
-      color: #fde047;
-      text-decoration: underline;
-      text-underline-offset: 2px;
+      color: #d1d5db;
+      white-space: nowrap;
+
+      .anticon {
+        font-size: 10px;
+      }
+
+      /* The whole area stays tappable; the chevron alone signals it on small phones. */
+      @media (max-width: 374px) {
+        .cart-summary-label {
+          display: none;
+        }
+      }
     }
   }
 `;
 
 const CartProceedBtn = styled.button`
+  flex-shrink: 0;
+  min-height: 44px;
+  /* Fixed red, not the CMS button colour: the saved colour is black, which
+     would vanish against this dark bar. */
   background: linear-gradient(135deg, #e03c33 0%, #b91c1c 100%);
   color: #ffffff;
   font-weight: 700;
@@ -3403,11 +3504,22 @@ const CartProceedBtn = styled.button`
   cursor: pointer;
   white-space: nowrap;
   box-shadow: 0 2px 8px rgba(224, 60, 51, 0.45);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.15s ease, opacity 0.15s ease;
   font-family: inherit;
+
+  .anticon {
+    margin-left: 4px;
+    font-size: 11px;
+  }
 
   &:active {
     transform: scale(0.96);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
   }
 `;
 
@@ -3723,11 +3835,21 @@ const DrawerProceedBtn = styled.button`
   cursor: pointer;
   text-align: center;
   box-shadow: 0 4px 12px rgba(224, 60, 51, 0.35);
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, opacity 0.15s ease;
   font-family: inherit;
+
+  .anticon {
+    margin-left: 4px;
+  }
 
   &:active {
     transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
   }
 `;
 
@@ -3759,6 +3881,13 @@ const DonatePageMobileOverrides = createGlobalStyle`
         transition: bottom 0.2s ease, opacity 0.2s ease, transform 0.2s ease !important;
       }
 
+      /* 3b. Cookie banner - its buttons would otherwise sit behind the bar, and
+         above the chat launcher it now shares this corner with */
+      .mesco-cookie-banner {
+        bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+        z-index: 10003 !important;
+      }
+
       /* 4. Chat Window - float cleanly above sticky cart with higher z-index so Back/Home & Composer are 100% visible and interactive */
       [data-chatbot-window] {
         z-index: 10005 !important;
@@ -3785,7 +3914,8 @@ const DonatePageMobileOverrides = createGlobalStyle`
 
     /* When bottom cart drawer is open, hide floating launcher & scroll-to-top so they don't obstruct drawer sheet */
     body.has-mobile-cart-drawer-open [data-chatbot-launcher],
-    body.has-mobile-cart-drawer-open .scroll-to-top-btn {
+    body.has-mobile-cart-drawer-open .scroll-to-top-btn,
+    body.has-mobile-cart-drawer-open .mesco-cookie-banner {
       opacity: 0 !important;
       pointer-events: none !important;
       visibility: hidden !important;

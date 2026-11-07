@@ -385,7 +385,7 @@ Key implementation files:
 - `scripts/test-404-seo.js` (Automated 13-scenario contract test suite for HTTP 404, status codes, and XML sitemap integrity)
 - `e2e/404-seo-handling.spec.js` (Playwright E2E 404 status codes and responsive design verification suite)
 - `lib/donateNowConfig.js` (Canonical donation schemes, category eligibility rules, and multi-scheme calculation)
-- `components/site/DonateNow/DonateNow.js` (Donate Now public client component with unified category dropdown, Non-Zakat auto-lock, and mobile sticky cart drawer)
+- `components/site/DonateNow/DonateNow.js` (Donate Now public client component with unified category dropdown, Non-Zakat auto-lock, and mobile sticky donation summary bar and drawer)
 - `scripts/test-donate-non-zakat-and-category-contracts.js` (Automated 10-scenario contract test suite for unified categories and DON-04 Non-Zakat rules)
 - `scripts/test-donate-multi-scheme-contracts.js` (Automated 11-scenario contract test suite for multi-scheme selection, trusted pricing, and returning donor restoration)
 - `scripts/test-donate-pan-threshold-contracts.js` (Automated 12-scenario offline contract test suite for the Donate Now PAN amount rule)

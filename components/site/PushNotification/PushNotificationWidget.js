@@ -6,6 +6,30 @@ const VAPID_KEY_FALLBACK =
   process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
   "BP2rup-CdHoYF0c6X6z4l490R8cx7cIDD1PDvqZ33Q1v7yuhvzyN9Sqpx34rAo1Z4Ls7LZllZdR-okBvuW1rWeg";
 
+// How long "Not Now" keeps the prompt away before asking once more.
+const PROMPT_DISMISSED_KEY = "mesco_push_dismissed_at";
+const PROMPT_DISMISS_MS = 30 * 24 * 60 * 60 * 1000;
+
+function wasPromptRecentlyDismissed() {
+  try {
+    const dismissedAt = Number(localStorage.getItem(PROMPT_DISMISSED_KEY));
+    return dismissedAt > 0 && Date.now() - dismissedAt < PROMPT_DISMISS_MS;
+  } catch {
+    return false;
+  }
+}
+
+// The card only opens by itself to ask someone who hasn't answered yet. Anyone
+// who has allowed or blocked notifications has nothing to decide on a page load.
+function shouldAutoOpenCard() {
+  return (
+    typeof window !== "undefined" &&
+    typeof Notification !== "undefined" &&
+    Notification.permission === "default" &&
+    !wasPromptRecentlyDismissed()
+  );
+}
+
 function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
@@ -81,22 +105,7 @@ export default function PushNotificationWidget({ initialSettings = null }) {
     return base;
   });
 
-  const [cardOpen, setCardOpen] = useState(() => {
-    if (typeof window !== "undefined") {
-      const isDismissed = sessionStorage.getItem("mesco_push_dismissed") === "1";
-      if (isDismissed) return false;
-      const isGranted = typeof Notification !== "undefined" && Notification.permission === "granted";
-      if (initialSettings && initialSettings.showBellIcon === false) {
-        return true;
-      }
-      if (!isGranted) {
-        return true;
-      }
-    } else if (initialSettings && initialSettings.showBellIcon === false) {
-      return true;
-    }
-    return false;
-  });
+  const [cardOpen, setCardOpen] = useState(shouldAutoOpenCard);
 
   const [settingsLoaded, setSettingsLoaded] = useState(true);
   const cardRef = useRef(null);
@@ -109,7 +118,7 @@ export default function PushNotificationWidget({ initialSettings = null }) {
   const handleClose = useCallback(() => {
     setCardOpen(false);
     try {
-      sessionStorage.setItem("mesco_push_dismissed", "1");
+      localStorage.setItem(PROMPT_DISMISSED_KEY, String(Date.now()));
     } catch {}
   }, []);
 
@@ -129,8 +138,6 @@ export default function PushNotificationWidget({ initialSettings = null }) {
 
     setSupported(true);
     setPermission(Notification.permission);
-
-    const isDismissed = sessionStorage.getItem("mesco_push_dismissed") === "1";
 
     // 1. Immediately verify service worker push subscription in parallel (0ms latency, does not wait for network)
     if (Notification.permission === "granted") {
@@ -187,13 +194,7 @@ export default function PushNotificationWidget({ initialSettings = null }) {
         }));
         setSettingsLoaded(true);
 
-        if (!isDismissed) {
-          if (fetchedSettings.showBellIcon === false) {
-            setCardOpen(true);
-          } else if (Notification.permission !== "granted") {
-            setCardOpen(true);
-          }
-        }
+        if (shouldAutoOpenCard()) setCardOpen(true);
       })
       .catch(() => {
         setSettingsLoaded(true);

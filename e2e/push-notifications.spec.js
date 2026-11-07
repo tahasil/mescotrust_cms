@@ -101,6 +101,11 @@ test.describe.serial("Push Notifications Module Flow-Wise E2E", () => {
   });
 
   test("Step 1: Public Frontend - Direct Notification Card, Bell Toggle, and Title Verification", async ({ page }) => {
+    // The card only opens by itself for visitors who haven't answered yet, and
+    // headless Chromium reports "denied" unless told otherwise.
+    await page.addInitScript(() => {
+      Object.defineProperty(window.Notification, "permission", { get: () => "default" });
+    });
     await page.goto("/", { waitUntil: "networkidle" });
 
     // The Notifications card appears directly on the page

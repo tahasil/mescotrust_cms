@@ -15,7 +15,7 @@ function fieldByLabel(page, label) {
 async function openDonationForm(page) {
   await page.addInitScript(() => {
     window.localStorage.setItem("mesco_cookie_consent", "accepted");
-    window.sessionStorage.setItem("mesco_push_dismissed", "1");
+    window.localStorage.setItem("mesco_push_dismissed_at", String(Date.now()));
   });
   await page.goto("/donate-now", { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(1500);
