@@ -15,6 +15,10 @@ const eventSchema = new mongoose.Schema(
     isOnline: { type: Boolean, default: false },
     featured: { type: Boolean, default: false },
     eventLink: { type: String, default: "" },
+    // RSVP (Yes / Maybe / No). Rules live in lib/events/rsvp.js.
+    rsvpEnabled: { type: Boolean, default: false },
+    rsvpCapacity: { type: Number, default: null, min: 1 },
+    rsvpClosesAt: { type: Date, default: null },
     tags: [{ type: String, trim: true }],
     status: {
       type: String,

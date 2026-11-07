@@ -32,6 +32,7 @@ import dayjs from "dayjs";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
+import EventRsvpFields from "@/components/admin/events/EventRsvpFields";
 import { ThemeAdminCard } from "@/styles/Theme";
 import { useAdminAuth } from "@/components/admin/AdminAuthContext";
 import { CONTENT_STATUSES, getContentStatusMeta } from "@/lib/workflow/constants";
@@ -186,6 +187,9 @@ export default function AdminEventEditPage() {
         isOnline: initialSource.isOnline,
         featured: initialSource.featured,
         eventLink: initialSource.eventLink,
+        rsvpEnabled: initialSource.rsvpEnabled === true,
+        rsvpCapacity: initialSource.rsvpCapacity ?? null,
+        rsvpClosesAt: initialSource.rsvpClosesAt ? dayjs(initialSource.rsvpClosesAt) : null,
         location: initialSource.location,
         eventDateRange:
           startDateValue || endDateValue
@@ -500,6 +504,10 @@ export default function AdminEventEditPage() {
                 },
               ]}
             />
+          </Col>
+
+          <Col span={24}>
+            <EventRsvpFields />
           </Col>
 
           <Col xs={24} sm={12} xl={6}>

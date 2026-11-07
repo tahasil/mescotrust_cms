@@ -7,6 +7,7 @@ import { normalizeSlug } from "@/lib/slug";
 import { clearUsageForRef, syncMediaUsageForEvent } from "@/lib/media/usageTracker";
 import { validateEventImages } from "@/lib/eventImageValidation";
 import { sanitizeHtml, sanitizePlainText, sanitizeUrl } from "@/lib/security/sanitize";
+import { normalizeRsvpCapacity } from "@/lib/events/rsvp";
 
 function parseOptionalDate(v) {
   if (v === null || v === undefined || v === "") return null;
@@ -74,6 +75,9 @@ export async function PUT(req, { params }) {
       isOnline,
       featured,
       eventLink,
+      rsvpEnabled,
+      rsvpCapacity,
+      rsvpClosesAt,
       tags,
       status: requestedStatus,
       publishedAt,
@@ -136,6 +140,11 @@ export async function PUT(req, { params }) {
     const cleanTime = time !== undefined ? sanitizePlainText(time) : doc.time;
     const cleanLocation = isOnline ? "" : (location !== undefined ? sanitizePlainText(location) : doc.location);
     const cleanEventLink = eventLink !== undefined ? sanitizeUrl(eventLink, "") : doc.eventLink;
+    const cleanRsvp = {
+      rsvpEnabled: rsvpEnabled !== undefined ? rsvpEnabled === true : doc.rsvpEnabled,
+      rsvpCapacity: rsvpCapacity !== undefined ? normalizeRsvpCapacity(rsvpCapacity) : doc.rsvpCapacity,
+      rsvpClosesAt: rsvpClosesAt !== undefined ? parseOptionalDate(rsvpClosesAt) : doc.rsvpClosesAt,
+    };
     const cleanTags = Array.isArray(tags) ? tags.map(sanitizePlainText).filter(Boolean) : doc.tags;
     const cleanMeta = meta && typeof meta === "object" ? {
       metaTitle: sanitizePlainText(meta.metaTitle),
@@ -165,6 +174,7 @@ export async function PUT(req, { params }) {
           isOnline: isOnline !== undefined ? Boolean(isOnline) : doc.isOnline,
           featured: featured !== undefined ? featured === true : doc.featured,
           eventLink: cleanEventLink,
+          ...cleanRsvp,
           tags: cleanTags,
           meta: cleanMeta,
           locale: locale !== undefined ? locale : doc.locale,
@@ -196,6 +206,7 @@ export async function PUT(req, { params }) {
     if (featured !== undefined) doc.featured = featured === true;
     doc.location = cleanLocation;
     doc.eventLink = cleanEventLink;
+    doc.set(cleanRsvp);
     doc.tags = cleanTags;
     doc.meta = cleanMeta;
     if (locale !== undefined) doc.locale = locale;

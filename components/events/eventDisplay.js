@@ -248,6 +248,18 @@ export function getEventDateStatus(event, baseDate = new Date()) {
   return "undated";
 }
 
+/** The moment the event starts, or null when it has no start date. */
+export function getEventStartAt(event) {
+  const { startMinutes } = parseEventTimeRange(event?.time);
+  return atUtcDayTime(event?.startDate, startMinutes, false);
+}
+
+/** The moment the event ends, falling back to the end of its start day. */
+export function getEventEndAt(event) {
+  const { endMinutes } = parseEventTimeRange(event?.time);
+  return atUtcDayTime(event?.endDate || event?.startDate, endMinutes, true);
+}
+
 /**
  * Registration should open only on/after the configured event start date-time.
  * If no startDate is configured, do not block registration by schedule.

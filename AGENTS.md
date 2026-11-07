@@ -119,6 +119,7 @@ Conventions:
 
 Key public groups:
 - Pages, blogs, categories, menus, search, theme, social wall, event registrations, faqs
+- Event RSVP under `/api/public/event-rsvp` (Yes/Maybe/No replies, capacity, signed change links) and `/api/public/event-rsvp/calendar` (.ics)
 - Donor history under `/api/public/donor-history/*` (email OTP, signed session cookie, donor's own successful donations, receipt re-send)
 
 Key admin groups:
@@ -180,6 +181,7 @@ NPM scripts:
 - `npm run test:internships` -> 10-scenario contract test suite for Internship Upload component and Internship Submissions admin management
 - `npm run test:donor-history` -> donation history (DON-05) contract tests: offline OTP/session/PII checks, plus HTTP scenarios when `npm run dev` is running (set `DONOR_HISTORY_TEST_EMAIL` to also exercise real code and receipt emails)
 - `npm run test:faqs` -> 10-scenario contract test suite for FAQ management, document section 6 requirements, admin sidebar, and shortcode integration
+- `npm run test:event-rsvp` -> 19-scenario offline contract test suite for event RSVP (NEW-06): seat rules, closing rules, change links, calendar files and emails
 - `npm run test:documentation` -> 7-scenario contract test suite for Admin Sidebar Documentation extension, RBAC route access, in-app documentation hub, and 24-module step-by-step workflow coverage
 
 ## 7. Standard Workflows
@@ -405,6 +407,13 @@ Key implementation files:
 - `app/api/public/donor-history/` (request-otp, verify-otp, list/sign-out, receipt re-send routes)
 - `app/(site)/my-donations/page.js` + `components/donations/DonationHistoryClient.js` (Public donation history page)
 - `scripts/test-donor-history-contracts.js` (Donation history contract tests)
+- `lib/events/rsvp.js` (Event RSVP rules: attendance values, seat rules, open/full state, .ics builder; pure and safe to import in client components)
+- `lib/events/rsvpToken.js` (Signed "change your reply" links; server only, keeps `crypto` out of client bundles)
+- `app/api/public/event-rsvp/` (Public RSVP status, reply and calendar routes)
+- `components/events/EventRsvp.js` (Public Yes/Maybe/No card on the event page, replaces the Register button when RSVP is on)
+- `components/admin/events/EventRsvpFields.js` (RSVP settings shared by the Add Event and Edit Event forms)
+- `app/api/admin/event-registrations/summary/` (Server-counted RSVP totals per event)
+- `scripts/test-event-rsvp-contracts.js` (Automated 19-scenario offline contract test suite for event RSVP)
 - `models/Faq.js` (FAQ database schema)
 - `lib/faqDefaults.js` (12 baseline FAQs across 8 categories from document Section 6)
 - `app/api/admin/faqs/` (Admin FAQ management CRUD, seed, and reorder routes)

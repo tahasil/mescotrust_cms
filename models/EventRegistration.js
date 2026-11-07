@@ -25,6 +25,12 @@ const eventRegistrationSchema = new mongoose.Schema(
     eventId: { type: String, default: "", trim: true, index: true }, // optional stable ID
     eventSlug: { type: String, default: "", trim: true, lowercase: true, index: true },
 
+    // RSVP reply. Left unset on rows from the older registration form, which
+    // keeps them out of the unique index below.
+    attendance: { type: String, enum: ["yes", "maybe", "no"], default: undefined },
+    // Last "change your reply" email, so repeat replies can't flood an inbox.
+    rsvpLinkSentAt: { type: Date, default: null },
+
     // Applicant info
     payload: {
       name: { type: String, required: true, trim: true },
@@ -53,6 +59,12 @@ const eventRegistrationSchema = new mongoose.Schema(
 
 eventRegistrationSchema.index({ eventTitle: 1, createdAt: -1 });
 eventRegistrationSchema.index({ createdAt: -1 });
+// One RSVP per email per event. `$exists` rather than `$in`, which partial
+// indexes only accept on MongoDB 6.0 and later.
+eventRegistrationSchema.index(
+  { eventId: 1, "payload.email": 1 },
+  { unique: true, partialFilterExpression: { attendance: { $exists: true } } },
+);
 
 module.exports =
   (mongoose.models && mongoose.models.EventRegistration) ||

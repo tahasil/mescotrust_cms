@@ -2,6 +2,10 @@
 
 import { useState, useEffect, useMemo } from "react";
 import {
+  Card,
+  Col,
+  Row,
+  Statistic,
   Table,
   Button,
   Space,
@@ -13,17 +17,22 @@ import {
   message,
 } from "antd";
 import {
+  CheckCircleOutlined,
   CheckOutlined,
+  CloseCircleOutlined,
   DeleteOutlined,
   EyeOutlined,
+  QuestionCircleOutlined,
   ReloadOutlined,
   SearchOutlined,
+  TeamOutlined,
 } from "@ant-design/icons";
 import { formatDateTime } from "@/lib/formatDate";
 import { ThemeAdminCard } from "@/styles/Theme";
 import AdminExportDropdown from "@/components/admin/AdminExportDropdown";
 import { adminTableLoading, adminTableLocale } from "@/components/admin/loading/AdminLoading";
 import { resolveAdminStoredFilter } from "@/lib/adminSearchState";
+import { ATTENDANCE_OPTIONS, getAttendanceLabel } from "@/lib/events/rsvp";
 
 const STATUS_OPTIONS = [
   { value: "new", label: "New" },
@@ -39,9 +48,17 @@ const STATUS_COLORS = {
   cancelled: "default",
 };
 
+const ATTENDANCE_COLORS = {
+  yes: "green",
+  maybe: "gold",
+  no: "default",
+};
+
 const EVENT_REG_SEARCH_STORAGE_KEY = "admin-event-reg-search-query-v1";
 const EVENT_REG_STATUS_STORAGE_KEY = "admin-event-reg-status-filter-v1";
-const EVENT_REG_EVENT_STORAGE_KEY = "admin-event-reg-event-filter-v1";
+const EVENT_REG_EVENT_STORAGE_KEY = "admin-event-reg-event-filter-v2";
+const EVENT_REG_REPLY_STORAGE_KEY = "admin-event-reg-reply-filter-v1";
+const LIST_PAGE_SIZE = 100;
 
 const EVENT_REG_EXPORT_COLUMNS = [
   { key: "submitted_at", label: "Submitted At" },
@@ -53,14 +70,20 @@ const EVENT_REG_EXPORT_COLUMNS = [
   { key: "school", label: "School / Institution" },
   { key: "class_or_year", label: "Class / Year" },
   { key: "message", label: "Message" },
+  { key: "attendance", label: "Reply" },
   { key: "status", label: "Status" },
   { key: "read_status", label: "Read Status" },
   { key: "page", label: "Page" },
   { key: "source", label: "Source" },
 ];
 
+// Events can share a title (a function held every year), so the filter uses the
+// event's id. Rows from before ids were stored fall back to their title.
+const getEventKey = (row) => row.eventId || row.eventTitle;
+
 export default function AdminEventRegistrationsPage() {
   const [list, setList] = useState([]);
+  const [rsvpSummary, setRsvpSummary] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewItem, setViewItem] = useState(null);
   const [statusFilter, setStatusFilter] = useState(() => {
@@ -72,6 +95,11 @@ export default function AdminEventRegistrationsPage() {
     if (typeof window === "undefined") return null;
     const params = new URLSearchParams(window.location.search);
     return resolveAdminStoredFilter(EVENT_REG_EVENT_STORAGE_KEY, params.get("event")) || null;
+  });
+  const [replyFilter, setReplyFilter] = useState(() => {
+    if (typeof window === "undefined") return null;
+    const params = new URLSearchParams(window.location.search);
+    return resolveAdminStoredFilter(EVENT_REG_REPLY_STORAGE_KEY, params.get("reply")) || null;
   });
   const [searchText, setSearchText] = useState(() => {
     if (typeof window === "undefined") return "";
@@ -103,16 +131,41 @@ export default function AdminEventRegistrationsPage() {
       sessionStorage.removeItem(EVENT_REG_EVENT_STORAGE_KEY);
       url.searchParams.delete("event");
     }
+    if (replyFilter) {
+      sessionStorage.setItem(EVENT_REG_REPLY_STORAGE_KEY, replyFilter);
+      url.searchParams.set("reply", replyFilter);
+    } else {
+      sessionStorage.removeItem(EVENT_REG_REPLY_STORAGE_KEY);
+      url.searchParams.delete("reply");
+    }
     window.history.replaceState(null, "", `${url.pathname}${url.search}`);
-  }, [searchText, statusFilter, eventFilter]);
+  }, [searchText, statusFilter, eventFilter, replyFilter]);
 
-  const fetchList = () => {
+  // Filtering happens in this page, so it needs every row, not just the first page.
+  const fetchList = async () => {
     setLoading(true);
-    fetch("/api/admin/event-registrations?limit=100")
-      .then((res) => (res.ok ? res.json() : { items: [] }))
-      .then((data) => setList(Array.isArray(data) ? data : data.items || []))
-      .catch(() => message.error("Failed to load"))
-      .finally(() => setLoading(false));
+    try {
+      const rows = [];
+      let totalPages = 1;
+      for (let page = 1; page <= totalPages; page += 1) {
+        const res = await fetch(
+          `/api/admin/event-registrations?limit=${LIST_PAGE_SIZE}&page=${page}`,
+        );
+        if (!res.ok) throw new Error("load");
+        const data = await res.json();
+        rows.push(...(data.items || []));
+        totalPages = data.totalPages || 1;
+      }
+      setList(rows);
+
+      const summaryRes = await fetch("/api/admin/event-registrations/summary");
+      const summary = summaryRes.ok ? await summaryRes.json() : { items: [] };
+      setRsvpSummary(summary.items || []);
+    } catch {
+      message.error("Failed to load");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -123,9 +176,13 @@ export default function AdminEventRegistrationsPage() {
     const seen = new Set();
     const out = [];
     for (const r of list) {
-      if (r.eventTitle && !seen.has(r.eventTitle)) {
-        seen.add(r.eventTitle);
-        out.push({ value: r.eventTitle, label: r.eventTitle });
+      const key = getEventKey(r);
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        out.push({
+          value: key,
+          label: r.eventDate ? `${r.eventTitle} · ${r.eventDate}` : r.eventTitle,
+        });
       }
     }
     return out;
@@ -135,7 +192,8 @@ export default function AdminEventRegistrationsPage() {
     let result = list;
     if (statusFilter) result = result.filter((r) => r.status === statusFilter);
     if (eventFilter)
-      result = result.filter((r) => r.eventTitle === eventFilter);
+      result = result.filter((r) => getEventKey(r) === eventFilter);
+    if (replyFilter) result = result.filter((r) => r.attendance === replyFilter);
     if (searchText.trim()) {
       const q = searchText.trim().toLowerCase();
       result = result.filter(
@@ -146,7 +204,24 @@ export default function AdminEventRegistrationsPage() {
       );
     }
     return result;
-  }, [list, statusFilter, eventFilter, searchText]);
+  }, [list, statusFilter, eventFilter, replyFilter, searchText]);
+
+  // All events by default, or the event chosen in the filter. One fixed row of
+  // cards, so the page looks the same however many events have replies.
+  const rsvpTotals = useMemo(() => {
+    const items = eventFilter
+      ? rsvpSummary.filter((item) => item.eventId === eventFilter)
+      : rsvpSummary;
+    if (!items.length) return null;
+    const total = (key) => items.reduce((sum, item) => sum + item[key], 0);
+    return {
+      yes: total("yes"),
+      maybe: total("maybe"),
+      no: total("no"),
+      seatsTaken: total("seatsTaken"),
+      capacity: items.length === 1 ? items[0].capacity : null,
+    };
+  }, [rsvpSummary, eventFilter]);
 
   const markRead = async (id) => {
     const res = await fetch(`/api/admin/event-registrations/${id}`, {
@@ -218,16 +293,24 @@ export default function AdminEventRegistrationsPage() {
             options={STATUS_OPTIONS}
           />
           <Select
+            placeholder="Reply"
+            allowClear
+            style={{ width: 120 }}
+            value={replyFilter}
+            onChange={setReplyFilter}
+            options={ATTENDANCE_OPTIONS}
+          />
+          <Select
             placeholder="Event"
             allowClear
-            style={{ width: 220 }}
+            style={{ width: 260 }}
             value={eventFilter}
             onChange={setEventFilter}
             options={eventOptions}
           />
           <AdminExportDropdown
             exportUrl="/api/admin/event-registrations/export"
-            filters={{ search: searchText, status: statusFilter, event: eventFilter }}
+            filters={{ search: searchText, status: statusFilter, event: eventFilter, attendance: replyFilter }}
             availableColumns={EVENT_REG_EXPORT_COLUMNS}
             defaultFilename="event-registrations-export"
           />
@@ -237,6 +320,48 @@ export default function AdminEventRegistrationsPage() {
         </Space>
       }
     >
+      {rsvpTotals ? (
+        <Row gutter={[16, 16]} style={{ marginBottom: 20 }} data-testid="rsvp-summary">
+          <Col xs={12} sm={6}>
+            <Card size="small" bordered>
+              <Statistic
+                title="Yes"
+                value={rsvpTotals.yes}
+                prefix={<CheckCircleOutlined style={{ color: "#52c41a" }} />}
+              />
+            </Card>
+          </Col>
+          <Col xs={12} sm={6}>
+            <Card size="small" bordered>
+              <Statistic
+                title="Maybe"
+                value={rsvpTotals.maybe}
+                prefix={<QuestionCircleOutlined style={{ color: "#faad14" }} />}
+              />
+            </Card>
+          </Col>
+          <Col xs={12} sm={6}>
+            <Card size="small" bordered>
+              <Statistic
+                title="No"
+                value={rsvpTotals.no}
+                prefix={<CloseCircleOutlined style={{ color: "#8c8c8c" }} />}
+              />
+            </Card>
+          </Col>
+          <Col xs={12} sm={6}>
+            <Card size="small" bordered>
+              <Statistic
+                title="Seats taken"
+                value={rsvpTotals.seatsTaken}
+                suffix={rsvpTotals.capacity ? `/ ${rsvpTotals.capacity}` : undefined}
+                prefix={<TeamOutlined style={{ color: "#E03C33" }} />}
+              />
+            </Card>
+          </Col>
+        </Row>
+      ) : null}
+
       <Table
         rowKey="_id"
         loading={adminTableLoading(loading)}
@@ -276,6 +401,18 @@ export default function AdminEventRegistrationsPage() {
             key: "phone",
             width: 130,
             render: (p) => p || "—",
+          },
+          {
+            title: "Reply",
+            dataIndex: "attendance",
+            key: "attendance",
+            width: 90,
+            render: (value) =>
+              value ? (
+                <Tag color={ATTENDANCE_COLORS[value]}>{getAttendanceLabel(value)}</Tag>
+              ) : (
+                "—"
+              ),
           },
           {
             title: "Status",
@@ -360,6 +497,9 @@ export default function AdminEventRegistrationsPage() {
             </Descriptions.Item>
             <Descriptions.Item label="Event date">
               {viewItem.eventDate || "—"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Reply">
+              {getAttendanceLabel(viewItem.attendance) || "—"}
             </Descriptions.Item>
             <Descriptions.Item label="Status">
               <Tag color={STATUS_COLORS[viewItem.status] || "default"}>

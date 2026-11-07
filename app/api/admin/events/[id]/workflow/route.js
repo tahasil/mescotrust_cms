@@ -88,6 +88,9 @@ export async function POST(req, { params }) {
           if (revData.isOnline !== undefined) doc.isOnline = revData.isOnline;
           if (revData.featured !== undefined) doc.featured = revData.featured;
           if (revData.eventLink !== undefined) doc.eventLink = revData.eventLink;
+          if (revData.rsvpEnabled !== undefined) doc.rsvpEnabled = revData.rsvpEnabled;
+          if (revData.rsvpCapacity !== undefined) doc.rsvpCapacity = revData.rsvpCapacity;
+          if (revData.rsvpClosesAt !== undefined) doc.rsvpClosesAt = revData.rsvpClosesAt;
           if (Array.isArray(revData.tags)) doc.tags = revData.tags;
           if (revData.meta) doc.meta = revData.meta;
           if (revData.locale) doc.locale = revData.locale;
@@ -210,6 +213,9 @@ export async function POST(req, { params }) {
           if (revData.isOnline !== undefined) doc.isOnline = revData.isOnline;
           if (revData.featured !== undefined) doc.featured = revData.featured;
           if (revData.eventLink !== undefined) doc.eventLink = revData.eventLink;
+          if (revData.rsvpEnabled !== undefined) doc.rsvpEnabled = revData.rsvpEnabled;
+          if (revData.rsvpCapacity !== undefined) doc.rsvpCapacity = revData.rsvpCapacity;
+          if (revData.rsvpClosesAt !== undefined) doc.rsvpClosesAt = revData.rsvpClosesAt;
           if (Array.isArray(revData.tags)) doc.tags = revData.tags;
           if (revData.meta) doc.meta = revData.meta;
           if (revData.locale) doc.locale = revData.locale;

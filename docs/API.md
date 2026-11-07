@@ -49,6 +49,24 @@ go through the normal middleware same-origin check.
 | DELETE | `/api/public/donor-history` | Signs out (clears the cookie). |
 | POST | `/api/public/donor-history/receipt` | Body `{ orderId }`. Re-sends the receipt email for one of the session donor's own successful donations, donor only (no admin copy). 401 without a session, 404 for an order that isn't theirs, 429 after 3 re-sends of one order in 10 minutes, 502 if the mail provider didn't deliver. |
 
+## Event RSVP (public, UAT NEW-06)
+
+Yes / Maybe / No replies on the event page, for events with `rsvpEnabled` on.
+Replies are `EventRegistration` rows with `attendance` set, one per email per
+event (unique partial index). Yes and Maybe each hold a seat against
+`rsvpCapacity`, unless the row is `waitlisted` or `cancelled`. No never does.
+Replies close at `rsvpClosesAt` or when the event ends, whichever is first.
+
+A repeat reply from the public form never overwrites the first. It emails a
+signed change link instead, so knowing someone's email isn't enough to change
+their answer. That email goes out at most once per reply every 10 minutes.
+
+| Method | Path | Notes |
+| --- | --- | --- |
+| GET | `/api/public/event-rsvp?slug=...&token=...` | `{ enabled, open, full, closesAt, tokenInvalid, reply }`. `reply` is only returned for a valid change link. Not cached. |
+| POST | `/api/public/event-rsvp` | Body `{ slug, attendance, name, email, phone?, token? }`. 201 `{ status: "saved" }`; 200 `{ status: "already_replied" }`; 200 `saved` when a `token` updates a reply; 409 `{ code: "full" \| "closed" }`; 403 `{ code: "invalid_token" }`; 404 when the event is unpublished or RSVP is off; 429 over 60 requests per IP per minute. |
+| GET | `/api/public/event-rsvp/calendar?slug=...` | The published event as an `.ics` file (`METHOD:PUBLISH`). 404 when it has no start date. |
+
 ## Admin APIs
 
 All admin APIs require authentication via JWT and the operation-specific permission resolved by `requireAuth`. The role names below describe the default system-role grants; custom roles can receive the same permissions.
@@ -90,7 +108,8 @@ All admin APIs require authentication via JWT and the operation-specific permiss
 | DELETE | `/api/admin/contacts/[id]` | Admin, Editor | Delete contact submission |
 | POST | `/api/admin/contacts/export` | Roles with `submissions.export_data` | Export contact/volunteer submissions |
 | POST | `/api/admin/subscribers/export` | Roles with `submissions.export_data` | Export subscribers |
-| POST | `/api/admin/event-registrations/export` | Roles with `submissions.export_data` | Export event registrations |
+| GET | `/api/admin/event-registrations/summary` | Roles with `submissions.view` | RSVP totals per event: `yes`, `maybe`, `no`, `seatsTaken`, `capacity` |
+| POST | `/api/admin/event-registrations/export` | Roles with `submissions.export_data` | Export event registrations, including the `attendance` reply column and filter |
 | POST | `/api/admin/volunteers-feedback/export` | Roles with `submissions.export_data` | Export volunteers feedback submissions |
 | GET/POST | `/api/admin/donations/export` | Roles with `submissions.export_data` | Export donations/donate-now submissions |
 | GET/POST | `/api/admin/users` | Admin only | List/create users |

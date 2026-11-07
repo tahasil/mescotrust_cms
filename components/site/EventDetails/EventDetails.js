@@ -25,6 +25,7 @@ import {
   isEventStarted,
 } from "@/components/events/eventDisplay";
 import { buildEventRegistrationHref } from "@/components/events/eventRegistration";
+import EventRsvp from "@/components/events/EventRsvp";
 import { sanitizeUrl } from "@/lib/security/sanitize";
 
 const EventDetailsRoot = styled.div`
@@ -793,7 +794,8 @@ export default function EventDetails(props) {
                     <div><dt>{labels.mode}</dt><dd>{eventMode}</dd></div>
                     <div><dt>{labels.venue}</dt><dd>{location}</dd></div>
                   </dl>
-                  {showRegistration && registrationOpen ? (
+                  {showRegistration && event.rsvpEnabled ? <EventRsvp slug={event.slug} /> : null}
+                  {showRegistration && !event.rsvpEnabled && registrationOpen ? (
                     <a
                       className="event-detail-action"
                       href={registrationHref}
@@ -803,7 +805,7 @@ export default function EventDetails(props) {
                       {labels.registration}
                     </a>
                   ) : null}
-                  {showRegistration ? <p className="event-detail-registration-note">{registrationNote}</p> : null}
+                  {showRegistration && !event.rsvpEnabled ? <p className="event-detail-registration-note">{registrationNote}</p> : null}
                   {showShare ? (
                     <div className="event-detail-share">
                       <SocialShare

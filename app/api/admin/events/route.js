@@ -6,6 +6,7 @@ import { normalizeSlug } from "@/lib/slug";
 import { syncMediaUsageForEvent } from "@/lib/media/usageTracker";
 import { validateEventImages } from "@/lib/eventImageValidation";
 import { sanitizeHtml, sanitizePlainText, sanitizeUrl } from "@/lib/security/sanitize";
+import { normalizeRsvpCapacity } from "@/lib/events/rsvp";
 
 function parseOptionalDate(v) {
   if (v === null || v === undefined || v === "") return null;
@@ -84,6 +85,9 @@ export async function POST(req) {
       isOnline,
       featured,
       eventLink,
+      rsvpEnabled,
+      rsvpCapacity,
+      rsvpClosesAt,
       tags,
       status: requestedStatus,
       publishedAt,
@@ -144,6 +148,9 @@ export async function POST(req) {
       isOnline: Boolean(isOnline),
       featured: featured === true,
       eventLink: sanitizeUrl(eventLink || "", ""),
+      rsvpEnabled: rsvpEnabled === true,
+      rsvpCapacity: normalizeRsvpCapacity(rsvpCapacity),
+      rsvpClosesAt: parseOptionalDate(rsvpClosesAt),
       tags: Array.isArray(tags) ? tags.map(sanitizePlainText).filter(Boolean) : [],
       status: finalStatus,
       publishedAt: finalStatus === CONTENT_STATUSES.PUBLISHED ? (publishedAt ? new Date(publishedAt) : new Date()) : null,

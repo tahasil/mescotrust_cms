@@ -1,4 +1,7 @@
 const mongoose = require("mongoose");
+// Registers the model `blogId` points to. Without this, .populate() throws on a
+// fresh server until some other route happens to load it.
+require("./Blog");
 
 const blogCommentSchema = new mongoose.Schema(
   {

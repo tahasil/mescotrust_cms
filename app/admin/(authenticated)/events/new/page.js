@@ -21,6 +21,7 @@ import dayjs from "dayjs";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import MediaPickerInput from "@/components/admin/media/MediaPickerInput";
 import { SwitchSettingsCard } from "@/components/admin/SettingsCardList";
+import EventRsvpFields from "@/components/admin/events/EventRsvpFields";
 import { ThemeAdminCard } from "@/styles/Theme";
 
 const { RangePicker } = DatePicker;
@@ -101,7 +102,7 @@ export default function AdminEventNewPage() {
   const status = Form.useWatch("status", form);
 
   useEffect(() => {
-    form.setFieldsValue({ status: "draft", isOnline: false, featured: false });
+    form.setFieldsValue({ status: "draft", isOnline: false, featured: false, rsvpEnabled: false });
     setLoading(false);
   }, [form]);
 
@@ -251,6 +252,10 @@ export default function AdminEventNewPage() {
                 },
               ]}
             />
+          </Col>
+
+          <Col span={24}>
+            <EventRsvpFields />
           </Col>
 
           <Col xs={24} sm={12} xl={12}>

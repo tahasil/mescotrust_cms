@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import EventRegistration from "@/models/EventRegistration";
 import { formatDateTime } from "@/lib/formatDate";
+import { getAttendanceLabel, normalizeAttendance } from "@/lib/events/rsvp";
 import {
   createExportResponse,
   escapeRegex,
@@ -61,6 +62,11 @@ const EVENT_REG_EXPORT_COLUMNS = [
     accessor: (item) => item.payload?.message || "",
   },
   {
+    key: "attendance",
+    label: "Reply",
+    accessor: (item) => getAttendanceLabel(item.attendance),
+  },
+  {
     key: "status",
     label: "Status",
     accessor: (item) => item.status || "",
@@ -102,7 +108,8 @@ export async function POST(req) {
       const filters = body?.filters || {};
       const search = normalizeText(filters.search);
       const status = normalizeText(filters.status);
-      const eventTitle = normalizeText(filters.event || filters.eventTitle);
+      const eventKey = normalizeText(filters.event || filters.eventTitle);
+      const attendance = normalizeAttendance(filters.attendance);
       const parsedFrom = parseDate(filters.dateFrom);
       const parsedTo = parseDate(filters.dateTo, { endOfDay: true });
       const { dateFrom, dateTo } = normalizeDateRange(parsedFrom, parsedTo);
@@ -110,8 +117,20 @@ export async function POST(req) {
       if (status) {
         filter.status = status;
       }
-      if (eventTitle) {
-        filter.eventTitle = eventTitle;
+      if (eventKey) {
+        // Matches the page's filter: the event's id, or the title on older rows
+        // with no id. Same-named events must never share an export.
+        filter.$and = [
+          {
+            $or: [
+              { eventId: eventKey },
+              { eventId: { $in: ["", null] }, eventTitle: eventKey },
+            ],
+          },
+        ];
+      }
+      if (attendance) {
+        filter.attendance = attendance;
       }
       if (search) {
         const regex = new RegExp(escapeRegex(search), "i");
