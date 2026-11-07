@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { scrubUnsafeUrls } from "@/lib/security/urlScrub";
 import { requireAuth } from "@/lib/apiAuth";
 import { isAdmin, isEditor } from "@/lib/permissions";
 import { connectDB } from "@/lib/db";
@@ -25,7 +26,7 @@ export async function PUT(req, { params }) {
 
   try {
     await connectDB();
-    const body = await req.json();
+    const body = scrubUnsafeUrls(await req.json());
     const updated = await updateFaqNode(params.id, body);
     return NextResponse.json(okPayload(updated));
   } catch (err) {

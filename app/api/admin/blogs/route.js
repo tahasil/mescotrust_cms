@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { scrubUnsafeUrls } from "@/lib/security/urlScrub";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Blog from "@/models/Blog";
@@ -63,7 +64,7 @@ export async function POST(req) {
   if (session instanceof NextResponse) return session;
 
   try {
-    const body = await req.json();
+    const body = scrubUnsafeUrls(await req.json());
     const { title, slug: rawSlug, content, excerpt, featuredImage, featuredImageMobile, author, status: requestedStatus, publishedAt, category, tags, meta, locale } = body;
 
     const imageValidationErrors = await validateBlogImages({

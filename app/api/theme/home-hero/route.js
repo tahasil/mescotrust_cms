@@ -3,6 +3,7 @@
  * GET: public. PUT: admin only.
  */
 import { NextResponse } from "next/server";
+import { scrubUnsafeUrls } from "@/lib/security/urlScrub";
 import { getToken } from "next-auth/jwt";
 import { connectDB } from "@/lib/db";
 import Component from "@/models/Component";
@@ -119,7 +120,7 @@ export async function PUT(req) {
   if (!isAdmin(token)) return NextResponse.json({ error: "Forbidden: Admin only" }, { status: 403 });
 
   try {
-    const body = await req.json();
+    const body = scrubUnsafeUrls(await req.json());
     const payload = body && typeof body === "object" ? body : {};
 
     await connectDB();

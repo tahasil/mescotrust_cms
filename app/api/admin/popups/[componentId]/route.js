@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { scrubUnsafeUrls } from "@/lib/security/urlScrub";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Popup from "@/models/Popup";
@@ -97,7 +98,7 @@ export async function PUT(req, { params }) {
   }
 
   try {
-    const body = await req.json();
+    const body = scrubUnsafeUrls(await req.json());
     await connectDB();
     await ensureCorePopupsExist(Popup);
 

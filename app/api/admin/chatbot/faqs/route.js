@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { scrubUnsafeUrls } from "@/lib/security/urlScrub";
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/apiAuth";
 import { isAdmin, isEditor } from "@/lib/permissions";
@@ -86,7 +87,7 @@ export async function POST(req) {
 
   try {
     await connectDB();
-    const body = await req.json();
+    const body = scrubUnsafeUrls(await req.json());
     const created = await createFaqNode(body);
     return NextResponse.json(okPayload(created), { status: 201 });
   } catch (err) {

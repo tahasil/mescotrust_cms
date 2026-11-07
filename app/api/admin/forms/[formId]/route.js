@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { scrubUnsafeUrls } from "@/lib/security/urlScrub";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Form from "@/models/Form";
@@ -124,7 +125,7 @@ export async function PUT(req, { params }) {
     const form = await Form.findOne({ formId: params.formId });
     if (!form) return NextResponse.json({ error: "Form not found" }, { status: 404 });
 
-    const body = await req.json();
+    const body = scrubUnsafeUrls(await req.json());
     if (body?.formId || body?.shortcode || body?.shortcodeAlt) {
       return NextResponse.json(
         { error: "formId/shortcode values are immutable and cannot be changed" },

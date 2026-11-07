@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { scrubUnsafeUrls } from "@/lib/security/urlScrub";
 import { requirePermission } from "@/lib/apiAuth";
 import {
   getAdminSocialWallConfigPayload,
@@ -27,7 +28,7 @@ export async function PUT(req) {
   if (session instanceof NextResponse) return session;
 
   try {
-    const body = await req.json();
+    const body = scrubUnsafeUrls(await req.json());
     const items = Array.isArray(body?.items) ? body.items : [];
     await saveSocialWallPlatformRows(items, { updatedBy: session?.email || "" });
     invalidatePublicSocialWallFeedCache();

@@ -5,6 +5,7 @@
  * PUT: admin only. Only allows componentIds from the site registry.
  */
 import { NextResponse } from "next/server";
+import { scrubUnsafeUrls } from "@/lib/security/urlScrub";
 import { getToken } from "next-auth/jwt";
 import { connectDB } from "@/lib/db";
 import Component from "@/models/Component";
@@ -175,7 +176,7 @@ export async function PUT(req, { params }) {
   }
 
   try {
-    const body = await req.json();
+    const body = scrubUnsafeUrls(await req.json());
     const defaultProps = body && typeof body === "object" ? { ...body } : {};
     const safeDefaultProps = sanitizeComponentDefaultProps(
       componentId,

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { scrubUnsafeUrls } from "@/lib/security/urlScrub";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Form from "@/models/Form";
@@ -21,7 +22,7 @@ export async function PUT(req, { params }) {
     const form = await Form.findOne({ formId: params.formId });
     if (!form) return NextResponse.json({ error: "Form not found" }, { status: 404 });
 
-    const body = await req.json();
+    const body = scrubUnsafeUrls(await req.json());
     const inputSchema = body?.schema || body?.formSchema;
     if (!inputSchema || typeof inputSchema !== "object") {
       return NextResponse.json({ error: "schema is required" }, { status: 400 });

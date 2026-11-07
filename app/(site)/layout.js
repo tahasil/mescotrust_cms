@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { UNSAFE_LINK_GUARD_SCRIPT } from "@/lib/security/urlScrub";
 import Script from "next/script";
 import dynamicImport from "next/dynamic";
 import { getLayoutData } from "@/lib/layoutData";
@@ -487,6 +488,7 @@ export default async function SiteLayout({ children }) {
       >
         {children}
       </PublicShell>
+      <script dangerouslySetInnerHTML={{ __html: UNSAFE_LINK_GUARD_SCRIPT }} />
       <style dangerouslySetInnerHTML={{ __html: safeRootVarsCss }} />
       {safeFooterScripts && <script dangerouslySetInnerHTML={{ __html: safeFooterScripts }} />}
       <Script

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { scrubUnsafeUrls } from "@/lib/security/urlScrub";
 import { writeFileSync, readFileSync, mkdirSync } from "fs";
 import path from "path";
 import { requireAuth } from "@/lib/apiAuth";
@@ -136,7 +137,7 @@ export async function POST(req) {
   if (forbidden) return forbidden;
 
   try {
-    const body = await req.json();
+    const body = scrubUnsafeUrls(await req.json());
     const displayName = (body.displayName || "").trim();
     if (!displayName) {
       return NextResponse.json({ error: "Display name is required" }, { status: 400 });

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { scrubUnsafeUrls } from "@/lib/security/urlScrub";
 import mongoose from "mongoose";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
@@ -22,7 +23,7 @@ export async function PUT(req, { params }) {
       return NextResponse.json({ error: "Testimonial item not found" }, { status: 404 });
     }
 
-    const body = await req.json();
+    const body = scrubUnsafeUrls(await req.json());
     if (body.quote !== undefined) doc.quote = String(body.quote).trim();
     if (body.name !== undefined) doc.name = String(body.name).trim();
     if (body.role !== undefined) doc.role = String(body.role).trim();

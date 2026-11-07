@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { scrubUnsafeUrls } from "@/lib/security/urlScrub";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Form from "@/models/Form";
@@ -87,7 +88,7 @@ export async function POST(req) {
 
   try {
     await connectDB();
-    const body = await req.json();
+    const body = scrubUnsafeUrls(await req.json());
     const name = String(body?.name || "").trim() || FORM_DEFAULTS.name;
     const providedSchema = body?.schema || body?.formSchema;
 

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { scrubUnsafeUrls } from "@/lib/security/urlScrub";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Menu from "@/models/Menu";
@@ -40,7 +41,7 @@ export async function POST(req) {
   if (session instanceof NextResponse) return session;
 
   try {
-    const body = await req.json();
+    const body = scrubUnsafeUrls(await req.json());
     const { name, items } = body;
     await connectDB();
     const itemsToSave = cloneMenuItems(items);

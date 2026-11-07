@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { scrubUnsafeUrls } from "@/lib/security/urlScrub";
 import { revalidatePath } from "next/cache";
 import { getToken } from "next-auth/jwt";
 import fs from "fs";
@@ -512,7 +513,7 @@ export async function PUT(req) {
   if (!isAdmin(token)) return NextResponse.json({ error: "Forbidden: Admin only" }, { status: 403 });
 
   try {
-    const body = await req.json();
+    const body = scrubUnsafeUrls(await req.json());
     const subscribeInBody = SUBSCRIBE_KEYS.filter((k) => body[k] !== undefined).length;
     if (subscribeInBody > 0) {
       console.log("[Subscribe 3] API PUT: received body (Subscribe keys)", SUBSCRIBE_KEYS.map((k) => ({ [k]: body[k] })).reduce((a, b) => ({ ...a, ...b }), {}));

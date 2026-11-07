@@ -14,6 +14,8 @@
  * 10. JSON-LD inline script breakout prevention (\u003c encoding)
  * 11. FAQ structured data and FAQ admin API sanitization
  * 12. Chatbot HTML-to-text conversion never parses unsanitized markup
+ * 13. Stored CMS links can't run script, however deeply nested or disguised
+ * 14. Every admin route that saves content scrubs links, and renderers do too
  */
 
 const fs = require("fs");
@@ -291,6 +293,77 @@ function runTests() {
       chatbot.includes("node.innerHTML = DOMPurify.sanitize(formattedHtml)"),
       "Chatbot sanitizes markup before parsing it into a detached node",
     );
+  }
+
+  console.log("\n[Test 13] Stored CMS links can't run script");
+  {
+    const { scrubUnsafeUrls, isUnsafeLink } = require("../lib/security/urlScrub.js");
+    const attacks = [
+      "javascript:alert(1)",
+      "JaVaScRiPt:alert(1)",
+      " javascript:alert(1)",
+      "java\tscript:alert(1)",
+      "java\nscript:alert(1)",
+      "\u0001javascript:alert(1)",
+      "javascript: alert(1)",
+      "vbscript:msgbox(1)",
+      "data:text/html,<script>alert(1)</script>",
+      "data:image/svg+xml,<svg onload=alert(1)>",
+    ];
+    for (const url of attacks) {
+      assert(isUnsafeLink(url) === true, `Blocks ${JSON.stringify(url)}`);
+    }
+    const safe = [
+      "/about-us", "#top", "https://mescotrust.org/a?b=c", "mailto:a@b.org", "tel:+912224441442",
+      "data:image/png;base64,AAAA", "javascript:void(0)", "javascript:void(0);", "javascript:;", "",
+    ];
+    for (const url of safe) {
+      assert(isUnsafeLink(url) === false, `Keeps ${JSON.stringify(url)}`);
+    }
+
+    const nested = scrubUnsafeUrls({
+      ctaBannerDonateLink: "javascript:alert(1)",
+      slides: [{ captionButtonUrl: "java\tscript:alert(1)", caption: "Hello" }],
+      columns: { left: { items: [{ href: "javascript:alert(1)" }] } },
+      unnamedField: "javascript:alert(document.cookie)",
+    });
+    assert(nested.ctaBannerDonateLink === "", "Top-level link field emptied");
+    assert(nested.slides[0].captionButtonUrl === "", "Disguised link in an array emptied");
+    assert(nested.slides[0].caption === "Hello", "Neighbouring text kept");
+    assert(nested.columns.left.items[0].href === "", "Deeply nested link emptied");
+    assert(nested.unnamedField === "", "Script caught in a field not named like a link");
+
+    const prose = {
+      heading: "JavaScript: The Basics",
+      title: "JavaScript: The Good Parts (2nd edition)",
+      linkText: "javascript: learn to code",
+      description: "We teach JavaScript: functions, loops and more.",
+    };
+    assert(scrubUnsafeUrls(prose) === prose, "Prose about JavaScript comes back untouched");
+
+    const when = new Date();
+    const untouched = { publishedAt: when, url: "/ok", order: 3, enabled: true, nothing: null };
+    assert(scrubUnsafeUrls(untouched) === untouched, "Clean data keeps its identity");
+    assert(scrubUnsafeUrls({ a: when }).a === when, "Dates are left alone");
+  }
+
+  console.log("\n[Test 14] Save routes and renderers use the link filter");
+  {
+    const fs = require("fs");
+    const path = require("path");
+    const read = (file) => fs.readFileSync(path.join(__dirname, "..", file), "utf8");
+    const saveRoutes = [
+      "admin/pages", "admin/pages/[id]", "admin/menus", "admin/menus/[name]",
+      "admin/components/[id]", "admin/site-components/[id]", "admin/appearance/[module]",
+      "admin/popups/[componentId]", "admin/teams/[id]", "admin/testimonial-items/[id]",
+      "admin/galleries/[id]", "admin/push-notifications/[id]", "theme", "theme/[componentId]",
+    ];
+    for (const route of saveRoutes) {
+      assert(/scrubUnsafeUrls\(await req\.json\(\)/.test(read(`app/api/${route}/route.js`)), `Save route scrubs links: ${route}`);
+    }
+    assert(/scrubUnsafeUrls\(block\.props/.test(read("components/cms/ComponentRenderer.js")), "Block renderer scrubs links");
+    assert(/scrubUnsafeUrls\(headerItems\)/.test(read("lib/layoutData.js")), "Layout data scrubs menus");
+    assert(/UNSAFE_LINK_GUARD_SCRIPT/.test(read("app/(site)/layout.js")), "Public layout includes the click guard");
   }
 
   console.log("\n==========================================================");

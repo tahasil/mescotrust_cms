@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { scrubUnsafeUrls } from "@/lib/security/urlScrub";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Menu from "@/models/Menu";
@@ -33,7 +34,7 @@ export async function PUT(req, { params }) {
     const resolved = await Promise.resolve(params);
     const name = resolved?.name;
     if (!name) return NextResponse.json({ error: "Menu name required" }, { status: 400 });
-    const body = await req.json();
+    const body = scrubUnsafeUrls(await req.json());
     const { items } = body;
     await connectDB();
     const itemsToSave = cloneMenuItems(items);

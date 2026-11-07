@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { scrubUnsafeUrls } from "@/lib/security/urlScrub";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Appearance from "@/models/Appearance";
@@ -68,7 +69,7 @@ export async function PUT(req, { params }) {
   }
 
   try {
-    const body = await req.json();
+    const body = scrubUnsafeUrls(await req.json());
     const bodyProps =
       body?.defaultProps && typeof body.defaultProps === "object"
         ? body.defaultProps

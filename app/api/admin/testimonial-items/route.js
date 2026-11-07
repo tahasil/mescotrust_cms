@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { scrubUnsafeUrls } from "@/lib/security/urlScrub";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import TestimonialItem from "@/models/TestimonialItem";
@@ -130,7 +131,7 @@ export async function POST(req) {
 
   try {
     await connectDB();
-    const body = await req.json();
+    const body = scrubUnsafeUrls(await req.json());
     const quote = String(body?.quote || "").trim();
     const name = String(body?.name || "").trim();
     if (!quote || !name) {

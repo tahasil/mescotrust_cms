@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { scrubUnsafeUrls } from "@/lib/security/urlScrub";
 import { readFileSync, writeFileSync, unlinkSync, existsSync, rmSync } from "fs";
 import path from "path";
 import { requireAuth } from "@/lib/apiAuth";
@@ -135,7 +136,7 @@ export async function PUT(req, { params }) {
   }
 
   try {
-    const body = await req.json();
+    const body = scrubUnsafeUrls(await req.json());
     const { displayName, global, order, position, enabled } = body;
 
     await connectDB();

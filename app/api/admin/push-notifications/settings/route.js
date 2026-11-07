@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { scrubUnsafeUrls } from "@/lib/security/urlScrub";
 import { connectDB } from "@/lib/db";
 import { requireAuth } from "@/lib/apiAuth";
 import PushNotificationSettings from "@/models/PushNotificationSettings";
@@ -53,7 +54,7 @@ export async function PUT(req) {
     const session = await requireAuth(req);
     if (session instanceof NextResponse) return session;
 
-    const body = await req.json();
+    const body = scrubUnsafeUrls(await req.json());
     await connectDB();
 
     const updateData = {

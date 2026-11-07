@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { scrubUnsafeUrls } from "@/lib/security/urlScrub";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
 import Gallery from "@/models/Gallery";
@@ -101,7 +102,7 @@ export async function POST(req) {
   try {
     await connectDB();
 
-    const body = await req.json();
+    const body = scrubUnsafeUrls(await req.json());
     const rawName = String(body?.name || "").trim();
     const rawType = String(body?.type || "image").trim().toLowerCase();
 

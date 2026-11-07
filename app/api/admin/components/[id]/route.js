@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { scrubUnsafeUrls } from "@/lib/security/urlScrub";
 import mongoose from "mongoose";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
@@ -47,7 +48,7 @@ export async function PUT(req, { params }) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
-    const body = await req.json();
+    const body = scrubUnsafeUrls(await req.json());
     const { name, displayName, type, category, baseComponent, propsSchema, defaultProps, layout, container, active } = body;
 
     await connectDB();

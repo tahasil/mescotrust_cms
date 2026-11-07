@@ -1,3 +1,4 @@
+import { scrubUnsafeUrls } from "@/lib/security/urlScrub";
 import ParagraphBlock from "@/components/cms/blocks/Paragraph";
 import HeadingBlock from "@/components/cms/blocks/Heading";
 import ImageBlock from "@/components/cms/blocks/Image";
@@ -224,7 +225,8 @@ export default function ComponentRenderer({
             typeof block.componentId === "object" &&
             block.componentId.baseComponent) ||
           "Paragraph";
-        let allProps = block.props || {};
+        // Every block renders through here, so this covers what's already stored.
+        let allProps = scrubUnsafeUrls(block.props || {});
         // Render blocks saved before LatestEvents1 was renamed to LatestNews.
         if (baseComponent === "LatestEvents1") {
           baseComponent = "LatestNews";

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { scrubUnsafeUrls } from "@/lib/security/urlScrub";
 import mongoose from "mongoose";
 import { requireAuth } from "@/lib/apiAuth";
 import { connectDB } from "@/lib/db";
@@ -66,7 +67,7 @@ export async function PUT(req, { params }) {
       return NextResponse.json({ error: "Team not found" }, { status: 404 });
     }
 
-    const body = await req.json();
+    const body = scrubUnsafeUrls(await req.json());
     const rawMembers = Array.isArray(body?.members) ? body.members : [];
     const members = rawMembers.map((m, idx) => ({
       _id: m?._id || new mongoose.Types.ObjectId(),
